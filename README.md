@@ -6,7 +6,7 @@ Personal workflow toolkit for Claude Code - commits, summaries, docs, invoicing.
 
 ```bash
 # Add marketplace
-claude plugin marketplace add git@github-personal:syafiq555/syafiqkit.git
+claude plugin marketplace add https://github.com/syafiq555/syafiqkit
 
 # Install plugin
 claude plugin install syafiqkit@syafiqkit
