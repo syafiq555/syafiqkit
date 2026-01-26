@@ -6,7 +6,10 @@
   "plugins": [
     {
       "name": "syafiqkit",
-      "source": ".",
+      "source": {
+        "type": "path",
+        "path": "./"
+      },
       "description": "Personal workflow toolkit - commits, summaries, docs, invoicing",
       "version": "1.0.0"
     }
