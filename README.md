@@ -2,6 +2,20 @@
 
 Personal workflow toolkit for Claude Code - commits, summaries, docs, invoicing.
 
+## Prerequisites
+
+Some skills depend on other plugins from the official marketplace:
+
+| Skill | Required Plugin |
+|-------|-----------------|
+| `/syafiqkit:done` | `code-simplifier@claude-plugins-official`, `feature-dev@claude-plugins-official` |
+
+Install dependencies first:
+```bash
+claude plugin install code-simplifier@claude-plugins-official
+claude plugin install feature-dev@claude-plugins-official
+```
+
 ## Installation
 
 ```bash
