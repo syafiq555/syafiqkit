@@ -1,0 +1,14 @@
+{
+  "name": "syafiqkit",
+  "owner": {
+    "name": "Syafiq"
+  },
+  "plugins": [
+    {
+      "name": "syafiqkit",
+      "source": ".",
+      "description": "Personal workflow toolkit - commits, summaries, docs, invoicing",
+      "version": "1.0.0"
+    }
+  ]
+}
