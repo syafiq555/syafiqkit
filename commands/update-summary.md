@@ -24,6 +24,7 @@ Review session for:
 - Bugs and solutions
 - Configuration/environment updates
 - Decisions with rationale
+- **Next steps** not completed this session
 
 ### 3. DRY Check
 
@@ -47,6 +48,7 @@ Review session for:
 | API Endpoints table | Append new only |
 | Gotchas table | Prepend with observable symptoms |
 | Checklist | Check completed items, add new |
+| Next Steps | Add uncompleted work (if any) |
 
 **Preserve**: Existing gotchas, completed checklists, historical decisions
 
@@ -58,7 +60,22 @@ Review session for:
 
 First column must contain: error code, log fragment, or user-visible symptom.
 
-### 6. Final Check
+### 6. Next Steps (if any)
+
+Only add if session has uncompleted planned work.
+
+```markdown
+## Next Steps
+- [ ] Brief actionable item — context why needed
+```
+
+**Rules**:
+- Skip section entirely if nothing pending
+- Only items discussed/planned but not done this session
+- Remove items once completed in future sessions
+- Keep actionable (starts with verb)
+
+### 7. Final Check
 - Count lines; if > 500, suggest condensing
 - Verify gotchas have symptoms
 - Confirm no content removed
