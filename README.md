@@ -4,13 +4,7 @@ Personal workflow toolkit for Claude Code - commits, summaries, docs, invoicing.
 
 ## Prerequisites
 
-Some skills depend on other plugins from the official marketplace:
-
-| Skill | Required Plugin |
-|-------|-----------------|
-| `/syafiqkit:done` | `code-simplifier@claude-plugins-official`, `feature-dev@claude-plugins-official` |
-
-Install dependencies first:
+`/syafiqkit:done` requires:
 ```bash
 claude plugin install code-simplifier@claude-plugins-official
 claude plugin install feature-dev@claude-plugins-official
@@ -19,10 +13,7 @@ claude plugin install feature-dev@claude-plugins-official
 ## Installation
 
 ```bash
-# Add marketplace
 claude plugin marketplace add https://github.com/syafiq555/syafiqkit
-
-# Install plugin
 claude plugin install syafiqkit@syafiqkit
 ```
 
@@ -30,67 +21,36 @@ claude plugin install syafiqkit@syafiqkit
 
 | Command | Description |
 |---------|-------------|
-| `/syafiqkit:commit` | Generate commit message from staged changes |
-| `/syafiqkit:read-summary` | Load existing task summary for context |
-| `/syafiqkit:write-summary` | Create new task documentation |
-| `/syafiqkit:update-summary` | Append findings to existing summary |
-| `/syafiqkit:update-claude-docs` | Capture patterns/gotchas to CLAUDE.md |
+| `/commit` | Generate commit message from staged changes |
+| `/read-summary` | Load existing task summary for context |
+| `/write-summary` | Create new task documentation |
+| `/update-summary` | Append findings to existing summary |
+| `/update-claude-docs` | Capture patterns/gotchas to CLAUDE.md |
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
-| `/syafiqkit:done` | Post-task cleanup - simplify code, review, update docs |
-| `/syafiqkit:commit-invoice-generator` | Generate invoice line items from git commits |
-| `/syafiqkit:skill-manager` | Create/update/list global skills |
+| `/done` | Post-task cleanup - simplify, review, update docs |
+| `/commit-invoice-generator` | Generate invoice line items from git commits |
+| `/skill-manager` | Create/update/list global skills |
 
-## Usage Examples
+## Usage
 
-### After completing a feature
-```
-/syafiqkit:done
-```
-Runs code simplifier, updates summary, reviews code, fixes issues, updates CLAUDE.md.
+```bash
+# After completing a feature
+/done
 
-### Starting a session
-```
-/syafiqkit:read-summary auth/login
-```
-Loads `tasks/auth/login/current.md` for context.
+# Starting a session
+/read-summary auth/login
 
-### Generate invoice from commits
-```
-/syafiqkit:commit-invoice-generator --since="2025-01-01" --until="2025-01-31"
+# Generate invoice
+/commit-invoice-generator --since="2025-01-01" --until="2025-01-31"
 ```
 
-## File Structure
-
-```
-syafiqkit/
-├── .claude-plugin/
-│   ├── plugin.json
-│   └── marketplace.json
-├── commands/
-│   ├── commit.md
-│   ├── read-summary.md
-│   ├── write-summary.md
-│   ├── update-summary.md
-│   └── update-claude-docs.md
-└── skills/
-    ├── done/
-    ├── commit-invoice-generator/
-    └── skill-manager/
-```
-
-## Updating
+## Updating / Uninstalling
 
 ```bash
 claude plugin update syafiqkit@syafiqkit
-```
-
-## Uninstalling
-
-```bash
 claude plugin uninstall syafiqkit@syafiqkit
-claude plugin marketplace remove syafiqkit
 ```

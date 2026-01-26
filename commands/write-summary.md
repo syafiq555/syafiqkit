@@ -3,31 +3,24 @@ description: Create comprehensive task summary documentation. Use when starting 
 argument-hint: "[domain/feature or full path]"
 ---
 
-Create comprehensive module documentation that balances human readability with token efficiency.
+Create task documentation for humans and LLM agents.
 
-File Path:
-- If argument provided: Use as-is (supports full paths)
-- If no argument: Infer from conversation → tasks/<domain>/<feature>/current.md
+## Path Resolution
 
-Requirements:
-1. Document all discussion points from this session
-2. Include relevant file paths and code locations
-3. Capture lessons learned and key decisions made
-4. Add conclusions and next steps
-5. Use mermaid diagrams where they save tokens over prose explanations
-6. Write incrementally section-by-section (not all at once)
+| $ARGUMENTS | Target |
+|------------|--------|
+| Provided | Use as-is |
+| Empty | Infer → `tasks/<domain>/<feature>/current.md` |
+| Exists | Append/update relevant parts |
 
-Context:
-- Target audience: Human developers who need to understand the work + LLM agents needing context
-- Keep content lean but complete enough for future reference
-- Follow standard task documentation conventions
-- If file exists, append new section or update relevant parts
+## Requirements
 
-The documentation should tell the story of what was built/discussed in a scannable format for both humans and AI agents.
-
-Tool Usage:
-- Use `@` prefix for file references in requirements
-- Cross-reference related task docs when detecting shared patterns
+1. Document discussion points from session
+2. Include file paths and code locations
+3. Capture decisions with rationale
+4. Add next steps
+5. Write incrementally (section-by-section)
+6. Use tables over prose; mermaid where it saves tokens
 
 ## Output Structure
 
@@ -35,19 +28,17 @@ Tool Usage:
 # [Feature Name]
 
 ## Overview
-Brief description of what was built/discussed.
+Brief description.
 
 ## Key Decisions
 | Decision | Rationale |
 |----------|-----------|
 
 ## Implementation
-- File paths and code locations
-- Key patterns used
+- File paths and patterns
 
 ## Lessons Learned
 - Gotchas encountered
-- What worked well
 
 ## Next Steps
 - [ ] Pending items
