@@ -10,11 +10,16 @@ Extract reusable knowledge from the session into CLAUDE.md files.
 | Signal | Category | Target |
 |--------|----------|--------|
 | Claude struggled / repeated attempts | Gotcha | `app/CLAUDE.md` |
-| User correction | Restriction | Root `CLAUDE.md` |
+| User correction (workflow/behavior) | **Guidance** | `~/.claude/CLAUDE.md` |
+| User correction (technical fix) | Gotcha | Relevant `CLAUDE.md` |
 | Friction → Fix | Gotcha | Relevant `CLAUDE.md` |
 | Pattern used 2+ times | Pattern | `CLAUDE.md` |
-| Environment surprise (MSYS2, paths) | Gotcha | Global `~/.claude/CLAUDE.md` |
+| Environment surprise (MSYS2, paths) | Gotcha | `~/.claude/CLAUDE.md` |
 | Tool mismatch | Workflow | Root `CLAUDE.md` |
+
+**Gotcha vs Guidance:**
+- **Gotcha**: Error/symptom → technical fix (e.g., "500 error" → "add eager load")
+- **Guidance**: Behavioral rule for future sessions (e.g., "update related docs means search all domains")
 
 **User corrections to capture:**
 - "u dont need to..." / "you don't have to..."
@@ -40,9 +45,19 @@ Extract reusable knowledge from the session into CLAUDE.md files.
 | Backend-only | `app/CLAUDE.md` |
 | Frontend-only | `resources/js/CLAUDE.md` |
 | Domain-specific | `app/Domains/{Domain}/CLAUDE.md` |
-| Feature-specific | `tasks/{domain}/{feature}/current.md` |
 
-**Litmus test**: "Does another domain need this?" No = task docs
+**What goes where:**
+
+| Content Type | Target | Example |
+|--------------|--------|---------|
+| Gotcha (error → fix) | `CLAUDE.md` files | "Migration FK fails" → `app/CLAUDE.md` |
+| Guidance (future behavior) | `~/.claude/CLAUDE.md` | "Task doc behavior rules" |
+| Implementation details | Task docs | API endpoints, files created |
+| User workflow preferences | `~/.claude/CLAUDE.md` | "Update related docs means..." |
+
+**Litmus test**:
+- "Will this prevent Claude from repeating a mistake?" → CLAUDE.md
+- "Is this session-specific implementation detail?" → Task docs
 
 ## 3. DRY Check
 
@@ -62,6 +77,10 @@ Search target + parent CLAUDE.md files for duplicates.
 | Verbose code blocks | `❌/✅` pairs |
 | Gotcha without symptom | `Error | Issue | Fix` |
 | Section without anchor | Add `{#anchor}` |
+| Abstract rules | Concrete bad/good examples |
+| "Include context" (vague) | `"Read tasks/x/current.md first. Then..."` (specific) |
+
+**For agent-related rules**: Include WHY, not just WHAT. Agents don't inherit CLAUDE.md context - rules for spawning agents need explanation so the spawning Claude understands the constraint.
 
 ## 5. Execute
 

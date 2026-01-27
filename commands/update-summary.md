@@ -13,6 +13,16 @@ Incrementally update task summaries based on recent session work.
 | Empty | Scan conversation → `tasks/<domain>/<feature>/current.md` |
 | File missing | Abort: "No summary found. Use `/write-summary` first." |
 
+## Multi-Domain Sessions
+
+Sessions often touch multiple domains. After updating the primary target:
+
+1. **Search related docs**: `Glob tasks/**/current.md` to find other domains touched
+2. **Update each relevant doc** with domain-specific changes
+3. **Cross-reference**: Link between docs that share context
+
+Example: Participant enrollment work touches `training/participant/`, `training/jd14/`, `amendments/`
+
 ## Workflow
 
 ### 1. Read Existing Summary
