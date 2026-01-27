@@ -20,7 +20,8 @@ Preserve session context in task docs:
 1. Check if `tasks/{domain}/{feature}/current.md` exists for this feature
 2. **If exists**: Run `/update-summary` to append new findings
 3. **If not exists**: Run `/write-summary` to create initial documentation
-4. **Never skip** - every implementation needs documented context for future sessions
+4. **Capture next steps**: Any planned but uncompleted work from this session (required if pending work exists)
+5. **Never skip** - every implementation needs documented context for future sessions
 - Wait for skill completion, then **immediately continue to Step 3**
 
 ### Step 3: Code Reviewer
