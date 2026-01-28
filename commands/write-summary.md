@@ -22,10 +22,46 @@ Create task documentation for humans and LLM agents.
 5. Write incrementally (section-by-section)
 6. Use tables over prose; mermaid where it saves tokens
 
+## LLM-CONTEXT Block (Required)
+
+Every `current.md` must start with an LLM-CONTEXT block:
+
+```markdown
+<!--LLM-CONTEXT
+Purpose: 1-line summary
+Key files: comma-separated list
+Gotchas: critical gotcha if any
+Related: tasks/shared/*.md, other domain docs
+-->
+```
+
+**Related field**: Cross-reference shared patterns and related domain docs so agents can discover connections.
+
+## Shared Patterns Check
+
+Before writing, check if content belongs in shared docs:
+
+| Content Type | Target |
+|--------------|--------|
+| Cross-domain gotcha (appears 3+ domains) | `tasks/shared/gotchas-registry.md` |
+| B2C/B2B payment detection | `tasks/shared/payment-type-detection.md` |
+| Brand colors, email styling | `tasks/shared/colors-and-theme.md` |
+| Domain-specific pattern | Keep in domain `current.md` |
+
+**Rule**: Add to shared doc AND reference from domain doc (not either/or).
+
 ## Output Structure
 
 ```markdown
 # [Feature Name]
+
+<!--LLM-CONTEXT
+Purpose: Brief description
+Key files: app/..., resources/js/...
+Related: tasks/shared/gotchas-registry.md (if gotchas), other related docs
+-->
+
+**Status**: [emoji] [state] | **Updated**: [date]
 
 ## Overview
 Brief description.
@@ -37,9 +73,21 @@ Brief description.
 ## Implementation
 - File paths and patterns
 
-## Lessons Learned
-- Gotchas encountered
+## Gotchas
+| Error/Symptom | Fix |
+|---------------|-----|
+
+## Related
+- `tasks/shared/...` - Cross-cutting patterns
+- `archive/...` - Historical details (if applicable)
 
 ## Next Steps
-- [ ] Pending items
+- [ ] Pending items (only if incomplete work)
 ```
+
+## Archive Pattern
+
+For completed bug fixes or historical content:
+1. Keep patterns/gotchas in `current.md` (timeless)
+2. Move SQL scripts, specific IDs, session logs to `archive/`
+3. Reference archive: `See archive/production-fixes-YYYY-MM-DD.md for details`

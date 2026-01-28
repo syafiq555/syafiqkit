@@ -45,18 +45,21 @@ Extract reusable knowledge from the session into CLAUDE.md files.
 | Backend-only | `app/CLAUDE.md` |
 | Frontend-only | `resources/js/CLAUDE.md` |
 | Domain-specific | `app/Domains/{Domain}/CLAUDE.md` |
+| **Cross-domain gotcha** | `tasks/shared/gotchas-registry.md` |
 
 **What goes where:**
 
 | Content Type | Target | Example |
 |--------------|--------|---------|
 | Gotcha (error → fix) | `CLAUDE.md` files | "Migration FK fails" → `app/CLAUDE.md` |
+| Gotcha in 3+ domains | `tasks/shared/gotchas-registry.md` | "BackedEnum cast error" |
 | Guidance (future behavior) | `~/.claude/CLAUDE.md` | "Task doc behavior rules" |
 | Implementation details | Task docs | API endpoints, files created |
 | User workflow preferences | `~/.claude/CLAUDE.md` | "Update related docs means..." |
 
 **Litmus test**:
 - "Will this prevent Claude from repeating a mistake?" → CLAUDE.md
+- "Does this gotcha appear in multiple domains?" → `tasks/shared/gotchas-registry.md`
 - "Is this session-specific implementation detail?" → Task docs
 
 ## 3. DRY Check

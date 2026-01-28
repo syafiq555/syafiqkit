@@ -21,7 +21,9 @@ Preserve session context in task docs:
 2. **If exists**: Run `/update-summary` to append new findings
 3. **If not exists**: Run `/write-summary` to create initial documentation
 4. **Capture next steps**: Any planned but uncompleted work from this session (required if pending work exists)
-5. **Never skip** - every implementation needs documented context for future sessions
+5. **Cross-domain check**: If session touched multiple domains, update each relevant `current.md`
+6. **Shared patterns check**: If gotcha appears in 3+ domains, add to `tasks/shared/gotchas-registry.md`
+7. **Never skip** - every implementation needs documented context for future sessions
 - Wait for skill completion, then **immediately continue to Step 3**
 
 ### Step 3: Code Reviewer
@@ -39,6 +41,9 @@ If no issues found:
 
 ### Step 5: Update CLAUDE Docs
 Run `/update-claude-docs` skill to capture new patterns/gotchas:
+- Route cross-domain gotchas to `tasks/shared/gotchas-registry.md`
+- Route behavioral guidance to `~/.claude/CLAUDE.md`
+- Route technical gotchas to relevant `CLAUDE.md` files
 - Wait for skill completion, then **output final summary**
 
 ## Output (Required)
@@ -49,8 +54,15 @@ Run `/update-claude-docs` skill to capture new patterns/gotchas:
 | Step | Status | Findings |
 |------|--------|----------|
 | 1. Code Simplifier | ✅/⚠️ | [brief findings] |
-| 2. Update Summary | ✅ | [entries added] |
+| 2. Update Summary | ✅ | [entries added] + [shared docs updated if any] |
 | 3. Code Reviewer | ✅/⚠️ | [issues found or "No issues"] |
 | 4. Fix Issues | ✅/➖ | [fixes applied or "N/A"] |
 | 5. Update CLAUDE Docs | ✅ | [docs updated or "No updates needed"] |
 ```
+
+## Archive Check (For Bug Fixes)
+
+If session was a completed bug fix:
+1. Keep patterns/gotchas in `current.md` (timeless)
+2. Move SQL scripts, specific IDs, session logs to `archive/` subfolder
+3. Reference: `See archive/production-fixes-YYYY-MM-DD.md for details`

@@ -19,9 +19,21 @@ Sessions often touch multiple domains. After updating the primary target:
 
 1. **Search related docs**: `Glob tasks/**/current.md` to find other domains touched
 2. **Update each relevant doc** with domain-specific changes
-3. **Cross-reference**: Link between docs that share context
+3. **Cross-reference**: Link between docs via LLM-CONTEXT `Related:` field
+4. **Shared patterns**: If gotcha appears in 3+ domains, add to `tasks/shared/gotchas-registry.md`
 
 Example: Participant enrollment work touches `training/participant/`, `training/jd14/`, `amendments/`
+
+## Archive vs Delete
+
+| Content | Action |
+|---------|--------|
+| Production SQL scripts, specific IDs | Move to `archive/` |
+| Session logs, user stories | Move to `archive/` |
+| Empty placeholder files | Delete |
+| Timeless patterns/gotchas | Keep in `current.md` |
+
+**Rule**: Archive preserves incident learning; only delete truly empty content.
 
 ## Workflow
 
@@ -41,13 +53,19 @@ Review session for:
 | Question | Action |
 |----------|--------|
 | In another task doc? | Cross-reference, skip duplication |
-| Shared pattern (auth, pagination)? | Add to `CLAUDE.md`, reference here |
+| Gotcha in 3+ domains? | Add to `tasks/shared/gotchas-registry.md` AND domain doc |
+| Shared pattern (payment type, colors)? | Add to `tasks/shared/*.md`, reference here |
 | Appears in 2+ features? | Designate canonical doc, cross-ref others |
 
 **Cross-reference format:**
 ```markdown
 > See [`path/to/file.md#anchor`](../path/to/file.md#anchor) — [1-line summary]
 ```
+
+**Shared docs to check:**
+- `tasks/shared/gotchas-registry.md` - Cross-domain gotchas
+- `tasks/shared/payment-type-detection.md` - B2C/B2B patterns
+- `tasks/shared/colors-and-theme.md` - Brand colors
 
 ### 4. Section Update Rules
 
