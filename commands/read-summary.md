@@ -13,9 +13,6 @@ argument-hint: "[domain/feature or full path to current.md]"
 3. If Related mentions `tasks/shared/*.md`, read those too
 4. Check for `archive/` subfolder (historical context, optional)
 
-**Shared docs to be aware of:**
-- `tasks/shared/gotchas-registry.md` - Cross-domain gotchas
-- `tasks/shared/payment-type-detection.md` - B2C/B2B patterns
-- `tasks/shared/colors-and-theme.md` - Brand colors
+**Shared docs**: `tasks/shared/*.md`
 
 Read and understand $ARGUMENTS (plus any Related docs mentioned), do not do anything, wait for my next instruction.

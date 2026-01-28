@@ -39,16 +39,9 @@ Related: tasks/shared/*.md, other domain docs
 
 ## Shared Patterns Check
 
-Before writing, check if content belongs in shared docs:
+Before writing, check if content belongs in `tasks/shared/`:
 
-| Content Type | Target |
-|--------------|--------|
-| Cross-domain gotcha (appears 3+ domains) | `tasks/shared/gotchas-registry.md` |
-| B2C/B2B payment detection | `tasks/shared/payment-type-detection.md` |
-| Brand colors, email styling | `tasks/shared/colors-and-theme.md` |
-| Domain-specific pattern | Keep in domain `current.md` |
-
-**Rule**: Add to shared doc AND reference from domain doc (not either/or).
+**Rule**: Add to shared AND reference from domain doc.
 
 ## Output Structure
 

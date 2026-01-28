@@ -62,10 +62,7 @@ Review session for:
 > See [`path/to/file.md#anchor`](../path/to/file.md#anchor) — [1-line summary]
 ```
 
-**Shared docs to check:**
-- `tasks/shared/gotchas-registry.md` - Cross-domain gotchas
-- `tasks/shared/payment-type-detection.md` - B2C/B2B patterns
-- `tasks/shared/colors-and-theme.md` - Brand colors
+**Shared docs**: `tasks/shared/*.md`
 
 ### 4. Section Update Rules
 
