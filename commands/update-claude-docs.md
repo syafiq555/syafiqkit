@@ -7,6 +7,8 @@ Extract reusable knowledge from the session into CLAUDE.md files.
 
 ## 1. Session Scan
 
+**⚠️ CRITICAL: Scan for BOTH corrections AND patterns. Don't skip the Pattern Check below.**
+
 | Signal | Category | Target |
 |--------|----------|--------|
 | Claude struggled / repeated attempts | Gotcha | `app/CLAUDE.md` |
@@ -17,10 +19,14 @@ Extract reusable knowledge from the session into CLAUDE.md files.
 | Environment surprise (MSYS2, paths) | Gotcha | `~/.claude/CLAUDE.md` |
 | Tool mismatch | Workflow | Root `CLAUDE.md` |
 | **Claude ignored existing docs** | **Doc Refinement** | Where it was documented |
+| **New table/model with relationships** | **Pattern** | See [Pattern Detection](#pattern-detection) |
+| **Reusable helper methods added** | **Pattern** | See [Pattern Detection](#pattern-detection) |
+| **Multi-X problem solved** (tenant/store/etc) | **Pattern** | Root `CLAUDE.md` |
 
-**Gotcha vs Guidance:**
+**Gotcha vs Guidance vs Pattern:**
 - **Gotcha**: Error/symptom → technical fix (e.g., "500 error" → "add eager load")
 - **Guidance**: Behavioral rule for future sessions (e.g., "update related docs means search all domains")
+- **Pattern**: Reusable architectural solution for recurring problems (e.g., "per-store mapping table for multi-tenant data")
 
 **User corrections to capture:**
 - "u dont need to..." / "you don't have to..."
@@ -32,12 +38,49 @@ Extract reusable knowledge from the session into CLAUDE.md files.
 
 **Threshold**: Would removing this cause Claude to repeat the mistake? If yes, capture it.
 
+**⚠️ CRITICAL DECISION TREE for user corrections:**
+```
+User corrected Claude → Check: Is this already documented?
+├── NOT documented → ADD new entry
+└── IS documented → Did Claude follow it?
+    ├── YES, followed → No update (working as intended)
+    └── NO, ignored → REFINE the doc (see §3 Effectiveness Audit)
+                      ❌ WRONG: "Already documented, no update needed"
+                      ✅ RIGHT: "Documented but ignored → refine entry"
+```
+
+**MANDATORY: After scanning user corrections, ALWAYS check pattern signals:**
+
+```
+## Pattern Check (REQUIRED)
+| Pattern Signal | Present? | Action |
+|----------------|----------|--------|
+| New table/model created | ✅/❌ | Document pattern if ✅ |
+| Helper methods added (get/set/has) | ✅/❌ | Document usage pattern if ✅ |
+| Multi-X problem solved | ✅/❌ | Document to Root CLAUDE.md if ✅ |
+| Fallback logic implemented | ✅/❌ | Document migration path if ✅ |
+```
+
 **Scan results format:**
 ```
-| Message | Signal Type | Action |
-|---------|-------------|--------|
-| "u created X without using artisan" | Wrong tooling | Add to scaffolding |
-| "i already said use Valet paths" | Ignored docs | Refine existing entry |
+| Message | Signal Type | Documented? | Action |
+|---------|-------------|-------------|--------|
+| "u created X without using artisan" | Wrong tooling | No | Add to scaffolding |
+| "i already said use Valet paths" | Ignored docs | Yes, ignored | REFINE existing entry |
+| "please no cd, use powershell" | Environment | Yes, ignored | REFINE: add specific tool to list |
+| [NEW TABLE: product_variant_marketplace_ids] | Pattern signal | No | See {#pattern-detection} |
+```
+
+**Example - "Already documented" is NOT an excuse:**
+```
+Session: Claude used `cd /project && composer require X`
+User: "please no cd, also need powershell"
+Check ~/.claude/CLAUDE.md → Rule exists: "NO `cd`" at line 26
+
+❌ WRONG conclusion: "Rule exists, no update needed"
+✅ RIGHT conclusion: "Rule exists but Claude ignored it"
+   → Refine: Is `composer` explicitly listed with npm/shadcn? No
+   → Action: Add `composer` to the PowerShell gotcha row
 ```
 
 ## 2. Route to Target
@@ -64,6 +107,56 @@ Extract reusable knowledge from the session into CLAUDE.md files.
 - "Will this prevent Claude from repeating a mistake?" → CLAUDE.md
 - "Does this gotcha appear in multiple domains?" → `tasks/shared/gotchas-registry.md`
 - "Is this session-specific implementation detail?" → Task docs
+- "Could a new developer reuse this solution?" → Pattern section in CLAUDE.md
+
+## 2.5 Pattern Detection {#pattern-detection}
+
+**When to capture a pattern** (ask these questions):
+
+| Question | If YES → Capture |
+|----------|------------------|
+| Did we solve a problem that could recur? | ✅ Document the solution structure |
+| Did we create a new model/table/relationship? | ✅ Document when to use this pattern |
+| Did we implement a reusable helper method? | ✅ Document the method signature + usage |
+| Could another feature need the same approach? | ✅ Document as named pattern |
+| Would a new team member ask "how do we do X"? | ✅ Document with code example |
+
+**Pattern signals in session:**
+- Created new table with specific structure (mapping tables, pivot tables)
+- Added helper methods to models (`getX()`, `setX()`, `hasX()`)
+- Implemented service method that abstracts complexity
+- Solved multi-tenant / multi-store / multi-marketplace problem
+- Built something with fallback logic (new → legacy)
+
+**Pattern documentation format:**
+
+```markdown
+### Pattern Name {#pattern-anchor}
+
+**Problem**: [What recurring problem does this solve?]
+
+**Solution**: [Brief description]
+
+```php
+// Model: relationship + helpers
+public function relatedItems(): HasMany { ... }
+public function getItemForContext(Context $ctx): ?Item { ... }
+public function setItemForContext(Context $ctx, $value): void { ... }
+```
+
+**Table**: `table_name` with unique constraint `[col1, col2]`
+
+**When to use**: [Bullet points of scenarios]
+```
+
+**Pattern routing:**
+
+| Pattern Scope | Target |
+|---------------|--------|
+| Project-wide (multi-tenant, marketplace) | Root `CLAUDE.md` |
+| Backend services/models | `app/CLAUDE.md` |
+| Frontend components | `resources/js/CLAUDE.md` |
+| Domain-specific | `tasks/{domain}/current.md` |
 
 ## 3. DRY Check + Effectiveness Audit
 
@@ -145,12 +238,16 @@ if (documented_but_ignored) {
 ```
 Updated: [file-path]
 - [N] new entries to {#section}
+- [N] patterns documented to {#section}
 - [N] entries refined (was ignored previously)
+
+Patterns captured:
+- [Pattern Name]: [Problem it solves] → {#anchor}
 
 Refinements made:
 - [Section]: [Weak rule] → [Strong rule with examples]
 
-Key additions: [Most important pattern]
+Key additions: [Most important pattern/gotcha]
 ```
 
 Or:
@@ -162,6 +259,18 @@ Updated: [file-path]
 ```
 
 Or: `No updates needed. Reason: [Already documented AND followed / Feature-specific only]`
+
+**Pattern capture example:**
+```
+Updated: CLAUDE.md
+- 1 pattern documented to {#per-store-mapping}
+
+Patterns captured:
+- Per-Store Mapping: Multi-store data isolation → {#per-store-mapping}
+  - Table: product_variant_marketplace_ids
+  - Methods: getMarketplaceSkuId($store), setMarketplaceSkuId($store, $id)
+  - Use when: Same entity needs different IDs per store/tenant
+```
 
 ---
 

@@ -13,12 +13,68 @@ Update task summaries to reflect session outcomes.
 | Empty | Scan conversation → `tasks/<domain>/<feature>/current.md` |
 | File missing | Abort: "No summary found. Use `/write-summary` first." |
 
+## ⚠️ CRITICAL: Multi-Domain Check (BLOCKING STEP)
+
+**You MUST output this scan FIRST, before any edits:**
+
+```markdown
+## Multi-Domain Scan
+
+**Existing docs found:**
+- tasks/training/participant/current.md
+- tasks/training/jd14/current.md
+- tasks/training/certificate/current.md
+- ...
+
+**Files modified this session:**
+| File | Domain |
+|------|--------|
+| app/Jobs/GenerateCertificatePdfJob.php | training/certificate |
+| app/Domains/Tenant/Models/Certificate.php | training/certificate |
+| ... | ... |
+
+**Domains to update:**
+- PRIMARY: tasks/training/certificate/current.md
+- SECONDARY: tasks/training/participant/current.md (certificates relate to participants)
+- SECONDARY: tasks/training/jd14/current.md (both use training context)
+
+**Action plan:**
+1. Update PRIMARY with full changes
+2. Add cross-reference to SECONDARY docs
+3. Check shared gotchas registry
+```
+
+❌ **WRONG behavior (what Claude did before):**
+```
+1. Read primary doc
+2. Make small edit
+3. Output "Updated: tasks/.../current.md"
+4. Skip secondary domains entirely
+```
+
+✅ **RIGHT behavior:**
+```
+1. OUTPUT multi-domain scan table (show your work)
+2. Read ALL affected docs
+3. Update PRIMARY with full changes
+4. Update SECONDARY with cross-references
+5. Output structured report showing ALL updates
+```
+
+**WHY secondary docs matter:**
+- User finds stale cross-references in related docs
+- User expects "certificate" mentioned in "participant" doc if they're related
+- User grepped "Related:" and found missing links
+- Future sessions miss context because links are one-way
+
+---
+
 ## Workflow
 
 ### 1. Read Primary Target
 Use Read tool on target file before making changes.
 
-### 2. Scan Session for All Touched Domains
+### 2. Scan Session for All Touched Domains (MANDATORY)
 
 Review the conversation for:
 - File paths mentioned (extract domain from `app/Domains/{Domain}/`)
@@ -168,8 +224,28 @@ Related:
 Use strikethrough for newly completed items to show progress.
 
 ## Output Format
+
+**⚠️ Output MUST start with the multi-domain scan, then updates:**
+
 ```
-Updated task summaries:
+## Multi-Domain Scan
+
+Existing docs: 12 found (tasks/**/current.md)
+
+Files modified this session:
+| File | Domain |
+|------|--------|
+| app/Jobs/X.php | training/certificate |
+| resources/js/domains/training/... | training/certificate |
+
+Domains to update:
+- PRIMARY: training/certificate
+- SECONDARY: training/participant (Related: field links)
+- SKIPPED: training/jd14 (no changes relevant)
+
+---
+
+## Updates
 
 Primary:
 ✓ tasks/training/participant/current.md (234 lines → 218 lines)
@@ -228,8 +304,14 @@ Removed:
 - 4 completed next steps
 - Temporary manual calculation workaround
 
-No related domains touched this session.
+Multi-domain scan: ✓ No other domains affected (checked: amendments, training)
 ```
+
+**⚠️ REQUIRED**: Output must ALWAYS include one of:
+- `Secondary: [list of secondary docs updated]`
+- `Multi-domain scan: ✓ No other domains affected (checked: X, Y, Z)`
+
+Never output just the primary update without confirming secondary check was done.
 
 ## Troubleshooting
 
