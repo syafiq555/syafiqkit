@@ -1,9 +1,9 @@
 ---
-description: Append new findings to existing task summary. Use after completing work on an existing feature, fixing bugs, or when session added new insights to document.
+description: Update existing task summaries based on recent session work. Appends new findings, updates status, removes completed items, and refactors as needed.
 argument-hint: "[optional: domain/feature or full path]"
 ---
 
-Incrementally update task summaries based on recent session work.
+Update task summaries to reflect session outcomes.
 
 ## Path Resolution
 
@@ -13,99 +13,230 @@ Incrementally update task summaries based on recent session work.
 | Empty | Scan conversation → `tasks/<domain>/<feature>/current.md` |
 | File missing | Abort: "No summary found. Use `/write-summary` first." |
 
-## Multi-Domain Sessions
-
-Sessions often touch multiple domains. After updating the primary target:
-
-1. **Search related docs**: `Glob tasks/**/current.md` to find other domains touched
-2. **Update each relevant doc** with domain-specific changes
-3. **Cross-reference**: Link between docs via LLM-CONTEXT `Related:` field
-4. **Shared patterns**: If gotcha appears in 3+ domains, add to `tasks/shared/gotchas-registry.md`
-
-Example: Participant enrollment work touches `training/participant/`, `training/jd14/`, `amendments/`
-
-## Archive vs Delete
-
-| Content | Action |
-|---------|--------|
-| Production SQL scripts, specific IDs | Move to `archive/` |
-| Session logs, user stories | Move to `archive/` |
-| Empty placeholder files | Delete |
-| Timeless patterns/gotchas | Keep in `current.md` |
-
-**Rule**: Archive preserves incident learning; only delete truly empty content.
-
 ## Workflow
 
-### 1. Read Existing Summary
+### 1. Read Primary Target
 Use Read tool on target file before making changes.
 
-### 2. Identify New Content
-Review session for:
-- API endpoints, database changes, file modifications
-- Bugs and solutions
-- Configuration/environment updates
-- Decisions with rationale
-- **Next steps** not completed this session
+### 2. Scan Session for All Touched Domains
 
-### 3. DRY Check
+Review the conversation for:
+- File paths mentioned (extract domain from `app/Domains/{Domain}/`)
+- Task doc references (`@tasks/{domain}/{feature}/`)
+- Explicit domain mentions in user messages
+- Database tables touched (map to domains via naming)
+
+Build list of affected domains. Example:
+```
+Session touched:
+- training/participant/ (primary - enrollment fixes)
+- training/jd14/ (secondary - duplicate check)  
+- amendments/ (secondary - status transition)
+```
+
+### 3. Identify Changes Per Domain
+
+For each domain, extract:
+- **New content**: API endpoints, database changes, file modifications, bugs/solutions
+- **Status changes**: Features completed, blockers resolved, timeline shifts
+- **Completed work**: Checklist items done, next steps finished
+- **Obsolete content**: Workarounds replaced, temporary fixes removed
+- **Decisions**: New decisions with rationale
+
+### 4. DRY Check (Before Writing)
 
 | Question | Action |
 |----------|--------|
 | In another task doc? | Cross-reference, skip duplication |
-| Gotcha in 3+ domains? | Add to `tasks/shared/gotchas-registry.md` AND domain doc |
-| Shared pattern (payment type, colors)? | Add to `tasks/shared/*.md`, reference here |
-| Appears in 2+ features? | Designate canonical doc, cross-ref others |
+| Gotcha in 3+ domains? | Add to `tasks/shared/gotchas-registry.md` AND each domain doc |
+| Shared pattern (payment type, colors)? | Add to `tasks/shared/*.md`, reference in domains |
+| Appears in 2+ features within same domain? | Designate canonical doc, cross-ref others |
 
 **Cross-reference format:**
 ```markdown
 > See [`path/to/file.md#anchor`](../path/to/file.md#anchor) — [1-line summary]
 ```
 
-**Shared docs**: `tasks/shared/*.md`
+### 5. Update Each Domain Doc
 
-### 4. Section Update Rules
+For primary + all secondary domains:
 
-| Section | Strategy |
-|---------|----------|
-| Status line | Update emoji, timeline |
-| Decisions table | Prepend new row (recent first) |
-| API Endpoints table | Append new only |
-| Gotchas table | Prepend with observable symptoms |
-| Checklist | Check completed items, add new |
-| Next Steps | Add uncompleted work (if any) |
+1. **Read existing summary** (if not already read)
+2. **Apply updates** using section rules below
+3. **Add cross-references** to related domains
+4. **Note shared gotchas** (will consolidate in step 6)
 
-**Preserve**: Existing gotchas, completed checklists, historical decisions
+**Section Update Rules:**
 
-### 5. Gotcha Format (Required)
+| Section | Add | Update | Remove |
+|---------|-----|--------|--------|
+| Status line | - | Emoji, timeline, blockers | - |
+| LLM-CONTEXT → Related | Cross-refs to other domains | - | Dead links |
+| Decisions table | Prepend new rows | - | - |
+| API Endpoints table | Append new endpoints | Modify changed endpoints | Removed endpoints |
+| Database Changes | New migrations/columns | Schema modifications | - |
+| Gotchas table | Prepend new with symptoms | Enhance weak entries | Obsolete workarounds |
+| Implementation Checklist | New tasks | - | Check off completed |
+| Next Steps | New planned work | - | Completed items |
+| Files Created/Modified | New files | Updated files | - |
 
+**Operations:**
+
+- **Add**: New information from this session
+- **Update**: Existing content that changed (status, endpoints, schema)
+- **Remove**: Completed checklist items, finished next steps, obsolete workarounds
+- **Enhance**: Weak gotchas → add symptoms, vague decisions → add rationale
+
+**Preserve**: Historical decisions, resolved bugs (with resolution), completed checklists (check them off, don't delete)
+
+### 6. Consolidate Shared Gotchas
+
+After updating domain docs, check if any gotcha appears in 3+ domains:
+
+1. **Read** `tasks/shared/gotchas-registry.md`
+2. **Add** cross-domain gotchas with domain list
+3. **Update** domain docs to reference shared registry
+
+Format for shared registry:
+```markdown
+| Gotcha | Domains | Solution |
+|--------|---------|----------|
+| BackedEnum cast error | Training, Amendments, Billing | Cast to `->value` before DB |
+```
+
+### 7. Refactor If Needed
+
+| Trigger | Action |
+|---------|--------|
+| Section > 200 lines | Condense: merge similar items, move details to code comments |
+| Duplicate patterns | Extract to shared doc, cross-reference |
+| Completed checklists fill page | Move to `archive/completed-YYYY-MM.md` |
+| 10+ "Next Steps" | Group by milestone, defer low-priority |
+| Obsolete workarounds | Remove if permanent fix deployed |
+
+**Don't remove**: Production incident details, root cause analyses, architectural decisions
+
+### 8. Archive Cleanup (If Needed)
+
+| Content | Action |
+|---------|--------|
+| Production SQL scripts, specific IDs | Move to `archive/` subdirectory |
+| Session logs, user stories | Move to `archive/` subdirectory |
+| Completed milestone checklists | Move to `archive/completed-YYYY-MM.md` |
+| Empty placeholder files | Delete |
+| Timeless patterns/gotchas | Keep in `current.md` |
+
+**Rule**: Archive preserves incident learning; only delete truly empty content.
+
+## Required Formats
+
+### Gotcha Table (Symptoms Required)
 | Error/Symptom | Root Cause | Solution |
 |---------------|------------|----------|
 | `500 on POST /invoices` | Timezone mismatch | `->setTimezone('UTC')` |
 
 First column must contain: error code, log fragment, or user-visible symptom.
 
-### 6. Next Steps (if any)
+### Cross-References in LLM-CONTEXT
+```markdown
+## LLM-CONTEXT
+Related:
+- [`tasks/training/jd14/current.md`](../training/jd14/current.md) — Duplicate prevention logic
+- [`tasks/amendments/current.md`](../../amendments/current.md) — Status transition rules
+```
 
-Only add if session has uncompleted planned work.
-
+### Next Steps (Only if Pending)
 ```markdown
 ## Next Steps
 - [ ] Brief actionable item — context why needed
 ```
 
 **Rules**:
-- Skip section entirely if nothing pending
+- Remove section entirely if nothing pending
 - Only items discussed/planned but not done this session
-- Remove items once completed in future sessions
+- Delete items once completed in future sessions
 - Keep actionable (starts with verb)
 
-### 7. Final Check
-- Count lines; if > 500, suggest condensing
-- Verify gotchas have symptoms
-- Confirm no content removed
+### Checklist Updates
+```markdown
+## Implementation Checklist
+- [x] ~~Create migration~~ (completed this session)
+- [x] Add API endpoint (completed)
+- [ ] Write tests (pending)
+```
 
-## Output
-- 3-5 bullet summary of updates
-- Current line count
-- Condensing suggestion if needed
+Use strikethrough for newly completed items to show progress.
+
+## Output Format
+```
+Updated task summaries:
+
+Primary:
+✓ tasks/training/participant/current.md (234 lines → 218 lines)
+  Added:
+  - Enrollment validation gotcha
+  - 2 new API endpoints
+  Updated:
+  - Status: In Progress → Testing
+  - Modified POST /enroll endpoint (added duplicate check)
+  Removed:
+  - 3 completed next steps
+  - Obsolete timezone workaround (permanent fix deployed)
+  Cross-refs:
+  - Linked to JD14 duplicate logic
+
+Secondary:
+✓ tasks/training/jd14/current.md (156 lines → 162 lines)
+  Added:
+  - Duplicate check decision
+  Updated:
+  - Checked off 2 implementation items
+  Cross-refs:
+  - Linked to participant enrollment
+  
+✓ tasks/amendments/current.md (189 lines → 195 lines)
+  Added:
+  - Status transition gotcha
+  Updated:
+  - Enhanced existing enum gotcha with symptom
+  Cross-refs:
+  - Linked to enrollment workflow
+
+Shared:
+✓ tasks/shared/gotchas-registry.md
+  - No new cross-domain gotchas (threshold: 3+ domains)
+
+Refactoring:
+- Condensed participant/current.md Implementation section (merged 5 similar checklist items)
+- Archived completed JD14 milestone to archive/completed-2025-01.md
+```
+
+Or if only one domain:
+```
+Updated: tasks/billing/invoices/current.md (312 lines → 298 lines)
+
+Added:
+- SST calculation gotcha (symptom: incorrect total in preview)
+- 1 database column (invoices.sst_rate)
+
+Updated:
+- Status: Blocked → In Progress (LHDN API access granted)
+- Modified schema diagram
+- Checked off 3 completed items
+
+Removed:
+- 4 completed next steps
+- Temporary manual calculation workaround
+
+No related domains touched this session.
+```
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| "Didn't update training/jd14/" | Explicitly list files: `@tasks/training/jd14/current.md` |
+| "Only updated primary" | Check: Did session actually touch other domains? |
+| "Duplicated content" | Run DRY check; use cross-references |
+| "Removed too much" | Only remove: completed items, obsolete workarounds, dead links |
+| "File grew too large" | Apply refactoring rules; move completed work to archive |
