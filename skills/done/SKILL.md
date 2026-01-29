@@ -52,25 +52,24 @@ Before updating docs, identify ALL touched domains:
 
 ### Step 3: Update/Write Task Summaries
 
-For EACH domain identified in Step 2:
+**⚠️ MANDATORY: Use Skill tool, NOT manual edits**
+
+For EACH domain identified in Step 2, invoke the appropriate skill:
 
 **If task doc exists** (`tasks/{domain}/{feature}/current.md`):
-- Run `/syafiqkit:update-summary {domain}/{feature}` or provide full path
-- Ensure updates include:
-  - New findings (API endpoints, DB changes, files modified)
-  - Status changes (completed items, timeline updates)
-  - Gotchas with observable symptoms
-  - Cross-references to other touched domains
-  - Next steps (only if pending work exists)
-  - Mermaid diagrams for workflows/states (if 5+ steps/states)
+```
+<Use Skill tool: skill="syafiqkit:update-summary" args="{domain}/{feature}">
+```
+The skill ensures updates include: new findings, status changes, gotchas, cross-references, next steps, and diagrams.
 
 **If task doc does NOT exist**:
-- Run `/syafiqkit:write-summary {domain}/{feature}` or provide full path
-- Include:
-  - LLM-CONTEXT block with Related field
-  - Mermaid diagrams for workflows/states (if 5+ steps/states)
-  - Cross-references to shared patterns
-  - Implementation details
+```
+<Use Skill tool: skill="syafiqkit:write-summary" args="{domain}/{feature}">
+```
+The skill ensures: LLM-CONTEXT block, diagrams, cross-references, and implementation details.
+
+**❌ NEVER manually edit task docs in /done workflow**
+**✅ ALWAYS invoke the Skill tool to delegate to the specialized skill**
 
 **Multi-domain workflow**:
 1. Update/create primary domain doc first
@@ -126,25 +125,27 @@ If no issues found:
 
 ### Step 6: Capture Patterns to CLAUDE Docs
 
-Run `/syafiqkit:update-claude-docs` skill to extract learnings from this session:
+**⚠️ MANDATORY: Use Skill tool, NOT manual edits**
 
-**What to capture**:
-- User corrections during session (wrong tool, missed pattern)
-- Friction points that were resolved (struggled 2+ times → solution)
-- New gotchas with error symptoms
-- Behavioral guidance (workflow preferences)
+```
+<Use Skill tool: skill="syafiqkit:update-claude-docs">
+```
 
-**Routing rules**:
+The skill handles extraction and routing:
+- User corrections → captures what went wrong
+- Friction points → documents solutions
+- Gotchas → routes to appropriate CLAUDE.md
+- Behavioral guidance → ~/.claude/CLAUDE.md
+
+**Routing (handled by skill)**:
 - Cross-domain gotchas (3+ domains) → `tasks/shared/gotchas-registry.md`
-- Behavioral guidance (future workflow) → `~/.claude/CLAUDE.md`
-- Technical gotchas (domain-specific) → relevant `app/Domains/{Domain}/CLAUDE.md`
-- Backend-only patterns → `app/CLAUDE.md`
-- Frontend-only patterns → `resources/js/CLAUDE.md`
+- Behavioral guidance → `~/.claude/CLAUDE.md`
+- Domain-specific gotchas → `app/Domains/{Domain}/CLAUDE.md`
+- Backend-only → `app/CLAUDE.md`
+- Frontend-only → `resources/js/CLAUDE.md`
 
-**Documentation refinement** (if Claude ignored existing docs):
-- Check if gotcha was already documented but Claude missed it
-- If yes: Refine existing entry (add ❌/✅ examples, move to ## Constraints, strengthen wording)
-- If no: Add new entry with clear symptom → solution mapping
+**❌ NEVER manually edit CLAUDE.md files in /done workflow**
+**✅ ALWAYS invoke the Skill tool to delegate to update-claude-docs**
 
 Wait for skill completion, then **immediately continue to Step 7**.
 
@@ -216,6 +217,7 @@ Fixed duplicate enrollment issue. Details archived for compliance.
 5. **Always check shared patterns**: 3+ domains = shared registry entry
 6. **Document refinement over addition**: If Claude ignored docs, refine them
 7. **Output table is mandatory**: Even if some steps are N/A
+8. **Use Skill tool for Step 3 & 6**: NEVER manually edit task docs or CLAUDE.md - invoke the skills
 
 ## Troubleshooting
 
@@ -227,6 +229,8 @@ Fixed duplicate enrollment issue. Details archived for compliance.
 | "Stopped at Step 3" | Don't wait for user; continue to Step 4 immediately |
 | "Code reviewer didn't see patterns" | Agent prompt must explicitly @ reference CLAUDE.md files |
 | "Captured gotcha but Claude ignored it again" | Step 6 should REFINE existing entry, not just add duplicate |
+| "Manually edited task docs" | Step 3 MUST use Skill tool with `syafiqkit:update-summary` or `syafiqkit:write-summary` |
+| "Manually edited CLAUDE.md" | Step 6 MUST use Skill tool with `syafiqkit:update-claude-docs` |
 
 ## Quality Checklist (Internal - Don't Output)
 
