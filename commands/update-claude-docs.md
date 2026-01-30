@@ -101,7 +101,16 @@ Claude reads CLAUDE.md files hierarchically: home → parent dirs → project ro
 | `grep`, `find` | Grep tool, Glob tool |
 ```
 
-## 5. Prune & Maintain
+## 5. Execute
+
+After identifying entries to add/update:
+1. Read target CLAUDE.md file
+2. Use Edit tool to make the changes
+3. Output summary of what was added/refined
+
+**Don't just describe what you would do — actually do it.**
+
+## 6. Prune & Maintain
 
 - **Prune monthly** — Remove rules that haven't prevented mistakes recently
 - **Test changes** — Observe if Claude's behavior actually shifts after edits

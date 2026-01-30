@@ -7,77 +7,58 @@ argument-hint: "[domain/feature or path]"
 
 Update task documentation to reflect this session's work.
 
-## Path Resolution
+## 1. Discover Related Docs
 
-| Input | Target |
-|-------|--------|
-| Provided | Use as-is |
-| Empty | Infer from session → `tasks/<domain>/<feature>/current.md` |
-| Missing | Abort: "No summary found. Use `/write-summary` first." |
+**Step 1**: Map session files to domains (e.g., `app/Domains/Training/...` → `training`)
 
-## 1. Discover All Related Docs
+**Step 2**: Glob `tasks/**/current.md` (with `path` param), check `LLM-CONTEXT → Related` for explicit mentions of session domains or modified files
 
-Before editing, scan **two sources**:
+**Step 3**: Classify as PRIMARY (main work) or SECONDARY (related/mentioned)
 
-### A. Session files → domains
-```
-Files modified this session:
-| File | Inferred Domain |
-|------|-----------------|
-| app/Domains/Training/Actions/Enroll.php | training |
-| app/Jobs/GenerateCertificatePdf.php | training/certificate |
-```
+## 2. Handle Missing Docs
 
-### B. Existing task docs → related features
-```
-# Use Glob tool to find all task docs
-Glob: tasks/**/current.md
-```
+| Scenario | Action |
+|----------|--------|
+| PRIMARY missing | Auto-create (minimal template below; user can run `/write-summary` later for full setup) |
+| PRIMARY exists, Status: Done | Append new session section, update Status to "Active" |
+| SECONDARY missing | Skip + suggest: "Run `/write-summary <domain>` if recurring" |
+| shared/* missing | Skip silently |
 
-Then check each doc's `LLM-CONTEXT → Related` and content for connections:
+**Auto-create template**:
+```markdown
+<!--LLM-CONTEXT
+Purpose: [Inferred from file changes]
+Key files: [Files modified this session]
+Related: [Link to PRIMARY domain if applicable]
+-->
 
-```
-Existing task docs:
-| Doc | Related to this session? | Why |
-|-----|--------------------------|-----|
-| tasks/training/participant/current.md | ✅ Yes | Mentions enrollment |
-| tasks/training/jd14/current.md | ✅ Yes | Shares duplicate logic |
-| tasks/training/certificate/current.md | ✅ Yes | Primary work |
-| tasks/billing/invoices/current.md | ❌ No | Unrelated |
+# [Domain/Feature Name]
+
+**Status**: Active
+
+## Session [Date]
+
+[Summary of changes from this session]
 ```
 
-### C. Build update plan
-```
-PRIMARY: tasks/training/certificate/current.md (main work)
-SECONDARY: 
-- tasks/training/participant/current.md (enrollment relationship)
-- tasks/training/jd14/current.md (duplicate logic shared)
-```
+## 3. Update Each Doc
 
-## 2. Update Docs Naturally
+| Action | What |
+|--------|------|
+| **Add** | Gotchas (with error messages), decisions with rationale, cross-references |
+| **Update** | Status, completed items, outdated info, `LLM-CONTEXT → Related` |
+| **Remove** | Completed next steps, obsolete workarounds |
+| **Preserve** | Historical decisions, resolved bugs |
 
-For each relevant doc, update what makes sense:
+## 4. Archive Cleanup (Production Fixes Only)
 
-**Add** new findings — gotchas (with actual error messages), decisions with rationale, cross-references to related work.
-
-**Update** status, mark completed items, fix outdated info.
-
-**Remove** completed next steps, obsolete workarounds.
-
-**Preserve** historical decisions and resolved bugs (useful context).
-
-Keep cross-references in `LLM-CONTEXT → Related` section current.
-
-## 5. Archive Cleanup (Production Fixes Only)
-
-If session involved incident with specific IDs, SQL scripts, or debug logs:
+Move incident-specific content out of `current.md`:
 
 | Content | Move to |
 |---------|---------|
 | Production SQL | `archive/prod-fix-YYYY-MM-DD.sql` |
 | Specific IDs/usernames | `archive/incident-YYYY-MM-DD.md` |
-| Debug session logs | `archive/debug-YYYY-MM-DD.md` |
 
-Reference in current.md: `> See [archive/...](archive/...) — incident details`
+Reference: `> See [archive/...](archive/...) — incident details`
 
 Skip for normal feature work.
