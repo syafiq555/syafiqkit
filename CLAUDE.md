@@ -67,6 +67,8 @@ No build step — markdown files are interpreted directly.
 | Use `disable-model-invocation: true` for commands that shouldn't auto-trigger | Prevents unwanted activation |
 | Include examples in markdown | Helps Claude execute correctly |
 | Use tables for structured guidance | More scannable than prose |
+| Inject context into agent prompts | Agents don't inherit CLAUDE.md; include relevant CLAUDE.md files (root + subdomain) + task docs |
+| Plugin must be self-contained | Never reference user's global `~/.claude/CLAUDE.md` - other users won't have it |
 
 ## Maintenance {#maintenance}
 

@@ -8,6 +8,10 @@ user-invocable: true
 
 Execute all steps in sequence without pausing for confirmation.
 
+**Agent prompts**: Agents don't inherit context. Include in each agent prompt:
+- Relevant CLAUDE.md files (root + subdomain if applicable, e.g., `app/CLAUDE.md` for backend)
+- Task docs path if exists: `tasks/{domain}/current.md`
+
 ## Step 1: Simplify Code
 
 Run `code-simplifier:code-simplifier` on modified files from this session.

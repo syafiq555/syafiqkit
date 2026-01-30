@@ -72,3 +72,16 @@ Research from `claude-code-guide` agent, January 2026.
 **Files changed**: `commands/update-summary.md`
 
 **Design principle captured**: "Auto-create over abort" - skills should complete without blocking.
+
+### 2026-01-30: Agent context injection
+
+**Problem**: `/done` spawns external agents (`code-simplifier`, `code-reviewer`) that don't inherit CLAUDE.md context - they only see their prompt.
+
+**Solution**:
+- Added "Agent prompts" instruction to SKILL.md telling orchestrator to include context
+- Documented pattern in CLAUDE.md Conventions table
+- Pattern: include relevant CLAUDE.md files (root + subdomain) + task docs in agent prompts
+
+**Files changed**: `skills/done/SKILL.md`, `CLAUDE.md`
+
+**Gotcha**: Don't reference global CLAUDE.md (`{#agent-bootstrap}`) - plugin must be self-contained for other users.
