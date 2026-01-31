@@ -4,7 +4,7 @@ Personal workflow toolkit for Claude Code - commits, summaries, docs, invoicing.
 
 ## Prerequisites
 
-`/syafiqkit:done` requires:
+`/syafiqkit:done` uses project agents if available, otherwise requires:
 ```bash
 claude plugin install code-simplifier@claude-plugins-official
 claude plugin install feature-dev@claude-plugins-official
@@ -33,7 +33,8 @@ claude plugin install syafiqkit@syafiqkit
 |-------|-------------|
 | `/done` | Post-task cleanup - simplify, review, update docs |
 | `/commit-invoice-generator` | Generate invoice line items from git commits |
-| `/skill-manager` | Create/update/list global skills |
+| `/agent-setup` | Create/update project-specific agents with CLAUDE.md rules baked in |
+| `/task-summary` | Smart discovery of related task docs (used by write/update-summary) |
 
 ## Usage
 

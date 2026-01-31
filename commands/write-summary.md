@@ -7,56 +7,39 @@ argument-hint: "[domain/feature or path]"
 
 Create task documentation optimized for humans and LLM agents.
 
-## Path Resolution
+## 1. Load Discovery Guidance
 
-| Input | Target |
+Use the Skill tool to load `syafiqkit:task-summary` skill first. This provides:
+- Path conventions (`tasks/<domain>/<feature>/current.md`)
+- LLM-CONTEXT block structure
+- Cross-reference requirements
+- Templates reference
+
+Wait for the skill to load before proceeding.
+
+## 2. Resolve Target Path
+
+| Input | Action |
 |-------|--------|
-| Provided | Use as-is |
-| Empty | Infer → `tasks/<domain>/<feature>/current.md` |
-| Exists | Auto-switch to `/update-summary` behavior |
+| Path provided | Use as-is |
+| Domain/feature provided | Expand to `tasks/<domain>/<feature>/current.md` |
+| Empty | Infer from session files using discovery algorithm |
+| Path exists | Switch to `/update-summary` behavior |
 
-## What to Include
+## 3. Discover Related Docs
 
-Write naturally. Include what's useful, skip what's not.
+Follow discovery algorithm from task-summary skill:
 
-**Must have:**
-- `<!--LLM-CONTEXT ... -->` block at top with purpose, key files, related docs
-- Status line so readers know if it's active/done/blocked
+1. Glob `tasks/**/current.md` (with `path` param)
+2. Check each doc's `LLM-CONTEXT → Related` for connections
+3. Build cross-reference map
 
-**Include when relevant:**
-- Why decisions were made (not just what)
-- Gotchas with actual error messages/symptoms (not abstract descriptions)
-- Cross-references to related task docs
-- Next steps if work is ongoing
-- Discussion points, alternatives considered, tradeoffs weighed
-- Conclusions reached and reasoning behind them
-- Context that would help future-you (or another dev) pick up where you left off
-- Links to relevant PRs, issues, Slack threads, external docs
+| Existing Doc | Related? | Action |
+|--------------|----------|--------|
+| Has connection | Yes | Add bidirectional cross-ref |
+| No connection | No | Skip |
 
-**Format freely:**
-- Tables when comparing things or listing attributes
-- Prose when explaining context
-- Mermaid when visualizing helps understanding
-- Whatever fits the content best
-
-## Before Writing
-
-### 1. Scan existing task docs for relationships
-```
-# Use Glob tool to find all task docs
-Glob: tasks/**/current.md
-```
-
-Check each doc's content and LLM-CONTEXT for connections to this new feature:
-```
-| Existing Doc | Related? | Add cross-ref? |
-|--------------|----------|----------------|
-| tasks/training/participant/current.md | ✅ | Both directions |
-| tasks/training/jd14/current.md | ✅ | Both directions |
-| tasks/billing/current.md | ❌ | No |
-```
-
-### 2. Check if content belongs in shared location
+## 4. Check Shared Location
 
 | Pattern appears in... | Put it in... |
 |-----------------------|--------------|
@@ -64,6 +47,23 @@ Check each doc's content and LLM-CONTEXT for connections to this new feature:
 | Multiple features | `tasks/shared/patterns.md` |
 | Just this feature | This doc only |
 
-### 3. Plan cross-references
+## 5. Create Document
 
-New doc will link to related docs, AND update those docs to link back.
+Use templates from `syafiqkit:task-summary` skill's `references/templates.md`.
+
+**Must have:**
+- `<!--LLM-CONTEXT ... -->` block at top
+- Status line
+
+**Include when relevant:**
+- Why decisions were made (not just what)
+- Gotchas with actual error messages
+- Cross-references to related docs
+- Next steps if work is ongoing
+- Links to PRs, issues, external docs
+
+**Format freely** — tables, prose, Mermaid, whatever fits.
+
+## 6. Update Related Docs
+
+Add cross-reference back to new doc in each related doc's `LLM-CONTEXT → Related` field.

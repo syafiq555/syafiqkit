@@ -7,58 +7,45 @@ argument-hint: "[domain/feature or path]"
 
 Update task documentation to reflect this session's work.
 
-## 1. Discover Related Docs
+## 1. Load Discovery Guidance
 
-**Step 1**: Map session files to domains (e.g., `app/Domains/Training/...` → `training`)
+Use the Skill tool to load `syafiqkit:task-summary` skill first. This provides:
+- Discovery algorithm
+- Classification criteria (PRIMARY vs SECONDARY)
+- Cross-reference requirements
+- Templates reference
 
-**Step 2**: Glob `tasks/**/current.md` (with `path` param), check `LLM-CONTEXT → Related` for explicit mentions of session domains or modified files
+Wait for the skill to load before proceeding.
 
-**Step 3**: Classify as PRIMARY (main work) or SECONDARY (related/mentioned)
+## 2. Run Discovery
 
-## 2. Handle Missing Docs
+Follow the discovery algorithm from the loaded task-summary skill:
+
+1. Map session files → domains
+2. Glob `tasks/**/current.md` (with `path` param)
+3. Check `LLM-CONTEXT → Related` for connections
+4. Classify as PRIMARY or SECONDARY
+
+## 3. Handle Missing Docs
 
 | Scenario | Action |
 |----------|--------|
-| PRIMARY missing | Auto-create (minimal template below; user can run `/write-summary` later for full setup) |
-| PRIMARY exists, Status: Done | Append new session section, update Status to "Active" |
+| PRIMARY missing | Auto-create minimal template (from skill's templates.md) |
+| PRIMARY exists, Status: Done | Append new section, update Status → Active |
 | SECONDARY missing | Skip + suggest: "Run `/write-summary <domain>` if recurring" |
-| shared/* missing | Skip silently |
+| `tasks/shared/*` missing | Skip silently |
 
-**Auto-create template**:
-```markdown
-<!--LLM-CONTEXT
-Purpose: [Inferred from file changes]
-Key files: [Files modified this session]
-Related: [Link to PRIMARY domain if applicable]
--->
-
-# [Domain/Feature Name]
-
-**Status**: Active
-
-## Session [Date]
-
-[Summary of changes from this session]
-```
-
-## 3. Update Each Doc
+## 4. Update Each Doc
 
 | Action | What |
 |--------|------|
 | **Add** | Gotchas (with error messages), decisions with rationale, cross-references |
-| **Update** | Status, completed items, outdated info, `LLM-CONTEXT → Related` |
+| **Update** | Status, completed items, `LLM-CONTEXT → Related` |
 | **Remove** | Completed next steps, obsolete workarounds |
-| **Preserve** | Historical decisions, resolved bugs |
+| **Preserve** | Historical decisions, resolved bugs (for context) |
 
-## 4. Archive Cleanup (Production Fixes Only)
+## 5. Ensure Cross-References
 
-Move incident-specific content out of `current.md`:
-
-| Content | Move to |
-|---------|---------|
-| Production SQL | `archive/prod-fix-YYYY-MM-DD.sql` |
-| Specific IDs/usernames | `archive/incident-YYYY-MM-DD.md` |
-
-Reference: `> See [archive/...](archive/...) — incident details`
-
-Skip for normal feature work.
+Check bidirectionality:
+- If doc A mentions doc B, ensure B mentions A
+- Add missing reverse references

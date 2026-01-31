@@ -8,19 +8,33 @@ user-invocable: true
 
 Execute all steps in sequence without pausing for confirmation.
 
-**Agent prompts**: Agents don't inherit context. Include in each agent prompt:
-- Relevant CLAUDE.md files (root + subdomain if applicable, e.g., `app/CLAUDE.md` for backend)
-- Task docs path if exists: `tasks/{domain}/current.md`
-
 ## Step 1: Simplify Code
 
-Run `code-simplifier:code-simplifier` on modified files from this session.
+**Check for project agent first:**
+```
+Glob: .claude/agents/code-simplifier.md
+```
 
-Focus: duplication removal, readability improvements, pattern consistency.
+| Found? | Action |
+|--------|--------|
+| Yes | Run Task tool with `subagent_type: "code-simplifier"` |
+| No | Run Task tool with `subagent_type: "code-simplifier:code-simplifier"` |
+
+Prompt should include: list of modified files this session, focus on duplication removal, readability, pattern consistency.
 
 ## Step 2: Review Changes
 
-Run `feature-dev:code-reviewer` on the same files.
+**Check for project agent first:**
+```
+Glob: .claude/agents/code-reviewer.md
+```
+
+| Found? | Action |
+|--------|--------|
+| Yes | Run Task tool with `subagent_type: "code-reviewer"` |
+| No | Run Task tool with `subagent_type: "feature-dev:code-reviewer"` |
+
+Prompt should include: same files as Step 1.
 
 If issues found: fix them immediately, then continue.
 
@@ -28,15 +42,16 @@ If issues found: fix them immediately, then continue.
 
 Invoke `syafiqkit:update-summary` for the primary domain/feature.
 
-The skill handles: multi-domain detection, cross-references, shared gotcha consolidation, archive cleanup.
+The skill handles: multi-domain detection, cross-references, shared gotcha consolidation.
 
 ## Step 4: Capture Patterns
 
 Invoke `syafiqkit:update-claude-docs`.
 
-The skill handles: routing gotchas vs guidance, refinement of ignored rules, DRY checks.
+The skill handles: routing gotchas vs guidance, refinement of ignored rules, DRY checks, **and syncing project agents**.
 
 ## Output
+
 ```
 ## /done Summary
 

@@ -7,91 +7,65 @@ argument-hint: "[optional: focus area]"
 
 Extract reusable patterns from this session into CLAUDE.md files.
 
-## 1. Scan Session
-
-Look for these signals in the conversation:
+## 1. Scan Session for Signals
 
 | Signal | Category | Example |
 |--------|----------|---------|
 | Claude struggled / repeated attempts | Gotcha | "500 error" → "add eager load" |
-| User correction ("u dont need to...", "use X instead") | Gotcha or Guidance | Depends on scope |
-| Same pattern used 2+ times | Pattern | Service method, helper, table structure |
-| Environment surprise (paths, tools) | Gotcha | MSYS2, PowerShell requirements |
+| User correction ("use X instead") | Gotcha or Guidance | Depends on scope |
+| Same pattern used 2+ times | Pattern | Service method, helper |
+| Environment surprise | Gotcha | MSYS2, PowerShell quirks |
 | Claude ignored existing docs | Refinement needed | Rule exists but wasn't followed |
 
 **Key distinction:**
 - **Gotcha**: Error/symptom → technical fix (project-specific)
-- **Guidance**: Behavioral rule for Claude (goes to `~/.claude/CLAUDE.md`)
+- **Guidance**: Behavioral rule for Claude (global `~/.claude/CLAUDE.md`)
 - **Pattern**: Reusable architectural solution with code example
 
-## 2. Check If Already Documented
+## 2. Route to Target
 
-Before adding, search target CLAUDE.md for existing entries.
+| Scope | Target |
+|-------|--------|
+| Global personal defaults | `~/.claude/CLAUDE.md` |
+| Cross-project conventions | Root `CLAUDE.md` |
+| Backend-specific | `app/CLAUDE.md` |
+| Frontend-specific | `resources/js/CLAUDE.md` |
+| Domain-specific | `app/Domains/{Domain}/CLAUDE.md` |
+
+## 3. Execute
+
+**Primary path** — delegate to `claude-md-management:revise-claude-md`:
+
+1. Check if skill is available (installed plugin)
+2. Invoke with session context:
+   - Identified signals from Step 1
+   - Proposed additions/refinements
+   - Target files from Step 2
+3. Let the skill handle formatting, deduplication, and structure
+
+**Fallback path** — if skill unavailable:
+
+1. Check if entry already exists in target CLAUDE.md
+2. Apply formatting rules:
 
 | Found? | Claude followed it? | Action |
 |--------|---------------------|--------|
 | No | — | Add new entry |
 | Yes | Yes | No change needed |
-| Yes | No | **Refine existing entry** (make it stronger/more visible) |
+| Yes | No | Refine existing entry (strengthen wording, add example) |
 
-**Refinement strategies** (when docs were ignored):
-- Move to `## Constraints` section
-- Convert prose → table with ❌/✅ examples
-- Strengthen wording: "prefer X" → "Always X"
-- Add concrete error symptom as trigger
+3. Use Edit tool to make changes
+4. Output summary of what was added/refined
 
-## 3. Route to Target (Hierarchy)
+## 4. Formatting Guidelines
 
-Claude reads CLAUDE.md files hierarchically: home → parent dirs → project root → child dirs (on-demand).
-
-| Scope | Target | Loaded |
-|-------|--------|--------|
-| Global personal defaults | `~/.claude/CLAUDE.md` | Always |
-| Cross-project/team conventions | Root `CLAUDE.md` | Always |
-| Personal overrides (gitignored) | `CLAUDE.local.md` | Always |
-| Monorepo shared context | `parent/CLAUDE.md` | Always |
-| Backend-specific | `app/CLAUDE.md` | On-demand |
-| Frontend-specific | `resources/js/CLAUDE.md` | On-demand |
-| Domain-specific | `app/Domains/{Domain}/CLAUDE.md` | On-demand |
-
-**`@` imports** (use sparingly): Reference external files with `@path/to/file.md` syntax.
-- Imports are loaded when CLAUDE.md is read, NOT on-demand
-- Can recurse up to 5 levels deep — bloats context fast
-- Only use for content that MUST be in every session (e.g., `@tasks/architecture/current.md` for project overview)
-- Prefer subdirectory CLAUDE.md files (truly on-demand) over imports
-
-## 4. Format Entry
-
-**Keep entries SHORT** — if CLAUDE.md is too long, Claude ignores half. Every line must earn its place.
-
-**Litmus test**: "Would removing this cause Claude to make mistakes?" If not, delete it.
-
-| ✅ Include | ❌ Exclude |
-|-----------|-----------|
-| Commands Claude can't guess | Things Claude infers from code |
-| Code style differing from defaults | Standard language conventions |
-| Common gotchas / non-obvious behaviors | Long explanations or tutorials |
-| Dev environment quirks | File-by-file codebase descriptions |
+**Keep entries SHORT** — every line must earn its place.
 
 **Gotchas** (table format, symptom required):
 ```markdown
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `500 on POST /invoices` | Timezone mismatch | `->setTimezone('UTC')` |
-```
-
-**Patterns** (only when reusable, use anchors):
-```markdown
-### Pattern Name {#anchor}
-
-**Problem**: What recurring problem this solves
-
-**Solution**:
-```php
-// Key code showing the pattern
-```
-
-**When to use**: Bullet points of scenarios
 ```
 
 **Guidance** (for ~/.claude/CLAUDE.md):
@@ -101,18 +75,30 @@ Claude reads CLAUDE.md files hierarchically: home → parent dirs → project ro
 | `grep`, `find` | Grep tool, Glob tool |
 ```
 
-## 5. Execute
+**Patterns** (only when reusable):
+```markdown
+### Pattern Name {#anchor}
 
-After identifying entries to add/update:
-1. Read target CLAUDE.md file
-2. Use Edit tool to make the changes
-3. Output summary of what was added/refined
+**Problem**: What recurring problem this solves
 
-**Don't just describe what you would do — actually do it.**
+**Solution**:
+```code
+// Key code showing the pattern
+```
+```
 
-## 6. Prune & Maintain
+## 5. Litmus Test
 
-- **Prune monthly** — Remove rules that haven't prevented mistakes recently
-- **Test changes** — Observe if Claude's behavior actually shifts after edits
-- **Use hooks for guarantees** — CLAUDE.md is advisory; hooks are deterministic
-- **Use skills for workflows** — CLAUDE.md = constraints; Skills = multi-step processes
+Before adding, ask: "Would removing this cause Claude to make mistakes?"
+
+| ✅ Include | ❌ Exclude |
+|-----------|-----------|
+| Commands Claude can't guess | Things Claude infers from code |
+| Code style differing from defaults | Standard language conventions |
+| Common gotchas / non-obvious behaviors | Long explanations or tutorials |
+
+## 6. Sync Project Agents
+
+After updating CLAUDE.md, invoke `syafiqkit:agent-setup` to sync project agents.
+
+This bakes the new patterns/gotchas into the agents' system prompts so they don't need to read CLAUDE.md at runtime.

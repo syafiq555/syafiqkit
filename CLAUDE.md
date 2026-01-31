@@ -12,14 +12,37 @@ Claude Code plugin providing personal workflow automation: commit messages, task
 .claude-plugin/
 ├── plugin.json          # Plugin metadata
 └── marketplace.json     # Marketplace listing
-commands/                # User-invocable slash commands (frontmatter-driven)
+commands/                # User-invocable slash commands
 skills/                  # Multi-step workflows (SKILL.md files)
+  ├── done/              # Post-task cleanup orchestrator
+  └── task-summary/      # Discovery logic for task docs (used by write/update-summary)
 ```
 
 | Type | Location | Trigger |
 |------|----------|---------|
 | Command | `commands/*.md` | `/syafiqkit:<name>` |
 | Skill | `skills/<name>/SKILL.md` | `/syafiqkit:<name>` or proactive |
+
+## Skill Architecture
+
+| Skill | Purpose | Used By |
+|-------|---------|---------|
+| `task-summary` | Smart discovery of related task docs, cross-reference management | `write-summary`, `update-summary` commands |
+| `agent-setup` | Create/update project-specific agents with CLAUDE.md rules baked in | `update-claude-docs` command |
+| `done` | Post-task cleanup orchestrator | User invokes directly |
+
+## Project-Specific Agents
+
+`/update-claude-docs` creates project-local agents in `.claude/agents/` that have conventions baked into their system prompts. `/done` uses these project agents (with fallback to external plugins).
+
+```
+Project/
+├── CLAUDE.md                    # Project conventions
+└── .claude/
+    └── agents/
+        ├── code-reviewer.md     # Has project rules injected
+        └── code-simplifier.md   # Has project rules injected
+```
 
 ## Command/Skill Anatomy
 
@@ -44,10 +67,15 @@ user-invocable: true                    # Appears in slash commands
 
 ## Dependencies
 
-`/done` skill requires external plugins:
+`/done` skill uses project agents if available, otherwise falls back to external plugins:
 ```bash
 claude plugin install code-simplifier@claude-plugins-official
 claude plugin install feature-dev@claude-plugins-official
+```
+
+`/update-claude-docs` optionally uses (falls back to manual if unavailable):
+```bash
+claude plugin install claude-md-management@claude-plugins-official
 ```
 
 ## Testing Changes
