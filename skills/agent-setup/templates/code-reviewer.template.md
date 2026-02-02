@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Reviews code for bugs, logic errors, security vulnerabilities, code quality issues, and adherence to project conventions
 tools: Glob, Grep, LS, Read, Bash(git:*), NotebookRead, WebFetch, TodoWrite, WebSearch
-model: sonnet
+model: opus
 color: red
 ---
 
