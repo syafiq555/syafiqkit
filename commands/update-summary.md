@@ -9,7 +9,7 @@ Update task documentation to reflect this session's work.
 
 ## 1. Load Discovery Guidance
 
-Use the Skill tool to load `syafiqkit:task-summary` skill first. This provides:
+Use the Skill tool to load `syafiqkit:task-summary` skill first (MANDATORY). This provides:
 - Discovery algorithm
 - Classification criteria (PRIMARY vs SECONDARY)
 - Cross-reference requirements

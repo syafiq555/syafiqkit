@@ -34,9 +34,9 @@ Extract reusable patterns from this session into CLAUDE.md files.
 
 ## 3. Execute
 
-**Primary path** — delegate to `claude-md-management:revise-claude-md`:
+**Primary path** — Invoke `claude-md-management:revise-claude-md`:
 
-1. Check if skill is available (installed plugin)
+1. Check if skill is available (installed plugin) if available MANDATORY to use
 2. Invoke with session context:
    - Identified signals from Step 1
    - Proposed additions/refinements

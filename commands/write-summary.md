@@ -9,7 +9,7 @@ Create task documentation optimized for humans and LLM agents.
 
 ## 1. Load Discovery Guidance
 
-Use the Skill tool to load `syafiqkit:task-summary` skill first. This provides:
+Use the Skill tool to load `syafiqkit:task-summary` skill first (MANDATORY). This provides:
 - Path conventions (`tasks/<domain>/<feature>/current.md`)
 - LLM-CONTEXT block structure
 - Cross-reference requirements
