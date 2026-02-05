@@ -85,7 +85,6 @@ Extract reusable patterns from this session into CLAUDE.md files.
 ```code
 // Key code showing the pattern
 ```
-```
 
 ## 5. Litmus Test
 
@@ -97,8 +96,15 @@ Before adding, ask: "Would removing this cause Claude to make mistakes?"
 | Code style differing from defaults | Standard language conventions |
 | Common gotchas / non-obvious behaviors | Long explanations or tutorials |
 
-## 6. Sync Project Agents
+## 6. Sync Project Agents (MANDATORY if CLAUDE.md changed)
 
-After updating CLAUDE.md, invoke `syafiqkit:agent-setup` to sync project agents.
+**Condition**: Did you modify ANY `CLAUDE.md` file in steps 3-4?
 
-This bakes the new patterns/gotchas into the agents' system prompts so they don't need to read CLAUDE.md at runtime.
+| Modified? | Action |
+|-----------|--------|
+| Yes | **MUST** invoke `syafiqkit:agent-setup` skill |
+| No | Skip this step |
+
+**Why**: Project agents have CLAUDE.md rules baked into their prompts. Without sync, agents use stale conventions.
+
+**Execute**: Use Skill tool with `skill: "syafiqkit:agent-setup"`
