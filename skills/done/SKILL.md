@@ -40,7 +40,7 @@ If issues found: fix them immediately, then continue.
 
 ## Step 3: Update Task Docs
 
-Invoke `syafiqkit:update-summary` for the primary domain/feature.
+Invoke `syafiqkit:write-summary` for the primary domain/feature.
 
 The skill handles: multi-domain detection, cross-references, shared gotcha consolidation.
 
