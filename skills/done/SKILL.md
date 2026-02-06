@@ -1,7 +1,6 @@
 ---
 name: done
 description: Post-task cleanup - simplify code, review changes, update docs. Use when finished implementing or when user says "done", "wrap up", "finalize".
-user-invocable: true
 ---
 
 # Post-Task Workflow

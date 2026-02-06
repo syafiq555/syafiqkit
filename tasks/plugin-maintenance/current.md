@@ -40,9 +40,22 @@ Related: None (standalone plugin)
 
 | Scenario | Frontmatter |
 |----------|-------------|
-| Both user & Claude invoke | (default) |
+| Both user & Claude invoke | (default — `user-invocable` is `true` since 2.1.0) |
 | Only user invokes | `disable-model-invocation: true` |
 | Only Claude invokes | `user-invocable: false` |
+
+### Frontmatter Fields (2026)
+
+| Field | Where | Description |
+|-------|-------|-------------|
+| `context: fork` | Skills | Run in isolated subagent context |
+| `agent` | Skills | Subagent type when `context: fork` |
+| `model` | Skills, Agents | Override model (`sonnet`, `opus`, `haiku`, `inherit`) |
+| `memory` | Agents | Persistent memory scope: `user`, `project`, `local` |
+| `permissionMode` | Agents | `default`, `acceptEdits`, `plan` |
+| `hooks` | Skills, Agents | Scoped hooks (PreToolUse, PostToolUse, Stop) |
+| `skills` | Agents | Preload skill content into agent context |
+| `disallowedTools` | Agents | Deny specific tools from inherited list |
 
 ### Composition Patterns
 

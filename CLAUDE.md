@@ -30,6 +30,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `task-summary` | Smart discovery of related task docs, cross-reference management | `write-summary`, `update-summary` commands |
 | `agent-setup` | Create/update project-specific agents with CLAUDE.md rules baked in | `update-claude-docs` command |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
+| `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 
 ## Project-Specific Agents
 
@@ -61,7 +62,21 @@ disable-model-invocation: true          # Prevents auto-trigger
 name: skill-name
 description: Description for matching
 allowed-tools: Bash(git:*), Read, Grep  # Tool restrictions
-user-invocable: true                    # Appears in slash commands
+user-invocable: false                   # Default is true; set false to hide from /menu
+context: fork                           # Optional: run in isolated subagent
+model: sonnet                           # Optional: override model
+---
+```
+
+**Agent templates** (`skills/agent-setup/templates/*.template.md`):
+```yaml
+---
+name: agent-name
+description: When to invoke
+tools: Read, Grep, Glob, Edit
+model: sonnet
+color: red
+memory: project                         # Persistent memory scoped to project
 ---
 ```
 
@@ -121,7 +136,7 @@ No build step — markdown files are interpreted directly.
 
 ### Version Bumping
 
-After changes, update `.claude-plugin/plugin.json` version and run:
+After changes, update version in **both** `.claude-plugin/plugin.json` and `marketplace.json`, then run:
 ```bash
 claude plugin update syafiqkit@syafiqkit
 ```

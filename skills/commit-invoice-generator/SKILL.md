@@ -1,8 +1,6 @@
 ---
 name: commit-invoice-generator
 description: Generate invoice line items from git commit history. Analyzes commits to create billable service descriptions with estimated hours. Use when creating invoices, billing for development work, analyzing commit patterns for time tracking, or when user mentions "invoice", "billable hours", or "time log".
-allowed-tools: Bash(git:*), Read, Grep, Glob
-user-invocable: true
 ---
 
 # Commit Invoice Generator

@@ -1,7 +1,6 @@
 ---
 name: agent-setup
 description: This skill should be used when the user asks to "setup project agents", "create code reviewer", "update agent prompts", "sync agents with CLAUDE.md", or when /update-claude-docs needs to sync project agents. Creates and maintains project-specific agents with conventions baked in.
-user-invocable: true
 ---
 
 # Project Agent Setup

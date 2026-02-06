@@ -4,6 +4,7 @@ description: Simplifies and refines code for clarity, consistency, and maintaina
 model: opus
 color: cyan
 tools: Read, Glob, Grep, Edit
+memory: project
 ---
 
 You are an expert code simplification specialist focused on enhancing code clarity, consistency, and maintainability while preserving exact functionality.
