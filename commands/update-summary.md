@@ -5,47 +5,31 @@ argument-hint: "[domain/feature or path]"
 
 # Update Task Summary
 
-Update task documentation to reflect this session's work.
+Update existing task documentation to reflect this session's work. This is a lighter version of `/write-summary` — use when the doc already exists and you just need to append findings.
 
-## 1. Load Discovery Guidance
+## 1. Resolve Target Path
 
-Use the Skill tool to load `syafiqkit:task-summary` skill first (MANDATORY). This provides:
-- Discovery algorithm
-- Classification criteria (PRIMARY vs SECONDARY)
-- Cross-reference requirements
-- Templates reference
+Same as `/write-summary` Step 1. If path not provided, infer from session files.
 
-Wait for the skill to load before proceeding.
+## 2. Read & Update
 
-## 2. Run Discovery
+```
+Read: {resolved path}
+```
 
-Follow the discovery algorithm from the loaded task-summary skill:
+| Action | What | Where |
+|--------|------|-------|
+| **Update** | `LLM-CONTEXT` Status, Key files, Last updated | Top block |
+| **Append** | New completed work as a new `## Completed (...)` section | After existing completed sections |
+| **Append** | New gotchas | Add rows to existing gotcha table |
+| **Append** | New architecture decisions | Add to existing decisions section |
+| **Update** | Next steps — remove completed items, add new ones | Bottom |
+| **Preserve** | All historical content — never delete completed sections | Everywhere |
 
-1. Map session files → domains
-2. Glob `tasks/**/current.md` (with `path` param)
-3. Check `LLM-CONTEXT → Related` for connections
-4. Classify as PRIMARY or SECONDARY
+## 3. Cross-References (quick check)
 
-## 3. Handle Missing Docs
+```
+Glob: tasks/**/current.md
+```
 
-| Scenario | Action |
-|----------|--------|
-| PRIMARY missing | Auto-create minimal template (from skill's templates.md) |
-| PRIMARY exists, Status: Done | Append new section, update Status → Active |
-| SECONDARY missing | Skip + suggest: "Run `/write-summary <domain>` if recurring" |
-| `tasks/shared/*` missing | Skip silently |
-
-## 4. Update Each Doc
-
-| Action | What |
-|--------|------|
-| **Add** | Gotchas (with error messages), decisions with rationale, cross-references |
-| **Update** | Status, completed items, `LLM-CONTEXT → Related` |
-| **Remove** | Completed next steps, obsolete workarounds |
-| **Preserve** | Historical decisions, resolved bugs (for context) |
-
-## 5. Ensure Cross-References
-
-Check bidirectionality:
-- If doc A mentions doc B, ensure B mentions A
-- Add missing reverse references
+Only update cross-refs if new connections were discovered this session. Don't re-scan everything.

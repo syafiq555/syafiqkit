@@ -5,65 +5,89 @@ argument-hint: "[domain/feature or path]"
 
 # Create/Update Task Summary
 
-Create/Update task documentation optimized for humans and LLM agents.
+Create or update task documentation optimized for humans and LLM agents.
 
-## 1. Load Discovery Guidance
-
-Use the Skill tool to load `syafiqkit:task-summary` skill first (MANDATORY). This provides:
-- Path conventions (`tasks/<domain>/<feature>/current.md`)
-- LLM-CONTEXT block structure
-- Cross-reference requirements
-- Templates reference
-
-Wait for the skill to load before proceeding.
-
-## 2. Resolve Target Path
+## 1. Resolve Target Path
 
 | Input | Action |
 |-------|--------|
-| Path provided | Use as-is |
+| Full path provided | Use as-is |
 | Domain/feature provided | Expand to `tasks/<domain>/<feature>/current.md` |
-| Empty | Infer from session files using discovery algorithm |
-| Path exists | Switch to `/update-summary` behavior |
+| Empty | Infer from session files (see below) |
 
-## 3. Discover Related Docs
+**Domain inference** — derive from session file paths:
 
-Follow discovery algorithm from task-summary skill:
+| Clue | Domain |
+|------|--------|
+| Frontend files (`*.jsx`, `*.tsx`, `*.vue`, `components/`) | `frontend` |
+| Backend files (`app/`, `controllers/`, `models/`) | Backend domain from nearest folder name |
+| Mobile files (`screens/`, `services/`, expo/RN patterns) | `mobile` |
+| Multi-repo: files in a sub-folder | Use sub-folder name as scope hint |
 
-1. Glob `tasks/**/current.md` (with `path` param)
-2. Check each doc's `LLM-CONTEXT → Related` for connections
-3. Build cross-reference map
+For **single-repo** projects, domain maps directly to folder structure.
+For **multi-repo** workspaces, also consider which sub-project the files belong to.
 
-| Existing Doc | Related? | Action |
-|--------------|----------|--------|
-| Has connection | Yes | Add bidirectional cross-ref |
-| No connection | No | Skip |
+## 2. Create or Update?
 
-## 4. Check Shared Location
+```
+Read: {resolved path}
+```
+
+| File exists? | Action |
+|-------------|--------|
+| No | **Create** — use minimal template (Step 3) |
+| Yes | **Update** — append session work (Step 4) |
+
+## 3. Create New Document
+
+**LLM-CONTEXT block** (required at top):
+```markdown
+<!--LLM-CONTEXT
+Status: Active
+Domain: {domain}
+Key files: {3-5 primary files from this session}
+Related: None
+Last updated: {today}
+-->
+```
+
+**Sections to include:**
+- `## Summary` — one sentence on what this feature does
+- `## Completed` — what was done this session (tables preferred)
+- `## Gotchas` — any errors/surprises encountered (Symptom | Cause | Fix)
+- `## Architecture Decisions` — why, not just what
+- `## Next Steps` — remaining work
+
+## 4. Update Existing Document
+
+Read the existing doc first. Then:
+
+| Action | What | Where |
+|--------|------|-------|
+| **Update** | `LLM-CONTEXT` Status, Key files, Last updated | Top block |
+| **Append** | New completed work as a new `## Completed (...)` section | After existing completed sections |
+| **Append** | New gotchas | Add rows to existing gotcha table |
+| **Append** | New architecture decisions | Add to existing decisions section |
+| **Update** | Next steps — remove completed items, add new ones | Bottom |
+| **Preserve** | All historical content — never delete completed sections | Everywhere |
+
+## 5. Cross-References (only if multiple task docs exist)
+
+Quick check — only run if there are other task docs:
+```
+Glob: tasks/**/current.md
+```
+
+| Found others? | Action |
+|--------------|--------|
+| None | Skip |
+| 1-2 docs | Read their `LLM-CONTEXT → Related` — add bidirectional ref if connected |
+| 3+ docs | Only check docs whose domain overlaps with session files |
+
+## 6. Shared Gotchas (only if pattern repeats)
 
 | Pattern appears in... | Put it in... |
 |-----------------------|--------------|
 | 3+ domains | `tasks/shared/gotchas-registry.md` |
-| Multiple features | `tasks/shared/patterns.md` |
+| Multiple features in same domain | Feature's own doc |
 | Just this feature | This doc only |
-
-## 5. Create Document
-
-Use templates from `syafiqkit:task-summary` skill's `references/templates.md`.
-
-**Must have:**
-- `<!--LLM-CONTEXT ... -->` block at top
-- Status line
-
-**Include when relevant:**
-- Why decisions were made (not just what)
-- Gotchas with actual error messages
-- Cross-references to related docs
-- Next steps if work is ongoing
-- Links to PRs, issues, external docs
-
-**Format freely** — tables, prose, Mermaid, whatever fits.
-
-## 6. Update Related Docs
-
-Add cross-reference back to new doc in each related doc's `LLM-CONTEXT → Related` field.

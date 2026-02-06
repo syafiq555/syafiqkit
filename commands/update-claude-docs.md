@@ -24,26 +24,62 @@ Extract reusable patterns from this session into CLAUDE.md files.
 
 ## 2. Route to Target
 
-| Scope | Target |
-|-------|--------|
-| Global personal defaults | `~/.claude/CLAUDE.md` |
-| Cross-project conventions | Root `CLAUDE.md` |
-| Backend-specific | `app/CLAUDE.md` |
-| Frontend-specific | `resources/js/CLAUDE.md` |
-| Domain-specific | `app/Domains/{Domain}/CLAUDE.md` |
+Determine target by finding the **most specific CLAUDE.md** that covers the session's modified files.
+
+### 2a. Discover CLAUDE.md hierarchy
+
+```
+Glob: **/CLAUDE.md
+```
+
+This reveals the project's structure. Common patterns:
+
+| Structure | Example |
+|-----------|---------|
+| Single root only | `CLAUDE.md` |
+| Root + layers | `CLAUDE.md`, `app/CLAUDE.md`, `resources/js/CLAUDE.md` |
+| Root + domains | `CLAUDE.md`, `app/Domain/Payment/CLAUDE.md`, `app/Domain/Invoice/CLAUDE.md` |
+| Multi-repo workspace | `CLAUDE.md`, `backend/CLAUDE.md`, `mobile/CLAUDE.md` |
+
+### 2b. Route to the most specific match
+
+Walk session files **from most specific to least specific**:
+
+1. Is there a `CLAUDE.md` in the **same domain/folder** as the modified files? → Use it
+2. Is there a **layer-level** `CLAUDE.md` (e.g., `app/CLAUDE.md` for backend, `resources/js/CLAUDE.md` for frontend)? → Use it
+3. Is there a **sub-project** `CLAUDE.md` (multi-repo)? → Use it
+4. Otherwise → Root `CLAUDE.md`
+
+For global tool/env issues → `~/.claude/CLAUDE.md`
+
+### 2c. Anti-pattern guard
+
+Before writing to ANY `CLAUDE.md`, ask: "Is there a more specific one that covers this?"
+
+| ❌ Don't write to... | ✅ When there's a more specific... |
+|---------------------|----------------------------------|
+| Root `CLAUDE.md` | `app/CLAUDE.md` or `{sub-project}/CLAUDE.md` exists |
+| `app/CLAUDE.md` | `app/Domain/{Name}/CLAUDE.md` exists |
+| `resources/js/CLAUDE.md` | Domain-specific frontend doc exists |
+
+**Rule**: Always target the **narrowest scope** that fully covers the gotcha/pattern.
 
 ## 3. Execute
 
-**Primary path** — Invoke `claude-md-management:revise-claude-md`:
+### 3a. Read target first
 
-1. Check if skill is available (installed plugin) if available MANDATORY to use
-2. Invoke with session context:
-   - Identified signals from Step 1
-   - Proposed additions/refinements
-   - Target files from Step 2
-3. Let the skill handle formatting, deduplication, and structure
+Before adding anything, read the target CLAUDE.md to understand:
+- Existing sections and structure
+- Whether the entry already exists (avoid duplicates)
+- Where the entry fits best (which section/table)
 
-**Fallback path** — if skill unavailable:
+### 3b. Check for duplicates across files
+
+Grep for the key symptom/keyword across ALL `**/CLAUDE.md` files:
+- If already in the correct file → skip or refine
+- If in the wrong file (e.g., sub-project gotcha in root) → move it, don't duplicate
+
+### 3c. Write the entry
 
 1. Check if entry already exists in target CLAUDE.md
 2. Apply formatting rules:
@@ -98,7 +134,7 @@ Before adding, ask: "Would removing this cause Claude to make mistakes?"
 
 ## 6. Sync Project Agents (MANDATORY if CLAUDE.md changed)
 
-**Condition**: Did you modify ANY `CLAUDE.md` file in steps 3-4?
+**Condition**: Did you modify ANY `CLAUDE.md` file in steps 3-5?
 
 | Modified? | Action |
 |-----------|--------|
