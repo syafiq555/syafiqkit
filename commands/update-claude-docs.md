@@ -132,6 +132,8 @@ Before adding, ask: "Would removing this cause Claude to make mistakes?"
 | Code style differing from defaults | Standard language conventions |
 | Common gotchas / non-obvious behaviors | Long explanations or tutorials |
 
+**Task docs ≠ CLAUDE.md**: A pattern documented in `tasks/**/current.md` still belongs in CLAUDE.md if it applies broadly to a domain. Task docs are feature-scoped and not always read. CLAUDE.md is always loaded — put reusable patterns in both.
+
 ## 6. Sync Project Agents (MANDATORY if CLAUDE.md changed)
 
 **Condition**: Did you modify ANY `CLAUDE.md` file in steps 3-5?
