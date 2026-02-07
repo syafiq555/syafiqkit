@@ -30,6 +30,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `task-summary` | Smart discovery of related task docs, cross-reference management | `write-summary`, `update-summary` commands |
 | `agent-setup` | Create/update project-specific agents with CLAUDE.md rules baked in | `update-claude-docs` command |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
+| `team-build` | Spawn coordinated agent team for multi-workstream features | User invokes directly |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 
 ## Project-Specific Agents
