@@ -143,6 +143,6 @@ Before adding, ask: "Would removing this cause Claude to make mistakes?"
 | Yes | **MUST** invoke `syafiqkit:agent-setup` skill |
 | No | Skip this step |
 
-**Why**: Project agents have CLAUDE.md rules baked into their prompts. Without sync, agents use stale conventions.
+**Why**: Project agents have inline critical rules that may need updating when CLAUDE.md high-frequency mistakes change.
 
 **Execute**: Use Skill tool with `skill: "syafiqkit:agent-setup"`

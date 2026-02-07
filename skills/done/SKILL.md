@@ -27,6 +27,8 @@ Glob: .claude/agents/code-reviewer.md
 - For simplifier: focus on duplication removal, readability, pattern consistency
 - For reviewer: focus on bugs, security, logic errors, project convention violations
 
+> Project agents have a Bootstrap section — they read relevant CLAUDE.md files themselves. Do NOT paste project conventions into the prompt.
+
 **After both complete:**
 - If reviewer found issues → fix them immediately, then continue
 - If simplifier made changes → verify they were applied (linter may have auto-formatted)
@@ -59,9 +61,11 @@ The skill handles: multi-domain detection, cross-references, shared gotcha conso
 
 Invoke `syafiqkit:update-claude-docs`.
 
-The skill handles: routing to correct CLAUDE.md (sub-project vs root), dedup check across files, **and syncing project agents**.
+The skill handles: routing to correct CLAUDE.md (sub-project vs root), dedup check across files.
 
 **Important**: The routing in update-claude-docs determines the target file. Do NOT override its routing — let it check which sub-project files were modified.
+
+> Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
 
 ## Output
 

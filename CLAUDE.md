@@ -28,22 +28,22 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | Skill | Purpose | Used By |
 |-------|---------|---------|
 | `task-summary` | Smart discovery of related task docs, cross-reference management | `write-summary`, `update-summary` commands |
-| `agent-setup` | Create/update project-specific agents with CLAUDE.md rules baked in | `update-claude-docs` command |
+| `agent-setup` | Create/update project agents using Bootstrap pattern (read CLAUDE.md at runtime) | `/agent-setup` or `/update-claude-docs` |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
 | `team-build` | Spawn coordinated agent team for multi-workstream features | User invokes directly |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 
 ## Project-Specific Agents
 
-`/update-claude-docs` creates project-local agents in `.claude/agents/` that have conventions baked into their system prompts. `/done` uses these project agents (with fallback to external plugins).
+`/agent-setup` creates project-local agents in `.claude/agents/` using the **Bootstrap pattern** — agents read CLAUDE.md at runtime instead of having content injected. `/done` uses these project agents (with fallback to external plugins).
 
 ```
 Project/
-├── CLAUDE.md                    # Project conventions
+├── CLAUDE.md                    # Source of truth (read by agents at runtime)
 └── .claude/
     └── agents/
-        ├── code-reviewer.md     # Has project rules injected
-        └── code-simplifier.md   # Has project rules injected
+        ├── code-reviewer.md     # Bootstrap + ~15 inline critical rules
+        └── code-simplifier.md   # Bootstrap + ~12 inline critical rules
 ```
 
 ## Command/Skill Anatomy
@@ -111,7 +111,7 @@ No build step — markdown files are interpreted directly.
 | Use `disable-model-invocation: true` for commands that shouldn't auto-trigger | Prevents unwanted activation |
 | Include examples in markdown | Helps Claude execute correctly |
 | Use tables for structured guidance | More scannable than prose |
-| Inject context into agent prompts | Agents don't inherit CLAUDE.md; include relevant CLAUDE.md files (root + subdomain) + task docs |
+| Agents use Bootstrap pattern | Agents read CLAUDE.md at runtime; only ~15 critical rules kept inline for zero-latency access |
 | Plugin must be self-contained | Never reference user's global `~/.claude/CLAUDE.md` - other users won't have it |
 
 ## Maintenance {#maintenance}
