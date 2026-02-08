@@ -47,15 +47,17 @@ Scan session for temporary artifacts that should be removed:
 
 ## Step 3: Update Task Docs
 
-Invoke `syafiqkit:write-summary` for the primary domain/feature.
+Invoke `syafiqkit:update-summary` for the primary domain/feature.
 
 If the path is obvious from session context, pass it directly to avoid discovery overhead:
 ```
-Skill: syafiqkit:write-summary
+Skill: syafiqkit:update-summary
 Args: tasks/{domain}/{feature}/current.md
 ```
 
-The skill handles: multi-domain detection, cross-references, shared gotcha consolidation.
+If no `current.md` exists yet, fall back to `syafiqkit:write-summary` to create it.
+
+The skill handles: status updates, appending completed work, cross-references.
 
 ## Step 4: Capture Patterns
 

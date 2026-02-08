@@ -23,12 +23,24 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | Command | `commands/*.md` | `/syafiqkit:<name>` |
 | Skill | `skills/<name>/SKILL.md` | `/syafiqkit:<name>` or proactive |
 
-## Skill Architecture
+## Commands & Skills
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `commit` | Generate commit messages from staged changes |
+| `read-summary` | Load existing task summary context |
+| `write-summary` | Create new task summary (or update if exists) |
+| `update-summary` | Append session findings to existing task summary |
+| `update-claude-docs` | Capture patterns/gotchas into CLAUDE.md files |
+
+### Skills
 
 | Skill | Purpose | Used By |
 |-------|---------|---------|
 | `task-summary` | Smart discovery of related task docs, cross-reference management | `write-summary`, `update-summary` commands |
-| `agent-setup` | Create/update project agents using Bootstrap pattern (read CLAUDE.md at runtime) | `/agent-setup` or `/update-claude-docs` |
+| `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
 | `team-build` | Spawn coordinated agent team for multi-workstream features | User invokes directly |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
@@ -113,6 +125,8 @@ No build step — markdown files are interpreted directly.
 | Use tables for structured guidance | More scannable than prose |
 | Agents use Bootstrap pattern | Agents read CLAUDE.md at runtime; only ~15 critical rules kept inline for zero-latency access |
 | Plugin must be self-contained | Never reference user's global `~/.claude/CLAUDE.md` - other users won't have it |
+| **Every change = version bump** | Bump both version files (see [Version Bumping](#version-bumping)) |
+| No build step | Markdown files interpreted directly; just bump version + `claude plugin update` |
 
 ## Maintenance {#maintenance}
 
@@ -135,9 +149,16 @@ No build step — markdown files are interpreted directly.
 | Explicit criteria | "2+ files OR business logic" not "significant changes" |
 | Graceful degradation | PRIMARY missing → auto-create; SECONDARY missing → skip + suggest |
 
-### Version Bumping
+### Version Bumping {#version-bumping}
 
-After changes, update version in **both** `.claude-plugin/plugin.json` and `marketplace.json`, then run:
+**⚠️ Update BOTH files** — missing one causes silent version mismatch:
+
+| File | Field |
+|------|-------|
+| `.claude-plugin/plugin.json` | `"version"` |
+| `.claude-plugin/marketplace.json` | `plugins[0].version` |
+
+Then run:
 ```bash
 claude plugin update syafiqkit@syafiqkit
 ```
