@@ -5,194 +5,173 @@ description: Spawn a coordinated team of agents to implement a module/feature. U
 
 # Team Build Workflow
 
-Coordinate a team of specialized agents to implement a module or feature in parallel.
+Coordinate a team of autonomous agents to implement a module or feature in parallel.
 
-## Phase 1: Understand Scope
+## Lead Constraints (absolute — no exceptions)
 
-### 1.1 Load Context
+1. **Lead NEVER reads project files** — not "just a quick check", not "to verify". Lead only reads CLAUDE.md/task docs for context. Teammates explore and read their own files.
+2. **Lead NEVER writes code** — delegate everything to teammates.
+3. **Lead NEVER spawns Task/Explore subagents for research** — no pre-team exploration. Teammates investigate themselves.
+4. **Do NOT send parallel tool calls that might fail** — if the first file might not exist, call it alone. Sibling error cascades waste turns.
+
+## Phase 1: Quick Plan (~1 min)
+
+The lead writes the plan **itself** — no Explore subagents, no Plan subagents. Use only what's in the user's prompt + CLAUDE.md files.
+
+### 1.1 Load Context (30s max)
+
 ```
 /syafiqkit:read-summary [domain if known]
 ```
-Read project CLAUDE.md files for conventions, patterns, gotchas.
+Read project CLAUDE.md files for conventions. That's it — move on.
 
-### 1.2 Explore Existing Code
+### 1.2 Clarify with User (only if truly ambiguous)
 
-Spawn Explore agents in parallel to understand:
+Use AskUserQuestion only for decisions teammates can't make on their own (e.g., "web only or mobile too?"). Skip if the prompt is clear enough.
 
-| Agent | Goal |
-|-------|------|
-| Backend explorer | Existing models, controllers, migrations, routes for this domain |
-| Frontend/mobile explorer | Existing stores, services, screens, components |
-| Auth/infra explorer | Auth middleware, route groups, shared traits/services |
+### 1.3 Write Plan
 
-### 1.3 Clarify with User (if needed)
+Enter plan mode. The lead writes this plan directly from the user's prompt — **no research needed**.
 
-Use AskUserQuestion for ambiguous design decisions. Common questions:
-
-| Topic | Example |
-|-------|---------|
-| Platform scope | Web only? Mobile only? Both? |
-| Auth flow | Who can access what? Role-based? |
-| Offline support | Need offline drafts? Sync strategy? |
-| Data shape | Normalize or JSON blobs? |
-
-## Phase 2: Plan
-
-Enter plan mode. Write a plan covering:
-
-### Plan Structure
+**Plan defines scope boundaries and goals, NOT step-by-step instructions.** Teammates are autonomous — they investigate, diagnose, and implement. The plan prevents collisions, not hand-holds.
 
 ```markdown
-# {Feature Name} — Team Implementation Plan
+# {Feature Name} — Team Plan
 
-## Context
-- What exists (DO NOT recreate)
-- What's missing
-- Critical bugs to fix first (P1)
+## Goals
+{What the user asked for — restate in clear bullets}
 
-## Team Structure
-| # | Role | Agent Type | Scope |
-|---|------|-----------|-------|
-| Lead | Coordinator | N/A | Delegates, doesn't code |
-| 1 | {Primary builder} | general-purpose | {scope} |
-| 2 | {Secondary builder} | general-purpose | {scope} |
-| 3 | {Support/infra} | general-purpose | {scope} |
-| 4 | Documentation | general-purpose | /done workflows |
-| 5 | Bug resolver | general-purpose | Standby, fixes on demand |
+## Team
+| # | Name | Scope | Goal |
+|---|------|-------|------|
+| 1 | {kebab-name} | {domain/area they own} | {what they achieve, not how} |
+| 2 | {kebab-name} | {domain/area they own} | {what they achieve, not how} |
+| N | {kebab-name} | {domain/area they own} | {what they achieve, not how} |
 
-## Teammate N — {Role Name}
-### Task N.1: {Title}
-**File(s)**: {exact paths}
-{Specific instructions — schema, methods, patterns to follow}
+## File Ownership
+{Which teammate owns which files/directories — prevents merge conflicts}
 
-### Task N.2: ...
+## Dependencies
+{Which goals block which — determines spawn order}
+{If none, say "All independent — spawn all at once"}
 
-## Dependency Graph
-{Which tasks block which — determines spawn order}
-
-## Verification
-{How to verify each task + integration tests}
+## Known Context
+{Any hints from the user's prompt: file paths, line numbers, API endpoints, patterns}
+{Teammates use this as starting points, not as final answers}
 ```
 
-### Plan Principles
+**Plan principles:**
 
 | Principle | Why |
 |-----------|-----|
-| P1 bugs first | Fix broken patterns before building on them |
-| Quick wins early | Register routes, wire up existing code |
-| Explicit file paths | Teammates need exact targets, not vague guidance |
-| Code examples in plan | Show the pattern, not just describe it |
-| Dependency graph | Prevents race conditions on shared files |
+| Goals over instructions | Teammates investigate and decide how to implement |
+| Scope boundaries over task lists | Prevent collisions without micromanaging |
+| Known context as hints | User-provided paths/lines are starting points for investigation |
+| Fewer teammates > more | 2-3 focused teammates beat 5 narrow ones |
+| Multiple tasks per teammate | 3-5 tasks each — teammates self-claim from TaskList after completing one |
 
 ### Exit plan mode for user approval.
 
-## Phase 3: Execute
+## Phase 2: Execute
 
-### 3.1 Create Team
+### 2.1 Create Team + Tasks
+
 ```
 TeamCreate: team_name={feature-slug}
 ```
 
-### 3.2 Create Tasks
-Create all tasks from the plan using TaskCreate. Set up dependencies:
+Create tasks using TaskCreate — **multiple tasks per teammate** (3-5 each) so they can self-claim from TaskList after completing one. Always include `activeForm` (present continuous, e.g., "Fixing notification bug").
+
+Task descriptions include:
+- The goal (what to achieve)
+- Their scope boundary (what files/areas they own)
+- Known context from the user's prompt (file paths, line numbers, hints)
+
+Set up dependencies if needed:
 ```
 TaskUpdate: taskId=X, addBlockedBy=[Y, Z]
 ```
 
-### 3.3 Spawn Teammates
+### 2.2 Spawn Teammates
+
+**Model selection:**
+
+| Teammate role | Model | Why |
+|--------------|-------|-----|
+| Implementation (write/edit code) | `opus` | Needs reasoning for complex code changes |
+| Research / exploration / docs | `sonnet` | Cheaper, fast enough for reading + searching |
 
 **Teammate prompt template:**
 ```
-You are Teammate N — {Role} for the {Feature} integration team.
+You are {Name} on the {team-name} team.
 
 ## Your Identity
 - Name: {kebab-name} (use this in all communications)
 - Team: {team-name}
 
-## Context
-Read `tasks/{domain}/{feature}/current.md` for project context.
-Read `{sub-project}/CLAUDE.md` for conventions.
+## Your Goal
+{Goal from the plan — what to achieve, not how}
 
-## Your Tasks
-{List task IDs and summaries}
+## Your Scope
+You own: {files/directories/domain area}
+Do NOT modify files outside your scope — message team-lead if you need changes elsewhere.
 
-## Workflow
-1. Run TaskGet for your first task ID to get full instructions
-2. Mark task in_progress with TaskUpdate before starting
-3. Do the work (create files, edit code, run artisan commands)
-4. Verify with IDE diagnostics (getDiagnostics) — zero errors required
-5. Mark task completed with TaskUpdate
-6. Check TaskList for next available task
-7. Send progress to team-lead via SendMessage after each task
+## Starting Context
+{Any known context from user's prompt: file paths, line numbers, API endpoints}
+
+## How to Work
+You are autonomous. Investigate the codebase, understand the problem, decide on the approach, implement, and verify. CLAUDE.md is auto-loaded — you already have project conventions.
+
+1. Read your task via TaskGet
+2. Mark task in_progress with TaskUpdate
+3. Investigate — read files, search code, understand patterns
+4. Implement — write/edit code, run commands
+5. Verify — run IDE diagnostics (getDiagnostics), tests if applicable
+6. Mark task completed with TaskUpdate
+7. Message team-lead with a summary of what you did and any issues found
+8. Check TaskList for next available task
 
 ## Rules
-- Use `php artisan make:*` for Laravel files (never create manually)
 - Match existing patterns in the codebase
-- {Project-specific rules from CLAUDE.md}
+- If blocked or unsure, message team-lead — don't guess
+- If you discover work outside your scope, message team-lead to route it
 ```
 
-**Spawn order** — respect dependency graph:
-1. Bug resolver (P1 fixes, no blockers)
-2. Builders with unblocked tasks
-3. Docs manager (monitors, updates after completions)
-4. Code simplifier (idle, activated when needed)
+**Spawn order** — respect dependency graph. If no dependencies, spawn all at once.
 
-### 3.4 Coordinate
+### 2.3 Coordinate
 
-**Lead responsibilities** (delegate mode — don't code yourself):
+**Lead role: traffic controller, not architect.** Teammates think for themselves. Lead handles:
 
 | Event | Action |
 |-------|--------|
-| Teammate completes task | Check if downstream tasks are unblocked, notify blocked teammates |
-| Teammate reports bug | Route to bug-resolver |
-| Teammate idle, no tasks | Assign new work or send shutdown_request |
-| Shared file conflict | Warn teammates to use separate sections/comment blocks |
-| User requests change | Create new task, assign to appropriate teammate |
-| All tasks done | Trigger Phase 4 |
+| Teammate completes task | Unblock downstream tasks, notify waiting teammates |
+| Teammate finds issue outside scope | Route to the right teammate or create new task |
+| Teammate is stuck | Help unblock — suggest approach, not exact code |
+| Shared file conflict | Assign ownership, tell one teammate to wait |
+| User requests change | Create task, assign to appropriate teammate |
+| All tasks done | Trigger Phase 3 |
 
-**Communication patterns:**
+### 2.4 Code Quality (on demand)
+
+If the user asked for review or if multiple teammates touched similar patterns:
 ```
-# Unblock notification
-SendMessage → teammate: "Task #X is now unblocked. You can start on it."
-
-# Route bug
-SendMessage → bug-resolver: "Bug found in {file}: {description}. Please fix."
-
-# User interrupt → new task
-TaskCreate → assign to appropriate teammate via TaskUpdate
-SendMessage → teammate: "New task #{id} assigned. {brief description}"
+SendMessage → appropriate teammate: "Review {files} for consistency before we wrap up."
 ```
 
-### 3.5 Code Quality (on demand)
+## Phase 3: Wrap Up
 
-Keep a code-simplifier teammate idle. Activate when:
-- User spots duplicate patterns
-- Multiple teammates produce similar auth/scoping logic
-- Files exceed complexity threshold
-
-```
-SendMessage → code-simplifier: "Review {files} for {pattern}. DRY it up."
-```
-
-## Phase 4: Wrap Up
-
-### 4.1 Final Docs
-```
-SendMessage → docs-manager: "All tasks complete. Run final doc update + /syafiqkit:update-claude-docs"
-```
-
-### 4.2 Shutdown Teammates
-Shutdown in reverse spawn order (wait for each approval):
+### 3.1 Shutdown Teammates
 ```
 SendMessage type=shutdown_request → {each teammate}
 ```
 
-### 4.3 Clean Up
+### 3.2 Clean Up
 ```
 TeamDelete  # Removes team + task directories
 ```
 
-### 4.4 Summary
+### 3.3 Summary
 Output final scorecard to user:
 
 ```markdown
@@ -200,31 +179,30 @@ Output final scorecard to user:
 
 **{N} tasks completed** across {M} teammates.
 
-### What was built
-| Category | Deliverables |
+### What was done
+| Teammate | Deliverables |
 |----------|-------------|
-| Tables | ... |
-| Controllers | ... |
-| Services | ... |
-| Routes | ... |
-| Mobile | ... |
+| {name} | {what they built/fixed} |
+| {name} | {what they built/fixed} |
 
-### Bug fixes
-- ...
-
-### Architecture decisions
-- ...
+### Issues found during investigation
+- {anything teammates discovered that wasn't in the original prompt}
 ```
 
 ## Anti-Patterns
 
 | Don't | Do Instead |
 |-------|-----------|
+| Lead reads project files | Teammates read their own files |
 | Lead writes code | Delegate to teammates |
-| Teammate guesses file paths | Plan provides exact paths |
-| Spawn all teammates at once | Respect dependency graph |
-| Retry failing teammate 5 times | Route to bug-resolver |
-| Ignore user interrupts | Create task, assign, continue |
+| Lead spawns Explore/Plan subagents before team | Teammates investigate themselves |
+| Spend 5+ min planning before any real work | Plan in ~1 min, let teammates figure out details |
+| Write step-by-step instructions for teammates | Give goals and scope — teammates are autonomous |
+| Spoon-feed exact file paths in task descriptions | Share known context as hints, teammates verify themselves |
+| Spawn all teammates when there are dependencies | Respect dependency graph |
+| Retry failing teammate 5 times | Route to another teammate or help unblock |
 | Leave idle teammates running | Shutdown when all tasks done |
-| Duplicate work across teammates | Shared files get one owner |
-| Skip IDE diagnostics | Every file must pass getDiagnostics |
+| Duplicate scope across teammates | Each file/area has one owner |
+| Lead does "quick checks" or "verifications" | If lead wants to know something, ask a teammate |
+| Broadcast routine messages | Use direct `message` to specific teammate — broadcast = N messages |
+| Use teams for simple sequential work | Teams cost 3-4x vs single session — only for genuinely parallel work |

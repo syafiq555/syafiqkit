@@ -15,12 +15,13 @@ Extract reusable patterns from this session into CLAUDE.md files.
 | User correction ("use X instead") | Gotcha or Guidance | Depends on scope |
 | Same pattern used 2+ times | Pattern | Service method, helper |
 | Environment surprise | Gotcha | MSYS2, PowerShell quirks |
-| Claude ignored existing docs | Refinement needed | Rule exists but wasn't followed |
+| Claude ignored existing docs | **Refinement** (see 3d) | Rule exists but was violated — diagnose why |
 
 **Key distinction:**
 - **Gotcha**: Error/symptom → technical fix (project-specific)
 - **Guidance**: Behavioral rule for Claude (global `~/.claude/CLAUDE.md`)
 - **Pattern**: Reusable architectural solution with code example
+- **Refinement**: Existing rule was violated — root cause is missing context, not missing rule (see Step 3d)
 
 ## 2. Route to Target
 
@@ -88,10 +89,23 @@ Grep for the key symptom/keyword across ALL `**/CLAUDE.md` files:
 |--------|---------------------|--------|
 | No | — | Add new entry |
 | Yes | Yes | No change needed |
-| Yes | No | Refine existing entry (strengthen wording, add example) |
+| Yes | No | **Diagnose why** (see 3d), then refine |
 
 3. Use Edit tool to make changes
 4. Output summary of what was added/refined
+
+### 3d. Diagnose "rule exists but was violated"
+
+When a rule exists but Claude still broke it, **don't just skip or tweak wording**. Ask:
+
+| Question | If yes → |
+|----------|----------|
+| Does the rule say "don't do X" but lack a concrete "do Y instead" mapping? | Add a **reference table** mapping old pattern → replacement |
+| Was the violation caused by copying from existing code that predates the rule? | Add a gotcha: "Legacy code may use X — always convert to Y" |
+| Is the rule buried too deep (wrong section, far from related context)? | Move or cross-reference closer to where the violation occurs |
+| Does the supporting reference section (e.g., token table) have gaps? | Fill the gaps — incomplete references cause violations |
+
+**Key insight**: A "don't do X" rule without actionable "do Y" alternatives is half a rule. The fix is often not strengthening the prohibition but **completing the guidance**.
 
 ## 4. Formatting Guidelines
 
