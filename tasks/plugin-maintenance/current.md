@@ -35,6 +35,7 @@ Related: None (standalone plugin)
 | `agent-setup` | Create/update project agents with CLAUDE.md rules | `update-claude-docs` command |
 | `done` | Post-task cleanup orchestrator | User directly |
 | `commit-invoice-generator` | Generate invoice from git commits | User directly |
+| `consolidate-docs` | Merge related task docs into one | User directly (command) |
 
 ### Invocation Control
 

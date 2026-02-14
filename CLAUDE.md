@@ -34,6 +34,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `write-summary` | Create new task summary (or update if exists) |
 | `update-summary` | Append session findings to existing task summary |
 | `update-claude-docs` | Capture patterns/gotchas into CLAUDE.md files |
+| `consolidate-docs` | Consolidate related task documents into one |
 
 ### Skills
 
