@@ -16,6 +16,7 @@ Extract reusable patterns from this session into CLAUDE.md files.
 | Same pattern used 2+ times | Pattern | Service method, helper |
 | Environment surprise | Gotcha | MSYS2, PowerShell quirks |
 | Claude ignored existing docs | **Refinement** (see 3d) | Rule exists but was violated — diagnose why |
+| Claude used wrong tool for task | **Tool guidance** (see 3e) | Grep for symbol lookup → should be LSP `findReferences` |
 
 **Key distinction:**
 - **Gotcha**: Error/symptom → technical fix (project-specific)
@@ -106,6 +107,19 @@ When a rule exists but Claude still broke it, **don't just skip or tweak wording
 | Does the supporting reference section (e.g., token table) have gaps? | Fill the gaps — incomplete references cause violations |
 
 **Key insight**: A "don't do X" rule without actionable "do Y" alternatives is half a rule. The fix is often not strengthening the prohibition but **completing the guidance**.
+
+### 3e. Diagnose "wrong tool used"
+
+When Claude used a suboptimal tool (e.g., Grep instead of LSP, Read instead of MCP Boost), check:
+
+| Question | If yes → |
+|----------|----------|
+| Is there a tool preference rule in `~/.claude/CLAUDE.md` `{#tools}` section? | **Refinement** — rule exists but was too soft (see 3d) |
+| Is the rule missing entirely? | Add ❌/✅ mapping to Tool Usage section with concrete task → tool pairs |
+| Did Claude start with the right tool but fall back mid-task? | Add **chaining workflow** — numbered steps showing how to stay in the preferred tool |
+| Is the preferred tool only useful for certain tasks? | Add a **fallback clause** so Claude knows when the old tool is still correct |
+
+**Escalation**: If the same tool violation persists across 2+ sessions after adding rules, escalate from table entry → dedicated subsection with `⚠️ MANDATORY` framing and explicit ❌/✅ task-to-tool mapping.
 
 ## 4. Formatting Guidelines
 
