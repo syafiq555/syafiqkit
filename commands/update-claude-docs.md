@@ -24,6 +24,31 @@ Extract reusable patterns from this session into CLAUDE.md files.
 - **Pattern**: Reusable architectural solution with code example
 - **Refinement**: Existing rule was violated — root cause is missing context, not missing rule (see Step 3d)
 
+### 1b. Audit signals against existing rules (MANDATORY)
+
+For **each** signal, extract 2-3 concrete keywords (tool names, error messages, env terms):
+
+| Signal example | Keywords to grep |
+|----------------|------------------|
+| Tinker failed on Cloudways | `tinker`, `cloudways` |
+| Used Grep instead of LSP | `grep`, `findReferences`, `LSP` |
+| 500 from missing eager load | `eager`, `N+1`, model name |
+
+**Grep keywords** against all CLAUDE.md files:
+
+```
+Grep: pattern="{keyword}", glob="**/CLAUDE.md"
+Grep: pattern="{keyword}", path="~/.claude", glob="CLAUDE.md"
+```
+
+| Grep result | Classification | Action in Step 3 |
+|-------------|---------------|------------------|
+| No match anywhere | **New** | Normal flow (3b→3c→add entry) |
+| Match in target CLAUDE.md | **Violation** | Skip to 3c with `Found=Yes, Followed=No` → 3d |
+| Match in wrong CLAUDE.md | **Misplaced** | Move to correct scope + evaluate refinement |
+
+⚠️ **"No new knowledge" is only valid for "New" signals with no actionable content.** Violations and Misplaced signals ALWAYS require action in Step 3d.
+
 ## 2. Route to Target
 
 Determine target by finding the **most specific CLAUDE.md** that covers the session's modified files.
@@ -75,11 +100,15 @@ Before adding anything, read the target CLAUDE.md to understand:
 - Whether the entry already exists (avoid duplicates)
 - Where the entry fits best (which section/table)
 
-### 3b. Check for duplicates across files
+### 3b. Check for duplicates and confirm violations
 
-Grep for the key symptom/keyword across ALL `**/CLAUDE.md` files:
-- If already in the correct file → skip or refine
-- If in the wrong file (e.g., sub-project gotcha in root) → move it, don't duplicate
+**"New" signals (from 1b)**: Grep for the key symptom/keyword across ALL `**/CLAUDE.md` files:
+- If found in correct file → reclassify as **Violation** (1b keywords were too narrow)
+- If in wrong file → move, don't duplicate
+
+**"Violation" signals (from 1b)**: Read the matched rule's line range. Extract exact rule text. Pass to 3c with `Found=Yes, Followed=No`.
+
+**"Misplaced" signals (from 1b)**: Move rule to correct target (per Step 2), then evaluate if refinement also needed via 3d.
 
 ### 3c. Write the entry
 
