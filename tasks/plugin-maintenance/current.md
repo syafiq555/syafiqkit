@@ -1,7 +1,10 @@
 <!--LLM-CONTEXT
+Status: Reference
+Domain: plugin-maintenance
 Purpose: Best practices for maintaining syafiqkit plugin commands/skills
-Key files: commands/*.md, skills/*/SKILL.md, skills/agent-setup/templates/*.md, CLAUDE.md
-Related: None (standalone plugin)
+Key files: commands/write-summary.md, commands/update-summary.md, commands/update-claude-docs.md, CLAUDE.md, .claude-plugin/plugin.json
+Related: None
+Last updated: 2026-02-21
 -->
 
 # Plugin Maintenance
@@ -108,6 +111,22 @@ Related: None (standalone plugin)
 - Cumulative learning as gotchas accumulate
 - Portable with the repo
 
+## Completed (2026-02-21) — Prompting Techniques Applied
+
+Applied 3 LLM prompting best practices to command files to improve reliability:
+
+| Command | Constitutional (❌ constraints) | Chain-of-Thought (`<thinking>`) | Validation Loop |
+|---------|-------------------------------|-------------------------------|-----------------|
+| `write-summary` | ✅ Steps 3 + 4 | ✅ Step 0 pre-flight | ✅ Step 5 |
+| `update-summary` | ✅ Step 2 | ➖ | ✅ Step 3 |
+| `update-claude-docs` | ✅ Step 3c | ✅ Step 0 pre-flight | ✅ Step 3f |
+
+**Commands left unchanged**: `read-summary`, `commit`, `consolidate-docs` (too simple / already has safety check)
+
+**Version bumped**: 1.6.3 → 1.6.4
+
+**Pattern captured in CLAUDE.md**: New `### Prompting Techniques for Commands {#prompting-techniques}` section added under Maintenance.
+
 ## Gotchas
 
 | Issue | Cause | Fix |
@@ -126,8 +145,21 @@ Related: None (standalone plugin)
 | Use `allowed-tools` for restrictions | Scope permissions per-skill |
 | CLAUDE.md <150 lines | Domain knowledge → skills, not CLAUDE.md |
 
+## Architecture Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Apply prompting techniques selectively, not universally | Simple commands (`read-summary`, `commit`) don't benefit — overhead reduces clarity. Only commands with multi-branch inference or file writes gain reliability improvements. |
+| `<thinking>` block as Step 0 (pre-flight), not inline | Externalizing routing decisions before action prevents silent errors mid-step and is easier to review/debug. |
+| Validation loop re-reads the file after writing | Write + verify pattern catches silent truncation bugs that Edit confirmation alone doesn't surface. |
+
 ## Sources
 
 - [Skills Documentation](https://code.claude.com/docs/en/skills.md)
 - [Best Practices Guide](https://code.claude.com/docs/en/best-practices.md)
 - [Sub-agents Documentation](https://code.claude.com/docs/en/sub-agents.md)
+
+## Next Steps
+
+- Monitor whether `<thinking>` blocks reduce domain inference errors in practice
+- Consider adding validation loop to `consolidate-docs` if merge errors occur in future sessions

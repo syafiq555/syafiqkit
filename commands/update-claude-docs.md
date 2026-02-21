@@ -7,6 +7,18 @@ argument-hint: "[optional: focus area]"
 
 Extract reusable patterns from this session into CLAUDE.md files.
 
+## 0. Pre-Flight Reasoning
+
+Before scanning, think through:
+
+```
+<thinking>
+- What happened in this session? Any corrections, repeated attempts, or env surprises?
+- For each signal: is it a new behavior (Gotcha/Pattern), a rule violation, or a wrong-tool choice?
+- Which CLAUDE.md hierarchy exists in this project?
+</thinking>
+```
+
 ## 1. Scan Session for Signals
 
 | Signal | Category | Example |
@@ -112,6 +124,15 @@ Before adding anything, read the target CLAUDE.md to understand:
 
 ### 3c. Write the entry
 
+**Constraints:**
+
+| ❌ Never | ✅ Always |
+|---------|---------|
+| Add a rule that already exists in the target file | Confirm grep returned no match before writing |
+| Write to root CLAUDE.md when a more specific one exists | Route to narrowest scope (per Step 2) |
+| Tweak wording on a violated rule and call it fixed | Diagnose WHY it was violated first (Step 3d) |
+| Add a "don't do X" rule without an actionable "do Y" | Pair every prohibition with a concrete alternative |
+
 1. Check if entry already exists in target CLAUDE.md
 2. Apply formatting rules:
 
@@ -149,6 +170,15 @@ When Claude used a suboptimal tool (e.g., Grep instead of LSP, Read instead of M
 | Is the preferred tool only useful for certain tasks? | Add a **fallback clause** so Claude knows when the old tool is still correct |
 
 **Escalation**: If the same tool violation persists across 2+ sessions after adding rules, escalate from table entry → dedicated subsection with `⚠️ MANDATORY` framing and explicit ❌/✅ task-to-tool mapping.
+
+## 3f. Validate Written Entry
+
+After writing to any CLAUDE.md, verify:
+
+1. Entry addresses all points in the original signal
+2. No duplicate rule now exists (re-run grep for the key symptom)
+3. Format matches section conventions (table for gotchas/guidance, prose+code for patterns)
+4. If any check fails → revise before continuing to next signal
 
 ## 4. Formatting Guidelines
 

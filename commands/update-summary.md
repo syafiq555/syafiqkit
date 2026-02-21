@@ -13,6 +13,15 @@ Same as `/write-summary` Step 1. If path not provided, infer from session files.
 
 ## 2. Read & Update
 
+**Constraints:**
+
+| ❌ Never | ✅ Always |
+|---------|---------|
+| Overwrite or truncate existing `## Completed` sections | Append below with new `## Completed (date)` header |
+| Update LLM-CONTEXT without reading the file first | Read → update → write |
+| Skip the Next Steps update | Always remove completed items and add new ones |
+| Create the file if it doesn't exist | Fall back to `/write-summary` instead |
+
 ```
 Read: {resolved path}
 ```
@@ -26,7 +35,16 @@ Read: {resolved path}
 | **Update** | Next steps — remove completed items, add new ones | Bottom |
 | **Preserve** | All historical content — never delete completed sections | Everywhere |
 
-## 3. Cross-References (quick check)
+## 3. Validate Written Document
+
+After writing, re-read the file and verify:
+
+1. `LLM-CONTEXT Last updated` was changed to today
+2. Historical `## Completed` sections still exist (none deleted)
+3. Next Steps reflects current state (no stale completed items)
+4. If any check fails → fix immediately before continuing
+
+## 4. Cross-References (quick check)
 
 ```
 Glob: tasks/**/current.md

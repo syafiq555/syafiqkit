@@ -150,6 +150,18 @@ No build step — markdown files are interpreted directly.
 | Explicit criteria | "2+ files OR business logic" not "significant changes" |
 | Graceful degradation | PRIMARY missing → auto-create; SECONDARY missing → skip + suggest |
 
+### Prompting Techniques for Commands {#prompting-techniques}
+
+Commands/skills are prompts — apply these patterns when authoring or refactoring them:
+
+| Technique | When to use | How |
+|-----------|-------------|-----|
+| **Constitutional (❌ constraints)** | Commands that make routing/write decisions | Add `❌ Never / ✅ Always` table before the action step |
+| **Chain-of-Thought (`<thinking>`)** | Commands with multi-branch inference (domain routing, signal classification) | Add `## 0. Pre-Flight Reasoning` block with `<thinking>` questions before Step 1 |
+| **Validation Loop** | Commands that write or modify files | Add numbered self-check after write step: addresses all points? no deletions? format correct? revise if fails |
+
+**Skip for**: Simple commands (<3 decision branches), read-only commands (no files written). Adding these to trivial commands adds noise without benefit.
+
 ### Version Bumping {#version-bumping}
 
 **⚠️ Update BOTH files** — missing one causes silent version mismatch:

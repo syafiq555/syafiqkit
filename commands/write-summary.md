@@ -7,6 +7,19 @@ argument-hint: "[domain/feature or path]"
 
 Create or update task documentation optimized for humans and LLM agents.
 
+## 0. Pre-Flight Reasoning
+
+Before resolving the path, think through:
+
+```
+<thinking>
+- What files were modified this session?
+- What domain/feature do they belong to?
+- Does a current.md already exist for this path?
+- Is this a create or update operation?
+</thinking>
+```
+
 ## 1. Resolve Target Path
 
 | Input | Action |
@@ -40,6 +53,14 @@ Read: {resolved path}
 
 ## 3. Create New Document
 
+**Constraints:**
+
+| ❌ Never | ✅ Always |
+|---------|---------|
+| Skip reading path even if you think it's new | Read first — another session may have created it |
+| Infer domain from a single file path | Use the deepest common folder across all session files |
+| Omit any required LLM-CONTEXT field | All fields required: Status, Domain, Key files, Related, Last updated |
+
 **LLM-CONTEXT block** (required at top):
 ```markdown
 <!--LLM-CONTEXT
@@ -60,6 +81,14 @@ Last updated: {today}
 
 ## 4. Update Existing Document
 
+**Constraints:**
+
+| ❌ Never | ✅ Always |
+|---------|---------|
+| Delete or overwrite existing `## Completed` sections | Append a new `## Completed (date)` below existing ones |
+| Rewrite architecture decisions that already exist | Add new rows/paragraphs, keep historical ones |
+| Set `Status: Done` without user instruction | Preserve existing status unless explicitly told to change |
+
 Read the existing doc first. Then:
 
 | Action | What | Where |
@@ -71,7 +100,16 @@ Read the existing doc first. Then:
 | **Update** | Next steps — remove completed items, add new ones | Bottom |
 | **Preserve** | All historical content — never delete completed sections | Everywhere |
 
-## 5. Cross-References (only if multiple task docs exist)
+## 5. Validate Written Document
+
+After writing, re-read the file and verify:
+
+1. `LLM-CONTEXT` block is present with all required fields
+2. All previous `## Completed` sections still exist (none deleted)
+3. `Last updated` date matches today
+4. If any check fails → fix immediately and re-read before continuing
+
+## 6. Cross-References (only if multiple task docs exist)
 
 Quick check — only run if there are other task docs:
 ```
@@ -84,7 +122,7 @@ Glob: tasks/**/current.md
 | 1-2 docs | Read their `LLM-CONTEXT → Related` — add bidirectional ref if connected |
 | 3+ docs | Only check docs whose domain overlaps with session files |
 
-## 6. Shared Gotchas (only if pattern repeats)
+## 7. Shared Gotchas (only if pattern repeats)
 
 | Pattern appears in... | Put it in... |
 |-----------------------|--------------|
