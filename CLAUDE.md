@@ -139,6 +139,8 @@ No build step — markdown files are interpreted directly.
    - Inconsistent behavior vs related commands (e.g., `update-summary` vs `write-summary`)
    - Ambiguous criteria (define what "related" or "connection" means)
    - Missing edge cases (archived docs, Status: Done)
+   - Skill references a non-existent terminal skill (e.g. `writing-plans`) — always verify referenced skills exist in `skills/*/SKILL.md` before shipping
+   - Same flow described in 4 places (checklist + diagram + prose + after-section) — one `## Steps` section is enough; redundancy causes section drift
 3. **Reference**: `tasks/plugin-maintenance/current.md` for 2026 best practices research
 
 ### Design Principles

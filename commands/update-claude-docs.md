@@ -9,12 +9,10 @@ Extract reusable patterns from this session into CLAUDE.md files.
 
 ## 0. Pre-Flight Reasoning
 
-Before scanning, think through:
-
 ```
 <thinking>
-- What happened in this session? Any corrections, repeated attempts, or env surprises?
-- For each signal: is it a new behavior (Gotcha/Pattern), a rule violation, or a wrong-tool choice?
+- What happened? Corrections, repeated attempts, env surprises?
+- For each signal: new behavior (Gotcha/Pattern), rule violation, or wrong-tool choice?
 - Which CLAUDE.md hierarchy exists in this project?
 </thinking>
 ```
@@ -30,78 +28,30 @@ Before scanning, think through:
 | Claude ignored existing docs | **Refinement** (see 3d) | Rule exists but was violated — diagnose why |
 | Claude used wrong tool for task | **Tool guidance** (see 3e) | Grep for symbol lookup → should be LSP `findReferences` |
 
-**Key distinction:**
-- **Gotcha**: Error/symptom → technical fix (project-specific)
-- **Guidance**: Behavioral rule for Claude (global `~/.claude/CLAUDE.md`)
-- **Pattern**: Reusable architectural solution with code example
-- **Refinement**: Existing rule was violated — root cause is missing context, not missing rule (see Step 3d)
+**Categories**: Gotcha = error/symptom → fix | Guidance = behavioral rule (global) | Pattern = reusable with code | Refinement = violated rule (diagnose in 3d)
 
 ### 1b. Audit signals against existing rules (MANDATORY)
 
-For **each** signal, extract 2-3 concrete keywords (tool names, error messages, env terms):
+Extract 2-3 keywords per signal (tool names, error messages, env terms), then grep all CLAUDE.md files:
 
-| Signal example | Keywords to grep |
-|----------------|------------------|
-| Tinker failed on Cloudways | `tinker`, `cloudways` |
-| Used Grep instead of LSP | `grep`, `findReferences`, `LSP` |
-| 500 from missing eager load | `eager`, `N+1`, model name |
-
-**Grep keywords** against all CLAUDE.md files:
-
-```
-Grep: pattern="{keyword}", glob="**/CLAUDE.md"
-Grep: pattern="{keyword}", path="~/.claude", glob="CLAUDE.md"
-```
-
-| Grep result | Classification | Action in Step 3 |
-|-------------|---------------|------------------|
-| No match anywhere | **New** | Normal flow (3b→3c→add entry) |
-| Match in target CLAUDE.md | **Violation** | Skip to 3c with `Found=Yes, Followed=No` → 3d |
+| Grep result | Classification | Action |
+|-------------|---------------|--------|
+| No match anywhere | **New** | Add entry (Step 3b→3c) |
+| Match in target CLAUDE.md | **Violation** | Diagnose why violated (Step 3d), then refine |
 | Match in wrong CLAUDE.md | **Misplaced** | Move to correct scope + evaluate refinement |
 
-⚠️ **"No new knowledge" is only valid for "New" signals with no actionable content.** Violations and Misplaced signals ALWAYS require action in Step 3d.
+⚠️ Violations and Misplaced signals ALWAYS require action in Step 3d — "no new knowledge" only valid for New signals.
 
 ## 2. Route to Target
 
-Determine target by finding the **most specific CLAUDE.md** that covers the session's modified files.
+Find the **most specific CLAUDE.md** covering session's modified files (via `Glob: **/CLAUDE.md`):
 
-### 2a. Discover CLAUDE.md hierarchy
+1. Same domain/folder as modified files? → Use it
+2. Layer-level (e.g., `app/CLAUDE.md`, `resources/js/CLAUDE.md`)? → Use it
+3. Sub-project (multi-repo)? → Use it
+4. Root `CLAUDE.md` or `~/.claude/CLAUDE.md` (global tool/env issues)
 
-```
-Glob: **/CLAUDE.md
-```
-
-This reveals the project's structure. Common patterns:
-
-| Structure | Example |
-|-----------|---------|
-| Single root only | `CLAUDE.md` |
-| Root + layers | `CLAUDE.md`, `app/CLAUDE.md`, `resources/js/CLAUDE.md` |
-| Root + domains | `CLAUDE.md`, `app/Domain/Payment/CLAUDE.md`, `app/Domain/Invoice/CLAUDE.md` |
-| Multi-repo workspace | `CLAUDE.md`, `backend/CLAUDE.md`, `mobile/CLAUDE.md` |
-
-### 2b. Route to the most specific match
-
-Walk session files **from most specific to least specific**:
-
-1. Is there a `CLAUDE.md` in the **same domain/folder** as the modified files? → Use it
-2. Is there a **layer-level** `CLAUDE.md` (e.g., `app/CLAUDE.md` for backend, `resources/js/CLAUDE.md` for frontend)? → Use it
-3. Is there a **sub-project** `CLAUDE.md` (multi-repo)? → Use it
-4. Otherwise → Root `CLAUDE.md`
-
-For global tool/env issues → `~/.claude/CLAUDE.md`
-
-### 2c. Anti-pattern guard
-
-Before writing to ANY `CLAUDE.md`, ask: "Is there a more specific one that covers this?"
-
-| ❌ Don't write to... | ✅ When there's a more specific... |
-|---------------------|----------------------------------|
-| Root `CLAUDE.md` | `app/CLAUDE.md` or `{sub-project}/CLAUDE.md` exists |
-| `app/CLAUDE.md` | `app/Domain/{Name}/CLAUDE.md` exists |
-| `resources/js/CLAUDE.md` | Domain-specific frontend doc exists |
-
-**Rule**: Always target the **narrowest scope** that fully covers the gotcha/pattern.
+**Always ask**: "Is there a more specific one?" before writing — don't duplicate across scopes.
 
 ## 3. Execute
 
@@ -114,122 +64,89 @@ Before adding anything, read the target CLAUDE.md to understand:
 
 ### 3b. Check for duplicates and confirm violations
 
-**"New" signals (from 1b)**: Grep for the key symptom/keyword across ALL `**/CLAUDE.md` files:
-- If found in correct file → reclassify as **Violation** (1b keywords were too narrow)
-- If in wrong file → move, don't duplicate
-
-**"Violation" signals (from 1b)**: Read the matched rule's line range. Extract exact rule text. Pass to 3c with `Found=Yes, Followed=No`.
-
-**"Misplaced" signals (from 1b)**: Move rule to correct target (per Step 2), then evaluate if refinement also needed via 3d.
+- **New signals**: Grep key symptom across all CLAUDE.md files — if found → reclassify as Violation; if wrong file → move, don't duplicate
+- **Violation signals**: Read matched rule's line range; extract exact text; pass to 3c with `Found=Yes, Followed=No`
+- **Misplaced signals**: Move to correct target (Step 2), then evaluate if refinement needed (3d)
 
 ### 3c. Write the entry
 
-**Constraints:**
-
-| ❌ Never | ✅ Always |
-|---------|---------|
-| Add a rule that already exists in the target file | Confirm grep returned no match before writing |
-| Write to root CLAUDE.md when a more specific one exists | Route to narrowest scope (per Step 2) |
-| Tweak wording on a violated rule and call it fixed | Diagnose WHY it was violated first (Step 3d) |
-| Add a "don't do X" rule without an actionable "do Y" | Pair every prohibition with a concrete alternative |
-
-1. Check if entry already exists in target CLAUDE.md
-2. Apply formatting rules:
-
-| Found? | Claude followed it? | Action |
-|--------|---------------------|--------|
+| Entry exists? | Claude followed? | Action |
+|---------------|------------------|--------|
 | No | — | Add new entry |
 | Yes | Yes | No change needed |
-| Yes | No | **Diagnose why** (see 3d), then refine |
+| Yes | No | Diagnose why (3d), then refine |
 
-3. Use Edit tool to make changes
-4. Output summary of what was added/refined
+**Constraints**: No duplicates | Route to narrowest scope | Never tweak without diagnosing (3d) | Pair prohibition + alternative | Use Edit tool
 
 ### 3d. Diagnose "rule exists but was violated"
 
-When a rule exists but Claude still broke it, **don't just skip or tweak wording**. Ask:
+**Don't just skip or tweak wording**. Ask:
 
-| Question | If yes → |
-|----------|----------|
-| Does the rule say "don't do X" but lack a concrete "do Y instead" mapping? | Add a **reference table** mapping old pattern → replacement |
-| Was the violation caused by copying from existing code that predates the rule? | Add a gotcha: "Legacy code may use X — always convert to Y" |
-| Is the rule buried too deep (wrong section, far from related context)? | Move or cross-reference closer to where the violation occurs |
-| Does the supporting reference section (e.g., token table) have gaps? | Fill the gaps — incomplete references cause violations |
+- Missing "do Y instead" mapping? → Add reference table (old pattern → replacement)
+- Legacy code predates rule? → Add gotcha: "Legacy code may use X — convert to Y"
+- Rule buried in wrong section? → Move or cross-reference to context
+- Supporting reference gaps? → Fill gaps (incomplete references cause violations)
 
-**Key insight**: A "don't do X" rule without actionable "do Y" alternatives is half a rule. The fix is often not strengthening the prohibition but **completing the guidance**.
+**Key insight**: "don't do X" without actionable "do Y" is half a rule — complete the guidance, don't just strengthen prohibition.
 
 ### 3e. Diagnose "wrong tool used"
 
-When Claude used a suboptimal tool (e.g., Grep instead of LSP, Read instead of MCP Boost), check:
+- Rule exists but too soft? → Refinement (see 3d)
+- Rule missing? → Add ❌/✅ mapping with concrete task → tool pairs
+- Falls back mid-task? → Add chaining workflow (numbered steps to stay in preferred tool)
+- Tool only useful for some tasks? → Add fallback clause
 
-| Question | If yes → |
-|----------|----------|
-| Is there a tool preference rule in `~/.claude/CLAUDE.md` `{#tools}` section? | **Refinement** — rule exists but was too soft (see 3d) |
-| Is the rule missing entirely? | Add ❌/✅ mapping to Tool Usage section with concrete task → tool pairs |
-| Did Claude start with the right tool but fall back mid-task? | Add **chaining workflow** — numbered steps showing how to stay in the preferred tool |
-| Is the preferred tool only useful for certain tasks? | Add a **fallback clause** so Claude knows when the old tool is still correct |
-
-**Escalation**: If the same tool violation persists across 2+ sessions after adding rules, escalate from table entry → dedicated subsection with `⚠️ MANDATORY` framing and explicit ❌/✅ task-to-tool mapping.
+**Escalation**: Persists 2+ sessions → upgrade from table entry to dedicated subsection with `⚠️ MANDATORY` + explicit ❌/✅ task-to-tool mapping.
 
 ## 3f. Validate Written Entry
 
-After writing to any CLAUDE.md, verify:
-
-1. Entry addresses all points in the original signal
-2. No duplicate rule now exists (re-run grep for the key symptom)
-3. Format matches section conventions (table for gotchas/guidance, prose+code for patterns)
-4. If any check fails → revise before continuing to next signal
+After writing, verify:
+1. Addresses all points in original signal
+2. No duplicate (re-grep key symptom)
+3. Format matches section (table for gotchas/guidance; prose+code for patterns)
+4. If fails → revise before next signal
 
 ## 4. Formatting Guidelines
 
-**Keep entries SHORT** — every line must earn its place.
+| Type | Format |
+|------|--------|
+| Gotchas | Table: Symptom \| Cause \| Fix (project-specific) |
+| Guidance | ❌/✅ table for global `~/.claude/CLAUDE.md` rules |
+| Patterns | Prose + code (reusable only) |
 
-**Gotchas** (table format, symptom required):
-```markdown
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `500 on POST /invoices` | Timezone mismatch | `->setTimezone('UTC')` |
-```
+## 4b. Condensation Rules
 
-**Guidance** (for ~/.claude/CLAUDE.md):
-```markdown
-| ❌ NEVER | ✅ ALWAYS |
-|----------|----------|
-| `grep`, `find` | Grep tool, Glob tool |
-```
+When CLAUDE.md accumulates too many gotcha rows:
 
-**Patterns** (only when reusable):
-```markdown
-### Pattern Name {#anchor}
+| Entry type | Action |
+|------------|--------|
+| Gotcha with actionable ❌/✅ | Promote to Critical Rules (drop Symptom/Cause) |
+| "Fixed:" or strikethrough | Delete (one-time fix in codebase) |
+| Duplicate of Critical Rule | Delete |
+| IDE/tool hint | Delete (not a code rule) |
+| API contract blob | Replace with pointer + one-sentence shape |
+| Metadata column | Drop |
 
-**Problem**: What recurring problem this solves
-
-**Solution**:
-```code
-// Key code showing the pattern
-```
+**Litmus test**: Is this fix already permanent in codebase with no regression risk? → Yes = delete.
 
 ## 5. Litmus Test
 
-Before adding, ask: "Would removing this cause Claude to make mistakes?"
+Before adding: "Would removing this cause Claude to make mistakes?"
 
 | ✅ Include | ❌ Exclude |
 |-----------|-----------|
-| Commands Claude can't guess | Things Claude infers from code |
-| Code style differing from defaults | Standard language conventions |
-| Common gotchas / non-obvious behaviors | Long explanations or tutorials |
+| Commands Claude can't guess | Standard conventions |
+| Non-obvious gotchas | Tutorials/explanations |
 
-**Task docs ≠ CLAUDE.md**: A pattern documented in `tasks/**/current.md` still belongs in CLAUDE.md if it applies broadly to a domain. Task docs are feature-scoped and not always read. CLAUDE.md is always loaded — put reusable patterns in both.
+**Task docs ≠ CLAUDE.md**: Patterns in `tasks/**/current.md` that apply broadly still go in CLAUDE.md (task docs feature-scoped, CLAUDE.md always loads).
 
-## 6. Sync Project Agents (MANDATORY if CLAUDE.md changed)
+## 6. Sync Project Agents
 
-**Condition**: Did you modify ANY `CLAUDE.md` file in steps 3-5?
+Agents read CLAUDE.md dynamically — adding gotchas does NOT require agent sync.
 
-| Modified? | Action |
-|-----------|--------|
-| Yes | **MUST** invoke `syafiqkit:agent-setup` skill |
-| No | Skip this step |
-
-**Why**: Project agents have inline critical rules that may need updating when CLAUDE.md high-frequency mistakes change.
-
-**Execute**: Use Skill tool with `skill: "syafiqkit:agent-setup"`
+| Change type | Action |
+|-------------|--------|
+| New gotcha added | Skip (agent reads dynamically) |
+| Promoted to Critical Rules | Skip (agent reads at runtime) |
+| Behavioral instruction change | Update agent file directly (Edit tool) |
+| New high-frequency mistake (crashes/data loss) | Invoke `syafiqkit:agent-setup` skill |
