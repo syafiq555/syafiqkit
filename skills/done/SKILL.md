@@ -102,17 +102,15 @@ Run both **in parallel** (single message, two Skill tool calls) — they are ind
 
 **Step 4 — Update Task Docs:**
 
-Invoke `syafiqkit:update-summary` for the primary domain/feature.
+Invoke `syafiqkit:task-summary` for the primary domain/feature.
 
 If the path is obvious from session context, pass it directly to avoid discovery overhead:
 ```
-Skill: syafiqkit:update-summary
+Skill: syafiqkit:task-summary
 Args: tasks/{domain}/{feature}/current.md
 ```
 
-If no `current.md` exists yet, `update-summary` handles the create-vs-update decision automatically.
-
-The skill handles: status updates, appending completed work, cross-references.
+The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 
 **Step 5 — Capture Code-Level Patterns:**
 

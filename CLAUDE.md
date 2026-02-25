@@ -14,7 +14,8 @@ Claude Code plugin providing personal workflow automation: commit messages, task
 └── marketplace.json     # Marketplace listing
 commands/                # User-invocable slash commands
 skills/                  # Multi-step workflows (SKILL.md files)
-  └── done/              # Post-task cleanup orchestrator + task doc templates
+  ├── done/              # Post-task cleanup orchestrator
+  └── task-summary/      # Task doc create/update + templates
 ```
 
 | Type | Location | Trigger |
@@ -30,8 +31,8 @@ skills/                  # Multi-step workflows (SKILL.md files)
 |---------|---------|
 | `commit` | Generate commit messages from staged changes |
 | `read-summary` | Load existing task summary context |
-| `write-summary` | Create new task summary (or update if exists) |
-| `update-summary` | Append session findings to existing task summary |
+| `write-summary` | Create task summary (thin wrapper → `task-summary` skill) |
+| `update-summary` | Update task summary (thin wrapper → `task-summary` skill) |
 | `update-claude-docs` | Capture patterns/gotchas into CLAUDE.md files |
 | `consolidate-docs` | Consolidate related task documents into one |
 
@@ -40,7 +41,8 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | Skill | Purpose | Used By |
 |-------|---------|---------|
 | `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
-| `done` | Post-task cleanup orchestrator (includes task doc templates in `references/`) | User invokes directly |
+| `done` | Post-task cleanup orchestrator | User invokes directly |
+| `task-summary` | Create/update task summary docs with path resolution, templates, cross-refs | `write-summary` cmd, `update-summary` cmd, `done` skill |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 
 ## Project-Specific Agents
@@ -123,6 +125,7 @@ No build step — markdown files are interpreted directly.
 | Use tables for structured guidance | More scannable than prose |
 | Agents use Bootstrap pattern | Agents read CLAUDE.md at runtime; only ~15 critical rules kept inline for zero-latency access |
 | Plugin must be self-contained | Never reference user's global `~/.claude/CLAUDE.md` - other users won't have it |
+| Command outgrows "single workflow"? → Migrate to skill + thin wrapper commands | Keeps backwards compat; wrapper invokes `Skill: syafiqkit:<name>` with `$ARGUMENTS` |
 | **Every change = version bump** | Bump both version files (see [Version Bumping](#version-bumping)) |
 | No build step | Markdown files interpreted directly; just bump version + `claude plugin update` |
 
@@ -133,7 +136,7 @@ No build step — markdown files are interpreted directly.
 1. **Run code-simplifier**: Target <100 lines per command; 47%+ reduction signals bloat
 2. **Review checklist**:
    - Missing `path` param on Glob/Grep instructions
-   - Inconsistent behavior vs related commands (e.g., `update-summary` vs `write-summary`)
+   - Inconsistent behavior vs related commands/skills
    - Ambiguous criteria (define what "related" or "connection" means)
    - Missing edge cases (archived docs, Status: Done)
    - Skill references a non-existent terminal skill (e.g. `writing-plans`) — always verify referenced skills exist in `skills/*/SKILL.md` before shipping
