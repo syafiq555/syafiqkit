@@ -34,7 +34,6 @@ claude plugin install syafiqkit@syafiqkit
 | `/done` | Post-task cleanup - simplify, review, update docs |
 | `/commit-invoice-generator` | Generate invoice line items from git commits |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern (read CLAUDE.md at runtime) |
-| `/task-summary` | Smart discovery of related task docs (used by write/update-summary) |
 
 ## Usage
 

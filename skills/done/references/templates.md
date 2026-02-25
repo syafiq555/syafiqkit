@@ -6,9 +6,12 @@ Place at the very top of `current.md`:
 
 ```markdown
 <!--LLM-CONTEXT
-Purpose: [One sentence describing what this feature/task does]
+Status: 🔨 In Progress
+Domain: [domain name]
 Key files: [Comma-separated list of primary files]
+Gotchas: [One critical gotcha if any — omit line if none]
 Related: [Links to related task docs or "None"]
+Last updated: [YYYY-MM-DD]
 -->
 ```
 
@@ -16,9 +19,12 @@ Related: [Links to related task docs or "None"]
 
 | Field | Content | Example |
 |-------|---------|---------|
-| `Purpose` | What problem this solves, not how | "Manage participant enrollment lifecycle" |
+| `Status` | Emoji + short state description | `🚀 Local E2E verified, prod pending` |
+| `Domain` | Project domain name | `risk-analysis`, `invoice`, `payment` |
 | `Key files` | 3-5 most important files | `app/Services/EnrollmentService.php, app/Models/Participant.php` |
+| `Gotchas` | One-liner for the most critical gotcha | `API_URL must not include /api suffix` |
 | `Related` | Other task docs with connections | `tasks/training/jd14/current.md, tasks/shared/gotchas-registry.md` |
+| `Last updated` | ISO date of last edit | `2026-02-25` |
 
 ### Related Field Syntax
 
@@ -30,12 +36,13 @@ Related: tasks/shared/patterns.md (for shared utilities)
 
 ## Status Values
 
-| Status | Meaning | When to Use |
-|--------|---------|-------------|
-| `Active` | Currently being worked on | Default for new/resumed work |
-| `Done` | Feature complete, no active work | When shipping/closing |
-| `Blocked` | Waiting on external dependency | Document what's blocking |
-| `Reference` | Ongoing reference, not a task | For patterns, gotchas registries |
+| Emoji | Status | Meaning | When to Use |
+|-------|--------|---------|-------------|
+| 🔨 | In Progress | Currently being worked on | Default for new/resumed work |
+| ✅ | Complete | Feature complete, no active work | When shipping/closing |
+| 🚀 | Testing/Staging | Verified locally, prod pending | After local E2E passes |
+| ⏸️ | Blocked | Waiting on external dependency | Document what's blocking |
+| 📋 | Planning | Not yet started | Pre-implementation planning |
 
 ## Gotcha Table Format
 
@@ -64,58 +71,18 @@ Used when PRIMARY doc is missing:
 
 ```markdown
 <!--LLM-CONTEXT
-Purpose: [Inferred from domain/feature path]
+Status: 🔨 In Progress
+Domain: [domain]
 Key files: [Files modified this session]
 Related: None
+Last updated: [today]
 -->
 
 # [Domain] - [Feature]
 
-**Status**: Active
+## Summary
 
-## Overview
-
-[To be documented]
-
-## Decisions
-
-[To be documented]
-
-## Gotchas
-
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| | | |
-```
-
-## Full Template
-
-For comprehensive documentation:
-
-```markdown
-<!--LLM-CONTEXT
-Purpose: [One sentence]
-Key files: [Primary files]
-Related: [Related docs]
--->
-
-# [Domain] - [Feature]
-
-**Status**: Active
-
-## Overview
-
-[What this feature does and why it exists]
-
-## Architecture
-
-[Key components and how they interact]
-
-## Decisions
-
-| Decision | Rationale | Date |
-|----------|-----------|------|
-| [What was decided] | [Why] | [When] |
+[One sentence on what this feature does]
 
 ## Gotchas
 
@@ -126,11 +93,47 @@ Related: [Related docs]
 ## Next Steps
 
 - [ ] [Pending work item]
+```
 
-## References
+## Full Template
 
-- [PR #123](link) - Initial implementation
-- [Slack thread](link) - Design discussion
+For comprehensive documentation:
+
+```markdown
+<!--LLM-CONTEXT
+Status: 🔨 In Progress
+Domain: [domain]
+Key files: [Primary files]
+Gotchas: [Critical gotcha one-liner if any]
+Related: [Related docs or None]
+Last updated: [today]
+-->
+
+# [Domain] - [Feature]
+
+## Summary
+
+[What this feature does and why it exists]
+
+## Architecture
+
+[Key components and how they interact — use diagram or table]
+
+## Architecture Decisions
+
+| Decision | Why |
+|----------|-----|
+| [What was decided] | [Why] |
+
+## Gotchas
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| | | |
+
+## Next Steps
+
+- [ ] [Pending work item]
 ```
 
 ## Cross-Reference Examples

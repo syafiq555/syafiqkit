@@ -143,7 +143,9 @@ Deduplicated gotchas from all source documents.
 
 ## Step 4: Delete Source Files
 
-**Safety**: Read back the merged document to verify it was written correctly before deleting anything.
+**Safety checks** (all must pass before deleting):
+1. Read back the merged document to verify it was written correctly
+2. Run `git status` — if any source doc is **untracked** (never committed), warn the user: "These files are NOT recoverable via git checkout" and require explicit confirmation before deleting
 
 ```
 Read: {main-doc-path}  # Verify merged doc exists and has content

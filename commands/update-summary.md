@@ -5,44 +5,48 @@ argument-hint: "[domain/feature or path]"
 
 # Update Task Summary
 
-Update existing task documentation to reflect this session's work. This is a lighter version of `/write-summary` — use when the doc already exists and you just need to append findings.
+Update existing task documentation to reflect this session's work. Use when `current.md` already exists — skips template creation.
 
 ## 1. Resolve Target Path
 
-Same as `/write-summary` Step 1. If path not provided, infer from session files.
+Follow `/write-summary` Step 1. If the file doesn't exist, invoke `Skill: syafiqkit:write-summary` with the same args.
+
+### Re-route check
+
+If a gotcha's key file(s) appear in a different doc's `Key files:` field, write it to that doc instead. Otherwise, keep everything in the primary target and note secondary domains in cross-refs (Step 4).
 
 ## 2. Read & Update
-
-**Constraints:**
-
-| ❌ Never | ✅ Always |
-|---------|---------|
-| Overwrite or truncate existing `## Completed` sections | Append below with new `## Completed (date)` header |
-| Update LLM-CONTEXT without reading the file first | Read → update → write |
-| Skip the Next Steps update | Always remove completed items and add new ones |
-| Create the file if it doesn't exist | Fall back to `/write-summary` instead |
 
 ```
 Read: {resolved path}
 ```
 
-| Action | What | Where |
-|--------|------|-------|
-| **Update** | `LLM-CONTEXT` Status, Key files, Last updated | Top block |
-| **Append** | New completed work as a new `## Completed (...)` section | After existing completed sections |
-| **Append** | New gotchas | Add rows to existing gotcha table |
-| **Append** | New architecture decisions | Add to existing decisions section |
-| **Update** | Next steps — remove completed items, add new ones | Bottom |
-| **Preserve** | All historical content — never delete completed sections | Everywhere |
+| ❌ Never | ✅ Always |
+|---------|---------|
+| Overwrite existing `## Completed` sections | Append a new `## Completed (date)` below existing ones |
+| Add a duplicate `## Completed (today)` | Edit the existing same-day section in place |
+| Update LLM-CONTEXT without reading first | Read → update → write |
+| Skip the Next Steps update | Remove completed items, add new ones |
 
-## 3. Validate Written Document
+| Action | What | Where | Skip if |
+|--------|------|-------|---------|
+| **Update** | `LLM-CONTEXT` Status (with emoji), Key files, Last updated | Top block | Never |
+| **Append** | `## Completed ({date})` with new work | After existing Completed sections | Single bug fix or <30min |
+| **Append** | New gotcha rows | Existing gotcha table | No new errors/surprises |
+| **Append** | New architecture decisions | Existing decisions section | No new decisions |
+| **Update** | Next steps | Bottom | Never |
+| **Preserve** | All historical content | Everywhere | Never |
 
-After writing, re-read the file and verify:
+**Status emoji**: See `done` skill's `references/templates.md` Status Values table.
 
-1. `LLM-CONTEXT Last updated` was changed to today
-2. Historical `## Completed` sections still exist (none deleted)
-3. Next Steps reflects current state (no stale completed items)
-4. If any check fails → fix immediately before continuing
+## 3. Validate
+
+Re-read the file and verify:
+
+1. `LLM-CONTEXT Last updated` changed to today
+2. Historical `## Completed` sections all present
+3. Next Steps reflects current state
+4. Any failure → fix immediately before continuing
 
 ## 4. Cross-References (quick check)
 
@@ -50,4 +54,6 @@ After writing, re-read the file and verify:
 Glob: tasks/**/current.md
 ```
 
-Only update cross-refs if new connections were discovered this session. Don't re-scan everything.
+Only update cross-refs if new connections were discovered this session.
+
+**Trigger**: A file touched this session appears in another doc's `Key files:` → add **bidirectional** ref (update both docs).

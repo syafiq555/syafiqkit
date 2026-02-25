@@ -45,7 +45,11 @@ Scan session for temporary artifacts that should be removed:
 
 **Skip if**: No temp artifacts found.
 
-## Step 3: Update Task Docs
+## Steps 3 + 4: Update Docs (parallel)
+
+Run both **in parallel** (single message, two Skill tool calls) — they are independent.
+
+**Step 3 — Update Task Docs:**
 
 Invoke `syafiqkit:update-summary` for the primary domain/feature.
 
@@ -55,13 +59,15 @@ Skill: syafiqkit:update-summary
 Args: tasks/{domain}/{feature}/current.md
 ```
 
-If no `current.md` exists yet, fall back to `syafiqkit:write-summary` to create it.
+If no `current.md` exists yet, `update-summary` handles the create-vs-update decision automatically.
 
 The skill handles: status updates, appending completed work, cross-references.
 
-## Step 4: Capture Patterns
+**Step 4 — Capture Patterns:**
 
-Invoke `syafiqkit:update-claude-docs`.
+```
+Skill: syafiqkit:update-claude-docs
+```
 
 The skill handles: routing to correct CLAUDE.md (sub-project vs root), dedup check across files.
 
@@ -79,6 +85,6 @@ The skill handles: routing to correct CLAUDE.md (sub-project vs root), dedup che
 | Simplify | ✅/⚠️ | [changes made or "no simplifications needed"] |
 | Review | ✅/⚠️ | [issues found/fixed or "no issues"] |
 | Cleanup | ✅/➖ | [temp code removed or "nothing to clean"] |
-| Task Docs | ✅ | [files updated, cross-refs added] |
+| Task Docs | ✅/➖ | [files updated + cross-refs, or "nothing to update"] |
 | Patterns | ✅/➖ | [CLAUDE.md updates or "nothing to capture"] |
 ```

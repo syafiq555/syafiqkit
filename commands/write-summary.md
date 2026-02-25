@@ -9,14 +9,13 @@ Create or update task documentation optimized for humans and LLM agents.
 
 ## 0. Pre-Flight Reasoning
 
-Before resolving the path, think through:
-
 ```
 <thinking>
 - What files were modified this session?
-- What domain/feature do they belong to?
+- What domain/feature do they belong to? (Check CLAUDE.md #{tasks} for known domain names)
 - Does a current.md already exist for this path?
-- Is this a create or update operation?
+- Is this a create or update? Trivial session (<30min, single bug fix)? → If trivial: LLM-CONTEXT metadata only (see Step 3 scaling table)
+- Does any finding belong in a DIFFERENT feature's doc? (e.g., gotcha discovered in invoice/ that belongs in payment/)
 </thinking>
 ```
 
@@ -33,12 +32,11 @@ Before resolving the path, think through:
 | Clue | Domain |
 |------|--------|
 | Frontend files (`*.jsx`, `*.tsx`, `*.vue`, `components/`) | `frontend` |
-| Backend files (`app/`, `controllers/`, `models/`) | Backend domain from nearest folder name |
-| Mobile files (`screens/`, `services/`, expo/RN patterns) | `mobile` |
-| Multi-repo: files in a sub-folder | Use sub-folder name as scope hint |
+| Backend files (`app/`, `controllers/`, `models/`) | Nearest folder name |
+| Mobile files (`screens/`, expo/RN patterns) | `mobile` |
+| Multi-repo: files in a sub-folder | Sub-folder name |
 
-For **single-repo** projects, domain maps directly to folder structure.
-For **multi-repo** workspaces, also consider which sub-project the files belong to.
+**Known domains** (from `CLAUDE.md #{tasks}`): `invoice`, `payment`, `tenant`, `subscription`, `infrastructure`, `ui`, `auth`, `risk-analysis`
 
 ## 2. Create or Update?
 
@@ -53,52 +51,38 @@ Read: {resolved path}
 
 ## 3. Create New Document
 
-**Constraints:**
-
 | ❌ Never | ✅ Always |
 |---------|---------|
-| Skip reading path even if you think it's new | Read first — another session may have created it |
-| Infer domain from a single file path | Use the deepest common folder across all session files |
-| Omit any required LLM-CONTEXT field | All fields required: Status, Domain, Key files, Related, Last updated |
+| Skip reading path (another session may have created it) | Read first |
+| Infer domain from a single file path | Use deepest common folder across all session files |
+| Omit any LLM-CONTEXT field | All required: Status, Domain, Key files, Related, Last updated |
 
-**LLM-CONTEXT block** (required at top):
-```markdown
-<!--LLM-CONTEXT
-Status: Active
-Domain: {domain}
-Key files: {3-5 primary files from this session}
-Related: None
-Last updated: {today}
--->
-```
+Use the **Minimal Template** from the `done` skill's `references/templates.md` file.
 
-**Sections to include:**
-- `## Summary` — one sentence on what this feature does
-- `## Completed` — what was done this session (tables preferred)
-- `## Gotchas` — any errors/surprises encountered (Symptom | Cause | Fix)
-- `## Architecture Decisions` — why, not just what
-- `## Next Steps` — remaining work
+**Sections to include** (scale to session size):
+
+| Session type | Sections |
+|-------------|----------|
+| New feature / significant work | Summary, Completed, Gotchas, Architecture Decisions, Next Steps |
+| Single bug fix | Gotchas + Next Steps only |
+| Short session (<30min, no surprises) | LLM-CONTEXT metadata only |
 
 ## 4. Update Existing Document
-
-**Constraints:**
 
 | ❌ Never | ✅ Always |
 |---------|---------|
 | Delete or overwrite existing `## Completed` sections | Append a new `## Completed (date)` below existing ones |
-| Rewrite architecture decisions that already exist | Add new rows/paragraphs, keep historical ones |
-| Set `Status: Done` without user instruction | Preserve existing status unless explicitly told to change |
-
-Read the existing doc first. Then:
+| Rewrite existing architecture decisions | Add new rows, keep historical ones |
+| Set `Status: Done` without user instruction | Preserve existing status unless told to change |
 
 | Action | What | Where |
 |--------|------|-------|
 | **Update** | `LLM-CONTEXT` Status, Key files, Last updated | Top block |
-| **Append** | New completed work as a new `## Completed (...)` section | After existing completed sections |
-| **Append** | New gotchas | Add rows to existing gotcha table |
-| **Append** | New architecture decisions | Add to existing decisions section |
-| **Update** | Next steps — remove completed items, add new ones | Bottom |
-| **Preserve** | All historical content — never delete completed sections | Everywhere |
+| **Append** | New completed work as `## Completed (...)` | After existing completed sections |
+| **Append** | New gotchas | Existing gotcha table |
+| **Append** | New architecture decisions | Existing decisions section |
+| **Update** | Next steps — remove completed, add new | Bottom |
+| **Preserve** | All historical content | Everywhere |
 
 ## 5. Validate Written Document
 
@@ -109,9 +93,8 @@ After writing, re-read the file and verify:
 3. `Last updated` date matches today
 4. If any check fails → fix immediately and re-read before continuing
 
-## 6. Cross-References (only if multiple task docs exist)
+## 6. Cross-References + Shared Gotchas
 
-Quick check — only run if there are other task docs:
 ```
 Glob: tasks/**/current.md
 ```
@@ -122,10 +105,6 @@ Glob: tasks/**/current.md
 | 1-2 docs | Read their `LLM-CONTEXT → Related` — add bidirectional ref if connected |
 | 3+ docs | Only check docs whose domain overlaps with session files |
 
-## 7. Shared Gotchas (only if pattern repeats)
+**Connection trigger**: A file touched this session appears in another doc's `Key files:` → add bidirectional ref.
 
-| Pattern appears in... | Put it in... |
-|-----------------------|--------------|
-| 3+ domains | `tasks/shared/gotchas-registry.md` |
-| Multiple features in same domain | Feature's own doc |
-| Just this feature | This doc only |
+**Shared gotchas**: When adding a gotcha, search the Glob results for the same symptom keyword. If found in 2+ other docs, move all occurrences to `tasks/shared/gotchas-registry.md`.

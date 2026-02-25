@@ -14,8 +14,7 @@ Claude Code plugin providing personal workflow automation: commit messages, task
 └── marketplace.json     # Marketplace listing
 commands/                # User-invocable slash commands
 skills/                  # Multi-step workflows (SKILL.md files)
-  ├── done/              # Post-task cleanup orchestrator
-  └── task-summary/      # Discovery logic for task docs (used by write/update-summary)
+  └── done/              # Post-task cleanup orchestrator + task doc templates
 ```
 
 | Type | Location | Trigger |
@@ -40,10 +39,8 @@ skills/                  # Multi-step workflows (SKILL.md files)
 
 | Skill | Purpose | Used By |
 |-------|---------|---------|
-| `task-summary` | Smart discovery of related task docs, cross-reference management | `write-summary`, `update-summary` commands |
 | `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
-| `done` | Post-task cleanup orchestrator | User invokes directly |
-| `team-build` | Spawn coordinated agent team for multi-workstream features | User invokes directly |
+| `done` | Post-task cleanup orchestrator (includes task doc templates in `references/`) | User invokes directly |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 
 ## Project-Specific Agents

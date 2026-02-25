@@ -9,6 +9,8 @@ Turn ideas into fully formed designs through collaborative dialogue. Every proje
 
 <HARD-GATE>
 Do NOT invoke any implementation skill, write any code, or scaffold any project until you have presented a design and the user has approved it.
+
+**Escape hatch**: If the user explicitly says "skip design", "just implement", or "I already know what I want" — acknowledge and delegate to implementation immediately.
 </HARD-GATE>
 
 ## Constraints

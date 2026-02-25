@@ -89,6 +89,8 @@ Before adding anything, read the target CLAUDE.md to understand:
 
 **Key insight**: "don't do X" without actionable "do Y" is half a rule — complete the guidance, don't just strengthen prohibition.
 
+**Stopping condition**: After one round of refinement per signal, mark it resolved and move to the next. Do not re-diagnose the same signal in the same session.
+
 ### 3e. Diagnose "wrong tool used"
 
 - Rule exists but too soft? → Refinement (see 3d)
@@ -140,13 +142,6 @@ Before adding: "Would removing this cause Claude to make mistakes?"
 
 **Task docs ≠ CLAUDE.md**: Patterns in `tasks/**/current.md` that apply broadly still go in CLAUDE.md (task docs feature-scoped, CLAUDE.md always loads).
 
-## 6. Sync Project Agents
+## 6. Agent Sync
 
-Agents read CLAUDE.md dynamically — adding gotchas does NOT require agent sync.
-
-| Change type | Action |
-|-------------|--------|
-| New gotcha added | Skip (agent reads dynamically) |
-| Promoted to Critical Rules | Skip (agent reads at runtime) |
-| Behavioral instruction change | Update agent file directly (Edit tool) |
-| New high-frequency mistake (crashes/data loss) | Invoke `syafiqkit:agent-setup` skill |
+Agents read CLAUDE.md dynamically — no sync needed after adding gotchas. Only invoke `syafiqkit:agent-setup` if agent behavioral instructions need changing (not for new gotchas).
