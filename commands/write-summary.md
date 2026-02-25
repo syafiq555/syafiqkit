@@ -36,7 +36,7 @@ Create or update task documentation optimized for humans and LLM agents.
 | Mobile files (`screens/`, expo/RN patterns) | `mobile` |
 | Multi-repo: files in a sub-folder | Sub-folder name |
 
-**Known domains** (from `CLAUDE.md #{tasks}`): `invoice`, `payment`, `tenant`, `subscription`, `infrastructure`, `ui`, `auth`, `risk-analysis`
+**Known domains**: Check `tasks/` directory for existing domain folders. Common patterns: domain name from `app/Domains/`, route groups, or feature folders.
 
 ## 2. Create or Update?
 

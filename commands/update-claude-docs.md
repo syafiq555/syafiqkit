@@ -19,16 +19,28 @@ Extract reusable patterns from this session into CLAUDE.md files.
 
 ## 1. Scan Session for Signals
 
+### Code-level signals
+
 | Signal | Category | Example |
 |--------|----------|---------|
 | Claude struggled / repeated attempts | Gotcha | "500 error" → "add eager load" |
-| User correction ("use X instead") | Gotcha or Guidance | Depends on scope |
 | Same pattern used 2+ times | Pattern | Service method, helper |
 | Environment surprise | Gotcha | MSYS2, PowerShell quirks |
 | Claude ignored existing docs | **Refinement** (see 3d) | Rule exists but was violated — diagnose why |
 | Claude used wrong tool for task | **Tool guidance** (see 3e) | Grep for symbol lookup → should be LSP `findReferences` |
 
-**Categories**: Gotcha = error/symptom → fix | Guidance = behavioral rule (global) | Pattern = reusable with code | Refinement = violated rule (diagnose in 3d)
+### Conversational signals
+
+| Signal | Category | Route to |
+|--------|----------|----------|
+| User correction ("not X, it's Y") | Gotcha or Convention | CLAUDE.md or `CLAUDE.local.md` |
+| Convention preference ("use X not Y") | Convention | CLAUDE.md (if team-wide) or `CLAUDE.local.md` |
+| Team/environment context (members, tools, setups) | Context | `CLAUDE.local.md` |
+| Strategic decisions ("before prod we will...") | Decision | `CLAUDE.local.md` |
+| Active work context (PRs, branches, blockers) | Context | `CLAUDE.local.md` |
+| Debugging root cause discovered | Gotcha | CLAUDE.md (gotcha table) |
+
+**Categories**: Gotcha = error/symptom → fix | Guidance = behavioral rule (global) | Pattern = reusable with code | Context = session/team knowledge → `CLAUDE.local.md` | Refinement = violated rule (diagnose in 3d)
 
 ### 1b. Audit signals against existing rules (MANDATORY)
 
@@ -44,12 +56,16 @@ Extract 2-3 keywords per signal (tool names, error messages, env terms), then gr
 
 ## 2. Route to Target
 
-Find the **most specific CLAUDE.md** covering session's modified files (via `Glob: **/CLAUDE.md`):
+Find the **most specific file** covering the signal (via `Glob: **/CLAUDE.md` + check for `CLAUDE.local.md`):
 
-1. Same domain/folder as modified files? → Use it
-2. Layer-level (e.g., `app/CLAUDE.md`, `resources/js/CLAUDE.md`)? → Use it
-3. Sub-project (multi-repo)? → Use it
-4. Root `CLAUDE.md` or `~/.claude/CLAUDE.md` (global tool/env issues)
+1. **Personal/team context** (team members, active PRs, env preferences, strategy) → `./CLAUDE.local.md` (project root)
+2. Same domain/folder as modified files? → Use that CLAUDE.md
+3. Layer-level (e.g., `backend/CLAUDE.md`, `frontend/CLAUDE.md`)? → Use it
+4. Sub-project (multi-repo)? → Use it
+5. Root `CLAUDE.md` (team-shared project rules)
+6. `~/.claude/CLAUDE.md` (global tool/env issues)
+
+**Important**: `CLAUDE.local.md` lives at **project root** (`./CLAUDE.local.md`), NOT inside `.claude/`.
 
 **Always ask**: "Is there a more specific one?" before writing — don't duplicate across scopes.
 
