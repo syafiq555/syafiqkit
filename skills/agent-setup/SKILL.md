@@ -25,7 +25,16 @@ Agent file = behavior instructions + Bootstrap directive + top-15 critical rules
 
 > **Note**: Adding gotchas to CLAUDE.md does NOT require updating agents. Agents read CLAUDE.md dynamically. Only update agents when their behavioral instructions or inline critical rules need changing.
 
-## Agent Location
+## Agents
+
+Two agents, each covering both review and refinement:
+
+| Agent | Purpose | Model | Key tools |
+|-------|---------|-------|-----------|
+| `code-reviewer` | Bugs, security, convention violations. Session-aware — reads task docs, gathers changes holistically. | `sonnet` | Read-only + LSP + diagnostics |
+| `code-simplifier` | DRY, clarity, consistency, dead code. Edits files directly. Applies Rule of Three. | `opus` | Read + Edit + Write + LSP |
+
+> **Why 2, not 4**: We tested 4 agents (code-reviewer, session-code-reviewer, code-simplifier, code-refiner) and found the session-aware reviewer outperformed the basic reviewer, and the refiner outperformed the simplifier. Merged the best of each pair into 2 agents.
 
 ```
 Project/
@@ -73,36 +82,50 @@ Read CLAUDE.md files and extract only the **top ~15 rules that cause the most fr
 | Framework version API changes | Common copy-paste mistakes |
 | Theme token violations | Every frontend change risks this |
 | Dual-write / data integrity rules | Data corruption if missed |
+| Polymorphic relationship gotchas | Wrong morph type = silent data bugs |
+| Base class requirements | Wrong parent class = missing behavior |
 
 **Do NOT inline**: Environment setup, dev commands, one-time gotchas, tool usage preferences, schema details.
 
 ### Step 4: Write Agent Files
 
-Each agent file has three sections:
+Use the templates in `templates/` as a starting point. Each agent file follows this structure:
 
 ```markdown
 ---
-frontmatter (name, tools, model, etc.)
+frontmatter (name, description, tools, model, memory: project)
 ---
 
 ## Bootstrap (Do This First)
-[Conditional CLAUDE.md read instructions]
+[Table of CLAUDE.md files with what each contains]
 
-## [Agent-specific behavior]
-[Review methodology / simplification principles]
+## Process
+[Numbered steps: gather changes → read task docs → review/refine → filter/apply → report]
+
+## [Domain sections]
+[Review categories OR refinement criteria — project-specific]
 
 ## High-Frequency Mistakes OR High-Impact Simplifications
-[Top ~15 inline rules table]
+[Top ~15 inline rules table — the most common mistakes for THIS codebase]
 
-## Output Format / Process
-[Agent-specific output instructions]
+## [Tech Stack Specifics] (simplifier only)
+[Stack → pattern mappings]
+
+## Output Format
+[Markdown template for findings/changes]
+
+## Constraints (reviewer only)
+[Scope, confidence threshold, severity order, off-limits]
 ```
 
 **Key rules for agent files**:
-- No `<!-- INJECTED -->` markers — the old injection pattern is deprecated
+- `memory: project` in frontmatter — agents maintain project-level memory
+- `mcp__ide__getDiagnostics` in tools — catches lint/type errors the agent would miss
 - Bootstrap section lists CLAUDE.md files with brief descriptions of what each contains
+- Process includes "Read task docs" step — reduces false positives by understanding intent
 - Inline table has only rules that prevent the most common mistakes
 - All other conventions discovered by reading CLAUDE.md at runtime
+- No `<!-- INJECTED -->` markers — the old injection pattern is deprecated
 
 ### Step 5: Verify
 
@@ -110,6 +133,8 @@ After writing agents, verify:
 - [ ] No duplicated CLAUDE.md content (only critical rules inline)
 - [ ] Bootstrap section references correct CLAUDE.md paths
 - [ ] Agent-specific behavior preserved (confidence scoring, simplification principles, etc.)
+- [ ] Both agents have `memory: project` in frontmatter
+- [ ] Tools list includes `mcp__ide__getDiagnostics`
 
 ## Output
 
@@ -118,8 +143,8 @@ After writing agents, verify:
 
 | Agent | Status | Inline Rules | Bootstrap Refs |
 |-------|--------|-------------|----------------|
-| code-reviewer | Created/Updated | 15 critical rules | 3 CLAUDE.md files |
-| code-simplifier | Created/Updated | 12 critical rules | 3 CLAUDE.md files |
+| code-reviewer | Created/Updated | ~15 critical rules | N CLAUDE.md files |
+| code-simplifier | Created/Updated | ~12 simplification patterns | N CLAUDE.md files |
 
 Agents use Bootstrap pattern — they read CLAUDE.md at runtime.
 No manual syncing needed when CLAUDE.md is updated.

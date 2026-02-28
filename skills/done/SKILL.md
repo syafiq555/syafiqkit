@@ -7,11 +7,16 @@ description: Post-task cleanup - simplify code, review changes, update docs, cap
 
 Execute all steps in sequence without pausing for confirmation.
 
+| ❌ NEVER | ✅ ALWAYS |
+|----------|----------|
+| `run_in_background: true` on any Agent call | Run agents in **foreground** (no `run_in_background`) |
+| Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
+
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults.
 
 ## Step 1: Simplify + Review (parallel)
 
-Run both agents **in parallel** (single message, two Task tool calls).
+Run both agents **in parallel** (single message, two Agent tool calls). **Do NOT use `run_in_background`** — run in foreground so results are available immediately.
 
 **Check for project agents first:**
 ```
@@ -98,7 +103,7 @@ Re-read each modified file and verify entries were written correctly.
 
 ## Steps 4 + 5: Update Task Docs + Capture Code Patterns (parallel)
 
-Run both **in parallel** (single message, two Skill tool calls) — they are independent.
+Run both **in parallel** (single message, two Skill tool calls) — they are independent. **Do NOT use `run_in_background`.**
 
 **Step 4 — Update Task Docs:**
 
