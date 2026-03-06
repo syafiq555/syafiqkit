@@ -8,12 +8,15 @@ Place at the very top of `current.md`:
 <!--LLM-CONTEXT
 Status: 🔨 In Progress
 Domain: [domain name]
-Key files: [Comma-separated list of primary files]
-Gotchas: [One critical gotcha if any — omit line if none]
+Gotchas (critical — full list in ## Critical Gotchas below):
+  - [Most important gotcha in one line]
+  - [Second most important]
 Related: [Links to related task docs or "None"]
 Last updated: [YYYY-MM-DD]
 -->
 ```
+
+> **Note**: Omit `Key files:` from LLM-CONTEXT when the doc has a `## Files` section in the body — it's redundant. Only add `Key files:` for short docs without a Files section.
 
 ### Field Guidelines
 
@@ -21,8 +24,7 @@ Last updated: [YYYY-MM-DD]
 |-------|---------|---------|
 | `Status` | Emoji + short state description | `🚀 Local E2E verified, prod pending` |
 | `Domain` | Project domain name | `risk-analysis`, `invoice`, `payment` |
-| `Key files` | 3-5 most important files | `app/Services/EnrollmentService.php, app/Models/Participant.php` |
-| `Gotchas` | One-liner for the most critical gotcha | `API_URL must not include /api suffix` |
+| `Gotchas` | Bullet list of critical non-obvious gotchas, pointer to full table | See example above |
 | `Related` | Other task docs with connections | `tasks/training/jd14/current.md, tasks/shared/gotchas-registry.md` |
 | `Last updated` | ISO date of last edit | `2026-02-25` |
 
@@ -67,28 +69,33 @@ Always include error messages/symptoms for searchability:
 
 ## Minimal Template (Auto-Create)
 
-Used when PRIMARY doc is missing:
+Used when PRIMARY doc is missing (short session / single bug fix):
 
 ```markdown
 <!--LLM-CONTEXT
 Status: 🔨 In Progress
 Domain: [domain]
-Key files: [Files modified this session]
+Gotchas: [One critical gotcha if any — omit line if none]
 Related: None
 Last updated: [today]
 -->
 
-# [Domain] - [Feature]
+# [Domain] — [Feature]
 
-## Summary
-
+## Overview
 [One sentence on what this feature does]
 
 ## Gotchas
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| | | |
+### Backend
+| Issue | Rule |
+|-------|------|
+| | |
+
+### Frontend
+| Issue | Rule |
+|-------|------|
+| | |
 
 ## Next Steps
 
@@ -97,39 +104,92 @@ Last updated: [today]
 
 ## Full Template
 
-For comprehensive documentation:
+For significant features (use the subscription doc as the gold standard):
 
 ```markdown
 <!--LLM-CONTEXT
 Status: 🔨 In Progress
 Domain: [domain]
-Key files: [Primary files]
-Gotchas: [Critical gotcha one-liner if any]
+Gotchas (critical — full list in ## Critical Gotchas below):
+  - [Most critical gotcha]
+  - [Second most critical]
 Related: [Related docs or None]
 Last updated: [today]
 -->
 
-# [Domain] - [Feature]
+# [Project] — [Feature] Summary
 
-## Summary
+## Overview
+[What this feature does, why it exists, current status in one paragraph]
 
-[What this feature does and why it exists]
+---
 
 ## Architecture
 
-[Key components and how they interact — use diagram or table]
+[Prose, table, or Mermaid — use Mermaid for flows with clear sequence or state transitions]
 
-## Architecture Decisions
+```mermaid
+[sequenceDiagram / stateDiagram-v2 / flowchart LR]
+```
 
-| Decision | Why |
-|----------|-----|
-| [What was decided] | [Why] |
+---
 
-## Gotchas
+## Plans / Data Model
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| | | |
+| Field | Value | Notes |
+|-------|-------|-------|
+
+---
+
+## Files
+
+**Backend**
+- `app/Services/XService.php` — [what it does]
+- `app/Models/X.php` — [what it does]
+
+**Frontend**
+- `src/pages/XPage.vue` — [what it does]
+- `src/api/x.ts` — [what it does]
+
+---
+
+## Task Status
+
+| # | Task | Status |
+|---|------|--------|
+| 1 | [task] | ✅ |
+
+---
+
+## Key Technical Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| [What] | [Why] |
+
+---
+
+## Critical Gotchas
+
+### Backend
+| Issue | Rule |
+|-------|------|
+| | |
+
+### Frontend
+| Issue | Rule |
+|-------|------|
+| | |
+
+---
+
+## Bugs Fixed
+
+| ID | Severity | Issue | Fix |
+|----|----------|-------|-----|
+| B1 | Critical | | |
+
+---
 
 ## Next Steps
 

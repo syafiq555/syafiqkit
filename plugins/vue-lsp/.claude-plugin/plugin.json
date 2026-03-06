@@ -1,0 +1,14 @@
+{
+  "name": "vue-lsp",
+  "description": "Vue language server (Volar) for .vue file intelligence",
+  "version": "1.0.0",
+  "lspServers": {
+    "vue": {
+      "command": "vue-language-server",
+      "args": ["--stdio"],
+      "extensionToLanguage": {
+        ".vue": "vue"
+      }
+    }
+  }
+}
