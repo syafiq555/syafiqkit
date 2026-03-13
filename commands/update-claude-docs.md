@@ -68,9 +68,9 @@ Rewrite for **concise but precise**. One hard constraint beats five soft guideli
 - One refinement round per signal, then move on
 - Use `Edit` tool (not `Write`)
 
-## 4. Prune — Delegate to Haiku agent
+## 4. Prune — Delegate to Sonnet agent
 
-After Steps 1–3, launch a **Haiku agent** (`model: haiku`) to prune all CLAUDE.md files touched during this session. Include the file paths in the prompt.
+After Steps 1–3, launch a **Sonnet agent** (`model: sonnet`) to prune all CLAUDE.md files touched during this session. Include the file paths in the prompt.
 
 **Agent prompt**:
 
@@ -90,6 +90,8 @@ After Steps 1–3, launch a **Haiku agent** (`model: haiku`) to prune all CLAUDE
 > | Validation backlog / TODO items | Move to task doc or issue tracker |
 > | File/directory listings inferrable by LSP/Glob | Delete |
 > | Completed migration / resolved incident refs | Delete unless still a live risk |
+>
+> **Litmus test before deleting**: "Would removing this cause Claude to write incorrect code?" If yes → it's a constraint, keep it.
 >
 > Files to scan: [list paths here]
 
