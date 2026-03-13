@@ -1,59 +1,33 @@
 ---
-description: Create a git commit by analyzing ONLY staged changes. Keep the commit message short and concise (1-2 sentences max).
+description: Create git commits from staged changes. Works for single repos and multi-repo projects.
 disable-model-invocation: true
 ---
 
 # Git Commit Command
 
-Create conventional commit from staged changes.
+Create conventional commits from staged changes.
 
 ## Workflow
 
-1. **Analyze staged changes only**
-   ```bash
-   git diff --staged --stat
-   git diff --staged
-   ```
+1. **Find repos to commit** — check working directory for staged changes, then check subdirs for nested `.git` repos with staged changes. Skip any repo with nothing staged.
 
-2. **Determine type**
+2. **For each repo with staged changes**:
+   - `git diff --staged --stat` + `git diff --staged`
+   - Determine type: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf`
+   - Determine scope from file paths (e.g., `app/Services/Workshop/*` → `workshop`)
+   - Commit: `<type>(<scope>): <description>` — lowercase, no period, imperative, max 72 chars
+   - Verify: `git status && git log -1 --oneline`
 
-   | Type | Use |
-   |------|-----|
-   | `feat` | New feature |
-   | `fix` | Bug fix |
-   | `refactor` | Restructure (no behavior change) |
-   | `chore` | Build, deps, config |
-   | `docs` | Documentation |
-   | `perf` | Performance |
+3. **Validate**: No secrets committed, type matches changes
 
-3. **Determine scope** from file paths (e.g., `app/Services/Workshop/*` → `workshop`)
+## Commit Format
 
-4. **Draft message**
-   ```
-   <type>(<scope>): <description>
-   ```
-   - Lowercase, no period, imperative mood
-   - Max 72 chars, focus on "why"
-
-5. **Validate**: No secrets, type matches changes
-
-6. **Commit**
-   ```bash
-   git commit -m "$(cat <<'EOF'
-   <type>(<scope>): <message>
-   EOF
-   )"
-   ```
-
-7. **Verify**: `git status && git log -1 --oneline`
-
-## Examples
-
-| Changes | Message |
-|---------|---------|
-| New endpoint | `feat(api): add customer search endpoint` |
-| Null pointer | `fix(orders): handle missing customer gracefully` |
-| Deps update | `chore(deps): upgrade Laravel to 10.x` |
+```bash
+git commit -m "$(cat <<'EOF'
+<type>(<scope>): <message>
+EOF
+)"
+```
 
 ## Anti-Patterns
 

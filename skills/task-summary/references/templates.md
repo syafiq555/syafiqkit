@@ -104,7 +104,7 @@ Last updated: [today]
 
 ## Full Template
 
-For significant features (use the subscription doc as the gold standard):
+For significant features (use the subscription doc as the gold standard). Use Mermaid diagrams freely in any section where a visual helps — not limited to architecture:
 
 ```markdown
 <!--LLM-CONTEXT
@@ -124,17 +124,7 @@ Last updated: [today]
 
 ---
 
-## Architecture
-
-[Prose, table, or Mermaid — use Mermaid for flows with clear sequence or state transitions]
-
-```mermaid
-[sequenceDiagram / stateDiagram-v2 / flowchart LR]
-```
-
----
-
-## Plans / Data Model
+## Architecture / Data Model
 
 | Field | Value | Notes |
 |-------|-------|-------|
@@ -188,6 +178,12 @@ Last updated: [today]
 | ID | Severity | Issue | Fix |
 |----|----------|-------|-----|
 | B1 | Critical | | |
+
+---
+
+## Last Session
+
+- [2–3 bullets of what changed — overwritten each session, not appended]
 
 ---
 

@@ -23,7 +23,9 @@ Read the resolved path first. If missing → **Create** using Full Template in `
 
 Use the **Full Template** from `references/templates.md` as the gold standard. Scale down to Minimal only for single bug fixes or short sessions.
 
-LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`. Add `Key files:` only if the doc has no `## Files` section.
+LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
+
+**Mermaid diagrams**: Use freely in any section where a visual helps — architecture, data flow, layout, feature hierarchy, state transitions. Not limited to one section.
 
 ## 4. When Updating
 
@@ -45,6 +47,22 @@ Edit in place. The doc should always read as one coherent current-state document
 | `## Key Technical Decisions` | Append new rows |
 | `## Files` | Add new files if introduced |
 | `## Next Steps` | Remove done, add pending |
+| `## Last Session` | **Overwrite** (not append) with 2–3 bullets of what changed this session |
+
+### Pruning
+
+Prevent unbounded growth — apply when updating:
+
+| Section | Prune when |
+|---------|------------|
+| `## Task Status` | All rows ✅ → collapse to single "All tasks complete" row |
+| `## Bugs Fixed` | >10 rows → keep last 5, summarize older as "N earlier bugs fixed" |
+| `## Next Steps` | Remove ✅ items (don't just check them off — delete) |
+| `## Completed (date)` sections | Should not exist — merge content into relevant sections |
+
+### Credentials
+
+❌ Never include API keys, merchant keys, passwords, or secrets in task docs. Reference `.env` keys by name only (e.g., `2C2P_MERCHANT_KEY` not the actual value).
 
 ## 5. Validate
 

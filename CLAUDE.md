@@ -14,8 +14,6 @@ Claude Code plugin providing personal workflow automation: commit messages, task
 └── marketplace.json     # Marketplace listing
 commands/                # User-invocable slash commands
 skills/                  # Multi-step workflows (SKILL.md files)
-  ├── done/              # Post-task cleanup orchestrator
-  └── task-summary/      # Task doc create/update + templates
 ```
 
 | Type | Location | Trigger |
@@ -43,20 +41,12 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
 | `task-summary` | Create/update task summary docs with path resolution, templates, cross-refs | `write-summary` cmd, `update-summary` cmd, `done` skill |
+| `brainstorming` | Design exploration before creative/architectural work | User invokes or proactive |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 
 ## Project-Specific Agents
 
-`/agent-setup` creates project-local agents in `.claude/agents/` using the **Bootstrap pattern** — agents read CLAUDE.md at runtime instead of having content injected. `/done` uses these project agents (with fallback to external plugins).
-
-```
-Project/
-├── CLAUDE.md                    # Source of truth (read by agents at runtime)
-└── .claude/
-    └── agents/
-        ├── code-reviewer.md     # Bootstrap + ~15 inline critical rules
-        └── code-simplifier.md   # Bootstrap + ~12 inline critical rules
-```
+`/agent-setup` creates project-local agents in `.claude/agents/` using the **Bootstrap pattern** — agents read CLAUDE.md at runtime instead of having content injected. See `skills/agent-setup/templates/` for agent templates. `/done` uses these project agents (with fallback to external plugins).
 
 ## Command/Skill Anatomy
 
@@ -65,7 +55,6 @@ Project/
 ---
 description: Short description for skill list
 argument-hint: "[optional hint]"        # Shows in autocomplete
-disable-model-invocation: true          # Prevents auto-trigger
 ---
 ```
 
@@ -120,14 +109,14 @@ No build step — markdown files are interpreted directly.
 | Rule | Rationale |
 |------|-----------|
 | Keep commands focused (single workflow) | Easier to compose, debug |
-| Use `disable-model-invocation: true` for commands that shouldn't auto-trigger | Prevents unwanted activation |
 | Include examples in markdown | Helps Claude execute correctly |
 | Use tables for structured guidance | More scannable than prose |
 | Agents use Bootstrap pattern | Agents read CLAUDE.md at runtime; only ~15 critical rules kept inline for zero-latency access |
 | Plugin must be self-contained | Never reference user's global `~/.claude/CLAUDE.md` - other users won't have it |
+| User preferences → skill/command changes, not memory | Plugin `memory/` dir is shared repo — personal prefs go in user's project memory or baked into skill defaults |
+| Commands/skills that need agents → instruct Claude to spawn, not "spawn" directly | Commands are prompts — Claude (the executor) reads and makes Agent tool calls. Same pattern as `/done` |
 | Command outgrows "single workflow"? → Migrate to skill + thin wrapper commands | Keeps backwards compat; wrapper invokes `Skill: syafiqkit:<name>` with `$ARGUMENTS` |
 | **Every change = version bump** | Bump both version files (see [Version Bumping](#version-bumping)) |
-| No build step | Markdown files interpreted directly; just bump version + `claude plugin update` |
 
 ## Maintenance {#maintenance}
 
@@ -141,7 +130,8 @@ No build step — markdown files are interpreted directly.
    - Missing edge cases (archived docs, Status: Done)
    - Skill references a non-existent terminal skill (e.g. `writing-plans`) — always verify referenced skills exist in `skills/*/SKILL.md` before shipping
    - Same flow described in 4 places (checklist + diagram + prose + after-section) — one `## Steps` section is enough; redundancy causes section drift
-3. **Reference**: `tasks/plugin-maintenance/current.md` for 2026 best practices research
+   - Inconsistent edits — when changing a concept (e.g., model name), verify all references (headings, body, comments) match
+3. **Reference**: `tasks/plugin-maintenance/current.md` for plugin patterns and research
 
 ### Design Principles
 

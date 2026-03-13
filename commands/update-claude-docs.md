@@ -68,15 +68,40 @@ Rewrite for **concise but precise**. One hard constraint beats five soft guideli
 - One refinement round per signal, then move on
 - Use `Edit` tool (not `Write`)
 
-## 4. Validate
+## 4. Prune — Delegate to Haiku agent
 
-After writing each entry:
+After Steps 1–3, launch a **Haiku agent** (`model: haiku`) to prune all CLAUDE.md files touched during this session. Include the file paths in the prompt.
+
+**Agent prompt**:
+
+> Scan these CLAUDE.md files for staleness and bloat. For each file:
+> 1. Read the file
+> 2. Read the project root CLAUDE.md (authoritative source for conventions)
+> 3. Apply the smell table below — edit or delete stale content
+> 4. After pruning, run `wc -l` — flag if >350 lines
+>
+> | Smell | Action |
+> |-------|--------|
+> | One-time fix commands (e.g., `fix-february-sst`) | Move to task doc or delete |
+> | Historical SQL fix blocks | Move to task doc |
+> | Implementation snippets showing "how code works" | Delete — CLAUDE.md is constraints, not docs |
+> | "Works correctly, verified" notes | Delete — not a constraint |
+> | Contradictions with root/global CLAUDE.md | Fix to match authoritative source |
+> | Validation backlog / TODO items | Move to task doc or issue tracker |
+> | File/directory listings inferrable by LSP/Glob | Delete |
+> | Completed migration / resolved incident refs | Delete unless still a live risk |
+>
+> Files to scan: [list paths here]
+
+## 5. Validate
+
+After writing each entry (in Step 3):
 1. Re-grep keyword — confirm no duplicate created
 2. Count `|` separators — must match table header
 3. "Would removing this cause Claude to repeat the mistake?" — if no, delete it
 
 **Task docs ≠ CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only patterns that apply broadly go in CLAUDE.md.
 
-## 5. Agent Sync
+## 6. Agent Sync
 
 Agents read CLAUDE.md dynamically — no sync needed for gotchas. Only run `syafiqkit:agent-setup` if agent behavioral instructions change.
