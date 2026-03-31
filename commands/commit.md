@@ -11,14 +11,16 @@ Create conventional commits from staged changes.
 
 1. **Find repos to commit** — check working directory for staged changes, then check subdirs for nested `.git` repos with staged changes. Skip any repo with nothing staged.
 
-2. **For each repo with staged changes**:
+2. **Changelog gate** (per-repo): If staged changes include user-visible fixes/features/improvements, check if `CHANGELOG.md` is also staged. If NOT → **STOP**. Tell the user: "Staged changes include user-visible work but CHANGELOG.md is not staged. Update changelog first?" Do NOT proceed to commit until resolved.
+
+3. **For each repo with staged changes**:
    - `git diff --staged --stat` + `git diff --staged`
    - Determine type: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf`
    - Determine scope from file paths (e.g., `app/Services/Workshop/*` → `workshop`)
    - Commit: `<type>(<scope>): <description>` — lowercase, no period, imperative, max 72 chars
    - Verify: `git status && git log -1 --oneline`
 
-3. **Validate**: No secrets committed, type matches changes
+4. **Validate**: No secrets committed, type matches changes
 
 ## Commit Format
 

@@ -51,15 +51,18 @@ Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local
 - Patterns: Prose + code (reusable only)
 - Pair every prohibition with an alternative ("don't X" needs "do Y instead")
 
-### Violations → Step back and rethink the rule
+### Violations → The rule needs more emphasis, not just clarity
 
-The rule was violated — something about it didn't work. Before touching it, ask:
+A violated rule **always** needs an update — "the rule is clear" is not a valid reason to skip. Clear but violated = not prominent enough.
 
-> **"If someone with zero context read this rule, would they follow it correctly?"**
+| Check | Action |
+|-------|--------|
+| Buried in a table? | Promote to `⚠️ MANDATORY` callout above the table |
+| Not in active workflow? | Add as a numbered step in the workflow sequence |
+| Too vague / too long? | Rewrite: one hard constraint beats five soft guidelines |
+| Missing the "do Y" half? | Add the alternative action |
 
-If no — figure out why. Too long? Too vague? Too many rows saying the same thing? Missing the "do Y" half? Covers edge cases nobody hits but misses the common case?
-
-Rewrite for **concise but precise**. One hard constraint beats five soft guidelines. A number beats a paragraph. Then decide: edit, condense, or leave as-is (with a one-line justification why the rule is actually clear and the violation was a one-off).
+**Never** conclude "rule is clear, no update needed" for a violation.
 
 ### Constraints
 
@@ -68,32 +71,22 @@ Rewrite for **concise but precise**. One hard constraint beats five soft guideli
 - One refinement round per signal, then move on
 - Use `Edit` tool (not `Write`)
 
-## 4. Prune — Delegate to Sonnet agent
+## 4. Prune — Delegate to project agent
 
-After Steps 1–3, launch a **Sonnet agent** (`model: sonnet`) to prune all CLAUDE.md files touched during this session. Include the file paths in the prompt.
+After Steps 1–3, check for a project-level pruning agent and delegate:
 
-**Agent prompt**:
+```
+Glob: .claude/agents/claude-md-pruner.md
+```
 
-> Scan these CLAUDE.md files for staleness and bloat. For each file:
-> 1. Read the file
-> 2. Read the project root CLAUDE.md (authoritative source for conventions)
-> 3. Apply the smell table below — edit or delete stale content
-> 4. After pruning, run `wc -l` — flag if >350 lines
->
-> | Smell | Action |
-> |-------|--------|
-> | One-time fix commands (e.g., `fix-february-sst`) | Move to task doc or delete |
-> | Historical SQL fix blocks | Move to task doc |
-> | Implementation snippets showing "how code works" | Delete — CLAUDE.md is constraints, not docs |
-> | "Works correctly, verified" notes | Delete — not a constraint |
-> | Contradictions with root/global CLAUDE.md | Fix to match authoritative source |
-> | Validation backlog / TODO items | Move to task doc or issue tracker |
-> | File/directory listings inferrable by LSP/Glob | Delete |
-> | Completed migration / resolved incident refs | Delete unless still a live risk |
->
-> **Litmus test before deleting**: "Would removing this cause Claude to write incorrect code?" If yes → it's a constraint, keep it.
->
-> Files to scan: [list paths here]
+| Agent found? | Action |
+|-------------|--------|
+| Yes | Launch `subagent_type: "claude-md-pruner"` with file paths to scan |
+| No | Skip pruning — do not inline a pruning prompt |
+
+**Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.`
+
+The agent has its own classification rules, litmus tests, and NEVER-delete safeguards. Do not override its instructions.
 
 ## 5. Validate
 

@@ -27,14 +27,15 @@ Agent file = behavior instructions + Bootstrap directive + top-15 critical rules
 
 ## Agents
 
-Two agents, each covering both review and refinement:
+Three agents, each with a distinct responsibility:
 
 | Agent | Purpose | Model | Key tools |
 |-------|---------|-------|-----------|
 | `code-reviewer` | Bugs, security, convention violations. Session-aware — reads task docs, gathers changes holistically. | `sonnet` | Read-only + LSP + diagnostics |
 | `code-simplifier` | DRY, clarity, consistency, dead code. Edits files directly. Applies Rule of Three. | `opus` | Read + Edit + Write + LSP |
+| `claude-md-pruner` | Prunes CLAUDE.md files for staleness/bloat. Conservative — preserves reference tables and cross-reference mappings. | `sonnet` | Read + Edit + Grep + Glob |
 
-> **Why 2, not 4**: We tested 4 agents (code-reviewer, session-code-reviewer, code-simplifier, code-refiner) and found the session-aware reviewer outperformed the basic reviewer, and the refiner outperformed the simplifier. Merged the best of each pair into 2 agents.
+> **Why 3**: Review and simplification are separate concerns (read-only vs write). Pruning is a distinct maintenance task that requires different judgment (what's valuable to keep vs what's stale) — mixing it into review/simplify risks over-aggressive deletion.
 
 ```
 Project/
@@ -43,7 +44,8 @@ Project/
 └── .claude/
     └── agents/
         ├── code-reviewer.md
-        └── code-simplifier.md
+        ├── code-simplifier.md
+        └── claude-md-pruner.md
 ```
 
 ## Setup Process
@@ -132,9 +134,10 @@ frontmatter (name, description, tools, model, memory: project)
 After writing agents, verify:
 - [ ] No duplicated CLAUDE.md content (only critical rules inline)
 - [ ] Bootstrap section references correct CLAUDE.md paths
-- [ ] Agent-specific behavior preserved (confidence scoring, simplification principles, etc.)
-- [ ] Both agents have `memory: project` in frontmatter
-- [ ] Tools list includes `mcp__ide__getDiagnostics`
+- [ ] Agent-specific behavior preserved (confidence scoring, simplification principles, pruning safeguards)
+- [ ] All agents have `memory: project` in frontmatter
+- [ ] Reviewer/simplifier tools list includes `mcp__ide__getDiagnostics`
+- [ ] Pruner has NEVER-remove list customized for project (reference tables, gotcha rows, etc.)
 
 ## Output
 
@@ -145,6 +148,7 @@ After writing agents, verify:
 |-------|--------|-------------|----------------|
 | code-reviewer | Created/Updated | ~15 critical rules | N CLAUDE.md files |
 | code-simplifier | Created/Updated | ~12 simplification patterns | N CLAUDE.md files |
+| claude-md-pruner | Created/Updated | Classification table + NEVER-remove list | Root + global CLAUDE.md |
 
 Agents use Bootstrap pattern — they read CLAUDE.md at runtime.
 No manual syncing needed when CLAUDE.md is updated.
