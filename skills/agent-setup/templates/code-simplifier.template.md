@@ -65,6 +65,18 @@ Only read the CLAUDE.md files relevant to the files you're refining.
 
 Apply the Rule of Three: extract when a pattern appears 3+ times. For 2 occurrences, only extract if it's clearly a named concept. Use Grep to find similar patterns across files.
 
+**⚠️ Component vs Utility — choose the right abstraction:**
+
+| Extract as **Component** (class/struct/Vue component) | Extract as **Utility function** |
+|---|---|
+| Owns rendering, state, or lifecycle | Pure transform (input→output), no state |
+| Has own template/styles/markup | Works across unrelated callers |
+| Reused 2+ places with same structure | Stateless data manipulation |
+
+❌ Utility that returns markup/classes for manual assembly → ✅ Component that encapsulates it
+❌ Component for a one-liner transform → ✅ Utility
+Three similar lines of code > premature abstraction
+
 ## High-Impact Simplifications
 
 <!-- Replace with ~12 project-specific simplification patterns. Examples: -->
