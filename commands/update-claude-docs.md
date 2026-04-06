@@ -7,6 +7,10 @@ argument-hint: "[optional: focus area]"
 
 Extract reusable patterns from this session into CLAUDE.md files.
 
+⚠️ **CLAUDE.md over memory**: All project/technical knowledge goes to CLAUDE.md or task docs (team-discoverable). Never save project knowledge to auto-memory files — those are invisible to team members and agents.
+
+⚠️ **Inline critical facts**: When adding a `> 📖 See task doc` pointer, also inline the 1-2 most critical facts. A fresh session won't follow pointers unprompted — the CLAUDE.md entry itself must contain enough to avoid repeating mistakes.
+
 ## 1. Scan — What happened?
 
 Look for these signals in the conversation:
@@ -41,6 +45,12 @@ Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local
 5. Global `~/.claude/CLAUDE.md`
 
 **Read target first** — check structure, existing entries, where new entry fits.
+
+| ❌ NEVER | ✅ ALWAYS |
+|----------|----------|
+| Save project knowledge to auto-memory | Write to CLAUDE.md or task doc |
+| `> 📖 See X` pointer without inline summary | Pointer + inline 1-2 critical facts |
+| Skip writing because "task doc has it" | CLAUDE.md must be self-sufficient for fresh sessions |
 
 ## 3. Write — Hard rules
 
