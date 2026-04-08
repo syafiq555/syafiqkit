@@ -8,6 +8,9 @@ tools:
   - LSP
   - Bash
   - mcp__ide__getDiagnostics
+  # Add if GitNexus is indexed (gitnexus list):
+  # - mcp__gitnexus__impact
+  # - mcp__gitnexus__context
 model: sonnet
 memory: project
 ---
@@ -33,8 +36,9 @@ Only read the CLAUDE.md files relevant to the changed files (backend → backend
 3. **Read each changed file** — understand full context, not just the diff
 4. **Check sibling files** — verify the change follows existing patterns in the same directory
 5. **Run LSP** — `hover` on new symbols, `findReferences` on modified functions to check callers
-6. **Filter by confidence** — discard anything below 80%
-7. **Report** — only high-confidence findings, ordered by severity
+6. **Check callers via GitNexus** (if indexed) — For modified functions with changed signatures, run `mcp__gitnexus__impact({target: "symbolName", direction: "upstream"})` to find callers the diff might break. Skip for internal helpers.
+7. **Filter by confidence** — discard anything below 80%
+8. **Report** — only high-confidence findings, ordered by severity
 
 ## Review Categories
 

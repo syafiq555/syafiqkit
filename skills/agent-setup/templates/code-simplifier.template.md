@@ -10,6 +10,9 @@ tools:
   - LSP
   - Bash
   - mcp__ide__getDiagnostics
+  # Add if GitNexus is indexed (gitnexus list):
+  # - mcp__gitnexus__context
+  # - mcp__gitnexus__impact
 model: opus
 memory: project
 ---
@@ -33,8 +36,9 @@ Only read the CLAUDE.md files relevant to the files you're refining.
 1. **Find changed files** — `git diff --name-only` and `git diff --stat` (this is your scope)
 2. **Read task docs if specified** — `tasks/<domain>/<feature>/current.md` for architectural constraints
 3. **Read each changed file** — understand intent before refactoring
-4. **Check siblings** — how do adjacent files handle similar patterns?
-5. **Apply refinements** — edit directly, run linter/formatter after (e.g., `vendor/bin/pint --dirty` for PHP)
+4. **Check callers/callees** (if GitNexus indexed) — Before extracting or moving logic, run `mcp__gitnexus__context({name: "symbolName"})` to see all callers and callees. Skip for leaf functions.
+5. **Check siblings** — how do adjacent files handle similar patterns?
+6. **Apply refinements** — edit directly, run linter/formatter after (e.g., `vendor/bin/pint --dirty` for PHP)
 
 ## Refinement Criteria
 

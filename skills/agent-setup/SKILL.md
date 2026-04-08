@@ -123,6 +123,7 @@ frontmatter (name, description, tools, model, memory: project)
 **Key rules for agent files**:
 - `memory: project` in frontmatter — agents maintain project-level memory
 - `mcp__ide__getDiagnostics` in tools — catches lint/type errors the agent would miss
+- `mcp__gitnexus__impact` + `mcp__gitnexus__context` in tools — if project has GitNexus indexed (`gitnexus list`). Reviewer uses `impact` to check callers; simplifier uses `context` before extracting
 - Bootstrap section lists CLAUDE.md files with brief descriptions of what each contains
 - Process includes "Read task docs" step — reduces false positives by understanding intent
 - Inline table has only rules that prevent the most common mistakes
@@ -137,7 +138,9 @@ After writing agents, verify:
 - [ ] Agent-specific behavior preserved (confidence scoring, simplification principles, pruning safeguards)
 - [ ] All agents have `memory: project` in frontmatter
 - [ ] Reviewer/simplifier tools list includes `mcp__ide__getDiagnostics`
+- [ ] If GitNexus indexed: reviewer/simplifier tools include `mcp__gitnexus__impact` and `mcp__gitnexus__context`
 - [ ] Pruner has NEVER-remove list customized for project (reference tables, gotcha rows, etc.)
+- [ ] Pruner skips GitNexus-managed sections (`<!-- gitnexus:start/end -->` markers)
 
 ## Output
 
