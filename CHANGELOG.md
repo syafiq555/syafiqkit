@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.24.0
+
+- **consolidate-docs**: Rewrite as conversational workflow — staleness audit, AskUserQuestion options, archive mode via `git mv` to flat `_archive/`, pattern migration to CLAUDE.md before archiving
+
 ## 1.23.1
 
 - **read-summary**: Add mandatory GitNexus integration — queries execution flows and symbol context in indexed repos alongside file reads
