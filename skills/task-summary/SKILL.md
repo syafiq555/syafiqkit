@@ -37,10 +37,12 @@ Edit in place. The doc should always read as one coherent current-state document
 | Add duplicate rows | Update the existing row |
 | Delete historical rows | Append new rows; keep old ones |
 | Skip Next Steps | Remove done items, add new pending ones |
+| Leave Quick Start stale after changes | Rewrite Quick Start to reflect current state |
 
 | Section | Action |
 |---------|--------|
 | `LLM-CONTEXT` | Update Status + Last updated |
+| `## Quick Start` | ⚠️ **MANDATORY on every update** — rewrite entirely (see below) |
 | `## Task Status` | Tick off completed rows |
 | `## Bugs Fixed` | Append new bugs |
 | `## Critical Gotchas` | Append new rows to Backend or Frontend table |
@@ -48,6 +50,22 @@ Edit in place. The doc should always read as one coherent current-state document
 | `## Files` | Add new files if introduced |
 | `## Next Steps` | Remove done, add pending |
 | `## Last Session` | **Overwrite** (not append) with 2–3 bullets of what changed this session |
+
+### Quick Start Section (cold-start context for next session)
+
+⚠️ **MANDATORY** — place immediately after the `# Title` and before `## Overview`. Rewrite on EVERY update (not append). A fresh agent reads ONLY this section before starting work. If it can't act from Quick Start alone, the section is insufficient.
+
+Must answer these 5 questions in ≤15 lines total:
+
+| # | Question | Format |
+|---|----------|--------|
+| 1 | What's the immediate next action? | Numbered list (ordered, first item = first thing to do) |
+| 2 | What exact commands/files are involved? | Code blocks or inline code |
+| 3 | What's the current state? | Bullet points — committed vs uncommitted, local vs prod, DB state |
+| 4 | What gotchas will trip me up? | 2-3 critical ones only (e.g., "MUST use --queue not sync") |
+| 5 | What does "success" look like? | One sentence with concrete numbers/expected output |
+
+**Litmus test**: If a Sonnet agent reads ONLY the Quick Start and answers "what do I do first?", it should give the correct action + the correct command without reading any other section.
 
 ### Pruning
 

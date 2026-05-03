@@ -1,5 +1,5 @@
 ---
-description: Create or update task summary documentation. Use when starting new feature work.
+description: "Create or update task summary documentation. Alias for task-summary — use when starting new feature work."
 argument-hint: "[domain/feature or path]"
 ---
 

@@ -82,6 +82,12 @@ Last updated: [today]
 
 # [Domain] — [Feature]
 
+## Quick Start (read this first in next session)
+
+**Next action**: [What to do immediately + exact command]
+**Current state**: [One line — committed? pushed? what's in the DB?]
+**Success looks like**: [Expected outcome in one sentence]
+
 ## Overview
 [One sentence on what this feature does]
 
@@ -118,6 +124,25 @@ Last updated: [today]
 -->
 
 # [Project] — [Feature] Summary
+
+## Quick Start (read this first in next session)
+
+**Where we are**: [One sentence — current state of the feature]
+
+**Immediate next actions (in order)**:
+1. [First thing to do — include exact command if applicable]
+2. [Second thing]
+
+**Key facts for cold start**:
+- [Current code state: committed/uncommitted, pushed/local]
+- [Exact command to run / file to edit]
+- [What "success" looks like — concrete numbers or expected output]
+
+**Gotchas that will trip you**:
+- [Most critical non-obvious constraint]
+- [Second most critical]
+
+---
 
 ## Overview
 [What this feature does, why it exists, current status in one paragraph]

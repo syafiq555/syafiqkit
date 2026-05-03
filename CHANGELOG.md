@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.0
+
+- **task-summary**: Add mandatory Quick Start section — 5-question cold-start framework, rewritten on every update, added to both templates
+- **write-summary/update-summary**: Clarify descriptions as aliases for task-summary skill
+
 ## 1.24.0
 
 - **consolidate-docs**: Rewrite as conversational workflow — staleness audit, AskUserQuestion options, archive mode via `git mv` to flat `_archive/`, pattern migration to CLAUDE.md before archiving
