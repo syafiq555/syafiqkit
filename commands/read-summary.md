@@ -11,7 +11,9 @@ argument-hint: "[domain/feature or full path to current.md]"
 1. Read the requested `current.md` if not provided please search according to the domain/feature
 2. Check LLM-CONTEXT `Related:` field for linked docs
 3. If Related mentions `tasks/shared/*.md`, read those too
-4. **GitNexus (mandatory if `.gitnexus/` exists)** — run in parallel with step 1:
+4. **Domain CLAUDE.md** — infer the domain from the task path (`tasks/<domain>/...`) and check for `app/Domain/<Domain>/CLAUDE.md` (capitalize domain name: `payment` → `Payment`). If it exists, read it — contains gotchas and patterns that only load when working inside that domain directory.
+   - Also read any CLAUDE.md files explicitly referenced in the `Related:` field (e.g., `app/Domain/Payment/CLAUDE.md`)
+5. **GitNexus (mandatory if `.gitnexus/` exists)** — run in parallel with step 1:
    - `gitnexus_query({query: "<domain/feature>", repo: "autorentic"})` to find execution flows
    - `gitnexus_context({name: "<symbol>", repo: "autorentic"})` on the 2-3 most critical symbols from `Key files` (e.g., main service class, controller)
    - ⚠️ Do NOT skip this even if you "already read the files" — file reads miss callers, process participation, and blast radius

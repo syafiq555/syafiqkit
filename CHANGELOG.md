@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.26.0
+
+- **read-summary**: Add domain CLAUDE.md loading — infers domain from task path, reads domain-scoped gotchas/patterns alongside task docs
+
 ## 1.25.0
 
 - **task-summary**: Add mandatory Quick Start section — 5-question cold-start framework, rewritten on every update, added to both templates
