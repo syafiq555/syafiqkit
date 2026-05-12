@@ -43,6 +43,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `task-summary` | Create/update task summary docs with path resolution, templates, cross-refs | `write-summary` cmd, `update-summary` cmd, `done` skill |
 | `brainstorming` | Design exploration before creative/architectural work | User invokes or proactive |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
+| `md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams | User invokes directly |
 
 ## Project-Specific Agents
 

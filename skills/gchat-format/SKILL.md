@@ -1,0 +1,134 @@
+---
+name: gchat-format
+description: >
+  Convert Markdown or plain text into Google Chat-compatible formatting. Use this
+  skill whenever the user wants to send a message in Google Chat, format a
+  changelog/release note for Google Chat, convert a Markdown document for posting
+  in Google Chat, or says anything like "format this for Google Chat", "convert to
+  Google Chat", "post this in Chat", "gchat format", or "make this Chat-friendly".
+  Google Chat has a limited, non-standard subset of Markdown -- this skill ensures
+  correct output every time.
+---
+
+# Google Chat Formatter
+
+Convert Markdown or plain text into Google Chat's formatting syntax.
+
+## Key Rules
+
+Google Chat does NOT support standard Markdown fully. Apply these transformations:
+
+### Headers -> Bold text
+All `#` headers become `*bold*`. Remove the `#` symbols entirely.
+
+```
+# Title        ->  *Title*
+## Section     ->  *Section*
+### Sub        ->  *Sub*
+```
+
+### Bold
+```
+**text**   ->  *text*
+__text__   ->  *text*
+```
+
+### Italic
+```
+*text*     ->  _text_    (only if it was italic, not bold)
+_text_     ->  _text_    (unchanged)
+```
+
+> After converting bold, remaining `*text*` that was italic should become `_text_`.
+
+### Strikethrough
+```
+~~text~~   ->  ~text~
+```
+
+### Bullet lists
+```
+- item     ->  * item
+* item     ->  * item
++ item     ->  * item
+```
+
+Numbered lists (`1.`, `2.`) stay as-is.
+
+### Inline code & code blocks
+Stay unchanged -- Google Chat supports both `` `inline` `` and ` ```blocks``` `.
+
+### Links
+```
+[text](url)              ->  <url|text>
+https://bare-url.com     ->  unchanged (auto-linked by Chat)
+```
+
+### Block quotes
+```
+> text     ->  > text    (unchanged, Chat supports this)
+```
+
+### Tables -> Bullet list with bold labels
+Tables are not supported in Google Chat. Convert each row to a bullet, with the first column always as `*bold*`.
+
+```
+| Field     | Required | Notes       |
+|-----------|----------|-------------|
+| First Name | Yes     | Tenant name |
+
+->
+
+* *First Name*: Yes, Tenant name
+```
+
+> Label columns (first column of a table row) must ALWAYS use `*bold*`, not `_italic_`.
+> Italic (`_text_`) is only for prose text that was explicitly italic in the source -- never for labels, field names, or headings.
+
+### Em dashes
+Em dashes used as label separators (after a bold term) are replaced with a colon. Em dashes in flowing prose are replaced with a regular hyphen.
+
+```
+*Label* -- description    ->  *Label*: description
+sentence -- continuation  ->  sentence - continuation
+```
+
+### Unsupported -- remove or simplify
+- `---` horizontal rules -> remove entirely
+- HTML tags -> strip or convert to plain text
+- Nested bold-italic combinations -> use just `*bold*` or `_italic_`
+
+## Output Format
+
+- Wrap the entire output in a single code block (` ``` `) so the user can copy raw markdown syntax -- not rendered text
+- This is critical: if output is not in a code block, Claude's UI renders `*text*` as italic, and copy-pasting into Google Chat will lose the asterisks
+- Preserve blank lines between sections
+- Keep emojis as-is
+
+## Example
+
+**Input:**
+```markdown
+**Release -- 2026-03-27**
+
+### Added
+- **Platform fee invoices** -- auto-generated when tenants pay rent
+- Batch generation command (`platform-fees:generate`)
+
+### Changed
+- Statements sidebar replaced by Finances group
+```
+
+**Output:**
+````
+```
+*Release - 2026-03-27*
+
+*Added*
+* *Platform fee invoices*: auto-generated when tenants pay rent
+* Batch generation command (`platform-fees:generate`)
+
+*Changed*
+* Statements sidebar replaced by Finances group
+```
+````

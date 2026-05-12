@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.27.0
+
+- **gchat-format**: New skill — convert Markdown content to Google Chat syntax (bold, code, bullets)
+- **md-to-pdf**: New skill — convert Markdown documents to professional PDFs with rendered Mermaid diagrams
+- **ship**: New skill — end-to-end shipping workflow: commit → changelog → push → verify CI/CD → GitNexus re-index → release note
+
 ## 1.26.0
 
 - **read-summary**: Add domain CLAUDE.md loading — infers domain from task path, reads domain-scoped gotchas/patterns alongside task docs
