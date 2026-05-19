@@ -20,7 +20,12 @@ Create conventional commits from staged changes.
    - Commit: `<type>(<scope>): <description>` — lowercase, no period, imperative, max 72 chars
    - Verify: `git status && git log -1 --oneline`
 
-4. **Validate**: No secrets committed, type matches changes
+4. **GitNexus re-index** (background, per-repo): For each repo where commit type is NOT `docs`, if `.gitnexus/` exists, run in background:
+   ```bash
+   [ -d ".gitnexus" ] && npx gitnexus analyze --skip-agents-md
+   ```
+
+5. **Validate**: No secrets committed, type matches changes
 
 ## Commit Format
 

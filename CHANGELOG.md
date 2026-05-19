@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.29.0
+
+- **commit**: Add GitNexus re-index step — automatically re-indexes knowledge graph in background after non-docs commits
+
 ## 1.28.0
 
 - **commit**: Changelog gate is now fully autonomous — auto-updates and stages CHANGELOG.md instead of blocking and asking
