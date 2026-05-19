@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.28.0
+
+- **commit**: Changelog gate is now fully autonomous — auto-updates and stages CHANGELOG.md instead of blocking and asking
+- **update-claude-docs**: Add CLAUDE.local.md checklist — actively scans session for credentials, API headers, CLI one-liners, service URLs, and account mappings that belong in local (non-team) context
+
 ## 1.27.0
 
 - **gchat-format**: New skill — convert Markdown content to Google Chat syntax (bold, code, bullets)

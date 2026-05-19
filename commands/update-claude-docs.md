@@ -25,6 +25,9 @@ Look for these signals in the conversation:
 | Convention preference | Convention |
 | Debugging root cause discovered | Gotcha |
 | Team/strategy context | Context → `CLAUDE.local.md` |
+| Credentials/tokens/API headers used from config files | Env pattern → `CLAUDE.local.md` |
+| CLI pattern reused 3+ times (curl, scp, remote) | Env pattern → `CLAUDE.local.md` |
+| External API auth that required trial-and-error | Env pattern → `CLAUDE.local.md` |
 
 For each signal, extract 2-3 keywords and **grep all CLAUDE.md files**:
 
@@ -46,11 +49,24 @@ Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local
 
 **Read target first** — check structure, existing entries, where new entry fits.
 
+### CLAUDE.local.md checklist
+
+Before finishing, actively scan the session for these — they're easy to miss because they feel "obvious" in the moment:
+
+- [ ] **Credentials/tokens** read from config files (`secrets.json`, `.env`, DB) — save the extraction pattern (e.g., `jq -r '.["key"]' path`)
+- [ ] **API headers** that required trial-and-error (auth headers, required headers that caused 401/403)
+- [ ] **CLI one-liners** used 3+ times (curl templates, scp with password, remote + mysql combos)
+- [ ] **External service URLs** discovered during the session (settings pages, portal URLs, API endpoints)
+- [ ] **Account mappings** (which token → which account → which subdomain)
+
+These belong in `CLAUDE.local.md` because they contain env-specific context (server passwords, account names, API tokens) that shouldn't be in team-visible `CLAUDE.md`.
+
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
 | Save project knowledge to auto-memory | Write to CLAUDE.md or task doc |
 | `> 📖 See X` pointer without inline summary | Pointer + inline 1-2 critical facts |
 | Skip writing because "task doc has it" | CLAUDE.md must be self-sufficient for fresh sessions |
+| Skip CLAUDE.local.md because "it's just env stuff" | Save reusable env patterns — next session will waste 10 min rediscovering them |
 
 ## 3. Write — Hard rules
 
