@@ -14,8 +14,9 @@ argument-hint: "[domain/feature or full path to current.md]"
 4. **Domain CLAUDE.md** — infer the domain from the task path (`tasks/<domain>/...`) and check for `app/Domain/<Domain>/CLAUDE.md` (capitalize domain name: `payment` → `Payment`). If it exists, read it — contains gotchas and patterns that only load when working inside that domain directory.
    - Also read any CLAUDE.md files explicitly referenced in the `Related:` field (e.g., `app/Domain/Payment/CLAUDE.md`)
 5. **GitNexus (mandatory if `.gitnexus/` exists)** — run in parallel with step 1:
-   - `gitnexus_query({query: "<domain/feature>", repo: "autorentic"})` to find execution flows
-   - `gitnexus_context({name: "<symbol>", repo: "autorentic"})` on the 2-3 most critical symbols from `Key files` (e.g., main service class, controller)
+   - `gitnexus_context({name: "<symbol>"})` on the 2-3 most critical symbols from `Key files` (e.g., main service class, controller) — shows callers, callees, process participation
+   - `gitnexus_impact({target: "<symbol>", direction: "upstream"})` on symbols you expect to modify — shows blast radius
+   - ⚠️ Do NOT use `gitnexus_query()` — requires `--embeddings` index (not enabled). Use `context()` + `impact()` instead (pure graph traversal)
    - ⚠️ Do NOT skip this even if you "already read the files" — file reads miss callers, process participation, and blast radius
 
 **Shared docs**: Check `Glob: tasks/shared/*.md` for cross-domain references if they exist.

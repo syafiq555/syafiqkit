@@ -7,7 +7,7 @@ argument-hint: "[optional: focus area]"
 
 Extract reusable patterns from this session into CLAUDE.md files.
 
-⚠️ **CLAUDE.md over memory**: All project/technical knowledge goes to CLAUDE.md or task docs (team-discoverable). Never save project knowledge to auto-memory files — those are invisible to team members and agents.
+⚠️ **CLAUDE.md only — NEVER auto-memory**: All knowledge from this skill goes to CLAUDE.md, CLAUDE.local.md, or task docs. Do NOT write to auto-memory files (`~/.claude/projects/*/memory/`) — not for feedback, not for project context, not for investigation lessons. Memory is invisible to team members and agents; CLAUDE.md is the single source of truth.
 
 ⚠️ **Inline critical facts**: When adding a `> 📖 See task doc` pointer, also inline the 1-2 most critical facts. A fresh session won't follow pointers unprompted — the CLAUDE.md entry itself must contain enough to avoid repeating mistakes.
 
@@ -20,6 +20,7 @@ Look for these signals in the conversation:
 | User correction ("not X, it's Y") | Gotcha or Convention |
 | Claude struggled / repeated attempts | Gotcha |
 | Claude ignored existing rule | **Violation** |
+| Claude concluded wrong (checked wrong source, premature narrative, user had to correct) | **Behavioral rule** — add `❌/✅` row capturing what Claude should have done differently |
 | Same pattern used 2+ times | Pattern |
 | Environment surprise | Gotcha |
 | Convention preference | Convention |
@@ -63,10 +64,12 @@ These belong in `CLAUDE.local.md` because they contain env-specific context (ser
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| Save project knowledge to auto-memory | Write to CLAUDE.md or task doc |
+| Save ANY knowledge to auto-memory files | Write to CLAUDE.md, CLAUDE.local.md, or task doc — memory is invisible to team and agents |
+| Write feedback memory for investigation lessons | Add as `⚠️ MANDATORY` workflow section in CLAUDE.md — memory won't prevent next session's mistake |
 | `> 📖 See X` pointer without inline summary | Pointer + inline 1-2 critical facts |
 | Skip writing because "task doc has it" | CLAUDE.md must be self-sufficient for fresh sessions |
 | Skip CLAUDE.local.md because "it's just env stuff" | Save reusable env patterns — next session will waste 10 min rediscovering them |
+| Conclude from one data source without cross-checking | Add `❌/✅` behavioral rule to the relevant CLAUDE.md section |
 
 ## 3. Write — Hard rules
 
@@ -74,6 +77,7 @@ These belong in `CLAUDE.local.md` because they contain env-specific context (ser
 
 - Gotchas: `Symptom | Cause | Fix` table row
 - Guidance: `❌ NEVER | ✅ ALWAYS` table row
+- Behavioral corrections: `❌ NEVER | ✅ ALWAYS` row capturing what Claude did wrong and what it should do instead. Use when Claude concluded incorrectly, checked wrong source first, or user had to push back ("are you sure?")
 - Patterns: Prose + code (reusable only)
 - Pair every prohibition with an alternative ("don't X" needs "do Y instead")
 
