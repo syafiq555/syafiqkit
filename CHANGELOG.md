@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.31.0
+
+- **read-summary**: Auto-detect argument type — doc paths trigger read-and-wait, task descriptions trigger read-and-implement
+
+## 1.30.0
+
+- **read-summary**: Fix GitNexus queries for indexed repos
+- **update-claude-docs**: Strengthen anti-memory rules — enforce CLAUDE.md/task docs over auto-memory for session learnings
+
 ## 1.29.0
 
 - **commit**: Add GitNexus re-index step — automatically re-indexes knowledge graph in background after non-docs commits

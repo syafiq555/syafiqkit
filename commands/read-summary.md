@@ -23,4 +23,13 @@ argument-hint: "[domain/feature or full path to current.md]"
 
 ---
 
-Read and understand $ARGUMENTS (plus any Related docs mentioned and GitNexus context if available), do not do anything, wait for my next instruction.
+## Argument Detection
+
+Determine the type of `$ARGUMENTS`:
+
+- **Doc path** — matches `tasks/*/current.md`, a `domain/feature` slug, or a file path → Read the doc using the Read Order above, then **wait for the user's next instruction**.
+- **Task description** — contains a bug report, feature request, ClickUp paste, chat transcript, or any actionable work description (not a path) → Read relevant context (infer domain from keywords, find matching `tasks/**/current.md`, load domain CLAUDE.md, run GitNexus), then **proceed to implement the task**.
+
+## Execute
+
+$ARGUMENTS
