@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.33.0
+
+- **done**: Enforce multi-domain task doc scan — removes single-path shortcut; task-summary always scans full conversation to avoid missed updates to related docs
+
 ## 1.32.0
 
 - **done**: Multi-domain task doc updates — now scans all domains touched in session, not just the primary one; catches bug reports and feature requests mentioned across chat/email/WhatsApp
