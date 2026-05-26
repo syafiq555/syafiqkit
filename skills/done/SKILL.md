@@ -107,13 +107,12 @@ Run both **in parallel** (single message, two Skill tool calls) — they are ind
 
 **Step 4 — Update Task Docs:**
 
-Invoke `syafiqkit:task-summary` for the primary domain/feature.
+Invoke `syafiqkit:task-summary` for **all domains touched this session** — not just the primary one.
 
-If the path is obvious from session context, pass it directly to avoid discovery overhead:
-```
-Skill: syafiqkit:task-summary
-Args: tasks/{domain}/{feature}/current.md
-```
+- **Single domain** (most sessions): pass the path directly: `Args: tasks/{domain}/{feature}/current.md`
+- **Multi-domain** (session read WhatsApp/email/Slack with multiple issues, or touched multiple feature areas): pass no args — the skill scans the full conversation and creates/updates a task doc per domain
+
+⚠️ **Common mistake**: Only updating the domain you wrote code for, and forgetting bug reports / feature requests mentioned in chat. If the session surfaced issues across N domains, all N need task docs — even if just 📋 Planning stubs.
 
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 

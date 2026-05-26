@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.32.0
+
+- **done**: Multi-domain task doc updates — now scans all domains touched in session, not just the primary one; catches bug reports and feature requests mentioned across chat/email/WhatsApp
+- **task-summary**: Multi-domain scan — when no explicit path given, scans full conversation (code changes, external inputs, verbal requests) and creates/updates a task doc per domain
+- **gitnexus skills**: Add 6 new GitNexus skills — `gitnexus-cli`, `gitnexus-debugging`, `gitnexus-exploring`, `gitnexus-guide`, `gitnexus-impact-analysis`, `gitnexus-refactoring`
+
 ## 1.31.0
 
 - **read-summary**: Auto-detect argument type — doc paths trigger read-and-wait, task descriptions trigger read-and-implement

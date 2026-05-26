@@ -13,7 +13,26 @@ Living documentation for humans and LLM agents. Always reflects current state �
 |-------|--------|
 | Full path | Use as-is |
 | Domain/feature | Expand to `tasks/<domain>/<feature>/current.md` |
-| Empty | Check `tasks/` for existing domains, infer from session files |
+| Empty / task description | **Multi-domain scan** — see below |
+
+### Multi-Domain Scan (when no explicit path given)
+
+⚠️ **Do NOT assume one domain per session.** Scan the full conversation for ALL domains that need task docs:
+
+1. **Code changes**: `git diff --name-only` → infer domains from file paths
+2. **External inputs**: WhatsApp messages, emails, Slack, screenshots, ClickUp pastes — extract every distinct issue/feature/bug mentioned
+3. **Verbal requests**: User said "also note X", "don't forget Y", "the other issues" → those are domains too
+
+Build a table of all domains before writing anything:
+
+```
+| # | Domain/Feature | Source | Task Doc | Action |
+|---|---------------|--------|----------|--------|
+| 1 | webhook phone fix | code changes | tasks/notifications/webhook/current.md | Update |
+| 2 | freemium tab | WhatsApp msg | tasks/student/freemium/current.md | Create |
+```
+
+Then create/update each task doc. **Every issue mentioned in the session gets a task doc** — even if it's just a 📋 Planning stub. A captured issue is better than a forgotten one.
 
 ## 2. Create or Update?
 
