@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Claude Code plugin providing personal workflow automation: commit messages, task summaries, documentation capture, and invoice generation from git history.
+Claude Code plugin providing personal workflow automation: commit messages, task summaries, documentation capture, invoice generation, PDF export, Google Chat formatting, remote DB sync, and end-to-end ship workflow.
 
 ## Plugin Structure
 
@@ -44,6 +44,9 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `brainstorming` | Design exploration before creative/architectural work | User invokes or proactive |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 | `md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams | User invokes directly |
+| `gchat-format` | Convert Markdown to Google Chat syntax | User invokes or `/gchat-format` |
+| `ship` | End-to-end ship: commit → changelog → push → CI verify → GitNexus re-index → release note | User invokes directly |
+| `pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev (dump, scp, import, password reset) | User invokes or proactive |
 
 ## Project-Specific Agents
 
