@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.34.0
+
+- **pull-db**: New skill — transfer a MySQL/MariaDB database from a remote server to local dev environment; handles mysqldump on server, binary-safe scp transfer, MariaDB→MySQL FK compatibility fixes, password reset, and cleanup
+
 ## 1.33.0
 
 - **done**: Enforce multi-domain task doc scan — removes single-path shortcut; task-summary always scans full conversation to avoid missed updates to related docs
