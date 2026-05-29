@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.34.1
+
+- **read-summary / update-claude-docs / task-summary**: Discover task docs by content, not folder name — folder slugs are engineer-domain-named and rarely match the request (`upload-redesign` owns "QC", `payout` owns "refund"). All three now `Glob`+`Grep` for the concept's vocabulary + synonyms across doc body + header, follow `Merged into`/`Supersedes` redirects, and verify a pointer's target exists before writing it. Prevents wrong-doc reads and duplicate docs.
+
 ## 1.34.0
 
 - **pull-db**: New skill — transfer a MySQL/MariaDB database from a remote server to local dev environment; handles mysqldump on server, binary-safe scp transfer, MariaDB→MySQL FK compatibility fixes, password reset, and cleanup

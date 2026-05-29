@@ -6,9 +6,16 @@ argument-hint: "[domain/feature or full path to current.md]"
 **Path Convention**: `tasks/<domain>/<feature>/current.md`
 - Examples: `tasks/payment/gateway/current.md`, `tasks/tenant/rebate/current.md`
 
+## Finding the Right Doc (when no path given)
+
+⚠️ The arg is usually a fuzzy task description, not a path. Folder names are engineer-domain-named and rarely match how you'd phrase the request (`upload-redesign` owns "QC delete child question"; `payout` owns "refund"). So **discover by content, not by folder name**:
+
+1. **Parallel, in one tool block**: `Glob tasks/**/*.md` (include `_archive/` and flat `tasks/<domain>/<feature>.md` — whole features live there, not just `current.md`) **AND** `Grep` those for the *concept's vocabulary* from the request — include synonyms ("child"→"sub-question", "QC"→"review/screening", "refund"→"payout"), searching doc **body + header**, never the folder name alone.
+2. **Rank + disambiguate**: read the top 2-3 candidates' header block (`<!--LLM-CONTEXT...-->` if present — tolerate missing/varied headers) + `# Title` + `## Overview`. Follow any `Merged into`/`Supersedes`/`> 📖` redirect to the live doc. Treat index/hub docs (roadmap, `shared/`, `*-architecture`, parent `current.md`) as routers, not targets.
+
 ## Read Order
 
-1. Read the requested `current.md` if not provided please search according to the domain/feature
+1. Read the resolved `current.md` (found via the discovery method above when no explicit path was given)
 2. Check LLM-CONTEXT `Related:` field for linked docs
 3. If Related mentions `tasks/shared/*.md`, read those too
 4. **Domain CLAUDE.md** — infer the domain from the task path (`tasks/<domain>/...`) and check for `app/Domain/<Domain>/CLAUDE.md` (capitalize domain name: `payment` → `Payment`). If it exists, read it — contains gotchas and patterns that only load when working inside that domain directory.

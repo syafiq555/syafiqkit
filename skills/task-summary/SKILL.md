@@ -23,6 +23,8 @@ Living documentation for humans and LLM agents. Always reflects current state �
 2. **External inputs**: WhatsApp messages, emails, Slack, screenshots, ClickUp pastes — extract every distinct issue/feature/bug mentioned
 3. **Verbal requests**: User said "also note X", "don't forget Y", "the other issues" → those are domains too
 
+⚠️ **Map each to its EXISTING doc by content, not by folder name.** A changed file path or feature name rarely matches the doc's folder (code `src/modules/qc-review/` → doc `setup/upload-redesign/`; folder names are engineer-domain-named). For each domain/feature found above, `Glob tasks/**/*.md` (incl `_archive/` + flat `tasks/<domain>/<feature>.md`) and `Grep` for the concept's vocabulary + synonyms across doc body + header — never assume the folder slug matches. Follow `Merged into`/`Supersedes` redirects to the live doc. This prevents creating a duplicate doc when one already exists under a different folder name.
+
 Build a table of all domains before writing anything:
 
 ```
