@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.34.3
+
+- **task-summary**: Reconcile back-references on update — index/roadmap/hub docs only *mirror* a feature's status and own no code, so the work-driven §1 scan never reaches them and their status drifts silently (a roadmap row reading "uncommitted" weeks after ship). New §6 step greps for docs that link back to the one just updated and status-syncs the mirrored row; §5 validation gains a check for it. Caught when a roadmap row still said "Implemented (uncommitted)" after the feature shipped to prod and only a manual "check all related" surfaced it.
+
 ## 1.34.2
 
 - **read-summary**: Strengthen enforcement — add mandatory-first-action warning that blocks any query/edit/answer before the full Read Order completes; add explicit "Investigation / diagnostic" intent type (read-only questions like "is X paid by card?" or "why did Y fail?") to prevent premature answers

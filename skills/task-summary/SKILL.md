@@ -110,7 +110,20 @@ Re-read after writing:
 2. Last updated = today
 3. Next Steps has no stale completed items
 4. No rows deleted
+5. Back-references reconciled (§6) — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated
 
 ## 6. Cross-References
 
 When creating, `Glob: tasks/**/current.md` and add bidirectional `Related:` refs for any connected domains.
+
+### Reconcile back-references (on update)
+
+The §1 scan finds docs to update from code changes, inputs, and verbal requests — i.e. docs that *own* work. But some docs own no work; they only **mirror** the status of a feature: roadmaps, index/hub docs, and any doc that lists the changed feature in a row or links it via `Related:`. Nothing in a git diff points at them, so a work-driven scan never reaches them and their mirrored status drifts silently — a roadmap row still says "uncommitted" weeks after the feature shipped.
+
+So after you finish updating a feature doc, close the loop on what *refers back* to it:
+
+1. `Grep tasks/**/*.md` for the updated doc's path **and** its feature name/vocabulary.
+2. For each doc that mentions it — especially roadmap rows, hub tables, and `Related:` lists — check whether the **status it mirrors still matches reality**. If the feature shipped, flip the mirrored status (and any stale "uncommitted / pending / not pushed" hedges) to match.
+3. This is a status-sync, not a rewrite — touch only the row/line that references the feature, leave the rest of the index doc alone.
+
+A good signal you've found a mirror that needs syncing: the referencing doc describes the feature in the past tense of an *older* state than the doc you just updated.
