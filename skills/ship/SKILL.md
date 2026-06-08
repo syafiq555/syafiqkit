@@ -32,8 +32,9 @@ Skip repos with nothing to commit. If ALL repos are clean, check for unpushed co
 For each repo with changes:
 
 1. **Stage files** — `git add <specific files>` (never `git add -A`)
-2. **Changelog gate** — if changes include user-visible work AND `CHANGELOG.md` is not staged → STOP. Ask user to update changelog first.
-3. **Commit** — conventional format: `<type>(<scope>): <message>`
+2. **Version-bump gate (plugin/package repos)** — if the repo has version files, bump **EVERY** file that carries the version before staging. Run `grep -rn '"version"' <manifest-dir>` to discover all version fields (secondary fields like `plugins[0].version` drift silently when only the primary is bumped). See the repo's `CLAUDE.md#version-bumping` for the canonical file list.
+3. **Changelog gate** — if changes include user-visible work AND `CHANGELOG.md` is not staged → STOP. Ask user to update changelog first.
+4. **Commit** — conventional format: `<type>(<scope>): <message>`
 
 ```bash
 git commit -m "$(cat <<'EOF'

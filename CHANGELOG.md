@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.35.1
+
+- **ship**: Added a **version-bump gate** to Step 2 (Commit) — plugin/package repos must bump EVERY file carrying the version, not just the primary. `grep -rn '"version"' <manifest-dir>` discovers secondary fields (`marketplace.json` `plugins[0].version`, monorepo sub-manifests) that drift silently when only one is bumped. The bump rule lived in `CLAUDE.md#version-bumping` but the ship workflow that triggers a bump never referenced it, so it relied on memory — and a ship in this very session bumped only `plugin.json`, leaving `marketplace.json` stale at 1.34.3 until the user caught it. Fix moves the rule into the workflow that bypassed it.
+
 ## 1.35.0
 
 - **agent-setup**: Templates and skill now seed two previously-missing high-value sections. The reviewer template gains a **"Known False Positives"** table (patterns that look wrong but are intentional — a reviewer needs them inline at zero-latency to *not* flag them) and the simplifier template gains **"Don't Simplify (Preserve These)"** (without it, a simplifier eventually collapses a deliberate guard). Also added multi-repo guidance for the sibling-repo case — when one session drives two repos whose agents don't both fire, the active agent carries a `⚠️ Two-repo session` banner, diffs both repos, and gets a second Bootstrap table + tagged sibling rules. Fixed a stale LSP step (`findReferences`/`goToDefinition` are often broken → use `hover` + `documentSymbol`). Steps 2/4/5 of the skill updated to cover all three. Caught while merging skill-depth into a project's agents and finding the templates couldn't express the false-positive list or the two-repo workflow.
