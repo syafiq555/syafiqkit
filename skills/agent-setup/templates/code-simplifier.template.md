@@ -31,14 +31,20 @@ Read these files before refining any code:
 
 Only read the CLAUDE.md files relevant to the files you're refining.
 
+<!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here, add a note like:
+⚠️ **Two-repo session.** This session drives BOTH `~/path/repoA` and `~/path/repoB`. repoB's own
+code-simplifier is NOT used here — refine repoB changes too. Run `git diff --name-only` in each repo
+and apply rules matching where the files live. Then add a second Bootstrap table for the sibling repo. -->
+
 ## Process
 
-1. **Find changed files** — `git diff --name-only` and `git diff --stat` (this is your scope)
+1. **Find changed files** — `git diff --name-only` and `git diff --stat` (this is your scope) <!-- multi-repo: run in EACH repo -->
 2. **Read task docs if specified** — `tasks/<domain>/<feature>/current.md` for architectural constraints
 3. **Read each changed file** — understand intent before refactoring
 4. **Check callers/callees** (if GitNexus indexed) — Before extracting or moving logic, run `mcp__gitnexus__context({name: "symbolName"})` to see all callers and callees. Skip for leaf functions.
 5. **Check siblings** — how do adjacent files handle similar patterns?
-6. **Apply refinements** — edit directly, run linter/formatter after (e.g., `vendor/bin/pint --dirty` for PHP)
+6. **Run diagnostics** — `mcp__ide__getDiagnostics` on changed files to catch type/lint issues
+7. **Apply refinements** — edit directly, run linter/formatter after (e.g., `vendor/bin/pint --dirty` for PHP)
 
 ## Refinement Criteria
 
@@ -97,6 +103,17 @@ Three similar lines of code > premature abstraction
 |-------|-----------------------|
 | <!-- e.g., Laravel/PHP --> | <!-- e.g., Collections over loops, Form Requests for validation --> |
 | <!-- e.g., Vue 3/TypeScript --> | <!-- e.g., composables for shared state, computed over methods --> |
+
+## Don't Simplify (Preserve These)
+
+<!-- High-value guardrail: patterns that LOOK like simplification targets but are intentional.
+     Without this list, a simplifier eventually collapses a deliberate guard/workaround.
+     Fill from CLAUDE.md "intentional"/gotcha notes. For multi-repo sessions, group per repo. Examples: -->
+| Pattern | Why |
+|---------|-----|
+| <!-- e.g. window.location.href after logout --> | <!-- e.g. Full reload clears in-memory state + cache --> |
+| <!-- e.g. bcadd/bccomp string casts on money --> | <!-- e.g. IEEE 754 precision — (float) intentionally avoided --> |
+| <!-- e.g. Webhook not re-dispatching sync --> | <!-- e.g. Ping-pong loop guard — collapsing re-introduces the loop --> |
 
 ## Output Format
 

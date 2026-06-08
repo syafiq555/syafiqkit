@@ -72,6 +72,13 @@ Map the project's CLAUDE.md files to determine what the Bootstrap section should
 | Single `CLAUDE.md` | Just root file |
 | Root + sub-projects | Root + conditional reads per sub-project |
 | Root + layer files (`app/`, `resources/js/`) | Root + conditional reads per layer |
+| **Sibling repo driven from same session** | Add a `⚠️ Two-repo session` note + a SECOND Bootstrap table for the sibling's CLAUDE.md files, and have the agent `git diff` BOTH repos (see below) |
+
+**Multi-repo (sibling) sessions**: When the user drives two repos from one working dir (e.g. an integration where both sides are edited together), the *sibling* repo's own agents do NOT fire — only the active repo's agent runs. So the active agent must cover both:
+- Add a `⚠️ Two-repo session` banner naming both repo roots and stating the sibling's agent is not used here
+- Process step 1 (gather changes) runs `git diff --name-only` in EACH repo; bootstrap each only if it has changes
+- Add a second Bootstrap table for the sibling repo (note any layout quirks, e.g. Laravel root in `backend/`)
+- Tag sibling-only inline rules so they're applied only to that repo's files (e.g. a separate "Sibling" rules table)
 
 ### Step 3: Extract Critical-Only Rules
 
@@ -110,6 +117,10 @@ frontmatter (name, description, tools, model, memory: project)
 ## High-Frequency Mistakes OR High-Impact Simplifications
 [Top ~15 inline rules table — the most common mistakes for THIS codebase]
 
+## Known False Positives (reviewer) OR Don't Simplify — Preserve These (simplifier)
+[Patterns that look wrong but are intentional — prevents recurring noise / accidental un-fixing.
+ Fill from CLAUDE.md "intentional"/exception/gotcha notes. Group per repo in multi-repo sessions.]
+
 ## [Tech Stack Specifics] (simplifier only)
 [Stack → pattern mappings]
 
@@ -139,6 +150,9 @@ After writing agents, verify:
 - [ ] All agents have `memory: project` in frontmatter
 - [ ] Reviewer/simplifier tools list includes `mcp__ide__getDiagnostics`
 - [ ] If GitNexus indexed: reviewer/simplifier tools include `mcp__gitnexus__impact` and `mcp__gitnexus__context`
+- [ ] Reviewer has a "Known False Positives" table; simplifier has a "Don't Simplify (Preserve These)" table (even if seeded from a couple of CLAUDE.md exceptions)
+- [ ] LSP step uses `hover` + `documentSymbol` (NOT `goToDefinition`/`findReferences` — often broken)
+- [ ] Multi-repo: if a sibling repo is driven from the same session, agents carry the `⚠️ Two-repo session` banner, diff both repos, and have a second Bootstrap table + tagged sibling rules
 - [ ] Pruner has NEVER-remove list customized for project (reference tables, gotcha rows, etc.)
 - [ ] Pruner skips GitNexus-managed sections (`<!-- gitnexus:start/end -->` markers)
 
