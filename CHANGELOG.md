@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.34.4
+
+- **task-summary**: Read `references/templates.md` on every run, not just creation — the template (canonical section structure + gold-standard format) was only linked from the Create branch in §2/§3, so the Update path never loaded it and edits could drift from the template's conventions. §2 now reads both the resolved path and the template before the Create/Update fork. Caught when a "condense existing doc" request skipped the reference entirely because Update mode had no instruction to open it.
+
 ## 1.34.3
 
 - **task-summary**: Reconcile back-references on update — index/roadmap/hub docs only *mirror* a feature's status and own no code, so the work-driven §1 scan never reaches them and their status drifts silently (a roadmap row reading "uncommitted" weeks after ship). New §6 step greps for docs that link back to the one just updated and status-syncs the mirrored row; §5 validation gains a check for it. Caught when a roadmap row still said "Implemented (uncommitted)" after the feature shipped to prod and only a manual "check all related" surfaced it.

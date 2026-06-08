@@ -38,7 +38,7 @@ Then create/update each task doc. **Every issue mentioned in the session gets a 
 
 ## 2. Create or Update?
 
-Read the resolved path first. If missing → **Create** using Full Template in `references/templates.md`. If exists → **Update** in place.
+Read **both** the resolved path **and `references/templates.md`** first — the template holds the canonical section structure and gold-standard format you need for either path. Then: if the doc is missing → **Create** using the Full Template. If it exists → **Update** in place.
 
 ## 3. When Creating
 
