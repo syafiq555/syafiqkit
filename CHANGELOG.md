@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.34.5
+
+- **done**: Collapsed 5 steps to 4 (164→111 lines) — deleted the inline conversation-analysis procedure (old Step 3, sub-steps 3a–3d) that fully duplicated the `update-claude-docs` skill. Capture is now a single delegated Skill call, removing the "don't double-write" hedge that only existed to reconcile the two copies. `done` is now a pure orchestrator. Also wired the Output's User Instructions table to an explicit producer in the preamble (the slot previously had no step writing it). Caught when the workflow was flagged as bloated and an audit found the same capture logic written twice.
+- **task-summary**: Added a top-level Density rules section to stop the #1 doc-bloat failure — the same fact restated across LLM-CONTEXT, Quick Start, Key Decisions, Gotchas, and Last Session. Rules: one-fact-one-home (sections point, don't restate), Gotcha/Decision rows ≤2 sentences, LLM-CONTEXT is a pointer index, Quick Start ≤15 lines. Strengthened `## Last Session` to enforce EXACTLY ONE such heading (it was being appended, producing duplicate dated copies). Fixes the generator so future docs stay dense rather than hand-trimming each one.
+
 ## 1.34.4
 
 - **task-summary**: Read `references/templates.md` on every run, not just creation — the template (canonical section structure + gold-standard format) was only linked from the Create branch in §2/§3, so the Update path never loaded it and edits could drift from the template's conventions. §2 now reads both the resolved path and the template before the Create/Update fork. Caught when a "condense existing doc" request skipped the reference entirely because Update mode had no instruction to open it.

@@ -4,7 +4,7 @@ Domain: plugin-maintenance
 Purpose: Best practices for maintaining syafiqkit plugin commands/skills
 Key files: commands/write-summary.md, commands/update-summary.md, commands/update-claude-docs.md, CLAUDE.md, .claude-plugin/plugin.json
 Related: None
-Last updated: 2026-02-21
+Last updated: 2026-06-09
 -->
 
 # Plugin Maintenance
@@ -126,6 +126,14 @@ Applied 3 LLM prompting best practices to command files to improve reliability:
 
 **Pattern captured in CLAUDE.md**: New `### Prompting Techniques for Commands {#prompting-techniques}` section added under Maintenance.
 
+## Completed (2026-06-09) — De-bloat: `done` 5→4 steps, `task-summary` density rules
+
+Cut duplicated capture logic and added anti-bloat governance after the user flagged the workflow as "bloated."
+
+- **`done` 164→111 lines**: deleted the inline conversation-analysis procedure (old Step 3, sub-steps 3a–3d) that fully duplicated the `update-claude-docs` skill. Capture is now a single delegated Skill call. Removed the "don't double-write" hedge that only existed to reconcile the two copies. `done` is now a pure orchestrator (Steps 1–2 sequential, 3+4 parallel).
+- **`task-summary` +density rules**: new top section (one-fact-one-home, rows-≤2-sentences, LLM-CONTEXT-is-pointer-index, Quick-Start-≤15-lines→pointer) + a litmus grep. Strengthened `## Last Session` to enforce EXACTLY ONE such heading (was being appended → duplicate dated copies, e.g. point-system doc had two).
+- **CLAUDE.md cleanup** (user's global + skormy project): removed lines that duplicated/contradicted the skills — the stale `/update-summary` row (contradicted `done`'s "no args" rule) and the changelog-gate "STOP and ask" row (contradicted `/commit`'s auto-update). Reworded skormy Workflow step 8 to match.
+
 ## Gotchas
 
 | Issue | Cause | Fix |
@@ -151,6 +159,9 @@ Applied 3 LLM prompting best practices to command files to improve reliability:
 | Apply prompting techniques selectively, not universally | Simple commands (`read-summary`, `commit`) don't benefit — overhead reduces clarity. Only commands with multi-branch inference or file writes gain reliability improvements. |
 | `<thinking>` block as Step 0 (pre-flight), not inline | Externalizing routing decisions before action prevents silent errors mid-step and is easier to review/debug. |
 | Validation loop re-reads the file after writing | Write + verify pattern catches silent truncation bugs that Edit confirmation alone doesn't surface. |
+| Orchestrator skills delegate, never inline a sibling skill's procedure | `done` Step 3 used to contain a full copy of `update-claude-docs`' signal-scan. Two copies drift + force "don't double-write" hedges. An orchestrator should name the sub-skill, not reproduce it. |
+| Fix doc bloat at the generator (skill rules), not by hand-trimming docs | Repeated facts come from each template section "wanting" to mention the critical thing. A cross-section dedup rule in `task-summary` shrinks every future doc; trimming one doc just re-bloats next session. |
+| A CLAUDE.md line is dead weight if a skill enforces it at action-time | CLAUDE.md is read at session start (ambient); a skill is read at the moment of action. When both state a rule, the skill wins and the CLAUDE.md copy only risks drifting out of sync (seen with `/commit`'s changelog gate). |
 
 ## Sources
 

@@ -7,6 +7,19 @@ description: Create or update task summary documentation (current.md). Handles p
 
 Living documentation for humans and LLM agents. Always reflects current state — not a changelog.
 
+## Density rules (apply to every write — this is what keeps docs from bloating)
+
+⚠️ The #1 failure of these docs is the **same fact restated in 4–5 sections** (LLM-CONTEXT, Quick Start, Key Decisions, Gotchas, Last Session). Enforce:
+
+| Rule | Detail |
+|------|--------|
+| **One fact, one home** | Each fact lives in EXACTLY one section. LLM-CONTEXT + Quick Start *point* to the canonical section ("see Gotcha X / Decision Y"), they do NOT restate it. A fact is either a Decision (*why we chose this*) OR a Gotcha (*what will break you*) — never both. |
+| **Rows stay one-liners** | A Gotcha/Decision row is ≤2 sentences. If the rule needs a paragraph of reasoning, the row holds the rule + `→ see Last Session` pointer for the why. Tables must stay scannable. |
+| **LLM-CONTEXT is a pointer index** | The `Gotchas:` block in LLM-CONTEXT is 1-line teasers that name the section to read — not a second copy of the Gotchas table. |
+| **Quick Start ≤15 lines** | State + next action only — never re-explain a Decision/Gotcha. Full spec: *Quick Start Section* below. |
+
+Litmus test before finishing: grep your own doc for the 2-3 most critical phrases. If a phrase appears in >2 sections, collapse the extras to pointers.
+
 ## 1. Resolve Path
 
 | Input | Action |
@@ -70,7 +83,7 @@ Edit in place. The doc should always read as one coherent current-state document
 | `## Key Technical Decisions` | Append new rows |
 | `## Files` | Add new files if introduced |
 | `## Next Steps` | Remove done, add pending |
-| `## Last Session` | **Overwrite** (not append) with 2–3 bullets of what changed this session |
+| `## Last Session` | **Overwrite in place** — there must be EXACTLY ONE `## Last Session` heading in the doc. Before writing, grep for existing `## Last Session` sections; if >1 exists (or you'd create a 2nd), DELETE the old one(s) and replace with a single 2–3 bullet summary of THIS session. Never append a dated second copy. |
 
 ### Quick Start Section (cold-start context for next session)
 
