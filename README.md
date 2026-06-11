@@ -40,6 +40,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
+| `/ci-ssh-deploy-timeout` | Diagnose + fix flaky CI deploys that SSH-timeout to a server (rules out firewall, applies connect-only retry) |
 
 ## Usage
 

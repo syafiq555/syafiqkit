@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.36.0
+
+- **ci-ssh-deploy-timeout** (new skill): Diagnose + fix CI/CD deploys that intermittently fail when the runner can't SSH into the target server (`dial tcp ***:22: i/o timeout`, "works on the 2nd re-run"). The skill's spine is *diagnose before fix*: it names the three causes that look identical in a CI log (transient packet loss / real firewall / sshd throttling) and runs a read-only rule-out checklist (`nc` port reach, `ufw`, `fail2ban`, `MaxStartups` — via `remote <alias>` if configured, else plain `ssh`) BEFORE touching anything, specifically to kill the "just allowlist the GitHub runner IPs" reflex (a dead end — hosted-runner pools rotate). The fix is the connect-only retry pattern (`retry_on_exit_code: 255` so genuine remote failures still fail fast on attempt 1), with `references/github-actions.md` (nick-fields/retry + direct ssh, incl. the YAML-literal-block heredoc false-alarm note) and `references/generic-ssh.md` (portable bash retry loop for GitLab/CircleCI/Jenkins/Makefile). Captured from a Dourr prod-deploy session where the firewall theory was chased before being ruled out by evidence.
+
 ## 1.35.1
 
 - **ship**: Added a **version-bump gate** to Step 2 (Commit) — plugin/package repos must bump EVERY file carrying the version, not just the primary. `grep -rn '"version"' <manifest-dir>` discovers secondary fields (`marketplace.json` `plugins[0].version`, monorepo sub-manifests) that drift silently when only one is bumped. The bump rule lived in `CLAUDE.md#version-bumping` but the ship workflow that triggers a bump never referenced it, so it relied on memory — and a ship in this very session bumped only `plugin.json`, leaving `marketplace.json` stale at 1.34.3 until the user caught it. Fix moves the rule into the workflow that bypassed it.
