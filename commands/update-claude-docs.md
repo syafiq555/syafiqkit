@@ -75,6 +75,15 @@ These belong in `CLAUDE.local.md` because they contain env-specific context (ser
 
 ## 3. Write — Hard rules
 
+### Entry style (every entry you write)
+
+| Rule | Detail |
+|------|--------|
+| **Rows ≤2 sentences** | State the constraint + the single reason it exists. ≤1 parenthetical per sentence. |
+| **No session storytelling** | Never write how the mistake happened ("this happened twice", "a reviewer caught it", "#1/#2/#3 trigger" lists). The rule states the constraint, not its history — narrative is bloat the moment it's written. |
+| **One concrete example max** | One symptom string or code snippet. Multiple examples of the same failure add length, not signal. |
+| **Capture filter** | Before writing: "would Claude act differently without this?" If no, don't write it. |
+
 ### New signals → Add entry
 
 - Gotchas: `Symptom | Cause | Fix` table row
@@ -83,15 +92,16 @@ These belong in `CLAUDE.local.md` because they contain env-specific context (ser
 - Patterns: Prose + code (reusable only)
 - Pair every prohibition with an alternative ("don't X" needs "do Y instead")
 
-### Violations → The rule needs more emphasis, not just clarity
+### Violations → Escalate by position + sharpness, NOT length
 
-A violated rule **always** needs an update — "the rule is clear" is not a valid reason to skip. Clear but violated = not prominent enough.
+A violated rule **always** needs an update — "the rule is clear" is not a valid reason to skip. But escalation means making the rule HARDER and BETTER-PLACED, never longer. **REPLACE the old text — never append a second warning below the first.** A repeat violation that grows the rule into a paragraph makes it less likely to be followed, not more.
 
 | Check | Action |
 |-------|--------|
-| Buried in a table? | Promote to `⚠️ MANDATORY` callout above the table |
+| Buried in a table? | Promote to a `⚠️ MANDATORY` callout above the table — **callout ≤3 lines** |
 | Not in active workflow? | Add as a numbered step in the workflow sequence |
 | Too vague / too long? | Rewrite: one hard constraint beats five soft guidelines |
+| Already a long paragraph from past escalations? | **Condense it** while sharpening the core constraint — strip the war stories, keep the trigger condition + the action |
 | Missing the "do Y" half? | Add the alternative action |
 
 **Never** conclude "rule is clear, no update needed" for a violation.
@@ -126,6 +136,8 @@ After writing each entry (in Step 3):
 1. Re-grep keyword — confirm no duplicate created
 2. Count `|` separators — must match table header
 3. "Would removing this cause Claude to repeat the mistake?" — if no, delete it
+4. Scan your entry for narrative markers ("happened", "repeatedly", "caught", "twice", numbered trigger lists) — rewrite to constraint-only
+5. If the target file is now >350 lines, flag it in your output — the Step-4 pruner pass handles the shrink
 
 **Task docs ≠ CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only patterns that apply broadly go in CLAUDE.md.
 
