@@ -14,6 +14,15 @@ Execute all steps in sequence without pausing for confirmation.
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
 
+## Mode selection (decide first)
+
+**Light mode** when the session touched **<5 files in a single domain** AND no new feature/architecture was introduced (bug fix, small tweak, config change):
+- Step 1: ONE reviewer agent only (skip the separate simplifier — tell the reviewer to also flag obvious duplication).
+- Step 4: invoke `syafiqkit:task-summary` WITH the known doc path (skip the multi-domain scan — you already know the one affected doc).
+- Output: the compact single-table form (see Output).
+
+**Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
+
 ## Step 1: Simplify + Review (parallel)
 
 Run both agents **in parallel** (single message, two Agent tool calls). **Do NOT use `run_in_background`** — run in foreground so results are available immediately.
@@ -66,9 +75,9 @@ This is the **single** writer of CLAUDE.md / `CLAUDE.local.md` entries. It scans
 
 **Step 4 — Update Task Docs:**
 
-Invoke `syafiqkit:task-summary` **with no args** — always let the skill do a multi-domain scan. Never pass a single path.
+Invoke `syafiqkit:task-summary` **with no args** in full mode — let the skill do a multi-domain scan. In **light mode**, pass the known doc path instead.
 
-⚠️ **Why no single-domain shortcut**: Passing an explicit path skips the scan, causing missed updates to related docs (e.g., roadmap when you started from roadmap but only coded in one domain, or bug reports mentioned in chat that need their own stubs). The multi-domain scan is fast and catches everything.
+⚠️ **Why full mode scans**: Passing an explicit path skips the scan, causing missed updates to related docs (roadmaps, bug reports mentioned in chat that need stubs). Light mode is exempt because its trigger condition (single domain, no external inputs) rules those out.
 
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 
@@ -76,36 +85,17 @@ The skill auto-detects create vs update. Handles: path resolution, status update
 
 ## Output
 
-Provide a detailed summary — not just status icons. Show what was actually captured.
+One combined table. Detail only what was actually WRITTEN or FIXED — never enumerate skipped signals or "nothing to do" rows beyond the status icon.
 
 ```
 ## /done Summary
 
-### Code Quality
-| Step | Status | Details |
-|------|--------|---------|
-| Simplify | ✅/⚠️ | [specific changes made, or "no simplifications needed"] |
-| Review | ✅/⚠️ | [specific issues found and fixed, or "no issues"] |
-| Cleanup | ✅/➖ | [what was removed, or "nothing to clean"] |
-
-### Knowledge Captured
-
-**Conversation signals found: [N]**
-
-| # | Signal | Written to | Entry |
-|---|--------|-----------|-------|
-| 1 | [quote from user] | [target file] | [what was written] |
-| 2 | ... | ... | ... |
-
-**Signals skipped (already captured): [N]**
-
-### Docs Updated
-| File | What changed |
-|------|-------------|
-| [file path] | [specific update] |
-
-### User Instructions
-| Instruction | Status | Action taken |
-|-------------|--------|-------------|
-| [what user asked for] | ✅/⚠️ | [what was done about it] |
+| Step | Result |
+|------|--------|
+| Simplify | [changes made, or ✅ none needed] (full mode only) |
+| Review | [issues found + fixed, or ✅ clean] |
+| Cleanup | [removed, or ➖] |
+| Knowledge | [N entries → target files, one line each; "0 new" if none] |
+| Task docs | [doc path → one-line summary of the update] |
+| User args | [what was done about them] (only if args passed) |
 ```

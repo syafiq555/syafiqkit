@@ -9,16 +9,30 @@ Living documentation for humans and LLM agents. Always reflects current state �
 
 ## Density rules (apply to every write — this is what keeps docs from bloating)
 
-⚠️ The #1 failure of these docs is the **same fact restated in 4–5 sections** (LLM-CONTEXT, Quick Start, Key Decisions, Gotchas, Last Session). Enforce:
+Two failure modes kill these docs: **the same fact restated in 4–5 sections**, and **bloated sentences** (run-ons stuffed with parentheticals, commit hashes, and verification numbers). Enforce both layers:
+
+### Layer 1 — one fact, one home
 
 | Rule | Detail |
 |------|--------|
 | **One fact, one home** | Each fact lives in EXACTLY one section. LLM-CONTEXT + Quick Start *point* to the canonical section ("see Gotcha X / Decision Y"), they do NOT restate it. A fact is either a Decision (*why we chose this*) OR a Gotcha (*what will break you*) — never both. |
-| **Rows stay one-liners** | A Gotcha/Decision row is ≤2 sentences. If the rule needs a paragraph of reasoning, the row holds the rule + `→ see Last Session` pointer for the why. Tables must stay scannable. |
 | **LLM-CONTEXT is a pointer index** | The `Gotchas:` block in LLM-CONTEXT is 1-line teasers that name the section to read — not a second copy of the Gotchas table. |
 | **Quick Start ≤15 lines** | State + next action only — never re-explain a Decision/Gotcha. Full spec: *Quick Start Section* below. |
 
-Litmus test before finishing: grep your own doc for the 2-3 most critical phrases. If a phrase appears in >2 sections, collapse the extras to pointers.
+### Layer 2 — sentence style (every sentence you write)
+
+| Rule | Detail |
+|------|--------|
+| **Short declarative sentences** | One idea per sentence. ≤1 parenthetical per sentence. No arrow-chain shorthand (`A → B → fails`) — write it out. |
+| **Rows ≤2 sentences** | A Gotcha/Decision cell holds the rule + the single strongest reason. If the rationale needs more, CONDENSE it — do not relocate it. Rejected-alternative essays and verification narratives get deleted; git history owns them. |
+| **No metrics/hashes in rows** | Commit hashes live ONLY in Last Session. Verification detail is one word ("verified") — the numbers live in the commit message. |
+| **Capture filter** | Keep a fact only if a future session would ACT DIFFERENTLY knowing it: decisions still in force, gotchas that still bite, current state, next steps. Process history (what was reviewed, how it was tested, what order things happened) fails this test. |
+
+### Size budget
+
+`current.md` should stay **under 300 lines**. If the doc is already >300 lines when you open it for an update, run a condense pass FIRST (apply Layer 2 to existing rows, collapse finished Task Status streams, trim Files to a living map), then write your update.
+
+Litmus tests before finishing: (1) grep your doc for the 2-3 most critical phrases — a phrase in >2 sections means collapse the extras to pointers; (2) scan for sentences with 2+ parentheticals or commit hashes outside Last Session — rewrite them.
 
 ## 1. Resolve Path
 
@@ -69,7 +83,8 @@ Edit in place. The doc should always read as one coherent current-state document
 |---------|---------|
 | Append `## Completed (date)` sections | Edit existing sections in place |
 | Add duplicate rows | Update the existing row |
-| Delete historical rows | Append new rows; keep old ones |
+| Enumerate finished work streams row-by-row | **Collapse, don't enumerate** — completed Task Status rows from a finished stream become ONE summary row ("Phase 2 built + reviewed + committed ✅"); only open + current-stream rows stay itemized |
+| Keep per-phase Files changelogs | Files = a living map of the ~15 key files; git history owns "what changed when" |
 | Skip Next Steps | Remove done items, add new pending ones |
 | Leave Quick Start stale after changes | Rewrite Quick Start to reflect current state |
 
@@ -83,7 +98,7 @@ Edit in place. The doc should always read as one coherent current-state document
 | `## Key Technical Decisions` | Append new rows |
 | `## Files` | Add new files if introduced |
 | `## Next Steps` | Remove done, add pending |
-| `## Last Session` | **Overwrite in place** — there must be EXACTLY ONE `## Last Session` heading in the doc. Before writing, grep for existing `## Last Session` sections; if >1 exists (or you'd create a 2nd), DELETE the old one(s) and replace with a single 2–3 bullet summary of THIS session. Never append a dated second copy. |
+| `## Last Session` | **Overwrite in place — ONE session only, ≤5 bullets, ≤2 lines each.** Delete the previous session's bullets entirely (never append a dated bullet below them — that's a changelog). Before deleting, fold any still-load-bearing fact into its proper Decision/Gotcha row. Parallel sessions: overwrite only your own content, but the one-session cap still holds. |
 
 ### Quick Start Section (cold-start context for next session)
 
@@ -107,8 +122,10 @@ Prevent unbounded growth — apply when updating:
 
 | Section | Prune when |
 |---------|------------|
-| `## Task Status` | All rows ✅ → collapse to single "All tasks complete" row |
+| Whole doc | >300 lines → mandatory condense pass before your update (see Size budget) |
+| `## Task Status` | A work stream finishes (committed + reviewed) → collapse its rows to one summary row. Don't wait for ALL rows ✅ |
 | `## Bugs Fixed` | >10 rows → keep last 5, summarize older as "N earlier bugs fixed" |
+| `## Files` | Per-phase subsections exist → replace with one living map of key files |
 | `## Next Steps` | Remove ✅ items (don't just check them off — delete) |
 | `## Completed (date)` sections | Should not exist — merge content into relevant sections |
 

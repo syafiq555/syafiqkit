@@ -67,6 +67,15 @@ Always include error messages/symptoms for searchability:
 | "Date handling can be tricky" | "`InvalidArgumentException: month overflow` → use `parse($m . '-01')` not `createFromFormat('Y-m', $m)`" |
 | "Watch out for eager loading" | "`N+1 on /participants` → add `->with('enrollments')` to query" |
 
+## Sentence Style (bad vs good)
+
+Rows hold the rule + the single strongest reason. No metrics, hashes, or verification narratives.
+
+| Bad (bloated) | Good (condensed) |
+|---------------|------------------|
+| "Restructured serving (slim fetch `id`/`weight`, `serving.candidate_cap` 500) → `Cache::remember` per surface (TTL 15s, env `X_TTL`, 0 disables) → sampling in PHP → hydrate winners. Verified: chi-sq 3.12/1.24, Gini 0.236, k6 p95 718ms (was 1.6s), EXPLAIN no filesort (commit a1b2c3d)." | "Serving samples in PHP over a 15s-cached slim candidate pool — the old per-request `ORDER BY RAND()` forced a filesort and hydrated losers. Only the pool is cached; the lottery stays per-request. Verified by fairness probe + k6." |
+| "Fixed gate (9e611d3 + da438a9; team: NO fixed package — CPC-only via `ADS_FLAT_ENABLED` default false) + UX round 2 committed (f1c2134) + harness (bc4d241)..." | "Flat mode is config-gated off (`ADS_FLAT_ENABLED`, default false) — team decided CPC-only. Commits listed in Last Session." |
+
 ## Minimal Template (Auto-Create)
 
 Used when PRIMARY doc is missing (short session / single bug fix):
@@ -208,7 +217,7 @@ Last updated: [today]
 
 ## Last Session
 
-- [2–3 bullets of what changed — overwritten each session, not appended]
+- [≤5 bullets, ≤2 lines each, ONE session only — overwritten each session, never appended]
 
 ---
 
