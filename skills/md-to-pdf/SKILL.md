@@ -107,3 +107,4 @@ Read the PDF to confirm diagrams rendered and tables are formatted correctly.
 | `--dest` flag not supported | `md-to-pdf` outputs to same dir as input — use `mv` to relocate |
 | PDF page breaks mid-table | Add `<div style="page-break-before: always"></div>` before sections |
 | Emoji rendering (🔴 ✅ 🟡) | Works in md-to-pdf (Chromium-based) — no issues |
+| `xychart-beta` line series near-invisible (pale lavender) on default theme | Pass `-c theme.json` to mmdc with `{"themeVariables": {"xyChart": {"plotColorPalette": "#2563eb, #dc2626"}}}` — one color per series, then verify the PNG visually |
