@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.37.1
+
+- **agent-setup**: Reviewer and simplifier templates gained TypeScript type-discipline examples, added as `[TypeScript]`-tagged commented rows inside the existing placeholder blocks so `agent-setup` surfaces them only when scaffolding a TS project (never on PHP-only repos). Reviewer gets a Bugs-category entry for type-drift silent bugs (union-keyed map typed `Record<string, X>`, or a non-exhaustive `switch` on a discriminated union with no `const _:never` guard — the consumer misses new cases with no compile error) plus a High-Frequency Mistakes row for hand-listed types that duplicate an existing source instead of deriving. Simplifier gets matching High-Impact and Tech-Stack rows steering toward `keyof typeof` / `typeof arr[number]` / `ReturnType` / mapped types, `as const`, `satisfies`, and `unknown` over `any`.
+- **md-to-pdf**: Documented the xychart-beta default-palette gotcha — pass `plotColorPalette` via `mmdc -c` since the default palette renders poorly.
+
 ## 1.37.0
 
 - **task-summary**: Added the missing sentence-level density layer (Layer 2) — short declarative sentences, ≤1 parenthetical, commit hashes only in Last Session, no inline verification metrics, plus a capture filter ("would a future session act differently knowing this?"). Fixed two self-contradictions that structurally forced doc bloat: the "put the why in → see Last Session" pointer targeted a section that gets overwritten every session (so rationale migrated into permanent rows as 10-sentence paragraphs), and "never delete historical rows" conflicted with pruning (a 37-row Task Status table with 34 dead rows). Now: rationale gets condensed in place (no archive files — pairs with `read-summary` loading the full doc each session), finished work streams collapse to one summary row, Files is a living map not a per-phase changelog, Last Session is ONE session ≤5 bullets, and >300 lines triggers a mandatory condense pass. Templates gained bad-vs-good sentence examples. Exemplar: the Dourr ads doc went 333→189 lines with zero in-force decisions/gotchas lost.

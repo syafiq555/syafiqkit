@@ -94,7 +94,8 @@ Three similar lines of code > premature abstraction
 |---|---------|------------|
 | 1 | Inline HTTP calls in components | Use existing API module |
 | 2 | Manual pagination/filter state | Use shared composable |
-| 3 | <!-- Add more project-specific patterns --> | |
+| 3 | <!-- [TypeScript] Hand-listed union/object mirroring an existing source --> | <!-- Derive: `keyof typeof`, `typeof arr[number]`, `ReturnType<typeof fn>`, mapped type. `as const` to keep literals; `obj satisfies T` over `obj: T`. --> |
+| 4 | <!-- Add more project-specific patterns --> | |
 
 ## Tech Stack Specifics
 
@@ -103,6 +104,7 @@ Three similar lines of code > premature abstraction
 |-------|-----------------------|
 | <!-- e.g., Laravel/PHP --> | <!-- e.g., Collections over loops, Form Requests for validation --> |
 | <!-- e.g., Vue 3/TypeScript --> | <!-- e.g., composables for shared state, computed over methods --> |
+| <!-- e.g., any TypeScript --> | <!-- Derive types over duplicating (`keyof typeof`, `typeof arr[number]`, `ReturnType`); `as const` to stop widening; `satisfies` to keep literals; `unknown` not `any` --> |
 
 ## Don't Simplify (Preserve These)
 

@@ -54,6 +54,10 @@ Then add a second Bootstrap table for the sibling repo's CLAUDE.md files. -->
 <!-- Add project-specific bug patterns:
 - Carbon partial date: `createFromFormat('Y-m', $m)` without day → overflow
 - Soft delete / global scope: querying without `withTrashed()` when needed
+- [TypeScript projects] Type-drift silent bugs: an object/map keyed by a union but typed
+  `Record<string, X>`, OR a `switch`/`if` over a discriminated union with no
+  exhaustiveness guard (`const _:never = x` in `default`). When the union grows, the
+  consumer silently misses the new case with NO compile error.
 -->
 
 #### Security
@@ -77,7 +81,8 @@ Then add a second Bootstrap table for the sibling repo's CLAUDE.md files. -->
 | # | Area | What to check |
 |---|------|---------------|
 | 1 | N+1 queries | Accessing relationships in loops without eager loading |
-| 2 | <!-- Add more project-specific rules --> | |
+| 2 | <!-- [TypeScript] Type drift --> | <!-- Hand-listed union/object that duplicates an existing source instead of deriving (`keyof typeof`, `typeof arr[number]`, mapped type) → goes stale silently. `any` instead of `unknown`+narrow. --> |
+| 3 | <!-- Add more project-specific rules --> | |
 
 ## Known False Positives (DO NOT flag these)
 
