@@ -79,6 +79,8 @@ LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
 
 Edit in place. The doc should always read as one coherent current-state document.
 
+⚠️ **MANDATORY first: gap-check against the template, don't just edit existing sections.** An in-place update inherits whatever sections the doc already has — a planning stub that just shipped is usually MISSING `## Key Technical Decisions`, `## Critical Gotchas`, `## Bugs Fixed`, `## Next Steps`. Before editing, list the doc's `## ` headers and compare to the template's required set; ADD any missing section. A decision/gotcha/bug captured only in `## Last Session` is a bug — Last Session is overwritten next run, so those facts must live in their typed table, not the narrative.
+
 | ❌ Never | ✅ Always |
 |---------|---------|
 | Append `## Completed (date)` sections | Edit existing sections in place |

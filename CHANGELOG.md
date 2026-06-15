@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.37.2
+
+- **task-summary**: Added a `⚠️ MANDATORY` gap-check at the top of "When Updating" — an in-place update inherits whatever sections the doc already has, so a planning stub that just shipped silently keeps MISSING `## Key Technical Decisions` / `## Critical Gotchas` / `## Bugs Fixed` / `## Next Steps`. The step now requires listing the doc's `## ` headers, comparing to the template's required set, and adding any missing section before editing. Also names the root failure: a decision/gotcha/bug captured only in `## Last Session` is a bug (that section is overwritten every run), so durable facts must live in their typed table. Caught when a `/done`-driven update flipped a deposit-settlement doc from planning to built but left every decision and both bug fixes trapped in Last Session.
+
 ## 1.37.1
 
 - **agent-setup**: Reviewer and simplifier templates gained TypeScript type-discipline examples, added as `[TypeScript]`-tagged commented rows inside the existing placeholder blocks so `agent-setup` surfaces them only when scaffolding a TS project (never on PHP-only repos). Reviewer gets a Bugs-category entry for type-drift silent bugs (union-keyed map typed `Record<string, X>`, or a non-exhaustive `switch` on a discriminated union with no `const _:never` guard — the consumer misses new cases with no compile error) plus a High-Frequency Mistakes row for hand-listed types that duplicate an existing source instead of deriving. Simplifier gets matching High-Impact and Tech-Stack rows steering toward `keyof typeof` / `typeof arr[number]` / `ReturnType` / mapped types, `as const`, `satisfies`, and `unknown` over `any`.
