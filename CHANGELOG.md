@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.38.1
+
+- **condense-task-doc** (new skill): Aggressively condenses bloated living-doc task files (`current.md`) — collapses investigation narratives into Bugs Fixed rows, strips verification numbers and commit SHAs from prose, deduplicates facts across sections, trims Quick Start to ≤15 lines, and rewrites in place using `Write`. Auto-triggers when updating a task doc already >300 lines. Complements `condense-claude-md` (which handles CLAUDE.md); this skill targets task docs.
+
 ## 1.38.0
 
 - **condense-claude-md** (new skill): Aggressively condenses and restructures bloated CLAUDE.md files — strips verbose WHY columns, discoverable content, redundant tables, and overly long rows, then rewrites the file shorter and clearer using `Write` (not incremental `Edit`). Complements `claude-md-improver` (which adds missing content); this skill removes excess. Core heuristic: a rule stays if removing it would cause Claude to repeat a real past mistake. Preserves GitNexus `<!-- gitnexus:start/end -->` blocks verbatim and all `{#anchor}` IDs. Targets ≤200 lines for project root CLAUDE.md; reports before/after line count.
