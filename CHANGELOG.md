@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.38.0
+
+- **condense-claude-md** (new skill): Aggressively condenses and restructures bloated CLAUDE.md files — strips verbose WHY columns, discoverable content, redundant tables, and overly long rows, then rewrites the file shorter and clearer using `Write` (not incremental `Edit`). Complements `claude-md-improver` (which adds missing content); this skill removes excess. Core heuristic: a rule stays if removing it would cause Claude to repeat a real past mistake. Preserves GitNexus `<!-- gitnexus:start/end -->` blocks verbatim and all `{#anchor}` IDs. Targets ≤200 lines for project root CLAUDE.md; reports before/after line count.
+
 ## 1.37.2
 
 - **task-summary**: Added a `⚠️ MANDATORY` gap-check at the top of "When Updating" — an in-place update inherits whatever sections the doc already has, so a planning stub that just shipped silently keeps MISSING `## Key Technical Decisions` / `## Critical Gotchas` / `## Bugs Fixed` / `## Next Steps`. The step now requires listing the doc's `## ` headers, comparing to the template's required set, and adding any missing section before editing. Also names the root failure: a decision/gotcha/bug captured only in `## Last Session` is a bug (that section is overwritten every run), so durable facts must live in their typed table. Caught when a `/done`-driven update flipped a deposit-settlement doc from planning to built but left every decision and both bug fixes trapped in Last Session.
