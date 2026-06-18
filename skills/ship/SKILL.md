@@ -50,6 +50,10 @@ Commit order: sub-repos first, then root (changelog, task docs).
 1. Check `gh auth status` — if wrong account, read project's `CLAUDE.local.md` for the correct GitHub user and switch
 2. Push each repo that has commits ahead of remote:
 
+<example>
+Remote uses a personal SSH alias (e.g. `git@github-personal:...`), but `gh auth status` is active on a different account. `gh` auth is independent of the SSH alias, so any `gh` API call would hit the wrong account. Switch first: `gh auth switch --user <personal-user>` (the username is in the project's `CLAUDE.local.md`), then push. If the remote is a plain `github.com` work repo, no switch needed.
+</example>
+
 ```bash
 git push
 ```

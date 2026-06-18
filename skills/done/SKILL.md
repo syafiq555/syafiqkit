@@ -38,6 +38,12 @@ Glob: .claude/agents/code-reviewer.md
 | Simplifier | `subagent_type: "code-simplifier"` | `"code-simplifier:code-simplifier"` |
 | Reviewer | `subagent_type: "code-reviewer"` | `"feature-dev:code-reviewer"` |
 
+<example>
+`Glob: .claude/agents/code-reviewer.md` returns a hit → spawn `subagent_type: "code-reviewer"`.
+Same Glob returns nothing → spawn `subagent_type: "feature-dev:code-reviewer"`.
+Run the Glob first every time — don't assume the project agent exists or doesn't.
+</example>
+
 **Prompt for both must include:**
 - List of modified files this session (full paths)
 - For simplifier: focus on duplication removal, readability, pattern consistency

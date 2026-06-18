@@ -13,9 +13,13 @@ argument-hint: "[domain/feature or full path to current.md]"
 1. **Parallel, in one tool block**: `Glob tasks/**/*.md` (include `_archive/` and flat `tasks/<domain>/<feature>.md` — whole features live there, not just `current.md`) **AND** `Grep` those for the *concept's vocabulary* from the request — include synonyms ("child"→"sub-question", "QC"→"review/screening", "refund"→"payout"), searching doc **body + header**, never the folder name alone.
 2. **Rank + disambiguate**: read the top 2-3 candidates' header block (`<!--LLM-CONTEXT...-->` if present — tolerate missing/varied headers) + `# Title` + `## Overview`. Follow any `Merged into`/`Supersedes`/`> 📖` redirect to the live doc. Treat index/hub docs (roadmap, `shared/`, `*-architecture`, parent `current.md`) as routers, not targets.
 
-⚠️ **Lexical match ≠ semantic match.** Grepping the request's vocabulary lands you in the right *folder*, not necessarily the right *bug*. "Set tak sync" and "set shows 0 but components have stock" hit the same doc but are different problems (sync mechanism vs. stock-field semantics). After the doc loads, restate the user's claim in your own words and confirm the doc's content actually addresses *that symptom* — not a nearby technical topic the doc happens to cover.
+A keyword match lands you in the right *folder*, not necessarily the right *bug* — so after the doc loads, restate the user's claim in your own words and confirm the doc addresses *that symptom*, not a nearby topic it happens to mention. And requests that arrive as chat transcripts often reveal their real claim only across several messages: if the central claim shifts (new symptom, a screenshot, or "this was fixed before and came back"), re-run discovery from step 1 rather than extending your first answer. A regression is its own investigation — find the prior fix and check what reverted, don't re-derive from scratch.
 
-⚠️ **Re-discover when the request mutates.** Requests arriving as chat transcripts / forwarded threads often dribble in their real claim across several messages. If the central claim shifts after you've started (new symptom, a screenshot, or "this was fixed before and came back"), re-run discovery from step 1 — do NOT extend your original answer. A regression of a previously-fixed bug is a different investigation: find the *prior fix* and check what regressed, don't re-derive from scratch.
+<example>
+Request: "set tak sync" → grep matches `combo-stock-desync` doc, which is about sync-mechanism RCs.
+Later message: "set shows 0 but front/rear have stock, and this was fixed before."
+The real claim is stock-field semantics + a regression — a different bug than the doc's sync RCs. Correct move: re-discover (the claim mutated), and treat "fixed before" as the lead — locate the prior fix first.
+</example>
 
 ## Read Order
 
@@ -42,11 +46,12 @@ Determine the type of `$ARGUMENTS`. **Reading the doc (full Read Order) is uncon
 
 - **Doc path** — matches `tasks/*/current.md`, a `domain/feature` slug, or a file path → Read the doc using the Read Order above, then **wait for the user's next instruction**.
 - **Investigation / diagnostic** — a read-only question about current state: "is X paid by card?", "why did Y fail?", "check on production", "what's the status of Z?" (often with a screenshot). This is the easiest intent to mishandle: the question feels self-contained, so the temptation is to answer or query immediately. Don't. Infer the domain, run the full Read Order first, THEN investigate and answer.
-  - ⚠️ **Exit gate — before you conclude, not just before you query.** The Read Order guards the *front* of the investigation; this guards the *exit*. A confident answer to a *nearby* question is the classic failure (you queried thoroughly, the data was clean, but you answered the technical question you could close cleanly — not the one asked). Before sending a conclusion, check it against the user's *literal* claim:
-    - Does it address the exact symptom in their words, or a subsystem you found easier to reason about? (e.g. they asked "why does the SET show 0 when front/rear have stock" — answering "the SET correctly synced 0" misses the *field-semantics* question: which qty field feeds the calc — `on_hand` vs `available_qty` vs `in_process`.)
-    - If they said it "regressed" / "was fixed before", did you find the prior fix and confirm what broke — or re-derive from zero?
-    - If a screenshot shows specific numbers, does your explanation reconcile *those* numbers, or numbers from a different field/store/listing?
-    - If any answer is "no", keep investigating — do not ship the partial conclusion.
+  - **Exit gate.** The Read Order guards the *front* of an investigation; this guards the *exit*. Before sending a conclusion, state side-by-side the question the user asked and the question you actually answered. If they differ — you confirmed an easy adjacent fact instead of the hard thing asked — that's *attribute substitution*; re-open and answer the one asked. Your conclusion must reconcile **every** clause and number the user gave (a screenshot's figures, "front/rear have stock", "it regressed"), not just one. Answering part is not closure.
+
+    <example>
+    Asked: "why does the SET show 0 on the marketplace when front/rear have stock — and it was fixed before?"
+    Answered: "the SET correctly synced 0." ← substitution: that's the *value* of one field, not *which field is authoritative* (`on_hand` vs `available_qty` vs `in_process`), and it ignores the regression. Gate fails on two clauses → keep investigating: find the prior fix, and reconcile the component-stock numbers against the field the combo calc actually reads.
+    </example>
 - **Task description** — contains a bug report, feature request, ClickUp paste, chat transcript, or any actionable work description (not a path) → Read relevant context (infer domain from keywords, find matching `tasks/**/current.md`, load domain CLAUDE.md, run GitNexus), then **proceed to implement the task**.
 
 ## Execute

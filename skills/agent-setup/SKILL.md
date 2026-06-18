@@ -96,6 +96,12 @@ Read CLAUDE.md files and extract only the **top ~15 rules that cause the most fr
 
 **Do NOT inline**: Environment setup, dev commands, one-time gotchas, tool usage preferences, schema details.
 
+<example>
+Inline: "TikTok webhook `shop_id` is top-level `$data['shop_id']`, not `$data['data']['shop_id']`" — wrong path silently routes to the wrong store, a recurring runtime bug.
+Skip: "MySQL host is `127.0.0.1` not `localhost` for Docker" — one-time env setup the agent reads from CLAUDE.md when it matters, not a repeated coding mistake.
+The test: does getting it wrong crash or corrupt at runtime, repeatedly? Inline. Is it onboarding/setup the agent looks up once? Leave it in CLAUDE.md.
+</example>
+
 ### Step 4: Write Agent Files
 
 Use the templates in `templates/` as a starting point. Each agent file follows this structure:

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.39.0
+
+- **read-summary**: Added two guardrails against the failure where a vocabulary match loads the right *folder* but the wrong *bug*, and a confident conclusion answers a nearby question instead of the one asked. Discovery now warns that lexical match ≠ semantic match and to re-run discovery when the request's central claim mutates mid-investigation (chat transcripts reveal the real claim across several messages; "fixed before, came back" is a regression lead — find the prior fix, don't re-derive). The Investigation/diagnostic intent gained an **exit gate**: before concluding, state the question asked next to the question answered — if they differ it's *attribute substitution* (Kahneman); the conclusion must reconcile every clause and number the user gave, not just one. Both are worked `<example>` blocks rather than more ⚠️ prose. Captured from a combo-stock "set tak sync" report where the first diagnosis closed on the wrong field and missed the regression.
+- **Suite convention pass** (informed by research into Anthropic's official skills): skills lean on worked examples + primacy ordering, not ALL-CAPS/NEVER escalation. Added one high-leverage `<example>` each to **done** (Glob-then-dispatch decision for project vs fallback agent), **agent-setup** (the inline-vs-skip threshold for critical rules), and **ship** (multi-account `gh auth switch` before push, genericized — no hardcoded username, since this repo is shared). **task-summary** gained a "Workflow at a glance" block at the top so the 5 steps are visible before the density rules (primacy fix; the workflow was previously buried under ~30 lines of formatting rules).
+
 ## 1.38.1
 
 - **condense-task-doc** (new skill): Aggressively condenses bloated living-doc task files (`current.md`) — collapses investigation narratives into Bugs Fixed rows, strips verification numbers and commit SHAs from prose, deduplicates facts across sections, trims Quick Start to ≤15 lines, and rewrites in place using `Write`. Auto-triggers when updating a task doc already >300 lines. Complements `condense-claude-md` (which handles CLAUDE.md); this skill targets task docs.

@@ -7,6 +7,18 @@ description: Create or update task summary documentation (current.md). Handles p
 
 Living documentation for humans and LLM agents. Always reflects current state — not a changelog.
 
+## Workflow at a glance
+
+Do these in order — the detailed rules for each are in the sections below.
+
+1. **Resolve path** — turn the input (full path / `domain/feature` / empty) into `tasks/<domain>/<feature>/current.md`. No explicit path → run the multi-domain scan first (Step 1).
+2. **Read the template** — `references/templates.md` holds the canonical sections; pick Full (multi-session) or Minimal (single fix).
+3. **Create or update** — missing doc → Full template; existing doc → edit in place, gap-checking against the template for missing sections.
+4. **Validate** — re-read: LLM-CONTEXT complete, Quick Start rewritten, no rows dropped, Last Session overwritten not appended.
+5. **Reconcile back-references** — sync any roadmap/hub/`Related:` doc that mirrors the status you just changed.
+
+The density rules below apply to *every* write in steps 3–4 — they're what keep the doc from bloating.
+
 ## Density rules (apply to every write — this is what keeps docs from bloating)
 
 Two failure modes kill these docs: **the same fact restated in 4–5 sections**, and **bloated sentences** (run-ons stuffed with parentheticals, commit hashes, and verification numbers). Enforce both layers:
