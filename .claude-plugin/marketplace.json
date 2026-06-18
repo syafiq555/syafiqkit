@@ -7,8 +7,8 @@
     {
       "name": "syafiqkit",
       "source": "./",
-      "description": "Personal workflow toolkit - commits, summaries, docs, invoicing",
-      "version": "1.39.0"
+      "description": "Personal workflow toolkit - commits, summaries, docs, invoicing, journals",
+      "version": "1.42.0"
     }
   ]
 }
