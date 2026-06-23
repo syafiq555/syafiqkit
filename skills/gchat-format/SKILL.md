@@ -86,10 +86,12 @@ Tables are not supported in Google Chat. Convert each row to a bullet, with the 
 > Italic (`_text_`) is only for prose text that was explicitly italic in the source -- never for labels, field names, or headings.
 
 ### Em dashes
-Em dashes used as label separators (after a bold term) are replaced with a colon. Em dashes in flowing prose are replaced with a regular hyphen.
+Em dashes — both the Unicode character `—` (U+2014) AND the ASCII `--` form — must be converted. After a bold label, replace with a colon. In flowing prose, replace with a hyphen.
 
 ```
+*Label* — description     ->  *Label*: description
 *Label* -- description    ->  *Label*: description
+sentence — continuation   ->  sentence - continuation
 sentence -- continuation  ->  sentence - continuation
 ```
 
@@ -109,10 +111,10 @@ sentence -- continuation  ->  sentence - continuation
 
 **Input:**
 ```markdown
-**Release -- 2026-03-27**
+**Release — 2026-03-27**
 
 ### Added
-- **Platform fee invoices** -- auto-generated when tenants pay rent
+- **Platform fee invoices** — auto-generated when tenants pay rent
 - Batch generation command (`platform-fees:generate`)
 
 ### Changed
