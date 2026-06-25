@@ -23,13 +23,17 @@ The real claim is stock-field semantics + a regression — a different bug than 
 
 ## Read Order
 
-⚠️ **Reading the task doc is the MANDATORY FIRST ACTION of this command. If you have not read the matching `current.md` + domain CLAUDE.md, you have not run `/read-summary` — you've ignored it.** There is NO path through this command that answers, investigates, or implements without first completing the discovery and reading the doc. This holds even when you think you already know the answer, even for a one-line "quick check", even when the question seems too small to need context. The whole point of the command is that the docs carry decisions, gotchas, and vocabulary your prior knowledge does not — skipping the read defeats the command's only purpose. The first tool call after `/read-summary` fires must be the Glob/Grep discovery (or a direct Read if given a path), never a query, edit, or answer.
+⚠️ **Reading the task doc is the MANDATORY FIRST ACTION of this command. If you have not read the matching `current.md` + every CLAUDE.md on the path to the files in play (layer, subdir, domain — see step 4), you have not run `/read-summary` — you've ignored it.** There is NO path through this command that answers, investigates, or implements without first completing the discovery and reading the doc. This holds even when you think you already know the answer, even for a one-line "quick check", even when the question seems too small to need context. The whole point of the command is that the docs carry decisions, gotchas, and vocabulary your prior knowledge does not — skipping the read defeats the command's only purpose. The first tool call after `/read-summary` fires must be the Glob/Grep discovery (or a direct Read if given a path), never a query, edit, or answer.
 
 1. Read the resolved `current.md` (found via the discovery method above when no explicit path was given)
 2. Check LLM-CONTEXT `Related:` field for linked docs
 3. If Related mentions `tasks/shared/*.md`, read those too
-4. **Domain CLAUDE.md** — infer the domain from the task path (`tasks/<domain>/...`) and check for `app/Domain/<Domain>/CLAUDE.md` (capitalize domain name: `payment` → `Payment`). If it exists, read it — contains gotchas and patterns that only load when working inside that domain directory.
-   - Also read any CLAUDE.md files explicitly referenced in the `Related:` field (e.g., `app/Domain/Payment/CLAUDE.md`)
+4. **CLAUDE.md tree walk** — read EVERY `CLAUDE.md` on the path to the files this task touches, not just the backend domain one. The harness auto-loads them additively by directory (root → layer → subdir), and discovery must mirror that or you load zero context for a frontend task (there's no `app/Domain/` for it). For each dir you'll edit, walk up reading any `CLAUDE.md` found:
+   - **Layer**: `app/CLAUDE.md` (backend) or `resources/js/CLAUDE.md` (frontend)
+   - **Subdir**: a `CLAUDE.md` inside the specific dir (e.g. `resources/js/routes/CLAUDE.md`) — these exist where a section was split down a level; don't assume the layer file is the deepest
+   - **Backend domain**: `app/Domain/<Domain>/CLAUDE.md` (capitalize: `payment` → `Payment`), inferred from the task path
+   - Also read any CLAUDE.md explicitly named in the `Related:` field
+   - Quick discovery when unsure which exist: `rg --files -g '**/CLAUDE.md'` scoped to the dirs in play
 5. **GitNexus (mandatory if `.gitnexus/` exists)** — run in parallel with step 1:
    - `gitnexus_context({name: "<symbol>"})` on the 2-3 most critical symbols from `Key files` (e.g., main service class, controller) — shows callers, callees, process participation
    - `gitnexus_impact({target: "<symbol>", direction: "upstream"})` on symbols you expect to modify — shows blast radius

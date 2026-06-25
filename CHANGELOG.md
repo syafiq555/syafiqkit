@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.44.1
+
+- **read-summary**: Completed the read-side of the 1.44.0 subdir-CLAUDE.md convention. Step 4 of the Read Order only read `app/Domain/<X>/CLAUDE.md` — a backend-only path, so a frontend task loaded zero CLAUDE.md context (no `app/Domain/` exists for it) and the new subdir files (`resources/js/routes/CLAUDE.md`) were invisible. Generalized to a **CLAUDE.md tree walk**: read every CLAUDE.md on the path to the files in play (layer → subdir → domain), mirroring how the harness auto-loads them additively. Now symmetric with `update-claude-docs` — discovery finds what the writer routes.
+
 ## 1.44.0
 
 - **condense-claude-md + update-claude-docs**: Taught both the subdir-CLAUDE.md splitting convention. A subdir `CLAUDE.md` (e.g. `resources/js/routes/CLAUDE.md`) auto-loads *additively* on top of its parents, so it's both a routing target and a condensing lever — but gated by a **seam-test**: split/route a section to a subdir only when its rules are needed there AND useless elsewhere. Vertical-slice trees (`app/Domain/*`) pass; horizontal-layer trees (`components/`/`pages/`/`hooks/`) usually fail, because their gotchas are about shared primitives used everywhere — splitting a cross-cutting rule into one subdir means the siblings never load it. `condense-claude-md` gained Restructuring #6 + a Process-5 "split before you cut" step (splitting relocates content, cutting loses it); `update-claude-docs` gained a new narrowest routing tier (subdir-level) and a **prune-race guard** — the background pruner reads a file when it starts, not when it finishes, so only background-prune SETTLED files, and restore any pruner deletion whose premise your later same-session edits invalidated.
