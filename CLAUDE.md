@@ -46,6 +46,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `gchat-format` | Convert Markdown to Google Chat syntax | User invokes or `/gchat-format` |
 | `ship` | End-to-end ship: commit → changelog → push → CI verify → GitNexus re-index → release note | User invokes directly |
 | `pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev (dump, scp, import, password reset) | User invokes or proactive |
+| `hobby-review` | Socratic debrief of a hobby item (anime, book, game, etc.) against the taste rubric in the matching current.md | User invokes or proactive after "I watched/finished X" |
 
 ## Project-Specific Agents
 

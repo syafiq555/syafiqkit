@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.46.0
+
+- **hobby-review** (new skill): Socratic debrief of a hobby item (anime, book, game, etc.) against the taste rubric in `tasks/hobbies/<domain>/current.md`. Opens with a pre-flight `AskUserQuestion` (2 classifier questions: completion status + opening mood) to branch the conversational arc before it starts — partial watch softens the anchor comparison to first impressions; mixed/disappointed mood opens with the expectation gap instead of memorable moments. Arc has a mandatory gap question ("what would make it perfect?") that always fires before the verdict. Outputs a structured rubric verdict with new axis candidates flagged for the user to decide whether to capture. Does not hardcode any domain — derives all questions from the existing Criteria Reference Card.
+
 ## 1.44.1
 
 - **read-summary**: Completed the read-side of the 1.44.0 subdir-CLAUDE.md convention. Step 4 of the Read Order only read `app/Domain/<X>/CLAUDE.md` — a backend-only path, so a frontend task loaded zero CLAUDE.md context (no `app/Domain/` exists for it) and the new subdir files (`resources/js/routes/CLAUDE.md`) were invisible. Generalized to a **CLAUDE.md tree walk**: read every CLAUDE.md on the path to the files in play (layer → subdir → domain), mirroring how the harness auto-loads them additively. Now symmetric with `update-claude-docs` — discovery finds what the writer routes.
