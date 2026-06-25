@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.44.0
+
+- **condense-claude-md + update-claude-docs**: Taught both the subdir-CLAUDE.md splitting convention. A subdir `CLAUDE.md` (e.g. `resources/js/routes/CLAUDE.md`) auto-loads *additively* on top of its parents, so it's both a routing target and a condensing lever — but gated by a **seam-test**: split/route a section to a subdir only when its rules are needed there AND useless elsewhere. Vertical-slice trees (`app/Domain/*`) pass; horizontal-layer trees (`components/`/`pages/`/`hooks/`) usually fail, because their gotchas are about shared primitives used everywhere — splitting a cross-cutting rule into one subdir means the siblings never load it. `condense-claude-md` gained Restructuring #6 + a Process-5 "split before you cut" step (splitting relocates content, cutting loses it); `update-claude-docs` gained a new narrowest routing tier (subdir-level) and a **prune-race guard** — the background pruner reads a file when it starts, not when it finishes, so only background-prune SETTLED files, and restore any pruner deletion whose premise your later same-session edits invalidated.
+
 ## 1.43.0
 
 - **Removed `/consolidate-docs` command**: Dropped the doc-merging command from the suite (and its rows in `CLAUDE.md` / `README.md`). Historical mentions in `CHANGELOG`/`tasks` left as-is.

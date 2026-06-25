@@ -40,6 +40,7 @@ Every rule that, if removed, would cause Claude to repeat a real past mistake. S
 3. **Prefer bullet lists over tables** for prose rules with no clear column structure.
 4. **Lead with the rule, not the context** — "Use `&&` not `||` for ship idempotency" not "When checking ship conditions, you should prefer using `&&` over `||` because..."
 5. **Section order**: Commands → Branches → Testing → Domain rules (alphabetical) → Deploy → Misc
+6. **Split to a subdir CLAUDE.md when a whole section is subdir-local.** This is a real condensing lever, not just compression: a subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `resources/js/routes/X` loads root + `resources/js/` + `routes/`), so a section can move down a level and leave only a one-line `> 📖` pointer behind. But apply the **seam-test** first: move a section ONLY if its rules are both needed in that subdir AND useless elsewhere. A token/money/table rule consumed across many sibling dirs is cross-cutting — splitting it forces you to either duplicate it into each subdir or orphan it, which is worse than a slightly longer layer file. Vertical-slice trees (`app/Domain/*`) usually pass the seam-test; horizontal-layer trees (`components/`, `pages/`, `hooks/`) usually fail it because their gotchas are about shared primitives used everywhere. When you do split, keep the parent's `> 📖` pointer carrying the single highest-cost fact inline — a fresh session won't follow a bare pointer.
 
 ## Process
 
@@ -47,7 +48,7 @@ Every rule that, if removed, would cause Claude to repeat a real past mistake. S
 2. Mentally score each section: **keep as-is / compress / cut**
 3. Identify any GitNexus `<!-- gitnexus:start/end -->` blocks — **preserve them verbatim**, they are managed separately
 4. Rewrite the file from scratch using `Write` (not incremental `Edit`) — the new file replaces the old
-5. Count lines: target ≤200 for project root CLAUDE.md. Flag if still >250 and ask user which sections to cut further.
+5. Count lines: target ≤200 for project root CLAUDE.md. If still >250 after compressing, check for a section that passes the seam-test (Restructuring #6) and offer to split it to a subdir `CLAUDE.md` before asking which sections to cut — splitting relocates content without losing it, cutting loses it.
 
 ## Hard rules
 

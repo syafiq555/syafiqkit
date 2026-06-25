@@ -46,9 +46,12 @@ Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local
 
 1. Personal/team context → `./CLAUDE.local.md` (project root)
 2. Same domain as modified files → that domain's CLAUDE.md
-3. Layer-level (`app/CLAUDE.md`, `resources/js/CLAUDE.md`)
-4. Project root `CLAUDE.md`
-5. Global `~/.claude/CLAUDE.md`
+3. **Subdir-level** (`resources/js/routes/CLAUDE.md`, `app/Domain/X/CLAUDE.md`) — when a rule only matters inside one subdirectory
+4. Layer-level (`app/CLAUDE.md`, `resources/js/CLAUDE.md`)
+5. Project root `CLAUDE.md`
+6. Global `~/.claude/CLAUDE.md`
+
+A subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `resources/js/routes/X` loads root + `resources/js/` + `routes/`), so routing a rule down a level doesn't hide it — it scopes it. Prefer the subdir file when the rule is both needed in that subdir AND useless elsewhere (seam-test); if it's cross-cutting (a shared token/util/type used across sibling dirs), keep it at the layer level instead — pushing a cross-cutting rule into one subdir means the sibling dirs never load it. Creating the subdir `CLAUDE.md` if it doesn't exist yet is fine; that's the `app/Domain/*` pattern.
 
 **Read target first** — check structure, existing entries, where new entry fits.
 
@@ -129,6 +132,8 @@ Glob: .claude/agents/claude-md-pruner.md
 **Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.`
 
 The agent has its own classification rules, litmus tests, and NEVER-delete safeguards. Do not override its instructions.
+
+⚠️ **Only background-prune files that are SETTLED.** The pruner reads the file when it starts, not when it finishes — if you're still editing a file (or about to, e.g. mid-split), it judges a stale snapshot and may delete an entry you just added by reasoning about a state that no longer exists ("this rule is aspirational, no subdir uses it" — right when you're creating that subdir). Finish all edits to a file before listing it, or hold the prune until the session's file changes are done. When the pruner reports a deletion, diff it against the entries you wrote THIS session: if it removed one of yours on a premise your later edits invalidated, restore it — your fresh write beats the agent's stale read.
 
 ## 5. Validate
 
