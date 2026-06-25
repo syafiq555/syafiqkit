@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.43.0
+
+- **Removed `/consolidate-docs` command**: Dropped the doc-merging command from the suite (and its rows in `CLAUDE.md` / `README.md`). Historical mentions in `CHANGELOG`/`tasks` left as-is.
+- **`/commit` is proactive again**: Removed `disable-model-invocation` from the `commit` command so Claude can auto-suggest it, not only on explicit `/commit`. New authoring convention in `CLAUDE.md`: never add `disable-model-invocation` to a skill/command unless the user explicitly asks — it drops the item from Claude's context and kills auto-suggestion, so the default is proactive invocation.
+
 ## 1.42.0
 
 - **notes-summary** (new skill) + **read-notes** / **update-notes** (command aliases): A personal session-journal counterpart to `task-summary`, for the conversations that don't belong in the repo — boss/teammate/client feedback, career and relationship dynamics, strategy chats. Borrows task-summary's living-doc discipline (LLM-CONTEXT header, Quick Start, density rules) but inverts the storage model: private, machine-local, under `~/.claude/notes/<domain-slug>/<thread-slug>.md` (never committed, never auto-memory — a personal log in the repo can't be un-tracked by `.gitignore` once committed, so it stays out of any repo entirely). Entries accumulate chronologically (not overwritten like Last Session); the lean blocks that stay current are Quick Start + Standing Takeaways + Open Threads.

@@ -26,7 +26,6 @@ claude plugin install syafiqkit@syafiqkit
 | `/write-summary` | Create new task documentation |
 | `/update-summary` | Append findings to existing summary |
 | `/update-claude-docs` | Capture patterns/gotchas to CLAUDE.md |
-| `/consolidate-docs` | Merge related task documents into one |
 
 ## Skills
 

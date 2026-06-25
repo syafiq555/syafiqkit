@@ -1,6 +1,5 @@
 ---
 description: Create git commits from staged changes. Works for single repos and multi-repo projects.
-disable-model-invocation: true
 ---
 
 # Git Commit Command

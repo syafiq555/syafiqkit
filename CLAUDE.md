@@ -32,7 +32,6 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `write-summary` | Create task summary (thin wrapper → `task-summary` skill) |
 | `update-summary` | Update task summary (thin wrapper → `task-summary` skill) |
 | `update-claude-docs` | Capture patterns/gotchas into CLAUDE.md files |
-| `consolidate-docs` | Consolidate related task documents into one |
 
 ### Skills
 
@@ -120,6 +119,7 @@ No build step — markdown files are interpreted directly.
 | User preferences → skill/command changes, not memory | Plugin `memory/` dir is shared repo — personal prefs go in user's project memory or baked into skill defaults |
 | Commands/skills that need agents → instruct Claude to spawn, not "spawn" directly | Commands are prompts — Claude (the executor) reads and makes Agent tool calls. Same pattern as `/done` |
 | Command outgrows "single workflow"? → Migrate to skill + thin wrapper commands | Keeps backwards compat; wrapper invokes `Skill: syafiqkit:<name>` with `$ARGUMENTS` |
+| Never add `disable-model-invocation` unless user explicitly asks | User dislikes it — it drops the skill/command from Claude's context, killing auto-suggestion. Default to proactive invocation |
 | **Every change = version bump** | Bump both version files (see [Version Bumping](#version-bumping)) |
 
 ## Maintenance {#maintenance}
