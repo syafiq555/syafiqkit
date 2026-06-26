@@ -79,6 +79,27 @@ Then create/update each task doc. **Every issue mentioned in the session gets a 
 
 Read **both** the resolved path **and `references/templates.md`** first — the template holds the canonical section structure and gold-standard format you need for either path. Then: if the doc is missing → **Create** using the Full Template. If it exists → **Update** in place.
 
+## 2a. When Merging (user requests `merge A into B`)
+
+When the user explicitly requests merging two docs:
+
+1. **Read both docs** in full before writing anything.
+2. **Choose the canonical path** — keep the richer/primary doc's path as the merge target. The secondary doc's path becomes the redirect stub.
+3. **Write the merged doc** to the canonical path — combine all sections (Decisions, Gotchas, Files, Bugs) without duplicating rows. Update LLM-CONTEXT `Domain` to reflect both concerns (e.g. `student/exam-taking + admin/exam-sets`).
+4. **Replace the secondary doc** with a redirect stub — do NOT delete it (breaks `rg` discoverability). Strip the secondary doc's LLM-CONTEXT block entirely — the stub must NOT have one:
+   ```markdown
+   <!-- Reason: [one sentence on why they're coupled] -->
+   # Merged into: tasks/<canonical>/current.md
+   ```
+   The `# Merged into:` heading is visible to both humans and `rg`. The `Reason:` stays in the comment to avoid cluttering rendered output.
+5. **Update back-references** — run §5 Validate + §6 Cross-References on the merged doc and every doc that referenced either old path. §6's roadmap/hub sweep covers more than just `Related:` fields — don't stop at `Related:` alone.
+
+| ❌ Never | ✅ Always |
+|---------|---------|
+| Delete the secondary doc outright | Leave a redirect stub — `rg` must be able to find the old path |
+| Keep an LLM-CONTEXT block in the stub | Strip it — the stub is a pointer, not a live doc |
+| Only update `Related:` fields in back-references | Run full §6 sweep — roadmap rows and hub tables also mirror status |
+
 ## 3. When Creating
 
 Use the **Full Template** from `references/templates.md` as the gold standard. Scale down to Minimal only for single bug fixes or short sessions.

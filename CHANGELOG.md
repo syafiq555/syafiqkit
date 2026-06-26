@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.46.1
+
+- **task-summary**: Added `## 2a. When Merging` section documenting the full merge workflow — choose canonical path, write merged doc, replace secondary with a redirect stub (heading-level `# Merged into:` for `rg` visibility, strip LLM-CONTEXT block), then run §5+§6 back-reference sweep (not just `Related:` fields). Fixes four gaps in the prior skill: no merge operation documented, redirect stub format unclear, back-ref scope too narrow (only `Related:`), and no instruction to strip the secondary doc's LLM-CONTEXT block.
+
 ## 1.46.0
 
 - **hobby-review** (new skill): Socratic debrief of a hobby item (anime, book, game, etc.) against the taste rubric in `tasks/hobbies/<domain>/current.md`. Opens with a pre-flight `AskUserQuestion` (2 classifier questions: completion status + opening mood) to branch the conversational arc before it starts — partial watch softens the anchor comparison to first impressions; mixed/disappointed mood opens with the expectation gap instead of memorable moments. Arc has a mandatory gap question ("what would make it perfect?") that always fires before the verdict. Outputs a structured rubric verdict with new axis candidates flagged for the user to decide whether to capture. Does not hardcode any domain — derives all questions from the existing Criteria Reference Card.
