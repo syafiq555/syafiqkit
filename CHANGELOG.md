@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.47.4
+
+- **commit**: Two improvements to commit type accuracy. (1) **Task doc cross-reference** — step 3 now greps staged `tasks/` files and reads their `Status:` + `## Last Session` before determining type; unstaged task docs whose domain files appear in the staged set are also checked. A task doc riding the commit is the strongest signal of intent (a `🚧 Uncommitted` feature doc overrides a stat-dominated refactor diff). (2) **Highest-impact type wins** rule added to Anti-Patterns: a user-visible feature co-landing with a refactor in the same staged set = `feat`, not `refactor`, regardless of which has more files.
+
 ## 1.47.3
 
 - **agent-setup templates**: Seeded the `code-reviewer` + `code-simplifier` templates with the generic **long-parameter-list** convention so every project's generated agents enforce it. The reviewer template gains an active Convention-Violations bullet (new non-constructor function/method over the project's param limit → wrap args into a param-object/DTO, Clean Code 0/1-2/3+ ladder) with the threshold left as a fill-in placeholder and an explicit "drop if no param-count rule" escape; the simplifier template gains the matching High-Impact-Simplification row. Two further generic example rows capture the **signature→DTO migration hazards** that surfaced live: a stale positional caller that passes a syntax check but throws at runtime (an Nth identical caller can survive a bulk find-replace — grep for survivors), and two over-collapse traps for the simplifier (an immutable DTO `withX()` wither that looks dead but is the readonly value object's mutation API; a closure-captured `$x = $obj->x` local that can't be inlined back). Kept project-specific numbers/anchors OUT of the templates (those live only in the Autorentic agents) — the templates carry the principle with a placeholder for each project's threshold.

@@ -14,7 +14,8 @@ Create conventional commits from staged changes.
 
 3. **For each repo with staged changes**:
    - `git diff --staged --stat` + `git diff --staged`
-   - Determine type: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf`
+   - **Check task docs**: `git diff --staged --name-only | grep '^tasks/'` — read any staged `current.md` files. Their `Status:` line and `## Last Session` reveal what was actually built (a task doc riding the commit is the strongest signal of intent). Also check `tasks/**/current.md` for any doc whose files appear in the staged set even if the doc itself isn't staged.
+   - Determine type: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf` — **highest-impact type wins** (a user-visible feature co-landing with a refactor = `feat`, regardless of file count)
    - Determine scope from file paths (e.g., `app/Services/Workshop/*` → `workshop`)
    - Commit: `<type>(<scope>): <description>` — lowercase, no period, imperative, max 72 chars
    - Verify: `git status && git log -1 --oneline`
@@ -42,3 +43,4 @@ EOF
 | `fix: fixed stuff` | `fix(auth): resolve token expiry race condition` |
 | `update code` | `refactor(orders): extract validation to service` |
 | `wip` | `chore: wip - <context>` or don't commit |
+| `refactor` when a user-visible feature also landed in the same staged set | `feat` — the highest-impact type wins regardless of file count. A refactor that rides alongside a new feature is a `feat` commit. |
