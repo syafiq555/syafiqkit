@@ -95,7 +95,8 @@ Three similar lines of code > premature abstraction
 | 1 | Inline HTTP calls in components | Use existing API module |
 | 2 | Manual pagination/filter state | Use shared composable |
 | 3 | <!-- [TypeScript] Hand-listed union/object mirroring an existing source --> | <!-- Derive: `keyof typeof`, `typeof arr[number]`, `ReturnType<typeof fn>`, mapped type. `as const` to keep literals; `obj satisfies T` over `obj: T`. --> |
-| 4 | <!-- Add more project-specific patterns --> | |
+| 4 | <!-- Function/method over the project's param limit (long parameter list) --> | <!-- Extract a param-object/DTO, construct with named args. Set the project's threshold; EXEMPT constructors + framework-dictated signatures. Drop if the project has no param-count rule. --> |
+| 5 | <!-- Add more project-specific patterns --> | |
 
 ## Tech Stack Specifics
 
@@ -116,6 +117,8 @@ Three similar lines of code > premature abstraction
 | <!-- e.g. window.location.href after logout --> | <!-- e.g. Full reload clears in-memory state + cache --> |
 | <!-- e.g. bcadd/bccomp string casts on money --> | <!-- e.g. IEEE 754 precision — (float) intentionally avoided --> |
 | <!-- e.g. Webhook not re-dispatching sync --> | <!-- e.g. Ping-pong loop guard — collapsing re-introduces the loop --> |
+| <!-- e.g. An immutable DTO `withX()` wither that looks single-use/dead --> | <!-- e.g. It's the mutation API for a readonly value object (wrappers stamp a fixed field via it); inlining forces a full-field rebuild --> |
+| <!-- e.g. A `$x = $obj->x` local captured by a closure `use ($x)` --> | <!-- e.g. Only non-captured single-use destructures inline safely; closure capture needs the local --> |
 
 ## Output Format
 

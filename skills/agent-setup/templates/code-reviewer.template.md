@@ -67,6 +67,7 @@ Then add a second Bootstrap table for the sibling repo's CLAUDE.md files. -->
 
 #### Convention Violations
 - Violations of rules in relevant CLAUDE.md files (YAGNI, KISS, SOLID, DRY)
+- Long parameter list: a new non-constructor function/method exceeding the project's param limit should wrap its args into a param-object/DTO (Clean Code 0/1-2/3+ ladder). <!-- Set the project's limit + canonical example here, e.g. "6+ backend / 3+ frontend → extract DTO; see CLAUDE.md#{param-count}". EXEMPT: constructors (DI/Mailable), framework-dictated signatures (data-provider/callback/HOC), by-reference accumulators. Advisory if the project's lint rule is non-blocking. Drop this row if the project has no param-count rule. -->
 <!-- Add project-specific convention checks:
 - Wrong DB host (`localhost` vs `127.0.0.1`), `env()` outside config files
 - Date format, currency, locale conventions
@@ -82,7 +83,8 @@ Then add a second Bootstrap table for the sibling repo's CLAUDE.md files. -->
 |---|------|---------------|
 | 1 | N+1 queries | Accessing relationships in loops without eager loading |
 | 2 | <!-- [TypeScript] Type drift --> | <!-- Hand-listed union/object that duplicates an existing source instead of deriving (`keyof typeof`, `typeof arr[number]`, mapped type) → goes stale silently. `any` instead of `unknown`+narrow. --> |
-| 3 | <!-- Add more project-specific rules --> | |
+| 3 | <!-- Stale positional call after signature→DTO migration --> | <!-- A caller still passing positional args to a method whose signature became a single DTO/object param. Passes a syntax check but throws at runtime; an Nth identical caller can survive a bulk find-replace — grep the positional pattern for survivors. --> |
+| 4 | <!-- Add more project-specific rules --> | |
 
 ## Known False Positives (DO NOT flag these)
 
