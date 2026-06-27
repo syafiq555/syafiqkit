@@ -44,16 +44,28 @@ Same Glob returns nothing → spawn `subagent_type: "feature-dev:code-reviewer"`
 Run the Glob first every time — don't assume the project agent exists or doesn't.
 </example>
 
+**Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first (`git diff --name-only` + `git diff --staged --name-only`, unioned), then pick agents-per-role:
+
+| Changed files | Agents per role (reviewer + simplifier) |
+|---------------|------------------------------------------|
+| ≤15 | 1 |
+| 16–40 | 2 |
+| 41+ | 3 (hard cap) |
+
+A user arg always wins: "2 agents each" / "4 each" sets the count explicitly (ignore the table); a count is also implied by "split it up". Light mode (`<5` files) already means 1 reviewer + 0 simplifier — it takes precedence over the table's bottom bucket.
+
+When count >1 per role, **partition the file list** across the same-role agents by domain/directory — each agent gets a disjoint slice (file count sets *how many*; domain sets *which files each gets*, so coupled files stay together). NEVER hand every same-role agent the full list: duplicated review + conflicting edits on the same file. All agents run in ONE message (foreground, parallel).
+
 **Prompt for both must include:**
-- List of modified files this session (full paths)
+- The file slice this agent owns (full paths) — its partition, not the whole list when split
 - For simplifier: focus on duplication removal, readability, pattern consistency
 - For reviewer: focus on bugs, security, logic errors, project convention violations
 
 > Project agents have a Bootstrap section — they read relevant CLAUDE.md files themselves. Do NOT paste project conventions into the prompt.
 
 **After both complete:**
-- If reviewer found issues → fix them immediately, then continue
-- If simplifier made changes → verify they were applied (linter may have auto-formatted)
+- If reviewer found issues → **confirm each against the actual code before fixing** (grep the call site / re-read the line — a finding is a claim, not a verdict), then fix and continue. Don't blind-apply; don't dismiss either — a real bug a blanket `replace_all` left behind looks identical to a false positive until you check.
+- If simplifier made changes → verify they were applied (linter may have auto-formatted) AND that nothing was over-collapsed (an intentional guard/workaround removed). Re-run `php -l`/`tsc` on touched files — "declared but not used" = a half-done refactor.
 
 ## Step 2: Clean up temp code
 
