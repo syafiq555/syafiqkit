@@ -47,6 +47,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `ship` | End-to-end ship: commit → changelog → push → CI verify → GitNexus re-index → release note | User invokes directly |
 | `pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev (dump, scp, import, password reset) | User invokes or proactive |
 | `hobby-review` | Socratic debrief of a hobby item (anime, book, game, etc.) against the taste rubric in the matching current.md | User invokes or proactive after "I watched/finished X" |
+| `function-parameter-limits` | Advise + enforce the 0/2/3+ function-param rule (parameter-object/DTO refactors; ESLint/PHPMD/Pylint setup with DI-constructor carve-outs) | User invokes or proactive on "too many params" |
 
 ## Project-Specific Agents
 
@@ -135,6 +136,7 @@ No build step — markdown files are interpreted directly.
    - Missing edge cases (archived docs, Status: Done)
    - Skill references a non-existent terminal skill (e.g. `writing-plans`) — always verify referenced skills exist in `skills/*/SKILL.md` before shipping
    - Same flow described in 4 places (checklist + diagram + prose + after-section) — one `## Steps` section is enough; redundancy causes section drift
+   - Adding a new skill/command: update BOTH the `## Skills` table here AND the `## Skills` table in `README.md` — two separate lists that silently drift if only one is touched
    - Inconsistent edits — when changing a concept (e.g., model name), verify all references (headings, body, comments) match
 3. **Reference**: `tasks/plugin-maintenance/current.md` for plugin patterns and research
 

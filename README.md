@@ -40,6 +40,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
 | `/ci-ssh-deploy-timeout` | Diagnose + fix flaky CI deploys that SSH-timeout to a server (rules out firewall, applies connect-only retry) |
+| `/function-parameter-limits` | Apply + enforce the 0/2/3+ function-parameter rule — advises parameter-object/DTO refactors and sets up the right linter (ESLint/PHPMD/Pylint) with DI-constructor carve-outs |
 
 ## Usage
 

@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.46.1
+## 1.47.0
+
+- **function-parameter-limits** (new skill): Advises and enforces the function/method parameter-count best practice — 0 params ideal, 1-2 fine, 3 is the signal to wrap arguments into an object/DTO, 4+ almost always means the function does too much (the Clean Code niladic→polyadic ladder, Fowler's Long Parameter List smell, McConnell's ~7 ceiling). Advisory side recommends the fitting refactor per situation (parameter object for cohesive args, options object for many optionals, builder for immutable many-field construction, split for 2+ boolean flags). Enforcement side sets up a real linter with per-stack references (`references/{typescript,php,python}.md`): ESLint `max-params` (built-in, limit 3), PHPMD `ExcessiveParameterList` (new dep, limit 6), Pylint R0913. Foregrounds the two traps that make naive enforcement backfire — DI constructors legitimately exceed any limit (carve them out; PHPMD can't exclude by name so filter in the runner script), and a single-line `grep`/`rg` undercounts multi-line signatures (measure blast radius with the AST-based linter, never a one-line regex). Captured from setting both rules up live in the Autorentic frontend (ESLint) + Laravel backend (PHPMD).
 
 - **task-summary**: Added `## 2a. When Merging` section documenting the full merge workflow — choose canonical path, write merged doc, replace secondary with a redirect stub (heading-level `# Merged into:` for `rg` visibility, strip LLM-CONTEXT block), then run §5+§6 back-reference sweep (not just `Related:` fields). Fixes four gaps in the prior skill: no merge operation documented, redirect stub format unclear, back-ref scope too narrow (only `Related:`), and no instruction to strip the secondary doc's LLM-CONTEXT block.
 
