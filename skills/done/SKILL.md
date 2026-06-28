@@ -18,6 +18,7 @@ Execute all steps in sequence without pausing for confirmation.
 
 **Light mode** when the session touched **<5 files in a single domain** AND no new feature/architecture was introduced (bug fix, small tweak, config change):
 - Step 1: ONE reviewer agent only (skip the separate simplifier — tell the reviewer to also flag obvious duplication; skip the product reviewer — a trivial fix has no new feature journey to judge).
+- ⚠️ **Exception — a small diff that EXPOSES or CHANGES a user-facing capability is NOT light** (a new toggle/button/field/route, a status control, anything a user now acts on). File count measures diff size, not journey significance — a one-line change can complete or fake a whole journey. Run the product reviewer (go full mode for Step 1) even at 1 file.
 - Step 4: invoke `syafiqkit:task-summary` WITH the known doc path (skip the multi-domain scan — you already know the one affected doc).
 - Output: the compact single-table form (see Output).
 
