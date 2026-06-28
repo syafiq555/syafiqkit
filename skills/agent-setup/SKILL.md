@@ -27,15 +27,16 @@ Agent file = behavior instructions + Bootstrap directive + top-15 critical rules
 
 ## Agents
 
-Three agents, each with a distinct responsibility:
+Four agents, each with a distinct responsibility:
 
 | Agent | Purpose | Model | Key tools |
 |-------|---------|-------|-----------|
 | `code-reviewer` | Bugs, security, convention violations. Session-aware — reads task docs, gathers changes holistically. | `sonnet` | Read-only + LSP + diagnostics |
 | `code-simplifier` | DRY, clarity, consistency, dead code. Edits files directly. Applies Rule of Three. | `opus` | Read + Edit + Write + LSP |
+| `product-reviewer` | Product/PM lens — missing user journeys, dead-end flows, UX/business-value gaps the engineer forgot to build. Reads the task doc (intent) + built code; recommends, never edits. | `sonnet` | Read-only + LSP + gitnexus |
 | `claude-md-pruner` | Prunes CLAUDE.md files for staleness/bloat. Conservative — preserves reference tables and cross-reference mappings. | `sonnet` | Read + Edit + Grep + Glob |
 
-> **Why 3**: Review and simplification are separate concerns (read-only vs write). Pruning is a distinct maintenance task that requires different judgment (what's valuable to keep vs what's stale) — mixing it into review/simplify risks over-aggressive deletion.
+> **Why 4**: Three lenses on the work, plus one maintenance task. `code-reviewer` asks *is the code correct?*, `code-simplifier` asks *is the code clean?* — both look **down** at the code. `product-reviewer` asks *is the feature complete and valuable?* — it looks **up** from the code to the user and business, catching the class of miss a line-level diff structurally cannot (a CRUD with no "create" button, a funnel with no conversion view). It's read-only like the reviewer but recommends product changes rather than auto-fixing — a missing journey is a scope decision the user owns. `claude-md-pruner` is a separate maintenance concern (what's valuable to keep vs stale) — mixing it into review risks over-aggressive deletion.
 
 ```
 Project/
@@ -45,6 +46,7 @@ Project/
     └── agents/
         ├── code-reviewer.md
         ├── code-simplifier.md
+        ├── product-reviewer.md
         └── claude-md-pruner.md
 ```
 
@@ -139,8 +141,9 @@ frontmatter (name, description, tools, model, memory: project)
 
 **Key rules for agent files**:
 - `memory: project` in frontmatter — agents maintain project-level memory
-- `mcp__ide__getDiagnostics` in tools — catches lint/type errors the agent would miss
-- `mcp__gitnexus__impact` + `mcp__gitnexus__context` in tools — if project has GitNexus indexed (`gitnexus list`). Reviewer uses `impact` to check callers; simplifier uses `context` before extracting
+- `mcp__ide__getDiagnostics` in tools — for `code-reviewer` + `code-simplifier` (catches lint/type errors). **Omit for `product-reviewer`** — it judges product completeness, not type correctness; diagnostics are out of its lane
+- `product-reviewer` is **read-only** — NO `Write`/`Edit` in its tools. It recommends product changes; the main session decides what to build (a missing journey is a scope call the user owns). It also has no file slice — it judges the whole feature's journey, so `/done` passes it the feature name + task-doc path, not a partition
+- `mcp__gitnexus__impact` + `mcp__gitnexus__context` in tools — if project has GitNexus indexed (`gitnexus list`). Reviewer uses `impact` to check callers; simplifier uses `context` before extracting; product-reviewer uses `impact` to confirm a capability has no caller (a forgotten journey)
 - Bootstrap section lists CLAUDE.md files with brief descriptions of what each contains
 - Process includes "Read task docs" step — reduces false positives by understanding intent
 - Inline table has only rules that prevent the most common mistakes
@@ -157,6 +160,7 @@ After writing agents, verify:
 - [ ] Reviewer/simplifier tools list includes `mcp__ide__getDiagnostics`
 - [ ] If GitNexus indexed: reviewer/simplifier tools include `mcp__gitnexus__impact` and `mcp__gitnexus__context`
 - [ ] Reviewer has a "Known False Positives" table; simplifier has a "Don't Simplify (Preserve These)" table (even if seeded from a couple of CLAUDE.md exceptions)
+- [ ] `product-reviewer` is read-only (NO `Write`/`Edit`, NO `getDiagnostics`), has a "Don't Flag These" non-findings table, a 3-tier severity model (blocking / expected-missing / polish), and a product-context table (who the audiences are)
 - [ ] LSP step uses `hover` + `documentSymbol` (NOT `goToDefinition`/`findReferences` — often broken)
 - [ ] Multi-repo: if a sibling repo is driven from the same session, agents carry the `⚠️ Two-repo session` banner, diff both repos, and have a second Bootstrap table + tagged sibling rules
 - [ ] Pruner has NEVER-remove list customized for project (reference tables, gotcha rows, etc.)
@@ -171,6 +175,7 @@ After writing agents, verify:
 |-------|--------|-------------|----------------|
 | code-reviewer | Created/Updated | ~15 critical rules | N CLAUDE.md files |
 | code-simplifier | Created/Updated | ~12 simplification patterns | N CLAUDE.md files |
+| product-reviewer | Created/Updated | Review lenses + 3-tier severity + don't-flag table | N CLAUDE.md files + task doc |
 | claude-md-pruner | Created/Updated | Classification table + NEVER-remove list | Root + global CLAUDE.md |
 
 Agents use Bootstrap pattern — they read CLAUDE.md at runtime.

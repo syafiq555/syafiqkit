@@ -17,26 +17,33 @@ Execute all steps in sequence without pausing for confirmation.
 ## Mode selection (decide first)
 
 **Light mode** when the session touched **<5 files in a single domain** AND no new feature/architecture was introduced (bug fix, small tweak, config change):
-- Step 1: ONE reviewer agent only (skip the separate simplifier — tell the reviewer to also flag obvious duplication).
+- Step 1: ONE reviewer agent only (skip the separate simplifier — tell the reviewer to also flag obvious duplication; skip the product reviewer — a trivial fix has no new feature journey to judge).
 - Step 4: invoke `syafiqkit:task-summary` WITH the known doc path (skip the multi-domain scan — you already know the one affected doc).
 - Output: the compact single-table form (see Output).
 
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
 
-## Step 1: Simplify + Review (parallel)
+## Step 1: Simplify + Review + Product Review (parallel)
 
-Run both agents **in parallel** (single message, two Agent tool calls). **Do NOT use `run_in_background`** — run in foreground so results are available immediately.
+Run all applicable agents **in parallel** (single message, multiple Agent tool calls). **Do NOT use `run_in_background`** — run in foreground so results are available immediately.
+
+The three roles are deliberately different lenses, not redundant:
+- **Simplifier** — is the code *clean*? (duplication, readability)
+- **Reviewer** — is the code *correct*? (bugs, security, conventions)
+- **Product reviewer** — is the *feature* complete and valuable? (missing journeys, dead-end flows, UX/business gaps the engineer forgot to build — the class of miss a line-level diff structurally cannot catch, e.g. a CRUD with no "create" button). Runs in **full mode only**, and **only if a project `.claude/agents/product-reviewer.md` exists** (it carries project-specific product context — there's no generic fallback; skip silently if absent).
 
 **Check for project agents first:**
 ```
 Glob: .claude/agents/code-simplifier.md
 Glob: .claude/agents/code-reviewer.md
+Glob: .claude/agents/product-reviewer.md
 ```
 
 | Agent | Project agent found? | Fallback subagent_type |
 |-------|---------------------|------------------------|
 | Simplifier | `subagent_type: "code-simplifier"` | `"code-simplifier:code-simplifier"` |
 | Reviewer | `subagent_type: "code-reviewer"` | `"feature-dev:code-reviewer"` |
+| Product reviewer (full mode only) | `subagent_type: "product-reviewer"` | *(none — skip if the project file is absent)* |
 
 <example>
 `Glob: .claude/agents/code-reviewer.md` returns a hit → spawn `subagent_type: "code-reviewer"`.
@@ -56,16 +63,18 @@ A user arg always wins: "2 agents each" / "4 each" sets the count explicitly (ig
 
 When count >1 per role, **partition the file list** across the same-role agents by domain/directory — each agent gets a disjoint slice (file count sets *how many*; domain sets *which files each gets*, so coupled files stay together). NEVER hand every same-role agent the full list: duplicated review + conflicting edits on the same file. All agents run in ONE message (foreground, parallel).
 
-**Prompt for both must include:**
+**Prompt for each must include:**
 - The file slice this agent owns (full paths) — its partition, not the whole list when split
 - For simplifier: focus on duplication removal, readability, pattern consistency
 - For reviewer: focus on bugs, security, logic errors, project convention violations
+- For product reviewer: name the **feature** built this session and its **task-doc path** (e.g. `tasks/admin/school-accounts/current.md`) so it reads the intent. It is NOT partitioned by file slice — it judges the whole feature's journey. Don't give it a file slice; give it the feature + doc.
 
-> Project agents have a Bootstrap section — they read relevant CLAUDE.md files themselves. Do NOT paste project conventions into the prompt.
+> Project agents have a Bootstrap section — they read relevant CLAUDE.md files + the task doc themselves. Do NOT paste project conventions into the prompt.
 
-**After both complete:**
+**After all complete:**
 - If reviewer found issues → **confirm each against the actual code before fixing** (grep the call site / re-read the line — a finding is a claim, not a verdict), then fix and continue. Don't blind-apply; don't dismiss either — a real bug a blanket `replace_all` left behind looks identical to a false positive until you check.
 - If simplifier made changes → verify they were applied (linter may have auto-formatted) AND that nothing was over-collapsed (an intentional guard/workaround removed). Re-run `php -l`/`tsc` on touched files — "declared but not used" = a half-done refactor.
+- If product reviewer found gaps → these are **product recommendations, not auto-fixes**. Do NOT silently build them. Surface 🔴/🟠 findings to the user and ask which to implement now vs add to the task doc's Next Steps — a missing journey is a scope decision the user owns. Confirm each gap is real (the deferral might be documented) before raising it.
 
 ## Step 2: Clean up temp code
 
@@ -112,6 +121,7 @@ One combined table. Detail only what was actually WRITTEN or FIXED — never enu
 |------|--------|
 | Simplify | [changes made, or ✅ none needed] (full mode only) |
 | Review | [issues found + fixed, or ✅ clean] |
+| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / light mode] (full mode only) |
 | Cleanup | [removed, or ➖] |
 | Knowledge | [N entries → target files, one line each; "0 new" if none] |
 | Task docs | [doc path → one-line summary of the update] |
