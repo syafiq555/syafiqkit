@@ -38,7 +38,7 @@ Every rule that, if removed, would cause Claude to repeat a real past mistake. S
 1. **Group by domain** — stock, API calls, queue jobs, deploy, misc. Don't mix concerns in one section.
 2. **Collapse 3-column tables** (❌ / ✅ / WHY) to 2-column when WHY is obvious. Add a `*` footnote only when the WHY is surprising.
 3. **Prefer bullet lists over tables** for prose rules with no clear column structure.
-4. **Lead with the rule, not the context** — "Use `&&` not `||` for ship idempotency" not "When checking ship conditions, you should prefer using `&&` over `||` because..."
+4. **Lead with the rule, not the context** — "Use `&&` not `||` for ship idempotency" not "When checking ship conditions, you should prefer using `&&` over `||` because...". Strip filler: cut "basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned".
 5. **Section order**: Commands → Branches → Testing → Domain rules (alphabetical) → Deploy → Misc
 6. **Split to a subdir CLAUDE.md when a whole section is subdir-local.** This is a real condensing lever, not just compression: a subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `resources/js/routes/X` loads root + `resources/js/` + `routes/`), so a section can move down a level and leave only a one-line `> 📖` pointer behind. But apply the **seam-test** first: move a section ONLY if its rules are both needed in that subdir AND useless elsewhere. A token/money/table rule consumed across many sibling dirs is cross-cutting — splitting it forces you to either duplicate it into each subdir or orphan it, which is worse than a slightly longer layer file. Vertical-slice trees (`app/Domain/*`) usually pass the seam-test; horizontal-layer trees (`components/`, `pages/`, `hooks/`) usually fail it because their gotchas are about shared primitives used everywhere. When you do split, keep the parent's `> 📖` pointer carrying the single highest-cost fact inline — a fresh session won't follow a bare pointer.
 
@@ -55,5 +55,6 @@ Every rule that, if removed, would cause Claude to repeat a real past mistake. S
 - **Never use `Edit` for a full condensation** — `Write` the whole file; partial edits on a bloated file leave stale content between hunks
 - **Never rewrite GitNexus blocks** — copy them verbatim between `<!-- gitnexus:start -->` and `<!-- gitnexus:end -->`
 - **Preserve all `{#anchor}` IDs** — other files may link to them
+- **Preserve established column names** — when collapsing 3→2 columns, drop a column; never rename existing ones. `❌ NEVER | ✅ ALWAYS` stays verbatim; `Symptom | Cause | Fix` stays verbatim.
 - **Don't invent content** — only restructure what exists; if something is unclear, compress it rather than rewrite its meaning
 - **Report line count before and after** so the user can see the reduction

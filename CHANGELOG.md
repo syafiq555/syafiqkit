@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.50.0
+
+- **doc-writing skills (all)**: Added no-filler-words rule across every skill that authors or condenses docs — `task-summary`, `condense-task-doc`, `condense-claude-md`, `notes-summary`, `update-claude-docs`. Canonical list: "basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned". Rule is also in `task-summary/references/templates.md` (intro line + bad/good example row) and `notes-summary/references/templates.md` (Format notes bullet) so it fires at the point of writing, not just as a background policy. All five files carry the same 7-term list — was inconsistent before ("it is important to" and "as mentioned" present in some, absent in others).
+
+- **task-summary**: Strengthened template structure enforcement. §3 (creating): new callout — copy section headings, table columns, and field names verbatim from the template; no renames, no bullets where a table is specified. §4 (updating): mandatory two-step check before editing — (1) gap-check for missing sections, (2) structure-check for column names / table formats / field order; new ❌/✅ row: rename columns or use bullets where a table is specified → match template exactly. §5 (validate): new step 3 — re-verify every section's structure matches the template after writing.
+
+- **condense-task-doc**: Closed a bypass gap — the skill rewrites the full file before `task-summary`'s structure-check runs, so structural defects survived the condense pass. Fixed: Process step 2 now reads `task-summary/references/templates.md` first and notes canonical column names and formats; new Hard rule: preserve (or correct to) template structure in the same rewrite pass.
+
+- **condense-claude-md**: Added Hard rule — preserve established column names when collapsing 3→2 columns (drop a column, never rename). `❌ NEVER | ✅ ALWAYS` and `Symptom | Cause | Fix` stay verbatim.
+
 ## 1.49.0
 
 - **done**: Closed a gap in light-mode selection that let a high-value change skip the product reviewer. Light mode keyed solely on file count (`<5` files → skip the product-review lens), but file count measures diff *size*, not journey *significance* — a one-line change that exposes or alters a user-facing capability (a new toggle/button/field/route, a status control) can complete or fake a whole user journey. Added a ⚠️ exception: such a change is **not** light → run the product reviewer (go full mode for Step 1) even at 1 file. Captured after a 1-file admin `is_active` toggle passed code review + persistence verification clean, yet the product reviewer (only run because the user insisted) found the toggle was cosmetic — nothing downstream read the flag, so "suspend school" enforced nothing despite the UI promising it. The class of miss a line-level diff and an attribute-round-trip test both structurally cannot catch.

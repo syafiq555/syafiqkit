@@ -101,3 +101,4 @@ Private: true
 - **Emotional/relational context is in scope** — this is a personal journal. Record how something landed and why, if future-you would act differently knowing it. Skip pure narration ("we talked for an hour").
 - **Mermaid / tables** are fine wherever a visual helps (e.g. a timeline of a multi-message thread).
 - **Anchor links** in the Index use GitHub-style slugs (lowercase, spaces→hyphens, punctuation stripped) so they resolve when the file is viewed as markdown.
+- **Entry style** — one idea per sentence; no filler words ("basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned"). If removing the phrase doesn't change meaning, remove it.

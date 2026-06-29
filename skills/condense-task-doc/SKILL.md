@@ -14,7 +14,7 @@ The goal is maximum signal-to-noise: a cold-start agent should be able to read t
 A fact belongs in exactly ONE place. LLM-CONTEXT and Quick Start *point* to canonical sections — they do not restate them. Investigation narratives re-tell what Bugs Fixed already records. Verification logs re-tell what git history owns.
 
 **2. Bloated sentences.**
-Run-on sentences stuffed with commit hashes, parentheticals, and evidence numbers. One idea per sentence. Evidence lives in git commits, not the doc.
+One idea per sentence. No filler words: cut "basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned". Evidence (hashes, numbers, SQL output) lives in git — not the doc.
 
 ---
 
@@ -70,11 +70,12 @@ Do NOT keep:
 ## Process
 
 1. `Read` the full doc.
-2. Identify all `## Investigation` or narrative-only sections — these are the primary source of bloat. Plan to collapse them into Bugs Fixed rows.
-3. Scan for fact duplication: grep for the 2-3 most critical phrases. If a phrase appears in >2 sections, keep it in one canonical location and convert the others to pointers.
-4. Rewrite the file using `Write` (full rewrite, not incremental `Edit`). Partial edits on a bloated doc leave stale content between hunks.
-5. Count lines before and after. Report the reduction to the user.
-6. Target: **≤300 lines** for a task doc with a full bug history. Flag if still >300 and ask which sections to cut further.
+2. Read `task-summary/references/templates.md` — note the canonical section headings, table column names, and field order for every section present in the doc.
+3. Identify all `## Investigation` or narrative-only sections — these are the primary source of bloat. Plan to collapse them into Bugs Fixed rows.
+4. Scan for fact duplication: grep for the 2-3 most critical phrases. If a phrase appears in >2 sections, keep it in one canonical location and convert the others to pointers.
+5. Rewrite the file using `Write` (full rewrite, not incremental `Edit`). Partial edits on a bloated doc leave stale content between hunks.
+6. Count lines before and after. Report the reduction to the user.
+7. Target: **≤300 lines** for a task doc with a full bug history. Flag if still >300 and ask which sections to cut further.
 
 ---
 
@@ -84,4 +85,5 @@ Do NOT keep:
 - **Never invent content** — only restructure what exists. If a fact is ambiguous, compress rather than rewrite its meaning.
 - **Never delete a Next Step** — only remove items that are clearly completed (marked ✅ or described in the past tense in a Bugs Fixed row).
 - **Preserve LLM-CONTEXT block** — update it to match the condensed content, but keep all fields (Status, Domain, Gotchas, Related, Last updated).
+- **Preserve (or correct to) template structure** — column names, table formats, and section order must match `task-summary/references/templates.md` verbatim. Condensing does not grant license to rename columns or substitute bullets where a table is specified. Fix non-conformant structure in the same pass.
 - **Report line count before and after** so the user can see the reduction.

@@ -119,7 +119,8 @@ A journal bloats two ways: **transcript-dumping** (pasting whole conversations) 
 
 | Rule | Detail |
 |------|--------|
-| **Capture the meaning, not the messages** | An entry records what was *said that matters*, what was *decided*, and what to *do next* — paraphrased tightly. Quote a line verbatim only when its exact wording is the point (a boss's precise phrasing you'll need to recall). |
+| **Capture the meaning, not the messages** | An entry records what was *said that matters*, what was *decided*, and what to *do next* — paraphrased tightly. Quote verbatim only when exact wording is the point. |
+| **No filler words** | Cut: "basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned". If removing the phrase doesn't change meaning, remove it. |
 | **One insight, one home** | A durable rule lives in Standing Takeaways. An entry can *reference* it ("reinforced the decide-don't-ask rule") but doesn't re-explain it. |
 | **Entries are dated and self-contained** | Each `### YYYY-MM-DD — <title>` entry stands alone: context, what happened, what was decided, open items. A reader skimming one entry shouldn't need three others to follow it. |
 | **Capture filter** | Keep a detail only if future-you would *act or feel differently* knowing it. Emotional context counts here (it's a personal journal) — but "we chatted for an hour" doesn't; "he conceded the point and praised speaking up" does. |

@@ -21,24 +21,27 @@ The density rules below apply to *every* write in steps 3–4 — they're what k
 
 ## Density rules (apply to every write — this is what keeps docs from bloating)
 
-Two failure modes kill these docs: **the same fact restated in 4–5 sections**, and **bloated sentences** (run-ons stuffed with parentheticals, commit hashes, and verification numbers). Enforce both layers:
+**Goal**: minimum tokens, maximum actionability. A cold-start session reads the doc once and acts correctly — no re-reads, no guessing. Every word that doesn't serve that goal gets cut.
+
+Two failure modes kill these docs: **the same fact restated in 4–5 sections**, and **bloated sentences**. Enforce both layers:
 
 ### Layer 1 — one fact, one home
 
 | Rule | Detail |
 |------|--------|
-| **One fact, one home** | Each fact lives in EXACTLY one section. LLM-CONTEXT + Quick Start *point* to the canonical section ("see Gotcha X / Decision Y"), they do NOT restate it. A fact is either a Decision (*why we chose this*) OR a Gotcha (*what will break you*) — never both. |
-| **LLM-CONTEXT is a pointer index** | The `Gotchas:` block in LLM-CONTEXT is 1-line teasers that name the section to read — not a second copy of the Gotchas table. |
-| **Quick Start ≤15 lines** | State + next action only — never re-explain a Decision/Gotcha. Full spec: *Quick Start Section* below. |
+| **One fact, one home** | Each fact lives in EXACTLY one section. LLM-CONTEXT + Quick Start *point* to the canonical section — they do NOT restate it. A fact is either a Decision (*why*) OR a Gotcha (*what breaks*) — never both. |
+| **LLM-CONTEXT is a pointer index** | `Gotchas:` block = 1-line teasers naming the section to read — not a copy of the table. |
+| **Quick Start ≤15 lines** | State + next action only — never re-explain a Decision/Gotcha. |
 
 ### Layer 2 — sentence style (every sentence you write)
 
 | Rule | Detail |
 |------|--------|
-| **Short declarative sentences** | One idea per sentence. ≤1 parenthetical per sentence. No arrow-chain shorthand (`A → B → fails`) — write it out. |
-| **Rows ≤2 sentences** | A Gotcha/Decision cell holds the rule + the single strongest reason. If the rationale needs more, CONDENSE it — do not relocate it. Rejected-alternative essays and verification narratives get deleted; git history owns them. |
-| **No metrics/hashes in rows** | Commit hashes live ONLY in Last Session. Verification detail is one word ("verified") — the numbers live in the commit message. |
-| **Capture filter** | Keep a fact only if a future session would ACT DIFFERENTLY knowing it: decisions still in force, gotchas that still bite, current state, next steps. Process history (what was reviewed, how it was tested, what order things happened) fails this test. |
+| **One idea per sentence** | ≤1 parenthetical. No arrow-chain shorthand (`A → B → fails`) — write it out. |
+| **No filler words** | Cut: "basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned". If removing the phrase doesn't change meaning, remove it. |
+| **Rows ≤2 sentences** | Rule + single strongest reason. Rejected-alternative essays and verification narratives get deleted; git history owns them. |
+| **No metrics/hashes in rows** | Commit hashes = Last Session only. Verification = one word ("verified"). |
+| **Capture filter** | Keep only if a future session would ACT DIFFERENTLY knowing it. Process history fails this test. |
 
 ### Size budget
 
@@ -104,6 +107,8 @@ When the user explicitly requests merging two docs:
 
 Use the **Full Template** from `references/templates.md` as the gold standard. Scale down to Minimal only for single bug fixes or short sessions.
 
+⚠️ **Exact structure required** — copy section headings, table columns, and field names verbatim from the template. Do not rename columns, reorder fields, or substitute free-form bullets where a table is specified.
+
 LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
 
 **Mermaid diagrams**: Use freely in any section where a visual helps — architecture, data flow, layout, feature hierarchy, state transitions. Not limited to one section.
@@ -112,10 +117,15 @@ LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
 
 Edit in place. The doc should always read as one coherent current-state document.
 
-⚠️ **MANDATORY first: gap-check against the template, don't just edit existing sections.** An in-place update inherits whatever sections the doc already has — a planning stub that just shipped is usually MISSING `## Key Technical Decisions`, `## Critical Gotchas`, `## Bugs Fixed`, `## Next Steps`. Before editing, list the doc's `## ` headers and compare to the template's required set; ADD any missing section. A decision/gotcha/bug captured only in `## Last Session` is a bug — Last Session is overwritten next run, so those facts must live in their typed table, not the narrative.
+⚠️ **MANDATORY first: gap-check AND structure-check against the template.** Before editing:
+1. List the doc's `## ` headers — add any section missing from the template's required set.
+2. For each existing section, verify its internal structure matches the template exactly: correct table columns, correct field names, correct order. Fix non-conformant structure in place (e.g. free-form bullets where `| Issue | Rule |` is specified, wrong column names in Bugs Fixed, missing Backend/Frontend split in Gotchas).
+
+A decision/gotcha/bug captured only in `## Last Session` is a bug — Last Session is overwritten next run, so those facts must live in their typed table.
 
 | ❌ Never | ✅ Always |
 |---------|---------|
+| Rename columns, reorder fields, or use bullets where a table is specified | Match template structure exactly — column names, table format, section order |
 | Append `## Completed (date)` sections | Edit existing sections in place |
 | Add duplicate rows | Update the existing row |
 | Enumerate finished work streams row-by-row | **Collapse, don't enumerate** — completed Task Status rows from a finished stream become ONE summary row ("Phase 2 built + reviewed + committed ✅"); only open + current-stream rows stay itemized |
@@ -173,9 +183,10 @@ Prevent unbounded growth — apply when updating:
 Re-read after writing:
 1. LLM-CONTEXT has Status, Domain, Related, Last updated
 2. Last updated = today
-3. Next Steps has no stale completed items
-4. No rows deleted
-5. Back-references reconciled (§6) — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated
+3. Every section's structure matches the template — correct table columns, correct field names, no free-form bullets where a table is specified
+4. Next Steps has no stale completed items
+5. No rows deleted
+6. Back-references reconciled (§6) — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated
 
 ## 6. Cross-References
 
