@@ -38,6 +38,8 @@ Last updated: 2026-06-09
 | `done` | Post-task cleanup orchestrator + task doc templates | User directly |
 | `commit-invoice-generator` | Generate invoice from git commits | User directly |
 | `consolidate-docs` | Merge related task docs into one | User directly (command) |
+| `merge-task-docs` | Find + merge payment/domain task docs by subsystem boundary; delete sources; reconcile back-refs | User directly |
+| `update-plugin` | Scan session → patch SKILL.md files with learned rules/triggers/gotchas | User directly after skill work |
 
 ### Invocation Control
 

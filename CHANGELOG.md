@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.51.0
+
+- **merge-task-docs** (new skill): Finds related task docs in a domain, classifies merge candidates by subsystem boundary (shared DB tables/services/lifecycle — not keyword overlap), merges them into fewer coherent docs, deletes sources, and reconciles all back-references to zero stale refs. The core rule: docs that share a topic word ("payment") are not merge candidates; docs that share the same tables/services/user journey are. Example: `bank-warning` belonged in `payout` — both touch `agencies.bank_warning_sent_at` → `payouts` lifecycle, not just the word "payment". Includes a merge-plan confirmation step (show table, get sign-off) before writing anything.
+
+- **update-plugin** (new skill): Post-skill-session knowledge capture — scans the session for learnings about the syafiqkit plugin itself (misfired trigger descriptions, missing workflow rules, wrong steps) and patches the actual SKILL.md files. The plugin equivalent of `update-claude-docs`: that skill writes to CLAUDE.md; this one writes to SKILL.md. Bar is higher — only changes that alter how a skill behaves or triggers belong here. Explicitly excludes one-time project quirks.
+
 ## 1.50.1
 
 - **task-summary**: §2a flipped from "keep a redirect stub" to **NO redirect stubs**. On merge or folder-rename, delete the source doc outright and reconcile every back-reference instead — the gate is 0 stale references, verified before finishing. Section retitled "When Merging or Renaming" and given an explicit folder-rename workflow (`git mv` to preserve history, update the doc's own Title + `Domain`, sweep back-refs, remove empty leftover dirs). The back-ref sweep now names all four mirror sites — `Related:` fields, inline `tasks/**/current.md` mentions, domain `CLAUDE.md` `> 📖` pointers, and roadmap/hub rows — plus the `rg`-stdout-corruption caveat (write matches to a file and Read it; don't trust truncated terminal output). §1's "follow Merged-into redirects" softened to cover legacy stubs only (new merges no longer create them). Captured after the keep-stub default contradicted the user twice in one session.
