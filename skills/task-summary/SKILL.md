@@ -65,7 +65,7 @@ Litmus tests before finishing: (1) grep your doc for the 2-3 most critical phras
 2. **External inputs**: WhatsApp messages, emails, Slack, screenshots, ClickUp pastes — extract every distinct issue/feature/bug mentioned
 3. **Verbal requests**: User said "also note X", "don't forget Y", "the other issues" → those are domains too
 
-⚠️ **Map each to its EXISTING doc by content, not by folder name.** A changed file path or feature name rarely matches the doc's folder (code `src/modules/qc-review/` → doc `setup/upload-redesign/`; folder names are engineer-domain-named). For each domain/feature found above, `Glob tasks/**/*.md` (incl `_archive/` + flat `tasks/<domain>/<feature>.md`) and `Grep` for the concept's vocabulary + synonyms across doc body + header — never assume the folder slug matches. Follow `Merged into`/`Supersedes` redirects to the live doc. This prevents creating a duplicate doc when one already exists under a different folder name.
+⚠️ **Map each to its EXISTING doc by content, not by folder name.** A changed file path or feature name rarely matches the doc's folder (code `src/modules/qc-review/` → doc `setup/upload-redesign/`; folder names are engineer-domain-named). For each domain/feature found above, `Glob tasks/**/*.md` (incl `_archive/` + flat `tasks/<domain>/<feature>.md`) and `Grep` for the concept's vocabulary + synonyms across doc body + header — never assume the folder slug matches. Follow any `Merged into`/`Supersedes` redirect that still exists to the live doc (older repos may have legacy stubs; new merges no longer create them — see §2a). This prevents creating a duplicate doc when one already exists under a different folder name.
 
 Build a table of all domains before writing anything:
 
@@ -82,26 +82,37 @@ Then create/update each task doc. **Every issue mentioned in the session gets a 
 
 Read **both** the resolved path **and `references/templates.md`** first — the template holds the canonical section structure and gold-standard format you need for either path. Then: if the doc is missing → **Create** using the Full Template. If it exists → **Update** in place.
 
-## 2a. When Merging (user requests `merge A into B`)
+## 2a. When Merging or Renaming (user requests `merge A into B`, or rename a doc folder)
 
-When the user explicitly requests merging two docs:
+⚠️ **NO redirect stubs.** When a doc is merged into another or its folder is renamed, **delete the source outright** — do NOT leave a `# Merged into:` stub. Stubs are clutter the user does not want; discoverability is preserved by reconciling every back-reference, not by a breadcrumb file. The gate is **0 stale references**, verified before you finish.
+
+**Merging** (`merge A into B`):
 
 1. **Read both docs** in full before writing anything.
-2. **Choose the canonical path** — keep the richer/primary doc's path as the merge target. The secondary doc's path becomes the redirect stub.
+2. **Choose the canonical path** — keep the richer/primary doc's path as the merge target.
 3. **Write the merged doc** to the canonical path — combine all sections (Decisions, Gotchas, Files, Bugs) without duplicating rows. Update LLM-CONTEXT `Domain` to reflect both concerns (e.g. `student/exam-taking + admin/exam-sets`).
-4. **Replace the secondary doc** with a redirect stub — do NOT delete it (breaks `rg` discoverability). Strip the secondary doc's LLM-CONTEXT block entirely — the stub must NOT have one:
-   ```markdown
-   <!-- Reason: [one sentence on why they're coupled] -->
-   # Merged into: tasks/<canonical>/current.md
-   ```
-   The `# Merged into:` heading is visible to both humans and `rg`. The `Reason:` stays in the comment to avoid cluttering rendered output.
-5. **Update back-references** — run §5 Validate + §6 Cross-References on the merged doc and every doc that referenced either old path. §6's roadmap/hub sweep covers more than just `Related:` fields — don't stop at `Related:` alone.
+4. **Reconcile ALL back-references FIRST**, then **delete the source doc**. Order matters: reconcile before delete so nothing points at a path you just removed.
+5. **Validate** — run §5 + §6 on the merged doc.
+
+**Renaming a doc folder** (better discoverability slug):
+
+1. **`git mv`** the folder (and any `instructions.md`/`stories.md` siblings) — preserves history; a plain `mv`+add shows as delete+add.
+2. **Update the doc's own `# Title` + LLM-CONTEXT `Domain`** to match the new slug.
+3. **Reconcile ALL back-references** to the new path (see below).
+4. **Remove empty leftover dirs** so `Glob tasks/**` doesn't surface stale paths.
+
+**Back-reference reconciliation (both cases) — sweep these, not just `Related:`:**
+- `Related:` fields AND inline `tasks/**/current.md` mentions in OTHER task docs
+- Domain `CLAUDE.md` `> 📖` pointers (e.g. `app/Domain/Invoice/CLAUDE.md`) — code docs cite task docs too
+- Roadmap/hub rows that mirror the doc by name
+- ⚠️ `rg` stdout can corrupt long paths — write matches to a file and Read it (don't trust truncated terminal output)
 
 | ❌ Never | ✅ Always |
 |---------|---------|
-| Delete the secondary doc outright | Leave a redirect stub — `rg` must be able to find the old path |
-| Keep an LLM-CONTEXT block in the stub | Strip it — the stub is a pointer, not a live doc |
-| Only update `Related:` fields in back-references | Run full §6 sweep — roadmap rows and hub tables also mirror status |
+| Leave a `# Merged into:` redirect stub | Delete the source; reconcile every back-ref instead |
+| Delete the source before reconciling back-refs | Reconcile to the new path FIRST, then delete (0 stale = gate) |
+| Stop at `Related:` fields | Sweep inline mentions + domain `CLAUDE.md` pointers + roadmap rows |
+| Plain `mv` a renamed folder | `git mv` — keeps history |
 
 ## 3. When Creating
 

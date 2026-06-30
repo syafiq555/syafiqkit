@@ -22,6 +22,12 @@ Execute all steps in sequence without pausing for confirmation.
 - Step 4: invoke `syafiqkit:task-summary` WITH the known doc path (skip the multi-domain scan — you already know the one affected doc).
 - Output: the compact single-table form (see Output).
 
+**Docs-only mode** when the diff is **entirely documentation** — `*.md` only (task docs, CLAUDE.md, README), zero application code (`git diff --name-only` shows no `.php`/`.ts`/`.tsx`/etc.):
+- Step 1: **skip all three code agents** — simplifier/reviewer/product-reviewer audit *code*; there is none. Running them against markdown is theater. Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve.
+- Steps 2-4 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run).
+- Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
+- ⚠️ **Exception — a doc edit that DOCUMENTS new code shipped this session** (you wrote both code and its doc) is NOT docs-only; the diff includes code, so use Full/Light by file count.
+
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
 
 ## Step 1: Simplify + Review + Product Review (parallel)
@@ -120,9 +126,9 @@ One combined table. Detail only what was actually WRITTEN or FIXED — never enu
 
 | Step | Result |
 |------|--------|
-| Simplify | [changes made, or ✅ none needed] (full mode only) |
-| Review | [issues found + fixed, or ✅ clean] |
-| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / light mode] (full mode only) |
+| Simplify | [changes made, or ✅ none needed; ➖ docs-only] (full mode only) |
+| Review | [issues found + fixed, or ✅ clean; in docs-only mode = referential-integrity result] |
+| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / light / docs-only mode] (full mode only) |
 | Cleanup | [removed, or ➖] |
 | Knowledge | [N entries → target files, one line each; "0 new" if none] |
 | Task docs | [doc path → one-line summary of the update] |

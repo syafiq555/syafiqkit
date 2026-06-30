@@ -86,7 +86,9 @@ Tables are not supported in Google Chat. Convert each row to a bullet, with the 
 > Italic (`_text_`) is only for prose text that was explicitly italic in the source -- never for labels, field names, or headings.
 
 ### Em dashes
-Em dashes — both the Unicode character `—` (U+2014) AND the ASCII `--` form — must be converted. After a bold label, replace with a colon. In flowing prose, replace with a hyphen.
+⚠️ **NEVER output an em dash (`—`) in the converted result.** This applies to both Claude-generated prose and converted source content.
+
+Strip all em dashes from the source — both the Unicode `—` (U+2014) and ASCII `--` forms:
 
 ```
 *Label* — description     ->  *Label*: description
@@ -94,6 +96,8 @@ Em dashes — both the Unicode character `—` (U+2014) AND the ASCII `--` form 
 sentence — continuation   ->  sentence - continuation
 sentence -- continuation  ->  sentence - continuation
 ```
+
+After a bold label: replace with `:`. In flowing prose: replace with `-`. Never leave an em dash in the output.
 
 ### Unsupported -- remove or simplify
 - `---` horizontal rules -> remove entirely
