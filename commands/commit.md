@@ -8,9 +8,15 @@ Create conventional commits from staged changes.
 
 ## Workflow
 
+⚠️ **MANDATORY — run `git -C <subdir> status -s` for EVERY nested repo before concluding scope.** The `gitStatus` context block shown at conversation start reflects only the invoking directory at session-start time — it is not proof the sub-repos are clean. Never infer sub-repo state from it.
+
 1. **Find repos to commit** — check working directory for staged changes, then check subdirs for nested `.git` repos with staged changes. Skip any repo with nothing staged.
 
-2. **Changelog gate** (per-repo): If staged changes include user-visible fixes/features/improvements, check if `CHANGELOG.md` is also staged. If NOT → **auto-update it**: read the current `CHANGELOG.md`, prepend a new dated entry under the correct heading (`### Fixed` / `### Added` / `### Changed`) matching today's date, stage it with `git add CHANGELOG.md`, then continue to commit. Do NOT ask the user — just do it.
+2. **Changelog gate**: If staged changes include user-visible fixes/features/improvements, add an entry to the **workspace-root `CHANGELOG.md`** (the top-level one above all sub-repos), NOT the sub-repo's own `CHANGELOG.md` — even when committing inside a nested repo (e.g. `myhalalgig-duopharma/`, `QuikHalalv4/`). This applies whenever multiple sibling repos share one root workspace (multi-repo project layout) — for a genuinely standalone single-repo project, update that repo's own `CHANGELOG.md` instead.
+   - Read the root `CHANGELOG.md`, find (or create) the `## [YYYY-MM-DD]` heading for today, and prepend a bullet under the correct sub-heading (`### Fixed` / `### Added` / `### Changed`) tagged with the originating repo: `- [<repo-name>] <description>`.
+   - Stage it with `git add <path-to-root>/CHANGELOG.md` (relative to the sub-repo's cwd, e.g. `../CHANGELOG.md`) alongside that repo's own commit — the changelog file lives outside the sub-repo's `.git`, so it does NOT get committed as part of the sub-repo's commit; commit it as part of the root repo's own commit (or a small standalone `docs` commit in root if root has nothing else staged).
+   - ❌ Never head the entry `[Unreleased]` — always a dated heading `[YYYY-MM-DD]`, no per-repo version numbers as headings (version numbers, if relevant e.g. a mobile APK release, go inline in the bullet text, not as a heading).
+   - Do NOT ask the user — just do it.
 
 3. **For each repo with staged changes**:
    - `git diff --staged --stat` + `git diff --staged`
@@ -26,6 +32,8 @@ Create conventional commits from staged changes.
    ```
 
 5. **Validate**: No secrets committed, type matches changes
+
+6. **Push** (only if `ARGUMENTS` includes "push"): per-repo, check `git status -sb` for tracking state. If tracking an upstream, `git push`. If no upstream (new local branch), confirm with the user before `git push -u origin <branch>` — creating a new remote branch is a visible, hard-to-reverse action per repo.
 
 ## Commit Format
 

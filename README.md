@@ -25,13 +25,13 @@ claude plugin install syafiqkit@syafiqkit
 | `/read-summary` | Load existing task summary for context |
 | `/write-summary` | Create new task documentation |
 | `/update-summary` | Append findings to existing summary |
-| `/update-claude-docs` | Capture patterns/gotchas to CLAUDE.md |
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
 | `/done` | Post-task cleanup — simplify, review, update docs |
+| `/update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files — the CLAUDE.md analog of task-summary |
 | `/ship` | End-to-end ship: commit → changelog → push → CI verify → GitNexus re-index → release note |
 | `/pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev |
 | `/commit-invoice-generator` | Generate invoice line items from git commits |

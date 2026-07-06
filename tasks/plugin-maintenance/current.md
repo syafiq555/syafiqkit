@@ -2,9 +2,9 @@
 Status: Reference
 Domain: plugin-maintenance
 Purpose: Best practices for maintaining syafiqkit plugin commands/skills
-Key files: commands/write-summary.md, commands/update-summary.md, commands/update-claude-docs.md, CLAUDE.md, .claude-plugin/plugin.json
+Key files: commands/write-summary.md, commands/update-summary.md, skills/update-claude-docs/SKILL.md, CLAUDE.md, .claude-plugin/plugin.json
 Related: None
-Last updated: 2026-06-09
+Last updated: 2026-07-06
 -->
 
 # Plugin Maintenance
@@ -32,12 +32,17 @@ Last updated: 2026-06-09
 
 ### Current Skills
 
+⚠️ **Registry drift**: this table lists 7 of 18 skill directories that actually exist under `skills/` — it predates several skills (`task-summary`, `condense-task-doc`, `condense-claude-md`, `brainstorming`, `ci-ssh-deploy-timeout`, `function-parameter-limits`, `gchat-format`, `hobby-review`, `md-to-pdf`, `notes-summary`, `pull-db`, `ship`) and still names a `consolidate-docs` skill that no longer exists (superseded by `merge-task-docs`). Needs a full re-sync pass — out of scope for this session's edit, flagging so it isn't lost.
+
 | Skill | Purpose | Invoked By |
 |-------|---------|------------|
-| `agent-setup` | Create/update project agents with CLAUDE.md rules | `update-claude-docs` command |
+| `agent-setup` | Create/update project agents with CLAUDE.md rules | `update-claude-docs` skill |
+| `task-summary` | Create/update task doc `current.md` — path resolution, templates, cross-references | `done` skill Step 4, or user directly |
+| `condense-task-doc` | Aggressively condense a bloated task doc — row-existence pruning + sentence compression | User directly, or `task-summary` when a doc is >300 lines |
+| `update-claude-docs` | Create/rewrite/condense/capture-into CLAUDE.md (4 modes); SKILL.md workflow + `references/structure.md` template. CLAUDE.md analog of `task-summary` | `done` skill Step 3, or user directly |
+| `condense-claude-md` | Aggressively condense a bloated CLAUDE.md file | User directly, or `update-claude-docs` Condense mode |
 | `done` | Post-task cleanup orchestrator + task doc templates | User directly |
 | `commit-invoice-generator` | Generate invoice from git commits | User directly |
-| `consolidate-docs` | Merge related task docs into one | User directly (command) |
 | `merge-task-docs` | Find + merge payment/domain task docs by subsystem boundary; delete sources; reconcile back-refs | User directly |
 | `update-plugin` | Scan session → patch SKILL.md files with learned rules/triggers/gotchas | User directly after skill work |
 
@@ -164,6 +169,11 @@ Cut duplicated capture logic and added anti-bloat governance after the user flag
 | Orchestrator skills delegate, never inline a sibling skill's procedure | `done` Step 3 used to contain a full copy of `update-claude-docs`' signal-scan. Two copies drift + force "don't double-write" hedges. An orchestrator should name the sub-skill, not reproduce it. |
 | Fix doc bloat at the generator (skill rules), not by hand-trimming docs | Repeated facts come from each template section "wanting" to mention the critical thing. A cross-section dedup rule in `task-summary` shrinks every future doc; trimming one doc just re-bloats next session. |
 | A CLAUDE.md line is dead weight if a skill enforces it at action-time | CLAUDE.md is read at session start (ambient); a skill is read at the moment of action. When both state a rule, the skill wins and the CLAUDE.md copy only risks drifting out of sync (seen with `/commit`'s changelog gate). |
+| A skill's "happy path" step must defer to a project's documented alternative before assuming it's universal | `ship`'s CI-verify step assumed `gh run list` polling always applies; some projects define a faster non-CI deploy path (rsync hotfix) in their own `CLAUDE.local.md` for a subset of changes. The skill now checks for that convention first rather than hardcoding one project's specifics into the plugin. |
+| A read-only reading command must still ROUTE what it notices, not just narrate it | `read-summary` reads/audits docs constantly and is uniquely placed to catch a doc contradicting the code (stale `Status:`, swapped provider, moved files, expired caveat). Narrating the drift in passing drops the fix — added a "doc-staleness handoff" rule: name it as a finding, then route to `/update-summary` (project fact) or `/update-plugin` (skill defect). Read-only stays read-only; the handoff is the deliverable. |
+| A knowledge-capture skill gains create/rewrite modes → split canonical structure into `references/`, mirroring `task-summary` | `update-claude-docs` grew from pure session-capture into the CLAUDE.md analog of `task-summary` (create / rewrite-to-best-practice / condense / capture). The workflow lives in SKILL.md; the canonical CLAUDE.md template + hierarchy + capture-filter + 200-line budget live in `references/structure.md` — so create/rewrite conform to one source of truth and capture mode inlines only the routing + filter it needs. Same split `task-summary`/`templates.md` already uses. |
+| A skill/command with an identical-named skill needs no wrapper command | `update-claude-docs` was a command; converting it to a skill of the SAME name made the wrapper redundant — a skill's `name:` frontmatter already registers `/update-claude-docs`, and direct invocation forwards the user's trailing text as args, so mode-detection works without a `$ARGUMENTS`-forwarding wrapper. A wrapper only earns its place when the command and skill names differ. |
+| Default pruner target is ~200 lines, and splitting (seam-test) beats lossy cuts as the DEFAULT strategy, not just when a user names a number | `claude-md-pruner` template originally only had the ambient "<350 lines" ceiling, and an earlier draft of this fix gated the seam-test preference on the user explicitly naming a target. User corrected: don't gate it — ~200 is the default target and split-over-cut is the default behavior any time pruning alone leaves a file over target, regardless of whether the user says a number. Prevents force-deleting real distinct gotchas from an already-clean file just because no split was considered. |
 
 ## Sources
 

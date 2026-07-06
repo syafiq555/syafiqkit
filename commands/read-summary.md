@@ -15,6 +15,15 @@ argument-hint: "[domain/feature or full path to current.md]"
 
 A keyword match lands you in the right *folder*, not necessarily the right *bug* — so after the doc loads, restate the user's claim in your own words and confirm the doc addresses *that symptom*, not a nearby topic it happens to mention. And requests that arrive as chat transcripts often reveal their real claim only across several messages: if the central claim shifts (new symptom, a screenshot, or "this was fixed before and came back"), re-run discovery from step 1 rather than extending your first answer. A regression is its own investigation — find the prior fix and check what reverted, don't re-derive from scratch.
 
+### Doc-staleness handoff (don't just narrate it)
+
+⚠️ Reading a doc is also **auditing** it. While loading context you will often catch the doc contradicting the code you just examined — a `Status:` that says "not done" for a feature that's built, a `Provider:`/dependency named that the code has since swapped, a `Key files` path that moved, a date-conditioned caveat now past. **Do NOT just mention the drift in passing and move on** — that drops the fix on the floor (the exact failure this command was patched for). When you spot staleness:
+
+1. **Name it explicitly** as a stale-doc finding (which doc, which line/field, what the code actually shows), separate from answering the user's question.
+2. **Route it, don't fix it inline** — `/read-summary` is read-only. Hand off: project facts (status, provider, moved files, expired caveats) → tell the user to run `/update-summary`; a skill/command defect → `/update-plugin`. Confirm scope before writing.
+
+Staleness you surface and route is closed; staleness you narrate and abandon is a silent regression waiting for the user to catch it re-reading later.
+
 <example>
 Request: "set tak sync" → grep matches `combo-stock-desync` doc, which is about sync-mechanism RCs.
 Later message: "set shows 0 but front/rear have stock, and this was fixed before."

@@ -9,7 +9,7 @@ Execute all steps in sequence without pausing for confirmation.
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| `run_in_background: true` on any Agent call | Run agents in **foreground** (no `run_in_background`) |
+| Omitting `run_in_background` on any Agent call | Pass `run_in_background: false` **explicitly** — omitting the flag has still returned an async task; only the explicit `false` reliably blocks |
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
@@ -32,7 +32,7 @@ Execute all steps in sequence without pausing for confirmation.
 
 ## Step 1: Simplify + Review + Product Review (parallel)
 
-Run all applicable agents **in parallel** (single message, multiple Agent tool calls). **Do NOT use `run_in_background`** — run in foreground so results are available immediately.
+Run all applicable agents **in parallel** (single message, multiple Agent tool calls). Pass `run_in_background: false` explicitly on each — so results are available immediately, with nothing to poll or wait on afterward.
 
 The three roles are deliberately different lenses, not redundant:
 - **Simplifier** — is the code *clean*? (duplication, readability)
@@ -97,7 +97,7 @@ Scan session for temporary artifacts that should be removed:
 
 ## Steps 3 + 4: Capture Knowledge + Update Task Docs (parallel)
 
-Run both **in parallel** (single message, two Skill tool calls) — they are independent. **Do NOT use `run_in_background`.**
+Run both **in parallel** (single message, two Skill tool calls) — they are independent. Pass `run_in_background: false` explicitly if these dispatch as Agent calls.
 
 **Step 3 — Capture Session Knowledge → CLAUDE.md:**
 

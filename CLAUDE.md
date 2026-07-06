@@ -31,7 +31,6 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `read-summary` | Load existing task summary context |
 | `write-summary` | Create task summary (thin wrapper → `task-summary` skill) |
 | `update-summary` | Update task summary (thin wrapper → `task-summary` skill) |
-| `update-claude-docs` | Capture patterns/gotchas into CLAUDE.md files |
 
 ### Skills
 
@@ -50,6 +49,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `function-parameter-limits` | Advise + enforce the 0/2/3+ function-param rule (parameter-object/DTO refactors; ESLint/PHPMD/Pylint setup with DI-constructor carve-outs) | User invokes or proactive on "too many params" |
 | `merge-task-docs` | Find related task docs in a domain, classify by subsystem boundary (not keyword), merge into fewer docs, delete sources, reconcile all back-references | User invokes or proactive when docs overlap |
 | `update-plugin` | Scan the session for plugin learnings (misfired triggers, missing rules, wrong workflow steps, new skills), then patch the actual SKILL.md files. The plugin equivalent of update-claude-docs | User invokes explicitly after skill-creator work |
+| `update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files. The CLAUDE.md analog of `task-summary` (SKILL.md workflow + `references/structure.md` canonical template). Capture mode is `/done` Step 3's single CLAUDE.md writer | `done` skill Step 3, or user directly |
 
 ## Project-Specific Agents
 

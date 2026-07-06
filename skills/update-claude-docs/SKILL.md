@@ -1,13 +1,32 @@
 ---
-description: Capture patterns/gotchas from coding sessions into CLAUDE.md files. Use after implementing features, fixing bugs, or when session revealed reusable knowledge.
-argument-hint: "[optional: focus area]"
+name: update-claude-docs
+description: Create, rewrite, condense, or capture-into CLAUDE.md files following best-practice structure. Use after implementing features or fixing bugs to capture reusable patterns/gotchas (the /done Step 3 default), OR when the user wants to scaffold a new CLAUDE.md for a repo/subdir, restructure an existing one to the canonical section layout, or shrink a bloated file. The CLAUDE.md analog of task-summary. Triggers on "update claude docs", "capture this into CLAUDE.md", "create/write a CLAUDE.md", "rewrite/restructure CLAUDE.md", "make CLAUDE.md follow best practice", "add this gotcha to the docs".
 ---
 
-# Capture Session Knowledge
+# Update CLAUDE.md
 
-Extract reusable patterns from this session into CLAUDE.md files.
+The single manager for CLAUDE.md files — the analog of `task-summary` for `current.md`. It has four modes; pick the one that matches how it was invoked.
 
 ⚠️ **CLAUDE.md only — NEVER auto-memory**: All knowledge from this skill goes to CLAUDE.md, CLAUDE.local.md, or task docs. Do NOT write to auto-memory files (`~/.claude/projects/*/memory/`) — not for feedback, not for project context, not for investigation lessons. Memory is invisible to team members and agents; CLAUDE.md is the single source of truth.
+
+⚠️ **Auto-memory's own "feedback" persona instructions can pre-empt this rule.** A mid-session correction reads as a feedback-memory trigger to the standing auto-memory system before you've consciously routed to this skill — you can catch yourself writing/editing a file under `~/.claude/projects/*/memory/` reflexively, even having just read this rule. If you notice you're about to edit a path under `memory/`, stop: that is never this skill's target, full stop — redirect to CLAUDE.md/CLAUDE.local.md/task doc. If a memory file was already touched this session, revert it before writing the CLAUDE.md entry, don't leave both.
+
+## Mode selection (decide first)
+
+| Invocation | Mode | What it does |
+|-----------|------|--------------|
+| Bare (no args), or after a coding session, or from `/done` Step 3 | **Capture** (default) | Scan the session → route learnings to the right CLAUDE.md layer. The rest of this file. |
+| `create <dir>` / "write a CLAUDE.md for X" / target file is missing | **Create** | Scaffold a new CLAUDE.md in house style from codebase analysis. |
+| `rewrite <file>` / "restructure to best practice" | **Rewrite** | Restructure an existing file to the canonical section layout + formatting. |
+| `condense <file>` / "shrink this CLAUDE.md" | **Condense** | Delegate to `condense-claude-md` (don't reimplement). |
+
+**Create and Rewrite read `references/structure.md` first** — it holds the hierarchy rules, capture filter, section taxonomy, formatting conventions, template family, and the 200-line budget. Capture mode uses only its Routing (§1) and Capture-filter (§2) sections, inlined below. When in doubt which mode, it's Capture — that's the one `/done` depends on.
+
+---
+
+# CAPTURE MODE (default)
+
+Extract reusable patterns from this session into CLAUDE.md files.
 
 ⚠️ **Inline critical facts**: When adding a `> 📖 See task doc` pointer, also inline the 1-2 most critical facts. A fresh session won't follow pointers unprompted — the CLAUDE.md entry itself must contain enough to avoid repeating mistakes.
 
@@ -42,7 +61,7 @@ For each signal, extract 2-3 keywords and **grep all CLAUDE.md files**:
 
 ## 2. Route — Where does it go?
 
-Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local.md`):
+Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local.md`). This ladder is the same hierarchy `references/structure.md` §1 documents in full — read it if a routing call is unclear:
 
 1. Personal/team context → `./CLAUDE.local.md` (project root)
 2. Same domain as modified files → that domain's CLAUDE.md
@@ -168,3 +187,43 @@ After writing each entry (in Step 3):
 - For a **structural** change (new section, new repo's full rule set, changed agent responsibilities/tools), don't hand-edit — run `syafiqkit:agent-setup`, which owns the template + verification checklist.
 
 If no row matches, leave the agents alone and note "Agents: no sync needed (gotcha read dynamically via Bootstrap)" in the output.
+
+---
+
+# CREATE MODE
+
+Scaffold a new CLAUDE.md for a repo, layer, or subdir that has none. The goal is a lean, house-style file — not an exhaustive dump.
+
+1. **Read `references/structure.md` in full first** — it holds the hierarchy, capture filter, section taxonomy, formatting conventions, and the template family. Pick the template that matches the target (root-router / domain-or-layer / subdir / global).
+2. **Determine placement + template.** A project root with sub-repos → root-router (routes, doesn't hold every rule). A sub-repo or `app/`/`react/` layer → domain-or-layer. A single split-off directory → subdir (one focused table, no LLM-CONTEXT header). `~/.claude/` → global.
+3. **Analyze the codebase for real content — don't invent.** Every line must pass the capture filter (§2). Gather:
+   - **Commands**: the actual test/build/seed/dev commands (read `package.json` scripts, `composer.json`, Makefile, README). Only the non-obvious ones.
+   - **Architecture**: the 3-5 dirs a newcomer must know, with ✅/⚠️ markers for canonical-vs-legacy. Not the whole tree.
+   - **Stack + entry points** for the LLM-CONTEXT header (framework versions from lockfiles; entry files).
+   - **Critical rules / gotchas**: only ones you can actually justify from the code (a broken legacy model, a schema quirk, a route-placement constraint). If you can't justify a rule from the code, leave it out — an empty section is better than a guessed one.
+4. **Write in house style** — LLM-CONTEXT header, `{#anchor}` on every `##`, `❌ NEVER / ✅ INSTEAD` and `Symptom | Cause | Fix` tables, file+symbol references (never line numbers), sections in taxonomy order. Cross-reference the parent layer for shared concepts (`> Schema: parent CLAUDE.md #{plans}`).
+5. **Stay under budget** — target <200 lines (§6). A fresh scaffold that's already near the cap means you're including too much; keep the highest-signal rules, drop the rest.
+6. **Validate** (§5 checks apply): anchors present + unique, tables well-formed, no invented rules, no secrets (those go to `CLAUDE.local.md` by name only), cross-refs resolve.
+
+# REWRITE MODE
+
+Restructure an existing CLAUDE.md to the canonical layout + formatting without losing any load-bearing rule. This is a *structural* rewrite, not a capture pass and not primarily a shrink (that's Condense).
+
+1. **Read the target file AND `references/structure.md` in full.**
+2. **Inventory every rule in the current file** before touching anything — list each constraint/gotcha/command so you can prove none is dropped in the rewrite. This is the safety gate: a rewrite that silently loses a hard-won gotcha is worse than no rewrite.
+3. **Re-section to taxonomy order** (§3): LLM-CONTEXT header → Commands → Architecture → Critical Rules → domain sections → Gotchas → cross-refs. Move each existing rule into its correct section.
+4. **Normalize formatting to house style** (§4): free-form bullets restating a constraint → `❌/✅` rows; debugging notes → `Symptom | Cause | Fix` rows; add missing `{#anchor}`s; strip line numbers down to file+symbol; delete session storytelling.
+5. **Apply the capture filter** (§2) as you go: a rule that's discoverable-from-code, linter-enforced, or feature-specific gets *removed* (feature-specific → note it belongs in a task doc), not reformatted. This is the one place Rewrite deletes — for the wrong-layer/discoverable class only, never for "seems long".
+6. **Route mis-placed rules** (§1): a rule that belongs one layer down goes to (or creates) the subdir/domain file, using the seam-test. A cross-cutting rule wrongly buried in a subdir moves up to the layer.
+7. **If still over budget after restructure** → hand off to `condense-claude-md` for a density pass; don't force-shrink by dropping rules yourself.
+8. **Validate**: diff your rule-inventory (step 2) against the rewritten file — every load-bearing rule still present (possibly relocated), zero dropped. Then §5 checks.
+
+# CONDENSE MODE
+
+The user wants a bloated CLAUDE.md shrunk. **Delegate to the sibling skill — do not reimplement:**
+
+```
+Skill: syafiqkit:condense-claude-md
+```
+
+Pass the target file. That skill owns the density rules (strip WHY columns, collapse 3-col→2-col tables, remove discoverable content, tighten multi-sentence rows). If the file also needs *structural* re-sectioning (wrong section order, missing anchors), run Rewrite mode first, then Condense — structure before density.

@@ -60,7 +60,9 @@ git push
 
 ### Step 4: Verify CI/CD Deploy
 
-Wait for CI to complete, then verify production matches.
+⚠️ **Check the project's `CLAUDE.local.md` for a documented non-CI deploy path (rsync hotfix, manual sync, etc.) before assuming CI is the only route.** Some projects fast-track backend-only changes (no migration/deps/frontend touch) around CI entirely — polling `gh run list` for a deploy that was never queued will hang or false-negative. If such a path exists and applies to this change, follow it instead of Steps 4.1–4.2 (still do the prod-HEAD-mismatch style verification appropriate to that path, e.g. grep the deployed file/config on the server).
+
+Otherwise, wait for CI to complete, then verify production matches:
 
 1. **Check CI status** — poll `gh run list --limit 1 --json status,conclusion,headSha` in each pushed repo. Wait up to 5 minutes.
 
@@ -117,5 +119,6 @@ Auto-generate a Google Chat-formatted release note from the changelog:
 | No `remote` CLI or no prod server in CLAUDE.local.md | Skip prod verification step |
 | No `.gitnexus/` directory | Skip GitNexus re-index for that repo |
 | No `CHANGELOG.md` | Skip changelog gate and release note |
+| Repo is "internal" (plugin, script, tooling) | Never skip the release note — internal repos ship too. Only skip is `No CHANGELOG.md` |
 | Sub-repo already pushed but root not | Push only unpushed repos |
 | Single repo (no sub-repos) | Works as-is — just one repo to process |
