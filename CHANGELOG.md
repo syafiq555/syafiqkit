@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.52.5
+
+- **update-claude-docs**: Sharpened the second anti-auto-memory ⚠️ callout to cover *reasoned* justification, not just reflexive writes. The old wording only warned against reflexively creating a memory file mid-session; it didn't stop the follow-on failure of *arguing to keep* an already-written memory file ("it's a cross-project preference, memory is the right home"). The callout now names that rationalization as the violation itself and gives the correct destination — cross-project feedback → global `~/.claude/CLAUDE.md`, project rules → that project's CLAUDE.md — so the signal has a legitimate home other than memory. Replaced in place (not appended) per the escalation rule. Captured after writing `feedback_default_scalable.md` to auto-memory during a `/done`, then defending it during the CLAUDE.md capture despite the rule being present twice at the top of the skill.
+
+## 1.52.4
+
+- **task-summary**: §5 Validate gained a numbered step 7 for the cross-section duplication litmus test — it previously existed only as a loose paragraph under the Density Rules Size Budget section, disconnected from the numbered checklist actually executed at the end of a write. Captured after a condense pass on Dourr's `e-tenancy/current.md`: sections were tightened one at a time (Task Status enumeration collapsed, Bugs Fixed pointer-duplication removed) but a duplicate deploy instruction split across two separate `## Next Steps` bullets survived, because re-reading each edited section in isolation never triggers a doc-wide grep. The new step also names the same failure mode for same-section duplicates, not just cross-section ones.
+
 ## 1.52.3
 
 - **condense-task-doc**: Added a mandatory row-existence pruning pass, run BEFORE sentence compression — for every Critical Gotchas / Key Technical Decisions row, apply the keep-test and DELETE rows that fail it, not just shorten their wording. Named the concrete tell: if the fix is the first thing any competent engineer would try (generic React/CSS/framework behavior — `aspectRatio` for responsive sizing, `enabled:` guard on a conditional hook, `stopPropagation` on click after pointerdown), it's not a project gotcha even if it once cost a session to find. Also removed the "already under 300 lines → skip" escape hatch from the exit criteria. Captured after a condensation pass on a 284-line Dourr task doc followed every existing rule (dedup, sentence-tightening) but only cut to 275 lines (3%); the user flagged it as "still verbose," and a manual second pass deleting ~35 discoverable-from-code rows cut it to 243 lines (14% total) with zero project-specific facts lost.
