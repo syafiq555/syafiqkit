@@ -153,7 +153,7 @@ A decision/gotcha/bug captured only in `## Last Session` is a bug — Last Sessi
 | `## Critical Gotchas` | Append new rows to Backend or Frontend table |
 | `## Key Technical Decisions` | Append new rows |
 | `## Files` | Add new files if introduced |
-| `## Next Steps` | Remove done, add pending |
+| `## Next Steps` | Remove done, add pending. **FLAT `- [ ]` checklist — never bold sub-headings grouping items ("**this session's findings:**", "**earlier:**"); grouping drifts it into a changelog.** Order by priority if needed; session provenance goes in `## Last Session`, not as structure here. |
 | `## Last Session` | **Overwrite in place — ONE session only, ≤5 bullets, ≤2 lines each.** Delete the previous session's bullets entirely (never append a dated bullet below them — that's a changelog). Before deleting, fold any still-load-bearing fact into its proper Decision/Gotcha row. Parallel sessions: overwrite only your own content, but the one-session cap still holds. |
 
 ### Quick Start Section (cold-start context for next session)
@@ -198,6 +198,7 @@ Re-read after writing:
 4. Next Steps has no stale completed items
 5. No rows deleted
 6. Back-references reconciled (§6) — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated
+7. **Cross-section duplication** — grep the doc for its 2-3 most critical phrases (see Density rules litmus test). A phrase surviving in >2 sections, OR the same fact split across two bullets in the SAME section (e.g. two Next Steps items both saying "then deploy via full CI"), means collapse to one. Section-by-section editing during a condense pass is the most common way this is missed — a duplicate introduced in one section isn't caught by re-reading that section alone, only by a doc-wide grep after all edits land.
 
 ## 6. Cross-References
 

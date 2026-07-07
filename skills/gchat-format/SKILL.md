@@ -72,6 +72,7 @@ https://bare-url.com     ->  unchanged (auto-linked by Chat)
 ### Tables -> Bullet list with bold labels
 Tables are not supported in Google Chat. Convert each row to a bullet, with the first column always as `*bold*`.
 
+**Narrow tables (≤3 columns):** keep each row as a single inline bullet.
 ```
 | Field     | Required | Notes       |
 |-----------|----------|-------------|
@@ -82,7 +83,23 @@ Tables are not supported in Google Chat. Convert each row to a bullet, with the 
 * *First Name*: Yes, Tenant name
 ```
 
-> Label columns (first column of a table row) must ALWAYS use `*bold*`, not `_italic_`.
+**Wide tables (4+ columns):** do NOT cram all column values into one comma-separated line -- it becomes unreadable. Instead, make the first column a bold top-level bullet, and give each remaining column its own indented sub-bullet as `column header: value`.
+```
+| Agency | Platform fee | Gateway fee | Net now | Impact |
+|--------|-------------:|------------:|--------:|-------:|
+| Acme   | 771.45       | 75.00       | 673.45  | -RM 10 |
+
+->
+
+* *Acme*
+   * Platform fee: 771.45
+   * Gateway fee: 75.00
+   * Net now: 673.45
+   * Impact: -RM 10
+```
+Note: Google Chat does not render true nested indentation -- indented sub-bullets display as flat bullets with a small leading space, which is still far more scannable than one long comma-separated line. If the wide table has many rows, offer a trimmed version too (e.g. totals only, or top N rows).
+
+> Label columns (first column of a table row, and each sub-bullet's column header) must ALWAYS use `*bold*`, not `_italic_`.
 > Italic (`_text_`) is only for prose text that was explicitly italic in the source -- never for labels, field names, or headings.
 
 ### Em dashes
