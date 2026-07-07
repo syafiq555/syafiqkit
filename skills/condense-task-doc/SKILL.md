@@ -14,7 +14,7 @@ The goal is maximum signal-to-noise: a cold-start agent should be able to read t
 A fact belongs in exactly ONE place. LLM-CONTEXT and Quick Start *point* to canonical sections — they do not restate them. Investigation narratives re-tell what Bugs Fixed already records. Verification logs re-tell what git history owns.
 
 **2. Bloated sentences.**
-One idea per sentence. No filler words: cut "basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned". Evidence (hashes, numbers, SQL output) lives in git — not the doc.
+Base writing-style rules: `_shared/references/writing-style.md`. Evidence (hashes, numbers, SQL output) lives in git — not the doc.
 
 ---
 

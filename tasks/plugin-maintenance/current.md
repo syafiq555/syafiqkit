@@ -2,9 +2,9 @@
 Status: Reference
 Domain: plugin-maintenance
 Purpose: Best practices for maintaining syafiqkit plugin commands/skills
-Key files: commands/write-summary.md, commands/update-summary.md, skills/update-claude-docs/SKILL.md, CLAUDE.md, .claude-plugin/plugin.json
+Key files: commands/commit.md, skills/ship/SKILL.md, skills/task-summary/SKILL.md, skills/update-claude-docs/SKILL.md, CLAUDE.md, .claude-plugin/plugin.json
 Related: None
-Last updated: 2026-07-06
+Last updated: 2026-07-08
 -->
 
 # Plugin Maintenance
@@ -174,6 +174,8 @@ Cut duplicated capture logic and added anti-bloat governance after the user flag
 | A knowledge-capture skill gains create/rewrite modes → split canonical structure into `references/`, mirroring `task-summary` | `update-claude-docs` grew from pure session-capture into the CLAUDE.md analog of `task-summary` (create / rewrite-to-best-practice / condense / capture). The workflow lives in SKILL.md; the canonical CLAUDE.md template + hierarchy + capture-filter + 200-line budget live in `references/structure.md` — so create/rewrite conform to one source of truth and capture mode inlines only the routing + filter it needs. Same split `task-summary`/`templates.md` already uses. |
 | A skill/command with an identical-named skill needs no wrapper command | `update-claude-docs` was a command; converting it to a skill of the SAME name made the wrapper redundant — a skill's `name:` frontmatter already registers `/update-claude-docs`, and direct invocation forwards the user's trailing text as args, so mode-detection works without a `$ARGUMENTS`-forwarding wrapper. A wrapper only earns its place when the command and skill names differ. |
 | Default pruner target is ~200 lines, and splitting (seam-test) beats lossy cuts as the DEFAULT strategy, not just when a user names a number | `claude-md-pruner` template originally only had the ambient "<350 lines" ceiling, and an earlier draft of this fix gated the seam-test preference on the user explicitly naming a target. User corrected: don't gate it — ~200 is the default target and split-over-cut is the default behavior any time pruning alone leaves a file over target, regardless of whether the user says a number. Prevents force-deleting real distinct gotchas from an already-clean file just because no split was considered. |
+| Extract only true verbatim cross-skill duplication to `skills/_shared/references/`, don't chase pointer-extraction broadly | Research during a condensation session found conflicting guidance: generic LLM-instruction research says inline repetition is more reliable than pointers (indirection risks non-compliance), while Anthropic's own Skills docs recommend `references/*.md` extraction specifically because Skills load references on demand (a documented mechanism, not a bare in-prompt pointer). Reconciled by scoping extraction narrowly: pulled the one byte-identical "no filler words" table repeated across 5 skills (`task-summary`, `notes-summary`, `update-claude-docs`, `condense-task-doc`, `condense-claude-md`) into `skills/_shared/references/writing-style.md`; left skill-specific rules, rationale, and edge cases inline everywhere else. `merge-task-docs` mentions "no filler words" only as a one-word inline nod, not the duplicated table, so it was left as-is rather than pointed at the shared file. |
+| A second condensation pass fixed 2 remaining near-duplication cases, checked but skipped a 3rd, and left the rest alone | Full survey of all 6 commands + 18 skills for the user's "everything feels condensable" ask. Fixed: (1) `ship`'s Step 2 staleness-gate bullets, which paraphrased `commit.md`'s Step 3 gate almost word-for-word, collapsed to a one-line pointer at `commit.md` as sole canonical source. (2) `task-summary`'s §2a merge rules table, redundant with `merge-task-docs`' fuller version despite already delegating the merge workflow to it, trimmed to just the rename-only row (not delegated) plus a pointer for the rest. Checked and left alone: `update-claude-docs` vs `update-plugin` share a Scan→Route→Write→Validate skeleton but apply it to disjoint content (CLAUDE.md sections vs SKILL.md files) — shared shape, not duplicated text. Also left alone: thin command aliases (`write-summary`/`update-summary`, intentional dual triggers), and the `task-summary`/`condense-task-doc`/`merge-task-docs` three-way split (already properly decomposed by operation, not overlapping). |
 
 ## Sources
 
@@ -183,5 +185,5 @@ Cut duplicated capture logic and added anti-bloat governance after the user flag
 
 ## Next Steps
 
+- Commit the in-flight 1.52.10 condensation batch (currently uncommitted — see `git status`)
 - Monitor whether `<thinking>` blocks reduce domain inference errors in practice
-- Consider adding validation loop to `consolidate-docs` if merge errors occur in future sessions

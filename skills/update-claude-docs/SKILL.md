@@ -100,10 +100,11 @@ These belong in `CLAUDE.local.md` because they contain env-specific context (ser
 
 ### Entry style (every entry you write)
 
+Base writing-style rules (no filler words, one idea per sentence): `_shared/references/writing-style.md`.
+
 | Rule | Detail |
 |------|--------|
 | **Rows ≤2 sentences** | State the constraint + the single reason it exists. ≤1 parenthetical per sentence. |
-| **No filler words** | Cut: "basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned". If removing the phrase doesn't change meaning, remove it. |
 | **No session storytelling** | Never write how the mistake happened ("this happened twice", "a reviewer caught it", "#1/#2/#3 trigger" lists). The rule states the constraint, not its history. |
 | **One concrete example max** | One symptom string or code snippet. Multiple examples of the same failure add length, not signal. |
 | **Capture filter** | Before writing: "would Claude act differently without this?" If no, don't write it. |

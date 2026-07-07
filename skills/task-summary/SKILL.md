@@ -35,13 +35,12 @@ Two failure modes kill these docs: **the same fact restated in 4–5 sections**,
 
 ### Layer 2 — sentence style (every sentence you write)
 
+Base rules: `_shared/references/writing-style.md`. Additional rules for task docs:
+
 | Rule | Detail |
 |------|--------|
-| **One idea per sentence** | ≤1 parenthetical. No arrow-chain shorthand (`A → B → fails`) — write it out. |
-| **No filler words** | Cut: "basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned". If removing the phrase doesn't change meaning, remove it. |
 | **Rows ≤2 sentences** | Rule + single strongest reason. Rejected-alternative essays and verification narratives get deleted; git history owns them. |
 | **No metrics/hashes in rows** | Commit hashes = Last Session only. Verification = one word ("verified"). |
-| **Capture filter** | Keep only if a future session would ACT DIFFERENTLY knowing it. Process history fails this test. |
 
 ### Size budget
 
@@ -86,13 +85,7 @@ Read **both** the resolved path **and `references/templates.md`** first — the 
 
 ⚠️ **NO redirect stubs.** When a doc is merged into another or its folder is renamed, **delete the source outright** — do NOT leave a `# Merged into:` stub. Stubs are clutter the user does not want; discoverability is preserved by reconciling every back-reference, not by a breadcrumb file. The gate is **0 stale references**, verified before you finish.
 
-**Merging** (`merge A into B`):
-
-1. **Read both docs** in full before writing anything.
-2. **Choose the canonical path** — keep the richer/primary doc's path as the merge target.
-3. **Write the merged doc** to the canonical path — combine all sections (Decisions, Gotchas, Files, Bugs) without duplicating rows. Update LLM-CONTEXT `Domain` to reflect both concerns (e.g. `student/exam-taking + admin/exam-sets`).
-4. **Reconcile ALL back-references FIRST**, then **delete the source doc**. Order matters: reconcile before delete so nothing points at a path you just removed.
-5. **Validate** — run §5 + §6 on the merged doc.
+**Merging** (`merge A into B`): delegate to `syafiqkit:merge-task-docs` — it owns the full workflow (subsystem-boundary check, back-ref scan, canonical-path choice, validation). Don't reimplement it here.
 
 **Renaming a doc folder** (better discoverability slug):
 
@@ -109,10 +102,9 @@ Read **both** the resolved path **and `references/templates.md`** first — the 
 
 | ❌ Never | ✅ Always |
 |---------|---------|
-| Leave a `# Merged into:` redirect stub | Delete the source; reconcile every back-ref instead |
-| Delete the source before reconciling back-refs | Reconcile to the new path FIRST, then delete (0 stale = gate) |
-| Stop at `Related:` fields | Sweep inline mentions + domain `CLAUDE.md` pointers + roadmap rows |
 | Plain `mv` a renamed folder | `git mv` — keeps history |
+
+For merge-specific ❌/✅ rules (stub handling, reconcile-before-delete, `Related:` sweep scope, subsystem-vs-keyword, size budget), see `syafiqkit:merge-task-docs`'s Rules table — don't duplicate them here.
 
 ## 3. When Creating
 
