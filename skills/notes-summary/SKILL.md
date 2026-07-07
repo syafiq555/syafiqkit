@@ -7,6 +7,8 @@ description: Create, update, or read a personal session journal — a living log
 
 A personal session journal for the things that don't belong in code. Task docs (`tasks/**/current.md`) capture *feature work* for the team; auto-memory captures *facts*. This captures the third thing: **conversations, decisions, and dynamics that are yours alone** — what your boss actually meant, what you decided to do about it, what to watch next time. Living documentation, always reflecting current understanding — not a transcript dump.
 
+⚠️ **A durable working-style / communication preference for how Claude should behave is NOT a journal entry — route it to global `~/.claude/CLAUDE.md` Working Style, not here.** When the user hands you a preferred output format or working correction ("give me summaries like this instead", "always X when you Y"), that steers behavior on every future session — it must live in the always-loaded global CLAUDE.md, not a passively-read private journal. Capture it via `update-claude-docs` (or edit the global file directly); do NOT absorb it as a notes thread or a Standing Takeaway. A journal records what a *person* said/decided; global CLAUDE.md records how *Claude* should act.
+
 ## Why this exists (and why not the alternatives)
 
 - **Not in the repo.** This content is personal/sensitive (boss feedback, career thinking, relationship dynamics). It must never be committed where a teammate could read it. So it lives outside the repo entirely.

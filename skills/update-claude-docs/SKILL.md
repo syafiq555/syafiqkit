@@ -46,6 +46,7 @@ Look for these signals in the conversation:
 | Environment surprise | Gotcha |
 | Convention preference | Convention |
 | Debugging root cause discovered | Gotcha |
+| User states a durable preference for HOW Claude should communicate/behave (e.g. pastes a preferred summary format saying "give it like this instead") | Working-style rule → **global `~/.claude/CLAUDE.md`** Working Style bullet — the arg IS the capture target, don't treat it as content-to-summarize or answer inline |
 | Team/strategy context | Context → `CLAUDE.local.md` |
 | Credentials/tokens/API headers used from config files | Env pattern → `CLAUDE.local.md` |
 | CLI pattern reused 3+ times (curl, scp, remote) | Env pattern → `CLAUDE.local.md` |

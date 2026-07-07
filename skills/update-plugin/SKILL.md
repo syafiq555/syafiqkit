@@ -24,7 +24,7 @@ Look for these signals in the session:
 | A merge/refactor decision was made about the plugin itself | Add to `plugin-maintenance/current.md` Architecture Decisions table |
 | A "keyword trap" or nuance that future sessions need to know | Add as a named rule with a concrete example in the relevant skill |
 
-Skip signals that are project-specific (those go to `update-claude-docs` instead). The test: would this change be useful the next time *this skill* is used in *any* project? If yes, it belongs here.
+Skip signals that are project-specific OR a durable working-style/communication preference (both go to `update-claude-docs` instead — a style pref lands in global `~/.claude/CLAUDE.md`, never a SKILL file). The test: would this change alter how a *skill* triggers or behaves? If yes, it belongs here; if it's about how *Claude* should communicate generally, it doesn't.
 
 ## Step 2 — Route: Which file needs patching?
 

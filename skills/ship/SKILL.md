@@ -34,7 +34,8 @@ For each repo with changes:
 1. **Stage files** — `git add <specific files>` (never `git add -A`)
 2. **Version-bump gate (plugin/package repos)** — if the repo has version files, bump **EVERY** file that carries the version before staging. Run `grep -rn '"version"' <manifest-dir>` to discover all version fields (secondary fields like `plugins[0].version` drift silently when only the primary is bumped). See the repo's `CLAUDE.md#version-bumping` for the canonical file list.
 3. **Changelog gate** — if changes include user-visible work AND `CHANGELOG.md` is not staged → STOP. Ask user to update changelog first.
-4. **Commit** — conventional format: `<type>(<scope>): <message>`
+4. **Task doc staleness gate** — ⚠️ don't rely solely on `/done` having run. Cross-check: `git diff --staged --name-only | grep '^tasks/'` for already-staged docs, AND `Grep tasks/**/current.md` for any doc whose `## Files`/file references overlap this diff's changed paths but that is NOT staged. An overlapping-but-unstaged doc means its `Status:`/`## Last Session` describes a state older than what's about to ship (e.g. still says "uncommitted"). Run the `task-summary` skill on it and stage it before committing — never ship code whose owning doc drifts stale.
+5. **Commit** — conventional format: `<type>(<scope>): <message>`
 
 ```bash
 git commit -m "$(cat <<'EOF'
