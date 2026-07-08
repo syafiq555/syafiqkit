@@ -51,6 +51,7 @@ Look for these signals in the conversation:
 | Credentials/tokens/API headers used from config files | Env pattern → `CLAUDE.local.md` |
 | CLI pattern reused 3+ times (curl, scp, remote) | Env pattern → `CLAUDE.local.md` |
 | External API auth that required trial-and-error | Env pattern → `CLAUDE.local.md` |
+| A domain/layer file read this session is all Gotchas with **no `## Architecture {#architecture}` section**, and the domain has non-trivial structure (3+ sibling classes, multiple adapters/contracts) | **Structural gap** — add an Architecture section per `references/structure.md` §3/§5, sourced from the actual files (contracts, sibling-action tables), not invented |
 
 For each signal, extract 2-3 keywords and **grep all CLAUDE.md files**:
 
@@ -164,7 +165,8 @@ After writing each entry (in Step 3):
 2. Count `|` separators — must match table header
 3. "Would removing this cause Claude to repeat the mistake?" — if no, delete it
 4. Scan your entry for narrative markers ("happened", "repeatedly", "caught", "twice", numbered trigger lists) — rewrite to constraint-only
-5. If the target file is now >350 lines, flag it in your output — the Step-4 pruner pass handles the shrink
+5. **Fix column must be a specific, verifiable action, not a vague verb** ("investigate", "check", "handle better", "fix properly") — if the Fix reads as an open-ended task rather than a concrete change, name the actual file/method/config to touch or the exact guard to add
+6. If the target file is now >350 lines, flag it in your output — the Step-4 pruner pass handles the shrink
 
 **Task docs ≠ CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only patterns that apply broadly go in CLAUDE.md.
 
@@ -213,7 +215,7 @@ Restructure an existing CLAUDE.md to the canonical layout + formatting without l
 
 1. **Read the target file AND `references/structure.md` in full.**
 2. **Inventory every rule in the current file** before touching anything — list each constraint/gotcha/command so you can prove none is dropped in the rewrite. This is the safety gate: a rewrite that silently loses a hard-won gotcha is worse than no rewrite.
-3. **Re-section to taxonomy order** (§3): LLM-CONTEXT header → Commands → Architecture → Critical Rules → domain sections → Gotchas → cross-refs. Move each existing rule into its correct section.
+3. **Re-section to taxonomy order** (§3): LLM-CONTEXT header → Commands → Architecture → Critical Rules → domain sections → Gotchas → cross-refs. Move each existing rule into its correct section. If the file has no Architecture section at all (common in a gotchas-only file that grew incident-by-incident), that's a gap to fill, not just a reorder — derive it from the real contracts/sibling classes (e.g. a "4 mutually-exclusive-precondition sibling Actions" table), never invent structure that isn't in the code.
 4. **Normalize formatting to house style** (§4): free-form bullets restating a constraint → `❌/✅` rows; debugging notes → `Symptom | Cause | Fix` rows; add missing `{#anchor}`s; strip line numbers down to file+symbol; delete session storytelling.
 5. **Apply the capture filter** (§2) as you go: a rule that's discoverable-from-code, linter-enforced, or feature-specific gets *removed* (feature-specific → note it belongs in a task doc), not reformatted. This is the one place Rewrite deletes — for the wrong-layer/discoverable class only, never for "seems long".
 6. **Route mis-placed rules** (§1): a rule that belongs one layer down goes to (or creates) the subdir/domain file, using the seam-test. A cross-cutting rule wrongly buried in a subdir moves up to the layer.

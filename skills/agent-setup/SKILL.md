@@ -27,16 +27,20 @@ Agent file = behavior instructions + Bootstrap directive + top-15 critical rules
 
 ## Agents
 
-Four agents, each with a distinct responsibility:
+Six agents, each with a distinct responsibility:
 
 | Agent | Purpose | Model | Key tools |
 |-------|---------|-------|-----------|
+| `Explore` | Fast read-only search — locate files/symbols/callers. Project-aware version of the built-in `Explore` agent. | `haiku` | Read-only + LSP + gitnexus |
+| `Plan` | Design an implementation approach — critical files, trade-offs, blast radius. Project-aware version of the built-in `Plan` agent. | `sonnet` | Read-only + LSP + gitnexus |
 | `code-reviewer` | Bugs, security, convention violations. Session-aware — reads task docs, gathers changes holistically. | `sonnet` | Read-only + LSP + diagnostics |
 | `code-simplifier` | DRY, clarity, consistency, dead code. Edits files directly. Applies Rule of Three. | `opus` | Read + Edit + Write + LSP |
 | `product-reviewer` | Product/PM lens — missing user journeys, dead-end flows, UX/business-value gaps the engineer forgot to build. Reads the task doc (intent) + built code; recommends, never edits. | `sonnet` | Read-only + LSP + gitnexus |
 | `claude-md-pruner` | Prunes CLAUDE.md files for staleness/bloat. Conservative — preserves reference tables and cross-reference mappings. | `sonnet` | Read + Edit + Grep + Glob |
 
-> **Why 4**: Three lenses on the work, plus one maintenance task. `code-reviewer` asks *is the code correct?*, `code-simplifier` asks *is the code clean?* — both look **down** at the code. `product-reviewer` asks *is the feature complete and valuable?* — it looks **up** from the code to the user and business, catching the class of miss a line-level diff structurally cannot (a CRUD with no "create" button, a funnel with no conversion view). It's read-only like the reviewer but recommends product changes rather than auto-fixing — a missing journey is a scope decision the user owns. `claude-md-pruner` is a separate maintenance concern (what's valuable to keep vs stale) — mixing it into review risks over-aggressive deletion.
+> **Why 6**: Two lenses look **before** the code exists, four look **after**. `Explore` finds what's already there; `Plan` designs the approach — both read this project's CLAUDE.md and task docs so research/design respect project conventions instead of generic search/planning. `code-reviewer` asks *is the code correct?*, `code-simplifier` asks *is the code clean?* — both look down at code just written. `product-reviewer` asks *is the feature complete and valuable?* — it looks up from the code to the user and business, catching the class of miss a line-level diff structurally cannot (a CRUD with no "create" button, a funnel with no conversion view). It's read-only like the reviewer but recommends product changes rather than auto-fixing — a missing journey is a scope decision the user owns. `claude-md-pruner` is a separate maintenance concern (what's valuable to keep vs stale) — mixing it into review risks over-aggressive deletion.
+
+> **Naming exception**: `Explore` and `Plan` intentionally reuse the built-in agent type names (capitalized, no hyphen) instead of the `lowercase-hyphenated` convention the other four use. This is deliberate — a project agent's `name:` frontmatter becomes its `subagent_type`, so naming these files/agents exactly `Explore`/`Plan` makes them **shadow the built-ins** project-wide: any future `Agent({subagent_type: "Explore"})` or `"Plan"` call in this project — including Plan Mode's own phases — resolves to the project-aware version automatically, with no routing table needed.
 
 ```
 Project/
@@ -44,6 +48,8 @@ Project/
 ├── subproject/CLAUDE.md
 └── .claude/
     └── agents/
+        ├── Explore.md
+        ├── Plan.md
         ├── code-reviewer.md
         ├── code-simplifier.md
         ├── product-reviewer.md
@@ -120,7 +126,7 @@ frontmatter (name, description, tools, model, memory: project)
 [Numbered steps: gather changes → read task docs → review/refine → filter/apply → report]
 
 ## [Domain sections]
-[Review categories OR refinement criteria — project-specific]
+[Review categories OR refinement criteria OR search strategy OR planning process — project-specific]
 
 ## High-Frequency Mistakes OR High-Impact Simplifications
 [Top ~15 inline rules table — the most common mistakes for THIS codebase]
@@ -143,7 +149,8 @@ frontmatter (name, description, tools, model, memory: project)
 - `memory: project` in frontmatter — agents maintain project-level memory
 - `mcp__ide__getDiagnostics` in tools — for `code-reviewer` + `code-simplifier` (catches lint/type errors). **Omit for `product-reviewer`** — it judges product completeness, not type correctness; diagnostics are out of its lane
 - `product-reviewer` is **read-only** — NO `Write`/`Edit` in its tools. It recommends product changes; the main session decides what to build (a missing journey is a scope call the user owns). It also has no file slice — it judges the whole feature's journey, so `/done` passes it the feature name + task-doc path, not a partition
-- `mcp__gitnexus__impact` + `mcp__gitnexus__context` in tools — if project has GitNexus indexed (`gitnexus list`). Reviewer uses `impact` to check callers; simplifier uses `context` before extracting; product-reviewer uses `impact` to confirm a capability has no caller (a forgotten journey)
+- `Explore` and `Plan` are **read-only** — NO `Write`/`Edit`. `Explore` reports locations, not opinions; `Plan` recommends an approach, it doesn't implement it. Their `name:` frontmatter must be exactly `Explore`/`Plan` (capitalized, no hyphen) so they shadow the built-in agent types — see the naming exception note above
+- `mcp__gitnexus__impact` + `mcp__gitnexus__context` in tools — if project has GitNexus indexed (`gitnexus list`). Reviewer uses `impact` to check callers; simplifier uses `context` before extracting; product-reviewer uses `impact` to confirm a capability has no caller (a forgotten journey); `Explore` uses `context` for caller/callee questions instead of grepping usage sites; `Plan` uses `impact` to check blast radius on symbols it plans to touch
 - Bootstrap section lists CLAUDE.md files with brief descriptions of what each contains
 - Process includes "Read task docs" step — reduces false positives by understanding intent
 - Inline table has only rules that prevent the most common mistakes
@@ -161,6 +168,7 @@ After writing agents, verify:
 - [ ] If GitNexus indexed: reviewer/simplifier tools include `mcp__gitnexus__impact` and `mcp__gitnexus__context`
 - [ ] Reviewer has a "Known False Positives" table; simplifier has a "Don't Simplify (Preserve These)" table (even if seeded from a couple of CLAUDE.md exceptions)
 - [ ] `product-reviewer` is read-only (NO `Write`/`Edit`, NO `getDiagnostics`), has a "Don't Flag These" non-findings table, a 3-tier severity model (blocking / expected-missing / polish), and a product-context table (who the audiences are)
+- [ ] `Explore`/`Plan` have `name:` frontmatter exactly `Explore`/`Plan`, are read-only (NO `Write`/`Edit`), `Explore` is `model: haiku` and `Plan` is `model: sonnet`
 - [ ] LSP step uses `hover` + `documentSymbol` (NOT `goToDefinition`/`findReferences` — often broken)
 - [ ] Multi-repo: if a sibling repo is driven from the same session, agents carry the `⚠️ Two-repo session` banner, diff both repos, and have a second Bootstrap table + tagged sibling rules
 - [ ] Pruner has NEVER-remove list customized for project (reference tables, gotcha rows, etc.)
@@ -173,6 +181,8 @@ After writing agents, verify:
 
 | Agent | Status | Inline Rules | Bootstrap Refs |
 |-------|--------|-------------|----------------|
+| Explore | Created/Updated | Search strategy (LSP/GitNexus priority) | N CLAUDE.md files |
+| Plan | Created/Updated | Planning process + reuse-first rule | N CLAUDE.md files + task doc |
 | code-reviewer | Created/Updated | ~15 critical rules | N CLAUDE.md files |
 | code-simplifier | Created/Updated | ~12 simplification patterns | N CLAUDE.md files |
 | product-reviewer | Created/Updated | Review lenses + 3-tier severity + don't-flag table | N CLAUDE.md files + task doc |
