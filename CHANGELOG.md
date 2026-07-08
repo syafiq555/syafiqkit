@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.53.1
+
+- **gchat-format**: Flipped the default output format to NO code-block fence. The skill previously mandated wrapping every result in a ` ``` ` fence ("critical"), reasoning that a screen-copy of rendered text drops the `*bold*` asterisks. But when the user copies via a host `/copy` command (which reads the raw message source), the syntax survives without a fence and the fence is just visual noise the user has to look past. No-fence is now the default; the fence is reserved for the manual select-from-screen case only. Captured after a user twice questioned then rejected the fence on a release-note they copied via `/copy`.
+
 ## 1.53.0
 
 - **agent-setup**: Added two new project agents, `Explore` and `Plan`, bringing the total from 4 to 6. Unlike the existing four (which all review/refine code *after* it's written), these two are pre-implementation lenses — `Explore` is a fast read-only search agent (`haiku`), `Plan` is an architecture/planning agent (`sonnet`) — both reading this project's CLAUDE.md and task docs so research and planning respect project conventions instead of generic search/design. Their `name:` frontmatter is intentionally `Explore`/`Plan` (capitalized, no hyphen — an exception to the other agents' `lowercase-hyphenated` convention) so they **shadow the built-in `Explore`/`Plan` agent types** project-wide: any future `Agent({subagent_type: "Explore"})` or `"Plan"` call in a project with these agents set up — including Plan Mode's own phases — resolves to the project-aware version with no routing table needed. `Explore`'s findings table adds a **Scope** column (definition/caller/callee/related-type) so `Plan` can gauge blast radius without re-reading every file, and `Plan`'s output adds a **Pre-Verification Checklist** section — things to directly confirm before code starts, rather than trusting an `Explore` finding's one-line relevance at face value.

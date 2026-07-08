@@ -123,8 +123,8 @@ After a bold label: replace with `:`. In flowing prose: replace with `-`. Never 
 
 ## Output Format
 
-- Wrap the entire output in a single code block (` ``` `) so the user can copy raw markdown syntax -- not rendered text
-- This is critical: if output is not in a code block, Claude's UI renders `*text*` as italic, and copy-pasting into Google Chat will lose the asterisks
+- Do NOT wrap the output in a code block by default -- the user copies via a host `/copy` command that reads the raw message source, so the `*bold*` syntax is preserved without a fence, and the fence is just visual noise.
+- ONLY wrap in a single ` ``` ` code block when the user will manually select-and-copy from the rendered screen (not via `/copy`) -- there, the UI renders `*text*` as italic and a screen-copy drops the asterisks. If unsure how they'll copy and they haven't said, default to no fence.
 - Preserve blank lines between sections
 - Keep emojis as-is
 
@@ -142,9 +142,8 @@ After a bold label: replace with `:`. In flowing prose: replace with `-`. Never 
 - Statements sidebar replaced by Finances group
 ```
 
-**Output:**
-````
-```
+**Output** (no code-block fence by default -- see Output Format):
+
 *Release - 2026-03-27*
 
 *Added*
@@ -153,5 +152,3 @@ After a bold label: replace with `:`. In flowing prose: replace with `-`. Never 
 
 *Changed*
 * Statements sidebar replaced by Finances group
-```
-````
