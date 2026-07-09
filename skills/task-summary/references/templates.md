@@ -130,6 +130,18 @@ The rules above answer "should *this one decision* be a block?" A different ques
 
 **When you do convert a whole doc**: keep Quick Start (MADR doesn't forbid an operational header — it's the cold-start entry), give each ADR its own Consequences (route every gotcha/bug to its owning ADR; env-only traps go to one "Cross-Cutting Operational Notes" section), and reconcile back-refs — sibling docs that cite the old section names ("Key Decisions", "Phase Roadmap") must be re-pointed to the ADR ids.
 
+### Splitting a whole-doc MADR further: index + grouped decision files
+
+A whole-doc MADR can itself outgrow one file (10+ ADRs, several hundred lines). This is a DIFFERENT decision from condensing — condensing removes bloat from a doc that has too many words for its facts; splitting addresses a doc that has too many *facts*, correctly stated, for one file to stay a fast cold-start read. Don't run `condense-task-doc` on a doc in this state — row-existence pruning has nothing to cut when every ADR earns its place; the fix is structural, not a word-count reduction.
+
+**Only split on explicit user request** (e.g. "make this an index" or "too long, split it") — never default to it, same gate as whole-doc MADR conversion itself. Signal it's worth proposing: `condense-task-doc` Step 2 found bytes flat/grew from genuine new ADRs (not restructure artifacts) and the doc is still >300 lines after a legitimate MADR conversion.
+
+**Structure**: keep the original `current.md` as a thin index — Quick Start, any doc-wide operational tables (e.g. a skills/files registry), and a **routing table grouping ADRs by theme**, each row framed as "read `decisions/<theme>.md` if you're asking: *[the question that decision answers]*" rather than a bare decision-title list — a title alone doesn't tell a cold-start reader which file answers their actual question. Move full ADR content into `decisions/<theme>.md` files, 3-5 files typical (matches the "3-5 sub-pages, cluster don't fragment" convention for splitting any long reference doc). Each `decisions/*.md` file is self-contained: its own LLM-CONTEXT block, `Related:` pointing back to the index and sibling theme files.
+
+**Group by theme (the question a reader is asking), not by chronology or ADR number** — a decision-log convention like `adr-tools`' flat one-file-per-decision optimizes for a human `git blame`-ing one commit; an LLM cold-starting a session optimizes for "answer my question in the fewest file-opens," which favors clustering related decisions together over one-file-per-decision. If a decision doesn't cleanly fit an existing theme file, check whether it's actually closer to a different theme already present before creating a 4th file for one ADR.
+
+⚠️ **Verify no fact duplicated across the split** — the LLM-CONTEXT `Gotchas:` teaser in the index is the most common place a decision's content gets silently re-explained instead of pointed-to (the field's whole job is a 1-line pointer, and a rewrite is tempted to restate the finding since it's fresh in context). Grep the finished set of files for the 2-3 most load-bearing phrases across all of them — a phrase surviving in the index AND its owning decision file (beyond a one-line teaser) is the same violation flat single-doc duplication is.
+
 ## Sentence Style (bad vs good)
 
 Rows hold the rule + the single strongest reason. No metrics, hashes, verification narratives, or filler words ("basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned").
