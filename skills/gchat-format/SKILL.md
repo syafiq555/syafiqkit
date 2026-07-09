@@ -124,7 +124,8 @@ After a bold label: replace with `:`. In flowing prose: replace with `-`. Never 
 ## Output Format
 
 - Do NOT wrap the output in a code block by default -- the user copies via a host `/copy` command that reads the raw message source, so the `*bold*` syntax is preserved without a fence, and the fence is just visual noise.
-- ONLY wrap in a single ` ``` ` code block when the user will manually select-and-copy from the rendered screen (not via `/copy`) -- there, the UI renders `*text*` as italic and a screen-copy drops the asterisks. If unsure how they'll copy and they haven't said, default to no fence.
+- ONLY wrap in a single ` ``` ` code block when the user will manually select-and-copy from the rendered screen (not via `/copy`), OR when the user explicitly asks to fence it -- there, the UI renders `*text*` as italic and a screen-copy drops the asterisks. If unsure how they'll copy and they haven't said, default to no fence.
+- ⚠️ When you DO fence the whole output, STRIP inner inline backticks (`` `staging.dourr.com` `` -> `staging.dourr.com`) -- Chat does not nest inline code inside a code block, so they render as literal `` ` `` characters. Inline backticks are ONLY correct in the unfenced (default) form.
 - Preserve blank lines between sections
 - Keep emojis as-is
 

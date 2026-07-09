@@ -28,7 +28,6 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | Command | Purpose |
 |---------|---------|
 | `commit` | Generate commit messages from staged changes |
-| `read-summary` | Load existing task summary context |
 | `write-summary` | Create task summary (thin wrapper → `task-summary` skill) |
 | `update-summary` | Update task summary (thin wrapper → `task-summary` skill) |
 
@@ -37,6 +36,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | Skill | Purpose | Used By |
 |-------|---------|---------|
 | `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
+| `read-summary` | Discover + read task docs/CLAUDE.md before answering, investigating, or implementing; Plan-Mode-aware (judges Explore/Plan subagent delegation vs continuing inline) | User invokes, or model-invoked proactively before project-context-dependent work |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
 | `task-summary` | Create/update task summary docs with path resolution, templates, cross-refs | `write-summary` cmd, `update-summary` cmd, `done` skill |
 | `brainstorming` | Design exploration before creative/architectural work | User invokes or proactive |

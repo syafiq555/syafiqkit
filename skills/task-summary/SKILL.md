@@ -143,10 +143,21 @@ A decision/gotcha/bug captured only in `## Last Session` is a bug — Last Sessi
 | `## Task Status` | Tick off completed rows |
 | `## Bugs Fixed` | Append new bugs |
 | `## Critical Gotchas` | Append new rows to Backend or Frontend table |
-| `## Key Technical Decisions` | Append new rows |
+| `## Key Technical Decisions` | New decision → append. Same decision evolved → edit its existing row/block in place (see MADR sub-rule below) |
 | `## Files` | Add new files if introduced |
 | `## Next Steps` | Remove done, add pending. **FLAT `- [ ]` checklist — never bold sub-headings grouping items ("**this session's findings:**", "**earlier:**"); grouping drifts it into a changelog.** Order by priority if needed; session provenance goes in `## Last Session`, not as structure here. |
 | `## Last Session` | **Overwrite in place — ONE session only, ≤5 bullets, ≤2 lines each.** Delete the previous session's bullets entirely (never append a dated bullet below them — that's a changelog). Before deleting, fold any still-load-bearing fact into its proper Decision/Gotcha row. Parallel sessions: overwrite only your own content, but the one-session cap still holds. |
+
+### MADR Blocks — Edit-in-Place vs Append (when the doc has one)
+
+`references/templates.md` defines when a Decision becomes an MADR block instead of a table row. Once a block exists, a session touching that same decision has two shapes of update — telling them apart matters because appending when you should edit re-derives a growth problem the block format already runs hot on:
+
+| Signal | Action |
+|--------|--------|
+| The session's finding is about a decision **already recorded** — a field in the existing block was wrong, incomplete, or now stale (status flipped `planned`→`shipped`, a Consequence turned out different, an implementation bullet changed) | **Edit the existing block's fields in place.** Update Status/date to show it was touched. This is the same "edit in place, don't append" rule Quick Start already follows — a block isn't exempt from it just because it has more fields than a table row. |
+| The session's finding is **genuinely new** — a different decision, OR a Rejected option from an existing block got reconsidered and adopted (the decision itself changed direction) | **Append a new block** with `Supersedes D-N` in its Status line (see templates.md). Do not silently rewrite the old block to match the new outcome — the fact that D-N was later reversed is itself worth keeping, not erasing. |
+
+The test: **did the underlying decision change, or did our record of an unchanged decision get more accurate?** More-accurate-record-of-the-same-decision → edit. Decision-itself-changed → append + supersede.
 
 ### Quick Start Section (cold-start context for next session)
 

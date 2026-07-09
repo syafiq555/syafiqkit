@@ -22,11 +22,13 @@ Last updated: [YYYY-MM-DD]
 
 | Field | Content | Example |
 |-------|---------|---------|
-| `Status` | Emoji + short state description | `🚀 Local E2E verified, prod pending` |
+| `Status` | Emoji + ONE short sentence, ≤15 words. Never a changelog. | `🚀 Local E2E verified, prod pending` |
 | `Domain` | Project domain name | `risk-analysis`, `invoice`, `payment` |
 | `Gotchas` | Bullet list of critical non-obvious gotchas, pointer to full table | See example above |
 | `Related` | Other task docs with connections | `tasks/training/jd14/current.md, tasks/shared/gotchas-registry.md` |
 | `Last updated` | ISO date of last edit | `2026-02-25` |
+
+⚠️ **`Status` is a state, not a narrative.** It's the first thing a cold-start read (human or LLM) sees, so its whole job is a fast triage signal — not a compressed history of how the feature got here. When you catch yourself writing "and then... which also..." in a Status line, that content belongs in Quick Start's "Where we are" instead, stated there once. A Status line that needs its own sub-clauses for deploy state, a specific bug ID, and E2E results has stopped being a status.
 
 ### Related Field Syntax
 
@@ -66,6 +68,52 @@ Always include error messages/symptoms for searchability:
 |----------------|-----------------|
 | "Date handling can be tricky" | "`InvalidArgumentException: month overflow` → use `parse($m . '-01')` not `createFromFormat('Y-m', $m)`" |
 | "Watch out for eager loading" | "`N+1 on /participants` → add `->with('enrollments')` to query" |
+
+⚠️ **A Gotcha row can also fail the opposite way — too much, not too little.** A row that packs a full incident report into one cell (what every affected file does, every edge case considered, the reviewer who caught it, a cross-reference to three other CLAUDE.md files) stops being a scannable table and becomes a wall of text with pipe characters in it — a reader has to parse a whole paragraph to extract the one rule. If a Gotcha needs more than ~3 sentences to state the rule + its reason, that's a sign it wants its own subsection (or belongs in Key Technical Decisions instead, if it's really explaining a choice rather than warning about a trap) — not a wider table cell.
+
+## One Fact, One Home
+
+The same status/decision/bug ID showing up in LLM-CONTEXT Status, LLM-CONTEXT Gotchas, Quick Start "Where we are", Quick Start "Immediate next actions", a Task Status row, AND a Bugs Fixed row is not thoroughness — it's the same fact restated 5+ times with slightly different wording each time. That's harder to parse than stating it once, because a reader (human or LLM) can't tell whether the restatements agree until they've read all of them, and a future update that touches one restatement but misses the others creates silent drift between them.
+
+Pick ONE section that owns a given fact and cross-reference from the others instead of duplicating:
+- A bug's full story (what broke, why, the fix) lives in **Bugs Fixed** — other sections reference it by ID (`see Bugs B13`), they don't re-explain it.
+- Current overall state lives in **Quick Start "Where we are"** — LLM-CONTEXT `Status` is a one-line pointer to that, not a second copy of it.
+- A decision's rationale lives in **Key Technical Decisions** — Quick Start can note THAT a decision was made, not re-argue WHY.
+
+This mirrors the CLAUDE.md capture rule from `update-claude-docs`: one fact, one home, cross-referenced — not because it's a stylistic preference, but because duplicated facts are what make a cold-start LLM read a doc twice to be sure it isn't missing a discrepancy between two copies of the "same" fact.
+
+## MADR-Style Decisions (when alternatives were actually considered)
+
+`Key Technical Decisions` defaults to a plain 2-column table (`| Decision | Rationale |`) — most decisions have one real option and don't need more. Switch a single decision to an MADR-style block ONLY when it had genuinely REJECTED alternatives worth recording. If nobody seriously considered a different approach, a table row is enough; don't manufacture a "Rejected" section where there wasn't a real one.
+
+```markdown
+### D[N] — [Decision title] [committed | planned | debating] — [YYYY-MM-DD]
+
+**Problem**
+[What was broken/suboptimal that prompted this?]
+
+**Decision**
+Chosen: [the option picked, one line]
+- [reason 1]
+- [reason 2]
+
+**Rejected**
+- Option B: [name]. Why not: [one line]
+- Option C: [name]. Why not: [one line]
+
+**Consequences**
+[What follows — gotchas, tradeoffs, what it does NOT do]
+
+**Status**: committed | planned | debating · **Reversible**: yes/no · [Supersedes D-N if replacing a prior decision]
+```
+
+⚠️ **Measured cost — a MADR block is not free.** Converting a table row to an MADR block costs roughly 18-20 lines vs the ~1 line the table row already took (measured directly against two real conversions in this codebase). That's the entire size budget for several other facts. Reach for MADR sparingly — a decision worth this much space should be one someone would plausibly ask "why didn't we do X instead?" about later, not every decision that happens to have had a second option glanced at.
+
+**Size ceiling**: a MADR block should not exceed ~20 lines. If Problem + Decision + Rejected + Consequences run longer, the block is doing Overview's job — trim Consequences to the one fact not recorded elsewhere (cross-reference Gotchas/Bugs instead of restating them; see One Fact, One Home above).
+
+**Demotion rule**: a MADR block demotes back to a plain table row (`Decision | Rationale`, WHY in ≤1 sentence) once its Rejected alternatives haven't been asked about ("why not X?") in 3+ sessions AND its Status is `committed`/`shipped` (not `planned`/`debating`) — a settled, unrevisited decision's rejected-alternatives detail has stopped being load-bearing for a cold-start read. Fold the single strongest rejection reason into the table row's Rationale cell before deleting the block; don't drop it silently. Demotion is a deliberate condensation step, not something `condense-task-doc` does automatically — see that skill's own rule for what it's allowed to touch in a MADR block versus what it must leave alone.
+
+**Edit-in-place vs append, as the decision evolves over sessions**: `task-summary/SKILL.md`'s "MADR Blocks — Edit-in-Place vs Append" section owns this rule — the short version: the record getting more accurate about an unchanged decision is an edit to the existing block; the decision itself changing direction is a new block with `Supersedes D-N`.
 
 ## Sentence Style (bad vs good)
 
