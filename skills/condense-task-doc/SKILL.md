@@ -73,13 +73,14 @@ Do NOT keep:
 ## Process
 
 1. `Read` the full doc.
-2. Read `task-summary/references/templates.md` — note the canonical section headings, table column names, and field order for every section present in the doc.
-3. Identify all `## Investigation` or narrative-only sections — these are the primary source of bloat. Plan to collapse them into Bugs Fixed rows.
-4. Scan for fact duplication: grep for the 2-3 most critical phrases. If a phrase appears in >2 sections, keep it in one canonical location and convert the others to pointers. Specifically check every Bugs Fixed row against Critical Gotchas — a bug ID or symptom described in both is the most common duplication pattern in a doc that already went through one condensation pass.
-5. **Row-existence pass (mandatory, do BEFORE sentence compression)**: for every row in Critical Gotchas and Key Technical Decisions, apply the keep-test in "What to keep" above and delete rows that fail it — not just shorten them. On a doc with 20+ gotcha/decision rows, expect to delete some; a pass that only tightens wording and drops zero rows has not done this step.
-6. Rewrite the file using `Write` (full rewrite, not incremental `Edit`). Partial edits on a bloated doc leave stale content between hunks.
-7. Count lines before and after. Report the reduction to the user.
-8. Target: **≤300 lines** for a task doc with a full bug history, AND a real cut — a doc that started under 300 lines still needs step 5 applied; "already under budget" is not a reason to skip row-deletion. Flag if still >300 and ask which sections to cut further.
+2. **Check whether this is actually bloat.** If line count crossed 300 because of a recent whole-doc MADR restructure (`## Architecture Decisions` / `### D1` blocks) rather than accumulated cruft, line count alone is misleading — a dense wrapped table cell becomes several short bullet lines under MADR, growing lines while shrinking bytes. Run `git show HEAD:<path> | wc -c` vs `wc -c <path>` (or diff against the last committed version). If bytes are flat or lower, this is a restructure, not bloat — stop and tell the user the doc doesn't need condensing (report both line and byte deltas). Only proceed past this step if bytes grew too.
+3. Read `task-summary/references/templates.md` — note the canonical section headings, table column names, and field order for every section present in the doc.
+4. Identify all `## Investigation` or narrative-only sections — these are the primary source of bloat. Plan to collapse them into Bugs Fixed rows.
+5. Scan for fact duplication: grep for the 2-3 most critical phrases. If a phrase appears in >2 sections, keep it in one canonical location and convert the others to pointers. Specifically check every Bugs Fixed row against Critical Gotchas — a bug ID or symptom described in both is the most common duplication pattern in a doc that already went through one condensation pass.
+6. **Row-existence pass (mandatory, do BEFORE sentence compression)**: for every row in Critical Gotchas and Key Technical Decisions, apply the keep-test in "What to keep" above and delete rows that fail it — not just shorten them. On a doc with 20+ gotcha/decision rows, expect to delete some; a pass that only tightens wording and drops zero rows has not done this step.
+7. Rewrite the file using `Write` (full rewrite, not incremental `Edit`). Partial edits on a bloated doc leave stale content between hunks.
+8. Count lines before and after. Report the reduction to the user.
+9. Target: **≤300 lines** for a task doc with a full bug history, AND a real cut — a doc that started under 300 lines still needs step 6 applied; "already under budget" is not a reason to skip row-deletion. Flag if still >300 and ask which sections to cut further.
 
 ---
 

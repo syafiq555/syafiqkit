@@ -115,6 +115,21 @@ Chosen: [the option picked, one line]
 
 **Edit-in-place vs append, as the decision evolves over sessions**: `task-summary/SKILL.md`'s "MADR Blocks — Edit-in-Place vs Append" section owns this rule — the short version: the record getting more accurate about an unchanged decision is an edit to the existing block; the decision itself changing direction is a new block with `Supersedes D-N`.
 
+### Whole-doc MADR (decision-log) vs standard structure — a SEPARATE choice
+
+The rules above answer "should *this one decision* be a block?" A different question is "should the *whole doc* be a MADR decision-log?" — every architectural choice an ADR block, gotchas/bugs folded into each block's Consequences, tasks/state kept as thin sections. Only restructure a whole doc to MADR when the user **explicitly asks** ("rewrite with MADR", "make this a decision log") — never default to it. Then judge fit:
+
+| Doc's primary value | Structure | Why |
+|---------------------|-----------|-----|
+| **Decision-traceability** — many architectural choices with real rejected alternatives; the reader asks "why did we pick X over Y?" (integration seams, cross-system protocols, auth models) | **Full MADR decision-log** — one ADR per choice, Consequences carry that choice's gotchas | Rationale + alternatives + fallout live together; a new architect reads *why*, not a worklist |
+| **Operational cold-start** — the reader asks "what do I do next / what breaks?"; few real decisions, mostly status + traps (single-feature builds, bug-fix docs) | **Standard** (Quick Start + flat Gotchas tables + Task Status) | Gotchas stay scannable as one checklist; MADR would scatter them across blocks and add ceremony to a doc with no alternatives to record |
+
+⚠️ **Whole-doc MADR is NOT priced like per-block MADR.** The "+18-20 lines each" cost above measures ADDING a block ALONGSIDE the existing Decisions + Gotchas tables. A whole-doc rewrite REPLACES those tables — each gotcha moves into the Consequences of the ADR that created it, which **removes** the cross-section duplication of a fact that was both a Decision (why) and a Gotcha (what-breaks). Measured on a real 13-decision/27-gotcha integration doc: full-MADR came out **shorter** (307→284 lines), not +200. So a decision-heavy doc where most gotchas trace to a specific decision is a GOOD whole-MADR candidate; a gotcha-heavy doc whose traps are environment/deploy noise (not consequences of a choice) is a BAD one — those gotchas have no ADR to live under and end up in a catch-all section anyway.
+
+⚠️ **Line count can still RISE even when the rewrite is a good fit — judge by bytes, not lines.** A second measurement, on a denser 13-decision/62-gotcha doc, went 275→470 lines but 54.3KB→49.0KB (`wc -c`). The mechanism: a wide table cell that wrapped 400+ characters of prose behind one pipe character becomes several short bullet lines inside an ADR's Consequences — MORE newlines, FEWER total characters. Line count and byte count can diverge in either direction depending on how densely the source doc's tables were packed before conversion. **Report both deltas to the user after a whole-doc MADR rewrite**, and judge success by bytes (or a qualitative "no fact restated, no fact lost" check), not by whether lines crossed 300 — the 300-line budget is calibrated for standard-structure docs, not decision logs where structural overhead (Problem/Decision/Rejected/Status headers, ~6-8 fixed lines per ADR) is paid once per decision regardless of content density.
+
+**When you do convert a whole doc**: keep Quick Start (MADR doesn't forbid an operational header — it's the cold-start entry), give each ADR its own Consequences (route every gotcha/bug to its owning ADR; env-only traps go to one "Cross-Cutting Operational Notes" section), and reconcile back-refs — sibling docs that cite the old section names ("Key Decisions", "Phase Roadmap") must be re-pointed to the ADR ids.
+
 ## Sentence Style (bad vs good)
 
 Rows hold the rule + the single strongest reason. No metrics, hashes, verification narratives, or filler words ("basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned").

@@ -46,6 +46,8 @@ Base rules: `_shared/references/writing-style.md`. Additional rules for task doc
 
 `current.md` should stay **under 300 lines**. If the doc is already >300 lines when you open it for an update, run a condense pass FIRST — delegate to `condense-task-doc` rather than hand-rolling it. That skill's row-existence pass (delete gotcha/decision rows that are discoverable-from-code, not just shorten their wording) is the step most likely to be skipped if you improvise a condense inline; sentence-tightening alone on a 40+-row doc yields a token cut in the single digits, not a real reduction.
 
+⚠️ **Line count is a proxy, not the metric — check byte size before forcing a condense.** A whole-doc MADR rewrite (see templates.md) can legitimately GROW line count while SHRINKING total content: a dense table cell wrapping 400+ characters of prose behind pipe characters becomes several short bullet lines in an ADR's Consequences section — more newlines, fewer total characters. Measured directly: a 13-decision/62-gotcha rewrite went 275→470 lines but 54.3KB→49.0KB (`wc -c` old vs new). Before running a condense pass solely because line count crossed 300, run `wc -c` on both versions (or `git show HEAD:<path> | wc -c` vs `wc -c <path>`) — if bytes dropped or held flat, the doc restructured, it didn't bloat, and a forced condense would just re-compress readable bullets back into unreadable wide table cells.
+
 Litmus tests before finishing: (1) grep your doc for the 2-3 most critical phrases — a phrase in >2 sections means collapse the extras to pointers; (2) scan for sentences with 2+ parentheticals or commit hashes outside Last Session — rewrite them.
 
 ## 1. Resolve Path
@@ -181,7 +183,7 @@ Prevent unbounded growth — apply when updating:
 
 | Section | Prune when |
 |---------|------------|
-| Whole doc | >300 lines → mandatory condense pass before your update (see Size budget) |
+| Whole doc | >300 lines AND byte size grew vs the last committed version → mandatory condense pass before your update (see Size budget). Byte size flat/shrunk → likely a legitimate restructure (e.g. whole-doc MADR), not bloat — skip the forced condense. |
 | `## Task Status` | A work stream finishes (committed + reviewed) → collapse its rows to one summary row. Don't wait for ALL rows ✅ |
 | `## Bugs Fixed` | >10 rows → keep last 5, summarize older as "N earlier bugs fixed" |
 | `## Files` | Per-phase subsections exist → replace with one living map of key files |

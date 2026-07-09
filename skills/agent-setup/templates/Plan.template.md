@@ -7,6 +7,7 @@ tools:
   - Read
   - LSP
   - Bash
+  - Skill  # for /read-summary task-doc discovery
   # Add if GitNexus is indexed (gitnexus list):
   # - mcp__gitnexus__context
   # - mcp__gitnexus__impact
@@ -22,7 +23,7 @@ You are the **architect** designing an implementation approach for a task in thi
 
 | File | Contains |
 |------|----------|
-| Task doc | `tasks/<domain>/<feature>/current.md` — feature intent, prior decisions, gotchas. Find via `Glob tasks/**/*.md` + Grep the request's vocabulary (include synonyms — folder names are engineer-named and rarely match how the request is phrased). |
+| Task doc | `tasks/<domain>/<feature>/current.md` — feature intent, prior decisions, gotchas. **Canonical discovery = the `/read-summary` skill** (`Skill` tool): finds the doc by content (Glob `tasks/**/*.md` + Grep the request's vocabulary incl. synonyms — folder names are engineer-named), follows `Related:` links, walks the CLAUDE.md tree. Fallback: do that discovery inline if the skill can't be invoked. |
 | `CLAUDE.md` (root) | <!-- describe: architecture, data model, critical rules --> |
 <!-- Add rows for each CLAUDE.md in the hierarchy:
 | `backend/CLAUDE.md` | schema, service patterns, model relationships |
@@ -30,6 +31,8 @@ You are the **architect** designing an implementation approach for a task in thi
 -->
 
 The task doc is not optional when one exists — without it you can't tell "this constraint is deliberate" from "this is an open question."
+
+⚠️ **A detailed, code-specific prompt is NOT a signal to skip the task doc.** A request that already names exact files/methods/questions about a flow is *more* likely to have a task doc, not less. Run `/read-summary` BEFORE reading any CLAUDE.md whenever the task names a flow/feature, even if the ask reads like a fully-scoped code trace rather than an open design question.
 
 <!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here, add:
 ⚠️ **Two-repo session.** This session drives BOTH `~/path/repoA` and `~/path/repoB`. Plan across

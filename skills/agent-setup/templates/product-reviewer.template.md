@@ -7,6 +7,7 @@ tools:
   - Read
   - LSP
   - Bash
+  - Skill  # for /read-summary task-doc discovery (read-only)
   # Add if GitNexus is indexed (gitnexus list) — used to confirm a capability has no caller:
   # - mcp__gitnexus__context
   # - mcp__gitnexus__impact
@@ -23,7 +24,7 @@ You find what the code reviewer structurally cannot: **the things that aren't th
 
 | File | Contains |
 |------|----------|
-| Task doc | `tasks/<domain>/<feature>/current.md` — feature INTENT and what "done" means. Find via `Glob tasks/**/*.md` + Grep the feature vocabulary. |
+| Task doc | `tasks/<domain>/<feature>/current.md` — feature INTENT and what "done" means. **Canonical discovery = the `/read-summary` skill** (`Skill` tool): finds the doc by content (Glob `tasks/**/*.md` + Grep the feature vocabulary), follows `Related:` links (incl. sibling-repo `[dourr]`-style docs), walks the CLAUDE.md tree. Fallback: discover inline if the skill can't be invoked. |
 | `CLAUDE.md` (root) | <!-- describe: product overview — what the product is and who its users are --> |
 <!-- Add rows for CLAUDE.md files carrying product/strategy context:
 | `CLAUDE.local.md` | strategic/team decisions — WHY features exist, business model, who asked for what |
