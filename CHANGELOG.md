@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.53.3
+
+- **gchat-format**: Reverted the 1.53.1 no-fence default back to always-fenced. The `/copy`-preserves-syntax reasoning behind the no-fence default didn't match actual usage — the user explicitly asked for the fence back on the very first release note produced under the new default. Fence is now the default regardless of copy method; the inline-backtick-stripping rule (added in 1.53.2) still applies whenever fenced. Omitting the fence is now the exception, only on explicit request.
+
 ## 1.53.2
 
 - **gchat-format**: Added the fence-vs-inline-backtick rule the 1.53.1 default flip left implicit. Two gaps: (1) the fence exception now also covers "the user explicitly asks to fence it," not just the manual-screen-copy case; (2) a new ⚠️ rule — when the output IS fenced, strip inner inline backticks (`` `staging.dourr.com` `` -> `staging.dourr.com`), because Chat does not nest inline code inside a code block and renders them as literal `` ` `` characters. Inline backticks are only correct in the unfenced default form. Captured after a user asked to fence a release-note they'd copied via `/copy`, and the inline code refs would have shown literal backticks inside the block.
