@@ -90,11 +90,13 @@ Run in background — takes 30-60s per repo. Always use `--skip-agents-md`.
 
 ### Step 6: Release Note
 
-Auto-generate a Google Chat-formatted release note from the changelog:
+Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc, not the changelog.** The CHANGELOG lists changes per-item and reads each as a self-contained win — summarizing from it alone over-claims (e.g. "cleared all alerts" when the task doc's `Status:` is 🟡 partially-done with deferred work). The bigger picture — what the effort *was*, what's actually done vs deferred — lives in `tasks/**/current.md`.
 
-1. Read the latest `CHANGELOG.md` entry
-2. Format using the `gchat-format` skill (convert to Google Chat syntax)
-3. Copy to clipboard
+1. Read the shipped work's `tasks/**/current.md` (use `read-summary`) for the framing: what the effort accomplished, and its real `Status:` (done vs mitigated vs deferred).
+2. Read the latest `CHANGELOG.md` entry for the itemized change list.
+3. **Lead with the accomplishment, not caveats.** Headline = what was done ("upgraded dependencies + hardened security"). Deferred/partial work is a short closing note, not a co-headline — don't bury the win under an alarming caveat section.
+4. Format using the `gchat-format` skill (convert to Google Chat syntax).
+5. Copy to clipboard.
 
 ## Output
 

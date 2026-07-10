@@ -48,6 +48,9 @@ Base rules: `_shared/references/writing-style.md`. Additional rules for task doc
 
 ⚠️ **Line count is a proxy, not the metric — check byte size before forcing a condense.** A whole-doc MADR rewrite (see templates.md) can legitimately GROW line count while SHRINKING total content: a dense table cell wrapping 400+ characters of prose behind pipe characters becomes several short bullet lines in an ADR's Consequences section — more newlines, fewer total characters. Measured directly: a 13-decision/62-gotcha rewrite went 275→470 lines but 54.3KB→49.0KB (`wc -c` old vs new). Before running a condense pass solely because line count crossed 300, run `wc -c` on both versions (or `git show HEAD:<path> | wc -c` vs `wc -c <path>`) — if bytes dropped or held flat, the doc restructured, it didn't bloat, and a forced condense would just re-compress readable bullets back into unreadable wide table cells.
 
+⚠️ **MADR is the default decision structure — apply on every create/update.** Every decision written to `## Key Technical Decisions` is an MADR block (Problem/Decision/Rejected/Consequences/Status) by default (templates.md "MADR-Style Decisions") — not an upgrade reserved for decision-heavy docs. Escape hatch to a plain `| Decision | Rationale |` row ONLY when the decision genuinely had no alternative considered (Rejected would come up empty). A doc recording its first real decision this way is already becoming a whole-doc MADR one block at a time — there's no separate doc-level threshold to wait for.
+- **Already whole-doc MADR AND >300 lines** after legitimate ADR growth → split into index + `decisions/<theme>.md` by default (templates.md "Splitting a whole-doc MADR further") — do this as part of the current write, don't ask first.
+
 Litmus tests before finishing: (1) grep your doc for the 2-3 most critical phrases — a phrase in >2 sections means collapse the extras to pointers; (2) scan for sentences with 2+ parentheticals or commit hashes outside Last Session — rewrite them.
 
 ## 1. Resolve Path
@@ -203,7 +206,8 @@ Re-read after writing:
 4. Next Steps has no stale completed items
 5. No rows deleted
 6. Back-references reconciled (§6) — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated
-7. **Cross-section duplication** — grep the doc for its 2-3 most critical phrases (see Density rules litmus test). A phrase surviving in >2 sections, OR the same fact split across two bullets in the SAME section (e.g. two Next Steps items both saying "then deploy via full CI"), means collapse to one. Section-by-section editing during a condense pass is the most common way this is missed — a duplicate introduced in one section isn't caught by re-reading that section alone, only by a doc-wide grep after all edits land.
+7. **MADR compliance** — every row in `## Key Technical Decisions` is either an MADR block or legitimately hit the escape hatch (no real alternative existed). A plain table row for a decision that DID have a rejected alternative is non-compliant — convert it now. If the doc is already whole-doc MADR and now >300 lines, split per Density rules — don't leave it for next session.
+8. **Cross-section duplication** — grep the doc for its 2-3 most critical phrases (see Density rules litmus test). A phrase surviving in >2 sections, OR the same fact split across two bullets in the SAME section (e.g. two Next Steps items both saying "then deploy via full CI"), means collapse to one. Section-by-section editing during a condense pass is the most common way this is missed — a duplicate introduced in one section isn't caught by re-reading that section alone, only by a doc-wide grep after all edits land.
 
 ## 6. Cross-References
 

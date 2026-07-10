@@ -5,8 +5,8 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
-  - decisions/madr-structure.md — the MADR format itself: when to use it, pricing, how editing skills handle it
-Last updated: 2026-07-09
+  - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
+Last updated: 2026-07-10
 -->
 
 # Plugin Maintenance
@@ -18,13 +18,14 @@ Last updated: 2026-07-09
 **Where we are**: Plugin is a mature skill/command system (18 skills, 6 commands) with an established design philosophy (autonomous, self-contained, delegate-don't-duplicate). Active maintenance is condensation/de-duplication passes, not new capability.
 
 **Immediate next actions (in order)**:
-1. Commit the in-flight 1.52.10 condensation batch (uncommitted — check `git status`)
+1. Commit this session's MADR-default change (all staged, see `git status`) — plugin.json bumped to 1.59.0, CHANGELOG entry written
 2. Re-sync the Current Skills registry table (stale since before `task-summary` etc. existed — see Cross-Cutting Operational Notes)
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
 - Orchestrator skills must delegate to sibling skills, never inline their procedure — see D4 (decisions/agent-architecture.md)
 - A MADR block needs its own condensation rule shipped in the same change that introduces it — see D13 (decisions/madr-structure.md)
+- MADR is now the DEFAULT `Key Technical Decisions` structure for every task doc — not gated behind decision count or an explicit ask; escape hatch only when Rejected would be empty — see D16 (decisions/madr-structure.md)
 
 ---
 
@@ -144,6 +145,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D9 | Multi-mode knowledge-capture skills split canonical structure into `references/` |
 | D10 | A skill/command sharing a name needs no wrapper command |
 | D13 | A doc-format upgrade ships its condensation rule in the same change |
+| D16 | MADR is the default `Key Technical Decisions` structure, not an opt-in upgrade (supersedes D8's "never default" clause) |
 
 ---
 
@@ -167,8 +169,17 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ---
 
+## Last Session (2026-07-10)
+
+- **D16 added** (decisions/madr-structure.md): MADR is now the default `Key Technical Decisions` structure for every task doc, not gated behind decision count or an explicit ask — escape hatch only for decisions with no real rejected alternative. Supersedes D8's "never default" clause; D8's whole-doc pricing model is unaffected.
+- Trigger: user split `[dourr] tasks/tenancy/e-tenancy/current.md` (471-line whole-doc MADR) into an index + `decisions/*.md`, then asked to make that structure the plugin's default — first with a threshold, then explicitly widened mid-session to no-threshold.
+- Patched `task-summary/references/templates.md` (per-block + whole-doc sections), `task-summary/SKILL.md` (Density rules + Step 4 validation), `condense-task-doc/SKILL.md` (split trigger + description).
+- `plugin.json` bumped 1.57.0 → 1.59.0; CHANGELOG 1.59.0 entry written.
+
+---
+
 ## Next Steps
 
-- [ ] Commit the in-flight 1.52.10 condensation batch (currently uncommitted — see `git status`)
 - [ ] Monitor whether `<thinking>` blocks reduce domain inference errors in practice (D2)
 - [ ] Re-sync Current Skills registry table (see Cross-Cutting Operational Notes)
+- [ ] Audit existing task docs' `## Key Technical Decisions` sections against D16's new MADR-default — any plain-table row that had a real rejected alternative should convert (not yet swept)

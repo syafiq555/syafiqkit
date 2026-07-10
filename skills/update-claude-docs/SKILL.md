@@ -28,6 +28,8 @@ The single manager for CLAUDE.md files — the analog of `task-summary` for `cur
 
 Extract reusable patterns from this session into CLAUDE.md files.
 
+⚠️ **A caller-supplied arg is ADDITIVE context, never a scope limiter.** When invoked with an arg (e.g. from `/done` Step 3, or a user pointer like "capture the X thing"), still scan the WHOLE conversation for every signal in the Step-1 table — the arg is a hint about ONE signal, not the boundary of the scan. The most-missed class is an *early-session* behavioral miss (Claude concluded wrong / user corrected) that a code-focused arg silently excludes: a `/done` arg listing this session's technical facts will not mention the wrong-turn from three messages in, yet that wrong-turn is exactly the "user had to correct" signal Step 1 exists to catch. If the arg names only code facts, treat the conversation's corrections/wrong-sources as UNCOVERED and scan for them anyway.
+
 ⚠️ **Inline critical facts**: When adding a `> 📖 See task doc` pointer, also inline the 1-2 most critical facts. A fresh session won't follow pointers unprompted — the CLAUDE.md entry itself must contain enough to avoid repeating mistakes.
 
 ⚠️ **Find the pointer's target by content, not folder name**: Before writing `> 📖 See tasks/.../current.md`, confirm the path exists and is the *right* doc — folder names are engineer-domain-named and rarely match the topic (`upload-redesign` owns "QC", `payout` owns "refund"). `Glob tasks/**/*.md` + `Grep` for the concept's vocabulary + synonyms across doc body + header; never guess the folder slug. A pointer to a non-existent or wrong doc is worse than no pointer.

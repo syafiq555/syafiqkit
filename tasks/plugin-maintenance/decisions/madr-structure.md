@@ -2,10 +2,11 @@
 Status: Reference
 Domain: plugin-maintenance/madr-structure
 Gotchas (critical — full list in each ADR's Consequences):
-  - Whole-doc MADR replaces (not adds to) the Decisions + Gotchas tables — priced differently than per-block MADR (D8)
+  - MADR is now the DEFAULT per-decision structure, not an opt-in for decision-heavy docs — escape hatch only when Rejected would be empty (D16, supersedes D8's "never default" clause).
+  - Whole-doc MADR replaces (not adds to) the Decisions + Gotchas tables — priced differently than per-block MADR (D8, pricing model still holds).
   - A doc-format upgrade must ship its condensation-rule update in the same change (D13)
 Related: ../current.md (index), ../decisions/doc-condensation.md, ../../../skills/task-summary/references/templates.md
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 -->
 
 # Plugin Maintenance — MADR Structure Decisions
@@ -65,6 +66,33 @@ Chosen: delete the wrapper. A skill's `name:` frontmatter already registers `/up
 Applied the same logic to `read-summary`: a 71-line command with a real workflow (discovery algorithm, staleness-audit handoff, exit-gate) converted to a skill outright — command deleted, no backward-compat pointer, since it had no sibling skill to alias into.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D16 — MADR Is the Default `Key Technical Decisions` Structure, Not an Opt-In Upgrade — committed — 2026-07-10
+
+**Problem**
+D8 gated whole-doc MADR conversion behind an explicit user ask, and the per-block rule in `templates.md` treated MADR as reserved for decision-heavy docs. A user who'd just seen a whole-doc MADR split (index + `decisions/*.md`) on a real task doc found the structure clearly better and asked to make it the default for ALL task docs — first with a size/decision-count threshold, then explicitly dropping the threshold entirely mid-session ("i want the madr also to be the default one, not the traditional one anymore").
+
+**Decision**
+Chosen: MADR (Problem/Decision/Rejected/Consequences/Status) is now the default shape for every entry in `## Key Technical Decisions`, per-decision — not gated behind a doc-level decision count or an explicit ask. Escape hatch to the plain `| Decision | Rationale |` table row survives for ONE case only: a decision that genuinely had no alternative considered, where Rejected would come up empty. A doc's `## Key Technical Decisions` section is therefore a whole-doc MADR the moment it holds its first non-escape-hatch decision — there's no separate doc-level "is this decision-heavy enough" gate anymore; that judgment collapsed into the per-block escape-hatch test alone.
+- `templates.md`'s per-block section rewritten: MADR default, escape hatch documented, "measured cost" reframed from "reach for MADR sparingly" to "apply the escape hatch honestly."
+- `templates.md`'s whole-doc section rewritten: no longer a separate ask-gated choice — it's now a description of what the per-decision default produces once a doc has any real decisions.
+- `task-summary/SKILL.md` Density rules + Step 4 validation both updated to check MADR compliance on every create/update, not just when a doc "feels" decision-heavy.
+- `condense-task-doc/SKILL.md`'s split-trigger reworded from "propose a split" (ask) to "split" (default action) once a whole-doc MADR crosses 300 lines post-conversion — this default was already user-approved in the prior session (the split-threshold rule), only the MADR-adoption gate itself changed here.
+
+**Rejected**
+- A 2+ decision-count threshold before converting a doc to whole-doc MADR (the FIRST answer given this session, before the user clarified further). Why not: superseded within the same session — the user explicitly rejected any threshold, wanting MADR as the unconditional default modulo the escape hatch.
+- Dropping the escape hatch entirely (MADR from decision #1, zero floor, no plain-table option ever). Why not: user explicitly chose to keep it for decisions that never had a real alternative — forcing Problem/Rejected on a non-decision is empty ceremony the escape hatch exists to prevent.
+- Leaving D8's "only on explicit user request, never default" stance untouched and treating this as a one-off doc-specific choice. Why not: the user's request was explicitly about the PLUGIN'S default behavior across all task docs, not just the doc being worked on — this belongs in `update-plugin` territory (SKILL.md behavior), not a single task doc's content.
+
+**Consequences**
+- Every NEW task doc decision costs ~18-20 lines by default now (previously ~1 line unless a doc had already earned MADR). This trades doc size for decision-traceability as the house style — accepted tradeoff, not a side effect to work around.
+- `condense-task-doc` still must never flatten an MADR block back to a table row as a generic condensation step (D13 still holds) — the only demotion path remains templates.md's settled-and-unrevisited rule.
+- A cold-start agent reading ANY task doc's Key Technical Decisions section should now expect MADR blocks as the norm; a plain table row is the exception and signals "no real alternative existed," not "this decision wasn't important enough for MADR."
+- Supersedes D8's "never default" stance specifically; D8's OTHER content (whole-doc pricing model, decision-vs-gotcha dedup mechanics) is unaffected and still holds.
+
+**Status**: committed · **Reversible**: yes (a house-style default, not a technical constraint) · Supersedes D8 (the "never default" clause only)
 
 ---
 

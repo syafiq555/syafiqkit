@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.59.0
+
+- **task-summary**: MADR is now the DEFAULT `Key Technical Decisions` structure, not an opt-in for decision-heavy docs — reverses the "only on explicit user request, never default" gate from 1.54.0/1.56.0. Every decision write is an MADR block (Problem/Decision/Rejected/Consequences/Status) unless it hits the escape hatch: a decision that genuinely had no alternative considered, where Rejected would come up empty, stays a plain `| Decision | Rationale |` row. A doc's Key Technical Decisions section is now a whole-doc MADR the moment it holds its first non-escape-hatch decision — there's no separate doc-level threshold to cross. `references/templates.md`'s per-block and whole-doc sections rewritten accordingly; Density rules + Step 4 validation in `SKILL.md` now check MADR compliance on every create/update.
+- **condense-task-doc**: The >300-line whole-doc-MADR split trigger (1.56.0) reworded from "propose a split" to "split" — it's the default action once the threshold is crossed, matching the same threshold-crossing-is-the-signal pattern this skill already uses for its own >300-line condense auto-trigger. Frontmatter `description:` updated to surface this.
+- Captured after splitting `[dourr] tasks/tenancy/e-tenancy/current.md` (471-line/13-ADR whole-doc MADR) into an index + `decisions/*.md`, at which point the user asked to make that structure the default for all task docs going forward — first proposed with a decision-count threshold, then explicitly widened mid-session to "MADR always, no threshold, escape hatch only for non-decisions." See `tasks/plugin-maintenance/decisions/madr-structure.md` D16 (supersedes D8's "never default" clause only — D8's whole-doc pricing model is unaffected).
+
+## 1.58.0
+
+- **ship**: Step 6 (release note) now frames from the task doc, not the changelog. The CHANGELOG reads each change as a self-contained win, so summarizing from it alone over-claims (e.g. "cleared all alerts" when the task doc `Status:` is 🟡 partially-done with deferred work). Step 6 now reads `tasks/**/current.md` for the framing + real status, uses the changelog only for the itemized list, and leads with the accomplishment instead of burying it under an alarming caveat section. Aligns the skill with the global CLAUDE.md rule that already said "for precise framing, read the task docs."
+- Captured after a `/ship` release note built from the changelog over-claimed the dependency-security effort as "done"; the user pushed back ("can't we see the bigger picture instead of reading changelog?"), then again when the corrected version buried the actual win (dependency + security upgrade) under deferred-Laravel-12 caveats.
+
+## 1.57.0
+
+- **update-claude-docs**: A caller-supplied arg is now explicitly ADDITIVE context, not a scope limiter — Capture mode must scan the whole conversation for every Step-1 signal even when handed a focused arg. Closes a hole where a code-focused `/done` Step-3 arg silently excluded an early-session behavioral miss (wrong task-doc discovery the user had to correct), the exact "user had to correct" signal the scan exists to catch.
+- **done**: Step 3 now warns to invoke `update-claude-docs` bare (or keep any arg a hint, never a scope limiter) — pre-writing an arg that lists only code facts narrows the capture scan and drops the highest-value behavioral misses.
+- Captured after a `/done` run whose Step-3 arg (mobileSheet technical facts only) skipped a session-opening wrong-task-doc discovery; the miss surfaced only when the user re-ran `/update-claude-docs` pointing at it.
+
 ## 1.56.0
 
 - **task-summary**: Added the follow-on decision to 1.54.0's whole-doc MADR feature — when a whole-doc MADR itself outgrows one file (10+ ADRs, several hundred lines), split it into a thin index `current.md` (Quick Start + operational tables + a routing table) plus `decisions/<theme>.md` files grouping ADRs by the question they answer, not by ADR number or chronology. Only on explicit user request, same gate as the MADR conversion itself. Distinguishes this from condensing: a doc in this state has too many correctly-stated facts for one file, not bloated wording — row-existence pruning has nothing to cut.

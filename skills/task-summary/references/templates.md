@@ -82,9 +82,11 @@ Pick ONE section that owns a given fact and cross-reference from the others inst
 
 This mirrors the CLAUDE.md capture rule from `update-claude-docs`: one fact, one home, cross-referenced — not because it's a stylistic preference, but because duplicated facts are what make a cold-start LLM read a doc twice to be sure it isn't missing a discrepancy between two copies of the "same" fact.
 
-## MADR-Style Decisions (when alternatives were actually considered)
+## MADR-Style Decisions (default structure)
 
-`Key Technical Decisions` defaults to a plain 2-column table (`| Decision | Rationale |`) — most decisions have one real option and don't need more. Switch a single decision to an MADR-style block ONLY when it had genuinely REJECTED alternatives worth recording. If nobody seriously considered a different approach, a table row is enough; don't manufacture a "Rejected" section where there wasn't a real one.
+`Key Technical Decisions` defaults to an MADR-style block (Problem/Decision/Rejected/Consequences/Status) — write every decision this way unless it fails the escape-hatch test below. This is the DEFAULT, not an upgrade reserved for decision-heavy docs.
+
+**Escape hatch — plain 2-column table row** (`| Decision | Rationale |`): use ONLY when the decision genuinely had no alternative considered (obvious/only-sane-option choices — "used the existing X pattern because that's what every sibling does"). Don't manufacture a "Rejected" section for a non-decision just to force MADR shape. But default to MADR first; reach for the table row only when Rejected would come up empty.
 
 ```markdown
 ### D[N] — [Decision title] [committed | planned | debating] — [YYYY-MM-DD]
@@ -107,7 +109,7 @@ Chosen: [the option picked, one line]
 **Status**: committed | planned | debating · **Reversible**: yes/no · [Supersedes D-N if replacing a prior decision]
 ```
 
-⚠️ **Measured cost — a MADR block is not free.** Converting a table row to an MADR block costs roughly 18-20 lines vs the ~1 line the table row already took (measured directly against two real conversions in this codebase). That's the entire size budget for several other facts. Reach for MADR sparingly — a decision worth this much space should be one someone would plausibly ask "why didn't we do X instead?" about later, not every decision that happens to have had a second option glanced at.
+⚠️ **Measured cost — a MADR block is not free, even as the default.** An MADR block runs roughly 18-20 lines vs the ~1 line the escape-hatch table row takes (measured directly against two real conversions in this codebase). That's the entire size budget for several other facts — it's the reason the escape hatch exists at all. Apply the escape-hatch test honestly (would Rejected actually come up empty?) rather than defaulting to MADR out of habit for a decision that never had a real second option.
 
 **Size ceiling**: a MADR block should not exceed ~20 lines. If Problem + Decision + Rejected + Consequences run longer, the block is doing Overview's job — trim Consequences to the one fact not recorded elsewhere (cross-reference Gotchas/Bugs instead of restating them; see One Fact, One Home above).
 
@@ -115,14 +117,11 @@ Chosen: [the option picked, one line]
 
 **Edit-in-place vs append, as the decision evolves over sessions**: `task-summary/SKILL.md`'s "MADR Blocks — Edit-in-Place vs Append" section owns this rule — the short version: the record getting more accurate about an unchanged decision is an edit to the existing block; the decision itself changing direction is a new block with `Supersedes D-N`.
 
-### Whole-doc MADR (decision-log) vs standard structure — a SEPARATE choice
+### Whole-doc MADR (decision-log) — the default once a doc has any real decisions
 
-The rules above answer "should *this one decision* be a block?" A different question is "should the *whole doc* be a MADR decision-log?" — every architectural choice an ADR block, gotchas/bugs folded into each block's Consequences, tasks/state kept as thin sections. Only restructure a whole doc to MADR when the user **explicitly asks** ("rewrite with MADR", "make this a decision log") — never default to it. Then judge fit:
+Since MADR is now the default per-decision structure, a task doc's `## Key Technical Decisions` naturally becomes a decision-log the moment it records its first real (non-escape-hatch) decision — every architectural choice an ADR block, gotchas/bugs folded into each block's Consequences, tasks/state kept as thin sections around it. There's no separate ask-gate anymore: writing decisions the default way IS writing a whole-doc MADR, one block at a time.
 
-| Doc's primary value | Structure | Why |
-|---------------------|-----------|-----|
-| **Decision-traceability** — many architectural choices with real rejected alternatives; the reader asks "why did we pick X over Y?" (integration seams, cross-system protocols, auth models) | **Full MADR decision-log** — one ADR per choice, Consequences carry that choice's gotchas | Rationale + alternatives + fallout live together; a new architect reads *why*, not a worklist |
-| **Operational cold-start** — the reader asks "what do I do next / what breaks?"; few real decisions, mostly status + traps (single-feature builds, bug-fix docs) | **Standard** (Quick Start + flat Gotchas tables + Task Status) | Gotchas stay scannable as one checklist; MADR would scatter them across blocks and add ceremony to a doc with no alternatives to record |
+A doc with ZERO real decisions (every choice hit the escape hatch, e.g. a pure bug-fix doc) has no ADRs to log — it stays on flat Gotchas tables + Task Status, since there's nothing decision-shaped to structure as a log.
 
 ⚠️ **Whole-doc MADR is NOT priced like per-block MADR.** The "+18-20 lines each" cost above measures ADDING a block ALONGSIDE the existing Decisions + Gotchas tables. A whole-doc rewrite REPLACES those tables — each gotcha moves into the Consequences of the ADR that created it, which **removes** the cross-section duplication of a fact that was both a Decision (why) and a Gotcha (what-breaks). Measured on a real 13-decision/27-gotcha integration doc: full-MADR came out **shorter** (307→284 lines), not +200. So a decision-heavy doc where most gotchas trace to a specific decision is a GOOD whole-MADR candidate; a gotcha-heavy doc whose traps are environment/deploy noise (not consequences of a choice) is a BAD one — those gotchas have no ADR to live under and end up in a catch-all section anyway.
 
@@ -134,7 +133,7 @@ The rules above answer "should *this one decision* be a block?" A different ques
 
 A whole-doc MADR can itself outgrow one file (10+ ADRs, several hundred lines). This is a DIFFERENT decision from condensing — condensing removes bloat from a doc that has too many words for its facts; splitting addresses a doc that has too many *facts*, correctly stated, for one file to stay a fast cold-start read. Don't run `condense-task-doc` on a doc in this state — row-existence pruning has nothing to cut when every ADR earns its place; the fix is structural, not a word-count reduction.
 
-**Only split on explicit user request** (e.g. "make this an index" or "too long, split it") — never default to it, same gate as whole-doc MADR conversion itself. Signal it's worth proposing: `condense-task-doc` Step 2 found bytes flat/grew from genuine new ADRs (not restructure artifacts) and the doc is still >300 lines after a legitimate MADR conversion.
+⚠️ **Default rule (no user ask required)**: once a whole-doc MADR is still >300 lines after legitimate ADR growth (bytes flat/grew from genuine new ADRs, not restructure artifacts — see `condense-task-doc` Step 2), split it into an index + `decisions/<theme>.md` files as part of the normal create/update flow — don't wait to be asked. The user can still explicitly request a split below the threshold.
 
 **Structure**: keep the original `current.md` as a thin index — Quick Start, any doc-wide operational tables (e.g. a skills/files registry), and a **routing table grouping ADRs by theme**, each row framed as "read `decisions/<theme>.md` if you're asking: *[the question that decision answers]*" rather than a bare decision-title list — a title alone doesn't tell a cold-start reader which file answers their actual question. Move full ADR content into `decisions/<theme>.md` files, 3-5 files typical (matches the "3-5 sub-pages, cluster don't fragment" convention for splitting any long reference doc). Each `decisions/*.md` file is self-contained: its own LLM-CONTEXT block, `Related:` pointing back to the index and sibling theme files.
 
