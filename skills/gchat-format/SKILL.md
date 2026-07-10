@@ -14,6 +14,19 @@ description: >
 
 Convert Markdown or plain text into Google Chat's formatting syntax.
 
+## Release notes: shape the content BEFORE formatting
+
+When the input is a **release note / deployment announcement** (not already-final prose the user just wants reformatted), the Chat version is a short user-facing announcement, not a work log. Get to the point:
+
+| ❌ NEVER include | ✅ Keep only |
+|------------------|-------------|
+| HOW it works (mechanics, counts, prefixes, backfill numbers, verification steps) | WHAT changed, in one line, and why it matters to a user |
+| Deployment/ops steps ("Deployed to staging", "applied policy", "ran backfill") | A single status line IF relevant (e.g. "On staging for testing") |
+| "Still to come" / "outstanding" / caveats / data-integrity notes | — |
+| Multiple sections for one shipped thing | One outcome = 1-3 lines total |
+
+A staging-only change is at most a one-line "on staging for testing" note — it is not a full release announcement. Lead with the outcome a non-engineer reads; delete everything explaining the underlying implementation. When unsure how terse, err shorter and offer a one-liner variant.
+
 ## Key Rules
 
 Google Chat does NOT support standard Markdown fully. Apply these transformations:

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.60.0
+
+- **gchat-format**: Added a "Release notes: shape the content BEFORE formatting" section — the skill converted Markdown syntax faithfully but had zero guidance on release-note CONTENT, so when asked to build a release note from a session it produced a bloated multi-section note (ops steps, "still to come", underlying-mechanics explanations). New ❌/✅ table: keep WHAT changed + why it matters (1-3 lines), cut all mechanics/counts/deploy-steps/caveats; a staging-only change is a one-line "on staging" note, not a full release.
+- Captured after the user rejected a verbose S3-migration release note with "this is not how u make a release note … simplify it, get to the point without explaining the underneath one." The global CLAUDE.md release-note rule already said "trimmed — cut filler" but was too soft to prevent the specific over-inclusion; sharpened it there too (naming the concrete exclusions) alongside the skill-level fix.
+
+## 1.59.1
+
+- **read-summary**: Read Order gained a mandatory step for whole-doc MADR index docs (see 1.59.0/1.56.0) — a `current.md` that's a thin index with a `## Decisions Index` routing table holds NO ADR content itself, so reading only the index and stopping means reading zero decisions. New step 2 tells the agent to open the specific `decisions/<theme>.md` file(s) the request maps to, rather than relying on the generic `Related:` field (which lists 5-10 genuinely-external docs and buries the doc's own split-out files among them).
+- Captured after the user asked whether `read-summary` had been updated alongside the MADR-default change — it hadn't, and its Read Order had no instruction to follow a split doc's routing table into `decisions/*.md`, a gap that would have silently under-read every future split doc (e.g. `[dourr] tasks/tenancy/e-tenancy/`).
+
 ## 1.59.0
 
 - **task-summary**: MADR is now the DEFAULT `Key Technical Decisions` structure, not an opt-in for decision-heavy docs — reverses the "only on explicit user request, never default" gate from 1.54.0/1.56.0. Every decision write is an MADR block (Problem/Decision/Rejected/Consequences/Status) unless it hits the escape hatch: a decision that genuinely had no alternative considered, where Rejected would come up empty, stays a plain `| Decision | Rationale |` row. A doc's Key Technical Decisions section is now a whole-doc MADR the moment it holds its first non-escape-hatch decision — there's no separate doc-level threshold to cross. `references/templates.md`'s per-block and whole-doc sections rewritten accordingly; Density rules + Step 4 validation in `SKILL.md` now check MADR compliance on every create/update.
