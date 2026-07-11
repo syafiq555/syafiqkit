@@ -6,7 +6,7 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-10
+Last updated: 2026-07-12
 -->
 
 # Plugin Maintenance
@@ -26,6 +26,7 @@ Last updated: 2026-07-10
 - Orchestrator skills must delegate to sibling skills, never inline their procedure — see D4 (decisions/agent-architecture.md)
 - A MADR block needs its own condensation rule shipped in the same change that introduces it — see D13 (decisions/madr-structure.md)
 - MADR is now the DEFAULT `Key Technical Decisions` structure for every task doc — not gated behind decision count or an explicit ask; escape hatch only when Rejected would be empty — see D16 (decisions/madr-structure.md)
+- A Step-N "verify" checklist is not satisfied by having read the files earlier in-session — each item needs its own command run against current content — see D21 (decisions/agent-architecture.md)
 
 ---
 
@@ -124,6 +125,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D4 | Orchestrator skills delegate, never inline a sibling's procedure |
 | D14 | Generated agents invoke `/read-summary`, don't reimplement it |
 | D15 | Correct wiring ≠ the model reliably calling a sibling skill |
+| D21 | A Step-N verify checklist needs a command per item — a prior skim isn't a check |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
@@ -172,6 +174,11 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 - [Sub-agents Documentation](https://code.claude.com/docs/en/sub-agents.md)
 
 ---
+
+## Last Session (2026-07-12, later)
+
+- **D21 added** (decisions/agent-architecture.md): a live `/agent-setup` run on Dourr (6 existing agents) skimmed all six files, judged them "well-established," and reported Step 5's checklist satisfied. User pushed back ("check properly"); a literal grep on the same files found 2 failing items (`Skill`/`read-summary` wiring per D14, `disallowedTools` per the naming-exception note) the skim missed. Patched `agent-setup/SKILL.md` Step 5 with an explicit "each item is a command to run, not a memory to consult" preface, and Step 1's "Agents exist" row to require the full checklist even when agents look established.
+- Live fix applied directly to Dourr's `.claude/agents/*.md` in the same session: added `Skill` to tools + `/read-summary` wiring to `Explore`, `Plan`, `code-reviewer`, `code-simplifier`, `product-reviewer`; added `disallowedTools: [Write, Edit]` to `Explore`/`Plan`.
 
 ## Last Session (2026-07-12)
 

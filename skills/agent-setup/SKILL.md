@@ -68,7 +68,7 @@ Glob: **/CLAUDE.md
 | Found? | Action |
 |--------|--------|
 | No agents | Create `.claude/agents/` directory + agents |
-| Agents exist | Update if behavioral changes needed |
+| Agents exist | Still run Step 5 in full against every existing agent file — "they look established" is not a substitute for the checklist. Update whatever it flags |
 | No CLAUDE.md | Create agents with base template only |
 
 ### Step 2: Identify CLAUDE.md Hierarchy
@@ -162,6 +162,8 @@ frontmatter (name, description, tools, model, color, memory: project)
 - No `<!-- INJECTED -->` markers — the old injection pattern is deprecated
 
 ### Step 5: Verify
+
+⚠️ **Each checklist item below is a command to run, not a memory to consult.** Having read an agent file earlier in this session is not verification — a file skimmed for "does this look right" reliably passes items it actually fails (confirmed: a session judged all six agents "well-established" by re-reading them, then failed 2 of the items below on the very next grep). For every item, run the literal `grep`/count it implies against the actual current file content before checking it off.
 
 After writing agents, verify:
 - [ ] No duplicated CLAUDE.md content (only critical rules inline)

@@ -4,8 +4,9 @@ Domain: plugin-maintenance/agent-architecture
 Gotchas (critical — full list in each ADR's Consequences):
   - Agents don't inherit CLAUDE.md — conventions must be injected into agent prompts (D1)
   - Correct wiring to invoke a sibling skill doesn't guarantee the model calls it (D15)
+  - Having read a file earlier in-session ≠ having verified it against a checklist (D21)
 Related: ../current.md (index), ../decisions/doc-condensation.md
-Last updated: 2026-07-09
+Last updated: 2026-07-12
 -->
 
 # Plugin Maintenance — Agent Architecture Decisions
@@ -73,6 +74,25 @@ Chosen: every task-doc-consuming agent (all but `claude-md-pruner`, which is CLA
 **Consequences**
 - Same principle as D4, applied to `agent-setup`'s output specifically.
 - Caught the drift's tell along the way: `Explore`'s `description:` claimed it "reads task docs" while its Bootstrap never mentioned them (frontmatter drives routing, body drives behavior — disagreement = under-delivery). Patched SKILL.md (Key-rules + Step-5 verify checkbox) AND all 5 templates so a regen doesn't drop it.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D21 — Step 5's Checklist Requires a Command Per Item, Not a Re-Read — committed — 2026-07-12
+
+**Problem**
+A live `/agent-setup` run on an existing 6-agent project re-read all six files, judged them "well-established" from that skim, and reported the Step 5 checklist as satisfied. The user pushed back ("check properly"); a literal grep against the same files immediately found 2 failing items (`Skill` tool + `/read-summary` wiring missing from 5 agents per D14; `disallowedTools: [Write, Edit]` missing from `Explore`/`Plan` per the naming-exception note) that the skim had missed entirely.
+
+**Decision**
+Chosen: Step 5's checklist is prefaced with an explicit instruction that each item is a command to run against current file content, not a fact to recall from having read the file earlier in the session. The "Agents exist" row in Step 1 also no longer permits skipping Step 5 — an established-looking agent set still gets the full checklist.
+
+**Rejected**
+- Trusting a prior in-session file read as sufficient verification. Why not: reading a file for "does this look right" and grepping it for "does this literal string exist" are different operations with different failure rates — the session's own before/after is the proof (same six files, skim said pass, grep said fail on 2/17 items).
+
+**Consequences**
+- Distinct from D15: D15 is about whether a *generated agent* reliably calls `/read-summary` at runtime. D21 is one layer up — whether the model *executing agent-setup itself* reliably runs its own verification checklist, or silently substitutes a skim.
+- General pattern, not `agent-setup`-specific: any skill with a Step-N "verify" checklist is exposed to the same substitution unless the checklist text itself forecloses it.
 
 **Status**: committed · **Reversible**: yes
 

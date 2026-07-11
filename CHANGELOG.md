@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.61.0
+
+- **agent-setup**: Step 5's verification checklist now opens with an explicit instruction that each item is a command to run against current file content, not a memory of having read the file earlier in-session. Step 1's "Agents exist" row no longer permits skipping Step 5 for an established-looking agent set.
+- Captured after a live `/agent-setup` run on a 6-agent project (Dourr) skimmed all six agent files, judged them "well-established," and reported the checklist satisfied — a subsequent literal grep on the same files (prompted by user pushback) found 2 of 17 items actually failing (`Skill`/`/read-summary` wiring per D14, `disallowedTools: [Write, Edit]` on `Explore`/`Plan`). See `tasks/plugin-maintenance/decisions/agent-architecture.md` D21.
+
 ## 1.60.6
 
 - **update-claude-docs**: `references/structure.md` §1 (the hierarchy) gained an explicit instruction for the seam-test — check EVERY real sibling subdirectory via grep-count (`rg -l "<symbol>" <dir> --type=<lang> | wc -l`), not just the subdirectory a section's name intuitively suggests. `condense-claude-md/SKILL.md` step 6 and `update-claude-docs/SKILL.md` §2 both patched with the same instruction where the seam-test is actually invoked.
