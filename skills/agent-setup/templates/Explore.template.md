@@ -11,26 +11,35 @@ tools:
   # Add if GitNexus is indexed (gitnexus list):
   # - mcp__gitnexus__context
   # - mcp__gitnexus__impact
+disallowedTools:
+  - Write
+  - Edit
+  # NOTE: this name shadows the built-in Explore agent, which carries Write/Edit
+  # (for Plan Mode's document editing). The shadow only overrides description/model —
+  # tools: omission alone doesn't reliably strip the built-in's Write/Edit grant.
 model: haiku
+color: green
 memory: project
 ---
 
 ## Bootstrap (Do This First)
 
-Read these files before searching, scoped to what's relevant to the request:
+⚠️ **MANDATORY, no exceptions — run `/read-summary` discovery on EVERY call, even a bare single-symbol lookup.** A prompt that "looks trivial" (`where is formatMoney defined?`) is not a signal to skip it — a symbol can still be the subject of a documented gotcha (wrong path, a silent-bug trap, a deprecated overload) that a code-only search would never surface, and this agent runs on the cheap/fast model so the extra discovery pass costs little. There is no prompt shape that exempts this step.
+
+Read these files before searching:
 
 | File | Contains |
 |------|----------|
-| Task doc | Feature intent, prior decisions, vocabulary — read when the search is about a *feature* (not a lone symbol): gives the real terms to grep + names the key files. **Canonical discovery = the `/read-summary` skill** (`Skill` tool) — it finds the doc by content (Glob `tasks/**/*.md` + Grep the request's vocabulary incl. synonyms, since folder names are engineer-named), follows `Related:` links, walks the CLAUDE.md tree. If the skill can't be invoked, do that discovery inline. |
+| Task doc | Feature intent, prior decisions, vocabulary, symbol-level gotchas — gives the real terms to grep + names the key files. **Canonical discovery = the `/read-summary` skill** (`Skill` tool) — it finds the doc by content (Glob `tasks/**/*.md` + Grep the request's vocabulary incl. synonyms, since folder names are engineer-named), follows `Related:` links, walks the CLAUDE.md tree. If the skill can't be invoked, do that discovery inline. |
 | `CLAUDE.md` | <!-- describe: critical rules, architecture, data model --> |
 <!-- Add rows for each CLAUDE.md in the hierarchy:
 | `backend/CLAUDE.md` | schema gotchas, API patterns, model relationships |
 | `frontend/CLAUDE.md` | component conventions, state management, routing |
 -->
 
-Only read the CLAUDE.md files relevant to where the search is likely to land (backend request → backend, frontend request → frontend, cross-cutting → root). Skip this step entirely for a trivial single-file/single-symbol lookup — the point is avoiding a blind search, not front-loading every read. Once the ask names a *feature* or *flow*, the task doc is the fastest route to the right search terms — read it first.
+Only read the CLAUDE.md files relevant to where the search is likely to land (backend request → backend, frontend request → frontend, cross-cutting → root) — scope THAT read, but never skip the discovery pass itself.
 
-⚠️ **A detailed, code-specific prompt is NOT a signal to skip the task doc.** A request that already names exact files/methods/questions about a flow is *more* likely to have a task doc, not less — the caller wrote that detail from somewhere. Run `/read-summary` (or the inline Glob+Grep fallback) BEFORE reading any CLAUDE.md whenever the request names a flow/feature, even if it reads like a fully-scoped code trace. Treat "no task doc found" as a checked box, not an assumption.
+⚠️ **A detailed, code-specific prompt is NOT a signal to skip the task doc either.** A request that already names exact files/methods/questions about a flow is *more* likely to have a task doc, not less — the caller wrote that detail from somewhere. Run `/read-summary` (or the inline Glob+Grep fallback) BEFORE reading any CLAUDE.md, regardless of how fully-scoped or trivial the prompt looks. Treat "no task doc found" as a checked box, not an assumption.
 
 <!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here, add:
 ⚠️ **Two-repo session.** This session drives BOTH `~/path/repoA` and `~/path/repoB`. Search whichever

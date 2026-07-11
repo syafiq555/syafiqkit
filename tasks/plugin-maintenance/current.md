@@ -136,6 +136,10 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D7 | A read-only command must still route what it notices |
 | D11 | Extract only true verbatim cross-skill duplication to `_shared/references/` |
 | D12 | Full duplication survey fixed two cases, explicitly left the rest |
+| D17 | `.claude/rules/*.md` path-scoping frontmatter doesn't actually scope — removed as a routing recommendation |
+| D18 | `/read-summary` discovery in `Explore`/`Plan` made unconditional — reverses D17's "gate is correct design" call per user's explicit precision-over-efficiency preference |
+| D19 | Task-doc index + pointer added as a second structural lever for over-budget CLAUDE.md files (when the subdirectory seam-test fails but the block is feature-specific) |
+| D20 | Seam-test must check EVERY real sibling subdirectory (grep-count based), not just the intuitively-obvious one — corrects D19's own stale "Multi-Agency has no seam" conclusion |
 
 ### Read [decisions/madr-structure.md](decisions/madr-structure.md) if you're asking: *how does the MADR decision-record format itself work — when to use it, what it costs, how do editing skills handle it?*
 
@@ -169,12 +173,15 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ---
 
-## Last Session (2026-07-10)
+## Last Session (2026-07-12)
 
-- **D16 added** (decisions/madr-structure.md): MADR is now the default `Key Technical Decisions` structure for every task doc, not gated behind decision count or an explicit ask — escape hatch only for decisions with no real rejected alternative. Supersedes D8's "never default" clause; D8's whole-doc pricing model is unaffected.
-- Trigger: user split `[dourr] tasks/tenancy/e-tenancy/current.md` (471-line whole-doc MADR) into an index + `decisions/*.md`, then asked to make that structure the plugin's default — first with a threshold, then explicitly widened mid-session to no-threshold.
-- Patched `task-summary/references/templates.md` (per-block + whole-doc sections), `task-summary/SKILL.md` (Density rules + Step 4 validation), `condense-task-doc/SKILL.md` (split trigger + description).
-- `plugin.json` bumped 1.57.0 → 1.59.0; CHANGELOG 1.59.0 entry written.
+- **D17 added** (decisions/doc-condensation.md): `.claude/rules/*.md` `paths:`/`globs:` frontmatter does NOT scope context loading — confirmed via negative-control canary test (a fresh session on a non-matching path still had the "scoped" content verbatim in context). Only a real subdirectory `CLAUDE.md` genuinely scopes (loads only when Claude reads a file in that subdirectory — also negative-control verified).
+- **D18 added** (decisions/doc-condensation.md): a follow-up live test (`Explore` agent, feature-named prompt) showed `📖 See <file>` pointers DO work when the request names the feature — but a generic symptom-only prompt slips past the gate. Asked to choose, user picked precision over efficiency ("burn tokens over missing a gotcha") — `/read-summary` discovery in `Explore`/`Plan` is now UNCONDITIONAL (every call, including trivial single-symbol lookups), reversing D17's earlier conclusion that the gate was correct design.
+- Trigger: user asked (in the `autorentic` project) how to shrink a bloated `app/CLAUDE.md` with real token savings, not just fewer lines. Investigation ruled out `.claude/rules/` (broken), confirmed subdirectory `CLAUDE.md` and index+pointer (`📖 See <file>`) as the two real mechanisms; a live re-test with a planted canary in a real task doc (`tasks/agency/multi-admin/current.md`) confirmed the pointer mechanism works end-to-end when the discovery gate fires — and incidentally surfaced a genuine unfixed bug (Spatie permission cache never invalidated on role change).
+- Patched `update-claude-docs/references/structure.md`, `condense-claude-md/SKILL.md` (D17), and `agent-setup/SKILL.md` + `Explore.template.md` + `Plan.template.md` + live `autorentic/.claude/agents/Explore.md`/`Plan.md` (D18) — Bootstrap sections now open with a `⚠️ MANDATORY, no exceptions` line, no feature-name gate.
+- Global `~/.claude/CLAUDE.md` gained two Platform Gotchas rows (frontmatter-doesn't-scope; pointer-reliability-depends-on-discovery-gate-firing) and one hardened CLAUDE.md-Maintenance row (splitting a layer file needs the seam-test AND a real subdirectory target).
+- **D19 added**: with D18 making `/read-summary` unconditional, `update-claude-docs/references/structure.md` §6 gained a SECOND structural lever for over-budget CLAUDE.md files (task-doc index + `📖` pointer, for feature-specific blocks that fail the subdirectory seam-test) — `SKILL.md` Create/Rewrite modes and `condense-claude-md`'s seam-test-fails warning updated to reference it. Checked against the session's original trigger (`app/CLAUDE.md` bloat): concluded it doesn't apply there since Multi-Agency/Cast Gotchas are cross-cutting layer conventions — **this conclusion turned out wrong for Multi-Agency, corrected by D20**.
+- **D20 added**: pushed further on `app/CLAUDE.md` bloat (user: "24kb can say quite a lot... imagine I can save so much with much more efficient one") — re-ran the seam-test against EVERY real `app/` subdirectory instead of just `Domain/*`, found Multi-Agency Gotchas concentrates 5-10x in `app/Http/` (Controllers/Requests/Middleware/Resources). Created `app/Http/CLAUDE.md` (new, 86 lines), moved Multi-Agency + Controller/Resource Patterns there. `app/CLAUDE.md`: 295→241 lines (24.5KB→19.5KB, -20.5%), verified live with negative/positive control (Domain-only session doesn't load it; touching `app/Http/` does). Cast Gotchas + Media/PDF re-checked the same way — genuinely no dominant seam, correctly stay inline. Seam-test methodology itself patched in `references/structure.md` §1 + both SKILL.md files: check grep counts against every candidate, not the intuitively-obvious one.
 
 ---
 

@@ -13,6 +13,7 @@ tools:
   # - mcp__gitnexus__impact
   # NOTE: read-only by design — do NOT add Write/Edit. NO getDiagnostics (type-correctness is the code-reviewer's lane).
 model: sonnet
+color: purple
 memory: project
 ---
 

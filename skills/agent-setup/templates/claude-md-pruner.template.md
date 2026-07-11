@@ -8,6 +8,7 @@ tools:
   - Edit
   - Bash
 model: sonnet
+color: yellow
 memory: project
 ---
 

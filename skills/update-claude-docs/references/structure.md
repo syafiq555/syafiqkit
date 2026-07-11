@@ -30,6 +30,8 @@ Two consequences the routing step depends on:
 - **Nested files do NOT survive `/compact`** — only project-root re-injects. A rule that must always be present belongs at root or global, not in a subdir.
 - **A rule pushed into one subdir is invisible to sibling subdirs.** A cross-cutting token/util/type used across siblings stays at the layer level; only a rule that is both needed there AND useless elsewhere (the seam-test) goes down a level.
 
+⚠️ **Run the seam-test against EVERY real sibling subdirectory, not just the intuitively-obvious one.** A section titled "Multi-Agency" reads as `Domain/*`-owned — but `Domain/*` can be a red herring if the CONTENT is actually authorization/request-scoping code, which concentrates in `Http/Controllers`, `Http/Requests`, `Http/Middleware`, `Policies` instead. Don't eyeball which subdirectory "sounds right" — `rg -l "<the 3-5 core symbols/terms from the section>" <candidate-dir> --type=<lang> | wc -l` against EVERY plausible candidate (not just the one the section name suggests), and let the counts decide. A term used 20× in one subdirectory and 0-3× everywhere else has found its real seam even if that subdirectory wasn't the first guess; a term spread evenly with no directory dominating genuinely has none. This is a live-usage check, not a naming-convention guess — a section can fail the seam-test against the obvious candidate and still pass it against one nobody thought to check.
+
 ## 2. The capture filter — does this belong in CLAUDE.md at all?
 
 The one test, from Anthropic's own docs: **"Would removing this line cause Claude to make a mistake? If not, cut it."** Bloated files cause Claude to ignore the rules that matter — every dead line dilutes the live ones.
@@ -41,7 +43,7 @@ The one test, from Anthropic's own docs: **"Would removing this line cause Claud
 | Project-specific decisions & constraints | File-by-file descriptions of the tree → *delete* (discoverable) |
 | Style rules a linter CAN'T enforce | Rules ESLint/Pint already enforce → *hook or linter, not here* |
 | Boundaries (legacy/off-limits/deprecated) | A multi-step procedure → *a skill* |
-| Env quirks, credentials-by-name | A rule that only matters for one file-type → *path-scoped rule* |
+| Env quirks, credentials-by-name | A rule that only matters for one file-type → *a real subdirectory CLAUDE.md* (NOT `.claude/rules/` `paths:`/`globs:` frontmatter — empirically confirmed via negative-control test that it always loads in full regardless of frontmatter; it does not scope) |
 | | Feature-specific patterns → *`tasks/**/current.md`, not CLAUDE.md* |
 | | Secrets/tokens/passwords → *`CLAUDE.local.md`, key NAMES only, never values* |
 
@@ -71,7 +73,7 @@ These are what make the existing files scannable; a created/rewritten file must 
 | File path + symbol, never line numbers | `Invoice.php scopeOverdue()`, never `Invoice.php:112` — line numbers drift on every edit above them. |
 | Emphasis sparingly | `⚠️`, `IMPORTANT`, `YOU MUST` raise adherence — but only on the few rules that truly need it; overuse flattens the signal. |
 | Code block for structure/commands | Directory trees and command lists go in ``` blocks, not tables or prose. |
-| `@path/import` for launch-time includes | `@README` pulls a file in at launch; path is relative to the importing file. Use for genuinely-always-needed external content only. |
+| `@path/import` for launch-time includes | `@README` pulls a file in at launch; path is relative to the importing file. Loads in full every session like inline content — no token savings, only a DRY/reuse win. Use for genuinely-always-needed external content only. |
 | No session storytelling | State the constraint, never its history ("this bit us twice", "a reviewer caught it"). The rule is the deliverable, not the war story. |
 
 ## 5. Template family
@@ -148,4 +150,16 @@ Cross-project rules only — environment, tool usage, working style, personal co
 
 Official guidance targets **under ~200 lines** per file — adherence measurably drops past it because live rules get lost among dead ones. Treat 200 as the soft cap, 350 as the hard "must act now" line.
 
-When a create/rewrite would land a file over budget, the fix is **structural, not deletion**: push a coherent block down to a subdir/domain file (Section 1's seam-test), or hand the whole file to `condense-claude-md` for a density pass. Do NOT cram — a file over budget that "needs everything" is a file whose rules want to live at different layers.
+When a create/rewrite would land a file over budget, the fix is **structural, not deletion**: push a coherent block down to a subdir/domain file (Section 1's seam-test), route it to a task-doc index+pointer (below, when the seam-test fails but the content is feature-specific), or hand the whole file to `condense-claude-md` for a density pass. Do NOT cram — a file over budget that "needs everything" is a file whose rules want to live at different layers.
+
+### Second structural lever: task-doc index + pointer (when the seam-test fails)
+
+A block that's too big to inline but doesn't map to any single real subdirectory (used across `Domain/Invoice` + `Domain/Tenant` + `Http/Controllers`, say — a horizontal-layer tree's gotchas usually look like this) has no subdirectory to push down to. If the block is about a **documented feature or flow** — not a cross-cutting layer convention — move it to that feature's task doc (`tasks/<domain>/<feature>/current.md`) `## Gotchas` table instead, leaving a one-line `📖 See <file>` pointer row behind. This is confirmed working end-to-end (live-tested, not theoretical): `Explore`/`Plan` run `/read-summary` discovery **unconditionally** on every call (see `agent-setup` D18) — feature-named requests reliably find the task doc, follow its pointer rows, and read the target file's real content.
+
+| Use this lever when | Don't use it when |
+|---|---|
+| The block is scoped to one feature/flow that has (or plausibly should have) its own `tasks/<domain>/<feature>/current.md` | The block is a general layer/framework convention with no single feature owner (e.g. "Eloquent cast gotchas" — applies to every model, not one feature) |
+| The content is debugging/investigation-shaped (`Symptom \| Cause \| Fix`) — exactly what a task doc's `## Gotchas` table already holds | The content is a write-time convention ("always do X") a fresh session needs BEFORE it starts editing, not while debugging — those still belong inline or in a subdir CLAUDE.md, since `code-reviewer`/`code-simplifier` don't run `/read-summary` on every trivial edit the way `Explore`/`Plan` now do |
+| A real task doc for that feature already exists — extending an existing doc's Gotchas table is safer than inventing a new file for one row | No task doc exists and creating one only to hold this block would be an orphaned, single-purpose doc — in that case a plain standalone reference file plus a pointer still works, but prefer an existing doc when one's available |
+
+Contrast with §5's "Subdir" template: that lever needs a REAL directory both sides of the split can point at. This lever needs a REAL feature identity — don't invent a task doc slug just to relocate a section; confirm one exists or genuinely should via the same content-based discovery `/read-summary` itself uses (`Glob tasks/**/*.md` + `Grep` the block's vocabulary), never by guessing a folder name.

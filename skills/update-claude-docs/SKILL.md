@@ -30,7 +30,9 @@ Extract reusable patterns from this session into CLAUDE.md files.
 
 ⚠️ **A caller-supplied arg is ADDITIVE context, never a scope limiter.** When invoked with an arg (e.g. from `/done` Step 3, or a user pointer like "capture the X thing"), still scan the WHOLE conversation for every signal in the Step-1 table — the arg is a hint about ONE signal, not the boundary of the scan. The most-missed class is an *early-session* behavioral miss (Claude concluded wrong / user corrected) that a code-focused arg silently excludes: a `/done` arg listing this session's technical facts will not mention the wrong-turn from three messages in, yet that wrong-turn is exactly the "user had to correct" signal Step 1 exists to catch. If the arg names only code facts, treat the conversation's corrections/wrong-sources as UNCOVERED and scan for them anyway.
 
-⚠️ **Inline critical facts**: When adding a `> 📖 See task doc` pointer, also inline the 1-2 most critical facts. A fresh session won't follow pointers unprompted — the CLAUDE.md entry itself must contain enough to avoid repeating mistakes.
+⚠️ **Inline critical facts**: When adding a `> 📖 See task doc` pointer FROM A CLAUDE.md FILE, also inline the 1-2 most critical facts. A top-level session reading CLAUDE.md directly won't follow a bare pointer unprompted — the CLAUDE.md entry itself must contain enough to avoid repeating mistakes.
+
+This does NOT apply to a task doc's OWN `## Gotchas` table pointing to a separate reference file (`📖 See .../gotcha-name.md`) — that pattern is confirmed to work bare, no inline duplication needed, because `Explore`/`Plan` run `/read-summary` discovery unconditionally and reliably follow the doc's own pointer rows (see `agent-setup` D18; §6 "second structural lever" in `references/structure.md`). Reserve full inlining for CLAUDE.md-level pointers only — duplicating a task doc's pointer target back into the doc itself defeats the point of moving it out.
 
 ⚠️ **Find the pointer's target by content, not folder name**: Before writing `> 📖 See tasks/.../current.md`, confirm the path exists and is the *right* doc — folder names are engineer-domain-named and rarely match the topic (`upload-redesign` owns "QC", `payout` owns "refund"). `Glob tasks/**/*.md` + `Grep` for the concept's vocabulary + synonyms across doc body + header; never guess the folder slug. A pointer to a non-existent or wrong doc is worse than no pointer.
 
@@ -75,6 +77,8 @@ Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local
 6. Global `~/.claude/CLAUDE.md`
 
 A subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `resources/js/routes/X` loads root + `resources/js/` + `routes/`), so routing a rule down a level doesn't hide it — it scopes it. Prefer the subdir file when the rule is both needed in that subdir AND useless elsewhere (seam-test); if it's cross-cutting (a shared token/util/type used across sibling dirs), keep it at the layer level instead — pushing a cross-cutting rule into one subdir means the sibling dirs never load it. Creating the subdir `CLAUDE.md` if it doesn't exist yet is fine; that's the `app/Domain/*` pattern.
+
+⚠️ Run the seam-test against EVERY real sibling subdirectory, not just the one the rule's subject matter suggests — `rg -l` the rule's core symbols against each plausible candidate and let usage counts decide (`references/structure.md` §1). A rule that fails the seam-test against the obvious guess can still pass it against a directory nobody thought to check.
 
 **Read target first** — check structure, existing entries, where new entry fits.
 
@@ -208,7 +212,7 @@ Scaffold a new CLAUDE.md for a repo, layer, or subdir that has none. The goal is
    - **Stack + entry points** for the LLM-CONTEXT header (framework versions from lockfiles; entry files).
    - **Critical rules / gotchas**: only ones you can actually justify from the code (a broken legacy model, a schema quirk, a route-placement constraint). If you can't justify a rule from the code, leave it out — an empty section is better than a guessed one.
 4. **Write in house style** — LLM-CONTEXT header, `{#anchor}` on every `##`, `❌ NEVER / ✅ INSTEAD` and `Symptom | Cause | Fix` tables, file+symbol references (never line numbers), sections in taxonomy order. Cross-reference the parent layer for shared concepts (`> Schema: parent CLAUDE.md #{plans}`).
-5. **Stay under budget** — target <200 lines (§6). A fresh scaffold that's already near the cap means you're including too much; keep the highest-signal rules, drop the rest.
+5. **Stay under budget** — target <200 lines (§6). A fresh scaffold that's already near the cap means you're including too much; keep the highest-signal rules. Before dropping the rest outright, check whether a block is feature-specific enough to route to that feature's task doc instead (§6 "second structural lever") — only truly cross-cutting or low-signal content should be cut.
 6. **Validate** (§5 checks apply): anchors present + unique, tables well-formed, no invented rules, no secrets (those go to `CLAUDE.local.md` by name only), cross-refs resolve.
 
 # REWRITE MODE
@@ -220,7 +224,7 @@ Restructure an existing CLAUDE.md to the canonical layout + formatting without l
 3. **Re-section to taxonomy order** (§3): LLM-CONTEXT header → Commands → Architecture → Critical Rules → domain sections → Gotchas → cross-refs. Move each existing rule into its correct section. If the file has no Architecture section at all (common in a gotchas-only file that grew incident-by-incident), that's a gap to fill, not just a reorder — derive it from the real contracts/sibling classes (e.g. a "4 mutually-exclusive-precondition sibling Actions" table), never invent structure that isn't in the code.
 4. **Normalize formatting to house style** (§4): free-form bullets restating a constraint → `❌/✅` rows; debugging notes → `Symptom | Cause | Fix` rows; add missing `{#anchor}`s; strip line numbers down to file+symbol; delete session storytelling.
 5. **Apply the capture filter** (§2) as you go: a rule that's discoverable-from-code, linter-enforced, or feature-specific gets *removed* (feature-specific → note it belongs in a task doc), not reformatted. This is the one place Rewrite deletes — for the wrong-layer/discoverable class only, never for "seems long".
-6. **Route mis-placed rules** (§1): a rule that belongs one layer down goes to (or creates) the subdir/domain file, using the seam-test. A cross-cutting rule wrongly buried in a subdir moves up to the layer.
+6. **Route mis-placed rules** (§1): a rule that belongs one layer down goes to (or creates) the subdir/domain file, using the seam-test. A cross-cutting rule wrongly buried in a subdir moves up to the layer. If a block fails the seam-test (no real subdirectory owns it) but is feature-specific, route to that feature's task doc instead (`references/structure.md` §6 "second structural lever") — leave a bare `📖 See <file>` pointer row, no inline duplication needed.
 7. **If still over budget after restructure** → hand off to `condense-claude-md` for a density pass; don't force-shrink by dropping rules yourself.
 8. **Validate**: diff your rule-inventory (step 2) against the rewritten file — every load-bearing rule still present (possibly relocated), zero dropped. Then §5 checks.
 

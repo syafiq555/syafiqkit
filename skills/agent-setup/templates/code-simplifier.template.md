@@ -15,6 +15,7 @@ tools:
   # - mcp__gitnexus__context
   # - mcp__gitnexus__impact
 model: opus
+color: cyan
 memory: project
 ---
 

@@ -13,6 +13,7 @@ tools:
   # - mcp__gitnexus__impact
   # - mcp__gitnexus__context
 model: sonnet
+color: red
 memory: project
 ---
 
