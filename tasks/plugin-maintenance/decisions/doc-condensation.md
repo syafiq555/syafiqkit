@@ -5,7 +5,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Fix doc bloat at the generator (task-summary rules), not by hand-trimming individual docs (D3)
   - Shared *shape* applied to disjoint *content* is not duplication — only true text/logic overlap is (D12)
 Related: ../current.md (index), ../decisions/madr-structure.md, ../decisions/agent-architecture.md
-Last updated: 2026-07-09
+Last updated: 2026-07-12
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation Decisions
@@ -14,26 +14,16 @@ Decisions about fighting duplication and bloat across task docs, CLAUDE.md files
 
 ---
 
-### D2 — Apply LLM Prompting Techniques Selectively, Not Universally — committed — 2026-02-21
+### Demoted Decisions
 
-**Problem**
-Command reliability varied — some commands mis-routed on multi-branch inference, others were fine.
+Settled, `committed`, uncontested for 3+ sessions, not cited by ID elsewhere in this doc — demoted per `templates.md`'s demotion rule (full history in git blame if needed).
 
-**Decision**
-Chosen: apply Constitutional constraints (❌ rules), Chain-of-Thought (`<thinking>` pre-flight), and Validation Loops (re-read after write) only to commands with multi-branch inference or file writes.
-- `write-summary`: Constitutional (Steps 3+4) + CoT (Step 0) + Validation (Step 5)
-- `update-summary`: Constitutional (Step 2) + Validation (Step 3)
-- `update-claude-docs`: Constitutional (Step 3c) + CoT (Step 0) + Validation (Step 3f)
-
-**Rejected**
-- Applying all three techniques to every command uniformly. Why not: simple commands (`read-summary`, `commit`) don't benefit — overhead reduces clarity without a reliability gain.
-
-**Consequences**
-- `<thinking>` as Step 0 (pre-flight, not inline) externalizes routing decisions before action, preventing silent mid-step errors and easing review.
-- Validation loop re-reading the file after write catches silent truncation bugs Edit confirmation alone misses.
-- Version bumped 1.6.3 → 1.6.4. `read-summary` was later converted from command to skill (2026-07) — see index Current Skills table.
-
-**Status**: committed · **Reversible**: yes
+| Decision | Rationale |
+|----------|-----------|
+| D2 — Apply LLM prompting techniques (Constitutional/CoT/Validation) selectively, only to commands with multi-branch inference or file writes | Uniform application to simple commands (`read-summary`, `commit`) adds overhead without a reliability gain |
+| D5 — A skill's happy path defers to a project's own documented alternative convention (e.g. `ship`'s CI-verify vs a project's rsync hotfix) rather than hardcoding the exception | Keeps the plugin generic/project-agnostic while still respecting a specific project's faster path when documented |
+| D7 — A read-only command (`read-summary`) that notices a doc contradicting code must name the drift and route it (to `/update-summary` or `/update-plugin`), not just narrate it in passing | Narrating without routing drops the fix — the handoff is the deliverable, the command itself stays read-only |
+| D11 — Extract to `_shared/references/` only true byte-identical duplication (e.g. the "no filler words" table), not broad pointer-extraction of similar-but-not-identical guidance | Generic research shows indirection risks non-compliance; extraction is only worth that risk for genuinely identical content |
 
 ---
 
@@ -58,24 +48,6 @@ A cross-section dedup rule in `task-summary` shrinks every future doc; this is t
 
 ---
 
-### D5 — A Skill's Happy Path Must Defer to a Project's Documented Alternative — committed
-
-**Problem**
-`ship`'s CI-verify step assumed `gh run list` polling always applies. Some projects define a faster non-CI deploy path (e.g. rsync hotfix) in their own `CLAUDE.local.md` for a subset of changes.
-
-**Decision**
-Chosen: the skill checks for a project-documented alternative convention first, rather than hardcoding one project's specifics into the plugin.
-
-**Rejected**
-- Hardcoding the rsync-hotfix exception into `ship` itself. Why not: plugin must stay self-contained and project-agnostic.
-
-**Consequences**
-Keeps `ship` generic across projects while still respecting a specific project's faster path when documented.
-
-**Status**: committed · **Reversible**: yes
-
----
-
 ### D6 — A CLAUDE.md Line Is Dead Weight Once a Skill Enforces It at Action-Time — committed
 
 **Problem**
@@ -86,39 +58,6 @@ Chosen: when a skill enforces a rule at action-time, delete the CLAUDE.md copy �
 
 **Consequences**
 Prevents a class of stale-CLAUDE.md-vs-skill contradiction; part of the same "one fact, one home" lineage as D3.
-
-**Status**: committed · **Reversible**: yes
-
----
-
-### D7 — A Read-Only Command Must Still Route What It Notices — committed
-
-**Problem**
-`read-summary` reads/audits docs constantly and is uniquely placed to catch a doc contradicting the code (stale `Status:`, swapped provider, moved files, expired caveat) — but narrating the drift in passing dropped the fix; nothing acted on it.
-
-**Decision**
-Chosen: add a "doc-staleness handoff" rule — name the drift as a finding, then route to `/update-summary` (project fact) or `/update-plugin` (skill defect). The command itself stays read-only; the handoff is the deliverable.
-
-**Consequences**
-Read-only commands can surface fixes without becoming write commands themselves — the routing is the contribution, not a direct edit.
-
-**Status**: committed · **Reversible**: yes
-
----
-
-### D11 — Extract Only True Verbatim Cross-Skill Duplication to `_shared/references/` — committed
-
-**Problem**
-Research surfaced conflicting guidance: generic LLM-instruction research says inline repetition is more reliable than pointers (indirection risks non-compliance), while Anthropic's Skills docs recommend `references/*.md` extraction because Skills load references on demand (a documented mechanism, not a bare in-prompt pointer).
-
-**Decision**
-Chosen: scope extraction narrowly — only pull byte-identical tables repeated across many skills. Pulled the "no filler words" table (identical across `task-summary`, `notes-summary`, `update-claude-docs`, `condense-task-doc`, `condense-claude-md`) into `skills/_shared/references/writing-style.md`. Left skill-specific rules, rationale, and edge cases inline everywhere else.
-
-**Rejected**
-- Broad pointer-extraction of anything resembling shared guidance. Why not: risks the indirection-reliability tradeoff the research flagged, for content that isn't actually byte-identical.
-
-**Consequences**
-`merge-task-docs` mentions "no filler words" only as a one-word inline nod (not the duplicated table) — left as-is rather than pointed at the shared file, since there was nothing to extract.
 
 **Status**: committed · **Reversible**: yes
 
@@ -159,11 +98,11 @@ Chosen: remove the feature/flow-name gate from `Explore.template.md` and `Plan.t
 - Reverting D17's underlying finding (that the old gate was well-designed). Why not: D17's finding was correct as a description of the code's PRE-existing intent — this decision is a values call by the user overriding that intent going forward, not new evidence that the old design was flawed.
 
 **Consequences**
-- `Explore`/`Plan` now pay a `/read-summary` discovery cost on every invocation, including calls that would previously skip it as trivial. Accepted cost, per user's explicit choice.
-- `agent-setup/SKILL.md` Step 4 rule and Step 5 checklist item rewritten to state the unconditional requirement, replacing the "detailed prompt is not a signal to skip" framing (now a redundant sub-case, not the rule itself).
-- Any FUTURE project's `Explore.md`/`Plan.md`, scaffolded via `agent-setup` from this point forward, inherits the unconditional gate by default — this is a plugin-wide behavior change, not scoped to Autorentic alone.
+- `Explore`/`Plan` pay a `/read-summary` discovery cost on every invocation now, including previously-skipped trivial calls — accepted cost, per user's explicit choice.
+- `agent-setup/SKILL.md` Step 4/5 rewritten to state the unconditional requirement as the rule itself, not an exception.
+- Plugin-wide: every future project's `Explore.md`/`Plan.md` scaffolded via `agent-setup` inherits the unconditional gate by default.
 
-**Status**: committed · **Reversible**: yes (a future session preferring efficiency over precision could reintroduce a gate — this decision is a stated user preference, not a discovered technical fact)
+**Status**: committed · **Reversible**: yes (stated user preference, not a discovered technical fact — could be regated later)
 
 ---
 
@@ -181,12 +120,12 @@ Chosen: add a second lever to `references/structure.md` §6 — when a block is 
 - Auto-creating a new task doc slug just to hold a relocated section. Why not: an orphaned single-purpose doc invented to house one block is worse than leaving the block inline — the lever only applies when a real feature doc exists or genuinely should via content-based discovery, never a guessed folder name.
 
 **Consequences**
-- `update-claude-docs/references/structure.md` §6 gained the second-lever section + boundary table; Create mode step 5 and Rewrite mode step 6 both reference it as an alternative to dropping content.
-- `update-claude-docs/SKILL.md`'s "inline critical facts" rule scoped to CLAUDE.md-level pointers only — no longer blanket-applies to task-doc-internal pointers.
-- `condense-claude-md/SKILL.md` step 6's seam-test-fails warning updated: no longer declares the layer file as the terminal outcome — checks feature-specificity first.
-- This directly reopens `app/CLAUDE.md`'s original bloat problem from earlier in this session (Multi-Agency/Cast/Media Gotchas, ~200 lines combined) as a CANDIDATE for this lever — none of those sections are single-feature-scoped though (Cast Gotchas applies to every model; Multi-Agency spans the whole authz layer), so applying the boundary table's own criteria, they likely still fail this lever too and stay inline. The lever is proven and available; it doesn't retroactively make that specific file's bloat solvable — a future session should re-evaluate per-block, not assume the lever automatically applies there.
+- `update-claude-docs/references/structure.md` §6 gained the second-lever section + boundary table (Create step 5, Rewrite step 6 reference it).
+- `update-claude-docs/SKILL.md`'s "inline critical facts" rule scoped to CLAUDE.md-level pointers only — no longer applies to task-doc-internal pointers.
+- `condense-claude-md/SKILL.md` step 6's seam-test-fails warning updated: checks feature-specificity before declaring the layer file terminal.
+- Reopened `app/CLAUDE.md`'s Multi-Agency/Cast/Media Gotchas bloat as a candidate — initially assessed as still failing this lever (not single-feature-scoped). ⚠️ See correction below.
 
-⚠️ **Correction (see D20)**: "Multi-Agency spans the whole authz layer" turned out to be true but irrelevant to whether it has a real seam — it's concentrated in `app/Http/*` (Controllers/Requests/Middleware/Resources: 11-26 grep hits per symbol) vs. near-zero in `app/Domain/*` (0-4 hits). The section DID pass the seam-test, just against a subdirectory this decision never checked. The Cast Gotchas conclusion (46+20 hits in `Domain`/`Models`, ~0 in `Http`) held up under the same check — it's genuinely cross-cutting model code, no dominant seam.
+⚠️ **Correction (see D20)**: "spans the whole authz layer" was true but irrelevant to seam — Multi-Agency concentrates 11-26x in `app/Http/*` vs 0-4 in `app/Domain/*`, so it DID pass the seam-test against a subdirectory this decision never checked. Cast Gotchas held up as genuinely cross-cutting under the same check (46+20 hits in `Domain`/`Models`, ~0 in `Http`).
 
 **Status**: committed · **Reversible**: yes
 
@@ -195,19 +134,62 @@ Chosen: add a second lever to `references/structure.md` §6 — when a block is 
 ### D20 — Seam-Test Must Check EVERY Real Sibling Subdirectory, Not Just the Intuitively-Obvious One — committed — 2026-07-12
 
 **Problem**
-D17 concluded `app/CLAUDE.md`'s Multi-Agency Gotchas section "fails the seam-test" and stays in the layer file — checked only against `app/Domain/*` (the subdirectory tree the section's NAME suggests). A later re-examination, prompted by the user pushing back on accepting 24KB of density as final, grepped the section's core symbols (`getActiveAgency`, `hasAccessTo`, `isAdminOf`, `X-Agency-Id`) against every top-level `app/` subdirectory and found 5-10x concentration in `app/Http/` (Controllers/Requests/Middleware/Resources) vs. near-zero in `Domain/*` — a real seam the original check never looked for, because `app/Http/CLAUDE.md` didn't exist yet and the section's subject matter ("Multi-Agency") reads as domain-owned by name, not Http-owned.
+D17 concluded Multi-Agency Gotchas "fails the seam-test," checked only against `app/Domain/*` (the subdirectory its NAME suggests). Re-examination grepped its core symbols against every top-level `app/` subdirectory and found 5-10x concentration in `app/Http/` vs near-zero in `Domain/*` — a real seam the original check never looked for.
 
 **Decision**
-Chosen: the seam-test methodology itself was under-specified — "check the seam-test" implicitly meant "check against the subdirectory the content is intuitively about," which is a naming-convention guess, not a systematic check. Added an explicit instruction to `references/structure.md` §1 (canonical definition) and both `condense-claude-md`/`update-claude-docs` SKILL.md (where the seam-test is invoked as a workflow step): grep the section's 3-5 core symbols against EVERY plausible candidate subdirectory with `rg -l "<symbol>" <dir> --type=<lang> | wc -l`, and let usage counts decide — never eyeball which directory "sounds right." Result applied live: created `app/Http/CLAUDE.md` (new file, 86 lines), moved Multi-Agency Gotchas + Controller/Resource Patterns there, `app/CLAUDE.md` shrank 295→241 lines (24.5KB→19.5KB, -20.5%) — verified end-to-end with a negative/positive control pair (a Domain-only session does NOT load the content; reading a file under `app/Http/` does).
+The seam-test itself was under-specified — "check the seam-test" meant "check the intuitively-named subdirectory," a naming guess, not a systematic check. Added an explicit instruction to `references/structure.md` §1 and both `condense-claude-md`/`update-claude-docs` SKILL.md: grep the section's 3-5 core symbols against EVERY plausible candidate subdirectory with `rg -l "<symbol>" <dir> --type=<lang> | wc -l`, let counts decide. Applied live: created `app/Http/CLAUDE.md` (86 lines), moved Multi-Agency Gotchas + Controller/Resource Patterns there, `app/CLAUDE.md` shrank 295→241 lines (24.5KB→19.5KB, -20.5%), verified with a negative/positive control pair.
 
 **Rejected**
 - Treating this as a one-off correction to D17 alone, not a methodology fix. Why not: the same "check only the obvious candidate" gap exists in every place the seam-test is invoked (`condense-claude-md` step 6, `update-claude-docs` §2/Rewrite step 6) — fixing D17's specific conclusion without fixing the underlying check means the next session hits the identical miss on a different section/project.
 - Re-checking Cast Gotchas and Media/PDF against the same broadened methodology and finding they ALSO have a hidden seam. Why not: actually checked (grep counts run) — Cast Gotchas stays genuinely cross-cutting (`$casts` concentrates in `Domain`+`Models`, both real content-generating layers, no single dominant seam), Media/PDF splits evenly between `Http`/`Domain` with no dominant candidate either. Not every miss is the same miss; verified rather than assumed the fix generalized to all three sections.
 
 **Consequences**
-- `references/structure.md` §1, `condense-claude-md/SKILL.md` step 6, `update-claude-docs/SKILL.md` §2 all patched with the "check every real sibling, not just the obvious one" instruction + the `rg -l ... | wc -l` concrete methodology.
-- D19's own text (written the same session, before this correction) has a correction note added rather than being rewritten — the MADR log preserves what was actually concluded at each point, including the miss, not just the final corrected state.
-- `app/CLAUDE.md` bloat, which D19 predicted was NOT solvable by the task-doc-pointer lever, WAS solvable — by the ordinary subdirectory-split lever (§6's FIRST lever, not the second), once checked against the right candidate. The two levers (subdirectory split vs. task-doc pointer) remain correctly scoped to their own use cases; this decision only fixes how the FIRST lever's applicability gets checked.
+- `references/structure.md` §1, `condense-claude-md/SKILL.md` step 6, `update-claude-docs/SKILL.md` §2 patched with the "check every real sibling" instruction + `rg -l ... | wc -l` methodology.
+- D19's text kept as-written, correction note added rather than rewritten — MADR log preserves what was concluded at each point, including the miss.
+- `app/CLAUDE.md` bloat (D19 predicted unsolvable by the pointer lever) WAS solvable by the ordinary subdirectory-split lever, once checked against the right candidate. Both levers remain correctly scoped; this only fixes how the first lever's applicability gets checked.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D22 — `condense-claude-md`'s Verification Diff Needed a Second-Pass Filter, and Completion Needed a Byte Threshold Alongside the Line Threshold — committed — 2026-07-12
+
+**Problem**
+Two gaps in a live Dourr `CLAUDE.md` condensation run. (1) The prescribed `diff`/`comm -23` verification flagged ~30 lines as possibly-dropped; all were false positives (reworded labels, table-header artifacts), requiring manual `grep -c` triage the skill never mentioned. (2) The pass hit the ≤200-line target (257→221) and was reported complete, but the file was still 20.4KB — a `Symptom | Fix` table's rows don't merge under compression, so line count hit target while bytes stayed high.
+
+**Decision**
+Two patches to `condense-claude-md/SKILL.md`. (1) Verification rule now warns `diff`/`comm` output is a *candidate list, not a verdict* — each flag needs `grep -c '<substring>'` confirmation before escalating. (2) Added Process step 6: hitting the line target isn't automatically done — also check a byte target (~15KB for a root CLAUDE.md); if still high, proactively offer a seam-test split via `AskUserQuestion` in the same turn as the compression report.
+
+**Rejected**
+- Leaving the diff/comm check as-is, treating the manual `grep -c` triage as implicit good practice. Why not: the same false-positive noise will recur on every future run of this exact command shape (rewording is the norm, not the exception, in a condensation pass) — worth naming as a known step, not left to be independently re-discovered each time, matching this doc's own D20/D6 lineage of promoting a repeated ad hoc fix into a stated rule.
+- Raising the line-count target itself (e.g. ≤150) instead of adding a parallel byte check. Why not: line count and byte density are orthogonal axes for a one-row-per-item table — a lower line target doesn't fix a table whose rows are already irreducibly long; the existing ⚠️ note under Process already identifies this shape as line-count-deceptive, so the real fix is checking the metric that shape actually hides (bytes), not tightening the metric that was never diagnostic for it.
+- Making the seam-test split offer mandatory/automatic without asking. Why not: splitting creates a new file and changes what loads when — a structural change with real tradeoffs (the seam-test can fail, or the user may prefer to accept more lines over more files), consistent with this skill already gating splits behind `AskUserQuestion` rather than executing them unprompted.
+
+**Consequences**
+- `condense-claude-md/SKILL.md`: verification bullet gained the false-positive-filter note; Process gained step 6.
+- Dourr `CLAUDE.md` further split: root `CLAUDE.md` (181 lines/12.7KB) + new `docker/CLAUDE.md` (53 lines/8.5KB, passes seam-test) — root kept app-code gotchas plus a `📖` pointer.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D23 — Skill-File Density Is a Distinct Bloat Class From CLAUDE.md/Task-Doc Bloat, and `update-plugin` Now Owns Its Checklist — committed — 2026-07-12
+
+**Problem**
+User flagged the plugin's own skills (SKILL.md files) as "bloated," specifically naming `update-claude-docs` and `task-summary`. Both sat under their line budgets (~230 lines each) — line count, the metric D22 already patched for CLAUDE.md, didn't explain the complaint. A full-plugin audit found the real signal was bytes/line: `condense-claude-md` and `condense-task-doc` — the two skills whose JOB is fixing this pattern in other files — were themselves the densest files in the plugin (147 and 140 bytes/line), each preaching conciseness while stacking multiple ⚠️ callouts that re-justified the same rule and embedding worked-incident anecdotes as instruction text.
+
+**Decision**
+Two-round hand-edit pass (SKILL.md files aren't CLAUDE.md files, so `condense-claude-md`/`condense-task-doc` don't apply — no delegation target existed). Round 1 (v1.62.0): collapsed stacked warnings and stripped anecdotes across 7 skills (`condense-claude-md`, `condense-task-doc`, `agent-setup`, `task-summary`, `update-claude-docs`, `notes-summary`, `done`); `update-claude-docs` additionally got its cold-path CREATE/REWRITE/CONDENSE modes extracted to `references/other-modes.md` (239→205 lines, 27% smaller hot path) since Capture is the only mode `/done` depends on. Round 2 (v1.63.0), after a re-audit specifically checking for the same structural lever plugin-wide: `read-summary`'s "high ratio is structural, not redundant" verdict from round 1 was revised — two worked-anecdote examples and one self-justifying warning were real cuts (82→71 lines); `task-summary`'s rare merge/rename branch (§2a) extracted to `references/merge-rename.md` (223→202 lines). The plugin-wide structural-lever scan found no other candidates — everything else is single-purpose or has only small/frequent branches. Captured the whole pattern into `update-plugin/SKILL.md` (v1.63.1) as a new Step 1 signal ("skill reads as bloated/dense") + Step 3a checklist, so a future density ask routes through a documented list of 6 named patterns instead of a from-scratch audit.
+
+**Rejected**
+- Delegating skill-density fixes to `condense-claude-md`/`condense-task-doc`. Why not: those skills' entire density-rule vocabulary (WHY-column stripping, `Symptom|Cause|Fix` table shape, `{#anchor}` preservation) is CLAUDE.md/task-doc specific; SKILL.md files have different structure (frontmatter, mode sections, `references/` split) and no equivalent skill existed to point to.
+- Treating this as one-time manual cleanup with no reusable capture. Why not: the same shape (stacked warnings, worked anecdotes, self-contradiction, cold-path-in-hot-path) is exactly the kind of recurring, nameable pattern this doc's own D3/D6/D13 lineage says belongs in the generator/checklist, not re-discovered by inspection each time a skill grows dense again.
+- Extracting cold-path content from every skill preemptively, not just the two found. Why not: the round-2 plugin-wide scan explicitly checked all 12 remaining skills for this lever and found only `task-summary` §2a qualified — most skills are single-purpose with no hot/cold split; forcing an extraction where none is warranted adds indirection without a token-budget payoff.
+
+**Consequences**
+- 9 skill files edited across two rounds; 2 new `references/*.md` files created (`update-claude-docs/references/other-modes.md`, `task-summary/references/merge-rename.md`); `update-plugin/SKILL.md` gained a permanent density-pass capability (Step 1 signal + Step 3a checklist, 80→96 lines).
+- Plugin version bumped 1.61.2→1.63.1 across three CHANGELOG entries; `plugin.json`/`marketplace.json` kept in sync (also caught `marketplace.json` silently stale at 1.61.0 against `plugin.json`'s 1.61.2 from an earlier session — unrelated pre-existing drift, not touched beyond the sync).
+- The byte-density signal (`wc -lc`, flag >80-90 bytes/line) is now the standard first check for a density complaint on ANY plugin file — SKILL.md, CLAUDE.md, or task doc — even though the fix mechanism differs per file type (delegate to condense-* for CLAUDE.md/task docs; hand-edit + Step 3a checklist for SKILL.md).
 
 **Status**: committed · **Reversible**: yes
 

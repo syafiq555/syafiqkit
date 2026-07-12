@@ -27,6 +27,8 @@ When the input is a **release note / deployment announcement** (not already-fina
 
 A staging-only change is at most a one-line "on staging for testing" note — it is not a full release announcement. Lead with the outcome a non-engineer reads; delete everything explaining the underlying implementation. When unsure how terse, err shorter and offer a one-liner variant.
 
+⚠️ **Completeness check before delivering**: count the distinct shipped items in the source (each `###`-level bullet under Added/Changed/Fixed, per repo if multi-repo) and count the bullets in your condensed output. If the output has fewer, that's expected only if you deliberately merged near-duplicates or cut a caveat/ops-step per the table above — if a genuine shipped item is simply missing, you condensed too aggressively and silently dropped real content. Re-scan the source once before sending.
+
 ## Key Rules
 
 Google Chat does NOT support standard Markdown fully. Apply these transformations:

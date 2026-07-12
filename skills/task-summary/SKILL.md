@@ -46,10 +46,9 @@ Base rules: `_shared/references/writing-style.md`. Additional rules for task doc
 
 `current.md` should stay **under 300 lines**. If the doc is already >300 lines when you open it for an update, run a condense pass FIRST — delegate to `condense-task-doc` rather than hand-rolling it. That skill's row-existence pass (delete gotcha/decision rows that are discoverable-from-code, not just shorten their wording) is the step most likely to be skipped if you improvise a condense inline; sentence-tightening alone on a 40+-row doc yields a token cut in the single digits, not a real reduction.
 
-⚠️ **Line count is a proxy, not the metric — check byte size before forcing a condense.** A whole-doc MADR rewrite (see templates.md) can legitimately GROW line count while SHRINKING total content: a dense table cell wrapping 400+ characters of prose behind pipe characters becomes several short bullet lines in an ADR's Consequences section — more newlines, fewer total characters. Measured directly: a 13-decision/62-gotcha rewrite went 275→470 lines but 54.3KB→49.0KB (`wc -c` old vs new). Before running a condense pass solely because line count crossed 300, run `wc -c` on both versions (or `git show HEAD:<path> | wc -c` vs `wc -c <path>`) — if bytes dropped or held flat, the doc restructured, it didn't bloat, and a forced condense would just re-compress readable bullets back into unreadable wide table cells.
+⚠️ **Line count is a proxy, not the metric — check byte size (`wc -c`) before forcing a condense.** A whole-doc MADR rewrite (see templates.md) can legitimately GROW line count while SHRINKING total bytes: a dense table cell becomes several short bullet lines in an ADR's Consequences section — more newlines, fewer total characters. Before condensing solely because line count crossed 300, compare `wc -c` on both versions (or `git show HEAD:<path> | wc -c` vs `wc -c <path>`) — if bytes dropped or held flat, the doc restructured, it didn't bloat, and a forced condense would just re-compress readable bullets back into wide table cells.
 
-⚠️ **MADR is the default decision structure — apply on every create/update.** Every decision written to `## Key Technical Decisions` is an MADR block (Problem/Decision/Rejected/Consequences/Status) by default (templates.md "MADR-Style Decisions") — not an upgrade reserved for decision-heavy docs. Escape hatch to a plain `| Decision | Rationale |` row ONLY when the decision genuinely had no alternative considered (Rejected would come up empty). A doc recording its first real decision this way is already becoming a whole-doc MADR one block at a time — there's no separate doc-level threshold to wait for.
-- **Already whole-doc MADR AND >300 lines** after legitimate ADR growth → split into index + `decisions/<theme>.md` by default (templates.md "Splitting a whole-doc MADR further") — do this as part of the current write, don't ask first.
+⚠️ **MADR is the default decision structure — apply on every create/update.** Every decision written to `## Key Technical Decisions` is an MADR block (Problem/Decision/Rejected/Consequences/Status) by default (templates.md "MADR-Style Decisions") — not an upgrade reserved for decision-heavy docs. Escape hatch to a plain `| Decision | Rationale |` row ONLY when the decision genuinely had no alternative considered (Rejected would come up empty). Already whole-doc MADR AND >300 lines after legitimate ADR growth → split into index + `decisions/<theme>.md` by default (templates.md "Splitting a whole-doc MADR further") as part of the current write, don't ask first.
 
 Litmus tests before finishing: (1) grep your doc for the 2-3 most critical phrases — a phrase in >2 sections means collapse the extras to pointers; (2) scan for sentences with 2+ parentheticals or commit hashes outside Last Session — rewrite them.
 
@@ -88,28 +87,7 @@ Read **both** the resolved path **and `references/templates.md`** first — the 
 
 ## 2a. When Merging or Renaming (user requests `merge A into B`, or rename a doc folder)
 
-⚠️ **NO redirect stubs.** When a doc is merged into another or its folder is renamed, **delete the source outright** — do NOT leave a `# Merged into:` stub. Stubs are clutter the user does not want; discoverability is preserved by reconciling every back-reference, not by a breadcrumb file. The gate is **0 stale references**, verified before you finish.
-
-**Merging** (`merge A into B`): delegate to `syafiqkit:merge-task-docs` — it owns the full workflow (subsystem-boundary check, back-ref scan, canonical-path choice, validation). Don't reimplement it here.
-
-**Renaming a doc folder** (better discoverability slug):
-
-1. **`git mv`** the folder (and any `instructions.md`/`stories.md` siblings) — preserves history; a plain `mv`+add shows as delete+add.
-2. **Update the doc's own `# Title` + LLM-CONTEXT `Domain`** to match the new slug.
-3. **Reconcile ALL back-references** to the new path (see below).
-4. **Remove empty leftover dirs** so `Glob tasks/**` doesn't surface stale paths.
-
-**Back-reference reconciliation (both cases) — sweep these, not just `Related:`:**
-- `Related:` fields AND inline `tasks/**/current.md` mentions in OTHER task docs
-- Domain `CLAUDE.md` `> 📖` pointers (e.g. `app/Domain/Invoice/CLAUDE.md`) — code docs cite task docs too
-- Roadmap/hub rows that mirror the doc by name
-- ⚠️ `rg` stdout can corrupt long paths — write matches to a file and Read it (don't trust truncated terminal output)
-
-| ❌ Never | ✅ Always |
-|---------|---------|
-| Plain `mv` a renamed folder | `git mv` — keeps history |
-
-For merge-specific ❌/✅ rules (stub handling, reconcile-before-delete, `Related:` sweep scope, subsystem-vs-keyword, size budget), see `syafiqkit:merge-task-docs`'s Rules table — don't duplicate them here.
+Cold-path — read `references/merge-rename.md` for the full process. Merging delegates to `syafiqkit:merge-task-docs`; renaming is `git mv` + reconcile every back-reference. **NO redirect stubs** either way — delete the source outright, the gate is 0 stale references.
 
 ## 3. When Creating
 
@@ -155,14 +133,12 @@ A decision/gotcha/bug captured only in `## Last Session` is a bug — Last Sessi
 
 ### MADR Blocks — Edit-in-Place vs Append (when the doc has one)
 
-`references/templates.md` defines when a Decision becomes an MADR block instead of a table row. Once a block exists, a session touching that same decision has two shapes of update — telling them apart matters because appending when you should edit re-derives a growth problem the block format already runs hot on:
+`references/templates.md` defines when a Decision becomes an MADR block instead of a table row. The test: **did the underlying decision change, or did our record of an unchanged decision get more accurate?**
 
 | Signal | Action |
 |--------|--------|
-| The session's finding is about a decision **already recorded** — a field in the existing block was wrong, incomplete, or now stale (status flipped `planned`→`shipped`, a Consequence turned out different, an implementation bullet changed) | **Edit the existing block's fields in place.** Update Status/date to show it was touched. This is the same "edit in place, don't append" rule Quick Start already follows — a block isn't exempt from it just because it has more fields than a table row. |
-| The session's finding is **genuinely new** — a different decision, OR a Rejected option from an existing block got reconsidered and adopted (the decision itself changed direction) | **Append a new block** with `Supersedes D-N` in its Status line (see templates.md). Do not silently rewrite the old block to match the new outcome — the fact that D-N was later reversed is itself worth keeping, not erasing. |
-
-The test: **did the underlying decision change, or did our record of an unchanged decision get more accurate?** More-accurate-record-of-the-same-decision → edit. Decision-itself-changed → append + supersede.
+| Record of an already-recorded decision got more accurate (status flipped `planned`→`shipped`, a Consequence turned out different, an implementation bullet changed) | **Edit the existing block's fields in place** — same "edit in place, don't append" rule Quick Start follows. Update Status/date to show it was touched. |
+| The decision itself changed — genuinely new decision, or a Rejected option got reconsidered and adopted | **Append a new block** with `Supersedes D-N` in its Status line. Don't rewrite the old block to match — that D-N was later reversed is itself worth keeping. |
 
 ### Quick Start Section (cold-start context for next session)
 

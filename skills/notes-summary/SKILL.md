@@ -95,20 +95,16 @@ This is what separates a useful journal from a pile of notes. After capturing an
 
 ## 4b. Decisions: supersede, never rewrite
 
-A *durable rule* (Standing Takeaway) can be edited as it evolves. But a **decision you made at a point in time** ("I'll reply with X", "I'll take the job") must NOT be rewritten when it changes — append a new entry that references and supersedes the old one, and leave the original entry's reasoning intact.
-
-The reason is specific to personal logs and stronger than the ADR audit-trail argument: **hindsight bias silently overwrites what you believed before you knew the outcome.** Your brain doesn't store the original belief and flag the update — it replaces it. So the frozen "what I was thinking when I decided X, and why I later switched to Y" pair is the entire learning signal. Rewriting X to look like Y destroys it.
+A *durable rule* (Standing Takeaway) can be edited as it evolves. But a **decision you made at a point in time** ("I'll reply with X", "I'll take the job") must NOT be rewritten when it changes — append a new entry that references and supersedes the old one, and leave the original entry's reasoning intact. Hindsight bias silently overwrites what you believed before you knew the outcome, so the frozen "what I thought at decision time, and why I later switched" pair is the entire learning signal — rewriting the old entry destroys it.
 
 Convention (only when an entry records a genuine *decision*, not every conversation):
 - New entry: `### YYYY-MM-DD — Decided Y (supersedes 2026-06-18 decision to do X)`.
 - Old entry: leave the body verbatim; you may add a one-line trailer `> Superseded by 2026-MM-DD.` so a reader isn't misled.
 - For a second-guessable decision, capture **what you expect to happen** + (optionally) **what would change your mind** — so the later review has something to check against. Skip this for routine chat; reserve it for decisions you'd actually want to learn from.
 
-This mirrors what ADRs, decision journals, and append-only logs independently converge on: append + supersede, never overwrite.
-
 ## 4c. The review loop (what actually keeps a journal alive)
 
-The dominant reason these logs die is NOT bad writing — it's that nothing ever resurfaces them. "Documentation without a read path is performance art." A record written and never re-read drifts from reality and becomes a graveyard. So the highest-leverage habit is the *read* side, not the write side.
+These logs die when nothing resurfaces them, not from bad writing — a record written and never re-read drifts from reality. So the highest-leverage habit is the *read* side, not the write side.
 
 Lightweight affordance (don't over-engineer — heavy process kills the habit just as surely as no process):
 - When an entry has a future check worth making — a decision whose outcome you'll want to grade, an open thread with a deadline — set `Review: <date or condition>` in the header (e.g. `Review: 2026-07-18` or `Review: when boss gives sheet feedback`).

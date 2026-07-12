@@ -140,6 +140,7 @@ No build step — markdown files are interpreted directly.
    - Skill references a non-existent terminal skill (e.g. `writing-plans`) — always verify referenced skills exist in `skills/*/SKILL.md` before shipping
    - Same flow described in 4 places (checklist + diagram + prose + after-section) — one `## Steps` section is enough; redundancy causes section drift
    - Judging bloat by line count alone — a dense one-row-per-item table can sit at target line count while individual cells run 800+ characters; use `wc -c` alongside `wc -l` before ranking files by size
+   - A skill "feels bloated" → run `syafiqkit:update-plugin`'s Step 3a density-pass checklist (stacked warnings, worked anecdotes, cold-path extraction) rather than a from-scratch audit — see `tasks/plugin-maintenance/decisions/doc-condensation.md` D23
    - Adding a new skill/command: update BOTH the `## Skills` table here AND the `## Skills` table in `README.md` — two separate lists that silently drift if only one is touched
    - Inconsistent edits — when changing a concept (e.g., model name), verify all references (headings, body, comments) match
 3. **Reference**: `tasks/plugin-maintenance/current.md` for plugin patterns and research

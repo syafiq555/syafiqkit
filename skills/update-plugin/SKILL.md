@@ -23,6 +23,7 @@ Look for these signals in the session:
 | An existing skill was edited this session | Update the skill's `Last updated` note if it has one; update `plugin-maintenance/current.md` if architecture changed |
 | A merge/refactor decision was made about the plugin itself | Add to `plugin-maintenance/current.md` Architecture Decisions table |
 | A "keyword trap" or nuance that future sessions need to know | Add as a named rule with a concrete example in the relevant skill |
+| A skill (or its `references/*.md`) reads as bloated/dense — the user says "this feels bloated", or bytes/line is noticeably high | **Density pass** — see Step 3a |
 
 Skip signals that are project-specific OR a durable working-style/communication preference (both go to `update-claude-docs` instead — a style pref lands in global `~/.claude/CLAUDE.md`, never a SKILL file). The test: would this change alter how a *skill* triggers or behaves? If yes, it belongs here; if it's about how *Claude* should communicate generally, it doesn't.
 
@@ -58,6 +59,21 @@ For each change, apply the most targeted edit possible:
 2. `syafiqkit/CLAUDE.md` → `### Skills` table
 
 Both tables must stay in sync.
+
+### Step 3a — Density pass
+
+SKILL.md files are not CLAUDE.md files — `condense-claude-md`/`condense-task-doc` don't apply. Hand-edit using this checklist. Line count alone is a poor signal (most bloated skills in this plugin still sat under 250 lines); run `wc -lc` and flag anything above ~80-90 bytes/line for a closer read.
+
+| Pattern | Fix |
+|---------|-----|
+| Two or more ⚠️ callouts re-justifying the same rule (a later one defends or re-explains the first) | Collapse to one — state the rule once, keep only the sharpest reason |
+| A worked incident/anecdote embedded in instruction text ("a session judged...", specific numbers from one past run) | Strip to the bare rule; git history/CHANGELOG owns the incident, not the skill body |
+| Illustrative `<example>` blocks that restate a rule already stated plainly nearby | Compress to a one-line parenthetical or cut if the rule reads clearly alone |
+| A skill that preaches density/conciseness while itself running long, self-justifying paragraphs | Highest-priority fix — the self-contradiction undermines the skill's own credibility |
+| A duplicate rule copied from a sibling skill instead of pointed to (e.g. a numeric threshold restated in two files) | Replace with a pointer to the canonical skill — divergence risk if only one gets updated later |
+| A clear hot-path default plus a distinct, infrequently-invoked mode/branch fully inlined in SKILL.md (15+ lines) | Extract to `references/<mode>.md`, leave a short pointer summary — SKILL.md stays lean for the path used every invocation |
+
+After editing: re-run `wc -lc`, confirm no behavioral content was cut (only reworded/relocated), and bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention.
 
 ## Step 4 — Validate
 

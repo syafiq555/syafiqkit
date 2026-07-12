@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.63.1
+
+- **update-plugin**: added a "Density pass" signal (Step 1) and Step 3a, capturing the skill-file bloat patterns found across the 1.62.0/1.63.0 condensation passes as a reusable checklist — stacked ⚠️ callouts re-justifying the same rule, worked-incident anecdotes embedded in instructions, illustrative examples restating an already-stated rule, self-contradiction (a skill preaching density while violating it), duplicate rules copied instead of pointed-to, and cold-path modes/branches that should extract to `references/*.md`. Future density asks now route through a documented checklist instead of a from-scratch audit.
+
+## 1.63.0
+
+- **Density pass round 2**: `read-summary` and `task-summary` further optimized after a full plugin re-audit. `read-summary`'s "structural, not redundant" verdict from round 1 was revised on closer inspection — two worked-incident examples (the "set tak sync" staleness anecdote, the SET/marketplace attribute-substitution walkthrough) and one self-justifying MANDATORY warning that repeated itself four ways were trimmed to their bare teaching point. 82→71 lines, 12.6KB→11.4KB (10% smaller).
+- `task-summary`'s §2a (merge/rename, a rare branch off the default create/update flow) extracted to `references/merge-rename.md`, same progressive-disclosure lever used on `update-claude-docs` in 1.62.0. 223→202 lines, 18.3KB→16.8KB (8% smaller hot path).
+- Plugin-wide scan for the same structural lever found no other candidates — `agent-setup`, `done`, `notes-summary`, `merge-task-docs`, `ship`, `pull-db`, `gchat-format`, `condense-claude-md`, `condense-task-doc`, `ci-ssh-deploy-timeout`, `update-plugin` are each single-purpose or have only small/frequently-used branches, not worth splitting. `function-parameter-limits` and its per-language reference files were also re-checked and are lean.
+
+## 1.62.0
+
+- **Density pass across 7 skills** — `condense-claude-md`, `condense-task-doc`, `agent-setup`, `task-summary`, `update-claude-docs`, `notes-summary`, `done`. Collapsed stacked ⚠️ warnings that re-justified the same rule (e.g. `condense-claude-md` restated "check bytes not just lines" 4 times; `agent-setup` retold the same `disallowedTools` incident 3 times), stripped worked-incident anecdotes down to bare rules, and removed a duplicate copy of task-summary's "rows ≤2 sentences" rule from `condense-task-doc` in favor of a pointer.
+- **update-claude-docs got a second, deeper pass**: extracted CREATE/REWRITE/CONDENSE modes (~40 lines) out of the always-loaded SKILL.md into a new `references/other-modes.md`, since Capture mode is the hot path (`/done` depends on it) and the other three modes already told readers to consult `references/structure.md` anyway. SKILL.md dropped 239→205 lines / 23.3KB→17.0KB (27% smaller on the hot path); no content lost, only relocated.
+- Prompted by user feedback that the plugin's skills "feel bloated" — an audit found the two condensation skills (`condense-claude-md`, `condense-task-doc`) were themselves the densest files in the plugin (147 and 140 bytes/line), preaching conciseness while violating it. Full audit + rationale in `tasks/plugin-maintenance/decisions/doc-condensation.md`.
+
+## 1.61.2
+
+- **condense-claude-md**: Hard Rules' verification bullet now warns that the `diff`/`comm -23` topic-list check is a candidate list, not a verdict — rewording between old/new versions produces false-positive "dropped" flags that must be cleared with a `grep -c '<substring>'` before escalating. Process gained step 6: a pass landing under the ≤200-line target isn't automatically done — also check against a byte threshold (~15KB for a root CLAUDE.md), and if still high, proactively offer a seam-test split via `AskUserQuestion` in the same turn as the compression report.
+- Captured after condensing Dourr's root `CLAUDE.md`: first pass took it 257→221 lines and 25.3KB→20.4KB, hit the line target, and was reported done. The user pushed back ("20kb still quite big") — a `Symptom \| Fix` table's rows don't shrink further under line-count pressure alone. Same shape as 1.61.1's `condense-task-doc` fix, applied to `condense-claude-md`. Separately, the skill's own diff-based verification step flagged ~30 false positives (reworded labels, table headers) that needed manual triage before confirming nothing was actually lost. See `tasks/plugin-maintenance/decisions/doc-condensation.md` D22. Live follow-through: split into root `CLAUDE.md` (181 lines/12.7KB) + new `docker/CLAUDE.md` (53 lines/8.5KB) for Docker/nginx/compose/deploy gotchas.
+
+## 1.61.1
+
+- **condense-task-doc**: success gate no longer line-count-only — step 8 now measures bytes alongside lines (`wc -lc`), and step 9 gained an explicit second-pass trigger when bytes-per-line is high even under the 300-line threshold. New Section-by-section rules for `## Files` (filenames only, no per-feature/per-ADR grouped paragraphs) and `## Task Status` (collapse to prose once every row just points to Bugs Fixed/an ADR).
+- Captured after condensing `autorentic/tasks/integration/autorentic-dourr/current.md`: first pass took it from 234→207 lines but only 50.9KB→33.0KB, and the doc never crossed the 300-line trigger so step 9 reported it done. User pushed back ("33kb seems still bloated"); a second pass — collapsing a 27-row Task Status table to a paragraph and flattening Files from per-feature grouped paragraphs to plain filename lists — got it to 165 lines / 20.2KB. The skill's own row-existence pass (step 6) should have caught this on the first run; it didn't because Files/Task Status had no rule telling it grouped-by-feature prose was the bloat pattern, and nothing measured bytes to catch density hiding under a low line count.
+
 ## 1.61.0
 
 - **agent-setup**: Step 5's verification checklist now opens with an explicit instruction that each item is a command to run against current file content, not a memory of having read the file earlier in-session. Step 1's "Agents exist" row no longer permits skipping Step 5 for an established-looking agent set.

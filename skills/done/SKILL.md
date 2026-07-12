@@ -13,7 +13,7 @@ Execute all steps in sequence without pausing for confirmation.
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
 | Report a step done when only PART of it ran (reviewers but no simplifiers; Step 3 but no Step 4) | Every step below is a CHECKLIST, not prose. Before reporting, tick each named part — a step with an unticked part is NOT done |
 
-⚠️ **MANDATORY — the steps are a checklist; run them ALL, and verify before reporting.** Both multi-part steps (Step 1's three lenses, Steps 3+4's two skills) have shipped half-run. Each is stated below as an explicit tick-list; the Output table's row is only fillable once its part actually ran. If a part is deliberately skipped, the row says `➖ <reason>` — never leave it silently blank.
+⚠️ **MANDATORY — the steps are a checklist; run them ALL, and verify before reporting.** Each multi-part step (Step 1's three lenses, Steps 3+4's two skills) is stated below as an explicit tick-list; the Output table's row is only fillable once its part actually ran. If a part is deliberately skipped, the row says `➖ <reason>` — never leave it silently blank.
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
 
@@ -104,7 +104,7 @@ Scan session for temporary artifacts that should be removed:
 
 ## Steps 3 + 4: Capture Knowledge + Update Task Docs (parallel)
 
-⚠️ **TWO skills, both mandatory. Running only Step 3 is the single most-repeated `/done` failure** — the CLAUDE.md capture feels like the finish line, and the task doc gets dropped. Tick both:
+⚠️ **TWO skills, both mandatory — running only Step 3 and skipping the task doc is a common `/done` failure.** Tick both:
 
 - [ ] Step 3 — `syafiqkit:update-claude-docs`
 - [ ] Step 4 — `syafiqkit:task-summary`
