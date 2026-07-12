@@ -11,6 +11,9 @@ Execute all steps in sequence without pausing for confirmation.
 |----------|----------|
 | Omitting `run_in_background` on any Agent call | Pass `run_in_background: false` **explicitly** — omitting the flag has still returned an async task; only the explicit `false` reliably blocks |
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
+| Report a step done when only PART of it ran (reviewers but no simplifiers; Step 3 but no Step 4) | Every step below is a CHECKLIST, not prose. Before reporting, tick each named part — a step with an unticked part is NOT done |
+
+⚠️ **MANDATORY — the steps are a checklist; run them ALL, and verify before reporting.** Both multi-part steps (Step 1's three lenses, Steps 3+4's two skills) have shipped half-run. Each is stated below as an explicit tick-list; the Output table's row is only fillable once its part actually ran. If a part is deliberately skipped, the row says `➖ <reason>` — never leave it silently blank.
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
 
@@ -60,13 +63,17 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 
 **Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first (`git diff --name-only` + `git diff --staged --name-only`, unioned), then pick agents-per-role:
 
-| Changed files | Agents per role (reviewer + simplifier) |
-|---------------|------------------------------------------|
-| ≤15 | 1 |
-| 16–40 | 2 |
-| 41+ | 3 (hard cap) |
+| Changed files | Reviewers | Simplifiers | Product | TOTAL agents |
+|---------------|-----------|-------------|---------|--------------|
+| ≤15 | 1 | 1 | 1 | **3** |
+| 16–40 | 2 | 2 | 1 | **5** |
+| 41+ | 3 (cap) | 3 (cap) | 1 | **7** |
 
-A user arg always wins: "2 agents each" / "4 each" sets the count explicitly (ignore the table); a count is also implied by "split it up". Light mode (`<5` files) already means 1 reviewer + 0 simplifier — it takes precedence over the table's bottom bucket.
+⚠️ **The count is PER ROLE — it multiplies, it does not replace.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer. Spawning N agents *total* (all of one role) is the failure this table exists to prevent: at 41+ files, 3 agents is wrong — **7** is right. The product reviewer is always exactly 1 (it judges the whole feature, so it is never partitioned).
+
+**Before sending the Agent calls, state the roll-call out loud**: "N reviewers + N simplifiers + 1 product = TOTAL." If that sentence doesn't name all three roles, you're about to under-run the step.
+
+A user arg always wins: "2 agents each" / "4 each" sets the per-role count explicitly (ignore the table); a count is also implied by "split it up". Light mode (`<5` files) is the ONE case with an asymmetric count (1 reviewer + 0 simplifier) — it takes precedence over the table's top bucket.
 
 When count >1 per role, **partition the file list** across the same-role agents by domain/directory — each agent gets a disjoint slice (file count sets *how many*; domain sets *which files each gets*, so coupled files stay together). NEVER hand every same-role agent the full list: duplicated review + conflicting edits on the same file. All agents run in ONE message (foreground, parallel).
 
@@ -97,7 +104,12 @@ Scan session for temporary artifacts that should be removed:
 
 ## Steps 3 + 4: Capture Knowledge + Update Task Docs (parallel)
 
-Run both **in parallel** (single message, two Skill tool calls) — they are independent. Pass `run_in_background: false` explicitly if these dispatch as Agent calls.
+⚠️ **TWO skills, both mandatory. Running only Step 3 is the single most-repeated `/done` failure** — the CLAUDE.md capture feels like the finish line, and the task doc gets dropped. Tick both:
+
+- [ ] Step 3 — `syafiqkit:update-claude-docs`
+- [ ] Step 4 — `syafiqkit:task-summary`
+
+Run both **in parallel** (single message, two Skill tool calls) — they are independent. Pass `run_in_background: false` explicitly if these dispatch as Agent calls. If you invoked one and not the other, the step is not done.
 
 **Step 3 — Capture Session Knowledge → CLAUDE.md:**
 
@@ -118,6 +130,20 @@ Invoke `syafiqkit:task-summary` **with no args** in full mode — let the skill 
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 
 > Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
+
+## Exit gate — check BEFORE writing the Output
+
+⚠️ Every row of the Output table below is a claim that a step ran. Before writing it, verify each claim against what you ACTUALLY invoked this session — not what you intended to:
+
+| Row | Only fillable if you actually... | Full-mode expectation |
+|-----|----------------------------------|-----------------------|
+| Simplify | spawned simplifier agent(s) | N simplifiers (N = the per-role count) |
+| Review | spawned reviewer agent(s) | N reviewers |
+| Product | spawned the product-reviewer agent | exactly 1 |
+| Knowledge | invoked `syafiqkit:update-claude-docs` | 1 skill call |
+| Task docs | invoked `syafiqkit:task-summary` | 1 skill call |
+
+A row you cannot substantiate is a step you skipped — go run it now rather than writing `✅` beside it. If you spawned agents of only ONE role in Step 1, the step is half-run: spawn the missing role before proceeding.
 
 ## Output
 
