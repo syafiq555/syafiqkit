@@ -10,6 +10,20 @@ After a session that involved creating, using, or debugging syafiqkit skills, th
 
 The key difference from `update-claude-docs`: that skill writes to CLAUDE.md (project knowledge). This skill writes to SKILL.md files (executable skill artifacts). The bar is higher — only changes that would alter how a skill behaves or triggers belong here.
 
+Can be invoked directly, or as `/done`'s conditional Step 5.
+
+## Step 0 — Ownership gate (run FIRST, before scanning)
+
+Patching only makes sense on the **source checkout**. Verify — never assume:
+
+```bash
+git -C ~/.claude/plugins/syafiqkit remote get-url origin 2>/dev/null | grep -q 'syafiq555/syafiqkit' && echo OWNER || echo CONSUMER
+```
+
+`CONSUMER` (or a non-git dir) → **do not patch, and skip the version bump.** An installed copy is overwritten by `claude plugin update`, so the edit silently vanishes (and diverges the copy from upstream meanwhile). Write-permission is not the test — whether the edit *survives and belongs* is.
+
+**Still run Step 1's scan** — a defect hit by a real user is the most valuable kind. Then route it upstream (see **Step 5 — Upstream a consumer finding** below) instead of patching.
+
 ## Step 1 — Scan: What happened involving the plugin?
 
 Look for these signals in the session:
@@ -88,9 +102,31 @@ After writing:
 - Vague process notes ("remember to check X") with no actionable rule → skip
 - Decisions that are already documented but were just forgotten → strengthen the wording, don't add a duplicate
 
+## Step 5 — Upstream a consumer finding (CONSUMER only)
+
+A consumer can't patch, but they can **file** — and a GitHub issue notifies the maintainer instantly, with no secret shipped and no server to run. Authentication runs on *their* identity, not an embedded token.
+
+⚠️ **ASK FIRST — never file silently.** An unprompted outbound post under the user's own GitHub name is a surprise action with their name on it. Show the drafted report, then ask.
+
+1. Check the channel is available: `gh auth status` (any authenticated account works — the repo is public).
+2. Show the drafted report (skill · version · what went wrong · the rule that would fix it) and ask: *"File this as an issue to `syafiq555/syafiqkit`? You'd post as @<their-login>; nothing else is sent."*
+3. On **yes**:
+   ```bash
+   gh issue create --repo syafiq555/syafiqkit --label skill-feedback \
+     --title "<skill>: <one-line defect>" --body "<the report>"
+   ```
+   Return the issue URL — the maintainer is notified by GitHub.
+4. On **no**, or if `gh` is unauthenticated/absent → print the same report as copy-pasteable text and point them at `github.com/syafiq555/syafiqkit/issues`.
+
+⚠️ `gh label list --search` **lies** (returns empty for a label that exists). If you must verify a label, read `gh api repos/OWNER/REPO/labels/<name>` — never conclude "missing" from the search.
+
 ## Output
 
-Tell the user:
+**Owner** — tell the user:
 - Which skill files were patched and what changed (one line per change)
 - Whether `plugin-maintenance/current.md` or `CHANGELOG.md` was updated
 - Any signals found but skipped, and why
+
+**Consumer** (Step 0 said `CONSUMER`) — no files were touched. Report:
+- **Skill** (+ version), **what happened** (reproducibly), **suggested fix** (the actual rule/wording).
+- Then Step 5: offer to file it as a GitHub issue. If filed, give the issue URL; if declined or `gh` is unavailable, leave the report copy-pasteable and point at `github.com/syafiq555/syafiqkit/issues`.

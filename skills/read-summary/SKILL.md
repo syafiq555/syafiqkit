@@ -1,6 +1,6 @@
 ---
 name: read-summary
-description: Read, find and understand task summary context before answering a question, investigating a bug, or starting work in a project that uses tasks/**/current.md docs. Use at session start whenever the user references existing feature work, asks an investigative question about current system behavior ("why does X fail", "is Y still broken", "what's the status of Z"), pastes a bug report or ClickUp ticket, or names a domain/feature that might have a task doc. Trigger even when the user doesn't say "read summary" explicitly — any request that could be answered wrong by skipping existing project context should go through this skill first.
+description: Read, find and understand task summary context before answering a question, investigating a bug, planning a deploy, or starting work in a project that uses tasks/**/current.md docs. Use at session start whenever the user references existing feature work, asks an investigative question about current system behavior ("why does X fail", "is Y still broken", "what's the status of Z"), asks what it takes to ship/deploy/release/go live ("if we deploy staging to production what do we need to do", "what's left before go-live", "is this ready to ship"), pastes a bug report or ClickUp ticket, or names a domain/feature that might have a task doc. Deploy and go-live questions are a PRIME trigger, not an edge case — the prerequisites, blockers, and env state live in task docs, never in the code. Trigger even when the user doesn't say "read summary" explicitly, and even when they name no feature — any request that could be answered wrong by skipping existing project context should go through this skill first.
 ---
 
 # Read Summary
@@ -28,9 +28,23 @@ A keyword match lands you in the right *folder*, not necessarily the right *bug*
 
 Staleness you surface and route is closed; staleness you narrate and abandon is a silent regression waiting for the user to catch it re-reading later.
 
+### What the doc is authoritative FOR (and what it isn't)
+
+⚠️ **A task doc is authoritative for DECISIONS and GOTCHAS. It is NOT a live-state oracle.** Those decay the moment anyone touches a server:
+
+| The doc IS authoritative for | The doc is NOT authoritative for |
+|------------------------------|----------------------------------|
+| Why it's built this way (ADRs, rejected options) | What's in prod's DB / `.env` / a bucket **right now** |
+| What will bite you (gotchas, traps, invariants) | Whether a flag is on, a table exists, a row is populated |
+| Vocabulary, ownership, blast radius | Whether a bug it calls "open" is still open |
+
+The trap is that a well-read doc makes you feel *fully grounded* — so you answer a live-state question from a snapshot that may be weeks stale, with total confidence. **If the answer depends on the current state of a running system, go MEASURE it** (query the DB, read the server's config, call the API), then reconcile with the doc. A doc's claim about prod is a **hypothesis to test**, not evidence — and when the doc and the live system disagree, the live system wins and the doc gets routed for update.
+
+⚠️ **Never infer a REMOTE system's state from a LOCAL file's absence.** "Prod's `.env` has no `AWS_*`" means *this machine isn't wired to S3* — it says nothing about whether the bucket exists. A missing config key describes wiring, not the remote world. Ask the remote system directly, with a call that **discriminates** (`HeadBucket`: 403 = exists-but-denied vs 404 = absent; a bare "it errored" collapses the two).
+
 ## Read Order
 
-⚠️ **Reading the task doc is the MANDATORY FIRST ACTION whenever this skill applies — even for a "quick check" you think you already know the answer to.** If you have not read the matching `current.md` (+ its `decisions/*.md` files, if it's a split index) + every CLAUDE.md on the path to the files in play (layer, subdir, domain — see step 5), you have not run this skill. The first tool call must be the Glob/Grep discovery (or a direct Read if given a path), never a query, edit, or answer — the docs carry decisions, gotchas, and vocabulary your prior knowledge doesn't.
+⚠️ **Reading the task doc is the MANDATORY FIRST ACTION whenever this skill applies — even for a "quick check" you think you already know the answer to.** If you have not read the matching `current.md` (+ its `decisions/*.md` files, if it's a split index) + every CLAUDE.md on the path to the files in play (layer, subdir, domain — step 5) **+ the sibling repo's CLAUDE.md/CLAUDE.local.md if the question touches it at all (step 6)**, you have not run this skill. The first tool call must be the Glob/Grep discovery (or a direct Read if given a path), never a query, edit, or answer — the docs carry decisions, gotchas, and vocabulary your prior knowledge doesn't.
 
 1. Read the resolved `current.md` (found via the discovery method above when no explicit path was given)
 2. ⚠️ **Whole-doc MADR index check**: if `current.md` is a thin index (routing table under `## Decisions Index`/similar, pointing at `decisions/*.md`), it holds NO ADR content itself — reading only the index and stopping is reading zero decisions. Open the specific `decisions/<theme>.md` file(s) whose routing-table question matches what you're investigating; if the request spans multiple themes, read all of them. Don't rely on the generic `Related:` field for this — a split doc's own `decisions/*.md` files are part of THIS doc, not a cross-domain reference, and get buried among the 5-10 genuinely-external docs `Related:` usually lists.
@@ -43,7 +57,16 @@ Staleness you surface and route is closed; staleness you narrate and abandon is 
    - Also read any CLAUDE.md explicitly named in the `Related:` field
    - Quick discovery when unsure which exist: `rg --files -g '**/CLAUDE.md'` scoped to the dirs in play
    - ⚠️ **Scope to the dirs actually in play, not the whole tree.** "Every CLAUDE.md on the path" means the layer + subdir + domain files for the specific files this task touches — not a blanket read of every CLAUDE.md in the repo. If the task doc's `Key files` only name backend paths, don't also pull `resources/js/CLAUDE.md`; if a domain isn't implicated, don't pull its `app/Domain/*/CLAUDE.md`. Coverage should match the blast radius of the task, not the size of the repo — reading an irrelevant layer file burns tokens without adding signal.
-6. **GitNexus (mandatory if `.gitnexus/` exists)** — run in parallel with step 1:
+   - ⚠️ This token-scoping applies **within this repo only — it is NOT a licence to skip step 6.** A sibling repo's root `CLAUDE.md`/`CLAUDE.local.md` are gated on the QUESTION, not on files being edited: read them whenever the question touches that repo, even if you will edit nothing there.
+6. ⚠️ **SIBLING REPO — if the question touches a second repo at all, Read its `CLAUDE.md` + `CLAUDE.local.md` FIRST.** Gated on the **question's scope, NOT on which files you'll edit** — a read-only planning question ("what do we need to deploy?") edits nothing, so step 5's tree-walk never fires and this gets skipped exactly when it matters most.
+
+   The harness walks the tree from the **working dir only**, so every sibling `CLAUDE.md` is invisible — and this **hides itself**: the current repo's files *did* auto-load, so context feels complete while you confidently re-derive (or contradict) facts the sibling already documents.
+
+   Before **any** claim about the sibling — env keys, buckets, containers, credentials, deploy mechanics, server state — Read its **root `CLAUDE.md`** and **`CLAUDE.local.md`** (which owns per-env state and credentials), plus any subdir `CLAUDE.md` for the area in play. Its task docs live in *its* `tasks/**` tree too, not this one's.
+
+   The sibling's docs are the one context category **guaranteed absent unless you fetch it**. Fetch it before answering, not after being corrected.
+
+7. **GitNexus (mandatory if `.gitnexus/` exists)** — run in parallel with step 1:
    - `gitnexus_context({name: "<symbol>"})` on the 2-3 most critical symbols from `Key files` (e.g., main service class, controller) — shows callers, callees, process participation
    - `gitnexus_impact({target: "<symbol>", direction: "upstream"})` on symbols you expect to modify — shows blast radius
    - ⚠️ Do NOT use `gitnexus_query()` — requires `--embeddings` index (not enabled). Use `context()` + `impact()` instead (pure graph traversal)

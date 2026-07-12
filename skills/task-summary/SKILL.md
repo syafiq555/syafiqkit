@@ -200,3 +200,7 @@ So after you finish updating a feature doc, close the loop on what *refers back*
 3. This is a status-sync, not a rewrite — touch only the row/line that references the feature, leave the rest of the index doc alone.
 
 A good signal you've found a mirror that needs syncing: the referencing doc describes the feature in the past tense of an *older* state than the doc you just updated.
+
+⚠️ **If the session FIXED a bug, also grep the DEFECT's own vocabulary — not just the feature's.** A doc describing a bug you just fixed is stale in a way a feature-name grep structurally cannot find: it may never mention the feature at all, only the defect. Grep the symptom/flag/command the gotcha names (`RELOAD_NGINX`, `nginx -s reload`, the error string), plus its hedges ("still", "until they're fixed", "can never", "not yet"). Every hit that asserts the bug is LIVE must flip to fixed — with the *reason* it's now safe, so nobody re-introduces it.
+
+This is higher-severity than a stale status. A stale status is merely out of date; a stale gotcha **actively misleads** — the next session reads "the workflows still do X" and either re-fixes a solved bug or routes around a problem that no longer exists. Run this grep even when the fix is uncommitted: mark it "fixed (uncommitted)" rather than leaving the doc asserting a live bug.

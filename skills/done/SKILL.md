@@ -31,6 +31,12 @@ Execute all steps in sequence without pausing for confirmation.
 - Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
 - ⚠️ **Exception — a doc edit that DOCUMENTS new code shipped this session** (you wrote both code and its doc) is NOT docs-only; the diff includes code, so use Full/Light by file count.
 
+**Infra-only mode** when the diff is **entirely deploy/build/CI plumbing** and no application code — CI workflows (`.github/workflows/*.yml`, `.circleci/`), `docker-compose*.yml`/`Dockerfile`, build config (`next.config.*`, `vite.config.*`), nginx/env config. The **mirror image of docs-only**: docs need no reviewer; infra needs *only* the reviewer, and needs it badly.
+- Step 1: **reviewer ONLY.** Skip the simplifier (no logic to DRY) and the product reviewer (no user journey). Size-independent — the trigger is file KIND, not count.
+- ⚠️ **Prompt the reviewer adversarially: infra fails SILENTLY.** A broken deploy step exits 0 and reports success (an `nginx -s reload` re-reading an orphaned inode), and lint/typecheck/tests all pass — review is the only thing that catches it. Give it the change's PURPOSE and what it must not break, and ask it to verify empirically rather than reason from docs. Beware blanket-applying one fix to every occurrence of a pattern: two call sites of the same command can need opposite treatments.
+- Steps 2-4 as normal. Output: mark Simplify/Product as ➖ "infra-only".
+- ⚠️ **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer (see Light mode's exception).
+
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
 
 ## Step 1: Simplify + Review + Product Review (parallel)
@@ -131,6 +137,16 @@ The skill auto-detects create vs update. Handles: path resolution, status update
 
 > Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
 
+## Step 5: Capture plugin learnings (CONDITIONAL — usually skipped)
+
+Steps 3+4 write to the *project*; this writes to the *plugin* — a global artifact shared across every project.
+
+**ONE gate: does a real skill signal exist?** A skill misfired, a workflow step was wrong/missing, a trigger missed, or an absent rule caused a mistake. **Most runs have none — that is the expected case, so skip silently (no Output row).** Merely *using* skills successfully is not a signal; never manufacture one, since a thin patch to a shared skill is worse than no patch.
+
+Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstream: it probes ownership itself and branches — **owner** → patch the skill files + version bump + CHANGELOG; **consumer** → draft the finding and *offer to file it as a GitHub issue* upstream (asking first, posting under the user's own identity). Either way the finding survives.
+
+⚠️ Do NOT hand-patch skill files from `/done`, and do NOT skip this step just because you're not the owner — a defect hit by a real user is the most valuable kind.
+
 ## Exit gate — check BEFORE writing the Output
 
 ⚠️ Every row of the Output table below is a claim that a step ran. Before writing it, verify each claim against what you ACTUALLY invoked this session — not what you intended to:
@@ -142,8 +158,9 @@ The skill auto-detects create vs update. Handles: path resolution, status update
 | Product | spawned the product-reviewer agent | exactly 1 |
 | Knowledge | invoked `syafiqkit:update-claude-docs` | 1 skill call |
 | Task docs | invoked `syafiqkit:task-summary` | 1 skill call |
+| Plugin | invoked `syafiqkit:update-plugin` | **usually absent** — Step 5 fires only when a real skill signal exists. Omit the row when none did; never invent a patch to fill it. (Not-the-owner is NOT a reason to skip — the skill switches to upstream-report mode.) |
 
-A row you cannot substantiate is a step you skipped — go run it now rather than writing `✅` beside it. If you spawned agents of only ONE role in Step 1, the step is half-run: spawn the missing role before proceeding.
+A row you cannot substantiate is a step you skipped — go run it now rather than writing `✅` beside it. If you spawned agents of only ONE role in Step 1, the step is half-run: spawn the missing role before proceeding. (Plugin is the one row where absence is the norm, not a miss.)
 
 ## Output
 
@@ -160,5 +177,6 @@ One combined table. Detail only what was actually WRITTEN or FIXED — never enu
 | Cleanup | [removed, or ➖] |
 | Knowledge | [N entries → target files, one line each; "0 new" if none] |
 | Task docs | [doc path → one-line summary of the update] |
+| Plugin | owner: [skill files patched + version bump] · consumer: [issue URL filed, or the report + why not] (**omit the row entirely** if Step 5 didn't fire) |
 | User args | [what was done about them] (only if args passed) |
 ```
