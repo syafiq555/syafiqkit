@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.63.2
+
+- **condense-claude-md**: new Restructuring #7 covers the global `~/.claude/CLAUDE.md` case, which has no subdirectory to seam-test against (#6's auto-load split is project-only) — the only lever is a manually-referenced companion file (`~/.claude/CLAUDE-<topic>.md`) with a `> 📖` pointer naming concrete trigger symptoms, since a generic pointer gets silently skipped per the file's own gotcha table. Process #6 also gained a ⚠️ warning that reformatting prose into a table is not compression (confirmed on a live run: 324→314 lines, 32.9kb→32.2kb, under 3% either way) — go straight to cutting/splitting instead of wasting a pass on reformatting.
+- Captured after condensing the user's global CLAUDE.md: rewording the dense "MANDATORY" prose block into a 2-column table barely moved bytes, and the skill had no guidance for a file with no project subdirectory to split into — improvised a companion-file split with `AskUserQuestion` sign-off, moving the 33-row Platform Gotchas table to `CLAUDE-platform-gotchas.md` (324→284 lines, 40.3KB→28.4KB, -30%).
+
 ## 1.63.1
 
 - **update-plugin**: added a "Density pass" signal (Step 1) and Step 3a, capturing the skill-file bloat patterns found across the 1.62.0/1.63.0 condensation passes as a reusable checklist — stacked ⚠️ callouts re-justifying the same rule, worked-incident anecdotes embedded in instructions, illustrative examples restating an already-stated rule, self-contradiction (a skill preaching density while violating it), duplicate rules copied instead of pointed-to, and cold-path modes/branches that should extract to `references/*.md`. Future density asks now route through a documented checklist instead of a from-scratch audit.

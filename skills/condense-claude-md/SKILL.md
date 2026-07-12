@@ -46,6 +46,8 @@ Every rule that, if removed, would cause Claude to repeat a real past mistake. S
 
    If no real subdirectory passes the seam-test, check whether the section is feature-specific before accepting "stays in the layer file" — a feature-scoped gotcha section can route to that feature's task doc instead (`update-claude-docs/references/structure.md` §6 "second structural lever"). Only a genuinely cross-cutting section — no subdirectory and no single feature owns it — stays in the layer file.
 
+7. **Global `~/.claude/CLAUDE.md` has no seam-test target at all** — it isn't tied to any project subdirectory, so #6's auto-load split is unavailable. The only lever left for an oversized global file is a **manually-referenced companion file** (e.g. `~/.claude/CLAUDE-<topic>.md`): move the lowest-frequency, most heterogeneous table (widest `Symptom | Fix` table, narrowest per-row applicability) there, and replace it in CLAUDE.md with a `> 📖` pointer that **names the concrete trigger symptoms/tools**, not a generic "see other file" — a generic pointer is the one this same file's own gotcha table (`📖 See <file> pointer... silently unfollowed`) warns gets skipped. Tell the user explicitly that this does NOT auto-load like a subdir CLAUDE.md; it only helps if the pointer is specific enough to get read. Keep the highest-frequency rows (the ones that come up almost every session) inline rather than moving everything out.
+
 ## Process
 
 1. `Read` the target CLAUDE.md fully
@@ -53,7 +55,9 @@ Every rule that, if removed, would cause Claude to repeat a real past mistake. S
 3. Identify any GitNexus `<!-- gitnexus:start/end -->` blocks — **preserve them verbatim**, they are managed separately
 4. Rewrite the file from scratch using `Write` (not incremental `Edit`) — the new file replaces the old
 5. Count lines: target ≤200 for project root CLAUDE.md. If still >250 after compressing, check for a section that passes the seam-test (Restructuring #6) and offer to split it to a subdir `CLAUDE.md` before asking which sections to cut — splitting relocates content without losing it, cutting loses it.
-6. **Always check `wc -c` alongside line count before reporting done — line count alone is not a valid completion signal.** A `Symptom | Cause | Fix` table has one row per gotcha, so rows never merge: it can sit at the ≤200-line target while cells still run 800+ characters and total bytes stay near ~20kb (rule of thumb: target ~15kb for a root CLAUDE.md). If bytes are still high after compressing, apply the Cause/Fix-redundancy rule (Restructuring #4) or offer the seam-test split (Restructuring #6) via `AskUserQuestion` in the same turn — don't wait for the user to push back.
+6. **Always check `wc -c` alongside line count before reporting done — line count alone is not a valid completion signal.** A `Symptom | Cause | Fix` table has one row per gotcha, so rows never merge: it can sit at the ≤200-line target while cells still run 800+ characters and total bytes stay near ~20kb (rule of thumb: target ~15kb for a root CLAUDE.md). If bytes are still high after compressing, apply the Cause/Fix-redundancy rule (Restructuring #4) or offer the seam-test split (Restructuring #6, or #7 for a global file) via `AskUserQuestion` in the same turn — don't wait for the user to push back.
+
+   ⚠️ **Reformatting prose into a table is not compression** — a table cell holds the same words as the paragraph it replaced, just wrapped in `|`. Confirmed on a real run: converting 14 prose paragraphs to a 2-column table moved line count 324→314 and bytes 32.9kb→32.2kb — under 3% either way. Don't spend a pass on this expecting it to close a real gap; go straight to cutting/splitting content instead.
 
 ## Hard rules
 
