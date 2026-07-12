@@ -6,7 +6,7 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 -->
 
 # Plugin Maintenance
@@ -28,6 +28,8 @@ Last updated: 2026-07-12
 - MADR is now the DEFAULT `Key Technical Decisions` structure for every task doc — not gated behind decision count or an explicit ask; escape hatch only when Rejected would be empty — see D16 (decisions/madr-structure.md)
 - A Step-N "verify" checklist is not satisfied by having read the files earlier in-session — each item needs its own command run against current content — see D21 (decisions/agent-architecture.md)
 - Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat — no `condense-*` delegate exists for it; `update-plugin` Step 3a now owns the checklist — see D23 (decisions/doc-condensation.md)
+- A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win — see D24 (decisions/agent-architecture.md)
+- `/ship` Step 3 no longer assumes the current branch IS the deploy branch — establish it from CLAUDE.md/CLAUDE.local.md first, recognize forward-merge chains as merges not pushes
 
 ---
 
@@ -127,6 +129,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D14 | Generated agents invoke `/read-summary`, don't reimplement it |
 | D15 | Correct wiring ≠ the model reliably calling a sibling skill |
 | D21 | A Step-N verify checklist needs a command per item — a prior skim isn't a check |
+| D24 | A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
@@ -178,11 +181,12 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ---
 
-## Last Session (2026-07-12)
+## Last Session (2026-07-13)
 
-- **D23 added** (decisions/doc-condensation.md): user flagged the plugin's own skills as "bloated" — a full-plugin audit found `condense-claude-md`/`condense-task-doc` (the skills whose job is fixing this) were themselves the densest files (147/140 bytes/line), stacking self-justifying warnings. Two-round hand-edit pass across 9 skills (no `condense-*` delegate exists for SKILL.md files); `update-claude-docs` and `task-summary` each also got a cold-path mode/section extracted to a new `references/*.md` file. Captured as a permanent `update-plugin` Step 3a checklist (v1.63.1) so the next density ask doesn't require a from-scratch audit.
-- Plugin version bumped 1.61.2→1.63.1 across 3 CHANGELOG entries (1.62.0, 1.63.0, 1.63.1); `marketplace.json` also caught up to `plugin.json` (was silently stale at 1.61.0).
-- Prior sessions' "Last Session" entries (D17-D22, previously stacked as 3 separate dated sections — itself a drift from this doc's one-session rule) folded forward: their content is fully captured in the Decisions Index above, nothing load-bearing lost.
+- **D24 added** (decisions/agent-architecture.md): `done` Step 5's signal gate was calibrated only against false positives — a self-caught deviation from a skill's own instructions (worked around it, said "doesn't apply here") wasn't recognized as a reportable signal, and nearly went unreported this session precisely because catching it felt like competence, not a defect.
+- `ship` Step 3 fixed in the same session: no longer assumes `git push` on the current branch IS the deploy — now establishes the deploy branch from CLAUDE.md/CLAUDE.local.md first, treats forward-merge chains (`master→staging→production`) as a merge not a push, checks for manual CI gates, and surfaces migrations riding along. Found when the user had to hand-roll the correct branch chain because the old Step 3 assumption was wrong.
+- `done` Step 5 gate itself patched to ask explicitly: *did I deviate from any skill's written instructions this session, and why?*
+- Plugin version bumped 1.64.0→1.64.1; CHANGELOG entry added; shipping via `/ship` immediately after this doc update.
 
 ---
 
@@ -192,3 +196,4 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 - [ ] Re-sync Current Skills registry table (see Cross-Cutting Operational Notes)
 - [ ] Audit existing task docs' `## Key Technical Decisions` sections against D16's new MADR-default — any plain-table row that had a real rejected alternative should convert (not yet swept)
 - [ ] `decisions/doc-condensation.md` is at 278 lines — watch for the 300-line MADR-split threshold on the next addition
+- [ ] Confirm no other skill has the same "self-caught deviation" blind spot as `done` Step 5 pre-D24 — not yet audited beyond `done`/`ship`

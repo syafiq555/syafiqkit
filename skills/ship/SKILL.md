@@ -48,6 +48,16 @@ Commit order: sub-repos first, then root (changelog, task docs).
 
 ### Step 3: Push
 
+⚠️ **`git push` on the current branch is NOT the deploy — establish the deploy branch FIRST.** Many projects promote through a chain (`master → staging → production`), often with a manual approval gate, and the branch names differ per repo (one repo's `master` can BE its staging). Pushing the branch you're on can deploy nothing, or deploy to staging while you report "shipped to production" — and CI goes green either way, so nothing catches it. Read the project's `CLAUDE.md`/`CLAUDE.local.md` for the deploy chain, then confirm against the repo: `git rev-list --count origin/<deploy-branch>..HEAD` tells you what the target branch is actually missing.
+
+Per repo, before pushing anything:
+1. **Which branch deploys to the target env?** If it isn't the current one, the ship is a forward-merge chain (`git merge <src> --no-edit` — a real merge commit; `--ff-only` fails on diverged branches), not a push.
+2. **Is there a gate?** A manual CI approval means the push only *queues* the deploy.
+3. **What rides along?** `git diff --name-only <deploy-branch>..HEAD -- '*migrations*'` — migrations are a one-way door and belong in the user's decision, not a silent side effect.
+
+If the chain isn't documented and you can't infer it, **ask** — pushing to a deploy branch is outward-facing and hard to reverse.
+
+Then:
 1. Check `gh auth status` — if wrong account, read project's `CLAUDE.local.md` for the correct GitHub user and switch
 2. Push each repo that has commits ahead of remote:
 

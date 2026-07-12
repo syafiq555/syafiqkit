@@ -5,8 +5,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Agents don't inherit CLAUDE.md — conventions must be injected into agent prompts (D1)
   - Correct wiring to invoke a sibling skill doesn't guarantee the model calls it (D15)
   - Having read a file earlier in-session ≠ having verified it against a checklist (D21)
+  - A self-caught deviation from a skill's own instructions is a reportable signal, not a win to file silently (D24)
 Related: ../current.md (index), ../decisions/doc-condensation.md
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 -->
 
 # Plugin Maintenance — Agent Architecture Decisions
@@ -93,6 +94,25 @@ Chosen: Step 5's checklist is prefaced with an explicit instruction that each it
 **Consequences**
 - Distinct from D15: D15 is about whether a *generated agent* reliably calls `/read-summary` at runtime. D21 is one layer up — whether the model *executing agent-setup itself* reliably runs its own verification checklist, or silently substitutes a skim.
 - General pattern, not `agent-setup`-specific: any skill with a Step-N "verify" checklist is exposed to the same substitution unless the checklist text itself forecloses it.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D24 — A Self-Caught Deviation From a Skill's Own Instructions Is a Reportable Signal — committed — 2026-07-13
+
+**Problem**
+`done` Step 5's gate ("does a real skill signal exist?") was calibrated entirely against false positives — wording like "most runs have none" and "never manufacture one" — with nothing guarding the opposite failure. A live session hand-rolled a correct branch chain because `/ship`'s Step 3 wrongly assumed `git push` on the current branch was the deploy, then almost skipped Step 5 anyway: catching and working around the defect in the moment felt like competence, not a finding, so it nearly went unreported.
+
+**Decision**
+Chosen: `done` Step 5 now asks explicitly — *did I deviate from any skill's written instructions this session, and why?* A deviation with a good reason is a skill that needs the reason written into it; the gate treats a self-caught workaround as equivalent to a user-flagged misfire.
+
+**Rejected**
+- Leaving the gate as "does something feel like a bug" and trusting the model to generalize to self-caught cases. Why not: the same session that caught the deviation is the one that nearly filed it as a non-event — the moment of catching it is exactly when it stops looking like a defect.
+
+**Consequences**
+- Directly produced the `ship` Step 3 fix in the same session (D-equivalent fix, not yet numbered as its own ADR — see CHANGELOG 1.64.1): deploy-branch identification now required before any push, recognizing forward-merge chains as merges (not pushes) and surfacing manual gates + migrations riding along.
+- Distinct from D21: D21 catches a *checklist skimmed instead of run*; D24 catches a *defect the model already fixed in place*, which is arguably easier to miss because there's no failing check to notice — only a decision not to mention it.
 
 **Status**: committed · **Reversible**: yes
 
