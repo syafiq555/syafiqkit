@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.64.16
+
+- **merge-task-docs**: Confirmation step (Step 2) is now three separate `AskUserQuestion` forks — scope, flat-vs-split structure, canonical naming — each asked at the point it arises with a Recommended default, instead of one flat "does this look right?" text confirmation. Modeled on a session that merged 3 statement/invoice task docs: the user overrode the recommended narrow scope (merge all 3, not just 2), which then forced the flat-vs-split question when the combined content blew past the 300-line budget, which then led to renaming all 4 resulting files rather than keeping the richest source's existing name. None of those three forks existed as discrete steps before — the skill only said "get user confirmation," so a differently-run session could easily have silently picked wrong on any of them.
+
 ## 1.64.15
 
 - **merge-task-docs**: Added the `ls`-every-source-folder rule (Step 3) and a pre-delete confirmation gate (Step 5) — a session merging `tasks/invoice/cn-dn`, `tasks/statement/record-refund`, and `tasks/statement/statement-ledger` `rm -rf`'d the third folder having only ever read its `current.md`; `git status` afterward revealed two sibling files (`stories.md`, a user-stories doc; `script.sql`, the canonical SQL for a prior data fix) deleted with zero review. Both were recoverable via `git show HEAD:<path>` only because nothing had been committed yet — on a dirtier tree the loss would have been silent and permanent. The fix generalizes past that one incident: any task folder can hold files a `current.md`-only read never surfaces (SQL scripts, stories docs, screenshots, exported data), and `rm -rf` destroys them before there's a chance to fold them into the merge or copy them forward.

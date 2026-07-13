@@ -50,7 +50,15 @@ Present a table to the user before writing a single file:
 | fee-faq | platform-fee-passthrough | Customer FAQ is the outward-facing framing of the same fee mechanics |
 ```
 
-Also list what stays standalone and why. Get user confirmation before proceeding.
+Also list what stays standalone and why.
+
+⚠️ **Confirm via `AskUserQuestion`, not a flat "does this look right?"** — three separate decision forks tend to show up in a merge, and each is its own question, asked at the point it arises rather than bundled into one wall of text upfront:
+
+1. **Scope** — after building the merge table: does the proposed grouping match what the user wants merged? Options: your recommended grouping (with the subsystem reasoning as the description) vs. a broader/narrower alternative vs. "no merge, just tidy." If the user pushes back on your recommendation (e.g. picks "merge everything" when the subsystem test said otherwise), don't silently comply — the disagreement itself is a second question: confirm the resulting size tradeoff before writing anything (see #2).
+2. **Structure** — if Step 4.8's split-doc trigger fires (dense sources, >300 lines with nothing left to cut): ask flat-with-overage vs. index+`decisions/<theme>.md` split, before writing either. Don't default silently to one.
+3. **Naming** — if the merge changes canonical paths (new folder, renamed theme files): ask for the canonical name(s) explicitly rather than assuming the richest source doc's existing name is good enough. Offer 2-3 short options per name with a Recommended pick and its reasoning, not an open-ended "what should we call it?".
+
+Each question should have a Recommended option so the user can accept-by-default without re-deriving the reasoning themselves. Do not proceed past a fork without the user's answer, even if your recommendation seems obviously correct — the point is catching the cases where it isn't.
 
 ### Step 3 — Scan back-references BEFORE writing
 
@@ -74,7 +82,7 @@ Build a list of every file + line that needs updating. Do this now — before th
 For each merge group:
 
 1. **Read both docs in full** before writing anything.
-2. **Choose the canonical path** — keep the richer/primary doc's path as the merge target.
+2. **Choose the canonical path** — keep the richer/primary doc's path as the merge target, UNLESS the naming fork (Step 2) produced a different confirmed name — then use that instead of silently keeping the old one.
 3. **Write the merged doc** to the canonical path using the task-summary template structure:
    - LLM-CONTEXT block with updated `Status`, `Domain`, `Related`, `Last updated` — `Last updated` names the date + what changed, not commit/deploy status prose (that lives only in Quick Start's state line; see Density rules below)
    - Quick Start (≤15 lines, cold-start actionable)
@@ -83,7 +91,7 @@ For each merge group:
 5. **Merging content**: combine sections without duplicating rows. If both docs have a Gotchas table, merge into one table — never two Gotchas sections. If both have a Files section, combine into one living map (don't keep per-doc subsections).
 6. **Last Session**: write ONE Last Session block that notes the merge happened. Don't preserve both docs' Last Session entries.
 7. **Size budget**: merged doc should stay under 300 lines. If it would exceed this, condense aggressively — collapse completed Task Status rows, trim Files to a living map, cut narrative from Gotchas to rule+symptom only.
-8. **When condensing can't reach budget**: two docs that are each already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a single flat file. Instead use the split-doc pattern from `condense-task-doc`'s `templates.md` ("Splitting a whole-doc MADR further"): a thin index `current.md` (Quick Start + a routing table framed as "read `decisions/<theme>.md` if you're asking: *[question]*") plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by which source doc a fact came from. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is the correct outcome when the merge candidates fail the "bad merge signal: >300 lines" test in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
+8. **When condensing can't reach budget**: two docs that are each already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a single flat file, and don't silently default to the split either — this is fork #2 from Step 2: ask flat-with-overage vs. index+`decisions/<theme>.md` split. If split is chosen, use the split-doc pattern from `condense-task-doc`'s `templates.md` ("Splitting a whole-doc MADR further"): a thin index `current.md` (Quick Start + a routing table framed as "read `decisions/<theme>.md` if you're asking: *[question]*") plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by which source doc a fact came from. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is the correct outcome when the merge candidates fail the "bad merge signal: >300 lines" test in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
 
 ### Step 5 — Delete source docs
 
@@ -140,5 +148,5 @@ Tell the user:
 | Preserve both docs' Last Session entries | One merged Last Session noting the merge happened |
 | Stop at `Related:` fields | Sweep inline mentions + domain CLAUDE.md pointers too |
 | Plain `mv` a renamed folder | `git mv` — keeps history (for renames, not deletes) |
-| Merge without user confirmation of the plan | Show the merge table and get sign-off first |
 | `rm -rf` a source folder having only read its `current.md` | `ls` the folder first — carry forward or absorb every sibling file (SQL scripts, stories docs, screenshots) before deleting |
+| Merge without user confirmation, or bundle scope/structure/naming into one flat "does this look right?" | Three separate `AskUserQuestion` forks, each at the point it arises — scope, flat-vs-split structure, canonical naming (Step 2) |
