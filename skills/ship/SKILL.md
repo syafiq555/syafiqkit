@@ -29,24 +29,13 @@ Skip repos with nothing to commit. If ALL repos are clean, check for unpushed co
 
 ### Step 2: Commit Each Repo
 
-For each repo with changes:
+**Run `/commit` — it owns this step.** Staging, the changelog gate, the task-doc staleness gate + cross-doc mirror sweep, type/scope selection, commit format and anti-patterns all live in `commands/commit.md`; don't restate or re-derive them here. Commit order: sub-repos first, then root (changelog, task docs).
 
-1. **Stage files** — `git add <specific files>` (never `git add -A`)
-2. **Version-bump gate (plugin/package repos)** — if the repo has version files, bump **EVERY** file that carries the version before staging. Run `grep -rn '"version"' <manifest-dir>` to discover all version fields (secondary fields like `plugins[0].version` drift silently when only the primary is bumped). See the repo's `CLAUDE.md#version-bumping` for the canonical file list.
-3. **Changelog gate** — if changes include user-visible work AND `CHANGELOG.md` is not staged → STOP. Ask user to update changelog first.
-4. **Task doc staleness gate** — run the same gate `/commit` runs (see `commands/commit.md` Step 3, "Task doc staleness gate" + "Cross-doc status mirror sweep"): don't rely solely on `/done` having run. Stage and fix any stale doc via the `task-summary` skill before committing — never ship code whose owning doc drifts stale.
+Two rules apply ON TOP of `/commit`, and only under `/ship`:
 
-   ⚠️ **SHIP OVERRIDE — `commit.md`'s gate hunts "pending/not yet pushed" language and demands you eliminate it before committing. Under `/ship`, do NOT resolve it by writing the pre-deploy state.** A deploy follows in minutes, so "not yet deployed" / "🚢 in flight" is *guaranteed wrong* by the time anyone reads it and costs a second commit to undo. Leave deploy-state lines alone; **Step 4 writes them once, from the verified outcome.** Fix only genuinely-stale non-deploy content here. The trap springs hardest right after you correctly catch a *false* "deployed" claim — correct it straight to the outcome, never to the transient midpoint.
-5. **Commit** — conventional format: `<type>(<scope>): <message>`
+1. **Version-bump gate (plugin/package repos)** — if the repo has version files, bump **EVERY** file carrying the version before staging. `grep -rn '"version"' <manifest-dir>` finds them all (secondary fields like `plugins[0].version` drift silently when only the primary is bumped). See the repo's `CLAUDE.md#version-bumping`.
 
-```bash
-git commit -m "$(cat <<'EOF'
-<type>(<scope>): <message>
-EOF
-)"
-```
-
-Commit order: sub-repos first, then root (changelog, task docs).
+2. ⚠️ **SHIP OVERRIDE on the staleness gate** — `/commit`'s gate hunts "pending / not yet pushed" language and demands you eliminate it before committing. Under `/ship`, do NOT resolve it by writing the **pre-deploy** state. A deploy follows in minutes, so "not yet deployed" / "🚢 in flight" is *guaranteed wrong* by the time anyone reads it and costs a second commit to undo. Leave deploy-state lines alone; **Step 4 writes them once, from the verified outcome.** Fix only genuinely-stale non-deploy content here. The trap springs hardest right after you correctly catch a *false* "deployed" claim — correct it straight to the outcome, never to the transient midpoint.
 
 ### Step 3: Push
 
