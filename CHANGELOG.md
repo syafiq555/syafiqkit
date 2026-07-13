@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.64.17
+
+- **merge-task-docs**: Step 4 now explicitly reads `task-summary/references/templates.md` as the canonical source for section structure and Density Rules, instead of paraphrasing them inline ("using the task-summary template structure", "Density rules (from task-summary skill) apply: ..."). Same divergence risk `condense-task-doc` already guards against (it reads `templates.md` directly at its own Step 3) — a paraphrase drifts silently if `task-summary` tightens a rule later, since nothing forces the paraphrasing skill to notice.
+
 ## 1.64.16
 
 - **merge-task-docs**: Confirmation step (Step 2) is now three separate `AskUserQuestion` forks — scope, flat-vs-split structure, canonical naming — each asked at the point it arises with a Recommended default, instead of one flat "does this look right?" text confirmation. Modeled on a session that merged 3 statement/invoice task docs: the user overrode the recommended narrow scope (merge all 3, not just 2), which then forced the flat-vs-split question when the combined content blew past the 300-line budget, which then led to renaming all 4 resulting files rather than keeping the richest source's existing name. None of those three forks existed as discrete steps before — the skill only said "get user confirmation," so a differently-run session could easily have silently picked wrong on any of them.
