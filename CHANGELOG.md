@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.64.4
+
+- **update-plugin**: new rule — a fix to how one skill handles a shared mechanism (a field/table/convention several skills read or write) is a fix to all of them. The signal-scan in Step 1 is deliberately scoped to the current session, so nothing forced a check of sibling skills touching the same mechanism — until now that meant a fix could regress right back in the next time a sibling skill ran unchanged.
+- **condense-task-doc** + **merge-task-docs**: both preserved the LLM-CONTEXT `Last updated` field literally ("keep all fields"), which would have silently reintroduced 1.64.3's fixed bug — a condense or merge pass copying forward a duplicated commit/deploy-status phrase instead of collapsing it to Quick Start. Both now state the same rule task-summary does: `Last updated` names the date + what changed, never commit/deploy status prose.
+
 ## 1.64.3
 
 - **task-summary**: new Layer-1 rule — commit/deploy status ("uncommitted" / "committed, not yet deployed" / "LIVE in production") is one fact with one home, same as any other. Found the hard way: mid-ship, the status got written into LLM-CONTEXT's `Last updated:` line, Quick Start's state line, and `## Last Session` — three places restating a phrase that was about to go stale within minutes of the actual deploy completing. The user flagged it directly ("too bothersome to update, just update 1 place"). `Last updated:` now points at Quick Start instead of mirroring its wording.

@@ -69,7 +69,7 @@ For each merge group:
 1. **Read both docs in full** before writing anything.
 2. **Choose the canonical path** — keep the richer/primary doc's path as the merge target.
 3. **Write the merged doc** to the canonical path using the task-summary template structure:
-   - LLM-CONTEXT block with updated `Status`, `Domain`, `Related`, `Last updated`
+   - LLM-CONTEXT block with updated `Status`, `Domain`, `Related`, `Last updated` — `Last updated` names the date + what changed, not commit/deploy status prose (that lives only in Quick Start's state line; see Density rules below)
    - Quick Start (≤15 lines, cold-start actionable)
    - Overview, Architecture, Files, Task Status, Key Technical Decisions, Critical Gotchas, Next Steps, Last Session
 4. **Density rules** (from task-summary skill) apply: one fact one home, no section duplicates the content of another, no commit hashes outside Last Session, no filler words.

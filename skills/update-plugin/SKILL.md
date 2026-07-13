@@ -55,6 +55,8 @@ For each signal, identify the target:
 
 Read the target file before writing. Check whether the fix already exists — if a rule is present but Claude ignored it, the fix is to strengthen the wording, not duplicate the rule.
 
+⚠️ **A fix to one skill's handling of a shared mechanism (a field, table, or convention several skills read/write) is a fix to all of them — check siblings before calling it done.** The signal-scan in Step 1 is intentionally scoped to this session, not a plugin-wide sweep — but once a signal IS captured, `grep -l` the fixed field/table/convention name across `skills/*/SKILL.md` and patch every skill that touches it the same way, not just the one the session happened to exercise. Example: fixing `task-summary`'s handling of the LLM-CONTEXT `Last updated` field also means checking `condense-task-doc` and `merge-task-docs`, which read/write the same field and would silently regress it back in on their next run otherwise.
+
 ## Step 3 — Write: Patch the skill files
 
 For each change, apply the most targeted edit possible:

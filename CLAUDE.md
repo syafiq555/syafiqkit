@@ -51,6 +51,14 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `update-plugin` | Scan the session for plugin learnings (misfired triggers, missing rules, wrong workflow steps, new skills), then patch the actual SKILL.md files. The plugin equivalent of update-claude-docs | User invokes explicitly after skill-creator work |
 | `update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files. The CLAUDE.md analog of `task-summary` (SKILL.md workflow + `references/structure.md` canonical template). Capture mode is `/done` Step 3's single CLAUDE.md writer | `done` skill Step 3, or user directly |
 
+### Typical invocation sequence
+
+These skills compose but are usually invoked as SEPARATE commands in sequence, not one chained instruction:
+
+1. `/commit` + `/ship` — usually given together as one instruction; `ship`'s own commit step already covers it.
+2. `/update-summary` (task-summary) then `/update-claude-docs` — run back-to-back as individual invocations after a ship, not combined.
+3. `/update-plugin` — invoked standalone afterward, sometimes much later in the session. Frequently followed by mid-skill "improvise/extend this too" instructions — treat those as widening the CURRENT run's scope (e.g. patch sibling skills sharing the same mechanism, per its own Step 2 rule), not as a cue to re-invoke.
+
 ## Project-Specific Agents
 
 `/agent-setup` creates project-local agents in `.claude/agents/` using the **Bootstrap pattern** — agents read CLAUDE.md at runtime instead of having content injected. See `skills/agent-setup/templates/` for agent templates. `/done` uses these project agents (with fallback to external plugins).
