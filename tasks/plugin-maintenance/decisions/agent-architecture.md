@@ -6,6 +6,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Correct wiring to invoke a sibling skill doesn't guarantee the model calls it (D15)
   - Having read a file earlier in-session ≠ having verified it against a checklist (D21)
   - A self-caught deviation from a skill's own instructions is a reportable signal, not a win to file silently (D24)
+  - A scan's "zero results = done" needs a must-hit control, not just a correct command (D25)
 Related: ../current.md (index), ../decisions/doc-condensation.md
 Last updated: 2026-07-13
 -->
@@ -113,6 +114,26 @@ Chosen: `done` Step 5 now asks explicitly — *did I deviate from any skill's wr
 **Consequences**
 - Directly produced the `ship` Step 3 fix in the same session (D-equivalent fix, not yet numbered as its own ADR — see CHANGELOG 1.64.1): deploy-branch identification now required before any push, recognizing forward-merge chains as merges (not pushes) and surfacing manual gates + migrations riding along.
 - Distinct from D21: D21 catches a *checklist skimmed instead of run*; D24 catches a *defect the model already fixed in place*, which is arguably easier to miss because there's no failing check to notice — only a decision not to mention it.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D25 — A Scan Step's "Zero Results = Done" Exit Condition Needs a Must-Hit Control, Not Just a Correct Command — committed — 2026-07-13
+
+**Problem**
+`merge-task-docs` Step 3/Step 6 and `read-summary`'s discovery fallback shipped `rg -rn "pattern"` as the literal copy-pasteable command in three places. `rg` has no recursive flag — `-r` is `--replace` — so the command silently substituted the searched pattern out of its own output and exited 0. Step 6's exit condition is "zero results = done," run *after* Step 5 already deleted the source docs — a corrupted scan reads identically to a genuinely clean tree, and the merge finishes with dangling references nobody catches.
+
+**Decision**
+Chosen: replace `rg -rn` with `grep -rn` (ugrep's `-r` is genuinely recursive) in both skills, AND add a must-hit control line to `merge-task-docs`' final scan (`grep -rn "current.md" tasks/ | head -1`) so a zero result is only accepted once the control proves the search could have returned something. `read-summary` gained the same control-line rule at its discovery step, plus an explicit "the tell" line (search term absent from its own output, or an unrelated token in its place) since the failure mode has no error/stderr to notice.
+
+**Rejected**
+- Fixing only the broken command (`rg`→`grep`) without adding a control. Why not: this doc's own D21 lineage — a checklist item needs a command per item, not trust in the command being right — extends here: a *correct* command with an *unverified* empty result is still a silent-pass exit condition. The next accidental `-r` reintroduction (or an unrelated cause of a genuinely-empty grep, like a wrong path) would pass the same way.
+- Scoping the fix to `merge-task-docs` alone, since that's where the destructive step (Step 5 delete) lives. Why not: `read-summary`'s discovery step has the identical footgun and the identical "silent empty result reads as success" shape, just without a delete attached — the mechanism is shared even though the blast radius differs; `update-plugin`'s own "a fix to a shared mechanism is a fix to all skills using it" rule (see CHANGELOG 1.64.4) applies.
+
+**Consequences**
+- Global `~/.claude/CLAUDE.md` already carried the `rg`-has-no-recursive-flag rule in its Shell Commands table; this decision is that rule failing anyway at the exact moment (mid-skill-authoring, "I'm finding a doc" framing) it existed to prevent — a documented rule surviving in prose doesn't guarantee the moment-of-use command gets typed correctly. Reinforces D3/D6's "fix the generator, not the instance" lineage: the fix isn't a fourth restatement of the rule, it's making the *unsafe form structurally unreachable* (mandate `grep -rn`, name the tell) rather than trusting recall.
+- Plugin version bumped 1.64.4→1.64.5; CHANGELOG entry added.
 
 **Status**: committed · **Reversible**: yes
 

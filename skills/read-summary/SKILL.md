@@ -14,8 +14,18 @@ Read, find and understand task summary context. Run this **before** answering, i
 
 ⚠️ The request is usually a fuzzy task description, not a path. Folder names are engineer-domain-named and rarely match how you'd phrase the request (`upload-redesign` owns "QC delete child question"; `payout` owns "refund"). So **discover by content, not by folder name**:
 
-1. **Parallel, in one tool block**: `Glob tasks/**/*.md` (include `_archive/` and flat `tasks/<domain>/<feature>.md` — whole features live there, not just `current.md`) **AND** `Grep` those for the *concept's vocabulary* from the request — include synonyms ("child"→"sub-question", "QC"→"review/screening", "refund"→"payout"), searching doc **body + header**, never the folder name alone.
+1. **Search by content, in one tool block.** List the candidate docs **and** grep them for the *concept's vocabulary* from the request — include synonyms ("child"→"sub-question", "QC"→"review/screening", "refund"→"payout"), searching doc **body + header**, never the folder name alone. Include `_archive/` and flat `tasks/<domain>/<feature>.md` — whole features live there, not just `current.md`.
+
+   ```bash
+   grep -rli "payout\|disbursement\|settlement" tasks/    # which docs mention it
+   grep -rn  "payout" tasks/payment/                      # where, with line numbers
+   ```
+
+   ⚠️ **Use `grep`. Never `rg` for this.** `Grep`/`Glob` are *tools* in some agent contexts (e.g. an `Explore` subagent) — use them when they exist. **The main loop usually has neither**, so discovery lands in Bash, and that is exactly where the footgun sits: `rg` has **no recursive flag** (it always recurses), so `-r` is `--replace`. Typing `rg -ril "payout"` — intending *recursive, case-insensitive, list-files* — prints every match with "payout" **replaced by the next flag character** and **exits 0**. No error, no stderr, and no config or strict mode can disable it. `grep`'s `-r` genuinely means recursive, so `grep -rli` is safe by construction. **The tell you already fell into it: your search term is absent from its own output, or an unrelated token sits where it should be.**
+
 2. **Rank + disambiguate**: read the top 2-3 candidates' header block (`<!--LLM-CONTEXT...-->` if present — tolerate missing/varied headers) + `# Title` + `## Overview`. Follow any `Merged into`/`Supersedes`/`> 📖` redirect to the live doc. Treat index/hub docs (roadmap, `shared/`, `*-architecture`, parent `current.md`) as routers, not targets.
+
+⚠️ **An empty result is a claim about your search, not about the tree.** Before concluding "no doc covers this", run a control that MUST hit (`grep -rl "current.md" tasks/ | head -1`). A wrong flag, a typo, or a gitignored `tasks/` dir all return a clean, confident, empty set.
 
 A keyword match lands you in the right *folder*, not necessarily the right *bug* — so after the doc loads, restate the user's claim in your own words and confirm the doc addresses *that symptom*, not a nearby topic it happens to mention. And requests that arrive as chat transcripts often reveal their real claim only across several messages: if the central claim shifts (new symptom, a screenshot, or "this was fixed before and came back"), re-run discovery from step 1 rather than extending your first answer. A regression is its own investigation — find the prior fix and check what reverted, don't re-derive from scratch.
 

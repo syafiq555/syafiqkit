@@ -54,11 +54,13 @@ Also list what stays standalone and why. Get user confirmation before proceeding
 For every source doc being deleted, find all docs that reference its path:
 
 ```bash
-rg -rn "tasks/payment/analytics-instrumentation|tasks/payment/bank-warning" /path/to/tasks/
-rg -rn "analytics-instrumentation|bank-warning" /path/to/app/ # domain CLAUDE.md files
+grep -rn "tasks/payment/analytics-instrumentation\|tasks/payment/bank-warning" /path/to/tasks/
+grep -rn "analytics-instrumentation\|bank-warning" /path/to/app/   # domain CLAUDE.md files
 ```
 
-⚠️ `rg` may redact long paths (GitNexus digit-run redaction). If output is truncated, write to a temp file and Read it.
+⚠️ **Use `grep -rn` here, never `rg -rn`.** In `rg`, `-r` is `--replace` (there IS no recursive flag — `rg` always recurses), so `rg -rn "pat"` prints every match with the pattern *substituted by `n`* and exits 0. The path you searched for vanishes from its own output — and this step's exit condition is "zero results = done", so the corruption reads as a clean all-clear and Step 5 deletes the docs anyway. `grep`'s `-r` genuinely means recursive.
+
+⚠️ Long paths may be truncated in tool output. If so, redirect to a temp file and Read it.
 
 Build a list of every file + line that needs updating. Do this now — before the merge writes — so nothing is missed.
 
@@ -99,10 +101,11 @@ For every deleted path, update every file that referenced it to point to the mer
 After updating, run a final scan to confirm zero stale references:
 
 ```bash
-rg -rn "tasks/<domain>/<deleted-feature>" /path/to/tasks/ /path/to/app/
+grep -rn "tasks/<domain>/<deleted-feature>" /path/to/tasks/ /path/to/app/
+grep -rn "current.md" /path/to/tasks/ | head -1   # control: MUST return a hit
 ```
 
-Zero results = done. Any hit = fix it before finishing.
+Zero results = done — **but only if the control line above returned a hit.** A zero from a broken search (wrong flag, wrong path, gitignored dir) is indistinguishable from a genuinely clean tree, and the docs are already deleted by this point. Never accept an empty result you haven't proven the search *could* have filled.
 
 ### Step 7 — Validate
 

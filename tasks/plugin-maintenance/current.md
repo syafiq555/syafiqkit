@@ -30,6 +30,7 @@ Last updated: 2026-07-13
 - Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat — no `condense-*` delegate exists for it; `update-plugin` Step 3a now owns the checklist — see D23 (decisions/doc-condensation.md)
 - A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win — see D24 (decisions/agent-architecture.md)
 - `/ship` Step 3 no longer assumes the current branch IS the deploy branch — establish it from CLAUDE.md/CLAUDE.local.md first, recognize forward-merge chains as merges not pushes
+- A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command — a fixed `rg -rn`→`grep -rn` command with no control still silently passes on an unrelated empty result — see D25 (decisions/agent-architecture.md)
 
 ---
 
@@ -130,6 +131,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D15 | Correct wiring ≠ the model reliably calling a sibling skill |
 | D21 | A Step-N verify checklist needs a command per item — a prior skim isn't a check |
 | D24 | A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win |
+| D25 | A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
@@ -183,10 +185,10 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-13)
 
-- **D24 added** (decisions/agent-architecture.md): `done` Step 5's signal gate was calibrated only against false positives — a self-caught deviation from a skill's own instructions (worked around it, said "doesn't apply here") wasn't recognized as a reportable signal, and nearly went unreported this session precisely because catching it felt like competence, not a defect.
-- `ship` Step 3 fixed in the same session: no longer assumes `git push` on the current branch IS the deploy — now establishes the deploy branch from CLAUDE.md/CLAUDE.local.md first, treats forward-merge chains (`master→staging→production`) as a merge not a push, checks for manual CI gates, and surfaces migrations riding along. Found when the user had to hand-roll the correct branch chain because the old Step 3 assumption was wrong.
-- `done` Step 5 gate itself patched to ask explicitly: *did I deviate from any skill's written instructions this session, and why?*
-- Plugin version bumped 1.64.0→1.64.1; CHANGELOG entry added; shipping via `/ship` immediately after this doc update.
+- **D25 added** (decisions/agent-architecture.md): `merge-task-docs` Step 3/Step 6 and `read-summary`'s discovery fallback shipped `rg -rn` as a literal copy-pasteable command — `rg` has no recursive flag (`-r` is `--replace`), so the command silently substituted the search pattern out of its own output and exited 0. `merge-task-docs` Step 6's exit condition is "zero results = done," run *after* Step 5 already deletes the source docs — a corrupted scan reads as a clean all-clear.
+- Both skills switched to `grep -rn` (ugrep's `-r` genuinely is recursive) and gained a must-hit control line, since a fixed command with an unverified empty result is still a silent-pass exit condition.
+- `.claude-plugin/marketplace.json` found stale at 1.64.4 against `plugin.json`'s 1.64.5 during this doc update's own version-consistency check — synced in the same pass, unrelated pre-existing drift (same class as D23's earlier catch).
+- Plugin version bumped 1.64.4→1.64.5; CHANGELOG entry added.
 
 ---
 

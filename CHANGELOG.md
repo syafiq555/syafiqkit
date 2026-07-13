@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.64.5
+
+- **merge-task-docs**: the back-reference scan shipped `rg -rn` in three literal copy-pasteable commands — and `rg` has **no recursive flag** (it always recurses), so `-r` is `--replace`: the command printed every match with the searched path *substituted away*, exit 0, no error. Step 3 scans for back-references and Step 6's exit condition is literally "zero results = done" — with the source docs already deleted by Step 5. A corrupted scan therefore reads as a clean all-clear and the merge finishes with dangling pointers. Switched to `grep -rn` (in ugrep, `-r` genuinely *is* recursive), and the final scan now carries a must-hit control line, because a zero from a broken search is indistinguishable from a genuinely clean tree.
+- **read-summary**: discovery told the reader to use the `Grep`/`Glob` tools but said nothing about the fallback when those tools aren't available in a session — so the fallback became Bash `rg`, with the `-r` footgun and no warning. Found the hard way: a discovery search typed `rg -ril "payout"` intending *recursive, case-insensitive, list-files*, and got back output with every "payout" replaced by "il" (`-r` consumed the `l` as its replacement string). The rule already existed, loudly, in global CLAUDE.md — and was broken anyway, because at discovery time the mental frame is "I'm finding a doc", not "I'm writing a shell command". So the fix isn't another copy of the rule: it names `grep` as the mandated fallback (safe by construction) and gives the *tell* — your search term is missing from its own output.
+
 ## 1.64.4
 
 - **update-plugin**: new rule — a fix to how one skill handles a shared mechanism (a field/table/convention several skills read or write) is a fix to all of them. The signal-scan in Step 1 is deliberately scoped to the current session, so nothing forced a check of sibling skills touching the same mechanism — until now that meant a fix could regress right back in the next time a sibling skill ran unchanged.
