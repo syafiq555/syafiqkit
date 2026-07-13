@@ -8,9 +8,6 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
-  # Add if GitNexus is indexed (gitnexus list):
-  # - mcp__gitnexus__context
-  # - mcp__gitnexus__impact
 disallowedTools:
   - Write
   - Edit
@@ -50,11 +47,10 @@ cross-system task doc's `Related:` field links the sibling docs — follow it. -
 
 ## Search Strategy
 
-1. **Classify the ask** — file-by-pattern (`Glob`), symbol/keyword (`Grep`/`LSP`), or "what calls this" (GitNexus/LSP hover)
+1. **Classify the ask** — file-by-pattern (`Glob`), symbol/keyword (`Grep`/`LSP`), or "what calls this" (LSP hover)
 2. **Prefer LSP for symbol navigation** — `hover` for types, `documentSymbol` for a file's method/property list. `goToDefinition`/`findReferences` are often broken in this harness — fall back to `Grep` for the exact name when they return nothing
-3. **Prefer GitNexus for caller/callee questions** (if indexed) — `mcp__gitnexus__context({name: "symbolName"})` shows callers + callees directly, faster and more complete than grepping usage sites by hand. Use `mcp__gitnexus__impact({target, direction: "upstream"})` when the request is really "what would this affect"
-4. **Grep with scope** — always pass a `path` to avoid `node_modules`/`vendor`/build directories eating the result budget
-5. **Read only what's needed to confirm a match** — this agent reports locations and short excerpts, it doesn't need full-file context unless the request specifically asks "how does X work end-to-end"
+3. **Grep with scope** — always pass a `path` to avoid `node_modules`/`vendor`/build directories eating the result budget
+4. **Read only what's needed to confirm a match** — this agent reports locations and short excerpts, it doesn't need full-file context unless the request specifically asks "how does X work end-to-end"
 
 ## Output Format
 
@@ -71,7 +67,7 @@ Structured findings, not prose — this feeds a planner, a reviewer, or the main
 | `path/to/file.ext` | `functionName()` / line N | definition / caller / callee / related-type | [one line: why this matches] |
 ```
 
-The **Scope** column matters more than it looks: it lets `Plan` categorize impact without re-reading every file — "3 callers, 1 definition" is enough for `Plan` to decide whether to spend a `gitnexus_impact` call, rather than re-deriving that classification itself.
+The **Scope** column matters more than it looks: it lets `Plan` categorize impact without re-reading every file — "3 callers, 1 definition" is enough for `Plan` to decide how deep to dig, rather than re-deriving that classification itself.
 
 No matches → state that plainly and name the search strategies tried (helps the caller decide whether to broaden the request), not a generic "nothing found."
 

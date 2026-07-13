@@ -8,9 +8,6 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
-  # Add if GitNexus is indexed (gitnexus list):
-  # - mcp__gitnexus__context
-  # - mcp__gitnexus__impact
   # NOTE: read-only by design — do NOT add Write/Edit. A plan is a recommendation the caller
   # decides to implement, not code this agent writes itself.
 disallowedTools:
@@ -51,7 +48,7 @@ both when the task touches both sides. Add a second Bootstrap table for the sibl
 
 1. **Read intent** — task doc first if one exists; otherwise restate the request in your own words before searching code
 2. **Locate relevant code** — `Glob`/`Grep`/`LSP documentSymbol` for the files, functions, and patterns already in play. Actively look for existing utilities/services/components that solve part of the problem — reusing them is almost always better than proposing new code
-3. **Check blast radius** — for any symbol you plan to change, run `mcp__gitnexus__impact({target, direction: "upstream"})` (if GitNexus indexed) to see callers that could break; `mcp__gitnexus__context({name})` to understand callees
+3. **Check blast radius** — for any symbol you plan to change, `Grep` all callers/usages across the codebase to see what could break
 4. **Weigh the approach** — if there's a genuine architectural choice (not a rote implementation), name the trade-off briefly, but commit to ONE recommended approach — don't hand the caller a menu of options to re-decide
 5. **Identify critical files** — the specific files to create/modify, named explicitly. For a pattern that repeats across many files, describe the pattern once and give 2-3 representative paths rather than enumerating every file
 6. **Name pre-verification checks** — before code starts, what must be directly confirmed rather than assumed from an `Explore` finding's one-line relevance (an override in a subclass, a cast/scope that changes behavior, a migration's interaction with soft-deletes). This is the plan double-checking itself, not the caller's job later

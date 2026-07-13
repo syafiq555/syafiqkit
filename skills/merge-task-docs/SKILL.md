@@ -25,14 +25,17 @@ Good merge signals:
 
 Bad merge signals:
 - "They both involve invoices" (every payment feature involves invoices)
-- The merged doc would be >300 lines
 - They have different owners or unrelated deploy schedules
+
+Note: ">300 lines" alone is NOT a bad-merge signal if the subsystem test (above) passes — it's a size-handling problem, not a reason to keep subsystem-coupled docs apart. See Step 4.8 for the split-doc resolution.
 
 ## Workflow
 
 ### Step 1 — Read all candidates
 
 When given a domain or keyword (e.g. "all payment docs"), list every `tasks/<domain>/*/current.md`. Read them all before deciding anything. Don't merge based on titles.
+
+⚠️ **Watch for dead redirect stubs from a PRIOR merge** — a doc whose entire body is "# Merged into: ..." or a one-line "content now lives at X" table. These aren't merge candidates, they're cleanup: delete them now (same as Step 5) and reconcile whatever still points at them (same as Step 6), even if nothing else in this session's merge touches that domain. A stub surviving past its own merge is exactly the clutter Step 5's "no redirect stubs" rule exists to prevent — check for it, don't just avoid creating new ones.
 
 ### Step 2 — Build a merge plan
 
@@ -78,6 +81,7 @@ For each merge group:
 5. **Merging content**: combine sections without duplicating rows. If both docs have a Gotchas table, merge into one table — never two Gotchas sections. If both have a Files section, combine into one living map (don't keep per-doc subsections).
 6. **Last Session**: write ONE Last Session block that notes the merge happened. Don't preserve both docs' Last Session entries.
 7. **Size budget**: merged doc should stay under 300 lines. If it would exceed this, condense aggressively — collapse completed Task Status rows, trim Files to a living map, cut narrative from Gotchas to rule+symptom only.
+8. **When condensing can't reach budget**: two docs that are each already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a single flat file. Instead use the split-doc pattern from `condense-task-doc`'s `templates.md` ("Splitting a whole-doc MADR further"): a thin index `current.md` (Quick Start + a routing table framed as "read `decisions/<theme>.md` if you're asking: *[question]*") plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by which source doc a fact came from. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is the correct outcome when the merge candidates fail the "bad merge signal: >300 lines" test in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
 
 ### Step 5 — Delete source docs
 
@@ -130,7 +134,7 @@ Tell the user:
 | Leave a `# Merged into:` redirect stub | Delete the source; reconcile every back-ref instead |
 | Decide to merge based on shared keywords | Merge based on shared subsystem (same tables/services/journey) |
 | Delete source before reconciling back-refs | Reconcile to the new path FIRST, then delete (0 stale = gate) |
-| Write a merged doc that exceeds 300 lines | Condense both sources before merging if needed |
+| Force a flat merged doc past 300 lines by deleting real facts | Condense first; if sources are already dense (not bloated), split into index + `decisions/<theme>.md` instead (Step 4.8) |
 | Preserve both docs' Last Session entries | One merged Last Session noting the merge happened |
 | Stop at `Related:` fields | Sweep inline mentions + domain CLAUDE.md pointers too |
 | Plain `mv` a renamed folder | `git mv` — keeps history (for renames, not deletes) |

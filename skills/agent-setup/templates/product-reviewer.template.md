@@ -8,9 +8,6 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery (read-only)
-  # Add if GitNexus is indexed (gitnexus list) — used to confirm a capability has no caller:
-  # - mcp__gitnexus__context
-  # - mcp__gitnexus__impact
   # NOTE: read-only by design — do NOT add Write/Edit. NO getDiagnostics (type-correctness is the code-reviewer's lane).
 model: sonnet
 color: purple
@@ -50,7 +47,7 @@ You find what the code reviewer structurally cannot: **the things that aren't th
 1. **Read the intent** — task doc first. Write the intended user journey as one sentence before looking at code.
 2. **Gather what was built** — `git diff` + `git diff --cached` (or `git diff <before>..HEAD`). List added surfaces: pages, routes, API methods, buttons, nav entries.
 3. **Walk the journey on paper** — trace the real user path through built code. For each step, confirm an entry point exists. Does this API have a route? Does this route have a nav link / button reaching it? Where does each screen's primary action lead — does that destination exist?
-4. **Cross-check capability vs reachability** — for every backend capability (API method, route), grep the frontend for a user-facing control that invokes it. A capability with no caller is a forgotten journey. Use `mcp__gitnexus__impact({target, direction: "upstream"})` (if indexed) when grep is ambiguous. `LSP hover`/`documentSymbol` to confirm symbol shape; never rely on `goToDefinition`/`findReferences` (often broken).
+4. **Cross-check capability vs reachability** — for every backend capability (API method, route), grep the frontend for a user-facing control that invokes it. A capability with no caller is a forgotten journey. `LSP hover`/`documentSymbol` to confirm symbol shape; never rely on `goToDefinition`/`findReferences` (often broken).
 5. **Judge value & polish** — empty states, primary CTAs, the "now what?" after each action, whether the business goal is observable/actionable.
 6. **Separate forgotten from deferred** — check the task doc's "Out of scope" / "Next Steps". A documented deferral is NOT a finding. A gap nowhere in the doc is a real miss.
 

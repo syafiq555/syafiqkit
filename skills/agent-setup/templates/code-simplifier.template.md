@@ -11,9 +11,6 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery
   - mcp__ide__getDiagnostics
-  # Add if GitNexus is indexed (gitnexus list):
-  # - mcp__gitnexus__context
-  # - mcp__gitnexus__impact
 model: opus
 color: cyan
 memory: project
@@ -43,7 +40,7 @@ and apply rules matching where the files live. Then add a second Bootstrap table
 1. **Find changed files** — `git diff --name-only` and `git diff --stat` (this is your scope) <!-- multi-repo: run in EACH repo -->
 2. **Read task docs** — run the `/read-summary` skill (`Skill` tool) for each changed feature to load architectural constraints + deliberate-decision context (so you don't "simplify" away an intentional pattern). Multi-repo → it also finds the sibling repo's OWN docs (`<sibling-root>/tasks/<domain>/<feature>/current.md`). Can't invoke it? Read `tasks/<domain>/<feature>/current.md` directly
 3. **Read each changed file** — understand intent before refactoring
-4. **Check callers/callees** (if GitNexus indexed) — Before extracting or moving logic, run `mcp__gitnexus__context({name: "symbolName"})` to see all callers and callees. Skip for leaf functions.
+4. **Check callers/callees** — Before extracting or moving logic, `Grep` for the symbol name to see all callers and callees. Skip for leaf functions.
 5. **Check siblings** — how do adjacent files handle similar patterns?
 6. **Run diagnostics** — `mcp__ide__getDiagnostics` on changed files to catch type/lint issues
 7. **Apply refinements** — edit directly, run linter/formatter after (e.g., `vendor/bin/pint --dirty` for PHP)

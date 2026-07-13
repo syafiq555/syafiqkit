@@ -80,9 +80,7 @@ Skip this step if `remote` CLI is not configured or no production server is docu
 
 3. If CI failed → report error, suggest `gh run rerun <id> --failed`
 4. If prod HEAD doesn't match → report mismatch
-5. **Write the verified outcome to the task doc** — the write Step 2.4 deferred. Flip `Status:` to live, tick the deploy checkbox, record what you actually observed. Then grep the doc for every restatement of the old state (LLM-CONTEXT header, Quick Start, Task Status, Last Session) — fixing one leaves the others lying.
-
-5. **Write the deploy outcome back to the task doc** — this is the write that Step 2.4 deferred. Now that production is verified, update the shipped work's `tasks/**/current.md` to the OUTCOME: flip `Status:` to live, tick the deploy checkbox in `## Next Steps`, and record what was verified (the actual command output, not "deployed ✅"). Then grep the doc for every restatement of the old state — a stale claim survives in the LLM-CONTEXT header, Quick Start, Task Status table, and Last Session, and fixing one leaves three lying. Run the grep with a positive control that must hit.
+5. **Write the verified outcome to the task doc** — the write Step 2 deferred. Flip `Status:` to live, tick the deploy checkbox in `## Next Steps`, and record what you actually observed (the command output, not "deployed ✅"). Then grep the doc for every restatement of the old state — it survives in the LLM-CONTEXT header, Quick Start, Task Status table and Last Session, and fixing one leaves three lying. Run that grep with a positive control that must hit.
 
 ### Step 5: Release Note
 

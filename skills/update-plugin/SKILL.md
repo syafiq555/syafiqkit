@@ -26,6 +26,8 @@ git -C ~/.claude/plugins/syafiqkit remote get-url origin 2>/dev/null | grep -q '
 
 ## Step 1 — Scan: What happened involving the plugin?
 
+⚠️ **"The session" means the WHOLE transcript back to its start, not just the turn(s) immediately before this invocation.** The scan defaults to recency — a substantial recent action (a big merge, a long agent run) reads as "the session," and an earlier corrected mistake feels closed because it was already fixed in the moment. It isn't: fixing the instance doesn't patch the skill, and a corrected mistake from turn 3 is exactly as valid a signal as one from turn 30. Concretely: re-read from the first user message, not from the most recent tool call backward. A user correction ("wait, what about X") anywhere in the transcript is the single strongest signal this skill exists to catch — don't let "I already fixed that" be a reason it never gets logged.
+
 Look for these signals in the session:
 
 | Signal | What to capture |

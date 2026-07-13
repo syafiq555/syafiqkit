@@ -61,7 +61,7 @@ The trap is that a well-read doc makes you feel *fully grounded* — so you answ
 
 1. Read the resolved `current.md` (found via the discovery method above when no explicit path was given)
 2. ⚠️ **Whole-doc MADR index check**: if `current.md` is a thin index (routing table under `## Decisions Index`/similar, pointing at `decisions/*.md`), it holds NO ADR content itself — reading only the index and stopping is reading zero decisions. Open the specific `decisions/<theme>.md` file(s) whose routing-table question matches what you're investigating; if the request spans multiple themes, read all of them. Don't rely on the generic `Related:` field for this — a split doc's own `decisions/*.md` files are part of THIS doc, not a cross-domain reference, and get buried among the 5-10 genuinely-external docs `Related:` usually lists.
-3. Check LLM-CONTEXT `Related:` field for OTHER linked docs (cross-domain, not this doc's own `decisions/*.md`)
+3. ⚠️ **Read EVERY doc listed in the LLM-CONTEXT `Related:` field (cross-domain, not this doc's own `decisions/*.md`) — not just the ones whose title sounds on-topic.** "Check the field" is not "skim the list and pick the plausible one" — a title like `upload-redesign` reads as QC/extraction-scoped and tempts a skip, but the doc itself can be the single most load-bearing related doc (shared services, shared fix IDs, shared pivot columns) precisely because two docs split by *audience* (admin-QC vs student-runtime) still describe *one* subsystem. Same failure mode Step 2 already names for `decisions/*.md` ("don't rely on the generic field, read the actual files") — it applies here too, just aimed at cross-domain docs instead of split-doc themes. If a `Related:` doc turns out to be genuinely tangential after reading it, that's fine — the read is what earns the "not relevant" conclusion, a title guess doesn't.
 4. If Related mentions `tasks/shared/*.md`, read those too
 5. **CLAUDE.md tree walk** — read EVERY `CLAUDE.md` on the path to the files this task touches, not just the backend domain one. The harness auto-loads them additively by directory (root → layer → subdir), and discovery must mirror that or you load zero context for a frontend task (there's no `app/Domain/` for it). For each dir you'll edit, walk up reading any `CLAUDE.md` found:
    - **Layer**: `app/CLAUDE.md` (backend) or `resources/js/CLAUDE.md` (frontend)
@@ -79,12 +79,6 @@ The trap is that a well-read doc makes you feel *fully grounded* — so you answ
 
    The sibling's docs are the one context category **guaranteed absent unless you fetch it**. Fetch it before answering, not after being corrected.
 
-7. **GitNexus (mandatory if `.gitnexus/` exists)** — run in parallel with step 1:
-   - `gitnexus_context({name: "<symbol>"})` on the 2-3 most critical symbols from `Key files` (e.g., main service class, controller) — shows callers, callees, process participation
-   - `gitnexus_impact({target: "<symbol>", direction: "upstream"})` on symbols you expect to modify — shows blast radius
-   - ⚠️ Do NOT use `gitnexus_query()` — requires `--embeddings` index (not enabled). Use `context()` + `impact()` instead (pure graph traversal)
-   - ⚠️ Do NOT skip this even if you "already read the files" — file reads miss callers, process participation, and blast radius
-
 **Shared docs**: Check `Glob: tasks/shared/*.md` for cross-domain references if they exist.
 
 ---
@@ -97,7 +91,7 @@ Determine the type of the user's request. **Reading the doc (full Read Order) is
 - **Investigation / diagnostic** — a read-only question about current state: "is X paid by card?", "why did Y fail?", "check on production", "what's the status of Z?" (often with a screenshot). This is the easiest intent to mishandle: the question feels self-contained, so the temptation is to answer or query immediately. Don't. Infer the domain, run the full Read Order first, THEN investigate and answer.
   - **Multi-image / multi-message requests carry MORE claims, not fewer.** A request bundling several screenshots ("[Image #1]...[Image #4]") is rarely one symptom — each image is typically evidence for a distinct clause (a test result, a UI state, a data-linkage gap). Before answering, enumerate what each image is evidence *of*, not just what the text says: a request like "on our last E2E we did this [screenshot], but [screenshot] the account isn't even linked?" has at least two claims to reconcile (E2E outcome + the linkage gap), and the doc/code must address both, not just whichever is easier to confirm from the task doc alone.
   - **Exit gate.** The Read Order guards the *front* of an investigation; this guards the *exit*. Before sending a conclusion, state side-by-side the question the user asked and the question you actually answered. If they differ — you confirmed an easy adjacent fact instead of the hard thing asked — that's *attribute substitution* (e.g. confirming a field's *value* when the real question was *which field is authoritative*); re-open and answer the one asked. Your conclusion must reconcile **every** clause and number the user gave, not just one.
-- **Task description** — contains a bug report, feature request, ClickUp paste, chat transcript, or any actionable work description (not a path) → Read relevant context (infer domain from keywords, find matching `tasks/**/current.md`, load domain CLAUDE.md, run GitNexus), then **proceed to implement the task**.
+- **Task description** — contains a bug report, feature request, ClickUp paste, chat transcript, or any actionable work description (not a path) → Read relevant context (infer domain from keywords, find matching `tasks/**/current.md`, load domain CLAUDE.md), then **proceed to implement the task**.
 
 ## After the Read: Plan Mode vs Normal Mode
 

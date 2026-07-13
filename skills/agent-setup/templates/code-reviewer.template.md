@@ -9,9 +9,6 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery
   - mcp__ide__getDiagnostics
-  # Add if GitNexus is indexed (gitnexus list):
-  # - mcp__gitnexus__impact
-  # - mcp__gitnexus__context
 model: sonnet
 color: red
 memory: project
@@ -45,7 +42,7 @@ Then add a second Bootstrap table for the sibling repo's CLAUDE.md files. -->
 3. **Read each changed file** — understand full context, not just the diff
 4. **Check sibling files** — verify the change follows existing patterns in the same directory
 5. **Run LSP** — `hover` for type info on new symbols, `documentSymbol` to check structure of modified files (note: `goToDefinition`/`findReferences` are often broken — use `hover` + Grep for callers)
-6. **Check callers via GitNexus** (if indexed) — For modified functions with changed signatures, run `mcp__gitnexus__impact({target: "symbolName", direction: "upstream"})` to find callers the diff might break. Skip for internal helpers.
+6. **Check callers** — For modified functions with changed signatures, `Grep` for the symbol name to find callers the diff might break. Skip for internal helpers.
 7. **Filter by confidence** — discard anything below 80%; check against Known False Positives before reporting
 8. **Report** — only high-confidence findings, ordered by severity
 

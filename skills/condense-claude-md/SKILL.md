@@ -52,18 +52,18 @@ Every rule that, if removed, would cause Claude to repeat a real past mistake. S
 
 1. `Read` the target CLAUDE.md fully
 2. Mentally score each section: **keep as-is / compress / cut**
-3. Identify any GitNexus `<!-- gitnexus:start/end -->` blocks — **preserve them verbatim**, they are managed separately
-4. Rewrite the file from scratch using `Write` (not incremental `Edit`) — the new file replaces the old
-5. Count lines: target ≤200 for project root CLAUDE.md. If still >250 after compressing, check for a section that passes the seam-test (Restructuring #6) and offer to split it to a subdir `CLAUDE.md` before asking which sections to cut — splitting relocates content without losing it, cutting loses it.
-6. **Always check `wc -c` alongside line count before reporting done — line count alone is not a valid completion signal.** A `Symptom | Cause | Fix` table has one row per gotcha, so rows never merge: it can sit at the ≤200-line target while cells still run 800+ characters and total bytes stay near ~20kb (rule of thumb: target ~15kb for a root CLAUDE.md). If bytes are still high after compressing, apply the Cause/Fix-redundancy rule (Restructuring #4) or offer the seam-test split (Restructuring #6, or #7 for a global file) via `AskUserQuestion` in the same turn — don't wait for the user to push back.
+3. Rewrite the file from scratch using `Write` (not incremental `Edit`) — the new file replaces the old
+4. Count lines: target ≤200 for project root CLAUDE.md. If still >250 after compressing, check for a section that passes the seam-test (Restructuring #6) and offer to split it to a subdir `CLAUDE.md` before asking which sections to cut — splitting relocates content without losing it, cutting loses it.
+5. **Always check `wc -c` alongside line count before reporting done — line count alone is not a valid completion signal.** A `Symptom | Cause | Fix` table has one row per gotcha, so rows never merge: it can sit at the ≤200-line target while cells still run 800+ characters and total bytes stay near ~20kb (rule of thumb: target ~15kb for a root CLAUDE.md). If bytes are still high after compressing, apply the Cause/Fix-redundancy rule (Restructuring #4) or offer the seam-test split (Restructuring #6, or #7 for a global file) via `AskUserQuestion` in the same turn — don't wait for the user to push back.
 
    ⚠️ **Reformatting prose into a table is not compression** — a table cell holds the same words as the paragraph it replaced, just wrapped in `|`. Confirmed on a real run: converting 14 prose paragraphs to a 2-column table moved line count 324→314 and bytes 32.9kb→32.2kb — under 3% either way. Don't spend a pass on this expecting it to close a real gap; go straight to cutting/splitting content instead.
+
+   ⚠️ **A file that's already ALL unique atomic facts (credential tables, ID/alias tables, one-gotcha-per-row) has no light-compression pass to run at all — check this BEFORE spending one.** Unlike the prose→table case above, there's no restated WHY, no Cause/Fix redundancy, no prose to tighten: every row is already a distinct fact (an MID, a container name, a client secret) that doesn't merge with any other row. Confirmed on a real run: light tightening of such a file moved 289→284 lines, 29.4kb→28.3kb (~4%) before the seam-test split (Restructuring #6) did the real work. Signal to skip straight to offering the split: skim 3-5 random rows — if none share a topic or restate another row's mechanism, don't attempt Step 51-54's compress pass; go directly to the seam-test/`AskUserQuestion` per Process #6.
 
 ## Hard rules
 
 - **Never use `Edit` for a full condensation** — `Write` the whole file; partial edits on a bloated file leave stale content between hunks
 - **Strip tool-output wrapper artifacts before writing** — if the file content came into context via a `Read` result, do not carry over `<content>`/`</content>` or any other tool-framing tags into the `Write` payload. Verify the last line of the new file is real content, not a leaked tag.
-- **Never rewrite GitNexus blocks** — copy them verbatim between `<!-- gitnexus:start -->` and `<!-- gitnexus:end -->`
 - **Preserve all `{#anchor}` IDs** — other files may link to them
 - **Preserve established column names** — when collapsing 3→2 columns, drop a column; never rename existing ones. `❌ NEVER | ✅ ALWAYS` stays verbatim; `Symptom | Cause | Fix` stays verbatim.
 - **Don't invent content** — only restructure what exists; if something is unclear, compress it rather than rewrite its meaning

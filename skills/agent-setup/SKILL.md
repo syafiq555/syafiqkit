@@ -31,11 +31,11 @@ Six agents, each with a distinct responsibility:
 
 | Agent | Purpose | Model | Key tools |
 |-------|---------|-------|-----------|
-| `Explore` | Fast read-only search — locate files/symbols/callers. Project-aware version of the built-in `Explore` agent. | `haiku` | Read-only + LSP + gitnexus |
-| `Plan` | Design an implementation approach — critical files, trade-offs, blast radius. Project-aware version of the built-in `Plan` agent. | `sonnet` | Read-only + LSP + gitnexus |
+| `Explore` | Fast read-only search — locate files/symbols/callers. Project-aware version of the built-in `Explore` agent. | `haiku` | Read-only + LSP |
+| `Plan` | Design an implementation approach — critical files, trade-offs, blast radius. Project-aware version of the built-in `Plan` agent. | `sonnet` | Read-only + LSP |
 | `code-reviewer` | Bugs, security, convention violations. Session-aware — reads task docs, gathers changes holistically. | `sonnet` | Read-only + LSP + diagnostics |
 | `code-simplifier` | DRY, clarity, consistency, dead code. Edits files directly. Applies Rule of Three. | `opus` | Read + Edit + Write + LSP |
-| `product-reviewer` | Product/PM lens — missing user journeys, dead-end flows, UX/business-value gaps the engineer forgot to build. Reads the task doc (intent) + built code; recommends, never edits. | `sonnet` | Read-only + LSP + gitnexus |
+| `product-reviewer` | Product/PM lens — missing user journeys, dead-end flows, UX/business-value gaps the engineer forgot to build. Reads the task doc (intent) + built code; recommends, never edits. | `sonnet` | Read-only + LSP |
 | `claude-md-pruner` | Prunes CLAUDE.md files for staleness/bloat. Conservative — preserves reference tables and cross-reference mappings. | `sonnet` | Read + Edit + Grep + Glob |
 
 > **Why 6**: Two lenses look **before** the code exists, four look **after**. `Explore` finds what's already there; `Plan` designs the approach — both read this project's CLAUDE.md and task docs so research/design respect project conventions instead of generic search/planning. `code-reviewer` asks *is the code correct?*, `code-simplifier` asks *is the code clean?* — both look down at code just written. `product-reviewer` asks *is the feature complete and valuable?* — it looks up from the code to the user and business, catching the class of miss a line-level diff structurally cannot (a CRUD with no "create" button, a funnel with no conversion view). It's read-only like the reviewer but recommends product changes rather than auto-fixing — a missing journey is a scope decision the user owns. `claude-md-pruner` is a separate maintenance concern (what's valuable to keep vs stale) — mixing it into review risks over-aggressive deletion.
@@ -151,7 +151,6 @@ frontmatter (name, description, tools, model, color, memory: project)
 - `mcp__ide__getDiagnostics` in tools — for `code-reviewer` + `code-simplifier` (catches lint/type errors). **Omit for `product-reviewer`** — it judges product completeness, not type correctness; diagnostics are out of its lane
 - `product-reviewer` is **read-only** — NO `Write`/`Edit` in its tools. It recommends product changes; the main session decides what to build (a missing journey is a scope call the user owns). It also has no file slice — it judges the whole feature's journey, so `/done` passes it the feature name + task-doc path, not a partition
 - `Explore` and `Plan` are **read-only** — NO `Write`/`Edit`. `Explore` reports locations, not opinions; `Plan` recommends an approach, it doesn't implement it. Their `name:` frontmatter must be exactly `Explore`/`Plan` (capitalized, no hyphen) so they shadow the built-in agent types — see the naming exception note above. Because the shadow only partially overrides the built-in, ALSO add `disallowedTools: [Write, Edit]` to both frontmatters — `tools:` omission alone doesn't reliably strip the built-in's Write/Edit grant
-- `mcp__gitnexus__impact` + `mcp__gitnexus__context` in tools — if project has GitNexus indexed (`gitnexus list`). Reviewer uses `impact` to check callers; simplifier uses `context` before extracting; product-reviewer uses `impact` to confirm a capability has no caller (a forgotten journey); `Explore` uses `context` for caller/callee questions instead of grepping usage sites; `Plan` uses `impact` to check blast radius on symbols it plans to touch
 - Bootstrap section lists CLAUDE.md files with brief descriptions of what each contains
 - Process includes "Read task docs" step — reduces false positives by understanding intent
 - **Task-doc discovery = invoke `/read-summary`, don't reimplement it.** Every task-doc-consuming agent (`Explore`, `Plan`, `code-reviewer`, `code-simplifier`, `product-reviewer` — NOT `claude-md-pruner`, which is CLAUDE.md-only) must (a) carry `Skill` in its `tools:` frontmatter, and (b) have its Bootstrap/Process name the `/read-summary` skill as the canonical way to find the doc (with a short inline Glob+Grep fallback for when the skill can't be invoked). Hand-copying read-summary's Glob-`tasks/**/*.md`-plus-Grep logic into each agent drifts — the sibling-repo path and synonym rule go stale independently. An agent whose `description:` claims it "reads task docs" but whose Bootstrap never mentions them is the drift to catch.
@@ -172,7 +171,6 @@ After writing agents, verify:
 - [ ] All agents have `memory: project` in frontmatter
 - [ ] All agents have `color:` in frontmatter, matching the fixed per-agent-name colors (see Step 4 key rules)
 - [ ] Reviewer/simplifier tools list includes `mcp__ide__getDiagnostics`
-- [ ] If GitNexus indexed: reviewer/simplifier tools include `mcp__gitnexus__impact` and `mcp__gitnexus__context`
 - [ ] Every task-doc-consuming agent (all but `claude-md-pruner`) has `Skill` in tools AND names `/read-summary` as the canonical task-doc discovery method — no agent's `description:` claims "reads task docs" while its Bootstrap omits them
 - [ ] `Explore`/`Plan` Bootstrap opens with a `⚠️ MANDATORY, no exceptions` line stating `/read-summary` discovery runs on EVERY call — including a bare single-symbol/trivial lookup, not just a detailed code-specific prompt naming a flow
 - [ ] Multi-repo: agents name BOTH repos' task-doc roots (active + sibling at its repo root), not just the active repo's
@@ -183,7 +181,6 @@ After writing agents, verify:
 - [ ] LSP step uses `hover` + `documentSymbol` (NOT `goToDefinition`/`findReferences` — often broken)
 - [ ] Multi-repo: if a sibling repo is driven from the same session, agents carry the `⚠️ Two-repo session` banner, diff both repos, and have a second Bootstrap table + tagged sibling rules
 - [ ] Pruner has NEVER-remove list customized for project (reference tables, gotcha rows, etc.)
-- [ ] Pruner skips GitNexus-managed sections (`<!-- gitnexus:start/end -->` markers)
 
 ## Output
 
@@ -192,7 +189,7 @@ After writing agents, verify:
 
 | Agent | Status | Inline Rules | Bootstrap Refs |
 |-------|--------|-------------|----------------|
-| Explore | Created/Updated | Search strategy (LSP/GitNexus priority) | N CLAUDE.md files |
+| Explore | Created/Updated | Search strategy (LSP priority) | N CLAUDE.md files |
 | Plan | Created/Updated | Planning process + reuse-first rule | N CLAUDE.md files + task doc |
 | code-reviewer | Created/Updated | ~15 critical rules | N CLAUDE.md files |
 | code-simplifier | Created/Updated | ~12 simplification patterns | N CLAUDE.md files |
