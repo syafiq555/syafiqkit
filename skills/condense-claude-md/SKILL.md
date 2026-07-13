@@ -20,6 +20,8 @@ The goal is maximum information density: every line must earn its place. A reade
 - Changelog entries, PR summaries, or session notes embedded in the file
 - Empty or near-empty sections (one sentence with no actionable content)
 
+⚠️ **Cutting ≠ discarding.** A rule that fails the repeat-mistake test for THIS file may still be load-bearing elsewhere (a feature-scoped gotcha, a decision worth a record). Before deleting anything you're not certain is dead, check whether it belongs in a task doc instead — route it via `update-claude-docs`, don't just drop it.
+
 **Compress, don't delete:**
 - Long multi-sentence table rows → one tight sentence; move the nuance to a comment only if truly non-obvious
 - Nested sub-tables that repeat the parent structure → flatten or inline

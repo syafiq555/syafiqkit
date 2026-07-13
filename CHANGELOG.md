@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.64.18
+
+- **condense-claude-md**: Added a "Cutting ≠ discarding" caveat to the What to cut section — a rule that fails the repeat-mistake test for the file being condensed can still be load-bearing elsewhere (a feature-scoped gotcha, a decision worth a record); route it via `update-claude-docs` to a task doc instead of dropping it outright. Previously the skill only pointed to `update-claude-docs` for one narrow structural case (seam-test-fails fallback at Restructuring #6) — this closes the general case, which had no pointer at all.
+
 ## 1.64.17
 
 - **merge-task-docs**: Step 4 now explicitly reads `task-summary/references/templates.md` as the canonical source for section structure and Density Rules, instead of paraphrasing them inline ("using the task-summary template structure", "Density rules (from task-summary skill) apply: ..."). Same divergence risk `condense-task-doc` already guards against (it reads `templates.md` directly at its own Step 3) — a paraphrase drifts silently if `task-summary` tightens a rule later, since nothing forces the paraphrasing skill to notice.
