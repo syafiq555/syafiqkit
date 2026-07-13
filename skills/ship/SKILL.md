@@ -1,11 +1,11 @@
 ---
 name: ship
-description: Ship code to production — commit, changelog, push, verify CI/CD deploy, re-index GitNexus, generate release note. Use when the user says "ship", "ship it", "deploy", "push to prod", "send it", or after /done is complete and code is ready to go live. Works with single repos and multi-repo setups (root + sub-repos). Assumes /done was already run.
+description: Ship code to production — commit, changelog, push, verify CI/CD deploy, generate release note. Use when the user says "ship", "ship it", "deploy", "push to prod", "send it", or after /done is complete and code is ready to go live. Works with single repos and multi-repo setups (root + sub-repos). Assumes /done was already run.
 ---
 
 # Ship
 
-End-to-end shipping workflow: commit → changelog → push → verify deploy → GitNexus re-index → release note.
+End-to-end shipping workflow: commit → changelog → push → verify deploy → release note.
 
 ## Prerequisites
 
@@ -35,6 +35,8 @@ For each repo with changes:
 2. **Version-bump gate (plugin/package repos)** — if the repo has version files, bump **EVERY** file that carries the version before staging. Run `grep -rn '"version"' <manifest-dir>` to discover all version fields (secondary fields like `plugins[0].version` drift silently when only the primary is bumped). See the repo's `CLAUDE.md#version-bumping` for the canonical file list.
 3. **Changelog gate** — if changes include user-visible work AND `CHANGELOG.md` is not staged → STOP. Ask user to update changelog first.
 4. **Task doc staleness gate** — run the same gate `/commit` runs (see `commands/commit.md` Step 3, "Task doc staleness gate" + "Cross-doc status mirror sweep"): don't rely solely on `/done` having run. Stage and fix any stale doc via the `task-summary` skill before committing — never ship code whose owning doc drifts stale.
+
+   ⚠️ **SHIP OVERRIDE — `commit.md`'s gate hunts "pending/not yet pushed" language and demands you eliminate it before committing. Under `/ship`, do NOT resolve it by writing the pre-deploy state.** A deploy follows in minutes, so "not yet deployed" / "🚢 in flight" is *guaranteed wrong* by the time anyone reads it and costs a second commit to undo. Leave deploy-state lines alone; **Step 4 writes them once, from the verified outcome.** Fix only genuinely-stale non-deploy content here. The trap springs hardest right after you correctly catch a *false* "deployed" claim — correct it straight to the outcome, never to the transient midpoint.
 5. **Commit** — conventional format: `<type>(<scope>): <message>`
 
 ```bash
@@ -53,7 +55,7 @@ Commit order: sub-repos first, then root (changelog, task docs).
 Per repo, before pushing anything:
 1. **Which branch deploys to the target env?** If it isn't the current one, the ship is a forward-merge chain (`git merge <src> --no-edit` — a real merge commit; `--ff-only` fails on diverged branches), not a push.
 2. **Is there a gate?** A manual CI approval means the push only *queues* the deploy.
-3. **What rides along?** `git diff --name-only <deploy-branch>..HEAD -- '*migrations*'` — migrations are a one-way door and belong in the user's decision, not a silent side effect.
+3. **What rides along?** Read the DIFF, never the commit subjects — `git diff --name-only <deploy-branch>..HEAD`. Commit messages routinely understate blast radius: a `chore:`/`docs:` commit can carry a live behavior change (a payout schedule, a feature flag, a cron cadence) that nothing in its subject line hints at, and no gate catches it. Scan the file list for anything with a runtime surface (`config/`, `Kernel.php`, `.env.example`, migrations) and read those hunks. Migrations especially are a one-way door and belong in the user's decision, not a silent side effect. **Anything that moves money, mail, or user-visible behavior → surface it and confirm before merging**, even when it was already committed and reviewed.
 
 If the chain isn't documented and you can't infer it, **ask** — pushing to a deploy branch is outward-facing and hard to reverse.
 
@@ -85,20 +87,15 @@ remote <prod-server> "cd <deploy-path>/<repo> && git log --oneline -1"
 
 Skip this step if `remote` CLI is not configured or no production server is documented.
 
+⚠️ **The deploy target is often NOT a git repo** (rsync/CI-sync deploys land plain files), so `git log` there errors or misleads — and a green CI run proves only that the *pipeline* ran, never that YOUR change is on disk. Verify the **behavior you shipped**, not the commit: grep the changed file on the server for the line you added, and resolve config/env-driven changes through the app's own bootstrap (which also proves the config cache rebuilt). ⚠️ Any grep returning `0` needs a positive control before you call it a failed deploy — `0` reads identically whether the deploy broke or your search string was never going to match (a job dispatched inside a closure never prints its class name in a scheduler listing). Re-run unfiltered first.
+
 3. If CI failed → report error, suggest `gh run rerun <id> --failed`
 4. If prod HEAD doesn't match → report mismatch
+5. **Write the verified outcome to the task doc** — the write Step 2.4 deferred. Flip `Status:` to live, tick the deploy checkbox, record what you actually observed. Then grep the doc for every restatement of the old state (LLM-CONTEXT header, Quick Start, Task Status, Last Session) — fixing one leaves the others lying.
 
-### Step 5: GitNexus Re-index
+5. **Write the deploy outcome back to the task doc** — this is the write that Step 2.4 deferred. Now that production is verified, update the shipped work's `tasks/**/current.md` to the OUTCOME: flip `Status:` to live, tick the deploy checkbox in `## Next Steps`, and record what was verified (the actual command output, not "deployed ✅"). Then grep the doc for every restatement of the old state — a stale claim survives in the LLM-CONTEXT header, Quick Start, Task Status table, and Last Session, and fixing one leaves three lying. Run the grep with a positive control that must hit.
 
-Re-index repos that had code changes (not just docs). Check for `.gitnexus/` directory in each repo — only re-index if GitNexus is set up:
-
-```bash
-[ -d ".gitnexus" ] && npx gitnexus analyze --skip-agents-md
-```
-
-Run in background — takes 30-60s per repo. Always use `--skip-agents-md`.
-
-### Step 6: Release Note
+### Step 5: Release Note
 
 Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc, not the changelog.** The CHANGELOG lists changes per-item and reads each as a self-contained win — summarizing from it alone over-claims (e.g. "cleared all alerts" when the task doc's `Status:` is 🟡 partially-done with deferred work). The bigger picture — what the effort *was*, what's actually done vs deferred — lives in `tasks/**/current.md`.
 
@@ -118,8 +115,7 @@ Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc,
 | Commit | ✅ | [repos committed, commit hashes] |
 | Push | ✅ | [repos pushed] |
 | CI/CD | ✅ | [deploy status per repo] |
-| Prod Verify | ✅ | [HEAD hashes match] |
-| GitNexus | ✅ | Re-indexed [repos] |
+| Prod Verify | ✅ | [what you observed on the server — HEAD match, or the shipped behavior itself] |
 | Release Note | ✅ | Copied to clipboard |
 ```
 
@@ -127,10 +123,9 @@ Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc,
 
 | Situation | Action |
 |-----------|--------|
-| Only root repo has changes (docs only) | Push root only, skip CI verify + GitNexus |
+| Only root repo has changes (docs only) | Push root only, skip CI verify |
 | CI takes too long (>5 min) | Report status, tell user to check manually |
 | No `remote` CLI or no prod server in CLAUDE.local.md | Skip prod verification step |
-| No `.gitnexus/` directory | Skip GitNexus re-index for that repo |
 | No `CHANGELOG.md` | Skip changelog gate and release note |
 | Repo is "internal" (plugin, script, tooling) | Never skip the release note — internal repos ship too. Only skip is `No CHANGELOG.md` |
 | Sub-repo already pushed but root not | Push only unpushed repos |
