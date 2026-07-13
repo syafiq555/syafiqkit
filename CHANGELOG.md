@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.64.15
+
+- **merge-task-docs**: Added the `ls`-every-source-folder rule (Step 3) and a pre-delete confirmation gate (Step 5) — a session merging `tasks/invoice/cn-dn`, `tasks/statement/record-refund`, and `tasks/statement/statement-ledger` `rm -rf`'d the third folder having only ever read its `current.md`; `git status` afterward revealed two sibling files (`stories.md`, a user-stories doc; `script.sql`, the canonical SQL for a prior data fix) deleted with zero review. Both were recoverable via `git show HEAD:<path>` only because nothing had been committed yet — on a dirtier tree the loss would have been silent and permanent. The fix generalizes past that one incident: any task folder can hold files a `current.md`-only read never surfaces (SQL scripts, stories docs, screenshots, exported data), and `rm -rf` destroys them before there's a chance to fold them into the merge or copy them forward.
+
 ## 1.64.14
 
 - **ship**: Fixed a duplicate Step 4.5 — the "write the verified outcome to the task doc" rule was written twice (two items both numbered `5.`, one verbose, one tight), because a rewrite pass matched the newer block and left the original standing below it. Caught only by reading the rendered skill end-to-end; a `grep` for the rule's keyword returned two hits and read as "pointer + write", which is exactly what a correct version looks like. Grepping for a rule's presence can't distinguish a duplicate from a complement.

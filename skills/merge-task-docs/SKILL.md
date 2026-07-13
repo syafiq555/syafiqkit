@@ -67,6 +67,8 @@ grep -rn "analytics-instrumentation\|bank-warning" /path/to/app/   # domain CLAU
 
 Build a list of every file + line that needs updating. Do this now — before the merge writes — so nothing is missed.
 
+⚠️ **`ls` every source folder now, not just its `current.md`.** A task folder can hold sibling files a plain domain/feature scan never reads — `stories.md`, `script.sql`, screenshots, exported data. Step 5's `rm -rf` deletes the whole folder; a file you never opened is destroyed with zero chance to review it first. For each non-`current.md` file found: read it, and either fold its content into the merged doc/a theme file, or copy it forward unchanged to the new canonical folder. Never let `rm -rf` be the first time you learn a file existed.
+
 ### Step 4 — Write the merged docs
 
 For each merge group:
@@ -85,7 +87,7 @@ For each merge group:
 
 ### Step 5 — Delete source docs
 
-After writing the merged doc(s):
+Before deleting, confirm every file in the folder was accounted for in Step 3's `ls` sweep (carried forward or absorbed) — `git status` after deleting is your safety net, not your first check.
 
 ```bash
 rm -rf tasks/<domain>/<source-feature>/
@@ -139,3 +141,4 @@ Tell the user:
 | Stop at `Related:` fields | Sweep inline mentions + domain CLAUDE.md pointers too |
 | Plain `mv` a renamed folder | `git mv` — keeps history (for renames, not deletes) |
 | Merge without user confirmation of the plan | Show the merge table and get sign-off first |
+| `rm -rf` a source folder having only read its `current.md` | `ls` the folder first — carry forward or absorb every sibling file (SQL scripts, stories docs, screenshots) before deleting |
