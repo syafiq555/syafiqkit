@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.64.3
+
+- **task-summary**: new Layer-1 rule — commit/deploy status ("uncommitted" / "committed, not yet deployed" / "LIVE in production") is one fact with one home, same as any other. Found the hard way: mid-ship, the status got written into LLM-CONTEXT's `Last updated:` line, Quick Start's state line, and `## Last Session` — three places restating a phrase that was about to go stale within minutes of the actual deploy completing. The user flagged it directly ("too bothersome to update, just update 1 place"). `Last updated:` now points at Quick Start instead of mirroring its wording.
+
 ## 1.64.2
 
 - **read-summary**: a doc that **researched** a third-party tool no longer reads as license to **run** it. The authoritative-for table treated "what the doc knows" vs "what the running system knows" as the only two axes, so a doc summarizing an external tool felt like complete grounding — and its "go MEASURE the live system" antidote actively points the wrong way here: you can profile every byte of the disk and still not know what the tool deletes, because that answer lives in the tool's source, not your machine's state. Found the hard way: a research doc on a Mac cleanup CLI was read, the disk was measured, a cleanup was planned — and the user had to ask *"did you research the github first?"*. Reading the actual source then inverted the plan: the tool deliberately treats Laravel `vendor/` as unprotected, and had permanently deleted `~/.claude/projects/*/memory/` (the session's own working dir) for other users. New table row + callout, and the **Doc path** intent branch — whose "wait for the user's next instruction" reads as permission to stop reading — now flags that a path handed to you *alongside an action* is a doc path **plus** a task. The tell that you skipped it: you cannot name, from code you read, the exact paths the command touches.

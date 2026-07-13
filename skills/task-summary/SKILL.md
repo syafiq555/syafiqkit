@@ -32,6 +32,7 @@ Two failure modes kill these docs: **the same fact restated in 4–5 sections**,
 | **One fact, one home** | Each fact lives in EXACTLY one section. LLM-CONTEXT + Quick Start *point* to the canonical section — they do NOT restate it. A fact is either a Decision (*why*) OR a Gotcha (*what breaks*) — never both. |
 | **LLM-CONTEXT is a pointer index** | `Gotchas:` block = 1-line teasers naming the section to read — not a copy of the table. |
 | **Quick Start ≤15 lines** | State + next action only — never re-explain a Decision/Gotcha. |
+| **Commit/deploy status is one fact too** | "Uncommitted" / "committed, not yet deployed" / "LIVE in production" goes ONLY in Quick Start's state line. LLM-CONTEXT's `Last updated:` line points there ("see Quick Start") instead of restating the phrase — during a ship the status changes minutes apart, and a phrase mirrored in 2+ places means editing it twice every time. |
 
 ### Layer 2 — sentence style (every sentence you write)
 
