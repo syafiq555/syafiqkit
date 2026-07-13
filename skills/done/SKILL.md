@@ -9,8 +9,9 @@ Execute all steps in sequence without pausing for confirmation.
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| Omitting `run_in_background` on any Agent call | Pass `run_in_background: false` **explicitly** — omitting the flag has still returned an async task; only the explicit `false` reliably blocks |
+| Omitting `run_in_background` on any Agent call | Pass `run_in_background: false` **explicitly** — omitting the flag has still returned an async task; only the explicit `false` reliably blocks. Most often dropped on the FIRST agent of a batch, when composing calls one at a time instead of the whole block |
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
+| Send an agent a prompt whose ROLE doesn't match its `subagent_type` (product-review content to `code-reviewer`) | The prompt's role and the `subagent_type` must be the SAME role. A mis-prompted agent silently skips BOTH — the role you invoked never ran, and the role you asked for wasn't registered as run. It still looks "spawned" to every downstream check |
 | Report a step done when only PART of it ran (reviewers but no simplifiers; Step 3 but no Step 4) | Every step below is a CHECKLIST, not prose. Before reporting, tick each named part — a step with an unticked part is NOT done |
 
 ⚠️ **MANDATORY — the steps are a checklist; run them ALL, and verify before reporting.** Each multi-part step (Step 1's three lenses, Steps 3+4's two skills) is stated below as an explicit tick-list; the Output table's row is only fillable once its part actually ran. If a part is deliberately skipped, the row says `➖ <reason>` — never leave it silently blank.
@@ -77,7 +78,18 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 
 ⚠️ **The count is PER ROLE — it multiplies, it does not replace.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer. Spawning N agents *total* (all of one role) is the failure this table exists to prevent: at 41+ files, 3 agents is wrong — **7** is right. The product reviewer is always exactly 1 (it judges the whole feature, so it is never partitioned).
 
-**Before sending the Agent calls, state the roll-call out loud**: "N reviewers + N simplifiers + 1 product = TOTAL." If that sentence doesn't name all three roles, you're about to under-run the step.
+⚠️ **ALL agents go in ONE tool-call block. A second message to "add the missing ones" means the step already ran wrong.**
+
+**Pre-flight — this is a COUNT check on the block you are about to emit, not a sentence you say.** Saying "3 agents" and then emitting 1 `Agent` call raises no error, so the roll-call binds nothing on its own. Before sending, write the literal list of calls — `subagent_type` + role, one line each — then verify the list length equals the roll-call TOTAL:
+
+```
+1. code-reviewer   → reviewer   (bugs/security/conventions)
+2. code-simplifier → simplifier (duplication/readability)
+3. product-reviewer → product   (missing journeys)
+TOTAL = 3 → emit exactly 3 Agent calls in ONE block.
+```
+
+If the block you are composing has fewer entries than TOTAL, **stop and add them before sending** — do not send a partial block intending to follow up.
 
 A user arg always wins: "2 agents each" / "4 each" sets the per-role count explicitly (ignore the table); a count is also implied by "split it up". Light mode (`<5` files) is the ONE case with an asymmetric count (1 reviewer + 0 simplifier) — it takes precedence over the table's top bucket.
 
@@ -153,11 +165,13 @@ Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstrea
 
 ⚠️ Every row of the Output table below is a claim that a step ran. Before writing it, verify each claim against what you ACTUALLY invoked this session — not what you intended to:
 
+⚠️ **"Spawned" is not enough — the agent's PROMPT must have matched its role.** An agent handed the wrong role's prompt (product-review content sent to `code-reviewer`) still *looks* spawned, so this gate passes while the actual review never happened. Check the prompt you sent, not just the `subagent_type` you named.
+
 | Row | Only fillable if you actually... | Full-mode expectation |
 |-----|----------------------------------|-----------------------|
-| Simplify | spawned simplifier agent(s) | N simplifiers (N = the per-role count) |
-| Review | spawned reviewer agent(s) | N reviewers |
-| Product | spawned the product-reviewer agent | exactly 1 |
+| Simplify | spawned simplifier agent(s) **and gave them a simplifier prompt** | N simplifiers (N = the per-role count) |
+| Review | spawned reviewer agent(s) **and gave them a code-review prompt** (bugs/security — NOT product gaps) | N reviewers |
+| Product | spawned the product-reviewer agent **with a product prompt** | exactly 1 |
 | Knowledge | invoked `syafiqkit:update-claude-docs` | 1 skill call |
 | Task docs | invoked `syafiqkit:task-summary` | 1 skill call |
 | Plugin | invoked `syafiqkit:update-plugin` | **usually absent** — Step 5 fires only when a real skill signal exists. Omit the row when none did; never invent a patch to fill it. (Not-the-owner is NOT a reason to skip — the skill switches to upstream-report mode.) |
