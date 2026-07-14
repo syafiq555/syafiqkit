@@ -28,8 +28,6 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | Command | Purpose |
 |---------|---------|
 | `commit` | Generate commit messages from staged changes |
-| `write-summary` | Create task summary (thin wrapper → `task-summary` skill) |
-| `update-summary` | Update task summary (thin wrapper → `task-summary` skill) |
 
 ### Skills
 
@@ -38,7 +36,9 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
 | `read-summary` | Discover + read task docs/CLAUDE.md before answering, investigating, or implementing; Plan-Mode-aware (judges Explore/Plan subagent delegation vs continuing inline) | User invokes, or model-invoked proactively before project-context-dependent work |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
-| `task-summary` | Create/update task summary docs with path resolution, templates, cross-refs | `write-summary` cmd, `update-summary` cmd, `done` skill |
+| `task-summary` | Create/update task summary docs with path resolution, templates, cross-refs | `write-summary` skill, `update-summary` skill, `done` skill |
+| `write-summary` | Create task summary (thin pointer → `task-summary` skill) | User invokes directly |
+| `update-summary` | Update task summary (thin pointer → `task-summary` skill) | User invokes directly |
 | `brainstorming` | Design exploration before creative/architectural work | User invokes or proactive |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 | `md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams | User invokes directly |
@@ -130,7 +130,7 @@ No build step — markdown files are interpreted directly.
 | Plugin must be self-contained | Never reference user's global `~/.claude/CLAUDE.md` - other users won't have it |
 | User preferences → skill/command changes, not memory | Plugin `memory/` dir is shared repo — personal prefs go in user's project memory or baked into skill defaults |
 | Commands/skills that need agents → instruct Claude to spawn, not "spawn" directly | Commands are prompts — Claude (the executor) reads and makes Agent tool calls. Same pattern as `/done` |
-| Command outgrows "single workflow"? → Migrate to skill + thin wrapper commands | Keeps backwards compat; wrapper invokes `Skill: syafiqkit:<name>` with `$ARGUMENTS` |
+| Command outgrows "single workflow"? → Migrate to skill; if it's a pure alias into another skill, convert the wrapper itself to a skill (not a command) | A command can only invoke, never reference/point — once its whole body is "go run skill X," it belongs in `skills/`, registering `/name` via its own `name:` frontmatter. Precedent: `write-summary`/`update-summary` → `skills/write-summary`, `skills/update-summary` (thin pointers to `task-summary`); `read-summary`, `update-claude-docs` converted outright when their name matched the target skill (see `tasks/plugin-maintenance/decisions/madr-structure.md` D10) |
 | Same rule/table duplicated verbatim across 3+ SKILL.md files → extract to `skills/_shared/references/<topic>.md`, replace each copy with a one-line pointer | One-place edits; e.g. `writing-style.md` (no-filler-words, one-idea-per-sentence) is referenced by `task-summary`, `notes-summary`, `update-claude-docs`, `condense-task-doc`, `condense-claude-md`. For a rule that's canonical in ONE skill but referenced elsewhere (not truly shared), point to that skill directly instead (e.g. `task-summary`'s merge rules point to `merge-task-docs`) — don't create a `_shared/` file for a single owner |
 | Never add `disable-model-invocation` unless user explicitly asks | User dislikes it — it drops the skill/command from Claude's context, killing auto-suggestion. Default to proactive invocation |
 | **Every change = version bump** | Bump both version files (see [Version Bumping](#version-bumping)) |

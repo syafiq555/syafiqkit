@@ -22,16 +22,18 @@ claude plugin install syafiqkit@syafiqkit
 | Command | Description |
 |---------|-------------|
 | `/commit` | Generate commit message from staged changes |
-| `/read-summary` | Load existing task summary for context |
-| `/write-summary` | Create new task documentation |
-| `/update-summary` | Append findings to existing summary |
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
+| `/read-summary` | Load existing task summary for context |
+| `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |
+| `/update-summary` | Append findings to existing summary (thin pointer → `task-summary`) |
+| `/task-summary` | Create/update task summary docs with path resolution, templates, cross-refs |
 | `/done` | Post-task cleanup — simplify, review, update docs |
 | `/update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files — the CLAUDE.md analog of task-summary |
+| `/update-plugin` | Scan the session for plugin learnings and patch the affected skill files — the plugin equivalent of update-claude-docs |
 | `/ship` | End-to-end ship: commit → changelog → push → CI verify → GitNexus re-index → release note |
 | `/pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev |
 | `/commit-invoice-generator` | Generate invoice line items from git commits |
@@ -41,6 +43,11 @@ claude plugin install syafiqkit@syafiqkit
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
 | `/ci-ssh-deploy-timeout` | Diagnose + fix flaky CI deploys that SSH-timeout to a server (rules out firewall, applies connect-only retry) |
 | `/function-parameter-limits` | Apply + enforce the 0/2/3+ function-parameter rule — advises parameter-object/DTO refactors and sets up the right linter (ESLint/PHPMD/Pylint) with DI-constructor carve-outs |
+| `/hobby-review` | Socratic debrief of a hobby item against the taste rubric in the matching task doc |
+| `/merge-task-docs` | Find related task docs in a domain and merge them, reconciling all back-references |
+| `/notes-summary` | Create, update, or read a personal session journal outside the repo |
+| `/condense-task-doc` | Aggressively condense a bloated task doc in place |
+| `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |
 
 ## Usage
 

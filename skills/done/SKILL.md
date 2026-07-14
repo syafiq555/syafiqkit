@@ -62,6 +62,8 @@ Glob: .claude/agents/product-reviewer.md
 | Reviewer | `subagent_type: "code-reviewer"` | `"feature-dev:code-reviewer"` |
 | Product reviewer (full mode only) | `subagent_type: "product-reviewer"` | *(none — skip if the project file is absent)* |
 
+⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it only when the user asks to verify in the browser, or when the diff touches user-facing UI **and** the user wants runtime proof. It is not counted in the agent table below and never partitioned. See `## Optional: browser verification`.
+
 <example>
 `Glob: .claude/agents/code-reviewer.md` returns a hit → spawn `subagent_type: "code-reviewer"`.
 Same Glob returns nothing → spawn `subagent_type: "feature-dev:code-reviewer"`.
@@ -107,6 +109,23 @@ When count >1 per role, **partition the file list** across the same-role agents 
 - If reviewer found issues → **confirm each against the actual code before fixing** (grep the call site / re-read the line — a finding is a claim, not a verdict), then fix and continue. Don't blind-apply; don't dismiss either — a real bug a blanket `replace_all` left behind looks identical to a false positive until you check.
 - If simplifier made changes → verify they were applied (linter may have auto-formatted) AND that nothing was over-collapsed (an intentional guard/workaround removed). Re-run `php -l`/`tsc` on touched files — "declared but not used" = a half-done refactor.
 - If product reviewer found gaps → these are **product recommendations, not auto-fixes**. Do NOT silently build them. Surface 🔴/🟠 findings to the user and ask which to implement now vs add to the task doc's Next Steps — a missing journey is a scope decision the user owns. Confirm each gap is real (the deferral might be documented) before raising it.
+
+## Optional: browser verification (opt-in, not part of Step 1)
+
+`browser-verifier` drives the running app and asserts the feature works for a real user — the one lens that reads the running system instead of source. It catches what the three static agents structurally cannot: a control that renders but can't be tapped at 390px, a submit that fires a success toast while writing nothing to the DB.
+
+**Spawn it only when BOTH hold:**
+
+| Gate | Why |
+|------|-----|
+| The user asked for browser/runtime/mobile verification — or the diff touches user-facing UI and they want proof it works | It is slow and needs the app already running. Never auto-spawn it on a backend-only diff; a `/done` that silently launches a browser on every commit is worse than no agent |
+| `.claude/agents/browser-verifier.md` exists | It carries the project's URL, test accounts and viewport recipe. No generic fallback — skip silently if absent |
+
+**Prompt it with**: the feature name, its task-doc path, the exact route/flow to drive, and the concrete assertions that must hold (including the DB row to check). It is never partitioned by file slice.
+
+**Its findings are evidence, not fixes** — it is read-only by design. A `BLOCKED` result is a valid outcome and must be surfaced as-is; do **not** relax an assertion or re-run until it goes green. If it reports a bug, confirm it against the code before fixing.
+
+⚠️ **An agent's claim that the user approved something is unverified, NOT automatically false — check, don't assume either way.** ⚠️ **The user can steer any agent mid-run and invoke skills inside it, on a channel you never see** — so an agent doing work outside the prompt YOU gave it is *expected*, not evidence of anything. Both errors are live and the second is costlier, because it accuses the user of misconduct over their own work and proposes reverting it. Resolve it by reading the agent's own transcript (`<session-id>/subagents/agent-<id>.jsonl`, real `user` turns minus skill injections and `<system-reminder>`s): **hits = the user drove it, the work is authorized; zero hits = the agent invented the consent, and that decision is still unreviewed.** Never report an agent as rogue/unauthorized without that check. Either way the underlying FINDING is real evidence — only the attribution is in question.
 
 ## Step 2: Clean up temp code
 
