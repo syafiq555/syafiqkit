@@ -14,7 +14,7 @@ End-to-end shipping workflow: commit → changelog → push → verify deploy �
 
 ## Workflow
 
-Execute all steps in sequence. Stop on errors and report to the user.
+Execute all steps in sequence, except Step 4's CI/deploy check — background that one (see its note) and don't let it block Step 5. Stop on errors and report to the user.
 
 ### Step 1: Detect Repos
 
@@ -48,6 +48,21 @@ Per repo, before pushing anything:
 
 If the chain isn't documented and you can't infer it, **ask** — pushing to a deploy branch is outward-facing and hard to reverse.
 
+⚠️ **NEVER `git reset --hard` a branch that has commits you haven't pushed — including the one you just committed on.** Projects commonly carry a "`reset --hard origin/<branch>` before any merge" rule (local branches lag). It is correct for a **stale branch you are merging INTO** and it **destroys work** on the branch you are merging **FROM**: the commit is orphaned (reachable from no branch), and `git status` goes *clean* rather than warning you. `git stash` does not save you — the work was already committed, so there is nothing in the working tree to stash.
+
+**Prevention** — before any `reset --hard`, prove the branch has nothing unpushed:
+```bash
+git log --oneline @{u}..HEAD    # MUST be empty before you reset this branch
+```
+Not empty → don't reset it. If you just committed here, you don't need the reset at all: `git checkout <target> && git merge <this-branch> --no-edit` is the whole chain.
+
+**Detection** (cheap, run it anyway — the reset may come from a project script):
+```bash
+SHA=$(git rev-parse HEAD)    # BEFORE any checkout/reset
+git branch --contains "$SHA" # AFTER — must be non-empty. Empty = orphaned.
+```
+Orphaned is recoverable **if you notice**: the object still exists → `git cherry-pick $SHA` onto the right branch. **Tells you already lost it**: `git status` unexpectedly clean right after you edited files, or a `grep` for content you just wrote returning zero. Never read either as "nothing to do".
+
 Then:
 1. Check `gh auth status` — if wrong account, read project's `CLAUDE.local.md` for the correct GitHub user and switch
 2. Push each repo that has commits ahead of remote:
@@ -64,9 +79,11 @@ git push
 
 ⚠️ **Check the project's `CLAUDE.local.md` for a documented non-CI deploy path (rsync hotfix, manual sync, etc.) before assuming CI is the only route.** Some projects fast-track backend-only changes (no migration/deps/frontend touch) around CI entirely — polling `gh run list` for a deploy that was never queued will hang or false-negative. If such a path exists and applies to this change, follow it instead of Steps 4.1–4.2 (still do the prod-HEAD-mismatch style verification appropriate to that path, e.g. grep the deployed file/config on the server).
 
-Otherwise, wait for CI to complete, then verify production matches:
+⚠️ **No deploy is a gate — not even the ship's own.** Kick off the CI/deploy check (`gh run watch`/a Monitor/a polling loop) and proceed straight to Step 5; a deploy running is not a reason to sit idle, and this applies to every deploy that comes up during the ship (the primary one, a follow-up from a mid-ship fix, anything else). Come back to finish 4.1–4.2 (and the task-doc write in 4.5) once the background check resolves — before or after Step 5 finishes, whichever comes first. Only block synchronously if the very next step genuinely needs that deploy's specific output.
 
-1. **Check CI status** — first establish **which CI provider** this repo uses (`CLAUDE.md`/`CLAUDE.local.md`, or look for `.circleci/`, `.github/workflows/`, `.gitlab-ci.yml`). ⚠️ `gh run list` is **blind to any non-GitHub-Actions provider** — against a CircleCI/GitLab repo it returns an **empty list and exit 0**, which reads exactly like "no deploy was queued" and invites you to re-push or declare the ship broken. Two repos in one session can differ (one GitHub Actions, one CircleCI). Poll the provider the repo actually uses, and confirm the pipeline is building **your** SHA — not just that *a* pipeline exists. Wait up to 5 minutes.
+Otherwise, verify production matches once the deploy resolves:
+
+1. **Check CI status** — first establish **which CI provider** this repo uses (`CLAUDE.md`/`CLAUDE.local.md`, or look for `.circleci/`, `.github/workflows/`, `.gitlab-ci.yml`). ⚠️ `gh run list` is **blind to any non-GitHub-Actions provider** — against a CircleCI/GitLab repo it returns an **empty list and exit 0**, which reads exactly like "no deploy was queued" and invites you to re-push or declare the ship broken. Two repos in one session can differ (one GitHub Actions, one CircleCI). Poll the provider the repo actually uses in the background, and confirm the pipeline is building **your** SHA — not just that *a* pipeline exists.
    - GitHub Actions: `gh run list --limit 1 --json status,conclusion,headSha`
    - Anything else: use that provider's API/CLI per the project's `CLAUDE.local.md` (it will document the token, project slug, and any manual approval gate).
 
@@ -115,7 +132,6 @@ Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc,
 | Situation | Action |
 |-----------|--------|
 | Only root repo has changes (docs only) | Push root only, skip CI verify |
-| CI takes too long (>5 min) | Report status, tell user to check manually |
 | No `remote` CLI or no prod server in CLAUDE.local.md | Skip prod verification step |
 | No `CHANGELOG.md` | Skip changelog gate and release note |
 | Repo is "internal" (plugin, script, tooling) | Never skip the release note — internal repos ship too. Only skip is `No CHANGELOG.md` |
