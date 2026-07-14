@@ -32,12 +32,12 @@ Only read the CLAUDE.md files relevant to the files you're refining.
 
 <!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here, add a note like:
 ⚠️ **Two-repo session.** This session drives BOTH `~/path/repoA` and `~/path/repoB`. repoB's own
-code-simplifier is NOT used here — refine repoB changes too. Run `git diff --name-only` in each repo
+code-simplifier is NOT used here — refine repoB changes too. Run `git status --short` in each repo
 and apply rules matching where the files live. Then add a second Bootstrap table for the sibling repo. -->
 
 ## Process
 
-1. **Find changed files** — `git diff --name-only` and `git diff --stat` (this is your scope) <!-- multi-repo: run in EACH repo -->
+1. **Find changed files** — `git status --short` (this is your scope) <!-- multi-repo: run in EACH repo -->. ⚠️ Not `git diff --name-only`: it hides staged AND untracked files, so it returns **empty** if the work was already staged — you'd then refine nothing and report clean. A nothing result for work that clearly happened = the blind spot, not a clean tree
 2. **Read task docs** — run the `/read-summary` skill (`Skill` tool) for each changed feature to load architectural constraints + deliberate-decision context (so you don't "simplify" away an intentional pattern). Multi-repo → it also finds the sibling repo's OWN docs (`<sibling-root>/tasks/<domain>/<feature>/current.md`). Can't invoke it? Read `tasks/<domain>/<feature>/current.md` directly
 3. **Read each changed file** — understand intent before refactoring
 4. **Check callers/callees** — Before extracting or moving logic, `Grep` for the symbol name to see all callers and callees. Skip for leaf functions.

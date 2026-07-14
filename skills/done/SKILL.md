@@ -26,7 +26,7 @@ Execute all steps in sequence without pausing for confirmation.
 - Step 4: invoke `syafiqkit:task-summary` WITH the known doc path (skip the multi-domain scan — you already know the one affected doc).
 - Output: the compact single-table form (see Output).
 
-**Docs-only mode** when the diff is **entirely documentation** — `*.md` only (task docs, CLAUDE.md, README), zero application code (`git diff --name-only` shows no `.php`/`.ts`/`.tsx`/etc.):
+**Docs-only mode** when the diff is **entirely documentation** — `*.md` only (task docs, CLAUDE.md, README), zero application code (`git status --short` shows no `.php`/`.ts`/`.tsx`/etc.):
 - Step 1: **skip all three code agents** — simplifier/reviewer/product-reviewer audit *code*; there is none. Running them against markdown is theater. Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve.
 - Steps 2-4 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run).
 - Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
@@ -46,7 +46,7 @@ Execute all steps in sequence without pausing for confirmation.
 
 | Step | Default (assumes you own the diff) | With a concurrent writer |
 |------|-----------------------------------|--------------------------|
-| 1 (agents) | Partition the `git diff --name-only` union | Scope every agent to the files **you** changed, and name the contested paths as off-limits — a reviewer handed another session's uncommitted file will "fix" it |
+| 1 (agents) | Partition the `git status --short` file list | Scope every agent to the files **you** changed, and name the contested paths as off-limits — a reviewer handed another session's uncommitted file will "fix" it |
 | 3+4 (skills) | `task-summary` bare, so it multi-domain scans | Do **not** invoke it unscoped — its scan edits the contested docs. Pass a scoped read-only verification arg and say why |
 | Commit | — | Never `git add`/bare `git commit`: it sweeps the other writer's staged work into your commit. Explicit pathspec only (`git commit -m msg -- <your files>`) |
 
@@ -82,7 +82,9 @@ Same Glob returns nothing → spawn `subagent_type: "feature-dev:code-reviewer"`
 Run the Glob first every time — don't assume the project agent exists or doesn't.
 </example>
 
-**Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first (`git diff --name-only` + `git diff --staged --name-only`, unioned), then pick agents-per-role:
+**Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first with **`git status --short`** (run it in EVERY repo of a multi-repo project), then pick agents-per-role:
+
+⚠️ **`git status --short` is the canonical command — do NOT count off `git diff --name-only`.** It shows only *unstaged* changes to *tracked* files, so a new file (untracked) and an already-staged file are both invisible; if you staged before running `/done`, it returns **empty for the entire session's work**. You then partition zero files, every agent reports clean on an empty slice, and `/done` passes having reviewed nothing. `git status --short` shows staged + unstaged + untracked in one view with a status letter per file. **The tell: the command returns nothing for work you know you just did — that is the blind spot firing, not a clean tree.**
 
 | Changed files | Reviewers | Simplifiers | Product | TOTAL agents |
 |---------------|-----------|-------------|---------|--------------|

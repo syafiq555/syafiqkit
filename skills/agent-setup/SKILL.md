@@ -86,7 +86,7 @@ Map the project's CLAUDE.md files to determine what the Bootstrap section should
 
 **Multi-repo (sibling) sessions**: When the user drives two repos from one working dir (e.g. an integration where both sides are edited together), the *sibling* repo's own agents do NOT fire — only the active repo's agent runs. So the active agent must cover both:
 - Add a `⚠️ Two-repo session` banner naming both repo roots and stating the sibling's agent is not used here
-- Process step 1 (gather changes) runs `git diff --name-only` in EACH repo; bootstrap each only if it has changes
+- Process step 1 (gather changes) runs `git status --short` in EACH repo (NOT `git diff --name-only` — it hides staged + untracked files and returns empty once work is staged); bootstrap each only if it has changes
 - Add a second Bootstrap table for the sibling repo (note any layout quirks, e.g. Laravel root in `backend/`)
 - Tag sibling-only inline rules so they're applied only to that repo's files (e.g. a separate "Sibling" rules table)
 

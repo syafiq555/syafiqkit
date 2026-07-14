@@ -68,7 +68,7 @@ Litmus tests before finishing: (1) grep your doc for the 2-3 most critical phras
 
 ⚠️ **Do NOT assume one domain per session.** Scan the full conversation for ALL domains that need task docs:
 
-1. **Code changes**: `git diff --name-only` → infer domains from file paths
+1. **Code changes**: `git status --short` (every repo in a multi-repo project) → infer domains from file paths. ⚠️ Not `git diff --name-only` — it hides staged AND untracked files, so it returns **empty** once you've staged, and you'd conclude "no code changed" and skip every doc. A nothing result for work you just did = the blind spot, not a clean tree
 2. **External inputs**: WhatsApp messages, emails, Slack, screenshots, ClickUp pastes — extract every distinct issue/feature/bug mentioned
 3. **Verbal requests**: User said "also note X", "don't forget Y", "the other issues" → those are domains too
 
