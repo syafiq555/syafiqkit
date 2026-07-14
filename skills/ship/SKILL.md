@@ -66,7 +66,9 @@ git push
 
 Otherwise, wait for CI to complete, then verify production matches:
 
-1. **Check CI status** — poll `gh run list --limit 1 --json status,conclusion,headSha` in each pushed repo. Wait up to 5 minutes.
+1. **Check CI status** — first establish **which CI provider** this repo uses (`CLAUDE.md`/`CLAUDE.local.md`, or look for `.circleci/`, `.github/workflows/`, `.gitlab-ci.yml`). ⚠️ `gh run list` is **blind to any non-GitHub-Actions provider** — against a CircleCI/GitLab repo it returns an **empty list and exit 0**, which reads exactly like "no deploy was queued" and invites you to re-push or declare the ship broken. Two repos in one session can differ (one GitHub Actions, one CircleCI). Poll the provider the repo actually uses, and confirm the pipeline is building **your** SHA — not just that *a* pipeline exists. Wait up to 5 minutes.
+   - GitHub Actions: `gh run list --limit 1 --json status,conclusion,headSha`
+   - Anything else: use that provider's API/CLI per the project's `CLAUDE.local.md` (it will document the token, project slug, and any manual approval gate).
 
 2. **Verify production HEAD** — read the project's `CLAUDE.local.md` for the production server name and deploy path, then:
 
@@ -76,7 +78,9 @@ remote <prod-server> "cd <deploy-path>/<repo> && git log --oneline -1"
 
 Skip this step if `remote` CLI is not configured or no production server is documented.
 
-⚠️ **The deploy target is often NOT a git repo** (rsync/CI-sync deploys land plain files), so `git log` there errors or misleads — and a green CI run proves only that the *pipeline* ran, never that YOUR change is on disk. Verify the **behavior you shipped**, not the commit: grep the changed file on the server for the line you added, and resolve config/env-driven changes through the app's own bootstrap (which also proves the config cache rebuilt). ⚠️ Any grep returning `0` needs a positive control before you call it a failed deploy — `0` reads identically whether the deploy broke or your search string was never going to match (a job dispatched inside a closure never prints its class name in a scheduler listing). Re-run unfiltered first.
+⚠️ **The deploy target is often NOT a git repo** (rsync/CI-sync deploys land plain files), so `git log` there errors or misleads — and a green CI run proves only that the *pipeline* ran, never that YOUR change is on disk. Verify the **behavior you shipped**, not the commit: grep the changed file on the server for the line you added, and resolve config/env-driven changes through the app's own bootstrap (which also proves the config cache rebuilt). ⚠️ Any grep returning `0` needs a positive control before you call it a failed deploy — `0` reads identically whether the deploy broke or your search string was never going to match (a job dispatched inside a closure never prints its class name in a scheduler listing; a bundler hoists a shared string out of the chunk you searched). Re-run unfiltered first.
+
+⚠️ **Chain verification greps with `;`, never `&&` — a `0` result KILLS an `&&` chain and your control never runs.** `grep -c` exits **1** on zero matches, so `grep -c mystring file && grep -c CONTROL file` short-circuits at exactly the moment the control was needed, and prints a bare uncontrolled `0`. The control that exists but never executes is worse than none: it reads as a clean negative result and you trust it. Separate every probe with `;`, and confirm all three lines actually printed — the positive control missing from the output IS the bug.
 
 3. If CI failed → report error, suggest `gh run rerun <id> --failed`
 4. If prod HEAD doesn't match → report mismatch
