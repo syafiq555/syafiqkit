@@ -40,6 +40,18 @@ Execute all steps in sequence without pausing for confirmation.
 
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
 
+## Concurrency guard — you may not own the whole diff
+
+⚠️ **Check for another writer BEFORE Step 1.** Two tells: a background `Agent` you spawned is still running, or `git status` shows modified/staged files you never touched (a parallel Claude session). Every writing step below assumes the diff is yours; when it isn't, the default behavior destroys the other writer's work.
+
+| Step | Default (assumes you own the diff) | With a concurrent writer |
+|------|-----------------------------------|--------------------------|
+| 1 (agents) | Partition the `git diff --name-only` union | Scope every agent to the files **you** changed, and name the contested paths as off-limits — a reviewer handed another session's uncommitted file will "fix" it |
+| 3+4 (skills) | `task-summary` bare, so it multi-domain scans | Do **not** invoke it unscoped — its scan edits the contested docs. Pass a scoped read-only verification arg and say why |
+| Commit | — | Never `git add`/bare `git commit`: it sweeps the other writer's staged work into your commit. Explicit pathspec only (`git commit -m msg -- <your files>`) |
+
+This generalizes the settled-file rule `update-claude-docs` Step 4 already applies to the pruner: **a writer reads a file when it starts, not when it finishes.**
+
 ## Step 1: Simplify + Review + Product Review (parallel)
 
 Run all applicable agents **in parallel** (single message, multiple Agent tool calls). Pass `run_in_background: false` explicitly on each — so results are available immediately, with nothing to poll or wait on afterward.
@@ -125,6 +137,10 @@ When count >1 per role, **partition the file list** across the same-role agents 
 
 **Its findings are evidence, not fixes** — it is read-only by design. A `BLOCKED` result is a valid outcome and must be surfaced as-is; do **not** relax an assertion or re-run until it goes green. If it reports a bug, confirm it against the code before fixing.
 
+⚠️ **The agent's DIFFICULTY is a finding too — not just its verdict, and it is the one that evaporates.** When it reports `BLOCKED`, hits a wrong-class/wrong-method error, needs a login recipe it had to derive, or you had to hand-write an instruction into a second agent's prompt to get past something — **that friction is a defect in the docs or the agent file, and it does not reach Steps 3-5 on its own.** A `/done` that "passed" while a run was wasted has failed silently. Ask before closing: *what did the agent get stuck on, and where would it have had to read to not get stuck?* Then route it — a wrong fact → Step 3 (`update-claude-docs`); a missing recipe/escape-hatch in the agent's own file → patch `.claude/agents/<agent>.md`; a defect in a skill's instructions → Step 5.
+
+⚠️ **A `BLOCKED` whose stated cause is a "known bug" is a claim to CHECK, not accept.** The agent reads the project docs and repeats what they say — so a doc row still calling something an OPEN BUG that was since closed as won't-fix will dispatch it on a false errand, and it will report the blocker with full confidence. Before believing the block, verify the cause against the task doc that OWNS that decision. Its diagnosis may be the stale artifact, and the accepted workflow (a UI step, a role/agency switch) may be sitting there unread.
+
 ⚠️ **An agent's claim that the user approved something is unverified, NOT automatically false — check, don't assume either way.** ⚠️ **The user can steer any agent mid-run and invoke skills inside it, on a channel you never see** — so an agent doing work outside the prompt YOU gave it is *expected*, not evidence of anything. Both errors are live and the second is costlier, because it accuses the user of misconduct over their own work and proposes reverting it. Resolve it by reading the agent's own transcript (`<session-id>/subagents/agent-<id>.jsonl`, real `user` turns minus skill injections and `<system-reminder>`s): **hits = the user drove it, the work is authorized; zero hits = the agent invented the consent, and that decision is still unreviewed.** Never report an agent as rogue/unauthorized without that check. Either way the underlying FINDING is real evidence — only the attribution is in question.
 
 ## Step 2: Clean up temp code
@@ -175,6 +191,8 @@ Steps 3+4 write to the *project*; this writes to the *plugin* — a global artif
 **ONE gate: does a real skill signal exist?** A skill misfired, a workflow step was wrong/missing, a trigger missed, or an absent rule caused a mistake. **Most runs have none — that is the expected case, so skip silently (no Output row).** Merely *using* skills successfully is not a signal; never manufacture one, since a thin patch to a shared skill is worse than no patch.
 
 ⚠️ **The signal you CAUGHT still counts — that is the one this gate keeps missing.** If you declined to follow a skill's step, worked around it, or told the user "this skill's step doesn't apply here," that IS the defect: you had the context to catch it, and the next session won't. It feels like a win in the moment ("I handled it"), which is exactly why it gets filed as competence instead of a finding. Ask literally: *did I deviate from any skill's written instructions this session, and why?* A deviation with a good reason is a skill that needs the reason written into it.
+
+⚠️ **A workaround you typed into an AGENT's prompt is the same signal, one level down.** If you had to hand-write an instruction to get an agent past something — an escape hatch it needed, a correction to a doc it had believed, a recipe it couldn't derive — it lacked that knowledge and **still lacks it**: the prompt you wrote is discarded when the run ends. The tell is a second agent spawned to redo what the first couldn't, with extra instructions bolted on. Ask: *what did I have to tell an agent that its own file, or the project docs, should have told it?* The fix belongs in the agent file or the docs — never in the prompt.
 
 Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstream: it probes ownership itself and branches — **owner** → patch the skill files + version bump + CHANGELOG; **consumer** → draft the finding and *offer to file it as a GitHub issue* upstream (asking first, posting under the user's own identity). Either way the finding survives.
 

@@ -38,6 +38,8 @@ A keyword match lands you in the right *folder*, not necessarily the right *bug*
 
 Staleness you surface and route is closed; staleness you narrate and abandon is a silent regression waiting for the user to catch it re-reading later.
 
+⚠️ **The costliest stale row is a live "OPEN BUG" / "known issue" whose diagnosis another doc has RETRACTED.** The four shapes above are passive — a wrong `Status:` or a moved path leaves you *less* informed, and the code contradicting it is your cue. A retracted bug row is **active**: it hands you a causal story that *explains* the symptom you're hitting, so it reads as understanding, not confusion — and you (or an agent you spawned) will confidently report a blocker, citing it. **Confidence is the symptom.** Two tells: the row prescribes a fix ("don't diagnose it as a route bug") — a decided issue doesn't need one; and the behaviour it calls broken has an accepted *workflow* around it (a UI step, a role/agency switch) documented in the task doc that OWNS the decision. Before accepting any "known bug" as a blocker, read that owning doc — a claim in a `CLAUDE.md`/`CLAUDE.local.md` gotcha table is downstream of it and rots first.
+
 ### What the doc is authoritative FOR (and what it isn't)
 
 ⚠️ **A task doc is authoritative for DECISIONS and GOTCHAS. It is NOT a live-state oracle.** Those decay the moment anyone touches a server:

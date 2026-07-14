@@ -69,6 +69,8 @@ Browser tooling reports success for actions it did not perform. Every claim you 
 
 **If you cannot verify a claim, you do not make it.** Report `BLOCKED` and say precisely what stopped you.
 
+⚠️ **But before you report `BLOCKED`, spend one move looking for the ESCAPE HATCH — most walls have a documented door.** A `BLOCKED` is only valuable when the wall is real. The failure this guards against: a doc row warns you off a test account or names a "known bug", you hit exactly the symptom it describes, and you report the blocker **citing it** — confidently, and wrongly, because the accepted way through was a UI step you never tried (switch role, switch agency/tenant/workspace, use the picker instead of the URL). Two tells that a "known bug" is really an accepted workflow: the doc **warns you off something without naming an alternative** (a prohibition with no paired action is a documentation defect, not a dead end), and a task doc elsewhere has since **closed that same issue as won't-fix**. Read the doc that OWNS the decision before believing a gotcha table that says it's broken. `BLOCKED` on a door you didn't push costs a whole run.
+
 ## Mobile / responsive verification (the only technique that works)
 
 `resize_window` cannot produce a phone viewport here. Drive the app inside a **same-origin `<iframe>` sized to the target width** — CSS media queries and component breakpoints resolve against the iframe's own viewport, independent of the OS window.

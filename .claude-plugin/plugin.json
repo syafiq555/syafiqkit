@@ -1,7 +1,7 @@
 {
   "name": "syafiqkit",
   "description": "Personal workflow toolkit - commits, summaries, docs, invoicing, journals",
-  "version": "1.65.2",
+  "version": "1.67.0",
   "author": {
     "name": "Syafiq"
   }

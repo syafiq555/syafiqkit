@@ -56,6 +56,8 @@ Litmus tests before finishing: (1) grep your doc for the 2-3 most critical phras
 
 ## 1. Resolve Path
 
+⚠️ **Before scanning: is another writer mid-rewrite on these docs?** A background `Agent` still running, or `git status` showing `tasks/` files you never touched (a parallel session). If so, do NOT run the multi-domain scan — it will edit the contested docs and clobber work you can't see. Verify read-only instead (report gaps for the owner to fix), or scope to the one doc you own. A writer reads a file when it starts, not when it finishes.
+
 | Input | Action |
 |-------|--------|
 | Full path | Use as-is |
