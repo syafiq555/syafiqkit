@@ -30,9 +30,13 @@ Only read the CLAUDE.md files relevant to the changed files (backend → backend
 
 <!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here
      (e.g. an integration where you edit both repos from one working dir), add a note like:
-⚠️ **Two-repo session.** This session drives BOTH `~/path/repoA` and `~/path/repoB`. repoB's own
-code-reviewer is NOT used here — review repoB changes too. First step always: `git status --short`
-in EACH repo and route by where the files live. repoB-specific rules below apply only to its files.
+⚠️ **Two-repo session.** This session drives BOTH this repo AND a sibling repo. The sibling's own
+code-reviewer is NOT used here — review its changes too. First step always: `git status --short`
+in EACH repo and route by where the files live. Sibling-specific rules below apply only to its files.
+⚠️ NEVER hardcode the sibling's absolute path (it's per-machine and this file is usually committed —
+a literal path collides for every colleague on a different setup). Resolve it at runtime: check
+`../<sibling-name>` relative to this repo's parent first, else ask; reference it as `$SIBLING`
+(fill in the real name, e.g. `$AUTORENTIC`) throughout, never a literal path.
 Then add a second Bootstrap table for the sibling repo's CLAUDE.md files. -->
 
 ## Process

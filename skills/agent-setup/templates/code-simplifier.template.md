@@ -31,9 +31,14 @@ Read these files before refining any code:
 Only read the CLAUDE.md files relevant to the files you're refining.
 
 <!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here, add a note like:
-⚠️ **Two-repo session.** This session drives BOTH `~/path/repoA` and `~/path/repoB`. repoB's own
-code-simplifier is NOT used here — refine repoB changes too. Run `git status --short` in each repo
-and apply rules matching where the files live. Then add a second Bootstrap table for the sibling repo. -->
+⚠️ **Two-repo session.** This session drives BOTH this repo AND a sibling repo. The sibling's own
+code-simplifier is NOT used here — refine its changes too. Run `git status --short` in each repo
+and apply rules matching where the files live.
+⚠️ NEVER hardcode the sibling's absolute path (it's per-machine and this file is usually committed —
+a literal path collides for every colleague on a different setup). Resolve it at runtime: check
+`../<sibling-name>` relative to this repo's parent first, else ask; reference it as `$SIBLING`
+(fill in the real name, e.g. `$AUTORENTIC`) throughout, never a literal path.
+Then add a second Bootstrap table for the sibling repo. -->
 
 ## Process
 

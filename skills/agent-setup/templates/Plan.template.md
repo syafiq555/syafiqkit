@@ -43,8 +43,13 @@ Without the task doc you can't tell "this constraint is deliberate" from "this i
 ⚠️ **A detailed, code-specific prompt is NOT a signal to skip the task doc either.** A request that already names exact files/methods/questions about a flow is *more* likely to have a task doc, not less. Run `/read-summary` BEFORE reading any CLAUDE.md, regardless of how fully-scoped or trivial the ask looks.
 
 <!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here, add:
-⚠️ **Two-repo session.** This session drives BOTH `~/path/repoA` and `~/path/repoB`. Plan across
-both when the task touches both sides. Add a second Bootstrap table for the sibling repo. -->
+⚠️ **Two-repo session.** This session drives BOTH this repo AND a sibling repo. Plan across
+both when the task touches both sides.
+⚠️ NEVER hardcode the sibling's absolute path (it's per-machine and this file is usually committed —
+a literal path collides for every colleague on a different setup). Resolve it at runtime: check
+`../<sibling-name>` relative to this repo's parent first, else ask; reference it as `$SIBLING`
+(fill in the real name, e.g. `$AUTORENTIC`) throughout, never a literal path.
+Add a second Bootstrap table for the sibling repo. -->
 
 ## Planning Process
 

@@ -39,11 +39,15 @@ Only read the CLAUDE.md files relevant to where the search is likely to land (ba
 ⚠️ **A detailed, code-specific prompt is NOT a signal to skip the task doc either.** A request that already names exact files/methods/questions about a flow is *more* likely to have a task doc, not less — the caller wrote that detail from somewhere. Run `/read-summary` (or the inline Glob+Grep fallback) BEFORE reading any CLAUDE.md, regardless of how fully-scoped or trivial the prompt looks. Treat "no task doc found" as a checked box, not an assumption.
 
 <!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here, add:
-⚠️ **Two-repo session.** This session drives BOTH `~/path/repoA` and `~/path/repoB`. Search whichever
-repo the request's vocabulary points to; if ambiguous, check both. Add a second Bootstrap table for
-the sibling repo's CLAUDE.md files AND its OWN task docs (at the sibling repo ROOT, e.g.
-`~/path/repoB/tasks/<domain>/<feature>/current.md` — not under a `backend/` subdir). The active repo's
-cross-system task doc's `Related:` field links the sibling docs — follow it. -->
+⚠️ **Two-repo session.** This session drives BOTH this repo AND a sibling repo. Search whichever
+repo the request's vocabulary points to; if ambiguous, check both.
+⚠️ NEVER hardcode the sibling's absolute path (it's per-machine and this file is usually committed —
+a literal path collides for every colleague on a different setup). Resolve it at runtime: check
+`../<sibling-name>` relative to this repo's parent first, else ask; reference it as `$SIBLING`
+(fill in the real name, e.g. `$AUTORENTIC`) throughout, never a literal path.
+Add a second Bootstrap table for the sibling repo's CLAUDE.md files AND its OWN task docs (at the
+sibling repo ROOT, e.g. `$SIBLING/tasks/<domain>/<feature>/current.md` — not under a `backend/`
+subdir). The active repo's cross-system task doc's `Related:` field links the sibling docs — follow it. -->
 
 ## Search Strategy
 

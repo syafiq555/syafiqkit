@@ -85,10 +85,12 @@ Map the project's CLAUDE.md files to determine what the Bootstrap section should
 | **Sibling repo driven from same session** | Add a `⚠️ Two-repo session` note + a SECOND Bootstrap table for the sibling's CLAUDE.md files, and have the agent `git diff` BOTH repos (see below) |
 
 **Multi-repo (sibling) sessions**: When the user drives two repos from one working dir (e.g. an integration where both sides are edited together), the *sibling* repo's own agents do NOT fire — only the active repo's agent runs. So the active agent must cover both:
-- Add a `⚠️ Two-repo session` banner naming both repo roots and stating the sibling's agent is not used here
+- Add a `⚠️ Two-repo session` banner stating the sibling's agent is not used here — refer to the active repo as "this repo" (no path needed, agents already run with cwd inside it)
 - Process step 1 (gather changes) runs `git status --short` in EACH repo (NOT `git diff --name-only` — it hides staged + untracked files and returns empty once work is staged); bootstrap each only if it has changes
 - Add a second Bootstrap table for the sibling repo (note any layout quirks, e.g. Laravel root in `backend/`)
 - Tag sibling-only inline rules so they're applied only to that repo's files (e.g. a separate "Sibling" rules table)
+
+⚠️ **Never hardcode the sibling repo's absolute path — resolve it at runtime.** A repo is typically shared across colleagues on different machines/OSes (Mac vs. Windows/Laragon, different home dirs), and `.claude/agents/*.md` is normally committed — a literal `~/Herd/project-b` baked in during setup collides the instant anyone else runs that agent. Instead, have each agent's banner say: check `../<sibling-name>` relative to this repo's parent directory first (the common convention); if absent, glob a couple of likely siblings or ask the user; once resolved, reference it as a placeholder variable (e.g. `$SIBLING`) throughout the rest of that agent's Bootstrap table and rules — never a literal path. Fill in the *real* sibling name (e.g. `$AUTORENTIC`) when customizing the template for a specific project, but never the path.
 
 ### Step 3: Extract Critical-Only Rules
 
@@ -187,6 +189,7 @@ After writing agents, verify:
 - [ ] `Plan` carries `Write` in `tools:` (for `~/.claude/plans/<slug>.md` only) and `disallowedTools: [Edit]`; its body explicitly restricts Write's use to the plans directory and never application source/task docs/CLAUDE.md
 - [ ] LSP step uses `hover` + `documentSymbol` (NOT `goToDefinition`/`findReferences` — often broken)
 - [ ] Multi-repo: if a sibling repo is driven from the same session, agents carry the `⚠️ Two-repo session` banner, diff both repos, and have a second Bootstrap table + tagged sibling rules
+- [ ] Multi-repo: no agent file contains a hardcoded absolute machine path for either repo — `grep -rn '~/[A-Za-z]\|/home/\|/Users/' .claude/agents/*.md` must return nothing (aside from generic examples like `~/.claude/plans/<slug>.md`, which is a fixed harness path, not a repo checkout). The active repo is "this repo" (no path); the sibling is resolved at runtime and referenced via a placeholder variable, never a literal path — see Step 2's runtime-resolution rule
 - [ ] Pruner has NEVER-remove list customized for project (reference tables, gotcha rows, etc.)
 
 ## Output
