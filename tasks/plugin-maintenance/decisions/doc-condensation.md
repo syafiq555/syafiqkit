@@ -4,13 +4,35 @@ Domain: plugin-maintenance/doc-condensation
 Gotchas (critical — full list in each ADR's Consequences):
   - Fix doc bloat at the generator (task-summary rules), not by hand-trimming individual docs (D3)
   - Shared *shape* applied to disjoint *content* is not duplication — only true text/logic overlap is (D12)
+  - The companion-file split (Restructuring #7) applies to ANY oversized cross-cutting section, not just the global CLAUDE.md (D26)
 Related: ../current.md (index), ../decisions/madr-structure.md, ../decisions/agent-architecture.md
-Last updated: 2026-07-12
+Last updated: 2026-07-15
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation Decisions
 
 Decisions about fighting duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage.
+
+---
+
+### D26 — Companion-File Split Widened From Global-Only to Any Oversized Cross-Cutting Section — committed — 2026-07-15
+
+**Problem**
+`condense-claude-md` Restructuring #7 documented the manually-referenced companion file as a lever for the **global** `~/.claude/CLAUDE.md` only (no subdirectory seam-test target exists for it at all). A layer file (`resources/js/CLAUDE.md`) sat at 42kb with a ~130-row gotchas block that failed the subdir seam-test — genuinely cross-cutting, no single subdirectory owned it. Wording-compression alone got it to 28kb; the model concluded "it's dense, not bloated" and stopped, since the only documented lever for a seam-test failure not caused by feature-specificity was "stays inline" (D19/D20's own conclusion). The user pushed back twice before the companion split was tried — it cut the file to 18kb (56%).
+
+**Decision**
+Chosen: widen Restructuring #7 to any file whose oversized section is genuinely cross-cutting (fails the subdir seam-test per #6, isn't feature-owned per the second lever in `update-claude-docs/references/structure.md` §6) — not just the global file. Three coordinated patches: `condense-claude-md` (Restructuring #7 + step-5 completion check) now treats a failed seam-test as the split's *trigger*, not a dead end; `update-claude-docs/references/structure.md` gained a **Third structural lever** section documenting the write-time twin; `read-summary` step 5's CLAUDE.md tree-walk gained a **Companion** bullet, since a `📖 CLAUDE-<topic>.md` pointer does not auto-load and the tree-walk alone misses it. All three now require a **per-category symptom index** when the moved block had multiple sub-categories (a single trigger phrase proved insufficient — the user had to ask for it twice), plus a grep-and-repoint pass for the moved block's `{#anchor}` sub-anchors (3 task-doc cross-refs broke silently this session).
+
+**Rejected**
+- Leaving the lever global-only and treating every cross-cutting layer-file overflow as a permanent "stays inline" case. Why not: D19/D20 already established the pointer lever's boundary (needs a real feature owner); this left a real third case — no subdirectory AND no feature owner — with no lever at all, and "dense, not bloated" is not actually a resolution to a 42kb auto-loading file.
+- A single generic trigger phrase on the companion pointer, matching the original global-file wording. Why not: a multi-category source block (React/Chakra/Data gotchas) collapsed under one phrase gives a reader no way to match their specific symptom without opening the file — defeats the pointer's purpose. Confirmed insufficient live; the user asked for a per-category index twice before it landed.
+
+**Consequences**
+- `condense-claude-md/SKILL.md` Restructuring #7 rewritten (see this file's own commit) — was previously miscited internally as `#49` after a rewrite typo; caught and fixed same session (2026-07-15) during `/done`'s docs-only referential-integrity check.
+- Plugin version bumped 1.75.0→1.76.0; also caught and fixed a pre-existing `plugin.json` (1.75.0) vs `marketplace.json` (1.74.0) drift, unrelated to this decision — same recurring drift class as D23's catch.
+- Sibling sweep confirmed OUT of scope: `condense-task-doc`/`merge-task-docs` operate on `tasks/**` via `decisions/<theme>.md`, not CLAUDE.md companions; the pruner template deletes rows, not pointer lines — none needed a matching change.
+
+**Status**: committed · **Reversible**: yes
 
 ---
 

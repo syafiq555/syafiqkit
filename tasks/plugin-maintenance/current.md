@@ -6,7 +6,7 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-13
+Last updated: 2026-07-15
 -->
 
 # Plugin Maintenance
@@ -19,7 +19,7 @@ Last updated: 2026-07-13
 
 **Immediate next actions (in order)**:
 1. Re-sync the Current Skills registry table (stale since before `task-summary` etc. existed — see Cross-Cutting Operational Notes)
-2. Watch `decisions/doc-condensation.md` size — now 278 lines after D23, approaching the 300-line MADR-split threshold
+2. `decisions/doc-condensation.md` is now 261 lines after D26 — still under the 300-line split threshold, keep watching
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
@@ -150,6 +150,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D20 | Seam-test must check EVERY real sibling subdirectory (grep-count based), not just the intuitively-obvious one — corrects D19's own stale "Multi-Agency has no seam" conclusion |
 | D22 | `condense-claude-md`'s diff-based verification needs a false-positive filter, and completion needs a byte threshold alongside the line threshold |
 | D23 | Skill-file density is a distinct bloat class from CLAUDE.md/task-doc bloat (no condense-* delegate exists) — fixed by hand across 7+ skills, captured as a permanent `update-plugin` checklist |
+| D26 | Companion-file split (Restructuring #7) widened from global-CLAUDE.md-only to any file whose oversized section is genuinely cross-cutting — no subdirectory AND no feature owner |
 
 ### Read [decisions/madr-structure.md](decisions/madr-structure.md) if you're asking: *how does the MADR decision-record format itself work — when to use it, what it costs, how do editing skills handle it?*
 
@@ -183,12 +184,12 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ---
 
-## Last Session (2026-07-13)
+## Last Session (2026-07-15)
 
-- **D25 added** (decisions/agent-architecture.md): `merge-task-docs` Step 3/Step 6 and `read-summary`'s discovery fallback shipped `rg -rn` as a literal copy-pasteable command — `rg` has no recursive flag (`-r` is `--replace`), so the command silently substituted the search pattern out of its own output and exited 0. `merge-task-docs` Step 6's exit condition is "zero results = done," run *after* Step 5 already deletes the source docs — a corrupted scan reads as a clean all-clear.
-- Both skills switched to `grep -rn` (ugrep's `-r` genuinely is recursive) and gained a must-hit control line, since a fixed command with an unverified empty result is still a silent-pass exit condition.
-- `.claude-plugin/marketplace.json` found stale at 1.64.4 against `plugin.json`'s 1.64.5 during this doc update's own version-consistency check — synced in the same pass, unrelated pre-existing drift (same class as D23's earlier catch).
-- Plugin version bumped 1.64.4→1.64.5; CHANGELOG entry added.
+- **D26 added** (decisions/doc-condensation.md): widened the companion-file split (`condense-claude-md` Restructuring #7) from global-CLAUDE.md-only to any layer/project file whose oversized section fails the subdir seam-test AND has no feature owner. Patched `condense-claude-md`, `update-claude-docs/references/structure.md` (new Third structural lever), and `read-summary` step 5 (new Companion tree-walk bullet).
+- `/done`'s docs-only referential-integrity check caught a broken internal cross-reference introduced by the Restructuring #7 rewrite (`#49` — no such numbered item exists; the list only runs 1-7) — fixed to `#6`, the seam-test item the sentence actually meant.
+- `.claude-plugin/marketplace.json` found stale at 1.74.0 against `plugin.json`'s 1.75.0 — synced, unrelated pre-existing drift (same recurring class as D23/D25's earlier catches).
+- Plugin version bumped 1.75.0→1.76.0; CHANGELOG entry already staged.
 
 ---
 
@@ -197,5 +198,5 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 - [ ] Monitor whether `<thinking>` blocks reduce domain inference errors in practice (D2)
 - [ ] Re-sync Current Skills registry table (see Cross-Cutting Operational Notes)
 - [ ] Audit existing task docs' `## Key Technical Decisions` sections against D16's new MADR-default — any plain-table row that had a real rejected alternative should convert (not yet swept)
-- [ ] `decisions/doc-condensation.md` is at 278 lines — watch for the 300-line MADR-split threshold on the next addition
+- [ ] `decisions/doc-condensation.md` is at 239 lines (post-D26) — watch for the 300-line MADR-split threshold on the next addition
 - [ ] Confirm no other skill has the same "self-caught deviation" blind spot as `done` Step 5 pre-D24 — not yet audited beyond `done`/`ship`

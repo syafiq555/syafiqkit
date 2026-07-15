@@ -150,7 +150,7 @@ Cross-project rules only — environment, tool usage, working style, personal co
 
 Official guidance targets **under ~200 lines** per file — adherence measurably drops past it because live rules get lost among dead ones. Treat 200 as the soft cap, 350 as the hard "must act now" line.
 
-When a create/rewrite would land a file over budget, the fix is **structural, not deletion**: push a coherent block down to a subdir/domain file (Section 1's seam-test), route it to a task-doc index+pointer (below, when the seam-test fails but the content is feature-specific), or hand the whole file to `condense-claude-md` for a density pass. Do NOT cram — a file over budget that "needs everything" is a file whose rules want to live at different layers.
+When a create/rewrite would land a file over budget, the fix is **structural, not deletion**: push a coherent block down to a subdir/domain file (Section 1's seam-test), route it to a task-doc index+pointer (below, when the seam-test fails but the content is feature-specific), split a cross-cutting block to a manual companion file (third lever, below), or hand the whole file to `condense-claude-md` for a density pass. Do NOT cram — a file over budget that "needs everything" is a file whose rules want to live at different layers.
 
 ### Second structural lever: task-doc index + pointer (when the seam-test fails)
 
@@ -163,3 +163,14 @@ A block that's too big to inline but doesn't map to any single real subdirectory
 | A real task doc for that feature already exists — extending an existing doc's Gotchas table is safer than inventing a new file for one row | No task doc exists and creating one only to hold this block would be an orphaned, single-purpose doc — in that case a plain standalone reference file plus a pointer still works, but prefer an existing doc when one's available |
 
 Contrast with §5's "Subdir" template: that lever needs a REAL directory both sides of the split can point at. This lever needs a REAL feature identity — don't invent a task doc slug just to relocate a section; confirm one exists or genuinely should via the same content-based discovery `/read-summary` itself uses (`Glob tasks/**/*.md` + `Grep` the block's vocabulary), never by guessing a folder name.
+
+### Third structural lever: manual companion file (when the block is cross-cutting — no subdir AND no feature owner)
+
+The case both levers above reject: a big block (a 100+-row gotchas table) that is a general layer convention — no subdirectory passes the seam-test, no single feature owns it. This is NOT a dead end where the block must stay inline. Split it to a **sibling companion file** (`<dir>/CLAUDE-<topic>.md`), keeping only the highest-frequency rows inline. ⚠️ A companion does NOT auto-load like a subdir CLAUDE.md — so the `📖` pointer replacing the moved block must earn the open:
+
+- Name **concrete trigger symptoms**, never a bare "see `CLAUDE-<topic>.md`" (the "silently unfollowed pointer" failure).
+- If the moved block had **multiple sub-categories**, the pointer must be a **per-category symptom index** — one line per category listing its distinctive symptoms — so a reader matches their bug against the index without opening the file.
+- ⚠️ Moving a section moves its `{#anchor}` sub-anchors too — `grep -rn "<oldfile>. #<subanchor>"` across `tasks/**` + sibling CLAUDE.md and repoint every cross-reference to the companion, or they break silently.
+- Maintenance rule for the user: when a companion row is later added, add its symptom to the matching index bullet in the main file.
+
+`condense-claude-md` Restructuring #7 owns the full procedure — this lever is its write-time twin. Reach for it before concluding a cross-cutting section "just has to stay inline."
