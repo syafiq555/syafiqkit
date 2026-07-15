@@ -33,7 +33,7 @@ Note: ">300 lines" alone is NOT a bad-merge signal if the subsystem test (above)
 
 ### Step 1 — Read all candidates
 
-When given a domain or keyword (e.g. "all payment docs"), list every `tasks/<domain>/*/current.md`. Read them all before deciding anything. Don't merge based on titles.
+When given a domain or keyword (e.g. "all payment docs"), delegate the file-listing to the `Explore` agent (`Agent({subagent_type: "Explore", run_in_background: false, prompt: "List every tasks/<domain>/*/current.md file, plus any _archive/ or flat tasks/<domain>/<feature>.md docs. Return file paths only, no summaries."})`), then Read them all yourself before deciding anything — the merge-fit judgment stays inline. Don't merge based on titles. Delegation rules: `_shared/references/explore-delegation.md`.
 
 ⚠️ **Watch for dead redirect stubs from a PRIOR merge** — a doc whose entire body is "# Merged into: ..." or a one-line "content now lives at X" table. These aren't merge candidates, they're cleanup: delete them now (same as Step 5) and reconcile whatever still points at them (same as Step 6), even if nothing else in this session's merge touches that domain. A stub surviving past its own merge is exactly the clutter Step 5's "no redirect stubs" rule exists to prevent — check for it, don't just avoid creating new ones.
 
@@ -62,18 +62,13 @@ Each question needs a Recommended option so the user can accept-by-default. Don'
 
 ### Step 3 — Scan back-references BEFORE writing
 
-For every source doc being deleted, find all docs that reference its path:
+For every source doc being deleted, delegate the back-reference grep sweep to the `Explore` agent (Step 6 judges which hits matter, inline). Delegation rules: `_shared/references/explore-delegation.md`.
 
-```bash
-grep -rn "tasks/payment/analytics-instrumentation\|tasks/payment/bank-warning" /path/to/tasks/
-grep -rn "analytics-instrumentation\|bank-warning" /path/to/app/   # domain CLAUDE.md files
+```
+Agent({subagent_type: "Explore", run_in_background: false, prompt: "Using grep -rn (never rg), search /path/to/tasks/ and /path/to/app/ for every occurrence of these paths/names: tasks/payment/analytics-instrumentation, analytics-instrumentation, tasks/payment/bank-warning, bank-warning. Return every file path + line number + matched line, verbatim. Do not summarize or filter — return the raw hit list. If output looks truncated, redirect to a temp file and Read it back before returning."})
 ```
 
-⚠️ **Use `grep -rn` here, never `rg -rn`.** `rg`'s `-r` is `--replace`, not recursive — `rg -rn "pat"` substitutes the pattern with `n` and exits 0, so the path you searched for vanishes from its own output. This step's exit condition is "zero results = done," so the corruption reads as a clean all-clear and Step 5 deletes the docs anyway.
-
-⚠️ Long paths may be truncated in tool output — redirect to a temp file and Read it.
-
-Build a list of every file + line that needs updating now, before the merge writes.
+Build the "needs updating" set from the agent's raw file+line list yourself, before the merge writes.
 
 ⚠️ **`ls` every source folder now, not just its `current.md`.** A task folder can hold sibling files a plain domain/feature scan never reads (`stories.md`, `script.sql`, screenshots, exported data), and Step 5's `rm -rf` deletes the whole folder — a file never opened is destroyed with zero chance to review first. For each non-`current.md` file found: read it, then fold its content into the merged doc/a theme file, or copy it forward unchanged.
 

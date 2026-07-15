@@ -14,16 +14,13 @@ Read, find and understand task summary context. Run this **before** answering, i
 
 ⚠️ The request is usually a fuzzy task description, not a path. Folder names are engineer-domain-named and rarely match how you'd phrase the request (`upload-redesign` owns "QC delete child question"; `payout` owns "refund"). So **discover by content, not by folder name**:
 
-1. **Search by content, in one tool block.** List the candidate docs **and** grep them for the *concept's vocabulary* from the request — include synonyms ("child"→"sub-question", "QC"→"review/screening", "refund"→"payout"), searching doc **body + header**, never the folder name alone. Include `_archive/` and flat `tasks/<domain>/<feature>.md` — whole features live there, not just `current.md`.
+1. **Search by content — delegate the raw gathering, keep ranking inline.** Spawn the `Explore` agent to list candidate docs and grep them for the *concept's vocabulary* — include synonyms ("child"→"sub-question", "QC"→"review/screening", "refund"→"payout"), searching doc **body + header**, never the folder name alone, including `_archive/` and flat `tasks/<domain>/<feature>.md`. Delegation rules (raw-not-ranked, the `rg` clause, the Bash fallback): `_shared/references/explore-delegation.md`.
 
-   ```bash
-   grep -rli "payout\|disbursement\|settlement" tasks/    # which docs mention it
-   grep -rn  "payout" tasks/payment/                      # where, with line numbers
+   ```
+   Agent({subagent_type: "Explore", run_in_background: false, prompt: "In tasks/, find every current.md (plus _archive/ and flat tasks/<domain>/<feature>.md) mentioning: payout, disbursement, settlement (synonyms of 'refund'). Use grep -rli and grep -rn (never rg — its -r means --replace, not recursive, and silently corrupts results). Return: matched file paths, matched lines with line numbers, and each candidate's header block (<!--LLM-CONTEXT...--> if present) + # Title + ## Overview. Do not rank or pick a winner — return all candidates raw."})
    ```
 
-   ⚠️ **Use `grep`. Never `rg` for this.** `Grep`/`Glob` are tools in some agent contexts (e.g. `Explore`) — use them when available. The main loop usually has neither, so discovery lands in Bash, where `rg`'s `-r` means `--replace`, not recursive (it always recurses): `rg -ril "payout"` silently replaces "payout" with the next flag character and exits 0 — no error. `grep`'s `-r` genuinely means recursive, so `grep -rli` is safe by construction. Tell you already fell into it: your search term is absent from its own output.
-
-2. **Rank + disambiguate**: read the top 2-3 candidates' header block (`<!--LLM-CONTEXT...-->` if present — tolerate missing/varied headers) + `# Title` + `## Overview`. Follow any `Merged into`/`Supersedes`/`> 📖` redirect to the live doc. Treat index/hub docs (roadmap, `shared/`, `*-architecture`, parent `current.md`) as routers, not targets.
+2. **Rank + disambiguate inline**, from the returned candidates: read the top 2-3 candidates' header block (`<!--LLM-CONTEXT...-->` if present — tolerate missing/varied headers) + `# Title` + `## Overview` (already fetched by Explore if delegated; Read them yourself if not). Follow any `Merged into`/`Supersedes`/`> 📖` redirect to the live doc. Treat index/hub docs (roadmap, `shared/`, `*-architecture`, parent `current.md`) as routers, not targets.
 
 ⚠️ **An empty result is a claim about your search, not about the tree.** Before concluding "no doc covers this", run a control that MUST hit (`grep -rl "current.md" tasks/ | head -1`). A wrong flag, a typo, or a gitignored `tasks/` dir all return a clean, confident, empty set.
 

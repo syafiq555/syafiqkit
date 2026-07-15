@@ -196,4 +196,25 @@ Chosen: add an explicit counter-instruction to `Explore`/`Plan` templates — pr
 Only `Explore`/`Plan` needed this fix — `code-reviewer`/`code-simplifier`/`product-reviewer` trigger off `git diff`, not free-text prompts, so they aren't exposed to the same misjudgment.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D30 — Split Mechanical Retrieval From Judgment Before Delegating to a Cheaper Agent — committed — 2026-07-15
+
+**Problem**
+A request to make `read-summary` and "all our agents" use multi-level Haiku sub-agents, to offload heavy-token work, conflated two different goals: reducing main-loop context bloat, and reducing model cost. Blanket-delegating a skill's work to a cheaper model risks the judgment-heavy steps (doc disambiguation, staleness detection, subsystem-boundary reasoning) as much as the mechanical ones — a wrong cheap-model verdict on a judgment call is worse than the tokens it would have saved, and nesting it (Haiku spawning Haiku) compounds the lossy-summarization risk on exactly the reasoning each skill exists to get right.
+
+**Decision**
+Chosen: split each candidate skill's flagged step into a mechanical half (file discovery, grep sweeps — zero judgment) and a judgment half (ranking, disambiguation, merge-fit, staleness). Delegate only the mechanical half to the existing `Explore` agent (already read-only, already `model: haiku`, already registered for "find X" tasks) — instructed to return raw candidates/hits, never a ranked conclusion. The judgment half stays inline on the calling session's own model. Patched `read-summary` (doc-discovery), `merge-task-docs` (Step 1 candidate listing + Step 3 back-reference sweep), `task-summary` (multi-domain candidate-gathering). Extracted the repeated delegation pattern (3+ callers) to `skills/_shared/references/explore-delegation.md` per the existing DRY threshold.
+
+**Rejected**
+- Multi-level Haiku delegation across all skills, as originally requested. Why not: tested against the actual problem (context bloat, not cost) it doesn't hold up — most of this plugin's skills are judgment-heavy by design (task-summary's doc mapping, merge-task-docs' subsystem test, update-claude-docs' routing), and a uniform cheap-model policy would degrade exactly the reasoning these skills exist to protect.
+- Claiming the delegation removes raw output from the main loop's context entirely. Why not: an `Agent` call's result is inlined as text into whoever spawned it — for `read-summary`/`task-summary`, the caller IS the main loop, so the raw hit list still lands there, one hop later. The real saving is that `Explore`'s own search *process* (exploratory misses, intermediate tool calls) never surfaces, not that the final payload shrinks. Caught by product review; corrected in the shared reference's own "Why" framing rather than left overstated.
+
+**Consequences**
+- Every `Explore` delegation must return raw data only — a ranked/summarized return would smuggle judgment out of the calling session silently.
+- Every such `Agent({...})` call needs `run_in_background: false` explicit, and a documented fallback (plain `grep`, never `rg`) for contexts with no `Agent` tool access — both folded into the shared reference so any future caller inherits them for free.
+- Plugin version bumped 1.81.0→1.82.0; CHANGELOG entry added.
+
+**Status**: committed · **Reversible**: yes
 </content>

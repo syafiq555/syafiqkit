@@ -6,7 +6,7 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-15 — added D29 (claude-md-pruner delegates to condense-claude-md); shared two-tier condense model (D23 update)
+Last updated: 2026-07-15 — see Quick Start / Last Session
 -->
 
 # Plugin Maintenance
@@ -29,6 +29,7 @@ Last updated: 2026-07-15 — added D29 (claude-md-pruner delegates to condense-c
 - A Step-N "verify" checklist is not satisfied by having read the files earlier in-session — each item needs its own command run against current content — see D21 (decisions/agent-architecture.md)
 - Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat; `update-plugin` Step 3a owns the checklist, executed via the shared two-tier draft(Haiku)/verify model (`_shared/references/two-tier-condense.md`), also adopted by `condense-task-doc`/`condense-claude-md` — see D23 (decisions/doc-condensation.md)
 - A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win — see D24 (decisions/agent-architecture.md)
+- Delegating a skill's heavy step to a cheaper agent only works when the mechanical (retrieval) half is split from the judgment half first — the judgment half stays on the calling session's own model — see D30 (decisions/agent-architecture.md)
 - `/ship` Step 3 no longer assumes the current branch IS the deploy branch — establish it from CLAUDE.md/CLAUDE.local.md first, recognize forward-merge chains as merges not pushes
 - A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command — a fixed `rg -rn`→`grep -rn` command with no control still silently passes on an unrelated empty result — see D25 (decisions/agent-architecture.md)
 - Pre-existing plan/spec docs sitting next to a split `current.md`/`decisions/` set are a different document type, never move them into `decisions/` — but their routing table must still enumerate them, or they go invisible — see D27 (decisions/doc-condensation.md)
@@ -138,6 +139,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D25 | A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command |
 | D28 | A confirmation gate that defaults ON forces the caller to pre-empt it every invocation — `merge-task-docs` now defaults to executing the recommendation, asks only on genuine ambiguity |
 | D29 | `claude-md-pruner` delegates restructuring to `condense-claude-md` instead of reimplementing the seam-test — the last template missing `Skill` per D14 |
+| D30 | Splitting a skill step's mechanical retrieval from its judgment half before delegating to a cheaper agent (`Explore`) — the judgment half never leaves the calling session's own model |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
@@ -193,8 +195,9 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-15)
 
-- **D28 added** (decisions/agent-architecture.md): a session merging 18 Autorentic `tasks/infrastructure/*` docs had to explicitly tell each spawned agent "the merge decision is already made and approved — do not ask questions" to get `merge-task-docs` to proceed without gating on `AskUserQuestion`. Inverted Step 2's default: now executes the recommended scope/structure/naming inline, reserving `AskUserQuestion` for genuine ties (two equally-valid groupings), large flat-merge overage (~450+ lines), or an invented name with no obvious pick. Matching Rules-table row fixed — it previously prescribed "ask every time," which would have silently reverted the default.
-- Plugin version bumped 1.79.0→1.80.0; CHANGELOG entry added (already staged from the same session, prior to this doc sync).
+- **D30 added** (decisions/agent-architecture.md): user asked for "multi-level Haiku" delegation across all agents to cut token cost; separated the real problem (main-loop context bloat) from the stated one (model cost) before acting, and rejected a blanket cheap-model policy since most skills' work is judgment (staleness, subsystem-boundary reasoning, disambiguation) that degrades on a weaker model. Split three skills' flagged steps into mechanical-retrieval (delegated to `Explore`) vs judgment (stays inline): `read-summary` doc-discovery, `merge-task-docs` Step 1 + Step 3, `task-summary` multi-domain candidate-gathering. Extracted the repeated pattern to `skills/_shared/references/explore-delegation.md`.
+- Product review caught the delegation's own "off the main loop's context" framing was false for main-loop-invoked skills (the Agent result still returns to the caller) — corrected in the shared reference before shipping, plus added missing `run_in_background: false` to all three example calls.
+- Plugin version bumped 1.81.0→1.82.0; CHANGELOG entry added.
 
 ---
 
