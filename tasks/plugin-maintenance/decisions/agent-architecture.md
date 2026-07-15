@@ -76,6 +76,27 @@ Chosen: every task-doc-consuming agent (all but `claude-md-pruner`, which is CLA
 **Consequences**
 - Same principle as D4, applied to `agent-setup`'s output specifically.
 - Caught the drift's tell along the way: `Explore`'s `description:` claimed it "reads task docs" while its Bootstrap never mentioned them (frontmatter drives routing, body drives behavior — disagreement = under-delivery). Patched SKILL.md (Key-rules + Step-5 verify checkbox) AND all 5 templates so a regen doesn't drop it.
+- ⚠️ **Correction (see D29)**: "`claude-md-pruner` is CLAUDE.md-only, so it needs no `Skill` access" was true at the time but stopped being the full picture once `condense-claude-md` existed as a delegatable skill — the carve-out only ever meant "doesn't need `read-summary`," not "needs no `Skill` tool at all."
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D29 — `claude-md-pruner` Delegates Restructuring to `condense-claude-md` Instead of Reimplementing the Seam-Test — committed — 2026-07-15
+
+**Problem**
+`claude-md-pruner.template.md` was the one agent template without `Skill` in its `tools:` — every sibling (`code-reviewer`, `code-simplifier`, `browser-verifier`, `product-reviewer`, `Explore`, `Plan`) already carries it per D14. Its Step 0 target-length overflow path also independently restated the seam-test/subdir-split logic that `condense-claude-md` (the skill) owns — a second copy of the same decision procedure, drifting independently the same way D14's original problem described.
+
+**Decision**
+Chosen: add `Skill` to `claude-md-pruner`'s `tools:`; add a Philosophy paragraph drawing the lane boundary (this agent = staleness/duplication, verified against the live codebase; `condense-claude-md` = restructuring live-but-dense content — seam-test, subdir/companion split, byte-density fixes); Step 0's overflow branch now invokes `Skill(condense-claude-md)` instead of restating the seam-test inline.
+
+**Rejected**
+- Merging `claude-md-pruner` into `condense-claude-md` entirely. Why not: the staleness/duplication checks (grep-verify against the codebase, cross-CLAUDE.md duplicate detection) have no equivalent in `condense-claude-md`, which assumes the content is live and only handles restructuring — different inputs, not the same job twice.
+- Leaving the seam-test duplicated since it was "only a few lines." Why not: exactly the shape D14 already named as the failure mode (independent restatement drifts) — the fix generalizes even at small scale.
+
+**Consequences**
+- `claude-md-pruner.template.md`: `Skill` added to `tools:`, new Philosophy boundary paragraph, Step 0 branch 2 now delegates instead of restating.
+- No other template needed a matching change — all others already had `Skill` per D14; this closes the one remaining gap.
 
 **Status**: committed · **Reversible**: yes
 
@@ -134,6 +155,27 @@ Chosen: replace `rg -rn` with `grep -rn` (ugrep's `-r` is genuinely recursive) i
 **Consequences**
 - Global `~/.claude/CLAUDE.md` already carried the `rg`-has-no-recursive-flag rule in its Shell Commands table; this decision is that rule failing anyway at the exact moment (mid-skill-authoring, "I'm finding a doc" framing) it existed to prevent — a documented rule surviving in prose doesn't guarantee the moment-of-use command gets typed correctly. Reinforces D3/D6's "fix the generator, not the instance" lineage: the fix isn't a fourth restatement of the rule, it's making the *unsafe form structurally unreachable* (mandate `grep -rn`, name the tell) rather than trusting recall.
 - Plugin version bumped 1.64.4→1.64.5; CHANGELOG entry added.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D28 — A Confirmation Gate That Defaults ON Forces the Caller to Pre-Empt It Every Invocation — committed — 2026-07-15
+
+**Problem**
+`merge-task-docs` Step 2 gated all three merge decisions (scope, structure, naming) behind `AskUserQuestion` by default, even when the subsystem test already made the grouping obvious. A session spawning agents to execute an already-approved merge plan had to explicitly instruct each agent "the merge decision is already made and approved — do not ask questions" to get it to proceed — the skill's default behavior fought the caller's actual intent, and the workaround had to be re-typed every invocation rather than being something the skill itself recognized.
+
+**Decision**
+Chosen: invert the default. Step 2 now proceeds with the recommended grouping/structure/name, stated inline as it goes, and only stops for `AskUserQuestion` on genuine ambiguity — two candidate groupings equally valid under the subsystem test, a flat-merge overage large enough to hurt cold-start readability (~450+ lines), or an invented name with no obvious pick. A user's invocation stating the decision is pre-made/approved (any wording, not one exact phrase) is now recognized as blanket consent for all three forks, not just a magic phrase that happens to work.
+
+**Rejected**
+- Keep the default-ask behavior and just document the override phrase more prominently. Why not: same shape as D25's rejected option — a documented workaround the caller must remember and re-supply every time is a rule that survives in prose but fails at the moment of use; the fix belongs in the skill's default, not in caller discipline.
+- Remove `AskUserQuestion` from `merge-task-docs` entirely. Why not: genuine ties (two equally-valid groupings) and truly ambiguous names still need a human call — the fix is narrowing when it fires, not eliminating it.
+
+**Consequences**
+- Matching Rules-table row in `merge-task-docs/SKILL.md` fixed — it previously prescribed "ask every time," which directly contradicted the new default and would have silently reverted the fix on the skill's next self-read.
+- A user pushing back on a stated recommendation after the fact is now treated as a normal in-flight correction, not a sign the pre-check should have fired — this matches how the rest of the plugin treats corrections (revise and continue) rather than treating every disagreement as evidence a gate was needed.
+- Plugin version bumped 1.79.0→1.80.0; CHANGELOG entry added.
 
 **Status**: committed · **Reversible**: yes
 

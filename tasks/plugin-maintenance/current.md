@@ -6,7 +6,7 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-15
+Last updated: 2026-07-15 — added D29 (claude-md-pruner delegates to condense-claude-md); shared two-tier condense model (D23 update)
 -->
 
 # Plugin Maintenance
@@ -19,7 +19,7 @@ Last updated: 2026-07-15
 
 **Immediate next actions (in order)**:
 1. Re-sync the Current Skills registry table (stale since before `task-summary` etc. existed — see Cross-Cutting Operational Notes)
-2. `decisions/doc-condensation.md` is now 261 lines after D26 — still under the 300-line split threshold, keep watching
+2. `decisions/doc-condensation.md` is now 262 lines after gaining D27 — still under the 300-line split threshold, keep watching
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
@@ -27,10 +27,14 @@ Last updated: 2026-07-15
 - A MADR block needs its own condensation rule shipped in the same change that introduces it — see D13 (decisions/madr-structure.md)
 - MADR is now the DEFAULT `Key Technical Decisions` structure for every task doc — not gated behind decision count or an explicit ask; escape hatch only when Rejected would be empty — see D16 (decisions/madr-structure.md)
 - A Step-N "verify" checklist is not satisfied by having read the files earlier in-session — each item needs its own command run against current content — see D21 (decisions/agent-architecture.md)
-- Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat — no `condense-*` delegate exists for it; `update-plugin` Step 3a now owns the checklist — see D23 (decisions/doc-condensation.md)
+- Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat; `update-plugin` Step 3a owns the checklist, executed via the shared two-tier draft(Haiku)/verify model (`_shared/references/two-tier-condense.md`), also adopted by `condense-task-doc`/`condense-claude-md` — see D23 (decisions/doc-condensation.md)
 - A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win — see D24 (decisions/agent-architecture.md)
 - `/ship` Step 3 no longer assumes the current branch IS the deploy branch — establish it from CLAUDE.md/CLAUDE.local.md first, recognize forward-merge chains as merges not pushes
 - A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command — a fixed `rg -rn`→`grep -rn` command with no control still silently passes on an unrelated empty result — see D25 (decisions/agent-architecture.md)
+- Pre-existing plan/spec docs sitting next to a split `current.md`/`decisions/` set are a different document type, never move them into `decisions/` — but their routing table must still enumerate them, or they go invisible — see D27 (decisions/doc-condensation.md)
+- A large doc rewrite's "no rows deleted" check only covers the change's intended content — it misses collateral cuts to unrelated sections; `merge-task-docs`/`condense-task-doc` now require a full before/after section diff, not just a targeted row check — see D27 (decisions/doc-condensation.md)
+- `merge-task-docs` Step 2 defaults to executing the recommended scope/structure/naming inline, asking only on genuine ambiguity — no longer requires the caller to say "don't ask" every invocation — see D28 (decisions/agent-architecture.md)
+- Every generated agent template now carries `Skill` in `tools:` — `claude-md-pruner` was the last one missing it and independently duplicated `condense-claude-md`'s seam-test logic inline instead of delegating — see D29 (decisions/agent-architecture.md)
 
 ---
 
@@ -132,6 +136,8 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D21 | A Step-N verify checklist needs a command per item — a prior skim isn't a check |
 | D24 | A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win |
 | D25 | A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command |
+| D28 | A confirmation gate that defaults ON forces the caller to pre-empt it every invocation — `merge-task-docs` now defaults to executing the recommendation, asks only on genuine ambiguity |
+| D29 | `claude-md-pruner` delegates restructuring to `condense-claude-md` instead of reimplementing the seam-test — the last template missing `Skill` per D14 |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
@@ -151,6 +157,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D22 | `condense-claude-md`'s diff-based verification needs a false-positive filter, and completion needs a byte threshold alongside the line threshold |
 | D23 | Skill-file density is a distinct bloat class from CLAUDE.md/task-doc bloat (no condense-* delegate exists) — fixed by hand across 7+ skills, captured as a permanent `update-plugin` checklist |
 | D26 | Companion-file split (Restructuring #7) widened from global-CLAUDE.md-only to any file whose oversized section is genuinely cross-cutting — no subdirectory AND no feature owner |
+| D27 | Pre-existing plan/spec docs are a distinct type from `decisions/<theme>.md` (verified against external ADR/Diátaxis convention) — split-doc guidance gained a parent-directory routing audit + an anti-silent-drop verification check |
 
 ### Read [decisions/madr-structure.md](decisions/madr-structure.md) if you're asking: *how does the MADR decision-record format itself work — when to use it, what it costs, how do editing skills handle it?*
 
@@ -186,10 +193,8 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-15)
 
-- **D26 added** (decisions/doc-condensation.md): widened the companion-file split (`condense-claude-md` Restructuring #7) from global-CLAUDE.md-only to any layer/project file whose oversized section fails the subdir seam-test AND has no feature owner. Patched `condense-claude-md`, `update-claude-docs/references/structure.md` (new Third structural lever), and `read-summary` step 5 (new Companion tree-walk bullet).
-- `/done`'s docs-only referential-integrity check caught a broken internal cross-reference introduced by the Restructuring #7 rewrite (`#49` — no such numbered item exists; the list only runs 1-7) — fixed to `#6`, the seam-test item the sentence actually meant.
-- `.claude-plugin/marketplace.json` found stale at 1.74.0 against `plugin.json`'s 1.75.0 — synced, unrelated pre-existing drift (same recurring class as D23/D25's earlier catches).
-- Plugin version bumped 1.75.0→1.76.0; CHANGELOG entry already staged.
+- **D28 added** (decisions/agent-architecture.md): a session merging 18 Autorentic `tasks/infrastructure/*` docs had to explicitly tell each spawned agent "the merge decision is already made and approved — do not ask questions" to get `merge-task-docs` to proceed without gating on `AskUserQuestion`. Inverted Step 2's default: now executes the recommended scope/structure/naming inline, reserving `AskUserQuestion` for genuine ties (two equally-valid groupings), large flat-merge overage (~450+ lines), or an invented name with no obvious pick. Matching Rules-table row fixed — it previously prescribed "ask every time," which would have silently reverted the default.
+- Plugin version bumped 1.79.0→1.80.0; CHANGELOG entry added (already staged from the same session, prior to this doc sync).
 
 ---
 
@@ -198,5 +203,5 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 - [ ] Monitor whether `<thinking>` blocks reduce domain inference errors in practice (D2)
 - [ ] Re-sync Current Skills registry table (see Cross-Cutting Operational Notes)
 - [ ] Audit existing task docs' `## Key Technical Decisions` sections against D16's new MADR-default — any plain-table row that had a real rejected alternative should convert (not yet swept)
-- [ ] `decisions/doc-condensation.md` is at 239 lines (post-D26) — watch for the 300-line MADR-split threshold on the next addition
+- [ ] `decisions/doc-condensation.md` is at 249 lines (post-condensation) — watch for the 300-line MADR-split threshold on the next addition
 - [ ] Confirm no other skill has the same "self-caught deviation" blind spot as `done` Step 5 pre-D24 — not yet audited beyond `done`/`ship`

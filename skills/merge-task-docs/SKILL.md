@@ -52,13 +52,13 @@ Present a table to the user before writing a single file:
 
 Also list what stays standalone and why.
 
-⚠️ **Confirm via `AskUserQuestion`, not a flat "does this look right?"** — three separate decision forks tend to show up in a merge, and each is its own question, asked at the point it arises rather than bundled into one wall of text upfront:
+⚠️ **Confirm via `AskUserQuestion`, not a flat "does this look right?"** — three decision forks tend to show up in a merge, each its own question at the point it arises, not bundled upfront:
 
-1. **Scope** — after building the merge table: does the proposed grouping match what the user wants merged? Options: your recommended grouping (with the subsystem reasoning as the description) vs. a broader/narrower alternative vs. "no merge, just tidy." If the user pushes back on your recommendation (e.g. picks "merge everything" when the subsystem test said otherwise), don't silently comply — the disagreement itself is a second question: confirm the resulting size tradeoff before writing anything (see #2).
-2. **Structure** — if Step 4.8's split-doc trigger fires (dense sources, >300 lines with nothing left to cut): ask flat-with-overage vs. index+`decisions/<theme>.md` split, before writing either. Don't default silently to one.
-3. **Naming** — if the merge changes canonical paths (new folder, renamed theme files): ask for the canonical name(s) explicitly rather than assuming the richest source doc's existing name is good enough. Offer 2-3 short options per name with a Recommended pick and its reasoning, not an open-ended "what should we call it?".
+1. **Scope** — does the proposed grouping match what the user wants merged? Options: your recommended grouping (subsystem reasoning as the description) vs. a broader/narrower alternative vs. "no merge, just tidy." If the user pushes back (e.g. picks "merge everything" against the subsystem test), don't silently comply — confirm the resulting size tradeoff before writing (see #2).
+2. **Structure** — if Step 4.8's split-doc trigger fires: ask flat-with-overage vs. index+`decisions/<theme>.md` split, before writing either.
+3. **Naming** — if the merge changes canonical paths: ask for the name explicitly rather than assuming the richest source doc's name is good enough. Offer 2-3 options with a Recommended pick and reasoning.
 
-Each question should have a Recommended option so the user can accept-by-default without re-deriving the reasoning themselves. Do not proceed past a fork without the user's answer, even if your recommendation seems obviously correct — the point is catching the cases where it isn't.
+Each question needs a Recommended option so the user can accept-by-default. Don't proceed past a fork without an answer, even if your recommendation seems obviously right — the point is catching when it isn't.
 
 ### Step 3 — Scan back-references BEFORE writing
 
@@ -69,26 +69,26 @@ grep -rn "tasks/payment/analytics-instrumentation\|tasks/payment/bank-warning" /
 grep -rn "analytics-instrumentation\|bank-warning" /path/to/app/   # domain CLAUDE.md files
 ```
 
-⚠️ **Use `grep -rn` here, never `rg -rn`.** In `rg`, `-r` is `--replace` (there IS no recursive flag — `rg` always recurses), so `rg -rn "pat"` prints every match with the pattern *substituted by `n`* and exits 0. The path you searched for vanishes from its own output — and this step's exit condition is "zero results = done", so the corruption reads as a clean all-clear and Step 5 deletes the docs anyway. `grep`'s `-r` genuinely means recursive.
+⚠️ **Use `grep -rn` here, never `rg -rn`.** `rg`'s `-r` is `--replace`, not recursive — `rg -rn "pat"` substitutes the pattern with `n` and exits 0, so the path you searched for vanishes from its own output. This step's exit condition is "zero results = done," so the corruption reads as a clean all-clear and Step 5 deletes the docs anyway.
 
-⚠️ Long paths may be truncated in tool output. If so, redirect to a temp file and Read it.
+⚠️ Long paths may be truncated in tool output — redirect to a temp file and Read it.
 
-Build a list of every file + line that needs updating. Do this now — before the merge writes — so nothing is missed.
+Build a list of every file + line that needs updating now, before the merge writes.
 
-⚠️ **`ls` every source folder now, not just its `current.md`.** A task folder can hold sibling files a plain domain/feature scan never reads — `stories.md`, `script.sql`, screenshots, exported data. Step 5's `rm -rf` deletes the whole folder; a file you never opened is destroyed with zero chance to review it first. For each non-`current.md` file found: read it, and either fold its content into the merged doc/a theme file, or copy it forward unchanged to the new canonical folder. Never let `rm -rf` be the first time you learn a file existed.
+⚠️ **`ls` every source folder now, not just its `current.md`.** A task folder can hold sibling files a plain domain/feature scan never reads (`stories.md`, `script.sql`, screenshots, exported data), and Step 5's `rm -rf` deletes the whole folder — a file never opened is destroyed with zero chance to review first. For each non-`current.md` file found: read it, then fold its content into the merged doc/a theme file, or copy it forward unchanged.
 
 ### Step 4 — Write the merged docs
 
 For each merge group:
 
 1. **Read both docs in full** before writing anything.
-2. **Read `task-summary/references/templates.md`** — this is the canonical source for section headings, table column names, field order, MADR-block structure, and the Density Rules (one fact one home, ≤15-line Quick Start, `Last updated` never restates commit/deploy status, Rows ≤2 sentences). Don't paraphrase these rules from memory in a merged doc — the same drift risk `update-plugin` warns about for shared mechanisms across skills applies here: if `task-summary` tightens a rule later and this skill still relies on its own paraphrase, the merge output silently falls out of compliance.
+2. **Read `task-summary/references/templates.md`** — canonical source for section headings, table column names, field order, MADR-block structure, and the Density Rules (one fact one home, ≤15-line Quick Start, `Last updated` never restates commit/deploy status, rows ≤2 sentences). Don't paraphrase these rules from memory — the same drift risk `update-plugin` warns about for shared mechanisms applies: if `task-summary` tightens a rule later, a paraphrase here silently falls out of compliance.
 3. **Choose the canonical path** — keep the richer/primary doc's path as the merge target, UNLESS the naming fork (Step 2) produced a different confirmed name — then use that instead of silently keeping the old one.
 4. **Write the merged doc** to the canonical path matching `templates.md`'s structure: LLM-CONTEXT block (`Status`, `Domain`, `Related`, `Last updated`), Quick Start, Overview, Architecture, Files, Task Status, Key Technical Decisions, Critical Gotchas, Next Steps, Last Session — and the Density Rules from step 2 apply to every section written.
 5. **Merging content**: combine sections without duplicating rows. If both docs have a Gotchas table, merge into one table — never two Gotchas sections. If both have a Files section, combine into one living map (don't keep per-doc subsections).
 6. **Last Session**: write ONE Last Session block that notes the merge happened. Don't preserve both docs' Last Session entries.
 7. **Size budget**: merged doc should stay under 300 lines. If it would exceed this, condense aggressively — collapse completed Task Status rows, trim Files to a living map, cut narrative from Gotchas to rule+symptom only.
-8. **When condensing can't reach budget**: two docs that are each already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a single flat file, and don't silently default to the split either — this is fork #2 from Step 2: ask flat-with-overage vs. index+`decisions/<theme>.md` split. If split is chosen, use the split-doc pattern from `condense-task-doc`'s `templates.md` ("Splitting a whole-doc MADR further"): a thin index `current.md` (Quick Start + a routing table framed as "read `decisions/<theme>.md` if you're asking: *[question]*") plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by which source doc a fact came from. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is the correct outcome when the merge candidates fail the "bad merge signal: >300 lines" test in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
+8. **When condensing can't reach budget**: two docs already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a flat file, and don't silently default to a split either — this is fork #2 from Step 2: ask flat-with-overage vs. index+`decisions/<theme>.md` split. If split is chosen, use `condense-task-doc`'s `templates.md` pattern ("Splitting a whole-doc MADR further"): a thin index `current.md` (Quick Start + a routing table framed "read `decisions/<theme>.md` if you're asking: *[question]*") plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by source doc. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is correct when merge candidates fail the ">300 lines" bad-merge signal in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
 
 ### Step 5 — Delete source docs
 

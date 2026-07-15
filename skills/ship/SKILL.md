@@ -35,7 +35,7 @@ Two rules apply ON TOP of `/commit`, and only under `/ship`:
 
 1. **Version-bump gate (plugin/package repos)** — if the repo has version files, bump **EVERY** file carrying the version before staging. `grep -rn '"version"' <manifest-dir>` finds them all (secondary fields like `plugins[0].version` drift silently when only the primary is bumped). See the repo's `CLAUDE.md#version-bumping`.
 
-2. ⚠️ **SHIP OVERRIDE on the staleness gate** — `/commit`'s gate hunts "pending / not yet pushed" language and demands you eliminate it before committing. Under `/ship`, do NOT resolve it by writing the **pre-deploy** state. A deploy follows in minutes, so "not yet deployed" / "🚢 in flight" is *guaranteed wrong* by the time anyone reads it and costs a second commit to undo. Leave deploy-state lines alone; **Step 4 writes them once, from the verified outcome.** Fix only genuinely-stale non-deploy content here. The trap springs hardest right after you correctly catch a *false* "deployed" claim — correct it straight to the outcome, never to the transient midpoint.
+2. ⚠️ **SHIP OVERRIDE on the staleness gate** — `/commit`'s gate hunts "pending / not yet pushed" language and demands you eliminate it before committing. Under `/ship`, do NOT resolve it by writing the **pre-deploy** state: a deploy follows in minutes, so "not yet deployed" / "🚢 in flight" is guaranteed wrong by the time anyone reads it and costs a second commit to undo. Leave deploy-state lines alone; **Step 4 writes them once, from the verified outcome.** Fix only genuinely-stale non-deploy content here — even right after catching a *false* "deployed" claim, correct it straight to the outcome, never to the transient midpoint.
 
 ### Step 3: Push
 
@@ -48,7 +48,7 @@ Per repo, before pushing anything:
 
 If the chain isn't documented and you can't infer it, **ask** — pushing to a deploy branch is outward-facing and hard to reverse.
 
-⚠️ **NEVER `git reset --hard` a branch that has commits you haven't pushed — including the one you just committed on.** Projects commonly carry a "`reset --hard origin/<branch>` before any merge" rule (local branches lag). It is correct for a **stale branch you are merging INTO** and it **destroys work** on the branch you are merging **FROM**: the commit is orphaned (reachable from no branch), and `git status` goes *clean* rather than warning you. `git stash` does not save you — the work was already committed, so there is nothing in the working tree to stash.
+⚠️ **NEVER `git reset --hard` a branch that has commits you haven't pushed — including the one you just committed on.** Projects commonly carry a "`reset --hard origin/<branch>` before any merge" rule (local branches lag). It's correct for a **stale branch you're merging INTO** but **destroys work** on the branch you're merging **FROM**: the commit is orphaned (reachable from no branch), `git status` goes clean, and `git stash` can't save it — the work was already committed, nothing is in the working tree.
 
 **Prevention** — before any `reset --hard`, prove the branch has nothing unpushed:
 ```bash
@@ -61,15 +61,11 @@ Not empty → don't reset it. If you just committed here, you don't need the res
 SHA=$(git rev-parse HEAD)    # BEFORE any checkout/reset
 git branch --contains "$SHA" # AFTER — must be non-empty. Empty = orphaned.
 ```
-Orphaned is recoverable **if you notice**: the object still exists → `git cherry-pick $SHA` onto the right branch. **Tells you already lost it**: `git status` unexpectedly clean right after you edited files, or a `grep` for content you just wrote returning zero. Never read either as "nothing to do".
+Orphaned is recoverable if noticed — the object still exists, `git cherry-pick $SHA` onto the right branch. Tells you it's already lost: `git status` unexpectedly clean right after editing files, or a `grep` for content just written returning zero.
 
 Then:
-1. Check `gh auth status` — if wrong account, read project's `CLAUDE.local.md` for the correct GitHub user and switch
+1. Check `gh auth status` — if wrong account, read project's `CLAUDE.local.md` for the correct GitHub user and switch (`gh` auth is independent of the SSH remote alias, so a personal `git@github-personal:...` remote with `gh` active on a work account would hit the wrong account via the API; `gh auth switch --user <personal-user>` first, no switch needed for a plain `github.com` work repo)
 2. Push each repo that has commits ahead of remote:
-
-<example>
-Remote uses a personal SSH alias (e.g. `git@github-personal:...`), but `gh auth status` is active on a different account. `gh` auth is independent of the SSH alias, so any `gh` API call would hit the wrong account. Switch first: `gh auth switch --user <personal-user>` (the username is in the project's `CLAUDE.local.md`), then push. If the remote is a plain `github.com` work repo, no switch needed.
-</example>
 
 ```bash
 git push
@@ -79,7 +75,7 @@ git push
 
 ⚠️ **Check the project's `CLAUDE.local.md` for a documented non-CI deploy path (rsync hotfix, manual sync, etc.) before assuming CI is the only route.** Some projects fast-track backend-only changes (no migration/deps/frontend touch) around CI entirely — polling `gh run list` for a deploy that was never queued will hang or false-negative. If such a path exists and applies to this change, follow it instead of Steps 4.1–4.2 (still do the prod-HEAD-mismatch style verification appropriate to that path, e.g. grep the deployed file/config on the server).
 
-⚠️ **No deploy is a gate — not even the ship's own.** Kick off the CI/deploy check (`gh run watch`/a Monitor/a polling loop) and proceed straight to Step 5; a deploy running is not a reason to sit idle, and this applies to every deploy that comes up during the ship (the primary one, a follow-up from a mid-ship fix, anything else). Come back to finish 4.1–4.2 (and the task-doc write in 4.5) once the background check resolves — before or after Step 5 finishes, whichever comes first. Only block synchronously if the very next step genuinely needs that deploy's specific output.
+⚠️ **No deploy is a gate — not even the ship's own.** Kick off the CI/deploy check (`gh run watch`/a Monitor/a polling loop) and proceed straight to Step 5 — a deploy running is not a reason to sit idle, and this applies to every deploy that comes up during the ship (the primary one, a follow-up mid-ship fix, anything else). Come back to finish 4.1–4.2 (and the task-doc write in 4.5) once the background check resolves, whether before or after Step 5. Only block synchronously if the very next step genuinely needs that deploy's specific output.
 
 Otherwise, verify production matches once the deploy resolves:
 
@@ -95,9 +91,9 @@ remote <prod-server> "cd <deploy-path>/<repo> && git log --oneline -1"
 
 Skip this step if `remote` CLI is not configured or no production server is documented.
 
-⚠️ **The deploy target is often NOT a git repo** (rsync/CI-sync deploys land plain files), so `git log` there errors or misleads — and a green CI run proves only that the *pipeline* ran, never that YOUR change is on disk. Verify the **behavior you shipped**, not the commit: grep the changed file on the server for the line you added, and resolve config/env-driven changes through the app's own bootstrap (which also proves the config cache rebuilt). ⚠️ Any grep returning `0` needs a positive control before you call it a failed deploy — `0` reads identically whether the deploy broke or your search string was never going to match (a job dispatched inside a closure never prints its class name in a scheduler listing; a bundler hoists a shared string out of the chunk you searched). Re-run unfiltered first.
+⚠️ **The deploy target is often NOT a git repo** (rsync/CI-sync deploys land plain files), so `git log` there errors or misleads — and a green CI run proves only that the *pipeline* ran, never that YOUR change is on disk. Verify the **behavior you shipped**, not the commit: grep the changed file on the server for the line you added, and resolve config/env-driven changes through the app's own bootstrap (which also proves the config cache rebuilt).
 
-⚠️ **Chain verification greps with `;`, never `&&` — a `0` result KILLS an `&&` chain and your control never runs.** `grep -c` exits **1** on zero matches, so `grep -c mystring file && grep -c CONTROL file` short-circuits at exactly the moment the control was needed, and prints a bare uncontrolled `0`. The control that exists but never executes is worse than none: it reads as a clean negative result and you trust it. Separate every probe with `;`, and confirm all three lines actually printed — the positive control missing from the output IS the bug.
+⚠️ **Any grep returning `0` needs a positive control, and the control must actually run.** `0` reads identically whether the deploy broke or the search string was never going to match (a closure-dispatched job never prints its class name in a scheduler listing; a bundler hoists a shared string out of the chunk you searched) — re-run unfiltered first. Then chain the probes with `;`, never `&&`: `grep -c` exits 1 on zero matches, so `grep -c mystring file && grep -c CONTROL file` short-circuits right when the control was needed, leaving a bare uncontrolled `0` that reads as a clean negative. Separate every probe with `;` and confirm all lines printed — a missing control IS the bug.
 
 3. If CI failed → report error, suggest `gh run rerun <id> --failed`
 4. If prod HEAD doesn't match → report mismatch
@@ -110,8 +106,9 @@ Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc,
 1. Read the shipped work's `tasks/**/current.md` (use `read-summary`) for the framing: what the effort accomplished, and its real `Status:` (done vs mitigated vs deferred).
 2. Read the latest `CHANGELOG.md` entry for the itemized change list.
 3. **Lead with the accomplishment, not caveats.** Headline = what was done ("upgraded dependencies + hardened security"). Deferred/partial work is a short closing note, not a co-headline — don't bury the win under an alarming caveat section.
-4. Format using the `gchat-format` skill (convert to Google Chat syntax).
-5. Copy to clipboard.
+4. ⚠️ **Pass the CHANGELOG entry's actual text into `gchat-format` — never paraphrase it from memory first.** Summarizing the read before formatting is where items silently drop or get replaced with generic one-liners the changelog never said; the skill's own condense step already does the WHAT-not-HOW trim, so feeding it raw text is both less work and more faithful. Before sending, count today's `### Added`/`### Changed`/`### Fixed` bullets against the output bullets — a mismatch means an item got lost, not "cleanly merged."
+5. Format using the `gchat-format` skill (convert to Google Chat syntax).
+6. Copy to clipboard.
 
 ## Output
 

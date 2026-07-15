@@ -17,13 +17,13 @@ Do these in order — the detailed rules for each are in the sections below.
 4. **Validate** — re-read: LLM-CONTEXT complete, Quick Start rewritten, no rows dropped, Last Session overwritten not appended.
 5. **Reconcile back-references** — sync any roadmap/hub/`Related:` doc that mirrors the status you just changed.
 
-The density rules below apply to *every* write in steps 3–4 — they're what keep the doc from bloating.
+The density rules below apply to *every* write in steps 3–4 — they're what keep the doc from bloating. Doc already over budget (see Size budget below)? Delegate to `condense-task-doc` rather than hand-rolling — don't reimplement its row-existence pass here.
 
 ## Density rules (apply to every write — this is what keeps docs from bloating)
 
-**Goal**: minimum tokens, maximum actionability. A cold-start session reads the doc once and acts correctly — no re-reads, no guessing. Every word that doesn't serve that goal gets cut.
+**Goal**: minimum tokens, maximum actionability. A cold-start session reads the doc once and acts correctly — no re-reads, no guessing.
 
-Two failure modes kill these docs: **the same fact restated in 4–5 sections**, and **bloated sentences**. Enforce both layers:
+Two failure modes kill these docs: the same fact restated in 4-5 sections, and bloated sentences. Enforce both layers:
 
 ### Layer 1 — one fact, one home
 
@@ -46,13 +46,11 @@ Base rules: `_shared/references/writing-style.md`. Additional rules for task doc
 
 ### Size budget
 
-`current.md` should stay **under 300 lines**. Already >300 when you open it for an update → condense FIRST, delegating to `condense-task-doc` rather than hand-rolling it — its row-existence pass (delete gotcha/decision rows discoverable-from-code, not just shorten wording) is the step most likely skipped if you improvise inline; sentence-tightening alone on a 40+-row doc cuts single-digit tokens, not a real reduction.
+`current.md` should stay **under 300 lines**, measured by byte size (`wc -c`), not line count — a whole-doc MADR rewrite can legitimately grow lines while shrinking bytes (a dense table cell becomes several short ADR Consequence bullets). Compare `wc -c` against the last committed version (`git show HEAD:<path> | wc -c`) before forcing a condense; flat/shrunk bytes means the doc restructured, not bloated. Already over budget by bytes → condense FIRST via `condense-task-doc` rather than hand-rolling — its row-existence pass (delete gotcha/decision rows discoverable-from-code) is the step most likely skipped when improvising; sentence-tightening alone on a 40+-row doc isn't a real reduction.
 
-⚠️ **Line count is a proxy, not the metric — check byte size (`wc -c`) before forcing a condense.** A whole-doc MADR rewrite (see templates.md) can legitimately GROW lines while SHRINKING bytes: a dense table cell becomes several short bullets in an ADR's Consequences — more newlines, fewer characters. Compare `wc -c` on both versions before condensing solely because lines crossed 300 (`git show HEAD:<path> | wc -c` vs current) — bytes flat/dropped means the doc restructured, it didn't bloat.
+⚠️ **MADR is the default decision structure.** Every `## Key Technical Decisions` entry is an MADR block (Problem/Decision/Rejected/Consequences/Status, per templates.md) by default, not an upgrade for decision-heavy docs. Escape to a plain `| Decision | Rationale |` row only when no alternative was genuinely considered. Whole-doc MADR already over budget after legitimate growth → split into index + `decisions/<theme>.md` (templates.md) as part of the current write, don't ask first.
 
-⚠️ **MADR is the default decision structure — apply on every create/update.** Every decision in `## Key Technical Decisions` is an MADR block (Problem/Decision/Rejected/Consequences/Status) by default (templates.md "MADR-Style Decisions"), not an upgrade reserved for decision-heavy docs. Escape hatch to a plain `| Decision | Rationale |` row ONLY when the decision genuinely had no alternative considered (Rejected would come up empty). Already whole-doc MADR AND >300 lines after legitimate ADR growth → split into index + `decisions/<theme>.md` by default (templates.md "Splitting a whole-doc MADR further") as part of the current write, don't ask first.
-
-Litmus tests before finishing: (1) grep your doc for the 2-3 most critical phrases — a phrase in >2 sections means collapse the extras to pointers; (2) scan for sentences with 2+ parentheticals or commit hashes outside Last Session — rewrite them.
+Litmus tests before finishing (also see Validate §5.8): (1) grep the doc for its 2-3 most critical phrases — >2 sections containing one means collapse the extras to pointers; (2) scan for sentences with 2+ parentheticals or commit hashes outside Last Session — rewrite them.
 
 ## 1. Resolve Path
 
@@ -166,7 +164,7 @@ Prevent unbounded growth — apply when updating:
 
 | Section | Prune when |
 |---------|------------|
-| Whole doc | >300 lines AND byte size grew vs the last committed version → mandatory condense pass before your update (see Size budget). Byte size flat/shrunk → likely a legitimate restructure (e.g. whole-doc MADR), not bloat — skip the forced condense. |
+| Whole doc | Over budget by bytes → condense first (see Size budget above). |
 | `## Task Status` | A work stream finishes (committed + reviewed) → collapse its rows to one summary row. Don't wait for ALL rows ✅ |
 | `## Bugs Fixed` | >10 rows → keep last 5, summarize older as "N earlier bugs fixed" |
 | `## Files` | Per-phase subsections exist → replace with one living map of key files |

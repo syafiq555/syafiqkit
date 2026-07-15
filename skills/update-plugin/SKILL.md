@@ -41,6 +41,8 @@ Look for these signals in the session:
 | A "keyword trap" or nuance that future sessions need to know | Add as a named rule with a concrete example in the relevant skill |
 | A skill (or its `references/*.md`) reads as bloated/dense — the user says "this feels bloated", or bytes/line is noticeably high | **Density pass** — see Step 3a |
 
+⚠️ **Step 3a is unconditional, not gated on the bloat signal above** — every file Step 3 patches gets a density pass in the same edit, bloat-triggered or not. This is how files stay lean: fixed one small edit at a time, not left to drift. The signal row above still matters for a file that isn't otherwise being touched this run.
+
 Skip signals that are project-specific OR a durable working-style/communication preference (both go to `update-claude-docs` instead — a style pref lands in global `~/.claude/CLAUDE.md`, never a SKILL file). The test: would this change alter how a *skill* triggers or behaves? If yes, it belongs here; if it's about how *Claude* should communicate generally, it doesn't.
 
 ## Step 2 — Route: Which file needs patching?
@@ -57,11 +59,11 @@ For each signal, identify the target:
 
 Read the target file before writing. Check whether the fix already exists — if a rule is present but Claude ignored it, the fix is to strengthen the wording, not duplicate the rule.
 
-⚠️ **A fix to one skill's handling of a shared mechanism (a field, table, or convention several skills read/write) is a fix to all of them — check siblings before calling it done.** The signal-scan in Step 1 is intentionally scoped to this session, not a plugin-wide sweep — but once a signal IS captured, `grep -l` the fixed field/table/convention name across `skills/*/SKILL.md` and patch every skill that touches it the same way, not just the one the session happened to exercise. Example: fixing `task-summary`'s handling of the LLM-CONTEXT `Last updated` field also means checking `condense-task-doc` and `merge-task-docs`, which read/write the same field and would silently regress it back in on their next run otherwise.
+⚠️ **A fix to one skill's handling of a shared mechanism (a field, table, convention several skills read/write) is a fix to all of them.** Step 1's scan is session-scoped, not plugin-wide — but once a signal IS captured, `grep -l` the field/table/convention name across `skills/*/SKILL.md` and patch every skill that touches it the same way. Example: fixing `task-summary`'s LLM-CONTEXT `Last updated` handling also means checking `condense-task-doc` and `merge-task-docs`, which read/write the same field.
 
 ## Step 3 — Write: Patch the skill files
 
-For each change, apply the most targeted edit possible:
+For each change, apply the most targeted edit possible, AND run the Step 3a density pass on every file you touch (see below — this is not optional):
 
 **Fixing a trigger description** — rewrite the `description:` frontmatter to include the missing context. Trigger descriptions work by keyword match against the user's message; they should name:
 - The action words users say ("merge", "consolidate", "find related")
@@ -80,7 +82,9 @@ Both tables must stay in sync.
 
 ### Step 3a — Density pass
 
-SKILL.md files are not CLAUDE.md files — `condense-claude-md`/`condense-task-doc` don't apply. Hand-edit using this checklist. Line count alone is a poor signal (most bloated skills in this plugin still sat under 250 lines); run `wc -lc` and flag anything above ~80-90 bytes/line for a closer read.
+SKILL.md files are not CLAUDE.md files — `condense-claude-md`/`condense-task-doc` don't apply. Line count alone is a poor signal (most bloated skills in this plugin still sat under 250 lines); run `wc -lc` and flag anything above ~80-90 bytes/line for a closer read.
+
+Execution model (draft/verify split): `_shared/references/two-tier-condense.md`. Checklist below is this skill's own — what to cut, specific to SKILL.md files:
 
 | Pattern | Fix |
 |---------|-----|
@@ -91,7 +95,7 @@ SKILL.md files are not CLAUDE.md files — `condense-claude-md`/`condense-task-d
 | A duplicate rule copied from a sibling skill instead of pointed to (e.g. a numeric threshold restated in two files) | Replace with a pointer to the canonical skill — divergence risk if only one gets updated later |
 | A clear hot-path default plus a distinct, infrequently-invoked mode/branch fully inlined in SKILL.md (15+ lines) | Extract to `references/<mode>.md`, leave a short pointer summary — SKILL.md stays lean for the path used every invocation |
 
-After editing: re-run `wc -lc`, confirm no behavioral content was cut (only reworded/relocated), and bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention.
+After verifying clean (per the shared reference's Verify step): bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention.
 
 ## Step 4 — Validate
 
@@ -99,6 +103,7 @@ After writing:
 - Re-read each changed file. Confirm the new content doesn't duplicate an existing row.
 - For trigger description changes: read the new description and ask "would this have caught what was missed in this session?" If no, revise.
 - For rule additions: ask "is this a one-time project quirk, or will this pattern recur across projects?" If one-time, skip it.
+- Confirm Step 3a's draft+verify ran on every file touched this session — `wc -lc` each, ratio dropped or held flat, and the diff-verify sub-step actually happened (not skipped because the draft "looked fine").
 
 ## What NOT to capture here
 

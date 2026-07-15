@@ -1,7 +1,6 @@
 ---
 name: condense-task-doc
 description: Aggressively condense a bloated task doc (current.md or any markdown living-doc) — collapse investigation narratives into table rows, strip verification numbers and commit hashes, remove duplicated facts across sections, trim Quick Start to ≤15 lines, and rewrite in place. Trigger when the user says "condense this", "shrink this doc", "trim the task doc", "remove what's not needed", "restructure/rephrase shorter", or any variation implying the doc has grown too large. Also auto-trigger when updating a task doc that is already >300 lines — condense first, then write the update. When the doc is a whole-doc MADR (decision-log) still >300 lines after a legitimate conversion, this skill SPLITS it (index + decisions/<theme>.md files) by default instead of condensing — see Process step 2. Do NOT confuse with condense-claude-md (which handles CLAUDE.md files, not task docs).
-tools: Read, Write, Edit
 ---
 
 # Condense Task Doc
@@ -50,7 +49,7 @@ Do NOT keep:
 - Implementation detail that's obvious from reading the code
 - Root cause narration beyond what's needed to recognize a recurrence
 
-⚠️ **Row-existence pruning is a separate pass from sentence-compression — do both, not just the second.** Compressing every row's wording while deleting none is the most common under-condense: a doc can lose 5% from tighter sentences and still be bloated because half its rows shouldn't exist. Before compressing a single sentence, run the whole Critical Gotchas / Key Technical Decisions table through the keep-test above and **delete** (not shrink) any row that fails it. Tell for "discoverable from code, delete the row": the fix is the first thing any competent engineer would try on seeing the symptom (e.g. generic framework behavior, not a project-specific gotcha) — keep only what's counter-intuitive to THIS project's architecture.
+⚠️ **Row-existence pruning is a separate pass from sentence-compression — do both.** The most common under-condense: tighter sentences, zero rows deleted, still bloated. Before compressing a sentence, run the whole Critical Gotchas / Key Technical Decisions table through the keep-test above and **delete** (not shrink) any row that fails it. Tell: if the fix is the first thing any competent engineer would try on seeing the symptom (generic framework behavior, not project-specific), delete the row.
 
 ---
 
@@ -74,23 +73,24 @@ Do NOT keep:
 ## Process
 
 1. `Read` the full doc.
-2. **Check whether this is actually bloat before touching anything.** Line count alone is misleading: a whole-doc MADR restructure (`## Architecture Decisions` / `### D1` blocks) turns dense wrapped table cells into several short bullet lines, growing lines while shrinking bytes. Run `git show HEAD:<path> | wc -c` vs `wc -c <path>`. Bytes flat or lower → this is a restructure, not bloat — stop, tell the user, report both deltas. Bytes grew because of genuinely new ADRs (not restructure artifacts) and the doc is still >300 lines → also not condensable bloat: every ADR earns its place, so row-existence pruning (step 6) has nothing to cut. **Split** instead — index + `decisions/<theme>.md` files per `task-summary/references/templates.md`'s "Splitting a whole-doc MADR further" — as the default action, not something to ask permission for first. Only proceed with condensing past this step if bytes grew from accumulated cruft, not legitimate MADR growth.
+2. **Check whether this is actually bloat first.** Line count alone is misleading: a whole-doc MADR restructure (`## Architecture Decisions` / `### D1` blocks) turns dense wrapped table cells into several short bullet lines, growing lines while shrinking bytes. Run `git show HEAD:<path> | wc -c` vs `wc -c <path>`. Bytes flat or lower → restructure, not bloat — stop, tell the user, report both deltas. Bytes grew from genuinely new ADRs (not restructure artifacts) and still >300 lines → also not condensable: every ADR earns its place, row-existence pruning (step 6) has nothing to cut. **Split** instead — index + `decisions/<theme>.md` files per `task-summary/references/templates.md`'s "Splitting a whole-doc MADR further" — as the default action, not a request for permission. Proceed with condensing only if bytes grew from accumulated cruft, not legitimate MADR growth.
 3. Read `task-summary/references/templates.md` — note the canonical section headings, table column names, and field order for every section present in the doc.
 4. Identify all `## Investigation` or narrative-only sections — these are the primary source of bloat. Plan to collapse them into Bugs Fixed rows.
 5. Scan for fact duplication: grep for the 2-3 most critical phrases. If a phrase appears in >2 sections, keep it in one canonical location and convert the others to pointers. Specifically check every Bugs Fixed row against Critical Gotchas — a bug ID or symptom described in both is the most common duplication pattern in a doc that already went through one condensation pass.
-6. **Row-existence pass (mandatory, do BEFORE sentence compression)**: for every row in Critical Gotchas and Key Technical Decisions, apply the keep-test in "What to keep" above and delete rows that fail it — not just shorten them. On a doc with 20+ gotcha/decision rows, expect to delete some; a pass that only tightens wording and drops zero rows has not done this step.
-7. Rewrite the file using `Write` (full rewrite, not incremental `Edit`). Partial edits on a bloated doc leave stale content between hunks.
+6. **Row-existence pass (mandatory, before sentence compression)**: for every row in Critical Gotchas and Key Technical Decisions, apply the keep-test in "What to keep" and delete rows that fail it — not just shorten them. On a doc with 20+ rows, expect to delete some; zero deletions means this step wasn't done.
+7. **Draft + verify**: execution model is `_shared/references/two-tier-condense.md` — spawn a background Haiku agent to do the full rewrite (`Write`, not incremental `Edit`; partial edits on a bloated doc leave stale content between hunks), giving it steps 1-6's findings (the row-deletion list, the duplication map, the section plan) so it isn't re-deriving them blind. Then verify per the shared reference before accepting.
 8. Count BOTH lines and bytes before and after (`wc -lc`). Report both deltas to the user.
-9. Target: **≤300 lines** for a task doc with a full bug history, AND a real cut — a doc that started under 300 lines still needs step 6 applied; "already under budget" is not a reason to skip row-deletion. Line count alone is not the success gate: check bytes-per-line before declaring done — above ~120-150 (loose eyeball), or `## Files`/`## Task Status`/`## Bugs Fixed` each still >4KB, is a second bloat signal independent of the 300-line threshold. Run a second, more aggressive pass on those specific sections before reporting done; don't wait for the user to say "still bloated."
+9. Target: **≤300 lines** for a task doc with a full bug history, AND a real cut — "already under budget" does not excuse skipping step 6. Line count alone is not the success gate: bytes-per-line above ~120-150, or `## Files`/`## Task Status`/`## Bugs Fixed` each still >4KB, is a second bloat signal. Run a second, more aggressive pass on those sections before reporting done.
 
 ---
 
 ## Hard rules
 
-- **Never use `Edit` for a full condensation** — `Write` the whole file.
+- **Never use `Edit` for a full condensation** — the drafting agent `Write`s the whole file (step 7).
 - **Strip tool-output wrapper artifacts before writing** — if the file content came into context via a `Read` result, do not carry over `<content>`/`</content>` or any other tool-framing tags into the `Write` payload. Compose the rewritten body from the actual markdown only; verify the last line of the new file is real doc content (e.g. a `Last Session` bullet), not a leaked tag.
 - **Never invent content** — only restructure what exists. If a fact is ambiguous, compress rather than rewrite its meaning.
 - **Never delete a Next Step** — only remove items that are clearly completed (marked ✅ or described in the past tense in a Bugs Fixed row).
 - **Preserve LLM-CONTEXT block** — update it to match the condensed content, but keep all fields (Status, Domain, Gotchas, Related, Last updated). `Last updated` states the date + a one-line summary of what changed — it does NOT restate commit/deploy status prose ("uncommitted"/"LIVE in production"); that belongs solely in Quick Start's state line (task-summary's "one fact, one home" rule). If the doc being condensed has that phrase duplicated in both places, collapse it to Quick Start and point `Last updated` there instead of copying it forward.
 - **Preserve (or correct to) template structure** — column names, table formats, and section order must match `task-summary/references/templates.md` verbatim. Condensing does not grant license to rename columns or substitute bullets where a table is specified. Fix non-conformant structure in the same pass.
-- **Report line count before and after** so the user can see the reduction.
+- **Report line count before and after.**
+- Content-loss verification is step 7's job (`_shared/references/two-tier-condense.md`) — it also covers sections step 4/6 never explicitly named (a reference table, a credentials note, an unrelated cross-link swept up in the rewrite).

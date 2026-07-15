@@ -85,6 +85,8 @@ model: sonnet                           # Optional: override model
 ---
 ```
 
+⚠️ **`allowed-tools:`/`tools:` is a fixed enum, not an appendable allowlist — there is no way to add `Agent` to an existing list.** A skill that needs to spawn agents (background Haiku drafts, sub-delegation) omits the `tools:`/`allowed-tools:` line entirely instead — see `done`, `ship`, `agent-setup`, none of which declare it. Appending `Agent` to an existing list silently fails to grant it.
+
 **Agent templates** (`skills/agent-setup/templates/*.template.md`):
 ```yaml
 ---

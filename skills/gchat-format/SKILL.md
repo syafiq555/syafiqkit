@@ -98,7 +98,7 @@ Tables are not supported in Google Chat. Convert each row to a bullet, with the 
 * *First Name*: Yes, Tenant name
 ```
 
-**Wide tables (4+ columns):** do NOT cram all column values into one comma-separated line -- it becomes unreadable. Instead, make the first column a bold top-level bullet, and give each remaining column its own indented sub-bullet as `column header: value`.
+**Wide tables (4+ columns):** do NOT cram all column values into one comma-separated line -- it becomes unreadable. Instead, make the first column a **bold LABEL LINE with NO bullet marker**, and give each remaining column its own sub-line prefixed with a `-` dash as `column header: value`.
 ```
 | Agency | Platform fee | Gateway fee | Net now | Impact |
 |--------|-------------:|------------:|--------:|-------:|
@@ -106,13 +106,13 @@ Tables are not supported in Google Chat. Convert each row to a bullet, with the 
 
 ->
 
-* *Acme*
-   * Platform fee: 771.45
-   * Gateway fee: 75.00
-   * Net now: 673.45
-   * Impact: -RM 10
+*Acme*
+- Platform fee: 771.45
+- Gateway fee: 75.00
+- Net now: 673.45
+- Impact: -RM 10
 ```
-Note: Google Chat does not render true nested indentation -- indented sub-bullets display as flat bullets with a small leading space, which is still far more scannable than one long comma-separated line. If the wide table has many rows, offer a trimmed version too (e.g. totals only, or top N rows).
+⚠️ **NEVER indent a `*` bullet to fake nesting** (`* *Acme*` parent + indented `   * Platform fee` children). Google Chat bullet-izes a `*` ONLY when it is the first character of the line — a `*` with any leading whitespace is NOT rendered as a bullet, it leaks as a **literal asterisk** on a flat line, producing ragged "• Acme / * Platform fee" output. Chat has no nested-bullet support to degrade into. The label-line + `-` sub-line shape above is the ONLY reliable multi-value row. (Same applies to grouping ANY parent-with-sub-values, e.g. a feature-comparison row with two values: bold the parent as a plain line, dash the values under it.) If the wide table has many rows, offer a trimmed version too (e.g. totals only, or top N rows).
 
 > Label columns (first column of a table row, and each sub-bullet's column header) must ALWAYS use `*bold*`, not `_italic_`.
 > Italic (`_text_`) is only for prose text that was explicitly italic in the source -- never for labels, field names, or headings.

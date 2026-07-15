@@ -18,7 +18,7 @@ description: >-
 
 # Function Parameter Limits
 
-A function's parameter count is one of the cheapest, highest-signal smells in code review. This skill carries the rule, the reasoning behind it, and the procedure to enforce it with a linter — without the two traps that make naive enforcement backfire.
+A function's parameter count is one of the cheapest, highest-signal smells in code review. This skill states the rule, the reasoning, and the procedure to enforce it with a linter — avoiding the two traps that make naive enforcement backfire.
 
 ## The rule (and why)
 
@@ -50,7 +50,7 @@ When you hit a function with 3+ params, don't just flag the count — diagnose *
 
 ## When enforcing (adding a lint rule)
 
-The procedure is the same shape in every language; the tool and limit differ. Read the reference file for the project's stack:
+Same shape in every language; the tool and limit differ. Read the reference file for the project's stack:
 
 | Stack | Tool | Reference |
 |-------|------|-----------|
@@ -68,19 +68,17 @@ High-level workflow (details + exact commands per stack in the reference):
 
 ## Two gotchas that make or break enforcement
 
-These are the non-obvious lessons. A generic "Clean Code says 3" answer misses both, and they're what cause naive setups to fail.
+### 1. DI constructors legitimately have many params
 
-### 1. Dependency-injection constructors legitimately have many params
+In DI-heavy codebases (Laravel DDD Services/Actions, Spring, NestJS, Angular), a constructor taking 6+ injected collaborators is *idiomatic*, not a smell — same for data-carrier constructors (Mailables, Events, DTOs with many fields). A flat limit flags all of them as false positives and the rule gets ignored.
 
-In DI-heavy codebases (Laravel DDD Services/Actions, Spring, NestJS, Angular), a constructor taking 6+ injected collaborators is *idiomatic*, not a smell — the same is true of data-carrier constructors (Mailables, Events, DTOs with many fields). A flat limit applied to constructors flags all of them as false positives and the rule gets ignored.
+**Fix:** exclude constructors. If the linter can't (PHPMD's `ExcessiveParameterList` has no exclude-by-name), filter them out in the runner script (`grep -v` the constructor token) or pick a limit high enough that no constructor trips it. Per-stack references show the exact mechanism.
 
-**Fix:** exclude constructors. Some linters can't do this in the ruleset (PHPMD's `ExcessiveParameterList` has no exclude-by-name) — in that case filter constructors out in the runner script (e.g. `grep -v` the constructor token), or pick a limit high enough that no constructor trips it. The per-stack references show the exact mechanism.
+### 2. Verify blast radius with the real tool, never a line-oriented grep
 
-### 2. A single-line regex undercounts multi-line signatures — verify with the real tool, never a grep heuristic
+A line-oriented `grep`/`rg` can't span newlines, so any signature written one-param-per-line returns a false zero — and DI constructors are almost always multi-line, so this undercounts by an order of magnitude.
 
-The instinct to scope blast radius with `rg 'function \w+\(.*,.*,.*,'` is a **false-negative trap**: a line-oriented `rg`/`grep` can't span newlines, so every signature written one-param-per-line returns zero matches — and DI constructors are almost always multi-line. This produces a confident "only ~3 violations, no constructors affected" estimate that is flatly wrong (the real number can be 10× higher).
-
-**Fix:** measure with the actual linter (`eslint`, `phpmd`, `pylint`) which parses an AST, or use `rg -U` for multiline. Never set a limit or claim "0 constructors affected" off a single-line grep. If you must grep, prove the count against the tool before trusting it.
+**Fix:** measure with the actual linter (`eslint`, `phpmd`, `pylint`) — it parses an AST. If you must grep, use a multiline-aware flag and prove the count against the tool before trusting it.
 
 ## Output when invoked
 

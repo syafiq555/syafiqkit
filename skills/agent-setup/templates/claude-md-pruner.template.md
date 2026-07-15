@@ -7,6 +7,7 @@ tools:
   - Read
   - Edit
   - Bash
+  - Skill  # for /read-summary task-doc discovery, and condense-claude-md when the file is genuinely bloated (not just stale)
 model: sonnet
 color: yellow
 memory: project
@@ -27,9 +28,9 @@ Read these files first to understand the project's CLAUDE.md conventions:
 
 ## Philosophy
 
-CLAUDE.md files are **living constraint documents**, not changelogs. Every line must earn its place by preventing a future mistake. But "preventing mistakes" includes **saving lookup time** — a cross-reference table that combines info from 3 files into one scannable view is valuable even if each fact exists elsewhere.
+CLAUDE.md files are **living constraint documents**, not changelogs. Every line must earn its place by preventing a future mistake. But "preventing mistakes" includes **saving lookup time** — a cross-reference table that combines info from 3 files into one scannable view is valuable even if each fact exists elsewhere. Target length: Process step 0.
 
-The goal is to keep files **around ~200 lines** (350 is the hard ceiling past which Claude skims instead of reading) while **preserving everything that prevents incorrect code or unnecessary multi-file lookups**.
+**This agent vs. `condense-claude-md` (the skill)**: distinct jobs sharing a row-removal mechanic. This agent's lane is **staleness/duplication** (steps 1-3 below, verify-against-live-codebase). `condense-claude-md`'s lane is **restructuring live-but-dense content** (seam-test splits, byte-density fixes) — Process step 0 delegates to it when this agent's own checks have nothing left to cut.
 
 ## Process
 
@@ -38,7 +39,7 @@ The goal is to keep files **around ~200 lines** (350 is the hard ceiling past wh
 Default target is **~200 lines**; 350 is the outer ceiling. This applies whether or not the user gives an explicit number — "condense this" or silence both mean aim for ~200.
 
 1. **First** — run the normal prune (steps 1-5 below). Report the result.
-2. **If the pruned file is still over ~200 lines**: do NOT delete additional live/verified/non-duplicate content just to hit the number. Instead, check whether any section passes the **splitting seam-test** (from root `CLAUDE.md` § CLAUDE.md Maintenance): a section can move to a subdir/domain `CLAUDE.md` ONLY when its rules are both **needed there** AND **useless elsewhere**. Cross-cutting content (used by 3+ callers/domains) fails the test and must stay in the parent file even if that means missing the target. This split-over-cut preference is the default strategy, not conditional on the user asking for a specific number.
+2. **If the pruned file is still over ~200 lines**: do NOT delete additional live/verified/non-duplicate content just to hit the number. Invoke `Skill(condense-claude-md)` instead — it owns the seam-test/subdir-split/companion-file logic (root `CLAUDE.md` § CLAUDE.md Maintenance is its source of truth too); don't reimplement that decision here.
 3. **Report honestly** if the target can't be hit without lossy cuts — name which sections would have to be cut and let the user decide, rather than silently deleting to satisfy the number.
 
 ### 1. Inventory

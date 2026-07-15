@@ -9,12 +9,12 @@ Execute all steps in sequence without pausing for confirmation.
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| Omitting `run_in_background` on any Agent call | Pass `run_in_background: false` **explicitly** — omitting the flag has still returned an async task; only the explicit `false` reliably blocks. Most often dropped on the FIRST agent of a batch, when composing calls one at a time instead of the whole block |
+| Omitting `run_in_background` on any Agent call | Pass `run_in_background: false` **explicitly** — omitting it has still returned an async task. Most often dropped on the first agent of a batch |
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
 | Send an agent a prompt whose ROLE doesn't match its `subagent_type` (product-review content to `code-reviewer`) | The prompt's role and the `subagent_type` must be the SAME role. A mis-prompted agent silently skips BOTH — the role you invoked never ran, and the role you asked for wasn't registered as run. It still looks "spawned" to every downstream check |
 | Report a step done when only PART of it ran (reviewers but no simplifiers; Step 3 but no Step 4) | Every step below is a CHECKLIST, not prose. Before reporting, tick each named part — a step with an unticked part is NOT done |
 
-⚠️ **MANDATORY — the steps are a checklist; run them ALL, and verify before reporting.** Each multi-part step (Step 1's three lenses, Steps 3+4's two skills) is stated below as an explicit tick-list; the Output table's row is only fillable once its part actually ran. If a part is deliberately skipped, the row says `➖ <reason>` — never leave it silently blank.
+⚠️ **MANDATORY — the steps are a checklist; run them ALL, and verify before reporting.** Each multi-part step (Step 1's three lenses, Steps 3+4's two skills) is an explicit tick-list; an Output row is only fillable once its part actually ran. If a part is deliberately skipped, the row says `➖ <reason>` — never leave it silently blank.
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
 
@@ -22,8 +22,8 @@ Execute all steps in sequence without pausing for confirmation.
 
 **Light mode** when the session touched **<5 files in a single domain** AND no new feature/architecture was introduced (bug fix, small tweak, config change):
 - Step 1: ONE reviewer agent only (skip the separate simplifier — tell the reviewer to also flag obvious duplication; skip the product reviewer — a trivial fix has no new feature journey to judge).
-- ⚠️ **Exception — a small diff that EXPOSES or CHANGES a user-facing capability is NOT light** (a new toggle/button/field/route, a status control, anything a user now acts on). File count measures diff size, not journey significance — a one-line change can complete or fake a whole journey. Run the product reviewer (go full mode for Step 1) even at 1 file.
-- ⚠️ **Exception — if you DROVE the real user journey this session (browser, real account, real flow), always run the product reviewer**, whatever the file count. A bug *found* by clicking through a flow leaves you holding observations that exist nowhere else — a prefilled field silently rejected, a "try again" that can never succeed, a dead-end with no error — and they are gone next session. Note the first exception won't catch this: a fix that RESTORES a broken capability exposes nothing new, so it reads as light while sitting on the freshest product evidence you will ever have. Skipping the lens here discards evidence no code read can regenerate.
+- ⚠️ **Exception — a small diff that EXPOSES or CHANGES a user-facing capability is NOT light** (a new toggle/button/field/route, a status control, anything a user now acts on). File count measures diff size, not journey significance — run the product reviewer (full mode for Step 1) even at 1 file.
+- ⚠️ **Exception — if you DROVE the real user journey this session (browser, real account, real flow), always run the product reviewer**, whatever the file count. Observations from clicking through a flow (a prefilled field silently rejected, a dead-end with no error) exist nowhere else and are gone next session. The first exception won't catch this: a fix that RESTORES a broken capability exposes nothing new, so it reads as light while sitting on the freshest product evidence you'll ever have.
 - Step 4: invoke `syafiqkit:task-summary` WITH the known doc path (skip the multi-domain scan — you already know the one affected doc).
 - Output: the compact single-table form (see Output).
 
@@ -35,7 +35,7 @@ Execute all steps in sequence without pausing for confirmation.
 
 **Infra-only mode** when the diff is **entirely deploy/build/CI plumbing** and no application code — CI workflows (`.github/workflows/*.yml`, `.circleci/`), `docker-compose*.yml`/`Dockerfile`, build config (`next.config.*`, `vite.config.*`), nginx/env config. The **mirror image of docs-only**: docs need no reviewer; infra needs *only* the reviewer, and needs it badly.
 - Step 1: **reviewer ONLY.** Skip the simplifier (no logic to DRY) and the product reviewer (no user journey). Size-independent — the trigger is file KIND, not count.
-- ⚠️ **Prompt the reviewer adversarially: infra fails SILENTLY.** A broken deploy step exits 0 and reports success (an `nginx -s reload` re-reading an orphaned inode), and lint/typecheck/tests all pass — review is the only thing that catches it. Give it the change's PURPOSE and what it must not break, and ask it to verify empirically rather than reason from docs. Beware blanket-applying one fix to every occurrence of a pattern: two call sites of the same command can need opposite treatments.
+- ⚠️ **Prompt the reviewer adversarially: infra fails SILENTLY.** A broken deploy step exits 0 and reports success (an `nginx -s reload` re-reading an orphaned inode) while lint/typecheck/tests all pass — review is the only thing that catches it. Give it the change's PURPOSE and what it must not break, and ask it to verify empirically rather than reason from docs. Beware blanket-applying one fix to every occurrence of a pattern — two call sites of the same command can need opposite treatments.
 - Steps 2-4 as normal. Output: mark Simplify/Product as ➖ "infra-only".
 - ⚠️ **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer (see Light mode's exception).
 
@@ -75,13 +75,9 @@ Glob: .claude/agents/product-reviewer.md
 | Reviewer | `subagent_type: "code-reviewer"` | `"feature-dev:code-reviewer"` |
 | Product reviewer (full mode only) | `subagent_type: "product-reviewer"` | *(none — skip if the project file is absent)* |
 
-⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it only when the user asks to verify in the browser, or when the diff touches user-facing UI **and** the user wants runtime proof. It is not counted in the agent table below and never partitioned. See `## Optional: browser verification`.
+Run the Glob first every time — don't assume the project agent exists or doesn't (e.g. a hit spawns `code-reviewer`; a miss spawns `feature-dev:code-reviewer`).
 
-<example>
-`Glob: .claude/agents/code-reviewer.md` returns a hit → spawn `subagent_type: "code-reviewer"`.
-Same Glob returns nothing → spawn `subagent_type: "feature-dev:code-reviewer"`.
-Run the Glob first every time — don't assume the project agent exists or doesn't.
-</example>
+⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it only when the user asks to verify in the browser, or when the diff touches user-facing UI **and** the user wants runtime proof. It is not counted in the agent table below and never partitioned. See `## Optional: browser verification`.
 
 **Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first with **`git status --short`** (run it in EVERY repo of a multi-repo project), then pick agents-per-role:
 
@@ -95,9 +91,7 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 
 ⚠️ **The count is PER ROLE — it multiplies, it does not replace.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer. Spawning N agents *total* (all of one role) is the failure this table exists to prevent: at 41+ files, 3 agents is wrong — **7** is right. The product reviewer is always exactly 1 (it judges the whole feature, so it is never partitioned).
 
-⚠️ **ALL agents go in ONE tool-call block. A second message to "add the missing ones" means the step already ran wrong.**
-
-**Pre-flight — this is a COUNT check on the block you are about to emit, not a sentence you say.** Saying "3 agents" and then emitting 1 `Agent` call raises no error, so the roll-call binds nothing on its own. Before sending, write the literal list of calls — `subagent_type` + role, one line each — then verify the list length equals the roll-call TOTAL:
+⚠️ **ALL agents go in ONE tool-call block — this is a count check on the block you're about to emit, not a sentence you say.** Saying "3 agents" then emitting 1 `Agent` call raises no error. Before sending, write the literal list of calls — `subagent_type` + role, one line each — and verify the list length equals the roll-call TOTAL:
 
 ```
 1. code-reviewer   → reviewer   (bugs/security/conventions)
@@ -106,7 +100,7 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 TOTAL = 3 → emit exactly 3 Agent calls in ONE block.
 ```
 
-If the block you are composing has fewer entries than TOTAL, **stop and add them before sending** — do not send a partial block intending to follow up.
+If the block has fewer entries than TOTAL, add them before sending — never send a partial block intending to follow up.
 
 A user arg always wins: "2 agents each" / "4 each" sets the per-role count explicitly (ignore the table); a count is also implied by "split it up". Light mode (`<5` files) is the ONE case with an asymmetric count (1 reviewer + 0 simplifier) — it takes precedence over the table's top bucket.
 
@@ -140,11 +134,11 @@ When count >1 per role, **partition the file list** across the same-role agents 
 
 **Its findings are evidence, not fixes** — it is read-only by design. A `BLOCKED` result is a valid outcome and must be surfaced as-is; do **not** relax an assertion or re-run until it goes green. If it reports a bug, confirm it against the code before fixing.
 
-⚠️ **The agent's DIFFICULTY is a finding too — not just its verdict, and it is the one that evaporates.** When it reports `BLOCKED`, hits a wrong-class/wrong-method error, needs a login recipe it had to derive, or you had to hand-write an instruction into a second agent's prompt to get past something — **that friction is a defect in the docs or the agent file, and it does not reach Steps 3-5 on its own.** A `/done` that "passed" while a run was wasted has failed silently. Ask before closing: *what did the agent get stuck on, and where would it have had to read to not get stuck?* Then route it — a wrong fact → Step 3 (`update-claude-docs`); a missing recipe/escape-hatch in the agent's own file → patch `.claude/agents/<agent>.md`; a defect in a skill's instructions → Step 5.
+⚠️ **The agent's DIFFICULTY is a finding too, and it's the one that evaporates.** A `BLOCKED` result, a wrong-class/wrong-method error, a login recipe it had to derive, or an instruction you had to hand-write into a second agent's prompt — that friction is a defect in the docs or the agent file, and it doesn't reach Steps 3-5 on its own. Ask before closing: *what did the agent get stuck on, and where would it have had to read to not get stuck?* Route it — a wrong fact → Step 3 (`update-claude-docs`); a missing recipe in the agent's own file → patch `.claude/agents/<agent>.md`; a defect in a skill's instructions → Step 5.
 
-⚠️ **A `BLOCKED` whose stated cause is a "known bug" is a claim to CHECK, not accept.** The agent reads the project docs and repeats what they say — so a doc row still calling something an OPEN BUG that was since closed as won't-fix will dispatch it on a false errand, and it will report the blocker with full confidence. Before believing the block, verify the cause against the task doc that OWNS that decision. Its diagnosis may be the stale artifact, and the accepted workflow (a UI step, a role/agency switch) may be sitting there unread.
+⚠️ **A `BLOCKED` whose stated cause is a "known bug" is a claim to CHECK, not accept** — the agent repeats what the docs say, and a doc row still calling something an open bug that was since closed as won't-fix dispatches it on a false errand with full confidence. Verify the cause against the task doc that OWNS that decision before believing the block.
 
-⚠️ **An agent's claim that the user approved something is unverified, NOT automatically false — check, don't assume either way.** ⚠️ **The user can steer any agent mid-run and invoke skills inside it, on a channel you never see** — so an agent doing work outside the prompt YOU gave it is *expected*, not evidence of anything. Both errors are live and the second is costlier, because it accuses the user of misconduct over their own work and proposes reverting it. Resolve it by reading the agent's own transcript (`<session-id>/subagents/agent-<id>.jsonl`, real `user` turns minus skill injections and `<system-reminder>`s): **hits = the user drove it, the work is authorized; zero hits = the agent invented the consent, and that decision is still unreviewed.** Never report an agent as rogue/unauthorized without that check. Either way the underlying FINDING is real evidence — only the attribution is in question.
+⚠️ **An agent's claim that the user approved something is unverified, not automatically false.** The user can steer any agent mid-run and invoke skills inside it, on a channel you never see — work outside the prompt you gave it is expected, not evidence of misconduct. Resolve by reading the agent's own transcript (`<session-id>/subagents/agent-<id>.jsonl`, real `user` turns minus skill injections and `<system-reminder>`s): hits = the user drove it, authorized; zero hits = the agent invented the consent, still unreviewed. Never report an agent as rogue without that check — the underlying finding is still real evidence either way, only the attribution is in question.
 
 ## Step 2: Clean up temp code
 
@@ -205,7 +199,7 @@ Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstrea
 
 ⚠️ Every row of the Output table below is a claim that a step ran. Before writing it, verify each claim against what you ACTUALLY invoked this session — not what you intended to:
 
-⚠️ **"Spawned" is not enough — the agent's PROMPT must have matched its role.** An agent handed the wrong role's prompt (product-review content sent to `code-reviewer`) still *looks* spawned, so this gate passes while the actual review never happened. Check the prompt you sent, not just the `subagent_type` you named.
+⚠️ **"Spawned" is not enough — the agent's PROMPT must have matched its role.** An agent handed the wrong role's prompt (product-review content sent to `code-reviewer`) still looks spawned, so this gate passes while the review never happened. Check the prompt you sent, not just the `subagent_type` you named.
 
 | Row | Only fillable if you actually... | Full-mode expectation |
 |-----|----------------------------------|-----------------------|

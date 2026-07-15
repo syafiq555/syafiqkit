@@ -7,7 +7,7 @@ description: Create, update, or read a personal session journal — a living log
 
 A personal session journal for the things that don't belong in code. Task docs (`tasks/**/current.md`) capture *feature work* for the team; auto-memory captures *facts*. This captures the third thing: **conversations, decisions, and dynamics that are yours alone** — what your boss actually meant, what you decided to do about it, what to watch next time. Living documentation, always reflecting current understanding — not a transcript dump.
 
-⚠️ **A durable working-style / communication preference for how Claude should behave is NOT a journal entry — route it to global `~/.claude/CLAUDE.md` Working Style, not here.** When the user hands you a preferred output format or working correction ("give me summaries like this instead", "always X when you Y"), that steers behavior on every future session — it must live in the always-loaded global CLAUDE.md, not a passively-read private journal. Capture it via `update-claude-docs` (or edit the global file directly); do NOT absorb it as a notes thread or a Standing Takeaway. A journal records what a *person* said/decided; global CLAUDE.md records how *Claude* should act.
+⚠️ **A durable working-style / communication preference for how Claude should behave is NOT a journal entry — route it to global `~/.claude/CLAUDE.md` Working Style.** A journal records what a *person* said/decided; CLAUDE.md records how *Claude* should act. Capture behavior-steering input via `update-claude-docs` (or edit the global file directly) — never as a notes thread or Standing Takeaway.
 
 ## Why this exists (and why not the alternatives)
 
@@ -21,7 +21,7 @@ A personal session journal for the things that don't belong in code. Task docs (
 ~/.claude/notes/<domain-slug>/<thread-slug>.md
 ```
 
-Every path segment must **earn its place** — one-word segments are too thin to recall later. Make both the folder AND the filename descriptive; the filename is NOT a constant like `summary.md` (naming every file the same makes the leaf carry zero information — the PKM equivalent of naming every variable `data`).
+Every path segment must **earn its place** — one-word segments are too thin to recall later. Make both the folder AND the filename descriptive; never a constant like `summary.md` (a repeated leaf carries zero information).
 
 - `<domain-slug>` = the broad area, named specifically: `boss-hong-liang-ng` (not just `boss` — *which* boss?), `career`, `clients`, `strategy`. Include the person/subject when the domain is about someone.
 - `<thread-slug>` = the specific thread, named after its subject: `feedback-and-expectations`, `raja-aisyah-onboarding`, `salary-review-2026`. Never `summary`.
@@ -31,10 +31,10 @@ Every path segment must **earn its place** — one-word segments are too thin to
   - `~/.claude/notes/strategy/listmy-competitor-response.md`
   - `~/.claude/notes/career/salary-review-2026.md`
 
-⚠️ **Naming rules** (from PKM research — files must stay stable and linkable):
-- **Evergreen, never date-prefixed** the *filename* — dates live inside entries, not in the slug, so the file stays stable as a link target. (A year suffix like `salary-review-2026` is fine when the year *is* the identity.)
-- **kebab-case**, lowercase, descriptive. A reader seeing the path alone should grasp the thread.
-- The path is the *address*; the file's `# Title` + LLM-CONTEXT header carry the *full* human-readable context (people, roles, what it's about). Keep the path a reasonable length and let the header do the heavy lifting.
+⚠️ **Naming rules** — files must stay stable and linkable:
+- **Evergreen, never date-prefixed** filename — dates live inside entries, not the slug. (A year suffix like `salary-review-2026` is fine when the year *is* the identity.)
+- **kebab-case**, lowercase, descriptive — a reader seeing the path alone should grasp the thread.
+- The path is the *address*; the file's `# Title` + LLM-CONTEXT header carry the *full* context (people, roles, what it's about). Keep the path short and let the header do the heavy lifting.
 
 ⚠️ `~/.claude/notes/` is machine-local and private — not synced, not in git. If the user wants a portable/backed-up copy, mention they can also drop it in a synced location, but the canonical home stays here.
 
@@ -91,11 +91,11 @@ Each conversation becomes a new **dated entry** appended under `## Entries` — 
 
 ## 4. Standing Takeaways (the heart of a journal)
 
-This is what separates a useful journal from a pile of notes. After capturing an entry, ask: **"What durable rule, expectation, or insight should future-me act on — without re-reading the whole story?"** Lift those into the `## Standing Takeaways` block near the top. Examples: "boss measures reaction latency, not hours"; "decide and give him an opt-out, don't push the decision up". Keep it tight — these are the rules, not the narrative. When a new entry refines or contradicts an old takeaway, **edit the takeaway** (don't append a contradicting one).
+This is what separates a useful journal from a pile of notes. After capturing an entry, ask: **"What durable rule, expectation, or insight should future-me act on — without re-reading the whole story?"** Lift those into `## Standing Takeaways` near the top, tight and rule-only, not narrative (e.g. "boss measures reaction latency, not hours"). When a new entry refines or contradicts an old takeaway, **edit the takeaway** — don't append a contradicting one.
 
 ## 4b. Decisions: supersede, never rewrite
 
-A *durable rule* (Standing Takeaway) can be edited as it evolves. But a **decision you made at a point in time** ("I'll reply with X", "I'll take the job") must NOT be rewritten when it changes — append a new entry that references and supersedes the old one, and leave the original entry's reasoning intact. Hindsight bias silently overwrites what you believed before you knew the outcome, so the frozen "what I thought at decision time, and why I later switched" pair is the entire learning signal — rewriting the old entry destroys it.
+A *durable rule* (Standing Takeaway) can be edited as it evolves. A **decision made at a point in time** ("I'll reply with X", "I'll take the job") must NOT be rewritten when it changes — append a new entry that references and supersedes the old one, leaving the original's reasoning intact. The frozen "what I thought then, and why I later switched" pair is the entire learning signal; rewriting the old entry destroys it.
 
 Convention (only when an entry records a genuine *decision*, not every conversation):
 - New entry: `### YYYY-MM-DD — Decided Y (supersedes 2026-06-18 decision to do X)`.
@@ -104,16 +104,16 @@ Convention (only when an entry records a genuine *decision*, not every conversat
 
 ## 4c. The review loop (what actually keeps a journal alive)
 
-These logs die when nothing resurfaces them, not from bad writing — a record written and never re-read drifts from reality. So the highest-leverage habit is the *read* side, not the write side.
+These logs die when nothing resurfaces them, not from bad writing — the highest-leverage habit is the *read* side, not the write side.
 
-Lightweight affordance (don't over-engineer — heavy process kills the habit just as surely as no process):
+Lightweight affordance only — heavy process kills the habit as surely as no process:
 - When an entry has a future check worth making — a decision whose outcome you'll want to grade, an open thread with a deadline — set `Review: <date or condition>` in the header (e.g. `Review: 2026-07-18` or `Review: when boss gives sheet feedback`).
 - On any `/read-notes` or update, **surface a Review that has come due** ("you flagged this for review on X — the open item was Y; how did it land?"). This is the read-path that prevents rot.
 - A genuinely dormant thread is fine — `Status: Dormant` and no Review. Not everything needs a follow-up; only set Review when there's a real check to make.
 
 ## 5. Density rules
 
-A journal bloats two ways: **transcript-dumping** (pasting whole conversations) and **restating the same insight in every entry**. Guard both. Base writing-style rules (no filler words, one idea per sentence): `_shared/references/writing-style.md`.
+A journal bloats two ways: **transcript-dumping** and **restating the same insight in every entry**. Guard both. Base writing-style rules (no filler words, one idea per sentence): `_shared/references/writing-style.md`.
 
 | Rule | Detail |
 |------|--------|

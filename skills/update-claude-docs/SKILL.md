@@ -5,7 +5,7 @@ description: Create, rewrite, condense, or capture-into CLAUDE.md files followin
 
 # Update CLAUDE.md
 
-The single manager for CLAUDE.md files — the analog of `task-summary` for `current.md`. It has four modes; pick the one that matches how it was invoked.
+The single manager for CLAUDE.md files — the analog of `task-summary` for `current.md`. Four modes; pick the one matching how it was invoked.
 
 ⚠️ **CLAUDE.md only — NEVER auto-memory, even when it feels like the right home.** All knowledge from this skill goes to CLAUDE.md, CLAUDE.local.md, or task docs — never to `~/.claude/projects/*/memory/`, not for feedback, project context, or investigation lessons. Memory is invisible to team members and agents; CLAUDE.md is the single source of truth. A cross-project working-style/feedback rule goes to global `~/.claude/CLAUDE.md`; a project rule goes to that project's CLAUDE.md/CLAUDE.local.md. If a memory file was touched this session, revert it before writing the CLAUDE.md entry — never leave both.
 
@@ -26,9 +26,9 @@ The single manager for CLAUDE.md files — the analog of `task-summary` for `cur
 
 Extract reusable patterns from this session into CLAUDE.md files.
 
-⚠️ **A caller-supplied arg is ADDITIVE context, never a scope limiter.** Still scan the WHOLE conversation for every signal in the Step-1 table — the arg is a hint about ONE signal, not the boundary of the scan. The most-missed class: a `/done` arg listing this session's technical facts won't mention an early-session wrong-turn the user corrected, but that's exactly the "user had to correct" signal Step 1 catches. If the arg names only code facts, still scan for corrections/wrong-sources.
+⚠️ **A caller-supplied arg is ADDITIVE context, never a scope limiter.** Scan the WHOLE conversation for every signal in the Step-1 table — the arg is a hint about ONE signal, not the boundary of the scan. Most-missed: an arg naming only code facts still needs a scan for corrections/wrong-sources.
 
-⚠️ **Inline critical facts on CLAUDE.md-level pointers.** When adding a `> 📖 See task doc` pointer FROM A CLAUDE.md FILE, also inline the 1-2 most critical facts — a session reading CLAUDE.md directly won't follow a bare pointer unprompted. Exception: a task doc's OWN `## Gotchas` table pointing to a separate reference file (`📖 See .../gotcha-name.md`) works bare, no inline duplication needed — `Explore`/`Plan` run `/read-summary` discovery unconditionally and reliably follow the doc's own pointer rows (`references/structure.md` §6). Reserve full inlining for CLAUDE.md-level pointers only.
+⚠️ **Inline critical facts on CLAUDE.md-level pointers.** A `> 📖 See task doc` pointer FROM A CLAUDE.md FILE must also inline the 1-2 most critical facts — a session reading CLAUDE.md directly won't follow a bare pointer unprompted. Exception: a task doc's own `## Gotchas` table pointing to a reference file (`📖 See .../gotcha-name.md`) works bare — `Explore`/`Plan` reliably follow doc-level pointer rows (`references/structure.md` §6).
 
 ⚠️ **Find the pointer's target by content, not folder name.** Folder names are engineer-domain-named and rarely match the topic (`upload-redesign` owns "QC", `payout` owns "refund"). `Glob tasks/**/*.md` + `Grep` for the concept's vocabulary + synonyms across doc body + header before writing `> 📖 See tasks/.../current.md` — a pointer to a non-existent or wrong doc is worse than no pointer.
 
@@ -80,7 +80,7 @@ A subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `res
 
 ### CLAUDE.local.md checklist
 
-Before finishing, actively scan the session for these — they're easy to miss because they feel "obvious" in the moment:
+Scan the session for these before finishing — easy to miss because they feel "obvious" in the moment:
 
 - [ ] **Credentials/tokens** read from config files (`secrets.json`, `.env`, DB) — save the extraction pattern (e.g., `jq -r '.["key"]' path`)
 - [ ] **API headers** that required trial-and-error (auth headers, required headers that caused 401/403)
@@ -158,7 +158,7 @@ Glob: .claude/agents/claude-md-pruner.md
 
 The agent has its own classification rules, litmus tests, and NEVER-delete safeguards. Do not override its instructions.
 
-⚠️ **Only background-prune files that are SETTLED.** The pruner reads the file when it starts, not when it finishes — if you're still editing a file (or about to, e.g. mid-split), it judges a stale snapshot and may delete an entry you just added by reasoning about a state that no longer exists ("this rule is aspirational, no subdir uses it" — right when you're creating that subdir). Finish all edits to a file before listing it, or hold the prune until the session's file changes are done. When the pruner reports a deletion, diff it against the entries you wrote THIS session: if it removed one of yours on a premise your later edits invalidated, restore it — your fresh write beats the agent's stale read.
+⚠️ **Only background-prune files that are SETTLED.** The pruner reads the file when it starts, not when it finishes — an entry added mid-edit can get deleted on a premise your later edits already invalidated. Finish all edits before listing a file, or hold the prune until the session's changes are done. If the pruner's report removed one of your fresh entries on a stale premise, restore it — your fresh write beats its stale read.
 
 ## 5. Validate
 
