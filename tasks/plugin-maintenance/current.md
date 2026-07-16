@@ -6,7 +6,7 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-16 — see Quick Start / Last Session (D32)
+Last updated: 2026-07-16 — see Quick Start / Last Session
 -->
 
 # Plugin Maintenance
@@ -199,11 +199,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-16)
 
-- **D31** (1.83.0): Explore agent gained the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity gap (3rd recurrence) fixed and codified as a root CLAUDE.md `⚠️ MANDATORY` callout. `notes-summary` added to CLAUDE.md's Skills table.
-- **1.84.0**: `condense-task-doc`/`condense-claude-md`'s draft+verify step inlined the `git diff HEAD`-only verification instruction directly (was a bare pointer) — a real dry-run showed re-reading/second-agent-comparison missed 1 of 6 Haiku-drafter fabrications the diff-based check would have caught immediately.
-- **1.86.0 + D32**: added the `<content>`/`</content>` tool-output-wrapper-tag guard to task-summary/update-claude-docs/merge-task-docs; `/done`'s own review found 4 leaked tags still sitting in touched + untouched files and fixed all of them, extracting the guard to `_shared/references/strip-tool-output-tags.md`.
-- **1.87.0**: `browser-verifier.template.md` gained a "Verifying file downloads" recipe (fetch-the-bytes instead of clicking an unclickable OS save dialog), after a prior run falsely PASSed a PDF export without checking it. This `/done`'s product review then found two gaps in the same session's own unshipped work: the download recipe was GET-only (added POST/CSRF and queued-job variants), and the nested-Explore trigger (D31) had no lower bound or depth-5 fallback (added a 3+ threshold and a serial-fallback instruction to both `.claude/agents/Explore.md` and its template). Also fixed two stray facts: a phantom "1.85.0" version reference in this doc (the work actually shipped as 1.86.0) and a stale `Last updated` date in `decisions/doc-condensation.md`.
-- Plugin version 1.82.0→1.87.0 across CHANGELOG entries; all fixes from this `/done` pass are folded into the existing unshipped CHANGELOG entries rather than bumping further.
+- **1.91.0**: Closed GitHub issue #1 (`ship` v1.82.0 — Step 5's nested `gchat-format` call wasn't producing a changes-only release note). Of the issue's two named causes: the paraphrase-drift one was already fixed a day earlier by the raw-CHANGELOG-text + bullet-count rule (Step 5.4); the buried-output one was still live — `ship` SKILL.md gained Step 5.7 + an `## Output` template update so the release note now renders as its own labelled, fenced block after the Ship Summary table instead of a bare table row. Reviewed clean (0 findings). Version bump also reconciled a pre-existing plugin.json/marketplace.json drift (1.90.0/1.88.0 → both 1.91.0).
 
 ---
 

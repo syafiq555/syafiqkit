@@ -107,7 +107,7 @@ LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
 
 Edit in place. The doc should always read as one coherent current-state document.
 
-⚠️ **MANDATORY first: gap-check AND structure-check against the template.** Before editing:
+⚠️ **MANDATORY first: gap-check AND structure-check against the template** (a user asking to "check for template drift" means exactly this pass — the doc's divergence from `references/templates.md`, NOT any PDF/Blade template in the code). Before editing:
 1. List the doc's `## ` headers — add any missing from the template's required set.
 2. Verify each existing section's internal structure matches the template exactly (table columns, field names, order) — fix non-conformant structure in place (e.g. free-form bullets where `| Issue | Rule |` is specified, wrong Bugs Fixed columns, missing Backend/Frontend split in Gotchas).
 

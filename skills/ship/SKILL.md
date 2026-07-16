@@ -109,10 +109,11 @@ Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc,
 4. ⚠️ **Pass the CHANGELOG entry's actual text into `gchat-format` — never paraphrase it from memory first.** Summarizing the read before formatting is where items silently drop or get replaced with generic one-liners the changelog never said; the skill's own condense step already does the WHAT-not-HOW trim, so feeding it raw text is both less work and more faithful. Before sending, count today's `### Added`/`### Changed`/`### Fixed` bullets against the output bullets — a mismatch means an item got lost, not "cleanly merged."
 5. Format using the `gchat-format` skill (convert to Google Chat syntax).
 6. Copy to clipboard.
+7. ⚠️ **Render the formatted result as its own labelled, fenced block — after the Ship Summary table, never inline within it.** A release note that only shows up as a table row reads as buried, not as a standalone artifact the user can copy — see the Output template below.
 
 ## Output
 
-```
+````
 ## Ship Summary
 
 | Step | Status | Details |
@@ -121,8 +122,14 @@ Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc,
 | Push | ✅ | [repos pushed] |
 | CI/CD | ✅ | [deploy status per repo] |
 | Prod Verify | ✅ | [what you observed on the server — HEAD match, or the shipped behavior itself] |
-| Release Note | ✅ | Copied to clipboard |
+| Release Note | ✅ | See below |
+
+**Release Note (copy this):**
+
 ```
+[gchat-format output — Google Chat syntax, changes-only]
+```
+````
 
 ## Edge Cases
 
