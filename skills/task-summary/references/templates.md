@@ -143,6 +143,14 @@ A whole-doc MADR can itself outgrow one file (10+ ADRs, several hundred lines). 
 
 ⚠️ **`ls` the PARENT directory before finalizing the split.** Task folders often hold sibling files predating the split — design/plan docs, hand-off sheets, audit trails. These aren't decision records, but the routing table must still surface them or they become invisible dead weight once `current.md` stops being the one file opened. After building the index + `decisions/<theme>.md` set, `ls` the parent and account for every remaining file — give it a routing-table row, or fold stale content into a theme file if superseded.
 
+### When a single `decisions/<theme>.md` itself outgrows budget
+
+A theme file earns its size the same way a whole-doc MADR does — one epic/ADR per non-duplicated chunk, nothing left to prune. `condense-task-doc` on a file like this deletes real facts (row-existence pruning has nothing to cut); the fix is another structural split, not denser prose. Signal: the file is >500-600 lines, every section is a distinct shipped item (not narrative bloat), and a `condense-task-doc` pass on it would be fighting the density rule, not bloat.
+
+**Split the theme file itself into `decisions/<theme>/<sub-range>.md`** — same index-router pattern one level deeper. Group sub-files by natural chronological/thematic clusters within the theme (e.g. `decisions/lifecycle-epics/epics-1-9.md`, `epics-10-19.md`), not one file per item — this codebase has zero precedent for one-file-per-epic-number; every existing split clusters multiple items per file. The original theme file becomes a thin router with the same "read `<sub-file>.md` if you're asking: *[question]*" table, and the PARENT index's routing table row for this theme should be updated to note it routes through a second router, not a leaf, so a cold-start reader doesn't stop one level too early.
+
+⚠️ **Routers nest — a pointer INTO the now-split theme file needs re-aiming exactly like the first-level split** (see the "invalidates every pointer" warning above). Grep for the theme file's old path across `tasks/` and repoint every hit at the new sub-file that owns the fact, not at the router.
+
 ## Sentence Style (bad vs good)
 
 Rows hold the rule + the single strongest reason. No metrics, hashes, verification narratives, or filler words ("basically", "essentially", "in order to", "please note that", "this means that", "it is important to", "as mentioned").

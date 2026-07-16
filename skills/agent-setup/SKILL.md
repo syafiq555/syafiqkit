@@ -70,7 +70,7 @@ Glob: **/CLAUDE.md
 | Found? | Action |
 |--------|--------|
 | No agents | Create `.claude/agents/` directory + agents |
-| Agents exist | Still run Step 5 in full against every existing agent file — "they look established" is not a substitute for the checklist. Update whatever it flags |
+| Agents exist | Still run Step 5 in full against every existing agent file — "they look established" is not a substitute for the checklist. **Also diff each against its `templates/<name>.template.md`** (Step 5's template-drift item) — a structurally-sound agent can still be missing a feature the template gained after it was generated. Update whatever either check flags |
 | No CLAUDE.md | Create agents with base template only |
 
 ### Step 2: Identify CLAUDE.md Hierarchy
@@ -187,6 +187,7 @@ After writing agents, verify:
 - [ ] Multi-repo: if a sibling repo is driven from the same session, agents carry the `⚠️ Two-repo session` banner, diff both repos, and have a second Bootstrap table + tagged sibling rules
 - [ ] Multi-repo: no agent file contains a hardcoded absolute machine path for either repo — `grep -rn '~/[A-Za-z]\|/home/\|/Users/' .claude/agents/*.md` must return nothing (aside from generic examples like `~/.claude/plans/<slug>.md`, which is a fixed harness path, not a repo checkout). The active repo is "this repo" (no path); the sibling is resolved at runtime and referenced via a placeholder variable, never a literal path — see Step 2's runtime-resolution rule
 - [ ] Pruner has NEVER-remove list customized for project (reference tables, gotcha rows, etc.)
+- [ ] **Template-drift check (existing agents only)**: `diff` each `.claude/agents/<name>.md` against `templates/<name>.template.md` — every checklist item above verifies internal structure, none of them catch a template feature added after this project's agents were generated (e.g. a tool grant, a process step, a new section) that never got backported. A generated file can pass every other item here and still be stale. Backport genuine feature gaps; project-specific fills (rules tables, model overrides already justified in-file) are NOT drift
 
 ## Output
 
