@@ -12,9 +12,7 @@ Execute all steps in sequence without pausing for confirmation.
 | Omitting `run_in_background` on any Agent call | Pass `run_in_background: false` **explicitly** — omitting it has still returned an async task. Most often dropped on the first agent of a batch |
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
 | Send an agent a prompt whose ROLE doesn't match its `subagent_type` (product-review content to `code-reviewer`) | The prompt's role and the `subagent_type` must be the SAME role. A mis-prompted agent silently skips BOTH — the role you invoked never ran, and the role you asked for wasn't registered as run. It still looks "spawned" to every downstream check |
-| Report a step done when only PART of it ran (reviewers but no simplifiers; Step 3 but no Step 4) | Every step below is a CHECKLIST, not prose. Before reporting, tick each named part — a step with an unticked part is NOT done |
-
-⚠️ **MANDATORY — the steps are a checklist; run them ALL, and verify before reporting.** Each multi-part step (Step 1's three lenses, Steps 3+4's two skills) is an explicit tick-list; an Output row is only fillable once its part actually ran. If a part is deliberately skipped, the row says `➖ <reason>` — never leave it silently blank.
+| Report a step done when only PART of it ran (reviewers but no simplifiers; Step 3 but no Step 4) | Every step below is a CHECKLIST, not prose. Before reporting, tick each named part — a step with an unticked part is NOT done. A part you deliberately skipped gets `➖ <reason>` in its Output row, never a silent blank |
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
 
@@ -22,8 +20,8 @@ Execute all steps in sequence without pausing for confirmation.
 
 **Light mode** when the session touched **<5 files in a single domain** AND no new feature/architecture was introduced (bug fix, small tweak, config change):
 - Step 1: ONE reviewer agent only (skip the separate simplifier — tell the reviewer to also flag obvious duplication; skip the product reviewer — a trivial fix has no new feature journey to judge).
-- ⚠️ **Exception — a small diff that EXPOSES or CHANGES a user-facing capability is NOT light** (a new toggle/button/field/route, a status control, anything a user now acts on). File count measures diff size, not journey significance — run the product reviewer (full mode for Step 1) even at 1 file.
-- ⚠️ **Exception — if you DROVE the real user journey this session (browser, real account, real flow), always run the product reviewer**, whatever the file count. Observations from clicking through a flow (a prefilled field silently rejected, a dead-end with no error) exist nowhere else and are gone next session. The first exception won't catch this: a fix that RESTORES a broken capability exposes nothing new, so it reads as light while sitting on the freshest product evidence you'll ever have.
+- ⚠️ **Exception — a small diff that EXPOSES or CHANGES a user-facing capability is NOT light** (new toggle/button/field/route, status control, anything a user now acts on). File count measures diff size, not journey significance — run the product reviewer (full mode for Step 1) even at 1 file.
+- ⚠️ **Exception — if you DROVE the real user journey this session (browser, real account, real flow), always run the product reviewer**, whatever the file count. Observations from a live flow are gone next session and exist nowhere else; a fix RESTORING a broken capability reads as light while holding the freshest product evidence you'll have.
 - Step 4: invoke `syafiqkit:task-summary` WITH the known doc path (skip the multi-domain scan — you already know the one affected doc).
 - Output: the compact single-table form (see Output).
 
@@ -31,11 +29,11 @@ Execute all steps in sequence without pausing for confirmation.
 - Step 1: **skip all three code agents** — simplifier/reviewer/product-reviewer audit *code*; there is none. Running them against markdown is theater. Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve.
 - Steps 2-4 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run).
 - Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
-- ⚠️ **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Docs-only requires that the session wrote no application code at all. If you wrote code and it was **already committed** this session (so `git status --short` now shows only `.md`), it is NOT docs-only — the code was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + the uncommitted diff), and run Full/Light Step 1 against those committed code files. The tell: `git log` shows a commit you authored this session but the working tree is clean of code.
+- ⚠️ **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Code already committed this session is NOT docs-only — it was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + uncommitted diff), and run Full/Light Step 1 against committed code files. The tell: a commit you authored this session in `git log`, but the working tree shows only `.md` changes.
 
 **Infra-only mode** when the diff is **entirely deploy/build/CI plumbing** and no application code — CI workflows (`.github/workflows/*.yml`, `.circleci/`), `docker-compose*.yml`/`Dockerfile`, build config (`next.config.*`, `vite.config.*`), nginx/env config. The **mirror image of docs-only**: docs need no reviewer; infra needs *only* the reviewer, and needs it badly.
 - Step 1: **reviewer ONLY.** Skip the simplifier (no logic to DRY) and the product reviewer (no user journey). Size-independent — the trigger is file KIND, not count.
-- ⚠️ **Prompt the reviewer adversarially: infra fails SILENTLY.** A broken deploy step exits 0 and reports success (an `nginx -s reload` re-reading an orphaned inode) while lint/typecheck/tests all pass — review is the only thing that catches it. Give it the change's PURPOSE and what it must not break, and ask it to verify empirically rather than reason from docs. Beware blanket-applying one fix to every occurrence of a pattern — two call sites of the same command can need opposite treatments.
+- ⚠️ **Prompt the reviewer adversarially: infra fails SILENTLY.** Broken deploy steps exit 0 while tests pass — review is the only catch. Give it the change's PURPOSE, what it must not break, ask for empirical verification. Two call sites of the same command can need opposite treatments.
 - Steps 2-4 as normal. Output: mark Simplify/Product as ➖ "infra-only".
 - ⚠️ **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer (see Light mode's exception).
 
@@ -77,11 +75,11 @@ Glob: .claude/agents/product-reviewer.md
 
 Run the Glob first every time — don't assume the project agent exists or doesn't (e.g. a hit spawns `code-reviewer`; a miss spawns `feature-dev:code-reviewer`).
 
-⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it only when the user asks to verify in the browser, or when the diff touches user-facing UI **and** the user wants runtime proof. It is not counted in the agent table below and never partitioned. See `## Optional: browser verification`.
+⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it only when the user asks to verify in the browser, or when the diff touches user-facing UI **and** the user wants runtime proof. It is not counted in the agent table below and never partitioned. See `references/browser-verification.md`.
 
 **Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first with **`git status --short`** (run it in EVERY repo of a multi-repo project), then pick agents-per-role:
 
-⚠️ **`git status --short` is the canonical command — do NOT count off `git diff --name-only`.** It shows only *unstaged* changes to *tracked* files, so a new file (untracked) and an already-staged file are both invisible; if you staged before running `/done`, it returns **empty for the entire session's work**. You then partition zero files, every agent reports clean on an empty slice, and `/done` passes having reviewed nothing. `git status --short` shows staged + unstaged + untracked in one view with a status letter per file. **The tell: the command returns nothing for work you know you just did — that is the blind spot firing, not a clean tree.**
+⚠️ **`git status --short` is canonical — NOT `git diff --name-only`.** `diff --name-only` shows only unstaged changes to tracked files — new/staged files are invisible. If you staged before `/done`, it returns empty for the entire session's work — you then partition zero files, every agent reports clean on an empty slice, and `/done` passes having reviewed nothing. `git status --short` shows staged + unstaged + untracked with status letters. **Tell: the command returns nothing for work you just did.**
 
 | Changed files | Reviewers | Simplifiers | Product | TOTAL agents |
 |---------------|-----------|-------------|---------|--------------|
@@ -118,27 +116,6 @@ When count >1 per role, **partition the file list** across the same-role agents 
 - If reviewer found issues → **confirm each against the actual code before fixing** (grep the call site / re-read the line — a finding is a claim, not a verdict), then fix and continue. Don't blind-apply; don't dismiss either — a real bug a blanket `replace_all` left behind looks identical to a false positive until you check.
 - If simplifier made changes → verify they were applied (linter may have auto-formatted) AND that nothing was over-collapsed (an intentional guard/workaround removed). Re-run `php -l`/`tsc` on touched files — "declared but not used" = a half-done refactor.
 - If product reviewer found gaps → these are **product recommendations, not auto-fixes**. Do NOT silently build them. Surface 🔴/🟠 findings to the user and ask which to implement now vs add to the task doc's Next Steps — a missing journey is a scope decision the user owns. Confirm each gap is real (the deferral might be documented) before raising it.
-
-## Optional: browser verification (opt-in, not part of Step 1)
-
-`browser-verifier` drives the running app and asserts the feature works for a real user — the one lens that reads the running system instead of source. It catches what the three static agents structurally cannot: a control that renders but can't be tapped at 390px, a submit that fires a success toast while writing nothing to the DB.
-
-**Spawn it only when BOTH hold:**
-
-| Gate | Why |
-|------|-----|
-| The user asked for browser/runtime/mobile verification — or the diff touches user-facing UI and they want proof it works | It is slow and needs the app already running. Never auto-spawn it on a backend-only diff; a `/done` that silently launches a browser on every commit is worse than no agent |
-| `.claude/agents/browser-verifier.md` exists | It carries the project's URL, test accounts and viewport recipe. No generic fallback — skip silently if absent |
-
-**Prompt it with**: the feature name, its task-doc path, the exact route/flow to drive, and the concrete assertions that must hold (including the DB row to check). It is never partitioned by file slice.
-
-**Its findings are evidence, not fixes** — it is read-only by design. A `BLOCKED` result is a valid outcome and must be surfaced as-is; do **not** relax an assertion or re-run until it goes green. If it reports a bug, confirm it against the code before fixing.
-
-⚠️ **The agent's DIFFICULTY is a finding too, and it's the one that evaporates.** A `BLOCKED` result, a wrong-class/wrong-method error, a login recipe it had to derive, or an instruction you had to hand-write into a second agent's prompt — that friction is a defect in the docs or the agent file, and it doesn't reach Steps 3-5 on its own. Ask before closing: *what did the agent get stuck on, and where would it have had to read to not get stuck?* Route it — a wrong fact → Step 3 (`update-claude-docs`); a missing recipe in the agent's own file → patch `.claude/agents/<agent>.md`; a defect in a skill's instructions → Step 5.
-
-⚠️ **A `BLOCKED` whose stated cause is a "known bug" is a claim to CHECK, not accept** — the agent repeats what the docs say, and a doc row still calling something an open bug that was since closed as won't-fix dispatches it on a false errand with full confidence. Verify the cause against the task doc that OWNS that decision before believing the block.
-
-⚠️ **An agent's claim that the user approved something is unverified, not automatically false.** The user can steer any agent mid-run and invoke skills inside it, on a channel you never see — work outside the prompt you gave it is expected, not evidence of misconduct. Resolve by reading the agent's own transcript (`<session-id>/subagents/agent-<id>.jsonl`, real `user` turns minus skill injections and `<system-reminder>`s): hits = the user drove it, authorized; zero hits = the agent invented the consent, still unreviewed. Never report an agent as rogue without that check — the underlying finding is still real evidence either way, only the attribution is in question.
 
 ## Step 2: Clean up temp code
 
@@ -189,9 +166,9 @@ Steps 3+4 write to the *project*; this writes to the *plugin* — a global artif
 
 **ONE gate: does a real skill signal exist?** A skill misfired, a workflow step was wrong/missing, a trigger missed, or an absent rule caused a mistake. **Most runs have none — that is the expected case, so skip silently (no Output row).** Merely *using* skills successfully is not a signal; never manufacture one, since a thin patch to a shared skill is worse than no patch.
 
-⚠️ **The signal you CAUGHT still counts — that is the one this gate keeps missing.** If you declined to follow a skill's step, worked around it, or told the user "this skill's step doesn't apply here," that IS the defect: you had the context to catch it, and the next session won't. It feels like a win in the moment ("I handled it"), which is exactly why it gets filed as competence instead of a finding. Ask literally: *did I deviate from any skill's written instructions this session, and why?* A deviation with a good reason is a skill that needs the reason written into it.
+⚠️ **The signal you CAUGHT still counts — that is the one this gate keeps missing.** If you declined to follow a skill's step or worked around it, that IS the defect: you had the context to catch it, the next session won't. Ask: *did I deviate from any skill's written instructions this session, and why?* A deviation with a good reason is a skill that needs the reason written into it.
 
-⚠️ **A workaround you typed into an AGENT's prompt is the same signal, one level down.** If you had to hand-write an instruction to get an agent past something — an escape hatch it needed, a correction to a doc it had believed, a recipe it couldn't derive — it lacked that knowledge and **still lacks it**: the prompt you wrote is discarded when the run ends. The tell is a second agent spawned to redo what the first couldn't, with extra instructions bolted on. Ask: *what did I have to tell an agent that its own file, or the project docs, should have told it?* The fix belongs in the agent file or the docs — never in the prompt.
+⚠️ **A workaround you typed into an AGENT's prompt is the same signal, one level down.** If you had to hand-write an instruction to get an agent past something — an escape hatch, a correction to a doc it had believed, a recipe it couldn't derive — it still lacks that knowledge. The tell: a second agent spawned to redo what the first couldn't, with extra instructions. Ask: *what did I have to tell an agent that its own file or the project docs should have told it?* The fix belongs in the agent file or the docs — never in the prompt.
 
 Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstream: it probes ownership itself and branches — **owner** → patch the skill files + version bump + CHANGELOG; **consumer** → draft the finding and *offer to file it as a GitHub issue* upstream (asking first, posting under the user's own identity). Either way the finding survives.
 
@@ -200,8 +177,6 @@ Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstrea
 ## Exit gate — check BEFORE writing the Output
 
 ⚠️ Every row of the Output table below is a claim that a step ran. Before writing it, verify each claim against what you ACTUALLY invoked this session — not what you intended to:
-
-⚠️ **"Spawned" is not enough — the agent's PROMPT must have matched its role.** An agent handed the wrong role's prompt (product-review content sent to `code-reviewer`) still looks spawned, so this gate passes while the review never happened. Check the prompt you sent, not just the `subagent_type` you named.
 
 | Row | Only fillable if you actually... | Full-mode expectation |
 |-----|----------------------------------|-----------------------|
