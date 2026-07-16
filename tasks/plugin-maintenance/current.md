@@ -15,11 +15,11 @@ Last updated: 2026-07-16 — see Quick Start / Last Session
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (18 skills, 6 commands) with an established design philosophy (autonomous, self-contained, delegate-don't-duplicate). Active maintenance is condensation/de-duplication passes, not new capability.
+**Where we are**: Plugin is a mature skill/command system (22 skills, 3 commands, 8 agent templates) with an established design philosophy (autonomous, self-contained, delegate-don't-duplicate). Mostly condensation/de-duplication passes; `tackle` (1.97.0) is the first new capability in a while.
 
 **Immediate next actions (in order)**:
-1. Sweep skills emitting copy-pasteable fenced artifacts for `ship`'s Step 5.8 boundary rule — `gchat-format` has the same gap `ship` just closed (see Next Steps)
-2. Re-sync the Current Skills registry table (stale since before `task-summary` etc. existed — see Cross-Cutting Operational Notes)
+1. **Test `/tackle` against a doc with mixed blocker types** — never dry-run. Its triage must split human/env-blocked items without asking; a doc where everything is buildable proves nothing (a primitive validated against one shape is validated against one shape, not its contract). Also exercise the greenfield path (Step 1b) with both a clear and a vague request.
+2. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
@@ -58,20 +58,32 @@ syafiqkit is a Claude Code plugin providing skills/commands for task documentati
 
 ### Current Skills
 
-⚠️ **Registry drift** — see Cross-Cutting Operational Notes.
+22 skills + 3 commands (`commit`, `read-notes`, `update-notes`). Re-synced 2026-07-16 from `ls skills/`.
 
 | Skill | Purpose | Invoked By |
 |-------|---------|------------|
-| `agent-setup` | Create/update project agents with CLAUDE.md rules | `update-claude-docs` skill |
-| `task-summary` | Create/update task doc `current.md` — path resolution, templates, cross-references | `done` skill Step 4, or user directly |
-| `condense-task-doc` | Aggressively condense a bloated task doc — row-existence pruning + sentence compression | User directly, or `task-summary` when a doc is >300 lines |
-| `update-claude-docs` | Create/rewrite/condense/capture-into CLAUDE.md (4 modes); SKILL.md workflow + `references/structure.md` template. CLAUDE.md analog of `task-summary` | `done` skill Step 3, or user directly |
-| `condense-claude-md` | Aggressively condense a bloated CLAUDE.md file | User directly, or `update-claude-docs` Condense mode |
-| `done` | Post-task cleanup orchestrator + task doc templates | User directly |
-| `commit-invoice-generator` | Generate invoice from git commits | User directly |
-| `merge-task-docs` | Find + merge payment/domain task docs by subsystem boundary; delete sources; reconcile back-refs | User directly |
-| `update-plugin` | Scan session → patch SKILL.md files with learned rules/triggers/gotchas; owns the density-pass checklist (Step 3a) for skill-file bloat | User directly after skill work |
-| `read-summary` | Discover + read task docs before investigating/implementing; Plan-Mode-aware subagent delegation | User directly, or model-invoked before any project-context-dependent task |
+| `agent-setup` | Create/update the 8 project agents (Bootstrap pattern) from `templates/` | `update-claude-docs`, or user directly |
+| `brainstorming` | Design exploration before creative/architectural work | User, or proactive |
+| `ci-ssh-deploy-timeout` | Diagnose flaky CI deploys that can't SSH the target; convert to connect-retry | User, or proactive |
+| `commit-invoice-generator` | Generate invoice line items from git commits | User directly |
+| `condense-claude-md` | Aggressively condense a bloated CLAUDE.md | User, or `update-claude-docs` Condense mode |
+| `condense-task-doc` | Condense a bloated task doc; SPLITS whole-doc MADR >300 lines into index + `decisions/*.md` | User, or `task-summary` when a doc is >300 lines |
+| `done` | Post-task cleanup orchestrator. Step 5 owns the D24 deviation gate for EVERY skill | User directly |
+| `function-parameter-limits` | Advise/enforce the 0/2/3+ param rule; lint setup with DI carve-outs | User, or proactive |
+| `gchat-format` | Convert Markdown → Google Chat syntax; owns the bounded-fence rule | User, or `ship` Step 5 |
+| `hobby-review` | Socratic hobby debrief against the taste rubric in a `current.md` | User, or proactive |
+| `md-to-pdf` | Markdown → PDF with rendered Mermaid | User directly |
+| `merge-task-docs` | Merge docs by subsystem boundary; delete sources; reconcile back-refs. Defaults to executing its recommendation (D28) | User, or proactive |
+| `notes-summary` | Personal session journal outside the repo (non-code conversations) | User directly |
+| `pull-db` | Remote MySQL/MariaDB → local dev (dump, scp, import, password reset) | User, or proactive |
+| `read-summary` | Discover + read task docs before investigating/implementing; Plan-Mode-aware | User, or model-invoked before context-dependent work |
+| `ship` | Commit → changelog → push → CI verify → release note. Fence bounded (Step 5.8) | User directly |
+| `tackle` | Take work to done from a doc **or** a new idea: context (or brainstorm+write) → **triage by blocker type** → explore → build → wrap. Replaces the enumerate-and-let-user-sweep step | User directly (task-doc path + vague "let's continue", or a new feature request) |
+| `task-summary` | Create/update `current.md` — path resolution, templates, cross-refs | `done` Step 4, `write-summary`, `update-summary` |
+| `update-claude-docs` | Create/rewrite/condense/capture-into CLAUDE.md (4 modes) | `done` Step 3, or user directly |
+| `update-plugin` | Scan session → patch SKILL.md files; owns the Step 3a density checklist | User directly after skill work |
+| `update-summary` | Thin pointer → `task-summary` (update mode) | User directly |
+| `write-summary` | Thin pointer → `task-summary` (create mode) | User directly |
 
 ### Invocation Control
 
@@ -164,6 +176,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D26 | Companion-file split (Restructuring #7) widened from global-CLAUDE.md-only to any file whose oversized section is genuinely cross-cutting — no subdirectory AND no feature owner |
 | D27 | Pre-existing plan/spec docs are a distinct type from `decisions/<theme>.md` (verified against external ADR/Diátaxis convention) — split-doc guidance gained a parent-directory routing audit + an anti-silent-drop verification check |
 | D32 | A session adding a `<content>`-leak guard must grep its own diff for that exact leak, then sweep the whole repo — the guard doesn't retroactively fix leaks already sitting in files, including ones the same diff touches |
+| D33 | `<thinking>` recommendation retired (supersedes D2's CoT half) — zero adopters across 18 skills; reasoning scaffolds belong to the output-style layer, not skill files |
 
 ### Read [decisions/madr-structure.md](decisions/madr-structure.md) if you're asking: *how does the MADR decision-record format itself work — when to use it, what it costs, how do editing skills handle it?*
 
@@ -181,7 +194,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 | Issue | Fix |
 |-------|-----|
-| Current Skills registry table lists 7 of 18 skill directories that actually exist under `skills/` — predates `task-summary`, `condense-task-doc`, `condense-claude-md`, `brainstorming`, `ci-ssh-deploy-timeout`, `function-parameter-limits`, `gchat-format`, `hobby-review`, `md-to-pdf`, `notes-summary`, `pull-db`, `ship`; still names a `consolidate-docs` skill that no longer exists (superseded by `merge-task-docs`) | Needs a full re-sync pass — flagged, not yet done |
+| Registry drift: the Current Skills table silently rots as skills are added — it sat at 7-of-18 for months and still named a deleted `consolidate-docs` | ✅ Re-synced 2026-07-16 (22 skills). Rebuild from `ls skills/`, never by hand — and update `CLAUDE.md` + `README.md` tables in the SAME edit, they drift independently |
 | Keep SKILL.md <500 lines | Move detailed reference to supporting files |
 | Description quality matters for skill triggering | Action verbs, specific file types, clear use cases |
 | Use `allowed-tools` for restrictions | Scope permissions per-skill |
@@ -199,18 +212,19 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-16)
 
-- **1.94.0**: Closed GitHub issue #2 — the residue of #1's own fix. 1.91.0 gave the release note a fence (a beginning) but never an end, so operator commentary appended below it read as more note. `ship` gained Step 5.8 + a caveat-class table and an `## Output` placeholder. The issue's own suggested fix ("strip caveats from the fence") was **rejected** — it contradicts Step 5.3, which mandates deferred work *inside* the note for the Chat audience. Split by audience instead: audience caveats stay in, operator commentary goes above.
-- **1.95.0**: `done` density pass (D23 / Step 3a). Extracted the opt-in browser-verification block to `references/browser-verification.md`; SKILL.md 234→209 lines, 25,829→21,207 bytes. Stopped at 101.4 B/line rather than the ~90 target — remaining rows are load-bearing.
-- **The two-tier verify earned its keep**: the Haiku drafter reported "no meaning changed"; `git diff` found 4 dropped rules, incl. the `git status --short` warning's partition-consequence clause — the exact clause that justifies `done` keeping its own copy vs `task-summary`'s. All restored. Re-confirmed no `_shared/` extraction (fails D11's byte-identical test).
-- **Open**: `gchat-format` has the same unbounded-fence gap `ship` just fixed (it fences its whole output, defines nothing about what follows) — and `ship` Step 5 *calls* it. See Next Steps.
+- **1.97.0 — `tackle` (new)**: the session's main build. User described automating an arc they run by hand (task-doc path + "lets continue" → read → ask → build → `/done`), but two screenshots of that arc showed the ask step producing a menu they swept ("all of them"), with the real work being the feasibility split that followed. Built the skill to **triage instead of enumerate** — classify each open item by blocker type (actionable / human-blocked / env-blocked / dependent), recommend a sequence, ask only on a genuine tie. Automating the arc faithfully would have automated the step that violates the user's own rules.
+- **`tackle` Step 1b + rename**: shipped doc-only, so the user asked what happens with new work / no doc yet — a real gap, since triage reads *from* a doc. Added the greenfield branch (no doc → `brainstorming` only if genuinely unclear → `task-summary` Create → rejoin triage). Renamed `continue-task` → `tackle` at the user's prompt: "continue" is false for greenfield, and the pieces (`task-summary` Create, `brainstorming`) already existed — this was a routing gap, not a missing capability.
+- **`task-builder` agent (8th)**: the only agent writing new feature code, and — at the user's explicit direction, against an initial recommendation to keep an allowlist — the only one with **no `tools:` line** (full set incl. `Agent`). The file partition is now guarded by its body's Scope Rules alone. Also per the user: "i want all of our agents can spawn agent" — audited, already true for all 13 (only `browser-verifier` was ever a question).
+- **D33 — `<thinking>` retired**: zero adopters across 18 skills; the monitoring item never fired. The user's `<thinking>` blocks came from their **output style**, not this plugin — the plugin only documented the pattern. Layer boundary now explicit: skills own procedure, the style layer owns reasoning display.
+- **11-file drift fix**: the `Agent`-tool comment claiming every agent is `Explore` was pasted into 6 agents + 5 templates. Noticed as a one-file typo in `Plan.template.md`; the D32 sweep-past-your-own-diff rule found the other 10.
+- **Two stale doc claims corrected**: `gchat-format`'s fence gap was recorded "Open" in two sections but `c3b132b` had closed it. Registry re-synced 7-of-18 → 22.
+- ⚠️ **An `Explore` agent confabulated**: reported `ship` has no sequential workflow (it has 25 numbered steps) and mis-scored its own D24 table. Its raw finding (most skills lack D24 language) held; its verdicts didn't. Strip the attribution, keep the finding, verify in code.
 
 ---
 
 ## Next Steps
 
-- [ ] Monitor whether `<thinking>` blocks reduce domain inference errors in practice (D2)
-- [ ] Re-sync Current Skills registry table (see Cross-Cutting Operational Notes)
-- [ ] Audit existing task docs' `## Key Technical Decisions` sections against D16's new MADR-default — any plain-table row that had a real rejected alternative should convert (not yet swept)
-- [ ] `decisions/doc-condensation.md` is at 269 lines / 28,857 bytes — watch for the 300-line MADR-split threshold on the next addition
+- [ ] D16 MADR-default audit — **not actionable in this repo** (swept 2026-07-16: `tasks/` holds only `plugin-maintenance`, already split MADR; zero literal `## Key Technical Decisions` sections exist here). The plain-table rows D16 targets live in the *consuming* projects' task docs — run this sweep from a project repo, not from the plugin
+- [ ] ⚠️ `decisions/doc-condensation.md` is at **289 lines / 31,070 bytes** (D33 added 20) — the next decision added to this theme crosses the 300-line MADR-split threshold. Split it (index + sub-files) rather than condensing; the ADRs' Rejected fields are the content that must survive
 - [ ] Confirm no other skill has the same "self-caught deviation" blind spot as `done` Step 5 pre-D24 — not yet audited beyond `done`/`ship`
 - [ ] `update-plugin` Step 5's consumer report is copy-pasteable but **unfenced**, and the skill tells you to point at the issues URL *after* it — same boundary class as `ship` 5.8 / `gchat-format`, but needs a fence before a boundary rule can apply. Not patched (different shape; a thin patch is worse than none). `agent-setup`/`md-to-pdf`/`commit-invoice-generator` checked — do not apply

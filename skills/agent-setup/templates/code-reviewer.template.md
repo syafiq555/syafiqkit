@@ -8,6 +8,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
   - mcp__ide__getDiagnostics
 model: sonnet
 color: red

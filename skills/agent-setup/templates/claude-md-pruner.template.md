@@ -7,6 +7,7 @@ tools:
   - Read
   - Edit
   - Bash
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
   - Skill  # for /read-summary task-doc discovery, and condense-claude-md when the file is genuinely bloated (not just stale)
 model: sonnet
 color: yellow

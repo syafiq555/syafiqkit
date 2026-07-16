@@ -10,6 +10,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
+  - Agent  # lets this simplifier spawn Explore agents to find duplicate patterns across the tree (depth-5 cap applies)
   - mcp__ide__getDiagnostics
 model: opus
 color: cyan

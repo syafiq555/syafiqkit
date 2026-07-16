@@ -28,6 +28,7 @@ claude plugin install syafiqkit@syafiqkit
 | Skill | Description |
 |-------|-------------|
 | `/read-summary` | Load existing task summary for context |
+| `/tackle` | Take work to done from a task doc **or** a brand-new idea — writes the doc if missing, triages what's actually buildable, builds it, wraps up |
 | `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |
 | `/update-summary` | Append findings to existing summary (thin pointer → `task-summary`) |
 | `/task-summary` | Create/update task summary docs with path resolution, templates, cross-refs |

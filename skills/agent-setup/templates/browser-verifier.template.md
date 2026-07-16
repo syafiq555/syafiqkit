@@ -13,6 +13,7 @@ tools:
   - mcp__claude-in-chrome__javascript_tool
   - mcp__claude-in-chrome__read_console_messages
   - mcp__claude-in-chrome__read_page
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
   # NOTE: read-only by design — do NOT add Write/Edit. This agent reports bugs; it never fixes them.
 disallowedTools: [Write, Edit]
 model: sonnet

@@ -8,7 +8,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
-  - Agent  # lets this Explore spawn nested Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this Explore spawn NESTED Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
 disallowedTools:
   - Write
   - Edit

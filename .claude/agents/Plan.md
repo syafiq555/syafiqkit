@@ -8,6 +8,7 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery
   - Write  # ONLY for saving the plan to ~/.claude/plans/<slug>.md — see note below
+  - Agent  # lets this Plan agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 disallowedTools:
   - Edit

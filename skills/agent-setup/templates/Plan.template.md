@@ -8,6 +8,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
+  - Agent  # lets this Plan agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
   - Write  # ONLY for saving the plan to ~/.claude/plans/<slug>.md — see note below
 disallowedTools:
   - Edit

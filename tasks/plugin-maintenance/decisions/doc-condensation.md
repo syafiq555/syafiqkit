@@ -63,7 +63,7 @@ Settled, `committed`, uncontested for 3+ sessions, not cited by ID elsewhere in 
 
 | Decision | Rationale |
 |----------|-----------|
-| D2 — Apply LLM prompting techniques (Constitutional/CoT/Validation) selectively, only to commands with multi-branch inference or file writes | Uniform application to simple commands (`read-summary`, `commit`) adds overhead without a reliability gain |
+| D2 — Apply LLM prompting techniques (Constitutional/CoT/Validation) selectively, only to commands with multi-branch inference or file writes | Uniform application to simple commands (`read-summary`, `commit`) adds overhead without a reliability gain. ⚠️ **CoT half superseded by D33** — retired outright; Constitutional/Validation stand |
 | D5 — A skill's happy path defers to a project's own documented alternative convention (e.g. `ship`'s CI-verify vs a project's rsync hotfix) rather than hardcoding the exception | Keeps the plugin generic/project-agnostic while still respecting a specific project's faster path when documented |
 | D7 — A read-only command (`read-summary`) that notices a doc contradicting code must name the drift and route it (to `/update-summary` or `/update-plugin`), not just narrate it in passing | Narrating without routing drops the fix — the handoff is the deliverable, the command itself stays read-only |
 | D11 — Extract to `_shared/references/` only true byte-identical duplication (e.g. the "no filler words" table), not broad pointer-extraction of similar-but-not-identical guidance | Generic research shows indirection risks non-compliance; extraction is only worth that risk for genuinely identical content |
@@ -245,6 +245,26 @@ Chosen: run a literal `</content>` grep across every file the diff touches, then
 **Consequences**
 - `/done` review should default to a literal-tag grep (`</content>`, `<content>`) whenever the touched files include SKILL.md/agent-template/task-doc rewrites, independent of whether the diff's subject is the leak guard itself.
 - Establishes that a bug-fixing diff is not evidence the bug is fixed elsewhere in the repo — always sweep past the diff's own boundary for the same defect shape.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D33 — Retire the `<thinking>` Recommendation: Reasoning Scaffolds Belong to the Style Layer, Not Skill Files — committed — 2026-07-16
+
+**Problem**
+D2 kept Chain-of-Thought (`<thinking>`) as a recommended technique for "commands with multi-branch inference", and a `## Next Steps` item had been monitoring whether it reduced domain-inference errors. A `grep -rn` across every skill and command found **zero** adopters — the row had sat purely aspirational since it was written. Separately, the user asked where `<thinking>` blocks in their sessions came from: not the plugin at all, but their active output style (`~/.claude/output-styles/deliberate-explanatory.md` §1), which mandates them unconditionally.
+
+**Decision**
+Chosen: retire the CoT row from CLAUDE.md's prompting-techniques table and close the monitoring item, recording zero-uptake-over-many-sessions as the verdict. The two layers are now explicit: reasoning scaffolds are the **harness/output-style** layer's job (global, user-switchable), and a skill file hardcoding one fights whatever style is active. D2's Constitutional/Validation halves stand unchanged.
+
+**Rejected**
+- Leaving the row as a dormant option "in case someone wants it". Why not: an unused recommendation still costs every skill author a decision, and a plugin must be self-contained — it cannot know which output style a *different* user runs, so prescribing a scaffold at the skill layer is unsound in principle, not just unused in practice.
+- Reading zero adopters as "not tried hard enough" and adding a CoT block to a skill to test it. Why not: inverts the evidence. An 18-skill sample over many sessions choosing not to reach for a documented tool *is* the signal.
+
+**Consequences**
+- Establishes a layer boundary: skills own *procedure*, the output style owns *how reasoning is surfaced*. A future "should this skill think out loud?" question is answered at the style layer.
+- Absence of uptake is admissible evidence for retiring a recommendation — a monitoring item that never fires has reported its result.
 
 **Status**: committed · **Reversible**: yes
 

@@ -8,6 +8,7 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery
   - mcp__ide__getDiagnostics
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 model: sonnet
 color: red

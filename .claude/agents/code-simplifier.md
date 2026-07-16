@@ -10,6 +10,7 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery
   - mcp__ide__getDiagnostics
+  - Agent  # lets this simplifier spawn Explore agents to find duplicate patterns across the tree (depth-5 cap applies)
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 model: opus
 color: cyan
@@ -51,7 +52,7 @@ Single root `CLAUDE.md` — read it in full.
 - Extract a rule genuinely duplicated across 3+ skills into `_shared/references/`, replacing each copy with a one-line pointer
 - Collapse a flow described in multiple places (checklist + diagram + prose) into one canonical section
 - Tighten wording per this repo's own style (short sentences, tables over prose, `❌ Never / ✅ Always` for constraint-heavy steps)
-- Match the project's established prompting techniques (Constitutional constraints, Chain-of-Thought blocks, Validation Loops) per CLAUDE.md's own table — don't invent a new pattern
+- Match the project's established prompting techniques (Constitutional constraints, Validation Loops) per CLAUDE.md's own table — don't invent a new pattern
 
 **Do NOT:**
 - Refactor a skill not changed this session (unless it's a direct DRY-extraction target because a NEW duplicate was just introduced)

@@ -8,6 +8,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery (read-only)
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
   # NOTE: read-only by design — do NOT add Write/Edit. NO getDiagnostics (type-correctness is the code-reviewer's lane).
 model: sonnet
 color: purple

@@ -35,6 +35,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 |-------|---------|---------|
 | `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
 | `read-summary` | Discover + read task docs/CLAUDE.md before answering, investigating, or implementing; Plan-Mode-aware (judges Explore/Plan subagent delegation vs continuing inline) | User invokes, or model-invoked proactively before project-context-dependent work |
+| `tackle` | Take work to done from either entry: doc exists → `read-summary`; no doc → `brainstorming` (only if genuinely unclear) + `task-summary` Create. Then **triage open items by blocker type** (actionable / human-blocked / env-blocked / dependent) → parallel `Explore` (haiku) → `Plan` + `task-builder` (sonnet) → `done`. Recommends a sequence instead of offering a sweepable menu | User invokes (task-doc path + vague "let's continue", or a new feature request) |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
 | `task-summary` | Create/update task summary docs with path resolution, templates, cross-refs | `write-summary` skill, `update-summary` skill, `done` skill |
 | `write-summary` | Create task summary (thin pointer → `task-summary` skill) | User invokes directly |
@@ -64,7 +65,10 @@ These skills compose but are usually invoked as SEPARATE commands in sequence, n
 
 `/agent-setup` creates project-local agents in `.claude/agents/` using the **Bootstrap pattern** — agents read CLAUDE.md at runtime instead of having content injected. See `skills/agent-setup/templates/` for agent templates. `/done` uses these project agents (with fallback to external plugins).
 
-⚠️ **MANDATORY — editing a generated `.claude/agents/<name>.md` also requires patching its source `skills/agent-setup/templates/<name>.template.md`.** Fixing only the generated file leaves the template stale, so the next `/agent-setup` run on any project regenerates the old, unfixed behavior — this drift has recurred 3+ times (Explore's `tools:`/Search Strategy/Constraints, plus prior description and `Skill`-tool misses). Port every frontmatter and body edit into the matching template section before considering the change done.
+⚠️ **MANDATORY — a fix to any agent file is a fix to BOTH copies AND every sibling sharing that line.** Two directions, one grep:
+
+1. **Parity**: editing a generated `.claude/agents/<name>.md` requires patching its source `skills/agent-setup/templates/<name>.template.md` in the same change (and vice versa) — otherwise the next `/agent-setup` regenerates the old behavior. Recurred 4+ times.
+2. **Blast radius**: agent files are written by copy-paste, so a wrong line is almost never in one file. Before fixing, `grep -rn` the literal line across `.claude/agents/` **and** `templates/`; fix every hit. A single `Agent`-tool comment claiming its host was `Explore` sat in **11 files** — found only by grepping past the one file the typo was noticed in.
 
 ## Command/Skill Anatomy
 
@@ -135,6 +139,7 @@ No build step — markdown files are interpreted directly.
 | Plugin must be self-contained | Never reference user's global `~/.claude/CLAUDE.md` - other users won't have it |
 | User preferences → skill/command changes, not memory | Plugin `memory/` dir is shared repo — personal prefs go in user's project memory or baked into skill defaults |
 | Commands/skills that need agents → instruct Claude to spawn, not "spawn" directly | Commands are prompts — Claude (the executor) reads and makes Agent tool calls. Same pattern as `/done` |
+| A skill's SCOPE outgrows its NAME → rename it in the same change that widens it | A name that misdescribes scope is a trigger bug, not cosmetics: the description drives model invocation, so a skill named for half its job fires for half its cases. `continue-task` gained a greenfield path and became `tackle` immediately. Renaming is cheap (`git mv` + grep every reference); a stale name silently under-fires forever |
 | Command outgrows "single workflow"? → Migrate to skill; if it's a pure alias into another skill, convert the wrapper itself to a skill (not a command) | A command can only invoke, never reference/point — once its whole body is "go run skill X," it belongs in `skills/`, registering `/name` via its own `name:` frontmatter. Precedent: `write-summary`/`update-summary` → `skills/write-summary`, `skills/update-summary` (thin pointers to `task-summary`); `read-summary`, `update-claude-docs` converted outright when their name matched the target skill (see `tasks/plugin-maintenance/decisions/madr-structure.md` D10) |
 | Same rule/table duplicated verbatim across 3+ SKILL.md files → extract to `skills/_shared/references/<topic>.md`, replace each copy with a one-line pointer | One-place edits; e.g. `writing-style.md` (no-filler-words, one-idea-per-sentence) is referenced by `task-summary`, `notes-summary`, `update-claude-docs`, `condense-task-doc`, `condense-claude-md`. For a rule that's canonical in ONE skill but referenced elsewhere (not truly shared), point to that skill directly instead (e.g. `task-summary`'s merge rules point to `merge-task-docs`) — don't create a `_shared/` file for a single owner |
 | Never add `disable-model-invocation` unless user explicitly asks | User dislikes it — it drops the skill/command from Claude's context, killing auto-suggestion. Default to proactive invocation |
@@ -174,8 +179,9 @@ Commands/skills are prompts — apply these patterns when authoring or refactori
 | Technique | When to use | How |
 |-----------|-------------|-----|
 | **Constitutional (❌ constraints)** | Commands that make routing/write decisions | Add `❌ Never / ✅ Always` table before the action step |
-| **Chain-of-Thought (`<thinking>`)** | Commands with multi-branch inference (domain routing, signal classification) | Add `## 0. Pre-Flight Reasoning` block with `<thinking>` questions before Step 1 |
 | **Validation Loop** | Commands that write or modify files | Add numbered self-check after write step: addresses all points? no deletions? format correct? revise if fails |
+
+⚠️ **Don't prescribe visible `<thinking>` blocks in a skill.** Retired 2026-07-16 after zero uptake across 18 skills — reasoning scaffolds belong to the harness/output-style layer, not to skill files, and a skill that hardcodes one fights whatever style is active. See D33 (`tasks/plugin-maintenance/decisions/doc-condensation.md`).
 
 **Skip for**: Simple commands (<3 decision branches), read-only commands (no files written). Adding these to trivial commands adds noise without benefit.
 
