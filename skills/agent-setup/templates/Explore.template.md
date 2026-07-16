@@ -8,6 +8,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
+  - Agent  # lets this Explore spawn nested Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
 disallowedTools:
   - Write
   - Edit
@@ -55,6 +56,7 @@ subdir). The active repo's cross-system task doc's `Related:` field links the si
 2. **Prefer LSP for symbol navigation** — `hover` for types, `documentSymbol` for a file's method/property list. `goToDefinition`/`findReferences` are often broken in this harness — fall back to `Grep` for the exact name when they return nothing
 3. **Grep with scope** — always pass a `path` to avoid `node_modules`/`vendor`/build directories eating the result budget
 4. **Read only what's needed to confirm a match** — this agent reports locations and short excerpts, it doesn't need full-file context unless the request specifically asks "how does X work end-to-end"
+5. **Many independent targets** (3+; fewer → just read them serially in this call) — spawn one nested `Explore` per target/group instead of reading all of them serially in this agent's own context. Depth-5 nesting cap applies; at depth 5 (no `Agent` tool available) fall back to serial `Read`/`Grep` for any remaining targets instead of attempting to nest further.
 
 ## Output Format
 
@@ -82,5 +84,4 @@ No matches → state that plainly and name the search strategies tried (helps th
 | Read-only | Never Edit/Write — this agent only locates and reports |
 | No opinions | Report what exists; leave "is this correct/should this change" to `Plan`/`code-reviewer` |
 | Scope discipline | Search only what was asked — don't wander into unrelated areas because they looked interesting |
-| Speed over completeness | This is the cheap/fast agent (haiku) — for exhaustive multi-angle sweeps, the caller should spawn several of these in parallel rather than expect one call to cover everything |
-</content>
+| Speed over completeness | Cheap/fast agent (haiku) — for exhaustive multi-angle sweeps, spawn nested Explore agents (Search Strategy step 5) |

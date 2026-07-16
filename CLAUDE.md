@@ -50,6 +50,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `merge-task-docs` | Find related task docs in a domain, classify by subsystem boundary (not keyword), merge into fewer docs, delete sources, reconcile all back-references | User invokes or proactive when docs overlap |
 | `update-plugin` | Scan the session for plugin learnings (misfired triggers, missing rules, wrong workflow steps, new skills), then patch the actual SKILL.md files. The plugin equivalent of update-claude-docs | User invokes explicitly after skill-creator work |
 | `update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files. The CLAUDE.md analog of `task-summary` (SKILL.md workflow + `references/structure.md` canonical template). Capture mode is `/done` Step 3's single CLAUDE.md writer | `done` skill Step 3, or user directly |
+| `notes-summary` | Create, update, or read a personal session journal outside the repo (non-code conversations: boss/team/career/strategy) | User invokes directly |
 
 ### Typical invocation sequence
 
@@ -62,6 +63,8 @@ These skills compose but are usually invoked as SEPARATE commands in sequence, n
 ## Project-Specific Agents
 
 `/agent-setup` creates project-local agents in `.claude/agents/` using the **Bootstrap pattern** — agents read CLAUDE.md at runtime instead of having content injected. See `skills/agent-setup/templates/` for agent templates. `/done` uses these project agents (with fallback to external plugins).
+
+⚠️ **MANDATORY — editing a generated `.claude/agents/<name>.md` also requires patching its source `skills/agent-setup/templates/<name>.template.md`.** Fixing only the generated file leaves the template stale, so the next `/agent-setup` run on any project regenerates the old, unfixed behavior — this drift has recurred 3+ times (Explore's `tools:`/Search Strategy/Constraints, plus prior description and `Skill`-tool misses). Port every frontmatter and body edit into the matching template section before considering the change done.
 
 ## Command/Skill Anatomy
 

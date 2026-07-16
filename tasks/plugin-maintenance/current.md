@@ -6,7 +6,7 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-15 — see Quick Start / Last Session
+Last updated: 2026-07-16 — see Quick Start / Last Session (D32)
 -->
 
 # Plugin Maintenance
@@ -36,6 +36,8 @@ Last updated: 2026-07-15 — see Quick Start / Last Session
 - A large doc rewrite's "no rows deleted" check only covers the change's intended content — it misses collateral cuts to unrelated sections; `merge-task-docs`/`condense-task-doc` now require a full before/after section diff, not just a targeted row check — see D27 (decisions/doc-condensation.md)
 - `merge-task-docs` Step 2 defaults to executing the recommended scope/structure/naming inline, asking only on genuine ambiguity — no longer requires the caller to say "don't ask" every invocation — see D28 (decisions/agent-architecture.md)
 - Every generated agent template now carries `Skill` in `tools:` — `claude-md-pruner` was the last one missing it and independently duplicated `condense-claude-md`'s seam-test logic inline instead of delegating — see D29 (decisions/agent-architecture.md)
+- Editing a generated `.claude/agents/*.md` requires porting the same edit into its source `skills/agent-setup/templates/*.template.md` in the same change, or the next `/agent-setup` regen reintroduces the old behavior — now a root CLAUDE.md `⚠️ MANDATORY` callout, 3rd recurrence — see D31 (decisions/agent-architecture.md)
+- A diff adding a `<content>`-leak guard is not proof the leak is gone — grep the diff's own touched files AND sweep the whole repo for the literal tag, every `/done` review pass — see D32 (decisions/doc-condensation.md)
 
 ---
 
@@ -140,6 +142,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D28 | A confirmation gate that defaults ON forces the caller to pre-empt it every invocation — `merge-task-docs` now defaults to executing the recommendation, asks only on genuine ambiguity |
 | D29 | `claude-md-pruner` delegates restructuring to `condense-claude-md` instead of reimplementing the seam-test — the last template missing `Skill` per D14 |
 | D30 | Splitting a skill step's mechanical retrieval from its judgment half before delegating to a cheaper agent (`Explore`) — the judgment half never leaves the calling session's own model |
+| D31 | Explore agent gains the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity is now a `⚠️ MANDATORY` root CLAUDE.md callout after its 3rd recurrence |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
@@ -160,6 +163,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D23 | Skill-file density is a distinct bloat class from CLAUDE.md/task-doc bloat (no condense-* delegate exists) — fixed by hand across 7+ skills, captured as a permanent `update-plugin` checklist |
 | D26 | Companion-file split (Restructuring #7) widened from global-CLAUDE.md-only to any file whose oversized section is genuinely cross-cutting — no subdirectory AND no feature owner |
 | D27 | Pre-existing plan/spec docs are a distinct type from `decisions/<theme>.md` (verified against external ADR/Diátaxis convention) — split-doc guidance gained a parent-directory routing audit + an anti-silent-drop verification check |
+| D32 | A session adding a `<content>`-leak guard must grep its own diff for that exact leak, then sweep the whole repo — the guard doesn't retroactively fix leaks already sitting in files, including ones the same diff touches |
 
 ### Read [decisions/madr-structure.md](decisions/madr-structure.md) if you're asking: *how does the MADR decision-record format itself work — when to use it, what it costs, how do editing skills handle it?*
 
@@ -193,11 +197,13 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ---
 
-## Last Session (2026-07-15)
+## Last Session (2026-07-16)
 
-- **D30 added** (decisions/agent-architecture.md): user asked for "multi-level Haiku" delegation across all agents to cut token cost; separated the real problem (main-loop context bloat) from the stated one (model cost) before acting, and rejected a blanket cheap-model policy since most skills' work is judgment (staleness, subsystem-boundary reasoning, disambiguation) that degrades on a weaker model. Split three skills' flagged steps into mechanical-retrieval (delegated to `Explore`) vs judgment (stays inline): `read-summary` doc-discovery, `merge-task-docs` Step 1 + Step 3, `task-summary` multi-domain candidate-gathering. Extracted the repeated pattern to `skills/_shared/references/explore-delegation.md`.
-- Product review caught the delegation's own "off the main loop's context" framing was false for main-loop-invoked skills (the Agent result still returns to the caller) — corrected in the shared reference before shipping, plus added missing `run_in_background: false` to all three example calls.
-- Plugin version bumped 1.81.0→1.82.0; CHANGELOG entry added.
+- **D31** (1.83.0): Explore agent gained the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity gap (3rd recurrence) fixed and codified as a root CLAUDE.md `⚠️ MANDATORY` callout. `notes-summary` added to CLAUDE.md's Skills table.
+- **1.84.0**: `condense-task-doc`/`condense-claude-md`'s draft+verify step inlined the `git diff HEAD`-only verification instruction directly (was a bare pointer) — a real dry-run showed re-reading/second-agent-comparison missed 1 of 6 Haiku-drafter fabrications the diff-based check would have caught immediately.
+- **1.86.0 + D32**: added the `<content>`/`</content>` tool-output-wrapper-tag guard to task-summary/update-claude-docs/merge-task-docs; `/done`'s own review found 4 leaked tags still sitting in touched + untouched files and fixed all of them, extracting the guard to `_shared/references/strip-tool-output-tags.md`.
+- **1.87.0**: `browser-verifier.template.md` gained a "Verifying file downloads" recipe (fetch-the-bytes instead of clicking an unclickable OS save dialog), after a prior run falsely PASSed a PDF export without checking it. This `/done`'s product review then found two gaps in the same session's own unshipped work: the download recipe was GET-only (added POST/CSRF and queued-job variants), and the nested-Explore trigger (D31) had no lower bound or depth-5 fallback (added a 3+ threshold and a serial-fallback instruction to both `.claude/agents/Explore.md` and its template). Also fixed two stray facts: a phantom "1.85.0" version reference in this doc (the work actually shipped as 1.86.0) and a stale `Last updated` date in `decisions/doc-condensation.md`.
+- Plugin version 1.82.0→1.87.0 across CHANGELOG entries; all fixes from this `/done` pass are folded into the existing unshipped CHANGELOG entries rather than bumping further.
 
 ---
 

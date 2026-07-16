@@ -7,7 +7,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - The companion-file split (Restructuring #7) applies to ANY oversized cross-cutting section, not just the global CLAUDE.md (D26)
   - Pre-existing plan/spec docs sitting next to a split doc are NOT decisions/<theme>.md candidates — a different document type, verified against external ADR/Diátaxis convention (D27)
 Related: ../current.md (index), ../decisions/madr-structure.md, ../decisions/agent-architecture.md
-Last updated: 2026-07-15
+Last updated: 2026-07-16
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation Decisions
@@ -225,6 +225,26 @@ Two-round hand-edit pass. Round 1 (v1.62.0): collapsed stacked warnings and stri
 **Consequences**
 - 9 skill files edited across two rounds; 2 new `references/*.md` files created; `update-plugin/SKILL.md` gained permanent density-pass capability.
 - Plugin version bumped 1.61.2→1.63.1 across three CHANGELOG entries; kept `plugin.json`/`marketplace.json` in sync.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D32 — A Session Adding a Leak Guard Must Grep Its Own Diff for the Leak, Repo-Wide — committed — 2026-07-16
+
+**Problem**
+A prior session added a `<content>`/`</content>` tool-output-wrapper-tag guard to `task-summary`/`update-claude-docs`/`merge-task-docs` (mirroring the one `condense-task-doc`/`condense-claude-md` already had), motivated by a leak caught in a rewritten `current.md`. Before the change was committed, `/done`'s own review pass found the exact bug — a literal trailing `</content>` — sitting in two of the very files the session had just edited (`skills/agent-setup/templates/Explore.template.md`, `tasks/plugin-maintenance/decisions/agent-architecture.md`), unrelated to the new guard's own edits but landed in the same diff. A repo-wide sweep then found two more pre-existing leaks in untouched files (`Plan.template.md`, `madr-structure.md`).
+
+**Decision**
+Chosen: run a literal `</content>` grep across every file the diff touches, then a second repo-wide sweep, as a standard part of `/done`'s review step whenever a diff's own content shows it originated from `Read`-sourced full-file rewrites — not just when the diff is specifically about the leak guard. Fixed all 4 occurrences found (2 in-diff, 2 pre-existing) in the same `/done` pass rather than filing them as follow-ups.
+
+**Rejected**
+- Trusting the new guard's own presence as proof the bug class was handled. Why not: a guard is instructions for the *next* write; it does nothing for leaks already sitting in files from *before* the guard existed, and doesn't stop the session writing the guard from making the same mistake in an unrelated file in the same sitting.
+- Scoping the grep to only the files the guard's CHANGELOG entry named. Why not: the two pre-existing leaks were in files with no connection to this session's diff — a scope-limited grep would have missed them entirely.
+
+**Consequences**
+- `/done` review should default to a literal-tag grep (`</content>`, `<content>`) whenever the touched files include SKILL.md/agent-template/task-doc rewrites, independent of whether the diff's subject is the leak guard itself.
+- Establishes that a bug-fixing diff is not evidence the bug is fixed elsewhere in the repo — always sweep past the diff's own boundary for the same defect shape.
 
 **Status**: committed · **Reversible**: yes
 

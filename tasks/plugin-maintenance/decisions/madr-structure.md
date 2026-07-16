@@ -111,4 +111,3 @@ Chosen: ship the block format AND every skill that edits/compresses that section
 A structured multi-field block is a genuinely different content shape than a table row; any skill that adds one must teach every skill that edits/compresses that section how to handle the new shape, not just the skill that creates it. This doc's own MADR conversion (D8) is downstream of this fix existing.
 
 **Status**: committed · **Reversible**: no (retroactive — the fix must ship atomically with any future new block-shape)
-</content>

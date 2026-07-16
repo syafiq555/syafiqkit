@@ -7,8 +7,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Having read a file earlier in-session ≠ having verified it against a checklist (D21)
   - A self-caught deviation from a skill's own instructions is a reportable signal, not a win to file silently (D24)
   - A scan's "zero results = done" needs a must-hit control, not just a correct command (D25)
+  - Editing a generated `.claude/agents/*.md` without porting the same edit into its source template is a recurring drift class (D14, D29, D31)
 Related: ../current.md (index), ../decisions/doc-condensation.md
-Last updated: 2026-07-13
+Last updated: 2026-07-15
 -->
 
 # Plugin Maintenance — Agent Architecture Decisions
@@ -217,4 +218,24 @@ Chosen: split each candidate skill's flagged step into a mechanical half (file d
 - Plugin version bumped 1.81.0→1.82.0; CHANGELOG entry added.
 
 **Status**: committed · **Reversible**: yes
-</content>
+
+---
+
+### D31 — Explore Agent Gains `Agent` Tool for Self-Nested Multi-Doc Sweeps — committed — 2026-07-15
+
+**Problem**
+User observed the project's local Explore override doing a flat, single-level sweep across `tasks/**/current.md` for a staleness audit and asked whether Explore should be able to spawn its own sub-agents to parallelize that kind of multi-target work, rather than reading every doc serially inside one Explore call.
+
+**Decision**
+Chosen: verified against the official Claude Code docs (not agent paraphrase — line-cited claims were independently re-fetched and grepped for confirmation) that any subagent definition listing `Agent` in its `tools:` can spawn nested subagents, capped at a fixed depth-5 limit. Added `Agent` to `.claude/agents/Explore.md`'s `tools:`, added a Search Strategy step for "many independent targets → spawn one nested Explore per target instead of serial reads," and updated the Constraints table's "Speed over completeness" row to match. Ported the identical three edits into `skills/agent-setup/templates/Explore.template.md` (caught by `code-reviewer` as parity drift before commit — this project's generated agent and its source template must move together, now codified as a `⚠️ MANDATORY` root CLAUDE.md callout under Project-Specific Agents).
+
+**Rejected**
+- Leaving fan-out as the caller's responsibility (spawn several flat Explores in parallel from outside), the prior design. Why not: it works for the caller-already-knows-all-targets-upfront case, but for a request like "check every current.md" the caller would need to enumerate targets itself before delegating anything — self-nesting lets Explore do its own target enumeration + fan-out in one call.
+
+**Consequences**
+- Nested Explore-spawns-Explore for raw multi-doc reads is the mechanical-retrieval case D30 already carves out as safe for cheap-model delegation — no judgment crosses the boundary, so this doesn't reopen D30's blanket-delegation rejection.
+- A nested Explore at depth 5 loses the `Agent` tool and can't spawn further; the fixed cap is not configurable, so extremely deep fan-out plans must flatten before depth 5.
+- Generated-agent/template parity is now a documented recurring drift class (3rd occurrence, after D14's description/Bootstrap gap and D29's missing `Skill` tool) — root CLAUDE.md gained a `⚠️ MANDATORY` callout under Project-Specific Agents rather than a fourth ad-hoc fix.
+- Plugin version bumped 1.82.0→1.83.0.
+
+**Status**: committed · **Reversible**: yes

@@ -7,6 +7,7 @@ tools:
   - Read
   - Bash
   - Skill  # for /read-summary task-doc discovery
+  - Agent  # lets this Explore spawn nested Explore agents for multi-doc/multi-angle sweeps (depth-5 cap applies)
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 disallowedTools:
   - Write
@@ -37,6 +38,7 @@ This repo has a single root `CLAUDE.md` — no backend/frontend split, no siblin
 ## Search Strategy
 
 1. **Classify the ask** — file-by-pattern (`Glob` over `skills/*/SKILL.md`, `commands/*.md`), keyword/rule-text (`Grep`), or "which skill owns this behavior" (read CLAUDE.md's Skills table first, then confirm in the target SKILL.md)
+1a. **Many independent targets** (3+; fewer → just read them serially in this call — e.g. "check every `current.md` under `tasks/`") — spawn one nested `Explore` per target/group instead of reading all of them serially in this agent's own context. Depth-5 nesting cap applies; at depth 5 (no `Agent` tool available) fall back to serial `Read`/`Grep` for any remaining targets instead of attempting to nest further.
 2. **Grep with scope** — always pass a `path` (e.g. `skills/`, `commands/`, `tasks/`) to avoid noise from `.git`/`node_modules` if present
 3. **Read only what's needed to confirm a match** — this agent reports locations and short excerpts, not full-file context, unless asked "how does skill X work end-to-end"
 4. **Frontmatter matters** — when the ask is about triggering/routing (a skill firing or not), always check the `description:` frontmatter field specifically, not just the body
@@ -65,4 +67,4 @@ No matches → state that plainly and name the search strategies tried, not a ge
 | Read-only | Never Edit/Write — this agent only locates and reports |
 | No opinions | Report what exists; leave "is this correct/should this change" to `Plan`/`code-reviewer` |
 | Scope discipline | Search only what was asked — don't wander into unrelated skills because they looked interesting |
-| Speed over completeness | This is the cheap/fast agent (haiku) — for exhaustive multi-angle sweeps, the caller should spawn several of these in parallel rather than expect one call to cover everything |
+| Speed over completeness | Cheap/fast agent (haiku) — for exhaustive multi-angle sweeps, spawn nested Explore agents (Search Strategy 1a) |

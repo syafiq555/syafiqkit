@@ -94,4 +94,3 @@ Add a second Bootstrap table for the sibling repo. -->
 | Reuse first | Always name existing utilities/patterns found before proposing new code |
 | Scope | The task at hand — don't redesign adjacent systems the caller didn't ask about |
 | Respect deliberate constraints | A documented decision in the task doc or CLAUDE.md is not something to second-guess in the plan |
-</content>

@@ -13,7 +13,7 @@ Scaffold a new CLAUDE.md for a repo, layer, or subdir that has none. The goal is
    - **Architecture**: the 3-5 dirs a newcomer must know, with ✅/⚠️ markers for canonical-vs-legacy. Not the whole tree.
    - **Stack + entry points** for the LLM-CONTEXT header (framework versions from lockfiles; entry files).
    - **Critical rules / gotchas**: only ones you can actually justify from the code (a broken legacy model, a schema quirk, a route-placement constraint). If you can't justify a rule from the code, leave it out — an empty section is better than a guessed one.
-4. **Write in house style** — LLM-CONTEXT header, `{#anchor}` on every `##`, `❌ NEVER / ✅ INSTEAD` and `Symptom | Cause | Fix` tables, file+symbol references (never line numbers), sections in taxonomy order. Cross-reference the parent layer for shared concepts (`> Schema: parent CLAUDE.md #{plans}`).
+4. **Write in house style** — LLM-CONTEXT header, `{#anchor}` on every `##`, `❌ NEVER / ✅ INSTEAD` and `Symptom | Cause | Fix` tables, file+symbol references (never line numbers), sections in taxonomy order. Cross-reference the parent layer for shared concepts (`> Schema: parent CLAUDE.md #{plans}`). ⚠️ Strip tool-output wrapper artifacts before writing — see `_shared/references/strip-tool-output-tags.md`.
 5. **Stay under budget** — target <200 lines (§6). A fresh scaffold that's already near the cap means you're including too much; keep the highest-signal rules. Before dropping the rest outright, check whether a block is feature-specific enough to route to that feature's task doc instead (§6 "second structural lever") — only truly cross-cutting or low-signal content should be cut.
 6. **Validate** (§5 checks apply): anchors present + unique, tables well-formed, no invented rules, no secrets (those go to `CLAUDE.local.md` by name only), cross-refs resolve.
 
@@ -28,7 +28,7 @@ Restructure an existing CLAUDE.md to the canonical layout + formatting without l
 5. **Apply the capture filter** (§2) as you go: a rule that's discoverable-from-code, linter-enforced, or feature-specific gets *removed* (feature-specific → note it belongs in a task doc), not reformatted. This is the one place Rewrite deletes — for the wrong-layer/discoverable class only, never for "seems long".
 6. **Route mis-placed rules** (§1): a rule that belongs one layer down goes to (or creates) the subdir/domain file, using the seam-test. A cross-cutting rule wrongly buried in a subdir moves up to the layer. If a block fails the seam-test (no real subdirectory owns it) but is feature-specific, route to that feature's task doc instead (`references/structure.md` §6 "second structural lever") — leave a bare `📖 See <file>` pointer row, no inline duplication needed.
 7. **If still over budget after restructure** → hand off to `condense-claude-md` for a density pass; don't force-shrink by dropping rules yourself.
-8. **Validate**: diff your rule-inventory (step 2) against the rewritten file — every load-bearing rule still present (possibly relocated), zero dropped. Then §5 checks.
+8. **Validate**: diff your rule-inventory (step 2) against the rewritten file — every load-bearing rule still present (possibly relocated), zero dropped. Then §5 checks. Also run the leaked-tag check from `_shared/references/strip-tool-output-tags.md` (step 4's warning).
 
 ## CONDENSE MODE
 

@@ -103,6 +103,31 @@ window.__probe = 'running';
 
 Drive the app via the iframe's `contentDocument`. Horizontal overflow = `scrollWidth` meaningfully exceeding `clientWidth`; report both numbers.
 
+## Verifying file downloads (PDF / CSV / export)
+
+A file download opens a **native OS save dialog — outside the DOM, unclickable by any tool here.** Do NOT click the export button to verify the file, and NEVER report a download PASS from the button existing or a request firing 200 (a 200 can carry empty/corrupt bytes). Bypass it: same-origin `fetch()` in the page context carries the session cookies automatically and returns the bytes with no dialog.
+
+```js
+window.__dl = 'running';
+(async () => {
+  try {
+    const res = await fetch('<export URL — e.g. /report/pdf>');   // same-origin, cookie-authed
+    const buf = new Uint8Array(await res.arrayBuffer());
+    const head = String.fromCharCode(...buf.slice(0, 5));
+    window.__dl = JSON.stringify({
+      status: res.status, type: res.headers.get('content-type'),
+      bytes: buf.length, magic: head,       // '%PDF-' for PDF; CSV → first header row
+      ok: res.status === 200 && buf.length > 0,
+    });
+  } catch (e) { window.__dl = 'ERR: ' + e.message; }
+})();
+'started'
+```
+
+Read back `window.__dl` separately. **PASS only on the bytes**: a valid PDF starts `%PDF-`; a CSV's `magic` is its header row. `bytes: 0` or an HTML magic (`<!DOC`) = errored/redirected-to-login → `FAIL`. When the route needs auth the page fetch lacks, a server-side render of the same controller/view (e.g. via the app's REPL) is a valid cross-check.
+
+**Not a plain GET?** CSRF-tokened `POST` export: read the token from `<meta name="csrf-token">` or a hidden form field, pass it as a header (`X-CSRF-TOKEN`) in the same `fetch`. Queued/async export (job dispatched, download link appears later): poll the job-status endpoint until it returns the signed URL, then `fetch` that URL the same way — never fall back to clicking the button for either shape.
+
 ## Browser tooling gotchas
 
 | Gotcha | Rule |
@@ -112,6 +137,7 @@ Drive the app via the iframe's `contentDocument`. Horizontal overflow = `scrollW
 | Native `<select>` popup | An OS-level overlay, invisible to DOM screenshots. A focus-ring-only screenshot is **not** evidence the dropdown is clipped — assert `select.options` + `getBoundingClientRect()` in JS |
 | React-controlled inputs ignore `.value = x` | Use the native setter, sourced from the **iframe's own realm** (`f.contentWindow.HTMLInputElement.prototype`), then `dispatchEvent(new Event('input', {bubbles:true}))`. Physical `computer` click/type also works |
 | Console tracking starts when first called | A clean console read **after** page load is not proof no errors fired during it — say so rather than claiming "no errors" |
+| File download opens a native OS save dialog | Unreachable by any tool here — don't click the export button to verify. `fetch()` the URL in-page and assert the bytes (see "Verifying file downloads" above) |
 
 ## Process
 

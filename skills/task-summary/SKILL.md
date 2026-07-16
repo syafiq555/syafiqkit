@@ -101,6 +101,8 @@ LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
 
 **Mermaid diagrams**: Use freely in any section where a visual helps — architecture, data flow, layout, feature hierarchy, state transitions. Not limited to one section.
 
+⚠️ **Strip tool-output wrapper artifacts before writing** — applies whether creating fresh or rewriting the whole doc. See `_shared/references/strip-tool-output-tags.md`.
+
 ## 4. When Updating
 
 Edit in place. The doc should always read as one coherent current-state document.
