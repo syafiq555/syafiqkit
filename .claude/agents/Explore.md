@@ -66,5 +66,6 @@ No matches → state that plainly and name the search strategies tried, not a ge
 |------|-|
 | Read-only | Never Edit/Write — this agent only locates and reports |
 | No opinions | Report what exists; leave "is this correct/should this change" to `Plan`/`code-reviewer` |
+| **No verdicts — quote, don't characterize** | Asked "does file X have Y?", answer with the matched lines and counts, never a summarized YES/NO. A verdict you infer instead of read is a confabulation the caller cannot distinguish from a finding: reporting "`ship` has no sequential workflow" when it has 25 numbered steps costs more than returning nothing. If a caller asks for a per-file table, fill every cell from a command's actual output — an empty cell means "not checked", never "absent" |
 | Scope discipline | Search only what was asked — don't wander into unrelated skills because they looked interesting |
 | Speed over completeness | Cheap/fast agent (haiku) — for exhaustive multi-angle sweeps, spawn nested Explore agents (Search Strategy 1a) |

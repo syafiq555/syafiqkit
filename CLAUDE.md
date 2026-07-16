@@ -44,7 +44,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `commit-invoice-generator` | Generate invoice line items from git commits | User invokes directly |
 | `md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams | User invokes directly |
 | `gchat-format` | Convert Markdown to Google Chat syntax | User invokes or `/gchat-format` |
-| `ship` | End-to-end ship: commit → changelog → push → CI verify → GitNexus re-index → release note | User invokes directly |
+| `ship` | End-to-end ship: commit → changelog → push → CI verify → release note | User invokes directly |
 | `pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev (dump, scp, import, password reset) | User invokes or proactive |
 | `hobby-review` | Socratic debrief of a hobby item (anime, book, game, etc.) against the taste rubric in the matching current.md | User invokes or proactive after "I watched/finished X" |
 | `function-parameter-limits` | Advise + enforce the 0/2/3+ function-param rule (parameter-object/DTO refactors; ESLint/PHPMD/Pylint setup with DI-constructor carve-outs) | User invokes or proactive on "too many params" |
@@ -52,6 +52,9 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `update-plugin` | Scan the session for plugin learnings (misfired triggers, missing rules, wrong workflow steps, new skills), then patch the actual SKILL.md files. The plugin equivalent of update-claude-docs | User invokes explicitly after skill-creator work |
 | `update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files. The CLAUDE.md analog of `task-summary` (SKILL.md workflow + `references/structure.md` canonical template). Capture mode is `/done` Step 3's single CLAUDE.md writer | `done` skill Step 3, or user directly |
 | `notes-summary` | Create, update, or read a personal session journal outside the repo (non-code conversations: boss/team/career/strategy) | User invokes directly |
+| `condense-task-doc` | Aggressively condense a bloated task doc; SPLITS a whole-doc MADR >300 lines into index + `decisions/<theme>.md` | User invokes, or `task-summary` when a doc is >300 lines |
+| `condense-claude-md` | Aggressively condense a bloated CLAUDE.md (removes excess — not the analog that adds content) | User invokes, or `update-claude-docs` Condense mode |
+| `ci-ssh-deploy-timeout` | Diagnose CI/CD deploys that intermittently can't SSH the target; convert to a connect-retry pattern instead of allowlisting runner IPs | User invokes or proactive on "deploy keeps timing out" |
 
 ### Typical invocation sequence
 
@@ -159,7 +162,12 @@ No build step — markdown files are interpreted directly.
    - Same flow described in 4 places (checklist + diagram + prose + after-section) — one `## Steps` section is enough; redundancy causes section drift
    - Judging bloat by line count alone — a dense one-row-per-item table can sit at target line count while individual cells run 800+ characters; use `wc -c` alongside `wc -l` before ranking files by size. Compute the bytes/line ratio with a tool (`echo "scale=1; $(wc -c < f)/$(wc -l < f)" | bc`), never mentally — an eyeballed ratio that lands the wrong side of the ~80-90 threshold inverts the diagnosis (extract vs tighten) and reads as measured
    - A skill "feels bloated" → run `syafiqkit:update-plugin`'s Step 3a density-pass checklist (stacked warnings, worked anecdotes, cold-path extraction) rather than a from-scratch audit — see `tasks/plugin-maintenance/decisions/doc-condensation.md` D23
-   - Adding a new skill/command: update BOTH the `## Skills` table here AND the `## Skills` table in `README.md` — two separate lists that silently drift if only one is touched
+   - Touching ANY skill: the registry lives in **three** hand-maintained places — this file's `## Skills` table, `README.md`'s, and `tasks/plugin-maintenance/current.md`'s. Adding to one is the common miss; the worse failure is silent rot in tables nobody edited (3 skills were absent from this file's table for months while present in README). Never trust them by eye — diff against disk, which is the only source of truth:
+     ```bash
+     sed -n '/^### Skills/,/^### Typical/p' CLAUDE.md | grep -oE '^\| `[a-z-]+`' | tr -d '|` ' | sort > /tmp/c.txt
+     ls -d skills/*/ | grep -v _shared | sed 's|skills/||;s|/||' | sort > /tmp/d.txt
+     comm -13 /tmp/c.txt /tmp/d.txt   # any output = rows missing from CLAUDE.md
+     ```
    - Inconsistent edits — when changing a concept (e.g., model name), verify all references (headings, body, comments) match
 3. **Reference**: `tasks/plugin-maintenance/current.md` for plugin patterns and research
 

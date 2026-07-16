@@ -89,16 +89,11 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 
 ⚠️ **The count is PER ROLE — it multiplies, it does not replace.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer. Spawning N agents *total* (all of one role) is the failure this table exists to prevent: at 41+ files, 3 agents is wrong — **7** is right. The product reviewer is always exactly 1 (it judges the whole feature, so it is never partitioned).
 
-⚠️ **ALL agents go in ONE tool-call block — this is a count check on the block you're about to emit, not a sentence you say.** Saying "3 agents" then emitting 1 `Agent` call raises no error. Before sending, write the literal list of calls — `subagent_type` + role, one line each — and verify the list length equals the roll-call TOTAL:
+⚠️ **ALL agents go in ONE tool-call block.** The failure this prevents is *not* miscounting — it is stating the count correctly and then emitting one call anyway. Writing "TOTAL = 3" costs nothing and enforces nothing: a partial block raises no error, produces no diff, and fails no gate. It surfaces only when a human counts your tool calls and asks where the others went. Restating the rule to yourself is not the check — you can recite it and still send one call.
 
-```
-1. code-reviewer   → reviewer   (bugs/security/conventions)
-2. code-simplifier → simplifier (duplication/readability)
-3. product-reviewer → product   (missing journeys)
-TOTAL = 3 → emit exactly 3 Agent calls in ONE block.
-```
+**Anchor the emission to the Glob you just ran, not to a number you wrote.** Each `.claude/agents/*.md` hit above is one role, and each role is one `Agent` call in the block you are about to send. Read your Glob results, then emit one call per hit (×N per role when the table says >1) — the same block, no exceptions.
 
-If the block has fewer entries than TOTAL, add them before sending — never send a partial block intending to follow up.
+⚠️ **You have already failed this step the moment you send a block intending to "spawn the rest next."** There is no next: the turn ends, the results come back, and the missing roles are never registered as skipped — every downstream check reads the step as run. If the block in front of you has fewer `Agent` calls than roles, add them *before* sending.
 
 A user arg always wins: "2 agents each" / "4 each" sets the per-role count explicitly (ignore the table); a count is also implied by "split it up". Light mode (`<5` files) is the ONE case with an asymmetric count (1 reviewer + 0 simplifier) — it takes precedence over the table's top bucket.
 

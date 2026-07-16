@@ -35,7 +35,7 @@ Eight agents, each with a distinct responsibility:
 | `Plan` | Design an implementation approach — critical files, trade-offs, blast radius. Project-aware version of the built-in `Plan` agent. | `sonnet` | Read-only + LSP |
 | `task-builder` | Implements one file-partitioned slice of already-triaged work. The only agent that writes NEW feature code. Spawned in parallel by `/tackle` Step 4b. | `sonnet` | **ALL** (no `tools:` line) |
 | `code-reviewer` | Bugs, security, convention violations. Session-aware — reads task docs, gathers changes holistically. | `sonnet` | Read-only + LSP + diagnostics |
-| `code-simplifier` | DRY, clarity, consistency, dead code. Edits files directly. Applies Rule of Three. | `opus` | Read + Edit + Write + LSP |
+| `code-simplifier` | DRY, clarity, consistency, dead code. Edits files directly. Applies Rule of Three. | `sonnet` | Read + Edit + Write + LSP |
 | `product-reviewer` | Product/PM lens — missing user journeys, dead-end flows, UX/business-value gaps the engineer forgot to build. Reads the task doc (intent) + built code; recommends, never edits. | `sonnet` | Read-only + LSP |
 | `browser-verifier` | Drives the running app in a real browser — clicks the real flow, asserts the DB actually changed, catches layout/console breakage a diff cannot show. Owns the mobile-viewport recipe. Reports; never edits. | `sonnet` | Read-only + Chrome MCP |
 | `claude-md-pruner` | Prunes CLAUDE.md files for staleness/bloat. Conservative — preserves reference tables and cross-reference mappings. | `sonnet` | Read + Edit + Grep + Glob |
