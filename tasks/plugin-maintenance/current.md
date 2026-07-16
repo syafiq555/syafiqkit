@@ -18,8 +18,8 @@ Last updated: 2026-07-16 — see Quick Start / Last Session
 **Where we are**: Plugin is a mature skill/command system (18 skills, 6 commands) with an established design philosophy (autonomous, self-contained, delegate-don't-duplicate). Active maintenance is condensation/de-duplication passes, not new capability.
 
 **Immediate next actions (in order)**:
-1. Re-sync the Current Skills registry table (stale since before `task-summary` etc. existed — see Cross-Cutting Operational Notes)
-2. `decisions/doc-condensation.md` is now 262 lines after gaining D27 — still under the 300-line split threshold, keep watching
+1. Sweep skills emitting copy-pasteable fenced artifacts for `ship`'s Step 5.8 boundary rule — `gchat-format` has the same gap `ship` just closed (see Next Steps)
+2. Re-sync the Current Skills registry table (stale since before `task-summary` etc. existed — see Cross-Cutting Operational Notes)
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
@@ -199,7 +199,10 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-16)
 
-- **1.91.0**: Closed GitHub issue #1 (`ship` v1.82.0 — Step 5's nested `gchat-format` call wasn't producing a changes-only release note). Of the issue's two named causes: the paraphrase-drift one was already fixed a day earlier by the raw-CHANGELOG-text + bullet-count rule (Step 5.4); the buried-output one was still live — `ship` SKILL.md gained Step 5.7 + an `## Output` template update so the release note now renders as its own labelled, fenced block after the Ship Summary table instead of a bare table row. Reviewed clean (0 findings). Version bump also reconciled a pre-existing plugin.json/marketplace.json drift (1.90.0/1.88.0 → both 1.91.0).
+- **1.94.0**: Closed GitHub issue #2 — the residue of #1's own fix. 1.91.0 gave the release note a fence (a beginning) but never an end, so operator commentary appended below it read as more note. `ship` gained Step 5.8 + a caveat-class table and an `## Output` placeholder. The issue's own suggested fix ("strip caveats from the fence") was **rejected** — it contradicts Step 5.3, which mandates deferred work *inside* the note for the Chat audience. Split by audience instead: audience caveats stay in, operator commentary goes above.
+- **1.95.0**: `done` density pass (D23 / Step 3a). Extracted the opt-in browser-verification block to `references/browser-verification.md`; SKILL.md 234→209 lines, 25,829→21,207 bytes. Stopped at 101.4 B/line rather than the ~90 target — remaining rows are load-bearing.
+- **The two-tier verify earned its keep**: the Haiku drafter reported "no meaning changed"; `git diff` found 4 dropped rules, incl. the `git status --short` warning's partition-consequence clause — the exact clause that justifies `done` keeping its own copy vs `task-summary`'s. All restored. Re-confirmed no `_shared/` extraction (fails D11's byte-identical test).
+- **Open**: `gchat-format` has the same unbounded-fence gap `ship` just fixed (it fences its whole output, defines nothing about what follows) — and `ship` Step 5 *calls* it. See Next Steps.
 
 ---
 
@@ -208,5 +211,6 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 - [ ] Monitor whether `<thinking>` blocks reduce domain inference errors in practice (D2)
 - [ ] Re-sync Current Skills registry table (see Cross-Cutting Operational Notes)
 - [ ] Audit existing task docs' `## Key Technical Decisions` sections against D16's new MADR-default — any plain-table row that had a real rejected alternative should convert (not yet swept)
-- [ ] `decisions/doc-condensation.md` is at 249 lines (post-condensation) — watch for the 300-line MADR-split threshold on the next addition
+- [ ] `decisions/doc-condensation.md` is at 269 lines / 28,857 bytes — watch for the 300-line MADR-split threshold on the next addition
 - [ ] Confirm no other skill has the same "self-caught deviation" blind spot as `done` Step 5 pre-D24 — not yet audited beyond `done`/`ship`
+- [ ] `update-plugin` Step 5's consumer report is copy-pasteable but **unfenced**, and the skill tells you to point at the issues URL *after* it — same boundary class as `ship` 5.8 / `gchat-format`, but needs a fence before a boundary rule can apply. Not patched (different shape; a thin patch is worse than none). `agent-setup`/`md-to-pdf`/`commit-invoice-generator` checked — do not apply

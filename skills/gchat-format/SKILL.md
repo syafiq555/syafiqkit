@@ -143,6 +143,7 @@ After a bold label: replace with `:`. In flowing prose: replace with `-`. Never 
 - Only omit the fence if the user explicitly asks for no fence.
 - Preserve blank lines between sections
 - Keep emojis as-is
+- ⚠️ **The fence is the LAST element of your reply — nothing follows it, ever.** Anything you want to say to the user (caveats, "I trimmed the wide table", offers to reformat) goes **above** the fence. Text after the closing backticks reads as part of the message to paste, because the fenced content often ends on its own `Note:` line — the boundary is invisible from the reader's side. Label the fence so the extent is explicit ("copy everything inside the fence below, nothing outside it"), and keep commentary addressed to the user out of the fenced content entirely.
 
 ## Example
 
