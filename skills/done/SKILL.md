@@ -31,7 +31,7 @@ Execute all steps in sequence without pausing for confirmation.
 - Step 1: **skip all three code agents** — simplifier/reviewer/product-reviewer audit *code*; there is none. Running them against markdown is theater. Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve.
 - Steps 2-4 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run).
 - Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
-- ⚠️ **Exception — a doc edit that DOCUMENTS new code shipped this session** (you wrote both code and its doc) is NOT docs-only; the diff includes code, so use Full/Light by file count.
+- ⚠️ **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Docs-only requires that the session wrote no application code at all. If you wrote code and it was **already committed** this session (so `git status --short` now shows only `.md`), it is NOT docs-only — the code was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + the uncommitted diff), and run Full/Light Step 1 against those committed code files. The tell: `git log` shows a commit you authored this session but the working tree is clean of code.
 
 **Infra-only mode** when the diff is **entirely deploy/build/CI plumbing** and no application code — CI workflows (`.github/workflows/*.yml`, `.circleci/`), `docker-compose*.yml`/`Dockerfile`, build config (`next.config.*`, `vite.config.*`), nginx/env config. The **mirror image of docs-only**: docs need no reviewer; infra needs *only* the reviewer, and needs it badly.
 - Step 1: **reviewer ONLY.** Skip the simplifier (no logic to DRY) and the product reviewer (no user journey). Size-independent — the trigger is file KIND, not count.
@@ -176,6 +176,8 @@ This is the **single** writer of CLAUDE.md / `CLAUDE.local.md` entries. It scans
 Invoke `syafiqkit:task-summary` **with no args** in full mode — let the skill do a multi-domain scan. In **light mode**, pass the known doc path instead.
 
 ⚠️ **Why full mode scans**: Passing an explicit path skips the scan, causing missed updates to related docs (roadmaps, bug reports mentioned in chat that need stubs). Light mode is exempt because its trigger condition (single domain, no external inputs) rules those out.
+
+⚠️ **`task-summary` already ran THIS session → invoke it scoped, not bare.** `/commit`'s staleness gate forces a full run, and `/commit`+`/ship`+`/done` are routinely chained, so the docs are often already reconciled by Step 4. Pass an arg naming only what's NEW since that run (typically the product reviewer's gaps → Next Steps). The bare-scan rule above governs a COLD `/done`, not this case. A scoped invoke still counts as running the step; skipping it does not.
 
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 
