@@ -110,6 +110,12 @@ Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc,
 5. Format using the `gchat-format` skill (convert to Google Chat syntax).
 6. Copy to clipboard.
 7. ⚠️ **Render the formatted result as its own labelled, fenced block — after the Ship Summary table, never inline within it.** A release note that only shows up as a table row reads as buried, not as a standalone artifact the user can copy — see the Output template below.
+8. ⚠️ **The fenced block is the LAST element of the output. Nothing follows it — ever.** All *operator* commentary (open items, next-decisions, offers like "I can trigger the migration") goes **above** the label, before the fence. Appending it below is silently unreadable: item 3 makes the note's own last line a `Note: …` caveat, so trailing text reads as more note — the user can't see where the copy-paste stops. Do not "fix" this by stripping caveats from the note; the two classes have different audiences:
+
+| Caveat class | Example | Goes |
+|---|---|---|
+| **Audience** — the Chat readers need it | "Note: bulk export still deferred." | **Inside** the fence (item 3) |
+| **Operator** — addressed to the user | "One open item (not blocking)…", "I can flip the flag if you want" | **Above** the label |
 
 ## Output
 
@@ -124,12 +130,16 @@ Generate a Google Chat-formatted release note. ⚠️ **Frame from the task doc,
 | Prod Verify | ✅ | [what you observed on the server — HEAD match, or the shipped behavior itself] |
 | Release Note | ✅ | See below |
 
-**Release Note (copy this):**
+[Operator commentary — open items, caveats for the user, offers, next decisions. Omit if none. This is the ONLY place it goes.]
+
+**Release note — copy everything inside the fence below, nothing outside it:**
 
 ```
 [gchat-format output — Google Chat syntax, changes-only]
 ```
 ````
+
+⚠️ The inner fence is the artifact. The output ends at its closing backticks — never write another word after them.
 
 ## Edge Cases
 
