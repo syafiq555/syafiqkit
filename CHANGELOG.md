@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.113.2
+
+- **update-plugin**: its own Step 1 scan warning ("re-read from the first user message, not the most recent tool call backward") is exactly the failure it produced in the session that wrote 1.113.1 — first pass found 1 of 3 real signals (the invoice fix only), a second pass after "you missed one" found 2 of 3 (added the ship fixes but still missed itself), and only a third explicit call-out ("fail to scan the entire conversation") forced a full re-read. Stating the rule wasn't enough; a mental re-scan kept defaulting to whatever was freshest in context. Added a concrete enforcement step: before writing anything, enumerate every distinct user message as a numbered list (not a summary) BEFORE judging any of them for signals — a mental scan is not the same artifact as a walked list, and this skill exists to catch exactly that gap in other skills' rules.
+
 ## 1.113.1
 
 - **commit-invoice-generator**: had no rule distinguishing "update the previous invoice" from "create a new invoice", AND the workflow's step order made this worse — "check append vs new" would have landed after "output invoice table" even once added, so the doc-state check always happened too late to change the output. A session asked to update the invoice doc "use previous invoice" and the skill defaulted to creating a fresh `## INV-YYYY-NNNN` block, prompting the correction "previous invoice i meant the previous invoice, ure creating new invoice." Added a table for append-vs-new resolution AND moved it to step 1 — read the existing doc and resolve append-vs-new BEFORE extracting commits or estimating hours, not after.
