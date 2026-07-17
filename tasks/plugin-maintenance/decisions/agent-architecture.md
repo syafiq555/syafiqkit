@@ -214,7 +214,7 @@ Chosen: split each candidate skill's flagged step into a mechanical half (file d
 
 **Consequences**
 - Every `Explore` delegation must return raw data only — a ranked/summarized return would smuggle judgment out of the calling session silently.
-- Every such `Agent({...})` call needs `run_in_background: false` explicit, and a documented fallback (plain `grep`, never `rg`) for contexts with no `Agent` tool access — both folded into the shared reference so any future caller inherits them for free.
+- Every such `Agent({...})` call needs a documented fallback (plain `grep`, never `rg`) for contexts with no `Agent` tool access, and must tolerate an ASYNC return — `run_in_background: false` is a hint, not a guarantee (v2.1.198 made background the default; [#69691](https://github.com/anthropics/claude-code/issues/69691)). Both folded into the shared reference so any future caller inherits them for free.
 - Plugin version bumped 1.81.0→1.82.0; CHANGELOG entry added.
 
 **Status**: committed · **Reversible**: yes
@@ -239,3 +239,27 @@ Chosen: verified against the official Claude Code docs (not agent paraphrase —
 - Plugin version bumped 1.82.0→1.83.0.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D32 — Parallelism Is the Single-Message Block; `run_in_background: false` Is Not a Blocking Guarantee — committed — 2026-07-16
+
+**Problem**
+The plugin asserted, in `done`'s rules table and `explore-delegation.md`, that passing `run_in_background: false` makes an `Agent` call block ("omitting it has still returned an async task" — CHANGELOG 1.x). A session set it explicitly on five consecutive calls and every one returned async, then emitted agents one-per-message believing the flag carried the parallelism. Meanwhile `two-tier-condense.md` already stated the opposite ("agents run in the background by default"), so the plugin taught two contradictory things about one parameter.
+
+**Decision**
+Chosen: state the documented behaviour and separate the two concerns.
+- **Parallelism = every `Agent` call in ONE assistant message.** No flag substitutes for it; one-per-message serialises regardless. This is the rule that was actually being violated.
+- **`run_in_background: false` is a hint, not a contract.** [Official docs](https://code.claude.com/docs/en/sub-agents): *"As of v2.1.198, subagents run in the background by default. Claude runs a subagent in the foreground when it needs the result before continuing."* [Issue #69691](https://github.com/anthropics/claude-code/issues/69691) (OPEN) reports it is honoured in child sessions and ignored in top-level interactive ones. Keep passing it (free, expresses intent); never build a step around it blocking.
+- Async is safe: results arrive as `<task-notification>` and are not lost. **Never poll** (`sleep`/`ScheduleWakeup`/`TaskOutput`), and never Read an agent's `.output` file — it's the full subagent JSONL and overflows context.
+
+**Rejected**
+- Escalating the old rule again ("pass it *harder*"). Why not: the rule was factually wrong, not weakly worded — the prior CHANGELOG entry had already "corrected" it in the wrong direction. Escalating a false premise compounds it.
+- Documenting the `background:` frontmatter field as the fix. Why not: it forces background *on* (`true` = always background, even when Claude wants the result); there is no documented way to force *foreground*. It's the opposite lever from the one the old rule was reaching for — noted below, not adopted.
+
+**Consequences**
+- Skills must tolerate an async return from any delegated `Agent`. A step that reads a result "synchronously in the next line" is unsafe by construction.
+- The only documented per-agent control is frontmatter `background: true` (always background); unset = Claude chooses. No foreground guarantee exists at any level.
+- Undocumented in official sources, from [#63938](https://github.com/anthropics/claude-code/issues/63938): a `min(16, cpu_cores - 2)` concurrency cap on workflow `agent()` calls — excess queue rather than fail. Not relied on.
+
+**Status**: committed · **Reversible**: yes (revisit if #69691 lands a documented foreground control)

@@ -187,6 +187,8 @@ Last updated: [today]
 
 ## Gotchas
 
+⚠️ **Split axis is domain-appropriate — Backend/Frontend is the default for application docs, not a fixed requirement.** An infra/deploy doc with no back/frontend (hosting, CI pipeline, build config) uses whatever axis actually separates its gotchas (e.g. Hosting/Build-Pipeline) — the `| Issue | Rule |` columns stay fixed regardless of which axis is used.
+
 ### Backend
 | Issue | Rule |
 |-------|------|
@@ -279,6 +281,8 @@ Last updated: [today]
 ---
 
 ## Critical Gotchas
+
+⚠️ Split axis is domain-appropriate (see `## Gotchas` above) — Backend/Frontend for application docs, e.g. Hosting/Build-Pipeline for infra/deploy docs. Columns stay `| Issue | Rule |` either way.
 
 ### Backend
 | Issue | Rule |

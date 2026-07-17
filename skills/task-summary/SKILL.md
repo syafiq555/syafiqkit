@@ -66,7 +66,7 @@ Litmus tests before finishing (also see Validate §5.8): (1) grep the doc for it
 
 ⚠️ **Do NOT assume one domain per session.** Scan the full conversation for ALL domains that need task docs:
 
-1. **Code changes**: `git status --short` (every repo in a multi-repo project) → infer domains from file paths. ⚠️ Not `git diff --name-only` — it hides staged AND untracked files, so it returns **empty** once you've staged, and you'd conclude "no code changed" and skip every doc. A nothing result for work you just did = the blind spot, not a clean tree
+1. **Code changes**: `git status --short` (every repo in a multi-repo project) → infer domains from file paths. ⚠️ Not `git diff --name-only` — it hides staged AND untracked files, so it returns **empty** once you've staged, and you'd conclude "no code changed" and skip every doc. A nothing result for work you just did = the blind spot, not a clean tree. ⚠️ If it's empty because the session's work is already **committed**, that's the same blind spot with a different cause — count off the session's base commit instead: `git diff --name-only <base>..HEAD`, where `<base>` is HEAD at session start (or the merge-base with trunk).
 2. **External inputs**: WhatsApp messages, emails, Slack, screenshots, ClickUp pastes — extract every distinct issue/feature/bug mentioned
 3. **Verbal requests**: User said "also note X", "don't forget Y", "the other issues" → those are domains too
 
@@ -109,7 +109,7 @@ Edit in place. The doc should always read as one coherent current-state document
 
 ⚠️ **MANDATORY first: gap-check AND structure-check against the template** (a user asking to "check for template drift" means exactly this pass — the doc's divergence from `references/templates.md`, NOT any PDF/Blade template in the code). Before editing:
 1. List the doc's `## ` headers — add any missing from the template's required set.
-2. Verify each existing section's internal structure matches the template exactly (table columns, field names, order) — fix non-conformant structure in place (e.g. free-form bullets where `| Issue | Rule |` is specified, wrong Bugs Fixed columns, missing Backend/Frontend split in Gotchas).
+2. Verify each existing section's internal structure matches the template exactly (table columns, field names, order) — fix non-conformant structure in place (e.g. free-form bullets where `| Issue | Rule |` is specified, wrong Bugs Fixed columns, a Gotchas table with no split at all). ⚠️ A domain-appropriate split axis (Hosting/Build-Pipeline on an infra doc, not Backend/Frontend) is NOT drift — only flag a missing split or wrong columns, never a differently-named split that fits the doc's domain.
 
 A decision/gotcha/bug captured only in `## Last Session` is a bug — Last Session is overwritten next run, so those facts must live in their typed table.
 

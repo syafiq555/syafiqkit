@@ -7,7 +7,7 @@ description: Create, rewrite, condense, or capture-into CLAUDE.md files followin
 
 The single manager for CLAUDE.md files — the analog of `task-summary` for `current.md`. Four modes; pick the one matching how it was invoked.
 
-⚠️ **CLAUDE.md only — NEVER auto-memory, even when it feels like the right home.** All knowledge from this skill goes to CLAUDE.md, CLAUDE.local.md, or task docs — never to `~/.claude/projects/*/memory/`, not for feedback, project context, or investigation lessons. Memory is invisible to team members and agents; CLAUDE.md is the single source of truth. A cross-project working-style/feedback rule goes to global `~/.claude/CLAUDE.md`; a project rule goes to that project's CLAUDE.md/CLAUDE.local.md. If a memory file was touched this session, revert it before writing the CLAUDE.md entry — never leave both.
+⚠️ **This skill's output goes to CLAUDE.md only — never write NEW knowledge to `~/.claude/projects/*/memory/`, not for feedback, project context, or investigation lessons.** Claude Code's harness-native memory feature is real and legitimate elsewhere; it's the wrong target specifically for *this skill's* captures because memory is invisible to team members and other agents, while CLAUDE.md is team-visible and agent-readable. A cross-project working-style/feedback rule goes to global `~/.claude/CLAUDE.md`; a project rule goes to that project's CLAUDE.md/CLAUDE.local.md. If a memory file was already touched earlier this session, leave it as-is — write the CLAUDE.md entry alongside it, don't revert/delete it. This skill does not own cleanup of memory files from this or prior sessions, including pre-existing ones under an older convention; reverting only the newest one leaves the rest inconsistent, which is worse than leaving all of them.
 
 ## Mode selection (decide first)
 
@@ -92,7 +92,8 @@ These belong in `CLAUDE.local.md` because they contain env-specific context (ser
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| Save ANY knowledge to auto-memory files | Write to CLAUDE.md, CLAUDE.local.md, or task doc — memory is invisible to team and agents |
+| Save NEW knowledge from this skill to auto-memory files | Write to CLAUDE.md, CLAUDE.local.md, or task doc — memory is invisible to team and agents |
+| Revert/delete a memory file this skill finds already written | Leave it — this skill doesn't own memory cleanup, and reverting only the newest file leaves older ones inconsistent |
 | Write feedback memory for investigation lessons | Add as `⚠️ MANDATORY` workflow section in CLAUDE.md — memory won't prevent next session's mistake |
 | `> 📖 See X` pointer without inline summary | Pointer + inline 1-2 critical facts |
 | Skip writing because "task doc has it" | CLAUDE.md must be self-sufficient for fresh sessions |

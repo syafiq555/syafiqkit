@@ -1,6 +1,6 @@
 ---
 name: tackle
-description: Take a unit of work from wherever it stands to done — existing task doc or brand-new idea. Reads or writes the doc, triages what's actually buildable, builds it via delegated agents, wraps up. Use when the user names a task doc plus any vague continuation ("lets continue", "lets do this", "do the next steps", "delegate to sonnet"), pastes a task-doc path with a line range, asks to work through a doc's Next Steps — OR describes new work that has no doc yet ("add CSV export to invoices", "build X", "improve onboarding"). Triggers even when they don't name this skill: a task-doc path plus an unspecific "let's go" IS its signature, and so is a feature request with no existing doc. Do NOT use for a one-line bug fix (just do it) or a pure question (use read-summary).
+description: Take a unit of work from wherever it stands to done — existing task doc or brand-new idea. Reads or writes the doc, triages what's actually buildable, builds it via delegated agents, wraps up. Use when the user names a task doc plus any vague continuation ("lets continue", "lets do this", "do the next steps", "delegate to sonnet"), pastes a task-doc path with a line range, asks to work through a doc's Next Steps — OR describes new work that has no doc yet ("add CSV export to invoices", "build X", "improve onboarding"). Also triggers when the doc path comes WITH a specific extra clause ("...also research how we'd do X locally", "...and simulate N users") — that clause is a work item of its own, not context for the doc's items, and Step 1 must capture it before reading. Triggers even when they don't name this skill: a task-doc path plus an unspecific "let's go" IS its signature, and so is a feature request with no existing doc. Do NOT use for a one-line bug fix (just do it) or a pure question (use read-summary).
 ---
 
 # Tackle
@@ -31,6 +31,10 @@ A menu of open items is not a decision — it's the decision deferred, handed to
 ---
 
 ## Step 1 — Context
+
+⚠️ **Extract the user's own asks from their message FIRST — they are work items, not context for the doc's items.** A doc path plus a *specific* second clause ("...also research how we'd do X locally", "...and check whether Y still holds") means the doc is one input and their sentence is another. The skill's trigger assumes a vague continuation ("let's go"); a specific clause is not that. Write each clause down as its own triage item before reading anything.
+
+The failure this prevents: their ask gets used as *input to a plan* — researched, folded into a doc, cited in a summary — while never being *done*. Research you performed and reported nowhere the user reads is not an answer to their question. If they asked "how do we do X", the deliverable is X or a direct answer about X, not a doc section mentioning X.
 
 Invoke the `read-summary` skill with the doc path (or the user's description if no path). It owns discovery, the `decisions/*.md` descent, and the CLAUDE.md tree walk — **do not reimplement any of it here** (D4).
 
@@ -75,6 +79,10 @@ Enumerate every open item (`## Next Steps`, "Immediate next actions", inline `- 
 
 ⚠️ **A "drafts already written" item is human-blocked, not actionable.** The artifact existing in the repo is what makes it *look* buildable. The blocker is the sending, and you can't send.
 
+⚠️ **Split an item before classifying it — a blocker on one half does not block the other.** "Load test" is one line in the doc and two items in reality: the *staging capacity* run (env-blocked) and the *local rig* that answers a different question (actionable now, needs only a script). Classifying the line as env-blocked silently binned the buildable half. The tell: you write "blocked" on something the user just pointed at and asked how to do. Before assigning ONE class, ask what the item would decompose into — then classify each piece.
+
+⚠️ **The user's own words outrank your classification.** If they asked *how to do X locally* and your triage says X is blocked, you have answered a question they did not ask. A blocked verdict on the exact thing they pointed at is a signal to re-read the request, not to move on to the item below it.
+
 **Output** — prose, not a menu:
 
 > Of the 7 items: **3 are buildable now** (L134 generate-agreement button, L135 email confirmation, L136 tenant empty-state) — I'll do these, in that order, since L136 shares the surface L134 changes.
@@ -90,7 +98,7 @@ Then start. Don't ask permission to follow your own recommendation.
 
 Spawn parallel `Explore` agents (`model: "haiku"`) for blast radius and file discovery on the actionable items only.
 
-Delegation contract — raw-not-ranked, the `rg` prohibition, `run_in_background: false`: **`_shared/references/explore-delegation.md`**. Follow it; don't restate it.
+Delegation contract — raw-not-ranked, the `rg` prohibition, and why `run_in_background: false` is not a blocking guarantee: **`_shared/references/explore-delegation.md`**. Follow it; don't restate it. Spawning several? **All `Agent` calls in ONE assistant message** — that block is the parallelism.
 
 Haiku is safe **here and nowhere else in this skill** — this is pure retrieval. The moment a step needs ranking, staleness, or a root-cause call, it stays on your model (D30).
 
@@ -106,12 +114,16 @@ Verify the seam yourself afterward. `git status --short` for the real picture �
 
 ## Step 5 — Wrap
 
+⚠️ **Before invoking `done`: re-read Step 2's triage and confirm every "actionable now" item is built.** `done` is for finished work — invoking it over a partial build produces a ✅ summary and a task doc reading "shipped", which you will read back later and believe. Built one of three actionable items? Go build the other two, or the user never learns they were dropped.
+
 Invoke the `done` skill. It owns simplify/review/docs/capture — don't inline its steps (D4).
 
 Then report, in this order:
 1. **What shipped** — plain terms, layperson-readable.
-2. ⚠️ **What you did NOT do, and why** — the human-blocked and env-blocked items, restated. This is the payload. An item that silently vanishes between triage and summary reads as done, and that's the failure this skill exists to prevent.
+2. ⚠️ **Everything from the triage that is NOT built, whatever the reason.** This is the payload. An item that silently vanishes between triage and summary reads as done, and that's the failure this skill exists to prevent.
 3. Any item whose classification changed once you saw the code.
+
+⚠️ **Do NOT scope #2 to the blocked items.** Naming the blocked ones *feels* like rigour about omissions and is exactly what hides an actionable item you simply didn't get to — reporting "staging is env-blocked" reads as a complete omissions list while an approved, unblocked, fully-specified item sits unbuilt. The trigger is "in the triage and not built", not a category.
 
 ⚠️ **Report your own deviations** (D24). If you skipped a step, asked when you should have triaged, or found the triage wrong mid-build — say so. A self-caught deviation is a reportable signal, not a silent win.
 

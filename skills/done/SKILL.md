@@ -9,7 +9,8 @@ Execute all steps in sequence without pausing for confirmation.
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| Omitting `run_in_background` on any Agent call | Pass `run_in_background: false` **explicitly** — omitting it has still returned an async task. Most often dropped on the first agent of a batch |
+| Emitting one `Agent` call per message and calling it a parallel batch | **Every agent of a batch goes in ONE assistant message.** One-per-message serialises them regardless of any flag, and reciting the rule does not enforce it — count the `Agent` calls in the block against the roles you owe *before* sending |
+| Treating `run_in_background: false` as a guarantee the call blocks | It isn't — [subagents run in the background by default since v2.1.198](https://code.claude.com/docs/en/sub-agents), and [#69691](https://github.com/anthropics/claude-code/issues/69691) reports `false` is ignored in top-level sessions. Pass it, but expect a `<task-notification>`; results are never lost. **Never poll** for one |
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
 | Send an agent a prompt whose ROLE doesn't match its `subagent_type` (product-review content to `code-reviewer`) | The prompt's role and the `subagent_type` must be the SAME role. A mis-prompted agent silently skips BOTH — the role you invoked never ran, and the role you asked for wasn't registered as run. It still looks "spawned" to every downstream check |
 | Report a step done when only PART of it ran (reviewers but no simplifiers; Step 3 but no Step 4) | Every step below is a CHECKLIST, not prose. Before reporting, tick each named part — a step with an unticked part is NOT done. A part you deliberately skipped gets `➖ <reason>` in its Output row, never a silent blank |
@@ -53,7 +54,7 @@ This generalizes the settled-file rule `update-claude-docs` Step 4 already appli
 
 ## Step 1: Simplify + Review + Product Review (parallel)
 
-Run all applicable agents **in parallel** (single message, multiple Agent tool calls). Pass `run_in_background: false` explicitly on each — so results are available immediately, with nothing to poll or wait on afterward.
+Run all applicable agents **in parallel — every `Agent` call in ONE assistant message**. That single block IS the parallelism; no flag substitutes for it. Pass `run_in_background: false` on each (it expresses intent), but do not depend on it blocking — expect results as `<task-notification>`s and never poll for them.
 
 The three roles are deliberately different lenses, not redundant:
 - **Simplifier** — is the code *clean*? (duplication, readability)
@@ -81,6 +82,8 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 
 ⚠️ **`git status --short` is canonical — NOT `git diff --name-only`.** `diff --name-only` shows only unstaged changes to tracked files — new/staged files are invisible. If you staged before `/done`, it returns empty for the entire session's work — you then partition zero files, every agent reports clean on an empty slice, and `/done` passes having reviewed nothing. `git status --short` shows staged + unstaged + untracked with status letters. **Tell: the command returns nothing for work you just did.**
 
+⚠️ **If `git status --short` is empty because the session's work is already committed, it's not a clean tree — count off the session's base commit instead.** Running `/done` after committing as you go is a normal flow, and a legitimately empty `git status --short` here is the *correct* output but the *wrong* signal — committed work is invisible to it, same failure as the staged case above, different cause. Recovery: `git diff --name-only <base>..HEAD`, where `<base>` is HEAD at session start (or the merge-base with trunk if unknown). Partition and review those files exactly as you would an uncommitted diff.
+
 | Changed files | Reviewers | Simplifiers | Product | TOTAL agents |
 |---------------|-----------|-------------|---------|--------------|
 | ≤15 | 1 | 1 | 1 | **3** |
@@ -94,6 +97,8 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 **Anchor the emission to the Glob you just ran, not to a number you wrote.** Each `.claude/agents/*.md` hit above is one role, and each role is one `Agent` call in the block you are about to send. Read your Glob results, then emit one call per hit (×N per role when the table says >1) — the same block, no exceptions.
 
 ⚠️ **You have already failed this step the moment you send a block intending to "spawn the rest next."** There is no next: the turn ends, the results come back, and the missing roles are never registered as skipped — every downstream check reads the step as run. If the block in front of you has fewer `Agent` calls than roles, add them *before* sending.
+
+⚠️ **After-the-fact counter-check — writing "TOTAL = N" correctly does not prove you sent N.** Once results start coming back, count the `Agent` calls you actually emitted this turn against TOTAL before reading any result. A correct pre-send checklist can still be followed by a single call going out — the only reliable catch is counting what was actually sent, not what was intended.
 
 A user arg always wins: "2 agents each" / "4 each" sets the per-role count explicitly (ignore the table); a count is also implied by "split it up". Light mode (`<5` files) is the ONE case with an asymmetric count (1 reviewer + 0 simplifier) — it takes precedence over the table's top bucket.
 
@@ -131,7 +136,7 @@ Scan session for temporary artifacts that should be removed:
 - [ ] Step 3 — `syafiqkit:update-claude-docs`
 - [ ] Step 4 — `syafiqkit:task-summary`
 
-Run both **in parallel** (single message, two Skill tool calls) — they are independent. Pass `run_in_background: false` explicitly if these dispatch as Agent calls. If you invoked one and not the other, the step is not done.
+Run both **in parallel — both Skill calls in ONE assistant message**; they are independent. If you invoked one and not the other, the step is not done.
 
 **Step 3 — Capture Session Knowledge → CLAUDE.md:**
 
@@ -170,6 +175,10 @@ Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstrea
 ⚠️ Do NOT hand-patch skill files from `/done`, and do NOT skip this step just because you're not the owner — a defect hit by a real user is the most valuable kind.
 
 ## Exit gate — check BEFORE writing the Output
+
+⚠️ **FIRST: is the WORK done, or just this skill's steps?** `/done` wraps up finished work — it is not a milestone marker for a slice of it. Re-read the approved plan (`~/.claude/plans/*.md` for this session) or the user's original request, and confirm every part was built. **A plan titled `X + Y` with only X built is not done**, however green X's tests are.
+
+This check is not optional and not covered by the rows below — they audit whether *this skill* ran, never whether the *work* finished. `/done` is the one skill that manufactures evidence of completion (a ✅ summary table, a task doc reading "shipped", a Quick Start saying "commit it"), so running it early doesn't just mislead the user — it writes artifacts you will later read back and believe. Part-done → stop, finish the work, then invoke.
 
 ⚠️ Every row of the Output table below is a claim that a step ran. Before writing it, verify each claim against what you ACTUALLY invoked this session — not what you intended to:
 

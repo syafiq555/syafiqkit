@@ -6,11 +6,13 @@ Referenced by skills whose workflow has a pure file-discovery / grep-sweep sub-s
 
 ⚠️ **Why (be precise about the real benefit):** the caller still absorbs Explore's full returned payload — an `Agent` call's result is inlined as text into whoever spawned it, so "raw candidates, verbatim" is not smaller than what inline `grep` would have returned directly. The actual saving is that Explore's *own* search process (exploratory Glob misses, intermediate tool calls, retries) never touches the caller's context — only the final hit list does. Don't oversell this as "raw output never reaches the main loop"; it does, one hop later.
 
-**Two non-negotiable prompt clauses** for every such `Agent({subagent_type: "Explore", run_in_background: false, ...})` call:
+**Two non-negotiable prompt clauses** for every such `Agent({subagent_type: "Explore", ...})` call:
 1. "Use `grep -rn`/`grep -rli`, never `rg`" — `rg`'s `-r` means `--replace`, not recursive; it silently substitutes the pattern and exits 0, so a corrupted sweep reads as a clean empty result. Tell: the search term is absent from its own output.
 2. "Return raw, do not rank/filter/summarize" — a ranked return smuggles the judgment out of the main loop.
 
-⚠️ **Always pass `run_in_background: false` explicitly in the same call** — the next step reads Explore's result synchronously; an async/backgrounded call leaves it with nothing to read yet.
+⚠️ **Spawning several? Every `Agent` call goes in ONE assistant message** — that block IS the parallelism. One-per-message serialises them regardless of any flag.
+
+⚠️ **`run_in_background: false` does NOT guarantee a blocking call — do not build a step around it blocking.** Since Claude Code v2.1.198 [subagents run in the background **by default**](https://code.claude.com/docs/en/sub-agents); `false` is a hint Claude may honour "when it needs the result before continuing", and [issue #69691](https://github.com/anthropics/claude-code/issues/69691) (OPEN) reports it is honoured in child sessions and **ignored in top-level interactive ones**. Pass it — it costs nothing and expresses intent — but write the step so an async return is fine: results arrive as a `<task-notification>` and are never lost. **Never poll** (`sleep`/`ScheduleWakeup`/`TaskOutput`) waiting for one, and never Read an agent's `.output` file (it's the full subagent JSONL — it overflows context).
 
 **Fallback:** no `Explore`-capable context (e.g. running inside an agent that can't itself spawn agents)? Run the same `grep` (never `rg`) directly in Bash instead.
 
