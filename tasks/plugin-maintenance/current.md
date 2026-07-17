@@ -18,9 +18,8 @@ Last updated: 2026-07-17 — see Quick Start / Last Session
 **Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.104.0. Mostly condensation/de-duplication + consumer-reported bugfix passes; `commit` command→skill conversion (1.104.0, D10 pattern) is the last change.
 
 **Immediate next actions (in order)**:
-1. **Test `/tackle` against a doc with mixed blocker types** — never dry-run. Its triage must split human/env-blocked items without asking; a doc where everything is buildable proves nothing (a primitive validated against one shape is validated against one shape, not its contract). Also exercise the greenfield path (Step 1b) with both a clear and a vague request.
-2. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
-3. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
+1. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
+2. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
@@ -80,7 +79,7 @@ syafiqkit is a Claude Code plugin providing skills/commands for task documentati
 | `pull-db` | Remote MySQL/MariaDB → local dev (dump, scp, import, password reset) | User, or proactive |
 | `read-summary` | Discover + read task docs before investigating/implementing; Plan-Mode-aware | User, or model-invoked before context-dependent work |
 | `ship` | Commit → changelog → push → CI verify → release note. Fence bounded (Step 5.8) | User directly |
-| `tackle` | Take work to done from a doc **or** a new idea: context (or brainstorm+write) → **triage by blocker type** → explore → build → wrap. Replaces the enumerate-and-let-user-sweep step | User directly (task-doc path + vague "let's continue", or a new feature request) |
+| `tackle` | Vague multi-item doc continuation → `read-summary`, judge buildable vs blocked, build, `done`. No prescribed procedure — trusts Claude's judgment. Specific asks defer to `read-summary` directly | User directly, only for genuinely vague "let's continue" on a doc |
 | `task-summary` | Create/update `current.md` — path resolution, templates, cross-refs | `done` Step 4, `write-summary`, `update-summary` |
 | `update-claude-docs` | Create/rewrite/condense/capture-into CLAUDE.md (4 modes) | `done` Step 3, or user directly |
 | `update-plugin` | Scan session → patch SKILL.md files; owns the Step 3a density checklist | User directly after skill work |
@@ -215,6 +214,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-17)
 
+- **`/tackle` cut from 155 lines to 8**: real usage showed `/read-summary` alone already handles specific asks fine, and the model doesn't need a prescribed triage table/procedure to figure out what's buildable vs blocked — user's explicit steer, twice: first "less unnecessary info," then "no need to explain triage to Claude, let it handle it." Final shape is a bare pointer (read the doc, use judgment, build, done), only fires on a vague multi-item continuation. CLAUDE.md + README.md rows synced.
 - **1.104.0 — `commit` command → skill conversion**: applied the existing D10 pattern (a skill/command sharing a name needs no wrapper) to the last remaining case — `commands/commit.md` (a 71-line command with a real multi-step workflow, same shape as `read-summary`'s prior conversion) became `skills/commit/SKILL.md`, command deleted outright, no redirect stub. Full-mode `/done` review (reviewer/simplifier/product-reviewer) came back clean; the one thing worth noting is a cross-reference `skills/ship/SKILL.md` had that pointed at the now-deleted `commands/commit.md` path — caught and repointed in the same change, since a stale path reference is exactly the kind of drift a rename produces without any claim going false.
 
 ---

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.107.0
+
+- **tackle**: rewritten from a 155-line 5-step build orchestrator down to a 5-line pointer, based on real usage feedback that the automation was worse than driving `read-summary` → build → `done` manually. Dropped: forced `Explore`/`Plan` agent spawns, Step 1b greenfield branching, the classification table and worked example — all now implicit in the frontmatter `description` (vague multi-item doc continuation only; a specific ask defers to `read-summary` directly). `agent-setup/SKILL.md` + `templates/task-builder.template.md` had 2 stale `/tackle Step 4b` references cleaned up in the same change. Registries (`CLAUDE.md`, `README.md`, `tasks/plugin-maintenance/current.md`) synced.
+- Root `CLAUDE.md` gained a Working Style rule: when authoring/editing a skill's instructions for Claude, default to trusting model judgment over prescribing procedure — cutting scaffolding, not softening it, is what "lighten this" means.
+
 ## 1.104.0
 
 - **commit**: converted from a command (`commands/commit.md`) to a skill (`skills/commit/SKILL.md`), applying the existing D10 pattern (a skill/command sharing a name needs no wrapper) to the last remaining case in this plugin. Command deleted outright, no redirect stub — `/commit` continues to work identically (same workflow: repo discovery, changelog gate, task-doc staleness gate, cross-doc mirror sweep, type/scope inference, optional push). All three skill registries (root `CLAUDE.md`, `README.md`, `tasks/plugin-maintenance/current.md`) synced, and a stale cross-reference in `skills/ship/SKILL.md` (pointed at the deleted `commands/commit.md` path) was caught and repointed in the same change.

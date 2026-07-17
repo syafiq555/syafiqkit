@@ -37,7 +37,7 @@ skills/                  # Multi-step workflows (SKILL.md files)
 | `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
 | `commit` | Create git commits from staged changes; single-repo and multi-repo | User invokes directly |
 | `read-summary` | Discover + read task docs/CLAUDE.md before answering, investigating, or implementing; Plan-Mode-aware (judges Explore/Plan subagent delegation vs continuing inline) | User invokes, or model-invoked proactively before project-context-dependent work |
-| `tackle` | Take work to done from either entry: doc exists → `read-summary`; no doc → `brainstorming` (only if genuinely unclear) + `task-summary` Create. Then **triage open items by blocker type** (actionable / human-blocked / env-blocked / dependent) → parallel `Explore` (haiku) → `Plan` + `task-builder` (sonnet) → `done`. Recommends a sequence instead of offering a sweepable menu | User invokes (task-doc path + vague "let's continue", or a new feature request) |
+| `tackle` | Vague multi-item doc continuation ("let's continue") → `read-summary`, judge what's buildable vs blocked, build, `done`. A specific ask is `read-summary`'s job, not this | User invokes only for genuinely vague "let's continue" on a doc |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
 | `task-summary` | Create/update task summary docs with path resolution, templates, cross-refs | `write-summary` skill, `update-summary` skill, `done` skill |
 | `write-summary` | Create task summary (thin pointer → `task-summary` skill) | User invokes directly |
