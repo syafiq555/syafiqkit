@@ -13,6 +13,19 @@ Generate invoice line items from git commits with hour estimates.
 2. Extract commits: `git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --format="%h %s (%ad)" --date=short`
 3. Analyze complexity, group related commits
 4. Estimate hours, output invoice table
+5. If updating an existing invoice doc, check whether to append to an existing entry vs create a new one (see below)
+
+## New Invoice vs Updating an Existing One
+
+When the target is an existing invoice-tracking doc (e.g. `tasks/billing/invoices/current.md`) with prior dated `## INV-YYYY-NNNN` entries:
+
+| User says | Action |
+|-----------|--------|
+| "use/update the previous invoice", "add to the last invoice" | **Append line items to the most recent existing `## INV-…` entry** whose date range covers (or is adjacent to) the new commits — do NOT create a new invoice number. Update that entry's total and the LLM-CONTEXT status line. |
+| "new invoice", "create an invoice", or no prior invoice covers this date | Create a new `## INV-YYYY-NNNN` block, next sequential number |
+| Ambiguous and a prior invoice's date range already includes today | Default to appending to that invoice — a same-day/adjacent-day invoice is more often a continuation than a new bill |
+
+⚠️ Always check the existing invoice doc's most recent entry's date range BEFORE assuming a new invoice number is wanted — the doc's own convention (one invoice can span 2+ days, e.g. "17–18/07/2026") is the strongest signal of what "the previous invoice" refers to.
 
 ## Hour Estimation
 
