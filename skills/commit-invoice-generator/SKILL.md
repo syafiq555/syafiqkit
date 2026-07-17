@@ -9,15 +9,15 @@ Generate invoice line items from git commits with hour estimates.
 
 ## Workflow
 
-1. Get date range (default: today + yesterday)
-2. Extract commits: `git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --format="%h %s (%ad)" --date=short`
-3. Analyze complexity, group related commits
-4. Estimate hours, output invoice table
-5. If updating an existing invoice doc, check whether to append to an existing entry vs create a new one (see below)
+1. **If the target is an existing invoice-tracking doc** (e.g. `tasks/billing/invoices/current.md`), read it FIRST and resolve append-vs-new before doing anything else (see below) — deciding this after the table is already drafted means redoing the work.
+2. Get date range (default: today + yesterday)
+3. Extract commits: `git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --format="%h %s (%ad)" --date=short`
+4. Analyze complexity, group related commits
+5. Estimate hours, output invoice table (append to the resolved entry, or create a new one, per step 1)
 
 ## New Invoice vs Updating an Existing One
 
-When the target is an existing invoice-tracking doc (e.g. `tasks/billing/invoices/current.md`) with prior dated `## INV-YYYY-NNNN` entries:
+When the target is an existing invoice-tracking doc with prior dated `## INV-YYYY-NNNN` entries:
 
 | User says | Action |
 |-----------|--------|
