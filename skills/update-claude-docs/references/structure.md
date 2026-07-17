@@ -166,11 +166,12 @@ Contrast with §5's "Subdir" template: that lever needs a REAL directory both si
 
 ### Third structural lever: manual companion file (when the block is cross-cutting — no subdir AND no feature owner)
 
-The case both levers above reject: a big block (a 100+-row gotchas table) that is a general layer convention — no subdirectory passes the seam-test, no single feature owns it. This is NOT a dead end where the block must stay inline. Split it to a **sibling companion file** (`<dir>/CLAUDE-<topic>.md`), keeping only the highest-frequency rows inline. ⚠️ A companion does NOT auto-load like a subdir CLAUDE.md — so the `📖` pointer replacing the moved block must earn the open:
+The case both levers above reject: a big block (a 100+-row gotchas table) that is a general layer convention — no subdirectory passes the seam-test, no single feature owns it. This is NOT a dead end where the block must stay inline. Split it into `.claude-companions/<shared|local>/CLAUDE-<topic>.md` — one folder at the nearest git-repo root (never a same-directory file), `shared/` (tracked) for a companion supporting a checked-in file, `local/` (gitignored) for one supporting `CLAUDE.local.md` or similar — keeping only the highest-frequency rows inline. ⚠️ A companion does NOT auto-load like a subdir CLAUDE.md — so the `📖` pointer replacing the moved block must earn the open:
 
 - Name **concrete trigger symptoms**, never a bare "see `CLAUDE-<topic>.md`" (the "silently unfollowed pointer" failure).
 - If the moved block had **multiple sub-categories**, the pointer must be a **per-category symptom index** — one line per category listing its distinctive symptoms — so a reader matches their bug against the index without opening the file.
-- ⚠️ Moving a section moves its `{#anchor}` sub-anchors too — `grep -rn "<oldfile>. #<subanchor>"` across `tasks/**` + sibling CLAUDE.md and repoint every cross-reference to the companion, or they break silently.
+- Existing cross-references to a moved anchor (`OldFile.md #{anchor}`) don't need repointing if the parent's redirect line already indexes that anchor by name — the reader reaches the companion via the parent in one extra hop. Only repoint when the anchor ISN'T named in the redirect index — `grep -rn "<oldfile>. #<subanchor>"` across `tasks/**` + sibling CLAUDE.md to find those.
 - Maintenance rule for the user: when a companion row is later added, add its symptom to the matching index bullet in the main file.
+- First `local/` write in a repo: check `.gitignore` for `.claude-companions/local/`, add if missing.
 
 `condense-claude-md` Restructuring #7 owns the full procedure — this lever is its write-time twin. Reach for it before concluding a cross-cutting section "just has to stay inline."

@@ -6,7 +6,7 @@
 
 | Gate | Why |
 |------|-----|
-| The user asked for browser/runtime/mobile verification — or the diff touches user-facing UI and they want proof it works | It is slow and needs the app already running. Never auto-spawn it on a backend-only diff; a `/done` that silently launches a browser on every commit is worse than no agent |
+| **The user ASKED, in words, for browser/runtime/mobile verification** | Real wall-clock and token cost per pass. "The diff touches UI so they'd want proof" is an inference, and inferring it IS the auto-spawn this gate exists to stop — a UI diff is a reason to *offer*, never a reason to spawn. Propose and wait for a yes. Applies to the main loop mid-build, not just `/done` |
 | `.claude/agents/browser-verifier.md` exists | It carries the project's URL, test accounts and viewport recipe. No generic fallback — skip silently if absent |
 
 **Prompt it with**: the feature name, its task-doc path, the exact route/flow to drive, and the concrete assertions that must hold (including the DB row to check). It is never partitioned by file slice.

@@ -1,6 +1,6 @@
 ---
 name: browser-verifier
-description: Drives a running app in a real browser to verify a built feature actually works end-to-end — clicks the real flow, asserts the DB/API changed, catches layout and console breakage a diff cannot show. Use after implementing a UI/UX feature, for mobile-viewport/responsive verification, or when the user asks to "check it works in the browser" / "test it at 390px". Verification only — never edits application source.
+description: Drives a running app in a real browser to verify a built feature actually works end-to-end — clicks the real flow, asserts the DB/API changed, catches layout and console breakage a diff cannot show. ⚠️ USER-TRIGGERED ONLY — spawn when the user explicitly asks ("check it works in the browser", "test it at 390px", "verify the UI"), never on your own initiative because a diff touched UI or a build finished. If a UI change looks like it warrants runtime proof, PROPOSE it and wait for a yes. Verification only — never edits application source.
 tools:
   - Glob
   - Grep

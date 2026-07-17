@@ -76,7 +76,7 @@ Glob: .claude/agents/product-reviewer.md
 
 Run the Glob first every time — don't assume the project agent exists or doesn't (e.g. a hit spawns `code-reviewer`; a miss spawns `feature-dev:code-reviewer`).
 
-⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it only when the user asks to verify in the browser, or when the diff touches user-facing UI **and** the user wants runtime proof. It is not counted in the agent table below and never partitioned. See `references/browser-verification.md`.
+⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it **only when the user asked in words** — "the diff touches UI so they'd want runtime proof" is an inference, and inferring it is the auto-spawn this rule forbids. A UI diff is a reason to offer, never a reason to spawn. It is not counted in the agent table below and never partitioned. See `references/browser-verification.md`.
 
 **Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first with **`git status --short`** (run it in EVERY repo of a multi-repo project), then pick agents-per-role:
 

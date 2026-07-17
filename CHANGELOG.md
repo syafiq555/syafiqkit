@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.110.0
+
+- **condense-claude-md, update-claude-docs, read-summary**: companion files now live in a dedicated `.claude-companions/` folder at the nearest git-repo root, split into `shared/` (tracked, for companions supporting a checked-in CLAUDE.md/task doc) and `local/` (gitignored, for companions supporting `CLAUDE.local.md` or other local-only files) — replacing the old same-directory `<dir>/CLAUDE-<topic>.md` convention. Also carries the same anchor-repoint fix from 1.109.0 into `update-claude-docs/references/structure.md`, which had the identical unconditional-repoint bug (shared mechanism, same defect, both write-time twins of the same procedure). Migrated the one existing tracked companion (`resources/js/CLAUDE-gotchas.md` → `.claude-companions/shared/CLAUDE-gotchas.md` in Autorentic) and its 3 cross-references (`resources/js/CLAUDE.md` pointer + 2 task-doc decision files).
+
+## 1.109.0
+
+- **condense-claude-md**: the companion-file split's anchor-repoint rule was unconditional ("repoint every cross-reference to the companion, or they silently break") — wrong whenever the parent's own redirect line already indexes the moved anchor by name, which the pointer-quality requirement one section above mandates. A real run split `CLAUDE.local.md`, then "fixed" a sibling agent file's `CLAUDE.local.md #{billing-strategy}` reference to point at the new companion — unnecessary churn, since the parent's redirect line already listed `#{billing-strategy}` and the reference resolved fine as-is (caught and reverted by the user). Rule now only requires repointing when the anchor ISN'T named in the redirect index (e.g. renamed/merged during the move).
+
+## 1.108.0
+
+- **agent-setup / done**: `browser-verifier` is now user-triggered by construction, not by convention. The template's `description:` opened with "Use after implementing a UI/UX feature" — a standing invitation sitting in the exact line a caller reads when choosing an agent, which is why `/done`'s correct opt-in rule never bound the main loop mid-build. Replaced with an explicit `⚠️ USER-TRIGGERED ONLY` clause (propose and wait; a UI diff is a reason to offer, never to spawn). The same inferable-condition hole was closed in `done/SKILL.md` and `done/references/browser-verification.md`, whose gates both allowed "the diff touches UI **and** the user wants runtime proof" — a user *state* Claude was free to infer, and did. `agent-setup`'s load-bearing-rule list and verification checklist now carry the clause as a third protected invariant (`grep -c 'USER-TRIGGERED'` ≥ 1), so a future template edit can't silently drop it.
+
 ## 1.107.0
 
 - **tackle**: rewritten from a 155-line 5-step build orchestrator down to a 5-line pointer, based on real usage feedback that the automation was worse than driving `read-summary` → build → `done` manually. Dropped: forced `Explore`/`Plan` agent spawns, Step 1b greenfield branching, the classification table and worked example — all now implicit in the frontmatter `description` (vague multi-item doc continuation only; a specific ask defers to `read-summary` directly). `agent-setup/SKILL.md` + `templates/task-builder.template.md` had 2 stale `/tackle Step 4b` references cleaned up in the same change. Registries (`CLAUDE.md`, `README.md`, `tasks/plugin-maintenance/current.md`) synced.

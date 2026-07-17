@@ -11,11 +11,11 @@ Last updated: 2026-07-17 — see Quick Start / Last Session
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.110.0.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.104.0. Mostly condensation/de-duplication + consumer-reported bugfix passes; `commit` command→skill conversion (1.104.0, D10 pattern) is the last change.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.110.0. Mostly condensation/de-duplication + consumer-reported bugfix passes; companion-file relocation to `.claude-companions/shared|local/` (1.110.0) is the last change.
 
 **Immediate next actions (in order)**:
 1. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
@@ -38,6 +38,7 @@ Last updated: 2026-07-17 — see Quick Start / Last Session
 - Every generated agent template now carries `Skill` in `tools:` — `claude-md-pruner` was the last one missing it and independently duplicated `condense-claude-md`'s seam-test logic inline instead of delegating — see D29 (decisions/agent-architecture.md)
 - Editing a generated `.claude/agents/*.md` requires porting the same edit into its source `skills/agent-setup/templates/*.template.md` in the same change, or the next `/agent-setup` regen reintroduces the old behavior — now a root CLAUDE.md `⚠️ MANDATORY` callout, 3rd recurrence — see D31 (decisions/agent-architecture.md)
 - A diff adding a `<content>`-leak guard is not proof the leak is gone — grep the diff's own touched files AND sweep the whole repo for the literal tag, every `/done` review pass — see D32 (decisions/doc-condensation.md)
+- `plugin.json`/`marketplace.json` version drift recurs (2nd occurrence, 2026-07-15 D26 → 2026-07-17): a version bump to one file without the other passes silently, no gate catches it except a manual diff read during `/done`'s docs-only integrity check
 
 ---
 
@@ -214,8 +215,8 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-17)
 
-- **`/tackle` cut from 155 lines to 5**: real usage showed `/read-summary` alone already handles specific asks fine, and the model doesn't need a prescribed triage table/procedure to figure out what's buildable vs blocked — user's explicit steer, four rounds deep: "less unnecessary info" → "no need to explain triage, let Claude handle it" → cut the remaining body sentence too → cut "build what's buildable", keep "invoke done". Final shape: frontmatter description carries the whole rule, body is just "read the doc, then invoke done." CLAUDE.md + README.md rows synced. Shipped as 0cb6d87.
-- **1.104.0 — `commit` command → skill conversion**: applied the existing D10 pattern (a skill/command sharing a name needs no wrapper) to the last remaining case — `commands/commit.md` (a 71-line command with a real multi-step workflow, same shape as `read-summary`'s prior conversion) became `skills/commit/SKILL.md`, command deleted outright, no redirect stub. Full-mode `/done` review (reviewer/simplifier/product-reviewer) came back clean; the one thing worth noting is a cross-reference `skills/ship/SKILL.md` had that pointed at the now-deleted `commands/commit.md` path — caught and repointed in the same change, since a stale path reference is exactly the kind of drift a rename produces without any claim going false.
+- **1.110.0 — companion files relocated to `.claude-companions/`**: `condense-claude-md`, `update-claude-docs/references/structure.md`, and `read-summary` all moved from the old same-directory `<dir>/CLAUDE-<topic>.md` convention to `.claude-companions/<shared|local>/CLAUDE-<topic>.md` at the nearest git-repo root, plus the anchor-repoint fix from 1.109.0 was mirrored into `update-claude-docs` (same unconditional-repoint bug, write-time twin of `condense-claude-md`'s procedure). One existing tracked companion migrated in Autorentic with its 3 cross-refs.
+- **`/done` docs-only run caught a recurring version-file drift**: `plugin.json` was at 1.110.0 but `marketplace.json` had only been bumped to 1.108.0 — the same class of drift as D26 (2026-07-15), where the same two files desynced during that session's version bump too. Fixed inline (marketplace.json → 1.110.0); no automated gate exists yet, still a manual-diff catch.
 
 ---
 
@@ -223,5 +224,6 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 - [ ] D16 MADR-default audit — **not actionable in this repo** (swept 2026-07-16: `tasks/` holds only `plugin-maintenance`, already split MADR; zero literal `## Key Technical Decisions` sections exist here). The plain-table rows D16 targets live in the *consuming* projects' task docs — run this sweep from a project repo, not from the plugin
 - [ ] ⚠️ `decisions/doc-condensation.md` is at **289 lines / 31,070 bytes** (D33 added 20) — the next decision added to this theme crosses the 300-line MADR-split threshold. Split it (index + sub-files) rather than condensing; the ADRs' Rejected fields are the content that must survive
+- [ ] `plugin.json`/`marketplace.json` version drift has now recurred twice (D26 2026-07-15, again 2026-07-17) with no automated gate — consider a pre-commit check or a single-source-of-truth version file if it recurs a 3rd time
 - [ ] Confirm no other skill has the same "self-caught deviation" blind spot as `done` Step 5 pre-D24 — not yet audited beyond `done`/`ship`
 - [ ] `update-plugin` Step 5's consumer report is copy-pasteable but **unfenced**, and the skill tells you to point at the issues URL *after* it — same boundary class as `ship` 5.8 / `gchat-format`, but needs a fence before a boundary rule can apply. Not patched (different shape; a thin patch is worse than none). `agent-setup`/`md-to-pdf`/`commit-invoice-generator` checked — do not apply

@@ -67,7 +67,7 @@ A well-read doc feels *fully grounded* — the trap is answering a live-state qu
    - **Layer**: `app/CLAUDE.md` (backend) / `resources/js/CLAUDE.md` (frontend)
    - **Subdir**: e.g. `resources/js/routes/CLAUDE.md` — exists where a section split down a level; don't assume layer is deepest
    - **Domain**: `app/Domain/<Domain>/CLAUDE.md` (capitalized), inferred from task path
-   - **Companion**: a `📖`/`> 📖` pointer inside a loaded CLAUDE.md to a sibling `CLAUDE-<topic>.md` (e.g. `resources/js/CLAUDE-gotchas.md`) — these do NOT auto-load, so the tree-walk misses them. Follow the pointer when your task matches its named symptoms; the companion holds real facts the main file moved out to stay lean.
+   - **Companion**: a `📖`/`> 📖` pointer inside a loaded CLAUDE.md/task doc to `.claude-companions/<shared|local>/CLAUDE-<topic>.md` at the repo root — these do NOT auto-load, so the tree-walk misses them. Follow the pointer when your task matches its named symptoms; the companion holds real facts the main file moved out to stay lean.
    - Plus any CLAUDE.md named in `Related:`
    - Discovery: `rg --files -g '**/CLAUDE.md'` scoped to the dirs in play
    - ⚠️ Scope to dirs actually in play (match blast radius, not repo size) — but this token-scoping is within-repo only, not licence to skip step 6.
