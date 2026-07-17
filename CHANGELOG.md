@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.104.0
+
+- **commit**: converted from a command (`commands/commit.md`) to a skill (`skills/commit/SKILL.md`), applying the existing D10 pattern (a skill/command sharing a name needs no wrapper) to the last remaining case in this plugin. Command deleted outright, no redirect stub — `/commit` continues to work identically (same workflow: repo discovery, changelog gate, task-doc staleness gate, cross-doc mirror sweep, type/scope inference, optional push). All three skill registries (root `CLAUDE.md`, `README.md`, `tasks/plugin-maintenance/current.md`) synced, and a stale cross-reference in `skills/ship/SKILL.md` (pointed at the deleted `commands/commit.md` path) was caught and repointed in the same change.
+
 ## 1.103.0
 
 - **update-claude-docs (Issue #6)**: narrowed the auto-memory rule instead of mandating a destructive revert. The old rule ("if a memory file was touched this session, revert it before writing the CLAUDE.md entry") deleted only the *current* session's memory file — a real consumer run had 5 pre-existing memory files from earlier sessions under the old convention, and reverting just the newest one left a strictly less consistent state (5 kept, 1 gone) than either "all memories" or "none." The rule now scopes to NEW knowledge only: don't write new captures to memory, but leave any memory file this skill finds already written alone — this skill doesn't own memory cleanup. Also names *why* CLAUDE.md wins for this skill's output (team + subagent visibility) instead of silently overriding the harness's native memory feature.

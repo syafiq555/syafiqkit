@@ -29,7 +29,7 @@ Skip repos with nothing to commit. If ALL repos are clean, check for unpushed co
 
 ### Step 2: Commit Each Repo
 
-**Run `/commit` — it owns this step.** Staging, the changelog gate, the task-doc staleness gate + cross-doc mirror sweep, type/scope selection, commit format and anti-patterns all live in `commands/commit.md`; don't restate or re-derive them here. Commit order: sub-repos first, then root (changelog, task docs).
+**Run `/commit` — it owns this step.** Staging, the changelog gate, the task-doc staleness gate + cross-doc mirror sweep, type/scope selection, commit format and anti-patterns all live in `skills/commit/SKILL.md`; don't restate or re-derive them here. Commit order: sub-repos first, then root (changelog, task docs).
 
 Two rules apply ON TOP of `/commit`, and only under `/ship`:
 

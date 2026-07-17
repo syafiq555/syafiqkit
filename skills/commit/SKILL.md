@@ -1,8 +1,9 @@
 ---
-description: Create git commits from staged changes. Works for single repos and multi-repo projects.
+name: commit
+description: Create git commits from staged changes. Works for single repos and multi-repo projects. Use when the user says "commit", "commit this", "commit staged changes", or asks to create a commit message from what's staged.
 ---
 
-# Git Commit Command
+# Git Commit
 
 Create conventional commits from staged changes.
 
@@ -33,7 +34,7 @@ Create conventional commits from staged changes.
 
 4. **Validate**: no secrets committed, type matches changes.
 
-5. **Push** (only if `ARGUMENTS` includes "push"): per-repo, check `git status -sb` for tracking state. If tracking an upstream, `git push`. If no upstream (new local branch), confirm with the user before `git push -u origin <branch>` — creating a new remote branch is visible and hard to reverse.
+5. **Push** (only if the user's invocation includes "push"): per-repo, check `git status -sb` for tracking state. If tracking an upstream, `git push`. If no upstream (new local branch), confirm with the user before `git push -u origin <branch>` — creating a new remote branch is visible and hard to reverse.
 
 ## Commit Format
 

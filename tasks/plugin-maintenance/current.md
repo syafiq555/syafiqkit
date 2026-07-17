@@ -15,7 +15,7 @@ Last updated: 2026-07-17 — see Quick Start / Last Session
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (22 skills, 3 commands, 8 agent templates) at v1.103.0. Mostly condensation/de-duplication + consumer-reported bugfix passes; `tackle` (1.97.0) is the last new capability.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.104.0. Mostly condensation/de-duplication + consumer-reported bugfix passes; `commit` command→skill conversion (1.104.0, D10 pattern) is the last change.
 
 **Immediate next actions (in order)**:
 1. **Test `/tackle` against a doc with mixed blocker types** — never dry-run. Its triage must split human/env-blocked items without asking; a doc where everything is buildable proves nothing (a primitive validated against one shape is validated against one shape, not its contract). Also exercise the greenfield path (Step 1b) with both a clear and a vague request.
@@ -59,13 +59,14 @@ syafiqkit is a Claude Code plugin providing skills/commands for task documentati
 
 ### Current Skills
 
-22 skills + 3 commands (`commit`, `read-notes`, `update-notes`). Re-synced 2026-07-16 from `ls skills/`.
+23 skills + 2 commands (`read-notes`, `update-notes`). Re-synced 2026-07-17 from `ls skills/`.
 
 | Skill | Purpose | Invoked By |
 |-------|---------|------------|
 | `agent-setup` | Create/update the 8 project agents (Bootstrap pattern) from `templates/` | `update-claude-docs`, or user directly |
 | `brainstorming` | Design exploration before creative/architectural work | User, or proactive |
 | `ci-ssh-deploy-timeout` | Diagnose flaky CI deploys that can't SSH the target; convert to connect-retry | User, or proactive |
+| `commit` | Create git commits from staged changes; single-repo and multi-repo, changelog gate, task-doc staleness gate | User directly |
 | `commit-invoice-generator` | Generate invoice line items from git commits | User directly |
 | `condense-claude-md` | Aggressively condense a bloated CLAUDE.md | User, or `update-claude-docs` Condense mode |
 | `condense-task-doc` | Condense a bloated task doc; SPLITS whole-doc MADR >300 lines into index + `decisions/*.md` | User, or `task-summary` when a doc is >300 lines |
@@ -214,11 +215,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-17)
 
-- **1.103.0 — 4 consumer-filed GitHub issues fixed and closed** (#3-#6 on `syafiq555/syafiqkit`, all filed by a real plugin-cache consumer with concrete suggested fixes): `update-claude-docs`' auto-memory rule was mandating a destructive revert that only deleted the newest memory file, leaving pre-existing ones from older conventions inconsistent — narrowed to "no new writes to memory," pre-existing files left alone. `task-summary`'s Backend/Frontend Gotchas split was forced onto infra/deploy docs with no back/frontend — split axis is now documented as domain-appropriate, columns stay fixed. `done`/`task-summary` shared the same `git status --short` blind spot for the *committed* case (empty output is correct but was read as "clean tree" when it meant "count from the session's base commit instead") — both fixed identically, plus an after-the-fact counter-check added to `done`'s roll-call rule. `two-tier-condense`'s verify pass couldn't catch a fact that survives a `-`/`+` diff verbatim but is stale — a merged per-phase table row reasserted a since-fixed security bug as current; added a re-verify-on-merge rule and a dedicated contradiction scan.
-- **1.97.0 — `tackle` (new)**: the session's main build. User described automating an arc they run by hand (task-doc path + "lets continue" → read → ask → build → `/done`), but two screenshots showed the ask step producing a menu they swept ("all of them"), with the real work being the feasibility split that followed. Built it to **triage instead of enumerate** — classify by blocker type, recommend a sequence, ask only on a genuine tie. Automating the arc faithfully would have automated the step that violates the user's own rules. Then the user asked what happens with no doc yet (a real gap — triage reads *from* a doc): added the greenfield branch (`brainstorming` only if genuinely unclear → `task-summary` Create → rejoin triage) and renamed `continue-task` → `tackle`, since "continue" is false for new work.
-- **`task-builder` agent (8th)**: the only agent writing new feature code, and — at the user's explicit direction, against an initial recommendation to keep an allowlist — the only one with **no `tools:` line** (full set incl. `Agent`). The file partition is now guarded by its body's Scope Rules alone. Also per the user: "i want all of our agents can spawn agent" — audited, already true for all 13 (only `browser-verifier` was ever a question).
-- **D33 — `<thinking>` retired**: zero adopters across 18 skills; the monitoring item never fired. The user's `<thinking>` blocks came from their **output style**, not this plugin — the plugin only documented the pattern. Layer boundary now explicit: skills own procedure, the style layer owns reasoning display.
-- **Drift, both directions**: an `Agent`-tool comment claiming its host was `Explore` sat in 11 files (6 agents + 5 templates) — noticed as a one-file typo, found by grepping past it (D32). The MANDATORY agent-file callout in `CLAUDE.md` now covers parity **and** blast-radius. Registry rot found in a third place (`CLAUDE.md`'s own table, missing 3 skills) — see Cross-Cutting rows.
+- **1.104.0 — `commit` command → skill conversion**: applied the existing D10 pattern (a skill/command sharing a name needs no wrapper) to the last remaining case — `commands/commit.md` (a 71-line command with a real multi-step workflow, same shape as `read-summary`'s prior conversion) became `skills/commit/SKILL.md`, command deleted outright, no redirect stub. Full-mode `/done` review (reviewer/simplifier/product-reviewer) came back clean; the one thing worth noting is a cross-reference `skills/ship/SKILL.md` had that pointed at the now-deleted `commands/commit.md` path — caught and repointed in the same change, since a stale path reference is exactly the kind of drift a rename produces without any claim going false.
 
 ---
 

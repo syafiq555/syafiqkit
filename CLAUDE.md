@@ -27,13 +27,15 @@ skills/                  # Multi-step workflows (SKILL.md files)
 
 | Command | Purpose |
 |---------|---------|
-| `commit` | Generate commit messages from staged changes |
+| `read-notes` | Read a personal session journal |
+| `update-notes` | Create/update a personal session journal |
 
 ### Skills
 
 | Skill | Purpose | Used By |
 |-------|---------|---------|
 | `agent-setup` | Create/update project agents using Bootstrap pattern | `/agent-setup` or `/update-claude-docs` |
+| `commit` | Create git commits from staged changes; single-repo and multi-repo | User invokes directly |
 | `read-summary` | Discover + read task docs/CLAUDE.md before answering, investigating, or implementing; Plan-Mode-aware (judges Explore/Plan subagent delegation vs continuing inline) | User invokes, or model-invoked proactively before project-context-dependent work |
 | `tackle` | Take work to done from either entry: doc exists → `read-summary`; no doc → `brainstorming` (only if genuinely unclear) + `task-summary` Create. Then **triage open items by blocker type** (actionable / human-blocked / env-blocked / dependent) → parallel `Explore` (haiku) → `Plan` + `task-builder` (sonnet) → `done`. Recommends a sequence instead of offering a sweepable menu | User invokes (task-doc path + vague "let's continue", or a new feature request) |
 | `done` | Post-task cleanup orchestrator | User invokes directly |
