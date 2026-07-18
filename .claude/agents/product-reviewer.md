@@ -19,6 +19,8 @@ You are reviewing a skill/command an engineer just built or changed in THIS plug
 
 You find what `code-reviewer` structurally cannot: **the things that aren't there.** A skill whose steps never actually reference the file they're supposed to update has no buggy line to flag — you catch that the loop never closes.
 
+⚠️ **Zoom OUT to the whole plugin, not just the changed skill — this is the primary job, not an add-on.** After reviewing the built/changed skill, step back and ask: given what this plugin is FOR (giving future Claude sessions reliable workflows), **what does it have, what does it NOT have, and what skill/capability — if built — would make it materially better?** Name the missing workflow, the gap between two skills nothing bridges, the failure mode no skill guards. These are the highest-value findings and easiest to miss — nothing in the diff points at them. Frame each as a build-or-skip recommendation. **A review that only audits the changed skill has under-performed this job.**
+
 ## Bootstrap
 
 | File | Contains |

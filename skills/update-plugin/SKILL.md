@@ -58,10 +58,13 @@ For each signal, identify the target:
 | `tasks/plugin-maintenance/current.md` | Architecture decision, new skill added, composition pattern changed |
 | `syafiqkit/CLAUDE.md` → Skills table | New skill added to the registry |
 | `CHANGELOG.md` | A skill was meaningfully changed (not just minor wording) |
+| `skills/agent-setup/templates/<agent>.template.md` (the SOURCE) **+ every generated copy** | A behavioral fix to an AGENT (`.claude/agents/<agent>.md`) that has a template |
 
 Read the target file before writing. Check whether the fix already exists — if a rule is present but Claude ignored it, the fix is to strengthen the wording, not duplicate the rule.
 
 ⚠️ **A fix to one skill's handling of a shared mechanism (a field, table, convention several skills read/write) is a fix to all of them.** Step 1's scan is session-scoped, not plugin-wide — but once a signal IS captured, `grep -l` the field/table/convention name across `skills/*/SKILL.md` and patch every skill that touches it the same way. Example: fixing `task-summary`'s LLM-CONTEXT `Last updated` handling also means checking `condense-task-doc` and `merge-task-docs`, which read/write the same field.
+
+⚠️ **An agent (`.claude/agents/<name>.md`) is a GENERATED instance — a durable fix belongs in its TEMPLATE (the source), not only the copy you edited.** If a session (this one included) improves a project's `.claude/agents/<name>.md`, that edit is lost on the next `agent-setup` regeneration and never reaches other projects. Route the fix to `skills/agent-setup/templates/<name>.template.md` FIRST, then port it to every existing copy that should carry it: the plugin's own `.claude/agents/<name>.md` (often a specialized variant — port the PRINCIPLE, keep its domain-specific examples) and the originating project's copy. `find ~/.claude -name '<name>.md' -path '*agents*'` (+ the template) to enumerate all copies before declaring parity. **Tell you missed this: you patched a `.claude/agents/*.md` this session and never opened its `.template.md`.**
 
 ## Step 3 — Write: Patch the skill files
 
