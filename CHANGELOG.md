@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.114.1
+
+- **`_shared/references/transcript-scan.md` (3 fixes from a real session)**: (1) the Pass-2 contaminant table dropped a genuine human message that the harness folded into a `<system-reminder>` on another turn (a mid-turn "run /done" the user typed while a turn was running) — added a KEEP row for the inverse leak (a real message silently dropped, not a contaminant kept). (2) The raw numbered list is a snapshot frozen when the agent ran, but nothing said so — a user reading it as a complete session record asked "that's all?" only to discover later messages were excluded; the Output contract now requires "captured through message N" when the list is shown to the user. (3) Added a "When the user wants a session SUMMARY" section: summarizing the transcript is a distinct deliverable from the raw anchor, and a summary agent confabulates ~⅓ of specifics (wrong filenames, invented review findings, non-existent enum values) — the prompt must forbid inventing and the parent must fact-check the summary against real artifacts before relaying. All three surfaced when a user pushed back across six turns on the scan's output.
+
 ## 1.114.0
 
 - **agent-setup (browser-verifier template)**: the agent kept trying to spawn *another* `browser-verifier` inside itself — the `Agent` tool was granted (per D31, for reaching `Explore`) but the grant lived only in a `tools:`-line code comment, invisible to the agent at runtime, so nothing told it *which* type it may spawn. Added a runtime-visible `## Constraints` rule — sub-spawns may ONLY be `Explore`, never another `browser-verifier` and never an editing agent — and tightened the `tools:` comment to match. Template only; this repo generates no `browser-verifier.md`, so consumers pick it up on their next `/agent-setup`.

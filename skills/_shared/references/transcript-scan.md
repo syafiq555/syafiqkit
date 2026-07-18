@@ -50,6 +50,7 @@ Array-shaped `user` content is almost always a `tool_result` block (the harness 
 | Text containing `<task-notification>` (and its `<task-id>`/`<result>`/`<status>` children) | A spawned agent's result posted back as a synthetic user turn | **DROP** — this is agent output, not the human. The single biggest miss: a long session has many, each carrying an entire agent report |
 | Text containing `<local-command-caveat>` | Harness wrapper around local-command output | **DROP** the wrapper turn |
 | Text starting `[Request interrupted by user]` | Harness marker when the user interrupts a turn | **DROP** the marker line; the human's actual follow-up is the NEXT turn (keep that) |
+| A genuine human message wrapped inside a `<system-reminder>` (e.g. a mid-turn message the user sent while a turn was running) | The harness sometimes folds a real user message into a reminder block on another turn instead of its own `type:user` turn | **KEEP the inner human text** — this is the inverse leak: a real message SILENTLY DROPPED. Scan `<system-reminder>` bodies for a line in the user's voice (a request/correction), extract it as its own numbered entry. Drop only the reminder scaffolding around it |
 | `<command-name>` / `<command-message>` / `<command-args>` | Slash-command scaffolding, often split across several short turns | **UNWRAP** to the inner `<command-args>` text (the human's real input); drop the surrounding tags. Any turn that is ONLY `<command-name>` and/or `<command-message>` with no `<command-args>` payload → DROP |
 | `null` / empty text | Array-content turn with no `text` block (already filtered in Pass 1's `select(.text != null)`) | Already gone |
 
@@ -64,6 +65,18 @@ What survives Pass 2 ≈ the human's genuine messages.
 ## Output contract
 
 A **complete numbered list of every genuine user message, in order from message 1** — an actual enumerated list, not a summary. RAW: the agent does not mark, rank, or judge which lines are signals — the caller does that inline. If the transcript is unavailable (glob empty and fallback ambiguous, or context was compacted with no file access), say so explicitly rather than silently scanning what's left in context.
+
+⚠️ **The list is frozen at the moment the agent ran — it excludes every later message, including the invocation acting on it.** When surfacing it to the USER (not just consuming it internally), say "captured through message N" — else a partial list reads as a complete session record.
+
+⚠️ **This is a your-messages-only, unsummarized ANCHOR — that is the design, not a shortcoming.** Its value is being un-interpreted, so a caller must not "improve" it into a narrative; summarizing re-introduces the model's bias the raw list exists to bypass. If the user instead wants a **readable recap of the whole session to learn from** (both sides, condensed), that is a DIFFERENT deliverable — see the guard below.
+
+## When the user wants a session SUMMARY (not the raw anchor)
+
+A human asking "summarize what happened this session" is a different job from the raw anchor above. It may still use an `Explore` agent over `$TRANSCRIPT`, but:
+
+⚠️ **A transcript-summary agent CONFABULATES specifics — filenames, enum values, exact findings — while sounding authoritative.** A fluent recap of a long transcript routinely invents a third of its concrete details (wrong path, invented review findings, non-existent enum members). Two mandatory guards:
+- **The prompt must forbid inventing** and require grounding every concrete claim (file path, value, list of findings) in a transcript line, flagging anything uncertain rather than guessing.
+- **The PARENT must fact-check the returned summary against real artifacts** (the diff, the task doc, the actual files) before relaying it, and correct the errors in its own voice. Never pass an agent's session summary to the user as authoritative without this pass — relay the corrected version, naming what was wrong.
 
 ## Delegation guardrails (shared with `explore-delegation.md`)
 
