@@ -263,3 +263,27 @@ Chosen: state the documented behaviour and separate the two concerns.
 - Undocumented in official sources, from [#63938](https://github.com/anthropics/claude-code/issues/63938): a `min(16, cpu_cores - 2)` concurrency cap on workflow `agent()` calls — excess queue rather than fail. Not relied on.
 
 **Status**: committed · **Reversible**: yes (revisit if #69691 lands a documented foreground control)
+
+---
+
+### D34 — On-Disk Transcript Scan Defeats Recency Bias; Agent Sub-Spawn Must Name Its Allowed Type — committed — 2026-07-18
+
+**Problem**
+Two agent-steering gaps in one session. (1) The doc-update skills (`update-plugin`, `update-claude-docs`, `done` Steps 3/5) reconstruct "what happened this session" from the calling loop's own context — recency-biased and compaction-prone, so an early correction silently drops. `update-plugin`'s own Step 1 admits producing a partial scan twice in one session despite the warning. (2) `browser-verifier` carries the `Agent` tool (granted per D31 for spawning `Explore`), but the grant lived only in a `tools:`-line code comment — invisible to the agent at runtime — so the agent kept trying to spawn *another browser-verifier*, a redundant self-nest.
+
+**Decision**
+Chosen, both:
+- **Transcript scan as a shared reference, not a new agent** (`_shared/references/transcript-scan.md`). A caller resolves the session `.jsonl` path itself (`ls -t ~/.claude/projects/*/"$CLAUDE_CODE_SESSION_ID".jsonl | head -1` — glob by the unique session-id UUID, sidestepping the lossy cwd encoding of #7009/#21085) and passes it literally to an `Explore` agent, which runs a two-pass filter (jq drops tool_result bulk; contaminant-strip drops harness-injected `type=="user"` turns — skill-body injections, `<task-notification>`, `<local-command-caveat>`, `[Request interrupted by user]`, bare command scaffolding) and returns a RAW numbered list of the human's genuine messages. Judgment (which lines are signals) stays on the caller's model (D30). Wired into `done` Step 1's agent batch only this pass — `update-plugin`/`update-claude-docs` standalone deferred.
+- **A sub-spawn grant must name its allowed agent type in the runtime-visible body**, not just a `tools:` comment. `browser-verifier`'s Constraints now state Explore-only, never another browser-verifier or an editing agent; the `tools:` comment tightened to match.
+
+**Rejected**
+- A registered `transcript-inspector` agent (SKILL.md registry + template). Why not: user chose the lighter shared-reference form — no registry sync, no template-parity surface; skills spawn a generic `Explore` following the reference.
+- Subagent self-locates the transcript via inherited `$CLAUDE_CODE_SESSION_ID`. Why not: it forces re-implementing the lossy, collision-prone cwd encoding in a second place; empirically the var IS inherited (returns the parent's id), so it's kept only as a cheap stale-path cross-check, never the primary lookup.
+- A blocklist-only Pass 2. Why not: verified leaky against a real transcript (a full `read-summary` skill body survived until markers were matched *anywhere* in the turn, not just line 1) — the reference makes the human-eye completeness skim the authoritative check, the pattern list only the first cut.
+
+**Consequences**
+- `done` gains a Transcript row (exit-gate audit + Output table); the scan skips in light/docs/infra *minimal* runs but not a substantive docs session.
+- The scan agent is never partitioned by file slice (whole-session, like the product reviewer) and its list is an async enrichment to Steps 3/5, never a hard dependency — if it hasn't returned, those steps run their own scan bare.
+- `browser-verifier` fix lands in the template only; this plugin repo generates no `browser-verifier.md`, so consuming projects pick it up on their next `/agent-setup`.
+
+**Status**: committed · **Reversible**: yes

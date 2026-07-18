@@ -83,6 +83,8 @@ Build a table of all domains before writing anything:
 
 Then create/update each task doc. **Every issue mentioned in the session gets a task doc** — even if it's just a 📋 Planning stub. A captured issue is better than a forgotten one.
 
+⚠️ **A module you had to reverse-map because it has NO doc IS a create signal — not just a note.** If the session studied a whole flow (multiple Explore agents, reading the full module) *because* no task doc existed, the corrective action is to CREATE that doc from what you just mapped, not to file "no doc exists" inside a related doc's Last Session/decision and defer it. Filing the observation without creating the doc guarantees the next session repeats the full-module study. **Tell: you wrote "no task doc exists for X" / "worth its own doc later" anywhere this session.** That sentence is the trigger — turn the mapping you already did into `tasks/<its-domain>/<feature>/current.md` now, then cross-reference it.
+
 ## 2. Create or Update?
 
 Read **both** the resolved path **and `references/templates.md`** first — the template holds the canonical section structure and gold-standard format you need for either path. Then: if the doc is missing → **Create** using the Full Template. If it exists → **Update** in place.

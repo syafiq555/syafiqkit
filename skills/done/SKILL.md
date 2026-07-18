@@ -78,6 +78,12 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 
 ⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it **only when the user asked in words** — "the diff touches UI so they'd want runtime proof" is an inference, and inferring it is the auto-spawn this rule forbids. A UI diff is a reason to offer, never a reason to spawn. It is not counted in the agent table below and never partitioned. See `references/browser-verification.md`.
 
+**+1 in the batch — the transcript-scan `Explore` agent (always, except light/docs/infra minimal modes).** Add ONE more `Agent` call to the same single-message block: an `Explore` agent that reads the session transcript and returns a numbered list of the human's genuine messages, following `_shared/references/transcript-scan.md`. It defeats the recency bias in Steps 3/5 — those scan "the session" from context, which drops early corrections. It reads the `.jsonl` on disk instead, so an early "wait, that's wrong" survives.
+- **The PARENT resolves the path** (`TRANSCRIPT=$(ls -t ~/.claude/projects/*/"$CLAUDE_CODE_SESSION_ID".jsonl | head -1)`) and passes it literally in the prompt — the agent does not self-locate (see the reference for why: lossy cwd encoding, #7009/#21085).
+- **Never partitioned by file slice** — like the product reviewer, it reads the whole session, not a code slice. Don't give it files; give it the transcript path + the reference.
+- **Its return is RAW** — a numbered human-message list, never a ranked "here are the signals." The judgment (which lines are corrections/misfires) stays inline / in Steps 3 & 5.
+- Runs concurrently; its list is consumed by Step 3 (and Step 5 if it fires). Expect it async like the others — if the list isn't back when Step 3 starts, Step 3's own conversation scan still runs; the list is an enrichment, not a hard dependency. **Skip it only in light/docs-only/infra-only minimal runs** (a trivial single-domain diff has no early-correction history worth the scan).
+
 **Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first with **`git status --short`** (run it in EVERY repo of a multi-repo project), then pick agents-per-role:
 
 ⚠️ **`git status --short` is canonical — NOT `git diff --name-only`.** `diff --name-only` shows only unstaged changes to tracked files — new/staged files are invisible. If you staged before `/done`, it returns empty for the entire session's work — you then partition zero files, every agent reports clean on an empty slice, and `/done` passes having reviewed nothing. `git status --short` shows staged + unstaged + untracked with status letters. **Tell: the command returns nothing for work you just did.**
@@ -148,6 +154,8 @@ This is the **single** writer of CLAUDE.md / `CLAUDE.local.md` entries. It scans
 
 ⚠️ **Invoke it BARE (no arg), or if you pass an arg keep it a HINT — never a scope limiter.** Handing the skill a pre-written arg that lists only this session's code facts silently narrows its scan and drops early-session behavioral misses (a wrong task-doc discovery, a source you checked wrong and the user corrected). Those "user had to correct" signals are the highest-value capture and the easiest to lose. If you do pass an arg, it must still say "and scan the full conversation for corrections/wrong-turns too."
 
+**If the transcript-scan agent's numbered list came back** (Step 1), pass it as that hint — "here is the full numbered list of the user's genuine messages this session; use it so no early correction is missed, AND still scan the conversation yourself." The list is an anti-recency-bias aid layered ON TOP of the skill's own scan, never a replacement for it. If the list hasn't returned yet (async), invoke bare — do not block waiting for it.
+
 **Step 4 — Update Task Docs:**
 
 Invoke `syafiqkit:task-summary` **with no args** in full mode — let the skill do a multi-domain scan. In **light mode**, pass the known doc path instead.
@@ -172,6 +180,8 @@ Steps 3+4 write to the *project*; this writes to the *plugin* — a global artif
 
 Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstream: it probes ownership itself and branches — **owner** → patch the skill files + version bump + CHANGELOG; **consumer** → draft the finding and *offer to file it as a GitHub issue* upstream (asking first, posting under the user's own identity). Either way the finding survives.
 
+**If the transcript-scan list came back** (Step 1), hand it to `update-plugin` too — its Step 1 IS the numbered-message-list discipline (it admits scanning from memory has missed signals), so a real on-disk list is exactly what it needs. Pass it as context; the skill still does its own signal classification.
+
 ⚠️ Do NOT hand-patch skill files from `/done`, and do NOT skip this step just because you're not the owner — a defect hit by a real user is the most valuable kind.
 
 ## Exit gate — check BEFORE writing the Output
@@ -187,6 +197,7 @@ This check is not optional and not covered by the rows below — they audit whet
 | Simplify | spawned simplifier agent(s) **and gave them a simplifier prompt** | N simplifiers (N = the per-role count) |
 | Review | spawned reviewer agent(s) **and gave them a code-review prompt** (bugs/security — NOT product gaps) | N reviewers |
 | Product | spawned the product-reviewer agent **with a product prompt** | exactly 1 |
+| Transcript | spawned the transcript-scan `Explore` agent **with the resolved `.jsonl` path** + reference | exactly 1 (➖ in light/docs/infra minimal modes) |
 | Knowledge | invoked `syafiqkit:update-claude-docs` | 1 skill call |
 | Task docs | invoked `syafiqkit:task-summary` | 1 skill call |
 | Plugin | invoked `syafiqkit:update-plugin` | **usually absent** — Step 5 fires only when a real skill signal exists. Omit the row when none did; never invent a patch to fill it. (Not-the-owner is NOT a reason to skip — the skill switches to upstream-report mode.) |
@@ -205,6 +216,7 @@ One combined table. Detail only what was actually WRITTEN or FIXED — never enu
 | Simplify | [changes made, or ✅ none needed; ➖ docs-only] (full mode only) |
 | Review | [issues found + fixed, or ✅ clean; in docs-only mode = referential-integrity result] |
 | Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / light / docs-only mode] (full mode only) |
+| Transcript | [numbered human-message list returned → fed to Steps 3/5, or ➖ light/docs/infra minimal mode] |
 | Cleanup | [removed, or ➖] |
 | Knowledge | [N entries → target files, one line each; "0 new" if none] |
 | Task docs | [doc path → one-line summary of the update] |

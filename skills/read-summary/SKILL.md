@@ -26,6 +26,8 @@ Read, find and understand task summary context. Run this **before** answering, i
 
 A keyword match lands you in the right *folder*, not necessarily the right *bug* — so after the doc loads, restate the user's claim in your own words and confirm the doc addresses *that symptom*, not a nearby topic it happens to mention. And requests that arrive as chat transcripts often reveal their real claim only across several messages: if the central claim shifts (new symptom, a screenshot, or "this was fixed before and came back"), re-run discovery from step 1 rather than extending your first answer. A regression is its own investigation — find the prior fix and check what reverted, don't re-derive from scratch.
 
+The same "re-run discovery" rule applies when the SCOPE changes, not just the claim: a doc already open from earlier in the session is not evidence it covers a different commit/file now in question. A multi-commit ship touching unrelated domains (a frontend feature + a standalone backend command) has multiple owning docs — checking the one already loaded and calling it done is the same miss as skipping discovery entirely.
+
 ### Doc-staleness handoff (don't just narrate it)
 
 ⚠️ Reading a doc is also **auditing** it. While loading context you will often catch the doc contradicting the code you just examined — a `Status:` that says "not done" for a feature that's built, a `Provider:`/dependency named that the code has since swapped, a `Key files` path that moved, a date-conditioned caveat now past. **Do NOT just mention the drift in passing and move on** — that drops the fix on the floor, the exact failure this skill exists to prevent. When you spot staleness:

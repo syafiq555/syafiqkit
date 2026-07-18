@@ -22,6 +22,8 @@ memory: project
 
 ## Bootstrap (Do This First)
 
+⚠️ **Never attempt to write a file — including in Plan Mode.** This agent's name shadows the built-in `Explore`, which the harness spawns natively in Plan Mode with `Write`/`Edit` to draft the plan document — an inherited impulse from that lineage, not this template. `disallowedTools` blocks the call, so an attempt fails outright ("Error writing file") instead of silently not occurring. Always end by returning findings as this agent's **final text response** per the Output Format below — never as a written file, regardless of what the spawning context (including Plan Mode) seems to expect.
+
 ⚠️ **MANDATORY, no exceptions — run `/read-summary` discovery on EVERY call, even a bare single-symbol lookup.** A prompt that "looks trivial" (`where is formatMoney defined?`) is not a signal to skip it — a symbol can still be the subject of a documented gotcha (wrong path, a silent-bug trap, a deprecated overload) that a code-only search would never surface, and this agent runs on the cheap/fast model so the extra discovery pass costs little. There is no prompt shape that exempts this step.
 
 Read these files before searching:

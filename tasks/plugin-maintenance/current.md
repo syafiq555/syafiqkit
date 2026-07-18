@@ -11,15 +11,16 @@ Last updated: 2026-07-17 — see Quick Start / Last Session
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.110.0.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.114.0.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.110.0. Mostly condensation/de-duplication + consumer-reported bugfix passes; companion-file relocation to `.claude-companions/shared|local/` (1.110.0) is the last change.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.114.0. Last change (1.114.0, D34): on-disk transcript-scan reference wired into `done` Step 1 + `browser-verifier` self-nest fix.
 
 **Immediate next actions (in order)**:
-1. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
-2. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
+1. Wire `transcript-scan.md` into `update-plugin` + `update-claude-docs` for STANDALONE use (currently only `done` Step 1 spawns it — direct invocations still scan from memory). Deferred from the 1.114.0 session by choice.
+2. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
+3. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
@@ -157,6 +158,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D29 | `claude-md-pruner` delegates restructuring to `condense-claude-md` instead of reimplementing the seam-test — the last template missing `Skill` per D14 |
 | D30 | Splitting a skill step's mechanical retrieval from its judgment half before delegating to a cheaper agent (`Explore`) — the judgment half never leaves the calling session's own model |
 | D31 | Explore agent gains the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity is now a `⚠️ MANDATORY` root CLAUDE.md callout after its 3rd recurrence |
+| D34 | On-disk transcript scan (`_shared/references/transcript-scan.md`, wired into `done` Step 1) defeats recency bias in doc-update scans; an agent's sub-spawn grant must name its allowed type in the runtime-visible body, not a `tools:` comment (fixes `browser-verifier` self-nesting) |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
@@ -213,10 +215,10 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ---
 
-## Last Session (2026-07-17)
+## Last Session (2026-07-18)
 
-- **1.110.0 — companion files relocated to `.claude-companions/`**: `condense-claude-md`, `update-claude-docs/references/structure.md`, and `read-summary` all moved from the old same-directory `<dir>/CLAUDE-<topic>.md` convention to `.claude-companions/<shared|local>/CLAUDE-<topic>.md` at the nearest git-repo root, plus the anchor-repoint fix from 1.109.0 was mirrored into `update-claude-docs` (same unconditional-repoint bug, write-time twin of `condense-claude-md`'s procedure). One existing tracked companion migrated in Autorentic with its 3 cross-refs.
-- **`/done` docs-only run caught a recurring version-file drift**: `plugin.json` was at 1.110.0 but `marketplace.json` had only been bumped to 1.108.0 — the same class of drift as D26 (2026-07-15), where the same two files desynced during that session's version bump too. Fixed inline (marketplace.json → 1.110.0); no automated gate exists yet, still a manual-diff catch.
+- **1.114.0 — D34: on-disk transcript scan + agent sub-spawn typing**: new `_shared/references/transcript-scan.md` (caller resolves session `.jsonl` by `$CLAUDE_CODE_SESSION_ID` UUID glob, `Explore` agent runs a two-pass jq+contaminant-strip, returns a RAW numbered human-message list) wired into `done` Step 1's agent batch to defeat recency bias in Steps 3/5. Verified live: ~560KB transcript → the session's 3 genuine messages. `browser-verifier` template fixed to stop self-nesting (Constraints rule names `Explore`-only; `tools:` comment tightened). `update-plugin`/`update-claude-docs` standalone wiring deferred.
+- **`/done` self-test**: this session ran `/done` in docs-only mode and exercised the new transcript-scan wiring end-to-end — the first real run produced a clean 3-message list. `update-plugin` found no un-captured skill defect (the one behavioral signal — "wait for the agent" — is already global CLAUDE.md line 126).
 
 ---
 
