@@ -1,8 +1,17 @@
-# Scanning the Session Transcript for a Complete User-Message List
+# Scanning the Session Transcript for a Complete Record
 
-Referenced by skills whose scan must not miss a signal from earlier in the session — the "what happened this session" step of `update-plugin`, `update-claude-docs`, `done`, `task-summary`. Apply when the failure mode is **recency bias**: reconstructing the session from the caller's own (compaction-prone, freshest-first) context silently drops an early correction. This reads the actual `.jsonl` on disk instead.
+Referenced by skills whose scan must not miss a signal from earlier in the session — the "what happened this session" step of `update-plugin`, `update-claude-docs`, `done`, `task-summary`. Apply when the failure mode is **recency bias**: reconstructing the session from the caller's own (compaction-prone, freshest-first) context silently drops an early correction, decision, or subagent finding. This reads the actual `.jsonl` on disk instead.
 
-**Rule:** the mechanical retrieval (locate the file → filter → produce a numbered list of the human's real messages) is delegated to an `Explore` agent and returns **raw, in order, never ranked**. The judgment — which lines are a correction / misfire / new rule — stays inline on the CALLING session's own model. The agent hands back the list; it does not decide what's a signal.
+## Two modes — pick by what the caller consumes
+
+| Mode | Output | Use when |
+|------|--------|----------|
+| **A — User anchor** (raw) | Numbered list of every genuine USER message, verbatim, in order. No other party. Un-interpreted by design. | The caller only needs the human's corrections/asks as an anti-recency anchor (e.g. re-deriving "what did the user actually tell me"). |
+| **B — Full record** (grounded, default for doc-updates) | A timeline of **all parties**: every user message (verbatim) + every assistant DECISION/commit/fix + every subagent's key FINDINGS — each concrete claim tied to a transcript line. | Doc-update steps (`update-claude-docs`, `task-summary`) that must capture everything memory dropped, from any side — the default for `/done` Steps 3/4. |
+
+**Both modes** delegate the mechanical retrieval (locate file → filter → produce the list) to an `Explore` agent and return **in order, never ranked**. The judgment — which lines are a signal to act on — stays inline on the CALLING session. The agent hands back the record; it does not decide what matters.
+
+⚠️ **Mode B is grounded, NOT summarized.** It reports what each party did/found in compressed form, but every concrete claim (a file path, a decision, a finding, a value) must cite a transcript line — it must NEVER paraphrase a quote or invent a specific. A user message is reproduced VERBATIM (rewording loses meaning — one session's "deploy to STAGING" got rendered as "...to production" and misled the doc update). See the confabulation guards under "Mode B" below.
 
 ## Path resolution — the PARENT resolves it, never the subagent
 
@@ -56,19 +65,38 @@ Array-shaped `user` content is almost always a `tool_result` block (the harness 
 
 What survives Pass 2 ≈ the human's genuine messages.
 
+⚠️ **The single highest-frequency MISS is a mid-turn message folded into a `<system-reminder>`.** When the user sends a message while a turn is running, the harness does NOT give it its own `type:user` turn — it injects it into a `<system-reminder>` block on the NEXT assistant turn (marked "The user sent a new message while you were working"). Pass 2's contaminant strip is tuned to DROP `<system-reminder>` scaffolding, so these real messages get dropped WITH the scaffolding unless you extract them first. This is the opposite of every other Pass-2 row (which removes non-human text) and it is the one that fails silently — an absence cannot be eyeballed. **Before dropping any `<system-reminder>` block, scan its body for a line in the user's voice** (a request/correction/question, often short — "why didnt u just rsync?", "we wont be using this template anymore") and extract it as its own numbered entry at its chronological position. A session with many mid-turn messages loses many of them here; grep the raw transcript for `sent a new message while you were working` and confirm every hit produced a list entry.
+
 ⚠️ **The blocklist above is necessarily leaky — do NOT trust the jq/awk output as final.** New harness/skill shapes appear over versions, and an injected `SKILL.md` body is a *multi-line* turn whose marker (`Base directory for this skill:`) may not sit on line 1 after any line-splitting — a first-line-only match misses it and the whole skill body sails through as "user text." Verified against a real transcript: even after dropping `<task-notification>` / `<local-command-caveat>` / `[Request interrupted by user]`, a full `read-summary` skill body still leaked through. So:
 
 - **Match markers anywhere in the turn, not just its first line** — a turn is a skill-body injection if `Base directory for this skill:` appears *anywhere* in it; drop the whole turn.
 - **The authoritative completeness check is the human-eye skim, not the pattern list.** After filtering, read the surviving numbered list top to bottom and confirm every entry reads like something a person actually typed. Any block of `<...>` tags, any agent report, any run of skill instructions still present = a shape slipped through; add it to the blocklist and re-run. The count is only trustworthy once the list is human turns end to end.
 - **A genuine human turn in this harness is a `string`-content `user` turn that does not begin with (or wholly consist of) a harness/skill marker.** When in doubt whether a turn is human, the tell is voice: a person's correction/question vs. structured instructions or a tagged report.
 
-## Output contract
+## Mode A — Output contract (user anchor)
 
 A **complete numbered list of every genuine user message, in order from message 1** — an actual enumerated list, not a summary. RAW: the agent does not mark, rank, or judge which lines are signals — the caller does that inline. If the transcript is unavailable (glob empty and fallback ambiguous, or context was compacted with no file access), say so explicitly rather than silently scanning what's left in context.
 
 ⚠️ **The list is frozen at the moment the agent ran — it excludes every later message, including the invocation acting on it.** When surfacing it to the USER (not just consuming it internally), say "captured through message N" — else a partial list reads as a complete session record.
 
-⚠️ **This is a your-messages-only, unsummarized ANCHOR — that is the design, not a shortcoming.** Its value is being un-interpreted, so a caller must not "improve" it into a narrative; summarizing re-introduces the model's bias the raw list exists to bypass. If the user instead wants a **readable recap of the whole session to learn from** (both sides, condensed), that is a DIFFERENT deliverable — see the guard below.
+⚠️ **Mode A is a your-messages-only, unsummarized ANCHOR — that is the design, not a shortcoming.** Its value is being un-interpreted; a caller must not "improve" it into a narrative. When the caller needs all parties (assistant decisions, subagent findings), that is Mode B below — not a loosening of Mode A.
+
+## Mode B — Full record (all parties, grounded)
+
+The default for doc-update consumption (`update-claude-docs`, `task-summary`, `/done` Steps 3/4). Same Pass-1/Pass-2 file handling, but the record includes **three streams interleaved in chronological order**, each entry tagged by party:
+
+| Party | jq source | What to extract |
+|-------|-----------|-----------------|
+| **User** | `type:user` string turns surviving Pass 2 (incl. the mid-turn `<system-reminder>` extraction) | The message, VERBATIM. Never reword. |
+| **Assistant** | `type:assistant` turns — the text blocks, not just tool names | Each DECISION, fix, or commit the assistant made or stated (one compressed line each), citing what it did. Skip narration/thinking; keep outcomes. |
+| **Subagent** | `<task-notification>` / agent-result turns (the ones Pass 2 drops for Mode A) | Each subagent's KEY findings/verdict (one line each), attributed to which agent. The report body is the source — cite it, don't invent. |
+
+Output = a numbered, party-tagged timeline: `1. [user] "<verbatim>"` · `2. [assistant] committed X / decided Y` · `3. [subagent:code-reviewer] 0 findings, confirmed Z`. In order, not grouped by party — chronology is what memory loses.
+
+⚠️ **Mode B is grounded, not summarized.** The same confabulation risk and its two guards (prompt forbids inventing; parent fact-checks against the real artifact) apply exactly as in "When the user wants a session SUMMARY" below — plus one guard unique to Mode B:
+- **The CONSUMING skill MUST reconcile against it, not just read it.** Before finishing a doc update, the caller walks the Mode B record and asks *"did I capture every user correction, every decision, every subagent finding here — or did memory drop one?"* An absence cannot be eyeballed from context alone; the record is what makes the gap visible. Mode B that is produced but not cross-checked against memory has done nothing — this reconciliation is the whole point.
+
+When the user wants a **readable session recap to learn from** (a different, human-facing deliverable), that's the SUMMARY job below — not Mode B.
 
 ## When the user wants a session SUMMARY (not the raw anchor)
 
@@ -88,11 +116,23 @@ A human asking "summarize what happened this session" is a different job from th
 
 ```
 # Parent resolves the path first, then:
+
+# Mode A — user anchor:
 Agent({
   subagent_type: "Explore",
   prompt: `Read the session transcript at ${TRANSCRIPT}.
     Cross-check: the session-id in that filename must equal your own $CLAUDE_CODE_SESSION_ID — if not, STOP and report the mismatch.
     Run the Pass-1 jq filter and Pass-2 contaminant strip from _shared/references/transcript-scan.md.
-    Return a COMPLETE numbered list of every genuine user message, in order from message 1. Do NOT rank, mark, or judge which are signals — return raw.`
+    ⚠️ Extract mid-turn user messages folded into <system-reminder> blocks ("sent a new message while you were working") — these are the most-dropped and must appear as their own entries.
+    Return a COMPLETE numbered list of every genuine user message, VERBATIM, in order from message 1. Do NOT rank, mark, judge, or reword — return raw.`
+})
+
+# Mode B — full record (default for doc-updates):
+Agent({
+  subagent_type: "Explore",
+  prompt: `Read the session transcript at ${TRANSCRIPT}.
+    Cross-check: the session-id in that filename must equal your own $CLAUDE_CODE_SESSION_ID — if not, STOP and report the mismatch.
+    Follow Mode B in _shared/references/transcript-scan.md: produce a numbered, party-tagged, chronological timeline of ALL parties — [user] verbatim, [assistant] each decision/commit, [subagent:<name>] each key finding.
+    ⚠️ Extract mid-turn user messages folded into <system-reminder> blocks. GROUND every concrete claim (path/value/decision/finding) in a transcript line — NEVER invent or paraphrase; flag anything uncertain. Do NOT rank which are signals — the caller does that.`
 })
 ```

@@ -15,7 +15,7 @@ Last updated: 2026-07-17 — see Quick Start / Last Session
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.114.0. Last change (1.114.0, D34): on-disk transcript-scan reference wired into `done` Step 1 + `browser-verifier` self-nest fix.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.115.0. Last change (1.115.0, D35): transcript-scan Mode B (all-parties grounded record) added, made a mandatory reconciliation target in `done` Steps 3/4, mid-turn message extraction hardened.
 
 **Immediate next actions (in order)**:
 1. Wire `transcript-scan.md` into `update-plugin` + `update-claude-docs` for STANDALONE use (currently only `done` Step 1 spawns it — direct invocations still scan from memory). Deferred from the 1.114.0 session by choice.
@@ -159,6 +159,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D30 | Splitting a skill step's mechanical retrieval from its judgment half before delegating to a cheaper agent (`Explore`) — the judgment half never leaves the calling session's own model |
 | D31 | Explore agent gains the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity is now a `⚠️ MANDATORY` root CLAUDE.md callout after its 3rd recurrence |
 | D34 | On-disk transcript scan (`_shared/references/transcript-scan.md`, wired into `done` Step 1) defeats recency bias in doc-update scans; an agent's sub-spawn grant must name its allowed type in the runtime-visible body, not a `tools:` comment (fixes `browser-verifier` self-nesting) |
+| D35 | Transcript scan gains **Mode B** (all-parties grounded record — user verbatim + assistant decisions + subagent findings, cited to transcript lines), default for doc-update consumption, alongside the raw user-only Mode A anchor. Doc-steps must RECONCILE against it (not treat it as optional enrichment — the framing that let it under-perform). Mid-turn `<system-reminder>` message extraction promoted from a buried row to a MUST-EXTRACT warning (the highest-frequency miss). |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
