@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.116.1
+
+- **`task-summary` — named commit/deploy status as a mandatory grep target, not left to judgment.** Layer 1 already had a rule ("Commit/deploy status is one fact too — goes ONLY in Quick Start's state line"), but the litmus test and Validate step only said "grep the doc's 2-3 most critical phrases," leaving it to the agent to decide each run whether the status word counted. A real doc still had "UNCOMMITTED" in 5 places (LLM-CONTEXT, Quick Start, a Task Status row, Last Session, and a sibling `decisions/*.md` Status line) — a full sweep only happened because a downstream `/commit` run's staleness gate caught it, not because `task-summary` itself would have. Litmus test + Validate §8 now name the status word explicitly (`uncommitted`/`committed`/`deployed`/`shipped`/`staging`/`prod`) and require a doc-wide case-insensitive grep, re-run to zero, whenever the write changes a commit/deploy state.
+
 ## 1.116.0
 
 - **Removed the transcript-scan `Explore` agent from `/done`** (user request: "no use"). It was added over 1.114.0–1.115.0 to defeat recency bias in the doc-update steps, but in the session that removed it the scan returned a full Mode B record AND the doc-update still failed — because that failure was a false "done" report, not a recency miss, so the scan protected against nothing while costing an agent slot + ~47k tokens. Stripped all 7 references from `done/SKILL.md` (Step 1 spawn, Steps 3/4 reconciliation hints, Step 5 handoff, both Output-table rows) and deleted the now-orphaned `_shared/references/transcript-scan.md`.

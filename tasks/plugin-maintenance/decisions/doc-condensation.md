@@ -7,12 +7,30 @@ Gotchas (critical — full list in each ADR's Consequences):
   - The companion-file split (Restructuring #7) applies to ANY oversized cross-cutting section, not just the global CLAUDE.md (D26)
   - Pre-existing plan/spec docs sitting next to a split doc are NOT decisions/<theme>.md candidates — a different document type, verified against external ADR/Diátaxis convention (D27)
 Related: ../current.md (index), ../decisions/madr-structure.md, ../decisions/agent-architecture.md
-Last updated: 2026-07-16
+Last updated: 2026-07-19
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation Decisions
 
 Decisions about fighting duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage.
+
+---
+
+### D37 — `task-summary`'s Cross-Section-Duplication Litmus Test Now Names the Status Word Explicitly — committed — 2026-07-19
+
+**Problem**
+Layer 1 already had a rule that commit/deploy status is one fact belonging only in Quick Start's state line, but the litmus test and Validate §8 only said "grep the doc's 2-3 most critical phrases" — leaving it to the agent's judgment each run whether the status word counted as one of those phrases. A real doc still had "UNCOMMITTED" in 5 places (LLM-CONTEXT, Quick Start, a Task Status row, Last Session, a sibling `decisions/*.md` Status line); the drift was only caught because a downstream `/commit` staleness gate happened to flag it, not because `task-summary` itself would have.
+
+**Decision**
+Chosen: name the status word explicitly in both the Density-rules litmus test and Validate §8 (`uncommitted`/`committed`/`deployed`/`shipped`/`staging`/`prod`, case-insensitive), require a doc-wide grep whenever the write changes a commit/deploy state, and re-run until zero stray hits outside Quick Start.
+
+**Rejected**
+- Leaving it as an implicit case of "2-3 most critical phrases". Why not: proved not self-enforcing — a real doc with 5 stray copies is the counter-example, and a rule that depends on the agent independently deciding a phrase is "critical enough" degrades under exactly the pressure (status changing minutes apart during a ship) it exists to catch.
+
+**Consequences**
+- The specific phrase set is now load-bearing text in two places (litmus test + Validate §8) rather than one implicit judgment call — future edits to the status vocabulary must update both.
+
+**Status**: committed · **Reversible**: yes
 
 ---
 

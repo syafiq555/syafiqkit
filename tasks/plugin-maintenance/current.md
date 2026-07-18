@@ -11,14 +11,14 @@ Last updated: 2026-07-19 — see Quick Start / Last Session
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.114.0.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.1.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.116.0. Last change (1.116.0): the transcript-scan `Explore` agent was REMOVED from `/done` (user found it "no use" — it returned a full record yet didn't prevent a false-"done" doc miss, which was a reporting failure not a recency one); `_shared/references/transcript-scan.md` deleted. `/done` exit gate hardened: Task-docs/Knowledge rows now require confirming the artifact changed, not just that the skill was invoked. Supersedes D34/D35.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.116.1. Last change (1.116.1): `task-summary`'s cross-section-duplication litmus test now names the commit/deploy status word explicitly (`uncommitted`/`committed`/`deployed`/`shipped`/`staging`/`prod`) instead of relying on it being caught implicitly as a "critical phrase" — see D37.
 
 **Immediate next actions (in order)**:
-1. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
+1. ⚠️ `decisions/doc-condensation.md` is now at **307 lines / 32,757 bytes** — over the 300-line split threshold (D37 pushed it over). Split into index + sub-files next session per D13's own rule ("don't ask first") — deferred this session as disproportionate for a docs-only `/done` pass.
 2. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
 
 **Gotchas that will trip you**:
@@ -182,6 +182,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D27 | Pre-existing plan/spec docs are a distinct type from `decisions/<theme>.md` (verified against external ADR/Diátaxis convention) — split-doc guidance gained a parent-directory routing audit + an anti-silent-drop verification check |
 | D32 | A session adding a `<content>`-leak guard must grep its own diff for that exact leak, then sweep the whole repo — the guard doesn't retroactively fix leaks already sitting in files, including ones the same diff touches |
 | D33 | `<thinking>` recommendation retired (supersedes D2's CoT half) — zero adopters across 18 skills; reasoning scaffolds belong to the output-style layer, not skill files |
+| D37 | `task-summary`'s cross-section-duplication litmus test now names the commit/deploy status word explicitly, not left as an implicit "critical phrase" judgment call |
 
 ### Read [decisions/madr-structure.md](decisions/madr-structure.md) if you're asking: *how does the MADR decision-record format itself work — when to use it, what it costs, how do editing skills handle it?*
 
@@ -216,17 +217,15 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ---
 
-## Last Session (2026-07-18)
+## Last Session (2026-07-19)
 
-- **1.114.0 — D34: on-disk transcript scan + agent sub-spawn typing**: new `_shared/references/transcript-scan.md` (caller resolves session `.jsonl` by `$CLAUDE_CODE_SESSION_ID` UUID glob, `Explore` agent runs a two-pass jq+contaminant-strip, returns a RAW numbered human-message list) wired into `done` Step 1's agent batch to defeat recency bias in Steps 3/5. Verified live: ~560KB transcript → the session's 3 genuine messages. `browser-verifier` template fixed to stop self-nesting (Constraints rule names `Explore`-only; `tools:` comment tightened). `update-plugin`/`update-claude-docs` standalone wiring deferred.
-- **`/done` self-test**: this session ran `/done` in docs-only mode and exercised the new transcript-scan wiring end-to-end — the first real run produced a clean 3-message list. `update-plugin` found no un-captured skill defect (the one behavioral signal — "wait for the agent" — is already global CLAUDE.md line 126).
+- **1.116.1 — D37: `task-summary` status-word litmus test**: this was a docs-only `/done` run against a pre-existing uncommitted diff (version bump + CHANGELOG + one SKILL.md edit) rather than session-authored work — no code agents ran (docs-only mode), referential integrity checked (version files + CHANGELOG heading consistent). Added D37 to `decisions/doc-condensation.md`, which crossed the doc's own 300-line split threshold (now 307 lines / 32,757 bytes) — split deferred to next session as disproportionate for this pass; flagged in Next Steps.
 
 ---
 
 ## Next Steps
 
 - [ ] D16 MADR-default audit — **not actionable in this repo** (swept 2026-07-16: `tasks/` holds only `plugin-maintenance`, already split MADR; zero literal `## Key Technical Decisions` sections exist here). The plain-table rows D16 targets live in the *consuming* projects' task docs — run this sweep from a project repo, not from the plugin
-- [ ] ⚠️ `decisions/doc-condensation.md` is at **289 lines / 31,070 bytes** (D33 added 20) — the next decision added to this theme crosses the 300-line MADR-split threshold. Split it (index + sub-files) rather than condensing; the ADRs' Rejected fields are the content that must survive
 - [ ] `plugin.json`/`marketplace.json` version drift has now recurred twice (D26 2026-07-15, again 2026-07-17) with no automated gate — consider a pre-commit check or a single-source-of-truth version file if it recurs a 3rd time
 - [ ] Confirm no other skill has the same "self-caught deviation" blind spot as `done` Step 5 pre-D24 — not yet audited beyond `done`/`ship`
 - [ ] `update-plugin` Step 5's consumer report is copy-pasteable but **unfenced**, and the skill tells you to point at the issues URL *after* it — same boundary class as `ship` 5.8 / `gchat-format`, but needs a fence before a boundary rule can apply. Not patched (different shape; a thin patch is worse than none). `agent-setup`/`md-to-pdf`/`commit-invoice-generator` checked — do not apply

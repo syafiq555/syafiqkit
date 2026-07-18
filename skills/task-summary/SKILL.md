@@ -50,7 +50,7 @@ Base rules: `_shared/references/writing-style.md`. Additional rules for task doc
 
 ⚠️ **MADR is the default decision structure.** Every `## Key Technical Decisions` entry is an MADR block (Problem/Decision/Rejected/Consequences/Status, per templates.md) by default, not an upgrade for decision-heavy docs. Escape to a plain `| Decision | Rationale |` row only when no alternative was genuinely considered. Whole-doc MADR already over budget after legitimate growth → split into index + `decisions/<theme>.md` (templates.md) as part of the current write, don't ask first.
 
-Litmus tests before finishing (also see Validate §5.8): (1) grep the doc for its 2-3 most critical phrases — >2 sections containing one means collapse the extras to pointers; (2) scan for sentences with 2+ parentheticals or commit hashes outside Last Session — rewrite them.
+Litmus tests before finishing (also see Validate §5.8): (1) grep the doc for its 2-3 most critical phrases, **plus its commit/deploy status word every time** (`uncommitted`/`committed`/`deployed`/`shipped`/`staging`/`prod`, case-insensitive) — >1 section containing the status word means collapse the extras to Quick Start's state line per Layer 1; (2) scan for sentences with 2+ parentheticals or commit hashes outside Last Session — rewrite them.
 
 ## 1. Resolve Path
 
@@ -189,7 +189,7 @@ Re-read after writing:
 5. No rows deleted
 6. Back-references reconciled (§6) — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated
 7. **MADR compliance** — every row in `## Key Technical Decisions` is either an MADR block or legitimately hit the escape hatch (no real alternative existed). A plain table row for a decision that DID have a rejected alternative is non-compliant — convert it now. If the doc is already whole-doc MADR and now >300 lines, split per Density rules — don't leave it for next session.
-8. **Cross-section duplication** — grep the doc for its 2-3 most critical phrases (see Density rules litmus test). A phrase surviving in >2 sections, OR the same fact split across two bullets in the SAME section (e.g. two Next Steps items both saying "then deploy via full CI"), means collapse to one. Section-by-section editing during a condense pass is the most common way this is missed — a duplicate introduced in one section isn't caught by re-reading that section alone, only by a doc-wide grep after all edits land.
+8. **Cross-section duplication** — grep the doc for its 2-3 most critical phrases (see Density rules litmus test). A phrase surviving in >2 sections, OR the same fact split across two bullets in the SAME section (e.g. two Next Steps items both saying "then deploy via full CI"), means collapse to one. Section-by-section editing during a condense pass is the most common way this is missed — a duplicate introduced in one section isn't caught by re-reading that section alone, only by a doc-wide grep after all edits land. **When the write changed a commit/deploy state, this grep is mandatory, not optional** — that status word (see litmus test) routinely leaks into Task Status rows, Last Session, and any sibling `decisions/*.md` Status line, none of which Layer 1's rule names explicitly; a doc-wide case-insensitive grep after the edit, re-run until zero stray hits, is what actually closes it (word-of-mouth "remember not to restate it" doesn't).
 
 ## 6. Cross-References
 
