@@ -6,7 +6,7 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-17 — see Quick Start / Last Session
+Last updated: 2026-07-19 — see Quick Start / Last Session
 -->
 
 # Plugin Maintenance
@@ -15,12 +15,11 @@ Last updated: 2026-07-17 — see Quick Start / Last Session
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.115.0. Last change (1.115.0, D35): transcript-scan Mode B (all-parties grounded record) added, made a mandatory reconciliation target in `done` Steps 3/4, mid-turn message extraction hardened.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.116.0. Last change (1.116.0): the transcript-scan `Explore` agent was REMOVED from `/done` (user found it "no use" — it returned a full record yet didn't prevent a false-"done" doc miss, which was a reporting failure not a recency one); `_shared/references/transcript-scan.md` deleted. `/done` exit gate hardened: Task-docs/Knowledge rows now require confirming the artifact changed, not just that the skill was invoked. Supersedes D34/D35.
 
 **Immediate next actions (in order)**:
-1. Wire `transcript-scan.md` into `update-plugin` + `update-claude-docs` for STANDALONE use (currently only `done` Step 1 spawns it — direct invocations still scan from memory). Deferred from the 1.114.0 session by choice.
-2. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
-3. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
+1. `decisions/doc-condensation.md` is at 289 lines — the next decision added crosses the 300-line split threshold.
+2. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
@@ -158,8 +157,9 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D29 | `claude-md-pruner` delegates restructuring to `condense-claude-md` instead of reimplementing the seam-test — the last template missing `Skill` per D14 |
 | D30 | Splitting a skill step's mechanical retrieval from its judgment half before delegating to a cheaper agent (`Explore`) — the judgment half never leaves the calling session's own model |
 | D31 | Explore agent gains the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity is now a `⚠️ MANDATORY` root CLAUDE.md callout after its 3rd recurrence |
-| D34 | On-disk transcript scan (`_shared/references/transcript-scan.md`, wired into `done` Step 1) defeats recency bias in doc-update scans; an agent's sub-spawn grant must name its allowed type in the runtime-visible body, not a `tools:` comment (fixes `browser-verifier` self-nesting) |
-| D35 | Transcript scan gains **Mode B** (all-parties grounded record — user verbatim + assistant decisions + subagent findings, cited to transcript lines), default for doc-update consumption, alongside the raw user-only Mode A anchor. Doc-steps must RECONCILE against it (not treat it as optional enrichment — the framing that let it under-perform). Mid-turn `<system-reminder>` message extraction promoted from a buried row to a MUST-EXTRACT warning (the highest-frequency miss). |
+| D34 | ⚠️ transcript-scan half SUPERSEDED by D36 (removed). Still live: an agent's sub-spawn grant must name its allowed type in the runtime-visible body, not a `tools:` comment (fixes `browser-verifier` self-nesting) |
+| D35 | ⚠️ SUPERSEDED by D36 — transcript scan Mode B removed. |
+| D36 | Transcript-scan `Explore` agent REMOVED from `/done` (reverses D34/D35). It cost an agent slot + ~47k tokens per run yet, in the session that removed it, returned a full record while the doc-update still failed — the failure was a false "done" report (reported invoked = done), not the recency miss the scan defends against. The real fix went into the exit gate instead: Task-docs/Knowledge rows now require confirming the artifact CHANGED, not just that the skill was invoked. `_shared/references/transcript-scan.md` deleted. |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 

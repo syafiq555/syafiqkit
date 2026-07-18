@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.116.0
+
+- **Removed the transcript-scan `Explore` agent from `/done`** (user request: "no use"). It was added over 1.114.0–1.115.0 to defeat recency bias in the doc-update steps, but in the session that removed it the scan returned a full Mode B record AND the doc-update still failed — because that failure was a false "done" report, not a recency miss, so the scan protected against nothing while costing an agent slot + ~47k tokens. Stripped all 7 references from `done/SKILL.md` (Step 1 spawn, Steps 3/4 reconciliation hints, Step 5 handoff, both Output-table rows) and deleted the now-orphaned `_shared/references/transcript-scan.md`.
+- **`/done` exit gate: Task-docs + Knowledge rows now require confirming the artifact CHANGED, not just that the skill was invoked.** `task-summary` runs as its own process; invoking it and then not verifying let a session report the task doc "updated" when it was untouched (the exact "manufacture evidence of completion" the gate warns about, one level deeper). Both rows now demand a re-read confirming `Last updated` + content actually changed.
+
 ## 1.115.0
 
 - **`product-reviewer` charter → whole-system product vision + `update-plugin` template-parity guard.** The product-reviewer only audited the session's diff, so it missed a project-level product gap the user caught by eye (a PM confirming a legal agreement they can't view). Rewrote its charter (template + plugin's own agent + the originating project copy — all three) to step back to the PROJECT level and name net-new build-or-skip opportunities, not just diff-scoped dead-ends. Root-caused a second miss: the fix was first applied only to the generated `.claude/agents/*.md`, not its `agent-setup` template (would vanish on regeneration). `update-plugin` Step 2 now routes any agent behavioral fix to the TEMPLATE first + every generated copy, with a tell for catching it.
