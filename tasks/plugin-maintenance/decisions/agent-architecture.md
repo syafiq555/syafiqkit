@@ -287,3 +287,23 @@ Chosen, both:
 - `browser-verifier` fix lands in the template only; this plugin repo generates no `browser-verifier.md`, so consuming projects pick it up on their next `/agent-setup`.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D38 — `agent-setup`'s Drift Check Only Covered Modification, Never Addition; Model-Override Exemption Was Ambiguous — committed — 2026-07-19
+
+**Problem**
+GitHub issue #7, filed via `/update-plugin` from a consumer install, reported two gaps in `agent-setup` Step 1/Step 5 found during a real update-run. (1) Step 1's "Agents exist" row and Step 5's template-drift check both only diff *existing* `.claude/agents/*.md` files against their templates — neither instructs enumerating `templates/*.template.md` against `.claude/agents/*.md` to catch a template with **no generated copy at all** (`task-builder` predated the agents being regenerated; caught only by a manual `ls`). (2) Step 5's exemption clause — "model overrides already justified in-file are NOT drift" — reads as "leave model overrides alone," so an unjustified override (`code-simplifier` on `opus` vs. template's `sonnet`, no comment) was left in place instead of flagged, forcing an explicit user correction.
+
+**Decision**
+Chosen: added a distinct **Missing-agent check** (Step 1 row + new Step 5 checklist item) instructing `comm -23` on sorted basenames of `templates/*.template.md` vs `.claude/agents/*.md` — any first-file-only entry is a missing agent, not drift, create it in the same pass. Sharpened the Template-drift item's model-override clause: an in-file override is preserved **only if** a justification comment accompanies it; unjustified deviation from the template's `model:` **is** drift, align it. Verified both fixes against this repo's own live state — `task-builder` and `browser-verifier` templates currently have no generated agent here, reproducing Finding 1 exactly; `comm -23` on the corrected argument order surfaces both.
+
+**Rejected**
+- Leaving the two checks merged into one "Template-drift check" item. Why not: addition (no agent exists) and modification (agent exists but stale) are different failure classes needing different actions (create vs. backport) — collapsing them into one item is how the addition case kept going unmentioned in the first place.
+
+**Consequences**
+- `agent-setup` Step 5 now has two checklist items where addition and drift used to share one: **Template-drift check** (modification) and **Missing-agent check** (addition).
+- This repo's own `.claude/agents/` still lacks `task-builder.md`/`browser-verifier.md` — the fix documents the gap but doesn't backfill it; flagged in Next Steps for a future `/agent-setup` run.
+- Plugin version bumped 1.116.3→1.116.4.
+
+**Status**: committed · **Reversible**: yes

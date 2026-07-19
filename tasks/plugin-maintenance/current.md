@@ -11,15 +11,16 @@ Last updated: 2026-07-19 — see Quick Start / Last Session
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.3.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.4.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.116.3. Latest change: `task-summary` + `condense-task-doc` gained a cross-file "one fact, one home" rule (an OPEN item's mechanism gets ONE canonical home across an index + `decisions/<theme>.md` files, everywhere else a bare pointer) and a `⚠️` density cap (reserved for irreversible/destructive consequences only) — see D37.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.116.4. Latest change: `agent-setup` gained a missing-agent enumeration check (Step 1 + Step 5) and a sharpened model-override drift rule (Step 5) — fixed from GitHub issue #7.
 
 **Immediate next actions (in order)**:
-1. ⚠️ `decisions/doc-condensation.md` is now at **310 lines / 34,121 bytes** — over the 300-line split threshold. Split into index + sub-files next session per D13's own rule ("don't ask first") — deferred again as disproportionate for this session's scope.
-2. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
+1. ⚠️ `decisions/doc-condensation.md` (310 lines / 34,121 bytes) and `decisions/agent-architecture.md` (309 lines / 32,106 bytes, after D38) are both now over the 300-line split threshold. Split both into index + sub-files next session per D13's own rule ("don't ask first") — deferred again as disproportionate for this session's scope.
+2. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues are the highest-signal bug source and don't surface any other way. Issue #7 actioned this session; re-check for new ones next pass.
+3. This repo's own agents have a backfill gap reproducing issue #7 — see Next Steps.
 
 **Gotchas that will trip you**:
 - Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
@@ -159,6 +160,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 | D31 | Explore agent gains the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity is now a `⚠️ MANDATORY` root CLAUDE.md callout after its 3rd recurrence |
 | D34 | ⚠️ transcript-scan half SUPERSEDED by D36 (removed). Still live: an agent's sub-spawn grant must name its allowed type in the runtime-visible body, not a `tools:` comment (fixes `browser-verifier` self-nesting) |
 | D35 | ⚠️ SUPERSEDED by D36 — transcript scan Mode B removed. |
+| D38 | `agent-setup`'s drift check only covered modification (existing agent vs. template), never addition (template with no generated agent) — added a distinct Missing-agent check (`comm -23`) and sharpened the model-override exemption to require an in-file justification |
 | D36 | Transcript-scan `Explore` agent REMOVED from `/done` (reverses D34/D35). It cost an agent slot + ~47k tokens per run yet, in the session that removed it, returned a full record while the doc-update still failed — the failure was a false "done" report (reported invoked = done), not the recency miss the scan defends against. The real fix went into the exit gate instead: Task-docs/Knowledge rows now require confirming the artifact CHANGED, not just that the skill was invoked. `_shared/references/transcript-scan.md` deleted. |
 
 ### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
@@ -219,7 +221,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-19)
 
-- **v1.116.3 — `/done` + `/ship` against a fresh-session (`/clear`) pre-existing diff**: no in-context memory of the authoring session, so verified purely from the diff + CHANGELOG.md's own entry (self-consistent). Light mode `/done`: 1 reviewer agent (`code-reviewer` project agent) on `task-summary/SKILL.md` + `condense-task-doc/SKILL.md` — 0 issues, checked internal consistency between the two files, cross-reference resolution, and litmus-test/Validate §8 numbering. Extended D37 in place (edit-in-place per MADR rule, not a new D-block — same decision refined further) rather than appending, since the file was already over its 300-line budget.
+- **v1.116.4 — Fixed GitHub issue #7 (`agent-setup` update-run misses)**: added a Missing-agent check (Step 1 + Step 5, `comm -23` on template vs. agent basenames) distinct from the existing Template-drift check, and sharpened Step 5's model-override clause so an unjustified deviation from the template's `model:` is drift, not exempt. Verified against this repo's own live state — `task-builder`/`browser-verifier` templates currently have no generated agent here, reproducing Finding 1. Docs-only `/done`: referential-integrity check only (no code agents — pure SKILL.md/JSON diff), 0 issues found. D38 added to `decisions/agent-architecture.md`.
 
 ---
 
@@ -229,3 +231,4 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 - [ ] `plugin.json`/`marketplace.json` version drift has now recurred twice (D26 2026-07-15, again 2026-07-17) with no automated gate — consider a pre-commit check or a single-source-of-truth version file if it recurs a 3rd time
 - [ ] Confirm no other skill has the same "self-caught deviation" blind spot as `done` Step 5 pre-D24 — not yet audited beyond `done`/`ship`
 - [ ] `update-plugin` Step 5's consumer report is copy-pasteable but **unfenced**, and the skill tells you to point at the issues URL *after* it — same boundary class as `ship` 5.8 / `gchat-format`, but needs a fence before a boundary rule can apply. Not patched (different shape; a thin patch is worse than none). `agent-setup`/`md-to-pdf`/`commit-invoice-generator` checked — do not apply
+- [ ] This repo's own `.claude/agents/` is missing `task-builder.md` and `browser-verifier.md` (templates exist, never generated) — run `/agent-setup` to backfill; would also exercise the new Missing-agent check (D38) end-to-end
