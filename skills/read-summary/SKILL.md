@@ -89,6 +89,8 @@ Determine the type of the user's request. **Reading the doc (full Read Order) is
   - **Exit gate.** The Read Order guards the *front* of an investigation; this guards the *exit*. Before sending a conclusion, state side-by-side the question the user asked and the question you actually answered. If they differ — you confirmed an easy adjacent fact instead of the hard thing asked — that's *attribute substitution* (e.g. confirming a field's *value* when the real question was *which field is authoritative*); re-open and answer the one asked. Your conclusion must reconcile **every** clause and number the user gave, not just one.
 - **Task description** — contains a bug report, feature request, ClickUp paste, chat transcript, or any actionable work description (not a path) → Read relevant context (infer domain from keywords, find matching `tasks/**/current.md`, load domain CLAUDE.md), then **proceed to implement the task**.
 
+⚠️ **The read is not where delegation ends — if implementing/investigating needs an open-ended codebase search ("where does X live", "how does Y work"), that still routes through the project's `Explore`/`Plan` agent, never a bare `general-purpose` agent with a manual model override.** This skill only prescribes `Explore` for its own doc-discovery step (above) — the project's own CLAUDE.md is what mandates it for everything downstream, and it's easy to satisfy this skill's Read Order in full and then slip back to ad-hoc search once past it.
+
 ## After the Read: Plan Mode vs Normal Mode
 
 The Read Order above is unconditional in both modes — what changes is what happens once the doc is loaded:
