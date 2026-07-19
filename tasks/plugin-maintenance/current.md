@@ -11,14 +11,14 @@ Last updated: 2026-07-19 — see Quick Start / Last Session
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.1.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.3.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates) at v1.116.1. Last change (1.116.1): `task-summary`'s cross-section-duplication litmus test now names the commit/deploy status word explicitly (`uncommitted`/`committed`/`deployed`/`shipped`/`staging`/`prod`) instead of relying on it being caught implicitly as a "critical phrase" — see D37.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.116.3. Latest change: `task-summary` + `condense-task-doc` gained a cross-file "one fact, one home" rule (an OPEN item's mechanism gets ONE canonical home across an index + `decisions/<theme>.md` files, everywhere else a bare pointer) and a `⚠️` density cap (reserved for irreversible/destructive consequences only) — see D37.
 
 **Immediate next actions (in order)**:
-1. ⚠️ `decisions/doc-condensation.md` is now at **307 lines / 32,757 bytes** — over the 300-line split threshold (D37 pushed it over). Split into index + sub-files next session per D13's own rule ("don't ask first") — deferred this session as disproportionate for a docs-only `/done` pass.
+1. ⚠️ `decisions/doc-condensation.md` is now at **310 lines / 34,121 bytes** — over the 300-line split threshold. Split into index + sub-files next session per D13's own rule ("don't ask first") — deferred again as disproportionate for this session's scope.
 2. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues (4 closed 2026-07-17) are the highest-signal bug source and don't surface any other way.
 
 **Gotchas that will trip you**:
@@ -219,7 +219,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-19)
 
-- **1.116.1 — D37: `task-summary` status-word litmus test**: this was a docs-only `/done` run against a pre-existing uncommitted diff (version bump + CHANGELOG + one SKILL.md edit) rather than session-authored work — no code agents ran (docs-only mode), referential integrity checked (version files + CHANGELOG heading consistent). Added D37 to `decisions/doc-condensation.md`, which crossed the doc's own 300-line split threshold (now 307 lines / 32,757 bytes) — split deferred to next session as disproportionate for this pass; flagged in Next Steps.
+- **v1.116.3 — `/done` + `/ship` against a fresh-session (`/clear`) pre-existing diff**: no in-context memory of the authoring session, so verified purely from the diff + CHANGELOG.md's own entry (self-consistent). Light mode `/done`: 1 reviewer agent (`code-reviewer` project agent) on `task-summary/SKILL.md` + `condense-task-doc/SKILL.md` — 0 issues, checked internal consistency between the two files, cross-reference resolution, and litmus-test/Validate §8 numbering. Extended D37 in place (edit-in-place per MADR rule, not a new D-block — same decision refined further) rather than appending, since the file was already over its 300-line budget.
 
 ---
 

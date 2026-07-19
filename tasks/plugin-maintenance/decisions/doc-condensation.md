@@ -16,19 +16,22 @@ Decisions about fighting duplication and bloat across task docs, CLAUDE.md files
 
 ---
 
-### D37 — `task-summary`'s Cross-Section-Duplication Litmus Test Now Names the Status Word Explicitly — committed — 2026-07-19
+### D37 — `task-summary`'s Cross-Section-Duplication Litmus Test Now Names the Status Word Explicitly, Then Split Git-State from Deploy-State, Then Extended to Cross-File OPEN Items + `⚠️` Density — committed (v1.116.1 → v1.116.3) — 2026-07-19
 
 **Problem**
-Layer 1 already had a rule that commit/deploy status is one fact belonging only in Quick Start's state line, but the litmus test and Validate §8 only said "grep the doc's 2-3 most critical phrases" — leaving it to the agent's judgment each run whether the status word counted as one of those phrases. A real doc still had "UNCOMMITTED" in 5 places (LLM-CONTEXT, Quick Start, a Task Status row, Last Session, a sibling `decisions/*.md` Status line); the drift was only caught because a downstream `/commit` staleness gate happened to flag it, not because `task-summary` itself would have.
+Layer 1 already had a rule that commit/deploy status is one fact belonging only in Quick Start's state line, but the litmus test and Validate §8 only said "grep the doc's 2-3 most critical phrases" — leaving it to the agent's judgment each run whether the status word counted. A real doc had "UNCOMMITTED" in 5 places; only a downstream `/commit` staleness gate caught it (v1.116.1). Next session's objection wasn't "grep harder" — it was that `committed`/`uncommitted`/`pushed` adds nothing even said once, since `git log`/`git status` already answers it; only deploy/environment state (staging/prod) is a genuine non-git-tracked fact (v1.116.2). A third pass (v1.116.3) found the same "one fact, one home" violation recurring ACROSS files (an OPEN item's mechanism restated in an index + a `decisions/<theme>.md` file + Next Steps) and `⚠️` diluted by overuse (~every 8-10 lines in a real doc) until it stopped signaling danger.
 
 **Decision**
-Chosen: name the status word explicitly in both the Density-rules litmus test and Validate §8 (`uncommitted`/`committed`/`deployed`/`shipped`/`staging`/`prod`, case-insensitive), require a doc-wide grep whenever the write changes a commit/deploy state, and re-run until zero stray hits outside Quick Start.
+Chosen, cumulative: (1) name the status word explicitly in the litmus test + Validate §8, doc-wide grep required on any commit/deploy-state write; (2) split that grep in two — `committed`/`uncommitted`/`pushed` is a delete-on-sight, not a dedupe; `deployed`/`staging`/`prod` still collapses to Quick Start; (3) extend "one fact, one home" to span an index + its `decisions/<theme>.md` files (canonical home = the item's `## Next Steps` row, everywhere else a bare pointer), and cap `⚠️` to irreversible/destructive consequences only (data loss, broken audit trail, silent prod regression, unrecoverable action) — condense passes now grep-count it as a density signal.
 
 **Rejected**
-- Leaving it as an implicit case of "2-3 most critical phrases". Why not: proved not self-enforcing — a real doc with 5 stray copies is the counter-example, and a rule that depends on the agent independently deciding a phrase is "critical enough" degrades under exactly the pressure (status changing minutes apart during a ship) it exists to catch.
+- Leaving status-word detection as an implicit case of "2-3 most critical phrases" (v1.116.1) — not self-enforcing, proven by the 5-copy real-doc counter-example.
+- Keeping git-state and deploy-state as one bundled rule (v1.116.1) — conflated "answered by git" with "a genuine environment fact," so git-state kept surviving single mentions that added no value.
 
 **Consequences**
-- The specific phrase set is now load-bearing text in two places (litmus test + Validate §8) rather than one implicit judgment call — future edits to the status vocabulary must update both.
+- The status vocabulary is now split across two grep passes (delete vs. collapse) rather than one — future edits to either word list must keep both in sync across `task-summary` AND `condense-task-doc`.
+- "One fact, one home" no longer terminates at a single doc's section boundary — a condense pass must now also check sibling `decisions/*.md` files for the same OPEN item before calling a doc clean.
+- `⚠️` density is now a mechanical litmus check (grep-count vs. line count), not a stylistic judgment call — a doc that reads "everything is dangerous" is itself the defect Validate should catch.
 
 **Status**: committed · **Reversible**: yes
 
