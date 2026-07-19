@@ -11,11 +11,11 @@ Last updated: 2026-07-19 — see Quick Start / Last Session
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.4.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.5.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.116.4. Latest change: `agent-setup` gained a missing-agent enumeration check (Step 1 + Step 5) and a sharpened model-override drift rule (Step 5) — fixed from GitHub issue #7.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.116.5. Latest change: `condense-claude-md`'s root-file byte ceiling corrected from ~15KB to 40KB (D22 field-fix) — the old target was driving unnecessary companion-file splits.
 
 **Immediate next actions (in order)**:
 1. ⚠️ `decisions/doc-condensation.md` (310 lines / 34,121 bytes) and `decisions/agent-architecture.md` (309 lines / 32,106 bytes, after D38) are both now over the 300-line split threshold. Split both into index + sub-files next session per D13's own rule ("don't ask first") — deferred again as disproportionate for this session's scope.
@@ -221,7 +221,7 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-19)
 
-- **v1.116.4 — Fixed GitHub issue #7 (`agent-setup` update-run misses)**: added a Missing-agent check (Step 1 + Step 5, `comm -23` on template vs. agent basenames) distinct from the existing Template-drift check, and sharpened Step 5's model-override clause so an unjustified deviation from the template's `model:` is drift, not exempt. Verified against this repo's own live state — `task-builder`/`browser-verifier` templates currently have no generated agent here, reproducing Finding 1. Docs-only `/done`: referential-integrity check only (no code agents — pure SKILL.md/JSON diff), 0 issues found. D38 added to `decisions/agent-architecture.md`.
+- **v1.116.5 — Corrected `condense-claude-md`'s root-file byte ceiling from ~15KB to 40KB**: a real condense session (a 42KB `~/.claude/CLAUDE.md`) hit the old target directly — a light-compression pass only reclaimed ~1.4% (42,265→41,667 bytes) and the skill's own guidance then correctly recommended a companion-file split, but against a threshold ~2.5x too tight. Fixed Process step 5's target line + its worked-example conclusion (44KB no longer reads as "3x over" at the new ceiling), added the fresh 42KB→41.7KB data point alongside the existing 48KB→44KB one. Checked all 5 other `~15KB`-substring hits across skills — unrelated (rule counts, minutes, file counts). D22 in `decisions/doc-condensation.md` field-corrected in place (same decision, stale number — not a new D-entry). Session also migrated 3 legacy flat `~/.claude/CLAUDE-*.md` companion files into `.claude-companions/shared/` and split 2 more sections out of `CLAUDE.md` the same way — project-scoped, no skill-behavior change. Docs-only `/done`: referential-integrity check only (anchors unique, all 5 companion pointers resolve, 0 stale references), 0 issues found.
 
 ---
 

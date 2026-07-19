@@ -215,7 +215,7 @@ The seam-test itself was under-specified — "check the seam-test" meant "check 
 Two gaps in a live Dourr `CLAUDE.md` condensation run. (1) Prescribed `diff`/`comm -23` verification flagged ~30 lines as possibly-dropped; all were false positives (reworded labels, table-header artifacts). (2) The pass hit the ≤200-line target (257→221) but was still 20.4KB — line count doesn't catch table-row byte density.
 
 **Decision**
-Two patches to `condense-claude-md/SKILL.md`. (1) Verification rule now warns `diff`/`comm` output is a *candidate list, not a verdict* — each flag needs `grep -c '<substring>'` confirmation. (2) Added Process step 6: hitting the line target isn't done if bytes are still high (~15KB for a root CLAUDE.md); proactively offer a seam-test split via `AskUserQuestion`.
+Two patches to `condense-claude-md/SKILL.md`. (1) Verification rule now warns `diff`/`comm` output is a *candidate list, not a verdict* — each flag needs `grep -c '<substring>'` confirmation. (2) Added Process step 6: hitting the line target isn't done if bytes are still high (originally set at ~15KB for a root CLAUDE.md, corrected to the actual 40KB ceiling on 2026-07-19 after a real condense run showed the old target was ~2.5x too tight); proactively offer a seam-test split via `AskUserQuestion`.
 
 **Rejected**
 - Leaving the diff/comm check as-is, treating the manual `grep -c` triage as implicit good practice. Why not: the same false-positive noise will recur on every future run of this exact command shape (rewording is the norm, not the exception, in a condensation pass) — worth naming as a known step, not left to be independently re-discovered each time, matching this doc's own D20/D6 lineage of promoting a repeated ad hoc fix into a stated rule.
