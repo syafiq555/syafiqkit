@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.116.7
+
+- **`two-tier-condense.md` (shared by `condense-claude-md`, `condense-task-doc`, `update-plugin`'s Step 3a) — dropped the spawned background Haiku agent; the Draft step now always rewrites inline in the current turn.** A `condense-claude-md` run spawned the background Haiku drafter exactly as the shared reference prescribed, and the user had it killed mid-run with "i dont want to use agent for that." The Draft/Verify split itself stays (write the full rewrite first, then diff-verify as a separate pass), but neither step spawns an `Agent` anymore — removed the Haiku-specific prompting instructions (checklist handoff, number-verbatim constraint framed as agent instructions) and reworded Verify's rationale to apply to a self-authored draft instead of a delegated one. Fixed once in the shared file plus its two direct callers (`condense-claude-md` step 3, `condense-task-doc` step 7) that had restated "spawn a background Haiku agent" themselves — `update-plugin`'s own reference was already agent-agnostic.
+
 ## 1.116.6
 
 - **`read-summary` — added a post-read delegation reminder: open-ended codebase search still routes through `Explore`/`Plan`, never a bare `general-purpose` agent.** A session ran the skill correctly (loaded task context via its own Explore-delegated doc discovery), then afterward needed a "where is the email-verification column" search and dispatched `general-purpose` with a manual `model:` override instead — a project CLAUDE.md rule (#critical, agent-dispatch policy) that this skill's Read Order/Intent Detection never restated, since its own Explore usage is scoped narrowly to doc discovery. Added one line after the "Task description" intent (Normal mode) pointing at the existing CLAUDE.md rule rather than duplicating it — the Plan Mode section already had equivalent coverage (line 97) but Normal-mode task/investigation intents had none.

@@ -6,16 +6,16 @@ Related:
   - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
   - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-19 — see Quick Start / Last Session
+Last updated: 2026-07-20 — see Quick Start / Last Session
 -->
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.5.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.7.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.116.5. Latest change: `condense-claude-md`'s root-file byte ceiling corrected from ~15KB to 40KB (D22 field-fix) — the old target was driving unnecessary companion-file splits.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.116.7. Latest change: `_shared/references/two-tier-condense.md` (D23's shared draft/verify model, used by `condense-claude-md`/`condense-task-doc`/`update-plugin`) no longer spawns a background Haiku agent — draft + verify both run inline in the calling session's own turn, per explicit no-agent preference.
 
 **Immediate next actions (in order)**:
 1. ⚠️ `decisions/doc-condensation.md` (310 lines / 34,121 bytes) and `decisions/agent-architecture.md` (309 lines / 32,106 bytes, after D38) are both now over the 300-line split threshold. Split both into index + sub-files next session per D13's own rule ("don't ask first") — deferred again as disproportionate for this session's scope.
@@ -28,7 +28,7 @@ Last updated: 2026-07-19 — see Quick Start / Last Session
 - A MADR block needs its own condensation rule shipped in the same change that introduces it — see D13 (decisions/madr-structure.md)
 - MADR is now the DEFAULT `Key Technical Decisions` structure for every task doc — not gated behind decision count or an explicit ask; escape hatch only when Rejected would be empty — see D16 (decisions/madr-structure.md)
 - A Step-N "verify" checklist is not satisfied by having read the files earlier in-session — each item needs its own command run against current content — see D21 (decisions/agent-architecture.md)
-- Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat; `update-plugin` Step 3a owns the checklist, executed via the shared two-tier draft(Haiku)/verify model (`_shared/references/two-tier-condense.md`), also adopted by `condense-task-doc`/`condense-claude-md` — see D23 (decisions/doc-condensation.md)
+- Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat; `update-plugin` Step 3a owns the checklist, executed via the shared draft/verify model (`_shared/references/two-tier-condense.md`, now agent-free — see 2026-07-20 in Last Session), also adopted by `condense-task-doc`/`condense-claude-md` — see D23 (decisions/doc-condensation.md)
 - A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win — see D24 (decisions/agent-architecture.md)
 - Delegating a skill's heavy step to a cheaper agent only works when the mechanical (retrieval) half is split from the judgment half first — the judgment half stays on the calling session's own model — see D30 (decisions/agent-architecture.md)
 - `/ship` Step 3 no longer assumes the current branch IS the deploy branch — establish it from CLAUDE.md/CLAUDE.local.md first, recognize forward-merge chains as merges not pushes
@@ -219,9 +219,10 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ---
 
-## Last Session (2026-07-19)
+## Last Session (2026-07-20)
 
-- **v1.116.5 — Corrected `condense-claude-md`'s root-file byte ceiling from ~15KB to 40KB**: a real condense session (a 42KB `~/.claude/CLAUDE.md`) hit the old target directly — a light-compression pass only reclaimed ~1.4% (42,265→41,667 bytes) and the skill's own guidance then correctly recommended a companion-file split, but against a threshold ~2.5x too tight. Fixed Process step 5's target line + its worked-example conclusion (44KB no longer reads as "3x over" at the new ceiling), added the fresh 42KB→41.7KB data point alongside the existing 48KB→44KB one. Checked all 5 other `~15KB`-substring hits across skills — unrelated (rule counts, minutes, file counts). D22 in `decisions/doc-condensation.md` field-corrected in place (same decision, stale number — not a new D-entry). Session also migrated 3 legacy flat `~/.claude/CLAUDE-*.md` companion files into `.claude-companions/shared/` and split 2 more sections out of `CLAUDE.md` the same way — project-scoped, no skill-behavior change. Docs-only `/done`: referential-integrity check only (anchors unique, all 5 companion pointers resolve, 0 stale references), 0 issues found.
+- **v1.116.7 — Removed the spawned background Haiku agent from `_shared/references/two-tier-condense.md`'s Draft step.** A `condense-claude-md` run spawned it exactly as the shared reference prescribed; the user killed it mid-run and said he didn't want an agent used for this at all. Draft and Verify now both run inline in the calling session's own turn — dropped the Haiku-specific prompting instructions (checklist handoff, agent-framed number-verbatim constraint) and reworded Verify's rationale for a self-authored draft. Also patched the two direct callers that had restated "spawn a background Haiku agent" themselves (`condense-claude-md` step 3, `condense-task-doc` step 7) — `update-plugin`'s own reference was already agent-agnostic. Version bumped + CHANGELOG entry added; fixed the stale "two-tier draft(Haiku)/verify" mechanism description in this doc's own Gotchas line (D23's decision text itself is unaffected — only the implementation it points to changed).
+- Same session also condensed `~/.claude/CLAUDE.md` (project-scoped, no skill-behavior change) — see that repo's own history, not tracked here.
 
 ---
 
