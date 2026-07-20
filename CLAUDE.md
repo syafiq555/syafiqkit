@@ -163,7 +163,7 @@ No build step — markdown files are interpreted directly.
    - Skill references a non-existent terminal skill (e.g. `writing-plans`) — always verify referenced skills exist in `skills/*/SKILL.md` before shipping
    - Same flow described in 4 places (checklist + diagram + prose + after-section) — one `## Steps` section is enough; redundancy causes section drift
    - Judging bloat by line count alone — a dense one-row-per-item table can sit at target line count while individual cells run 800+ characters; use `wc -c` alongside `wc -l` before ranking files by size. Compute the bytes/line ratio with a tool (`echo "scale=1; $(wc -c < f)/$(wc -l < f)" | bc`), never mentally — an eyeballed ratio that lands the wrong side of the ~80-90 threshold inverts the diagnosis (extract vs tighten) and reads as measured
-   - A skill "feels bloated" → run `syafiqkit:update-plugin`'s Step 3a density-pass checklist (stacked warnings, worked anecdotes, cold-path extraction) rather than a from-scratch audit — see `tasks/plugin-maintenance/decisions/doc-condensation.md` D23
+   - A skill "feels bloated" → run `syafiqkit:update-plugin`'s Step 3a density-pass checklist (stacked warnings, worked anecdotes, cold-path extraction) rather than a from-scratch audit — see `tasks/plugin-maintenance/decisions/doc-condensation/structural-splits.md` D23
    - Touching ANY skill: the registry lives in **three** hand-maintained places — this file's `## Skills` table, `README.md`'s, and `tasks/plugin-maintenance/current.md`'s. Adding to one is the common miss; the worse failure is silent rot in tables nobody edited (3 skills were absent from this file's table for months while present in README). Never trust them by eye — diff against disk, which is the only source of truth:
      ```bash
      sed -n '/^### Skills/,/^### Typical/p' CLAUDE.md | grep -oE '^\| `[a-z-]+`' | tr -d '|` ' | sort > /tmp/c.txt
@@ -191,7 +191,7 @@ Commands/skills are prompts — apply these patterns when authoring or refactori
 | **Constitutional (❌ constraints)** | Commands that make routing/write decisions | Add `❌ Never / ✅ Always` table before the action step |
 | **Validation Loop** | Commands that write or modify files | Add numbered self-check after write step: addresses all points? no deletions? format correct? revise if fails |
 
-⚠️ **Don't prescribe visible `<thinking>` blocks in a skill.** Retired 2026-07-16 after zero uptake across 18 skills — reasoning scaffolds belong to the harness/output-style layer, not to skill files, and a skill that hardcodes one fights whatever style is active. See D33 (`tasks/plugin-maintenance/decisions/doc-condensation.md`).
+⚠️ **Don't prescribe visible `<thinking>` blocks in a skill.** Retired 2026-07-16 after zero uptake across 18 skills — reasoning scaffolds belong to the harness/output-style layer, not to skill files, and a skill that hardcodes one fights whatever style is active. See D33 (`tasks/plugin-maintenance/decisions/doc-condensation/structural-splits.md`).
 
 **Skip for**: Simple commands (<3 decision branches), read-only commands (no files written). Adding these to trivial commands adds noise without benefit.
 

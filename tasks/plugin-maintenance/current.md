@@ -3,43 +3,43 @@ Status: Reference
 Domain: plugin-maintenance
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
-  - decisions/agent-architecture.md — how generated agents inherit conventions + invoke sibling skills
-  - decisions/doc-condensation.md — fighting duplication/bloat across docs, CLAUDE.md, skills
+  - decisions/agent-architecture.md (ROUTER) — how generated agents inherit conventions + invoke sibling skills; see its 3 sub-files
+  - decisions/doc-condensation.md (ROUTER) — fighting duplication/bloat across docs, CLAUDE.md, skills; see its 3 sub-files
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
 Last updated: 2026-07-20 — see Quick Start / Last Session
 -->
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.116.7.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.117.1.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.116.7. Latest change: `_shared/references/two-tier-condense.md` (D23's shared draft/verify model, used by `condense-claude-md`/`condense-task-doc`/`update-plugin`) no longer spawns a background Haiku agent — draft + verify both run inline in the calling session's own turn, per explicit no-agent preference.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.117.1. Latest change: `task-summary/references/templates.md`'s split default gained one ask-worthy exception (a doc's own history of deferring the split 2+ times) — caught as a self-caught deviation while splitting this doc's own two over-budget decision files. Prior: `/done`'s Step 1 file-count tiers raised ≤15/16–40/41+ → ≤30/31–80/81+ (agent counts unchanged: 3/5/7); light mode removed entirely — see D39.
 
 **Immediate next actions (in order)**:
-1. ⚠️ `decisions/doc-condensation.md` (310 lines / 34,121 bytes) and `decisions/agent-architecture.md` (309 lines / 32,106 bytes, after D38) are both now over the 300-line split threshold. Split both into index + sub-files next session per D13's own rule ("don't ask first") — deferred again as disproportionate for this session's scope.
-2. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues are the highest-signal bug source and don't surface any other way. Issue #7 actioned this session; re-check for new ones next pass.
-3. This repo's own agents have a backfill gap reproducing issue #7 — see Next Steps.
+1. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues are the highest-signal bug source and don't surface any other way. Issue #7 actioned this session; re-check for new ones next pass.
+2. This repo's own agents have a backfill gap reproducing issue #7 — see Next Steps.
 
 **Gotchas that will trip you**:
-- Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture.md)
-- Orchestrator skills must delegate to sibling skills, never inline their procedure — see D4 (decisions/agent-architecture.md)
+- Agents don't inherit CLAUDE.md — see D1 (decisions/agent-architecture/injection-and-delegation.md)
+- Orchestrator skills must delegate to sibling skills, never inline their procedure — see D4 (decisions/agent-architecture/injection-and-delegation.md)
 - A MADR block needs its own condensation rule shipped in the same change that introduces it — see D13 (decisions/madr-structure.md)
 - MADR is now the DEFAULT `Key Technical Decisions` structure for every task doc — not gated behind decision count or an explicit ask; escape hatch only when Rejected would be empty — see D16 (decisions/madr-structure.md)
-- A Step-N "verify" checklist is not satisfied by having read the files earlier in-session — each item needs its own command run against current content — see D21 (decisions/agent-architecture.md)
-- Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat; `update-plugin` Step 3a owns the checklist, executed via the shared draft/verify model (`_shared/references/two-tier-condense.md`, now agent-free — see 2026-07-20 in Last Session), also adopted by `condense-task-doc`/`condense-claude-md` — see D23 (decisions/doc-condensation.md)
-- A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win — see D24 (decisions/agent-architecture.md)
-- Delegating a skill's heavy step to a cheaper agent only works when the mechanical (retrieval) half is split from the judgment half first — the judgment half stays on the calling session's own model — see D30 (decisions/agent-architecture.md)
+- A Step-N "verify" checklist is not satisfied by having read the files earlier in-session — each item needs its own command run against current content — see D21 (decisions/agent-architecture/verification-rigor.md)
+- Skill-file bloat (SKILL.md density) is a distinct class from CLAUDE.md/task-doc bloat; `update-plugin` Step 3a owns the checklist, executed via the shared draft/verify model (`_shared/references/two-tier-condense.md`, now agent-free — see 2026-07-20 in Last Session), also adopted by `condense-task-doc`/`condense-claude-md` — see D23 (decisions/doc-condensation/structural-splits.md)
+- A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win — see D24 (decisions/agent-architecture/verification-rigor.md)
+- Delegating a skill's heavy step to a cheaper agent only works when the mechanical (retrieval) half is split from the judgment half first — the judgment half stays on the calling session's own model — see D30 (decisions/agent-architecture/concurrency-and-delegation.md)
 - `/ship` Step 3 no longer assumes the current branch IS the deploy branch — establish it from CLAUDE.md/CLAUDE.local.md first, recognize forward-merge chains as merges not pushes
-- A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command — a fixed `rg -rn`→`grep -rn` command with no control still silently passes on an unrelated empty result — see D25 (decisions/agent-architecture.md)
-- Pre-existing plan/spec docs sitting next to a split `current.md`/`decisions/` set are a different document type, never move them into `decisions/` — but their routing table must still enumerate them, or they go invisible — see D27 (decisions/doc-condensation.md)
-- A large doc rewrite's "no rows deleted" check only covers the change's intended content — it misses collateral cuts to unrelated sections; `merge-task-docs`/`condense-task-doc` now require a full before/after section diff, not just a targeted row check — see D27 (decisions/doc-condensation.md)
-- `merge-task-docs` Step 2 defaults to executing the recommended scope/structure/naming inline, asking only on genuine ambiguity — no longer requires the caller to say "don't ask" every invocation — see D28 (decisions/agent-architecture.md)
-- Every generated agent template now carries `Skill` in `tools:` — `claude-md-pruner` was the last one missing it and independently duplicated `condense-claude-md`'s seam-test logic inline instead of delegating — see D29 (decisions/agent-architecture.md)
-- Editing a generated `.claude/agents/*.md` requires porting the same edit into its source `skills/agent-setup/templates/*.template.md` in the same change, or the next `/agent-setup` regen reintroduces the old behavior — now a root CLAUDE.md `⚠️ MANDATORY` callout, 3rd recurrence — see D31 (decisions/agent-architecture.md)
-- A diff adding a `<content>`-leak guard is not proof the leak is gone — grep the diff's own touched files AND sweep the whole repo for the literal tag, every `/done` review pass — see D32 (decisions/doc-condensation.md)
+- A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command — a fixed `rg -rn`→`grep -rn` command with no control still silently passes on an unrelated empty result — see D25 (decisions/agent-architecture/verification-rigor.md)
+- Pre-existing plan/spec docs sitting next to a split `current.md`/`decisions/` set are a different document type, never move them into `decisions/` — but their routing table must still enumerate them, or they go invisible — see D27 (decisions/doc-condensation/structural-splits.md)
+- A large doc rewrite's "no rows deleted" check only covers the change's intended content — it misses collateral cuts to unrelated sections; `merge-task-docs`/`condense-task-doc` now require a full before/after section diff, not just a targeted row check — see D27 (decisions/doc-condensation/structural-splits.md)
+- `merge-task-docs` Step 2 defaults to executing the recommended scope/structure/naming inline, asking only on genuine ambiguity — no longer requires the caller to say "don't ask" every invocation — see D28 (decisions/agent-architecture/verification-rigor.md)
+- Every generated agent template now carries `Skill` in `tools:` — `claude-md-pruner` was the last one missing it and independently duplicated `condense-claude-md`'s seam-test logic inline instead of delegating — see D29 (decisions/agent-architecture/injection-and-delegation.md)
+- Editing a generated `.claude/agents/*.md` requires porting the same edit into its source `skills/agent-setup/templates/*.template.md` in the same change, or the next `/agent-setup` regen reintroduces the old behavior — now a root CLAUDE.md `⚠️ MANDATORY` callout, 3rd recurrence — see D31 (decisions/agent-architecture/concurrency-and-delegation.md)
+- A diff adding a `<content>`-leak guard is not proof the leak is gone — grep the diff's own touched files AND sweep the whole repo for the literal tag, every `/done` review pass — see D40 (decisions/doc-condensation/duplication-and-integrity.md)
 - `plugin.json`/`marketplace.json` version drift recurs (2nd occurrence, 2026-07-15 D26 → 2026-07-17): a version bump to one file without the other passes silently, no gate catches it except a manual diff read during `/done`'s docs-only integrity check
+- Widening a threshold table (agent-count tiers, byte budgets) needs every downstream decision point checked, not just the table itself — a stale carve-out referencing the old bounds can survive in 3-4 other places — see D39 (decisions/agent-architecture/verification-rigor.md)
 
 ---
 
@@ -141,50 +141,49 @@ syafiqkit is a Claude Code plugin providing skills/commands for task documentati
 
 ## Architecture Decisions Index
 
-Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question below, open only that file.
+Full ADR content lives in `decisions/*.md` (or one level deeper, `decisions/<theme>/*.md`, where a theme itself split). Find your question below, open only that file — **`agent-architecture.md` and `doc-condensation.md` are now ROUTERS** (split 2026-07-20, each was over the 300-line threshold): open them for the sub-file table, not for ADR content directly.
 
-### Read [decisions/agent-architecture.md](decisions/agent-architecture.md) if you're asking: *how do generated project agents inherit conventions, delegate to skills, and invoke them?*
+### `decisions/agent-architecture.md` (router) — *how do generated project agents inherit conventions, delegate to skills, invoke them, and how does the plugin delegate to cheaper/parallel agents?*
 
-| # | Decision |
-|---|----------|
-| D1 | Project-specific agents via prompt injection |
-| D4 | Orchestrator skills delegate, never inline a sibling's procedure |
-| D14 | Generated agents invoke `/read-summary`, don't reimplement it |
-| D15 | Correct wiring ≠ the model reliably calling a sibling skill |
-| D21 | A Step-N verify checklist needs a command per item — a prior skim isn't a check |
-| D24 | A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win |
-| D25 | A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command |
-| D28 | A confirmation gate that defaults ON forces the caller to pre-empt it every invocation — `merge-task-docs` now defaults to executing the recommendation, asks only on genuine ambiguity |
-| D29 | `claude-md-pruner` delegates restructuring to `condense-claude-md` instead of reimplementing the seam-test — the last template missing `Skill` per D14 |
-| D30 | Splitting a skill step's mechanical retrieval from its judgment half before delegating to a cheaper agent (`Explore`) — the judgment half never leaves the calling session's own model |
-| D31 | Explore agent gains the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity is now a `⚠️ MANDATORY` root CLAUDE.md callout after its 3rd recurrence |
-| D34 | ⚠️ transcript-scan half SUPERSEDED by D36 (removed). Still live: an agent's sub-spawn grant must name its allowed type in the runtime-visible body, not a `tools:` comment (fixes `browser-verifier` self-nesting) |
-| D35 | ⚠️ SUPERSEDED by D36 — transcript scan Mode B removed. |
-| D38 | `agent-setup`'s drift check only covered modification (existing agent vs. template), never addition (template with no generated agent) — added a distinct Missing-agent check (`comm -23`) and sharpened the model-override exemption to require an in-file justification |
-| D36 | Transcript-scan `Explore` agent REMOVED from `/done` (reverses D34/D35). It cost an agent slot + ~47k tokens per run yet, in the session that removed it, returned a full record while the doc-update still failed — the failure was a false "done" report (reported invoked = done), not the recency miss the scan defends against. The real fix went into the exit gate instead: Task-docs/Knowledge rows now require confirming the artifact CHANGED, not just that the skill was invoked. `_shared/references/transcript-scan.md` deleted. |
+| # | Decision | Sub-file |
+|---|----------|----------|
+| D1 | Project-specific agents via prompt injection | `agent-architecture/injection-and-delegation.md` |
+| D4 | Orchestrator skills delegate, never inline a sibling's procedure | `agent-architecture/injection-and-delegation.md` |
+| D14 | Generated agents invoke `/read-summary`, don't reimplement it | `agent-architecture/injection-and-delegation.md` |
+| D29 | `claude-md-pruner` delegates restructuring to `condense-claude-md` instead of reimplementing the seam-test — the last template missing `Skill` per D14 | `agent-architecture/injection-and-delegation.md` |
+| D15 | Correct wiring ≠ the model reliably calling a sibling skill | `agent-architecture/injection-and-delegation.md` |
+| D21 | A Step-N verify checklist needs a command per item — a prior skim isn't a check | `agent-architecture/verification-rigor.md` |
+| D24 | A self-caught deviation from a skill's own instructions is a reportable signal, not a silent win | `agent-architecture/verification-rigor.md` |
+| D25 | A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command | `agent-architecture/verification-rigor.md` |
+| D28 | A confirmation gate that defaults ON forces the caller to pre-empt it every invocation — `merge-task-docs` now defaults to executing the recommendation, asks only on genuine ambiguity | `agent-architecture/verification-rigor.md` |
+| D38 | `agent-setup`'s drift check only covered modification (existing agent vs. template), never addition (template with no generated agent) — added a distinct Missing-agent check (`comm -23`) and sharpened the model-override exemption to require an in-file justification | `agent-architecture/verification-rigor.md` |
+| D39 | `/done`'s file-count tiers raised ≤15/16–40/41+ → ≤30/31–80/81+ (agent counts unchanged); light mode removed entirely rather than rescaled — every diff now routes through docs-only/infra-only/full mode only | `agent-architecture/verification-rigor.md` |
+| D30 | Splitting a skill step's mechanical retrieval from its judgment half before delegating to a cheaper agent (`Explore`) — the judgment half never leaves the calling session's own model | `agent-architecture/concurrency-and-delegation.md` |
+| D31 | Explore agent gains the `Agent` tool for self-nested multi-doc sweeps (depth-5 cap); generated-agent/template parity is now a `⚠️ MANDATORY` root CLAUDE.md callout after its 3rd recurrence | `agent-architecture/concurrency-and-delegation.md` |
+| D32 | Parallelism is the single-message block, not `run_in_background: false` — that flag is a hint, not a contract | `agent-architecture/concurrency-and-delegation.md` |
+| D34 | ⚠️ transcript-scan half SUPERSEDED by D36 (removed). Still live: an agent's sub-spawn grant must name its allowed type in the runtime-visible body, not a `tools:` comment (fixes `browser-verifier` self-nesting) | `agent-architecture/concurrency-and-delegation.md` |
+| D35 | ⚠️ SUPERSEDED by D36 — transcript scan Mode B removed (never had its own ADR block) | `agent-architecture/concurrency-and-delegation.md` |
+| D36 | Transcript-scan `Explore` agent REMOVED from `/done` (reverses D34/D35). It cost an agent slot + ~47k tokens per run yet, in the session that removed it, returned a full record while the doc-update still failed — the failure was a false "done" report (reported invoked = done), not the recency miss the scan defends against. The real fix went into the exit gate instead: Task-docs/Knowledge rows now require confirming the artifact CHANGED, not just that the skill was invoked. `_shared/references/transcript-scan.md` deleted. | `agent-architecture/concurrency-and-delegation.md` |
 
-### Read [decisions/doc-condensation.md](decisions/doc-condensation.md) if you're asking: *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
+### `decisions/doc-condensation.md` (router) — *how do we fight duplication/bloat across task docs, CLAUDE.md, and skills?*
 
-| # | Decision |
-|---|----------|
-| D2 | Apply LLM prompting techniques selectively, not universally |
-| D3 | Fix doc bloat at the generator, not by hand-trimming |
-| D5 | A skill's happy path defers to a project's documented alternative |
-| D6 | A CLAUDE.md line is dead weight once a skill enforces it at action-time |
-| D7 | A read-only command must still route what it notices |
-| D11 | Extract only true verbatim cross-skill duplication to `_shared/references/` |
-| D12 | Full duplication survey fixed two cases, explicitly left the rest |
-| D17 | `.claude/rules/*.md` path-scoping frontmatter doesn't actually scope — removed as a routing recommendation |
-| D18 | `/read-summary` discovery in `Explore`/`Plan` made unconditional — reverses D17's "gate is correct design" call per user's explicit precision-over-efficiency preference |
-| D19 | Task-doc index + pointer added as a second structural lever for over-budget CLAUDE.md files (when the subdirectory seam-test fails but the block is feature-specific) |
-| D20 | Seam-test must check EVERY real sibling subdirectory (grep-count based), not just the intuitively-obvious one — corrects D19's own stale "Multi-Agency has no seam" conclusion |
-| D22 | `condense-claude-md`'s diff-based verification needs a false-positive filter, and completion needs a byte threshold alongside the line threshold |
-| D23 | Skill-file density is a distinct bloat class from CLAUDE.md/task-doc bloat (no condense-* delegate exists) — fixed by hand across 7+ skills, captured as a permanent `update-plugin` checklist |
-| D26 | Companion-file split (Restructuring #7) widened from global-CLAUDE.md-only to any file whose oversized section is genuinely cross-cutting — no subdirectory AND no feature owner |
-| D27 | Pre-existing plan/spec docs are a distinct type from `decisions/<theme>.md` (verified against external ADR/Diátaxis convention) — split-doc guidance gained a parent-directory routing audit + an anti-silent-drop verification check |
-| D32 | A session adding a `<content>`-leak guard must grep its own diff for that exact leak, then sweep the whole repo — the guard doesn't retroactively fix leaks already sitting in files, including ones the same diff touches |
-| D33 | `<thinking>` recommendation retired (supersedes D2's CoT half) — zero adopters across 18 skills; reasoning scaffolds belong to the output-style layer, not skill files |
-| D37 | `task-summary`'s cross-section-duplication litmus test now names the commit/deploy status word explicitly, not left as an implicit "critical phrase" judgment call |
+| # | Decision | Sub-file |
+|---|----------|----------|
+| D3 | Fix doc bloat at the generator, not by hand-trimming | `doc-condensation/bloat-generator-fixes.md` |
+| D6 | A CLAUDE.md line is dead weight once a skill enforces it at action-time | `doc-condensation/bloat-generator-fixes.md` |
+| D17 | `.claude/rules/*.md` path-scoping frontmatter doesn't actually scope — removed as a routing recommendation | `doc-condensation/bloat-generator-fixes.md` |
+| D18 | `/read-summary` discovery in `Explore`/`Plan` made unconditional — reverses D17's "gate is correct design" call per user's explicit precision-over-efficiency preference | `doc-condensation/bloat-generator-fixes.md` |
+| D19 | Task-doc index + pointer added as a second structural lever for over-budget CLAUDE.md files (when the subdirectory seam-test fails but the block is feature-specific) | `doc-condensation/bloat-generator-fixes.md` |
+| D20 | Seam-test must check EVERY real sibling subdirectory (grep-count based), not just the intuitively-obvious one — corrects D19's own stale "Multi-Agency has no seam" conclusion | `doc-condensation/bloat-generator-fixes.md` |
+| D22 | `condense-claude-md`'s diff-based verification needs a false-positive filter, and completion needs a byte threshold alongside the line threshold | `doc-condensation/structural-splits.md` |
+| D23 | Skill-file density is a distinct bloat class from CLAUDE.md/task-doc bloat (no condense-* delegate exists) — fixed by hand across 7+ skills, captured as a permanent `update-plugin` checklist | `doc-condensation/structural-splits.md` |
+| D26 | Companion-file split (Restructuring #7) widened from global-CLAUDE.md-only to any file whose oversized section is genuinely cross-cutting — no subdirectory AND no feature owner | `doc-condensation/structural-splits.md` |
+| D27 | Pre-existing plan/spec docs are a distinct type from `decisions/<theme>.md` (verified against external ADR/Diátaxis convention) — split-doc guidance gained a parent-directory routing audit + an anti-silent-drop verification check | `doc-condensation/structural-splits.md` |
+| D33 | `<thinking>` recommendation retired (supersedes D2's CoT half) — zero adopters across 18 skills; reasoning scaffolds belong to the output-style layer, not skill files | `doc-condensation/structural-splits.md` |
+| D37 | `task-summary`'s cross-section-duplication litmus test now names the commit/deploy status word explicitly, not left as an implicit "critical phrase" judgment call | `doc-condensation/duplication-and-integrity.md` |
+| D40 | A session adding a `<content>`-leak guard must grep its own diff for that exact leak, then sweep the whole repo — the guard doesn't retroactively fix leaks already sitting in files, including ones the same diff touches. **Renamed from D32** 2026-07-20 (collided with agent-architecture's D32, parallelism) | `doc-condensation/duplication-and-integrity.md` |
+| D12 | Full duplication survey fixed two cases, explicitly left the rest | `doc-condensation/duplication-and-integrity.md` |
+| D2, D5, D7, D11 | Demoted (settled, uncontested 3+ sessions) — see the sub-file's Demoted Decisions table | `doc-condensation/duplication-and-integrity.md` |
 
 ### Read [decisions/madr-structure.md](decisions/madr-structure.md) if you're asking: *how does the MADR decision-record format itself work — when to use it, what it costs, how do editing skills handle it?*
 
@@ -221,8 +220,9 @@ Full ADR content lives in `decisions/*.md`, grouped by theme. Find your question
 
 ## Last Session (2026-07-20)
 
-- **v1.116.7 — Removed the spawned background Haiku agent from `_shared/references/two-tier-condense.md`'s Draft step.** A `condense-claude-md` run spawned it exactly as the shared reference prescribed; the user killed it mid-run and said he didn't want an agent used for this at all. Draft and Verify now both run inline in the calling session's own turn — dropped the Haiku-specific prompting instructions (checklist handoff, agent-framed number-verbatim constraint) and reworded Verify's rationale for a self-authored draft. Also patched the two direct callers that had restated "spawn a background Haiku agent" themselves (`condense-claude-md` step 3, `condense-task-doc` step 7) — `update-plugin`'s own reference was already agent-agnostic. Version bumped + CHANGELOG entry added; fixed the stale "two-tier draft(Haiku)/verify" mechanism description in this doc's own Gotchas line (D23's decision text itself is unaffected — only the implementation it points to changed).
-- Same session also condensed `~/.claude/CLAUDE.md` (project-scoped, no skill-behavior change) — see that repo's own history, not tracked here.
+- **v1.117.0 — Raised `/done`'s Step 1 changed-file thresholds and removed light mode (D39).** User asked to raise the agent-count threshold; clarified via `AskUserQuestion` into raising the file-count buckets (≤15/16–40/41+ → ≤30/31–80/81+, agent counts per tier unchanged) plus dropping the `<5`-file light-mode carve-out entirely rather than rescaling it. Version bumped 1.116.7→1.117.0, plugin reloaded.
+- **Split `decisions/agent-architecture.md` and `decisions/doc-condensation.md` into router + theme sub-files.** D39's addition pushed `agent-architecture.md` to 332 lines/34.6KB, and `doc-condensation.md` sat at 310 lines/34.2KB — both over the 300-line threshold with nothing left to condense (every ADR earns its place). Split each into a thin router + 3 theme sub-files (`decisions/agent-architecture/{injection-and-delegation,verification-rigor,concurrency-and-delegation}.md`, `decisions/doc-condensation/{bloat-generator-fixes,structural-splits,duplication-and-integrity}.md`). Along the way found and fixed: a duplicate `**Status**` line left by the D39 edit; a genuine pre-existing D32 ID collision (two unrelated decisions both numbered D32 across the two files) — renamed the leak-guard one to D40, updated its self-references, `current.md`'s Gotchas/index rows, and the CHANGELOG's cross-reference. `current.md`'s Architecture Decisions Index rewritten to route through sub-files (not the router files directly), Related:/Gotchas pointers repointed to leaf files.
+- **v1.117.1 — `task-summary/references/templates.md` gained one exception to the split's "no ask required" default.** Caught via `update-plugin`'s mandatory numbered-message scan: mid-split I asked for confirmation before splitting (the doc's own Next Steps had deferred it twice as "disproportionate") instead of proceeding silently per the skill's explicit default — a self-caught deviation, D24's exact pattern. The deferral-history signal is now named as the one legitimate ask-worthy case; `condense-task-doc`/`merge-task-docs` inherit it via the shared source, no duplication.
 
 ---
 

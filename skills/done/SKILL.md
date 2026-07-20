@@ -19,24 +19,17 @@ Execute all steps in sequence without pausing for confirmation.
 
 ## Mode selection (decide first)
 
-**Light mode** when the session touched **<5 files in a single domain** AND no new feature/architecture was introduced (bug fix, small tweak, config change):
-- Step 1: ONE reviewer agent only (skip the separate simplifier — tell the reviewer to also flag obvious duplication; skip the product reviewer — a trivial fix has no new feature journey to judge).
-- ⚠️ **Exception — a small diff that EXPOSES or CHANGES a user-facing capability is NOT light** (new toggle/button/field/route, status control, anything a user now acts on). File count measures diff size, not journey significance — run the product reviewer (full mode for Step 1) even at 1 file.
-- ⚠️ **Exception — if you DROVE the real user journey this session (browser, real account, real flow), always run the product reviewer**, whatever the file count. Observations from a live flow are gone next session and exist nowhere else; a fix RESTORING a broken capability reads as light while holding the freshest product evidence you'll have.
-- Step 4: invoke `syafiqkit:task-summary` WITH the known doc path (skip the multi-domain scan — you already know the one affected doc).
-- Output: the compact single-table form (see Output).
-
 **Docs-only mode** when the diff is **entirely documentation** — `*.md` only (task docs, CLAUDE.md, README), zero application code (`git status --short` shows no `.php`/`.ts`/`.tsx`/etc.):
 - Step 1: **skip all three code agents** — simplifier/reviewer/product-reviewer audit *code*; there is none. Running them against markdown is theater. Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve.
 - Steps 2-4 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run).
 - Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
-- ⚠️ **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Code already committed this session is NOT docs-only — it was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + uncommitted diff), and run Full/Light Step 1 against committed code files. The tell: a commit you authored this session in `git log`, but the working tree shows only `.md` changes.
+- ⚠️ **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Code already committed this session is NOT docs-only — it was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + uncommitted diff), and run full Step 1 against committed code files. The tell: a commit you authored this session in `git log`, but the working tree shows only `.md` changes.
 
 **Infra-only mode** when the diff is **entirely deploy/build/CI plumbing** and no application code — CI workflows (`.github/workflows/*.yml`, `.circleci/`), `docker-compose*.yml`/`Dockerfile`, build config (`next.config.*`, `vite.config.*`), nginx/env config. The **mirror image of docs-only**: docs need no reviewer; infra needs *only* the reviewer, and needs it badly.
 - Step 1: **reviewer ONLY.** Skip the simplifier (no logic to DRY) and the product reviewer (no user journey). Size-independent — the trigger is file KIND, not count.
 - ⚠️ **Prompt the reviewer adversarially: infra fails SILENTLY.** Broken deploy steps exit 0 while tests pass — review is the only catch. Give it the change's PURPOSE, what it must not break, ask for empirical verification. Two call sites of the same command can need opposite treatments.
 - Steps 2-4 as normal. Output: mark Simplify/Product as ➖ "infra-only".
-- ⚠️ **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer (see Light mode's exception).
+- ⚠️ **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer.
 
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
 
@@ -86,21 +79,13 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 
 | Changed files | Reviewers | Simplifiers | Product | TOTAL agents |
 |---------------|-----------|-------------|---------|--------------|
-| ≤15 | 1 | 1 | 1 | **3** |
-| 16–40 | 2 | 2 | 1 | **5** |
-| 41+ | 3 (cap) | 3 (cap) | 1 | **7** |
+| ≤30 | 1 | 1 | 1 | **3** |
+| 31–80 | 2 | 2 | 1 | **5** |
+| 81+ | 3 (cap) | 3 (cap) | 1 | **7** |
 
-⚠️ **The count is PER ROLE — it multiplies, it does not replace.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer. Spawning N agents *total* (all of one role) is the failure this table exists to prevent: at 41+ files, 3 agents is wrong — **7** is right. The product reviewer is always exactly 1 (it judges the whole feature, so it is never partitioned).
+⚠️ **The count is PER ROLE, and ALL agents go in ONE tool-call block — no exceptions.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer (never partitioned — it judges the whole feature). A block with fewer `Agent` calls than roles owed has already failed: there is no "spawn the rest next," the turn ends and missing roles are never registered as skipped. Stating the count correctly and then emitting one call anyway passes no gate and raises no error — it only surfaces when a human counts your tool calls. Anchor emission to the Glob you just ran, not to a number you wrote: each `.claude/agents/*.md` hit is one role, emit one call per hit (×N per role when the table says >1). After results start returning, count what you actually emitted against TOTAL before reading any result — a correct pre-send checklist can still be followed by a single call going out.
 
-⚠️ **ALL agents go in ONE tool-call block.** The failure this prevents is *not* miscounting — it is stating the count correctly and then emitting one call anyway. Writing "TOTAL = 3" costs nothing and enforces nothing: a partial block raises no error, produces no diff, and fails no gate. It surfaces only when a human counts your tool calls and asks where the others went. Restating the rule to yourself is not the check — you can recite it and still send one call.
-
-**Anchor the emission to the Glob you just ran, not to a number you wrote.** Each `.claude/agents/*.md` hit above is one role, and each role is one `Agent` call in the block you are about to send. Read your Glob results, then emit one call per hit (×N per role when the table says >1) — the same block, no exceptions.
-
-⚠️ **You have already failed this step the moment you send a block intending to "spawn the rest next."** There is no next: the turn ends, the results come back, and the missing roles are never registered as skipped — every downstream check reads the step as run. If the block in front of you has fewer `Agent` calls than roles, add them *before* sending.
-
-⚠️ **After-the-fact counter-check — writing "TOTAL = N" correctly does not prove you sent N.** Once results start coming back, count the `Agent` calls you actually emitted this turn against TOTAL before reading any result. A correct pre-send checklist can still be followed by a single call going out — the only reliable catch is counting what was actually sent, not what was intended.
-
-A user arg always wins: "2 agents each" / "4 each" sets the per-role count explicitly (ignore the table); a count is also implied by "split it up". Light mode (`<5` files) is the ONE case with an asymmetric count (1 reviewer + 0 simplifier) — it takes precedence over the table's top bucket.
+A user arg always wins: "2 agents each" / "4 each" sets the per-role count explicitly (ignore the table); a count is also implied by "split it up".
 
 When count >1 per role, **partition the file list** across the same-role agents by domain/directory — each agent gets a disjoint slice (file count sets *how many*; domain sets *which files each gets*, so coupled files stay together). NEVER hand every same-role agent the full list: duplicated review + conflicting edits on the same file.
 
@@ -150,9 +135,9 @@ This is the **single** writer of CLAUDE.md / `CLAUDE.local.md` entries. It scans
 
 **Step 4 — Update Task Docs:**
 
-Invoke `syafiqkit:task-summary` **with no args** in full mode — let the skill do a multi-domain scan. In **light mode**, pass the known doc path instead.
+Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-domain scan.
 
-⚠️ **Why full mode scans**: Passing an explicit path skips the scan, causing missed updates to related docs (roadmaps, bug reports mentioned in chat that need stubs). Light mode is exempt because its trigger condition (single domain, no external inputs) rules those out.
+⚠️ **Why it scans**: Passing an explicit path skips the scan, causing missed updates to related docs (roadmaps, bug reports mentioned in chat that need stubs).
 
 ⚠️ **`task-summary` already ran THIS session → invoke it scoped, not bare.** `/commit`'s staleness gate forces a full run, and `/commit`+`/ship`+`/done` are routinely chained, so the docs are often already reconciled by Step 4. Pass an arg naming only what's NEW since that run (typically the product reviewer's gaps → Next Steps). The bare-scan rule above governs a COLD `/done`, not this case. A scoped invoke still counts as running the step; skipping it does not.
 
@@ -204,7 +189,7 @@ One combined table. Detail only what was actually WRITTEN or FIXED — never enu
 |------|--------|
 | Simplify | [changes made, or ✅ none needed; ➖ docs-only] (full mode only) |
 | Review | [issues found + fixed, or ✅ clean; in docs-only mode = referential-integrity result] |
-| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / light / docs-only mode] (full mode only) |
+| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / docs-only / infra-only mode] (full mode only) |
 | Cleanup | [removed, or ➖] |
 | Knowledge | [N entries → target files, one line each; "0 new" if none] |
 | Task docs | [doc path → one-line summary of the update] |
