@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.120.0
+
+- **New skill `sweep-doc-overlaps`** — a real Autorentic session asked to find "similar things across domains" in `tasks/`, and `merge-task-docs` had no entry point for that: its own Step 1 assumes a domain or keyword is already known. Fanned out 5 parallel `Explore` agents across all ~25 domains (batched by directory, not by hypothesis) and surfaced two real cross-domain candidates — `payment/{gateway,stuck-payment,consolidated-payment}` (same 2C2P callback pipeline, mutual `Related:` refs) and `statement/agency-leaderboard` → `report/pm-reports` (explicitly reuses the same aggregation service + UI pattern) — against ~20 keyword-adjacent pairs that were correctly kept separate. The new skill packages that pattern: discovery only, batched by domain for write-safety even though this is read-only, points agents at `merge-task-docs`'s own merge-test section instead of restating it, and hands confirmed groups to `merge-task-docs` for actual execution rather than duplicating its write/delete/reconcile logic.
+
 ## 1.119.3
 
 - **`condense-claude-md/SKILL.md` + `update-claude-docs/references/structure.md` — the companion-file location rule ("nearest git-repo root") left the global `~/.claude/CLAUDE.md` case ambiguous, since `~/.claude` isn't itself a git repo.** Both the global `~/.claude-companions/` and a project's `.claude/companions/` had drifted to sit nested inside `.claude/` instead of as its sibling, only caught when the user questioned the location directly. Both files now state explicitly: for the global case, use `~/.claude-companions/`, a sibling of `~/.claude/`, never nested inside it.

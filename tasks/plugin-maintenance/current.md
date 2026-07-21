@@ -6,16 +6,16 @@ Related:
   - decisions/agent-architecture.md (ROUTER) — how generated agents inherit conventions + invoke sibling skills; see its 3 sub-files
   - decisions/doc-condensation.md (ROUTER) — fighting duplication/bloat across docs, CLAUDE.md, skills; see its 3 sub-files
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-21 — see Quick Start / Last Session
+Last updated: 2026-07-21 — see Quick Start / Last Session (sweep-doc-overlaps added)
 -->
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.119.2.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.120.0.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.119.2. Latest change: `read-summary/SKILL.md` Read Order step 6 (SIBLING REPO) now tells you to follow the sibling's `> 📖` companion pointers too — step 5 had a Companion bullet for the current repo all along, step 6 was its sibling-repo twin and lacked it, so a two-repo session queried prod believing it was staging with no error surfaced. Same change added the discovery gotcha: `grep -rl` reaches neither `.claude/` nor gitignored files, so settle a companion's existence with `ls <path>`, never grep. Since 1.117.1: `code-simplifier.template.md` gained a stateful-logic-extraction callout (1.119.1); `condense-task-doc`/`task-summary` fixed to condense the doc SET not just the named file, plus set-wide (not per-file) duplication scanning (1.119.0); `read-summary`'s investigation exit gate now also covers scope escalation, not just wrong-question substitution, and the git-state deletion rule got an MADR `Status: committed` carve-out (1.118.0).
+**Where we are**: Plugin is a mature skill/command system (24 skills, 2 commands, 8 agent templates), v1.120.0. Latest change: new skill `sweep-doc-overlaps` — fleet-wide parallel `Explore` scan across all `tasks/` domains for cross-domain merge candidates `merge-task-docs` alone can't find (it needs a domain/keyword already scoped); discovery only, hands confirmed groups to `merge-task-docs` for execution. Before that: `read-summary/SKILL.md` Read Order step 6 (SIBLING REPO) now tells you to follow the sibling's `> 📖` companion pointers too — step 5 had a Companion bullet for the current repo all along, step 6 was its sibling-repo twin and lacked it, so a two-repo session queried prod believing it was staging with no error surfaced. Same change added the discovery gotcha: `grep -rl` reaches neither `.claude/` nor gitignored files, so settle a companion's existence with `ls <path>`, never grep. Since 1.117.1: `code-simplifier.template.md` gained a stateful-logic-extraction callout (1.119.1); `condense-task-doc`/`task-summary` fixed to condense the doc SET not just the named file, plus set-wide (not per-file) duplication scanning (1.119.0); `read-summary`'s investigation exit gate now also covers scope escalation, not just wrong-question substitution, and the git-state deletion rule got an MADR `Status: committed` carve-out (1.118.0).
 
 **Immediate next actions (in order)**:
 1. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues are the highest-signal bug source and don't surface any other way. Issue #7 actioned this session; re-check for new ones next pass.
@@ -63,7 +63,7 @@ syafiqkit is a Claude Code plugin providing skills/commands for task documentati
 
 ### Current Skills
 
-23 skills + 2 commands (`read-notes`, `update-notes`). Re-synced 2026-07-17 from `ls skills/`.
+24 skills + 2 commands (`read-notes`, `update-notes`). Re-synced 2026-07-21 from `ls skills/`.
 
 | Skill | Purpose | Invoked By |
 |-------|---------|------------|
@@ -80,6 +80,7 @@ syafiqkit is a Claude Code plugin providing skills/commands for task documentati
 | `hobby-review` | Socratic hobby debrief against the taste rubric in a `current.md` | User, or proactive |
 | `md-to-pdf` | Markdown → PDF with rendered Mermaid | User directly |
 | `merge-task-docs` | Merge docs by subsystem boundary; delete sources; reconcile back-refs. Defaults to executing its recommendation (D28) | User, or proactive |
+| `sweep-doc-overlaps` | Fleet-wide parallel scan across all `tasks/` domains for cross-domain merge candidates; discovery only, hands off to `merge-task-docs` for execution | User, when no domain/keyword is named |
 | `notes-summary` | Personal session journal outside the repo (non-code conversations) | User directly |
 | `pull-db` | Remote MySQL/MariaDB → local dev (dump, scp, import, password reset) | User, or proactive |
 | `read-summary` | Discover + read task docs before investigating/implementing; Plan-Mode-aware | User, or model-invoked before context-dependent work |
@@ -225,6 +226,7 @@ Full ADR content lives in `decisions/*.md` (or one level deeper, `decisions/<the
 
 - **v1.119.2 — `read-summary/SKILL.md` step 6 (SIBLING REPO) gained a companion-pointer follow rule + an `ls`-not-`grep` existence-check gotcha.** A two-repo session stopped at the sibling's main CLAUDE.md, missed its `> 📖` companion holding the actual staging DB/container facts, and queried prod believing it was staging — no error surfaced. Step 5 already had this rule for the current repo; step 6 lacked the sibling-repo twin. The companion was also nearly declared "doesn't exist" because `grep -rl` returns 0 hits for `.claude/`/gitignored files even when the target is present — `claude-md-pruner` caught it; rule is now `ls <path>` to settle existence.
 - **`plugin-maintenance/current.md` reconciled from 1.117.1 → 1.119.2** — Quick Start, version header, and Gotchas were 4 releases stale (missed 1.118.0's read-summary exit-gate widening + MADR `committed` carve-out, 1.119.0's doc-SET condensation fix, 1.119.1's stateful-logic simplifier callout). Caught during `/done`'s docs-only mode on an already-committed patch — see CHANGELOG for full entries.
+- **v1.120.0 — new skill `sweep-doc-overlaps`**, from a real Autorentic session asking to check "similar things across domains" with no domain/keyword named — `merge-task-docs` Step 1 assumes that scoping already happened. 5 parallel `Explore` agents batched by domain (not by hypothesis, to keep it write-safe by convention even though read-only) swept all ~25 `tasks/` domains and confirmed 2 real cross-domain candidates (`payment/{gateway,stuck-payment,consolidated-payment}`; `statement/agency-leaderboard` → `report/pm-reports`) against ~20 keyword-adjacent pairs correctly kept separate. New skill packages that pattern as discovery-only, points agents at `merge-task-docs`'s own merge-test section instead of restating it, and hands off confirmed groups rather than merging inline.
 
 ---
 

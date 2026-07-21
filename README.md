@@ -48,6 +48,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/function-parameter-limits` | Apply + enforce the 0/2/3+ function-parameter rule — advises parameter-object/DTO refactors and sets up the right linter (ESLint/PHPMD/Pylint) with DI-constructor carve-outs |
 | `/hobby-review` | Socratic debrief of a hobby item against the taste rubric in the matching task doc |
 | `/merge-task-docs` | Find related task docs in a domain and merge them, reconciling all back-references |
+| `/sweep-doc-overlaps` | Fleet-wide scan across ALL `tasks/` domains for CROSS-domain merge candidates; hands confirmed groups to `merge-task-docs` |
 | `/notes-summary` | Create, update, or read a personal session journal outside the repo |
 | `/condense-task-doc` | Aggressively condense a bloated task doc in place |
 | `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |
