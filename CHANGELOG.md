@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.119.1
+
+- **`agent-setup/templates/code-simplifier.template.md` — the Component-vs-Utility extraction table missed the case that matters most for a fat component: STATEFUL logic.** A session shrank a 799-line React component and the first simplifier pass extracted only presentational JSX/constants (799→640, modest); the user had to manually invoke a second run, which extracted the stateful clusters into hooks and took it to 329. The template framed extraction as a two-way choice (rendering→Component, transform→Utility), which structurally can't point at "extract effects/refs/event-wiring into a hook/composable." Added a framework-neutral callout: a fat component is shrunk by extracting LOGIC into hooks, not markup — splitting JSX is the low-value pass. The AR-specific example row lives in the project's `code-simplifier.md` High-Impact table, not the template.
+
 ## 1.119.0
 
 - **`condense-task-doc/SKILL.md` + `task-summary/SKILL.md` — the unit of condensation is the doc SET, not the file named in the args.** A `/update-summary <path> condense this` run condensed only `current.md` and reported a byte delta, while the `decisions/*.md` siblings holding 2× the index's bytes went untouched — the correction was "when i say condense meaning u hv to look at all inside too not only the current.md". The skill's splitting rule creates those siblings but nothing said a later condense must cover them. Process step 1 now scopes to the set (`ls` the directory), step 8 reports per-file + set-total deltas, and `task-summary`'s Size budget measures `cat current.md decisions/*.md | wc -c`. Description updated so the trigger itself carries the set scope.
