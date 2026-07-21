@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.119.3
+
+- **`condense-claude-md/SKILL.md` + `update-claude-docs/references/structure.md` — the companion-file location rule ("nearest git-repo root") left the global `~/.claude/CLAUDE.md` case ambiguous, since `~/.claude` isn't itself a git repo.** Both the global `~/.claude-companions/` and a project's `.claude/companions/` had drifted to sit nested inside `.claude/` instead of as its sibling, only caught when the user questioned the location directly. Both files now state explicitly: for the global case, use `~/.claude-companions/`, a sibling of `~/.claude/`, never nested inside it.
+
 ## 1.119.2
 
 - **`read-summary/SKILL.md` — Read Order step 6 (SIBLING REPO) sent you to the sibling's `CLAUDE.md`/`CLAUDE.local.md` but never said to follow their `> 📖` companion pointers, which is where the facts it names actually live.** A two-repo session needed the sibling's staging DB/container layout; step 6 lists exactly that topic ("containers, credentials, deploy mechanics, or server state"), the main file delegated the detail to a companion, and stopping at the main file read as complete. Result: queried the PROD database believing it was staging and got a plausible wrong answer with no error — a real row from the wrong environment. Step 5 has had a Companion bullet for the current repo all along; step 6 is its sibling-repo twin and lacked it, so the rule existed nowhere a two-repo session reads.

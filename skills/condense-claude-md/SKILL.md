@@ -49,7 +49,7 @@ Every rule that, if removed, would cause Claude to repeat a real past mistake. S
 
 7. **Manually-referenced companion file** — the split for a section with no auto-loading target. Two cases need it: the **global `~/.claude/CLAUDE.md`** (tied to no subdirectory, so #6's auto-load split is unavailable at all), AND any **layer/project file** whose oversized section is genuinely cross-cutting (fails #6's subdir seam-test but isn't feature-owned). Move the lowest-frequency, most heterogeneous rows into `.claude-companions/<shared|local>/CLAUDE-<topic>.md`, keep the highest-frequency rows (come up almost every session) inline, and replace the moved block with a `> 📖` pointer.
 
-   **Location**: one `.claude-companions/` folder at the nearest git-repo root (not a same-directory file, and not the monorepo root in a multi-repo checkout — each repo gets its own). Two subfolders split by trackability:
+   **Location**: one `.claude-companions/` folder at the nearest git-repo root (not a same-directory file, and not the monorepo root in a multi-repo checkout — each repo gets its own). For the global `~/.claude/CLAUDE.md` case, `~/.claude` is not itself a git repo — the companion folder is `~/.claude-companions/`, a sibling of `~/.claude/`, never nested inside it. Two subfolders split by trackability:
    - `shared/` — tracked in git. Use when the companion supports a checked-in file (a project CLAUDE.md, a subdir CLAUDE.md, a task doc) — team-visible, same as the parent.
    - `local/` — gitignored. Use when the companion supports a local-only file (`CLAUDE.local.md`, `.env`-adjacent notes) — never commit these regardless of what the parent file's own tracking state is.
 
