@@ -6,16 +6,16 @@ Related:
   - decisions/agent-architecture.md (ROUTER) — how generated agents inherit conventions + invoke sibling skills; see its 3 sub-files
   - decisions/doc-condensation.md (ROUTER) — fighting duplication/bloat across docs, CLAUDE.md, skills; see its 3 sub-files
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-20 — see Quick Start / Last Session
+Last updated: 2026-07-21 — see Quick Start / Last Session
 -->
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.117.1.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.119.2.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.117.1. Latest change: `task-summary/references/templates.md`'s split default gained one ask-worthy exception (a doc's own history of deferring the split 2+ times) — caught as a self-caught deviation while splitting this doc's own two over-budget decision files. Prior: `/done`'s Step 1 file-count tiers raised ≤15/16–40/41+ → ≤30/31–80/81+ (agent counts unchanged: 3/5/7); light mode removed entirely — see D39.
+**Where we are**: Plugin is a mature skill/command system (23 skills, 2 commands, 8 agent templates), v1.119.2. Latest change: `read-summary/SKILL.md` Read Order step 6 (SIBLING REPO) now tells you to follow the sibling's `> 📖` companion pointers too — step 5 had a Companion bullet for the current repo all along, step 6 was its sibling-repo twin and lacked it, so a two-repo session queried prod believing it was staging with no error surfaced. Same change added the discovery gotcha: `grep -rl` reaches neither `.claude/` nor gitignored files, so settle a companion's existence with `ls <path>`, never grep. Since 1.117.1: `code-simplifier.template.md` gained a stateful-logic-extraction callout (1.119.1); `condense-task-doc`/`task-summary` fixed to condense the doc SET not just the named file, plus set-wide (not per-file) duplication scanning (1.119.0); `read-summary`'s investigation exit gate now also covers scope escalation, not just wrong-question substitution, and the git-state deletion rule got an MADR `Status: committed` carve-out (1.118.0).
 
 **Immediate next actions (in order)**:
 1. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues are the highest-signal bug source and don't surface any other way. Issue #7 actioned this session; re-check for new ones next pass.
@@ -40,6 +40,9 @@ Last updated: 2026-07-20 — see Quick Start / Last Session
 - A diff adding a `<content>`-leak guard is not proof the leak is gone — grep the diff's own touched files AND sweep the whole repo for the literal tag, every `/done` review pass — see D40 (decisions/doc-condensation/duplication-and-integrity.md)
 - `plugin.json`/`marketplace.json` version drift recurs (2nd occurrence, 2026-07-15 D26 → 2026-07-17): a version bump to one file without the other passes silently, no gate catches it except a manual diff read during `/done`'s docs-only integrity check
 - Widening a threshold table (agent-count tiers, byte budgets) needs every downstream decision point checked, not just the table itself — a stale carve-out referencing the old bounds can survive in 3-4 other places — see D39 (decisions/agent-architecture/verification-rigor.md)
+- A step covering "the sibling repo's main file" is not the same rule as "the sibling repo's companion pointers" — a bullet added for the current repo (step 5) doesn't retroactively cover its sibling-repo twin (step 6) until stated there too, even though both read the same source file
+- `grep -rl` existence checks silently return 0 for `.claude/` and gitignored files even when the target exists — settle existence with `ls <path>`, and a control that merely hits (e.g. `README.md`) proves recursion works, not that the target is in scope
+- Condensation/duplication-scan units are the doc SET (`current.md` + `decisions/*.md`), never the single named file — a set member holding 2× the index's bytes goes untouched if the pass scopes to args only
 
 ---
 
@@ -218,11 +221,10 @@ Full ADR content lives in `decisions/*.md` (or one level deeper, `decisions/<the
 
 ---
 
-## Last Session (2026-07-20)
+## Last Session (2026-07-21)
 
-- **v1.117.0 — Raised `/done`'s Step 1 changed-file thresholds and removed light mode (D39).** User asked to raise the agent-count threshold; clarified via `AskUserQuestion` into raising the file-count buckets (≤15/16–40/41+ → ≤30/31–80/81+, agent counts per tier unchanged) plus dropping the `<5`-file light-mode carve-out entirely rather than rescaling it. Version bumped 1.116.7→1.117.0, plugin reloaded.
-- **Split `decisions/agent-architecture.md` and `decisions/doc-condensation.md` into router + theme sub-files.** D39's addition pushed `agent-architecture.md` to 332 lines/34.6KB, and `doc-condensation.md` sat at 310 lines/34.2KB — both over the 300-line threshold with nothing left to condense (every ADR earns its place). Split each into a thin router + 3 theme sub-files (`decisions/agent-architecture/{injection-and-delegation,verification-rigor,concurrency-and-delegation}.md`, `decisions/doc-condensation/{bloat-generator-fixes,structural-splits,duplication-and-integrity}.md`). Along the way found and fixed: a duplicate `**Status**` line left by the D39 edit; a genuine pre-existing D32 ID collision (two unrelated decisions both numbered D32 across the two files) — renamed the leak-guard one to D40, updated its self-references, `current.md`'s Gotchas/index rows, and the CHANGELOG's cross-reference. `current.md`'s Architecture Decisions Index rewritten to route through sub-files (not the router files directly), Related:/Gotchas pointers repointed to leaf files.
-- **v1.117.1 — `task-summary/references/templates.md` gained one exception to the split's "no ask required" default.** Caught via `update-plugin`'s mandatory numbered-message scan: mid-split I asked for confirmation before splitting (the doc's own Next Steps had deferred it twice as "disproportionate") instead of proceeding silently per the skill's explicit default — a self-caught deviation, D24's exact pattern. The deferral-history signal is now named as the one legitimate ask-worthy case; `condense-task-doc`/`merge-task-docs` inherit it via the shared source, no duplication.
+- **v1.119.2 — `read-summary/SKILL.md` step 6 (SIBLING REPO) gained a companion-pointer follow rule + an `ls`-not-`grep` existence-check gotcha.** A two-repo session stopped at the sibling's main CLAUDE.md, missed its `> 📖` companion holding the actual staging DB/container facts, and queried prod believing it was staging — no error surfaced. Step 5 already had this rule for the current repo; step 6 lacked the sibling-repo twin. The companion was also nearly declared "doesn't exist" because `grep -rl` returns 0 hits for `.claude/`/gitignored files even when the target is present — `claude-md-pruner` caught it; rule is now `ls <path>` to settle existence.
+- **`plugin-maintenance/current.md` reconciled from 1.117.1 → 1.119.2** — Quick Start, version header, and Gotchas were 4 releases stale (missed 1.118.0's read-summary exit-gate widening + MADR `committed` carve-out, 1.119.0's doc-SET condensation fix, 1.119.1's stateful-logic simplifier callout). Caught during `/done`'s docs-only mode on an already-committed patch — see CHANGELOG for full entries.
 
 ---
 
