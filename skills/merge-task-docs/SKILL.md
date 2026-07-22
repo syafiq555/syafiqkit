@@ -83,7 +83,7 @@ For each merge group:
 5. **Merging content**: combine sections without duplicating rows. If both docs have a Gotchas table, merge into one table — never two Gotchas sections. If both have a Files section, combine into one living map (don't keep per-doc subsections).
 6. **Last Session**: write ONE Last Session block that notes the merge happened. Don't preserve both docs' Last Session entries.
 7. **Size budget**: merged doc should stay under 300 lines. If it would exceed this, condense aggressively — collapse completed Task Status rows, trim Files to a living map, cut narrative from Gotchas to rule+symptom only.
-8. **When condensing can't reach budget**: two docs already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a flat file, and don't silently default to a split either — this is fork #2 from Step 2: ask flat-with-overage vs. index+`decisions/<theme>.md` split. If split is chosen, use `condense-task-doc`'s `templates.md` pattern ("Splitting a whole-doc MADR further"): a thin index `current.md` (Quick Start + a routing table framed "read `decisions/<theme>.md` if you're asking: *[question]*") plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by source doc. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is correct when merge candidates fail the ">300 lines" bad-merge signal in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
+8. **When condensing can't reach budget**: two docs already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a flat file, and don't silently default to a split either — this is fork #2 from Step 2: ask flat-with-overage vs. index+`decisions/<theme>.md` split. If split is chosen, use `condense-task-doc`'s `templates.md` pattern ("Splitting a whole-doc MADR further"). ⚠️ **The index keeps THREE things, not two** — `templates.md` L136: "Quick Start, **doc-wide operational tables**, and a routing table". Only per-theme ADR/gotcha DETAIL moves down; `Task Status`, `Bugs Fixed`, `Critical Gotchas` and `Next Steps` stay in `current.md`, scoped to what's cross-cutting (label them so: "Next Steps (cross-cutting — see each decisions file for theme-specific items)"). Dropping them is invisible — the content still exists in `decisions/*.md`, so no gate fires, and the index silently stops showing open work. Plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by source doc. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is correct when merge candidates fail the ">300 lines" bad-merge signal in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
 
 ### Step 5 — Delete source docs
 
@@ -122,6 +122,8 @@ For each merged doc, re-read and verify:
 - No rows deleted from source docs (facts absorbed, not dropped)
 - Last Session notes the merge
 
+⚠️ **Absence gate — every check above detects EXCESS; none detects a MISSING section.** A merge that drops whole section types passes all of them cleanly, because the content still exists somewhere. Run an additive check: `grep '^## ' <index>`, then diff against `grep -h '^## ' <each source doc>` — every section TYPE present in any source must survive somewhere, and `Task Status` / `Bugs Fixed` / `Critical Gotchas` / `Next Steps` must be in the INDEX, not only in `decisions/*.md`. Sanity-check against a sibling split doc in the same repo rather than from memory.
+
 ## Output
 
 Tell the user:
@@ -137,6 +139,7 @@ Tell the user:
 | Decide to merge based on shared keywords | Merge based on shared subsystem (same tables/services/journey) |
 | Delete source before reconciling back-refs | Reconcile to the new path FIRST, then delete (0 stale = gate) |
 | Force a flat merged doc past 300 lines by deleting real facts | Condense first; if sources are already dense (not bloated), split into index + `decisions/<theme>.md` instead (Step 4.8) |
+| Leave the split index as Quick Start + routing table only | Operational tables (Task Status, Bugs Fixed, Critical Gotchas, Next Steps) stay in the index — only theme DETAIL moves down (Step 4.8 + Step 7 absence gate) |
 | Preserve both docs' Last Session entries | One merged Last Session noting the merge happened |
 | Stop at `Related:` fields | Sweep inline mentions + domain CLAUDE.md pointers too |
 | Plain `mv` a renamed folder | `git mv` — keeps history (for renames, not deletes) |

@@ -32,8 +32,9 @@ The same "re-run discovery" rule applies when the SCOPE changes, not just the cl
 
 ⚠️ Reading a doc is also **auditing** it. While loading context you will often catch the doc contradicting the code you just examined — a `Status:` that says "not done" for a feature that's built, a `Provider:`/dependency named that the code has since swapped, a `Key files` path that moved, a date-conditioned caveat now past. **Do NOT just mention the drift in passing and move on** — that drops the fix on the floor, the exact failure this skill exists to prevent. When you spot staleness:
 
-1. **Name it explicitly** as a stale-doc finding (which doc, which line/field, what the code actually shows), separate from answering the user's question.
-2. **Route it, don't fix it inline** — this skill is read-only. Hand off: project facts (status, provider, moved files, expired caveats) → tell the user to run the `task-summary` skill (update mode); a skill/command defect → the `update-plugin` skill. Confirm scope before writing.
+1. **Sweep, don't spot-report.** The line that contradicted the code is where you *noticed* drift, not its extent — the same doc's `Quick Start`, `Status:`, and `Immediate next actions` are written once and revisited least, so they hold the costliest staleness (a shipped fix still listed as "staged, deploy this next" sends the reader to redo it). Re-check those fields against reality before reporting, and report them together.
+2. **Name it explicitly** as a stale-doc finding (which doc, which line/field, what the code actually shows), separate from answering the user's question.
+3. **Route it so it survives silence** — this skill is read-only, so the fix belongs to `task-summary` (project facts) or `update-plugin` (skill/command defects). ⚠️ An offer parked on the user's reply is NOT routing: they will often act on your answer and never respond to the offer, and the finding dies. Either hand off in the same turn, or state the correction as an owed action you will carry into the next doc-writing skill — never as a question that expires unanswered.
 
 Staleness you surface and route is closed; staleness you narrate and abandon is a silent regression waiting for the user to catch it re-reading later.
 
