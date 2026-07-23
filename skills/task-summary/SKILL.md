@@ -133,11 +133,11 @@ A decision/gotcha/bug captured only in `## Last Session` is a bug — Last Sessi
 | `LLM-CONTEXT` | Update Status + Last updated |
 | `## Quick Start` | ⚠️ **MANDATORY on every update** — rewrite entirely (see below) |
 | `## Task Status` | Tick off completed rows |
-| `## Bugs Fixed` | Append new bugs |
-| `## Critical Gotchas` | Append new rows to Backend or Frontend table |
+| `## Bugs Fixed` | Append new bugs — **compose the row already condensed**: paraphrase root cause + fix into 1-2 sentences each directly, never transcribe the session's investigation narrative (timestamps, exact assertion counts, "verified by executing X vs Y") and trim after |
+| `## Critical Gotchas` | Append new rows to Backend or Frontend table — same compose-condensed rule |
 | `## Key Technical Decisions` | New decision → append. Same decision evolved → edit its existing row/block in place (see MADR sub-rule below) |
 | `## Files` | Add new files if introduced |
-| `## Next Steps` | Remove done, add pending. **FLAT `- [ ]` checklist — never bold sub-headings grouping items ("**this session's findings:**", "**earlier:**"); grouping drifts it into a changelog.** Order by priority if needed; session provenance goes in `## Last Session`, not as structure here. |
+| `## Next Steps` | Remove done, add pending. **FLAT `- [ ]` checklist — never bold sub-headings grouping items ("**this session's findings:**", "**earlier:**"); grouping drifts it into a changelog.** Order by priority if needed; session provenance goes in `## Last Session`, not as structure here. **A user's scope decision about an item (defer, decline, deprioritize, block-on-X) is a decision to capture — write it into the item with its reason; chat-only acknowledgement is lost next session.** Keep an item's markers consistent with its captured status: a priority/urgency marker on an item the user just deferred contradicts itself — re-mark to match. |
 | `## Last Session` | **Overwrite in place — ONE session only, ≤5 bullets, ≤2 lines each.** Delete the previous session's bullets entirely (never append a dated bullet below them — that's a changelog). Before deleting, fold any still-load-bearing fact into its proper Decision/Gotcha row. Parallel sessions: overwrite only your own content, but the one-session cap still holds. |
 
 ### MADR Blocks — Edit-in-Place vs Append (when the doc has one)

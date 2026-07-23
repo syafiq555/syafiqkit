@@ -40,6 +40,7 @@ Look for these signals in the session:
 | A merge/refactor decision was made about the plugin itself | Add to `plugin-maintenance/current.md` Architecture Decisions table |
 | A "keyword trap" or nuance that future sessions need to know | Add as a named rule with a concrete example in the relevant skill |
 | A skill (or its `references/*.md`) reads as bloated/dense — the user says "this feels bloated", or bytes/line is noticeably high | **Density pass** — see Step 3a |
+| The user corrects something THIS skill (`update-plugin`) itself just did — its own Step 3/4/5 logic, not a skill it was patching | `skills/update-plugin/SKILL.md` is a valid patch target like any other — this table's rows aren't only about OTHER skills. Fix the step that misfired here |
 
 ⚠️ **Step 3a is unconditional, not gated on the bloat signal above** — every file Step 3 patches gets a density pass in the same edit, bloat-triggered or not. This is how files stay lean: fixed one small edit at a time, not left to drift. The signal row above still matters for a file that isn't otherwise being touched this run.
 
@@ -75,6 +76,8 @@ For each change, apply the most targeted edit possible, AND run the Step 3a dens
 
 **Adding a workflow rule** — insert into the most relevant existing section (Rules table, Critical Gotchas, or a named workflow step). Don't add a new section for one rule. Rules should be actionable: `❌ X | ✅ Y` format or `| Signal | Action |` table rows.
 
+⚠️ **Write the general PRINCIPLE, not a retelling of the triggering session.** The incident revealed the gap; it is not the rule. A rule naming the session's specific artifact, marker, or exact words only fires on an identical recurrence and reads as noise everywhere else. Strip to the class of mistake — what category went wrong, what to do instead — no case-specific nouns. The incident belongs in the CHANGELOG entry (which SHOULD be concrete); the skill body carries only the abstracted rule. **Tell you over-fit: your rule contains a proper noun, a literal UI string, or a count from this run** — lift it out and name the category instead.
+
 **Adding an architecture decision** — append to the `## Architecture Decisions` table in `plugin-maintenance/current.md`. Format: `| Decision | Rationale |`. The rationale should explain *why* — not just what.
 
 **Adding a new skill to registries** — update both:
@@ -98,7 +101,7 @@ Execution model (draft/verify split): `_shared/references/two-tier-condense.md`.
 | A duplicate rule copied from a sibling skill instead of pointed to (e.g. a numeric threshold restated in two files) | Replace with a pointer to the canonical skill — divergence risk if only one gets updated later |
 | A clear hot-path default plus a distinct, infrequently-invoked mode/branch fully inlined in SKILL.md (15+ lines) | Extract to `references/<mode>.md`, leave a short pointer summary — SKILL.md stays lean for the path used every invocation |
 
-After verifying clean (per the shared reference's Verify step): bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention.
+After verifying clean (per the shared reference's Verify step): bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention — **unless the user's invocation explicitly says to skip one or both** ("no need to touch the changelog", "don't bump the version"). Treat that as covering the whole write, not just the literal file named — "skip the changelog" on a run that would otherwise also bump the version means skip the version bump too, since the two only exist together as one convention. When in doubt which the user meant, ask rather than defaulting to "bump anyway."
 
 ## Step 4 — Validate
 
@@ -107,6 +110,7 @@ After writing:
 - For trigger description changes: read the new description and ask "would this have caught what was missed in this session?" If no, revise.
 - For rule additions: ask "is this a one-time project quirk, or will this pattern recur across projects?" If one-time, skip it.
 - Confirm Step 3a's draft+verify ran on every file touched this session — `wc -lc` each, ratio dropped or held flat, and the diff-verify sub-step actually happened (not skipped because the draft "looked fine").
+- ⚠️ **Confirm Step 2's shared-mechanism grep actually ran, not just the one skill you patched.** Having the rule in Step 2 doesn't mean it fired — a fix framed as "this skill's bug" reads as self-contained and the cross-skill check silently gets skipped unless Step 4 asks for it explicitly. Before reporting done, name the grep you ran (or state that no shared mechanism applies) — don't let "I patched the skill I was using" stand in for it.
 
 ## What NOT to capture here
 

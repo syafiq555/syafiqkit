@@ -57,9 +57,11 @@ For each signal, extract 2-3 keywords and **grep all CLAUDE.md files**:
 
 | Grep result | Classification |
 |-------------|---------------|
-| No match | **New** — add entry |
+| No match | **New** — add entry, but clear the companion check below first |
 | Match in correct file | **Violation** — must refine (see Step 3) |
 | Match in wrong file | **Misplaced** — move to correct scope + refine |
+
+⚠️ **A CLAUDE.md that delegates to companion files makes "no match" unreliable — grep its `> 📖` targets before classifying as New.** A lean index keeps detail in companions outside the tree recursive grep walks, so an existing rule returns 0 hits and gets duplicated. `grep -a` won't save you — the text is in another FILE, not an unreadable one, so this misreads as the NUL-byte trap. **Tell: you can quote the rule verbatim from context yet grep finds it nowhere on disk** — context loaded what the index points to, so grep the pointers. A rule you're ADDING may likewise belong in a companion, not the index.
 
 ## 2. Route — Where does it go?
 

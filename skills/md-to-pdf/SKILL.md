@@ -1,11 +1,20 @@
 ---
 name: md-to-pdf
-description: Convert Markdown documents to professional PDFs with rendered Mermaid diagrams. Use when user asks to "export to PDF", "generate PDF", "make a PDF", or needs a shareable document from markdown files.
+description: Convert Markdown documents to professional PDFs with rendered Mermaid diagrams and charts (bar/line trend charts via xychart-beta). Use when user asks to "export to PDF", "generate PDF", "make a PDF", needs a shareable document from markdown files, or asks for a "chart"/"graph"/"diagram" in a report or document.
 ---
 
 # Markdown to PDF
 
-Convert Markdown files to clean PDFs with rendered Mermaid diagrams.
+Convert Markdown files to clean PDFs with rendered Mermaid diagrams **and charts**.
+
+⚠️ **Mermaid does quantitative charts, not just diagrams — never tell the user a chart isn't possible here.** `xychart-beta` renders bars and lines with real axes and gridlines, so a trend or comparison in a table can become a chart in the same pipeline.
+
+| Want | Use |
+|------|-----|
+| Trend over time, comparison across categories | `xychart-beta` (bar/line, real axes) — pass `-c theme.json`, see Gotchas |
+| Flow, hierarchy, funnel, state | `flowchart` / `sequenceDiagram` |
+| Part-to-whole, top slice under ~85% | `pie showData` |
+| Part-to-whole where one slice dominates | **Neither — keep the table.** Small slices collide into unreadable overlapping labels; a chart less legible than the table it duplicates is worse than no chart |
 
 ## Prerequisites
 
@@ -108,3 +117,4 @@ Read the PDF to confirm diagrams rendered and tables are formatted correctly.
 | PDF page breaks mid-table | Add `<div style="page-break-before: always"></div>` before sections |
 | Emoji rendering (🔴 ✅ 🟡) | Works in md-to-pdf (Chromium-based) — no issues |
 | `xychart-beta` line series near-invisible (pale lavender) on default theme | Pass `-c theme.json` to mmdc with `{"themeVariables": {"xyChart": {"plotColorPalette": "#2563eb, #dc2626"}}}` — one color per series, then verify the PNG visually |
+| A rendered PNG exists, so the diagram is assumed correct | `mmdc` exits 0 on charts that are unreadable (colliding labels, invisible series). Read every PNG before embedding — a file that rendered is not a file that communicates |
