@@ -5,7 +5,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - MADR is now the DEFAULT per-decision structure, not an opt-in for decision-heavy docs — escape hatch only when Rejected would be empty (D16, supersedes D8's "never default" clause).
   - Whole-doc MADR replaces (not adds to) the Decisions + Gotchas tables — priced differently than per-block MADR (D8, pricing model still holds).
   - A doc-format upgrade must ship its condensation-rule update in the same change (D13)
-Related: ../current.md (index), ../doc-condensation.md (router), ../agent-architecture.md (router), ../../../skills/task-summary/references/templates.md
+Related: ../current.md (feature index), ../../agent-architecture/current.md, ../../doc-condensation/current.md, ../../../../skills/task-summary/references/templates.md
 Last updated: 2026-07-10
 -->
 

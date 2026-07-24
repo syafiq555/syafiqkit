@@ -1,6 +1,6 @@
 ---
 name: code-simplifier
-description: Simplifies, DRYs up, and refines recently changed code for clarity, consistency, and maintainability. Use at session end or after iterative back-and-forth that may have introduced redundancy.
+description: Simplifies, DRYs up, and refines recently changed code for clarity, consistency, and maintainability. Use at session end or after iterative back-and-forth that may have introduced redundancy — especially after several rounds of "actually, change it to..." edits on the same file, where duplication and dead branches tend to accumulate silently. Cue phrases: "clean this up", "simplify", "DRY this up", "is this messy". Do NOT dispatch for a first-draft implementation with no iteration yet, or when the goal is finding bugs (use code-reviewer) — this agent only refines, it doesn't hunt defects.
 tools:
   - Glob
   - Grep

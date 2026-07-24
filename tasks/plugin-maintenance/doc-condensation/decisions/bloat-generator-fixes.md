@@ -8,7 +8,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - `/read-summary` discovery in Explore/Plan is now unconditional, not gated on prompt specificity (D18)
   - Task-doc index + pointer is a second structural lever for over-budget CLAUDE.md (D19)
   - Seam-test must check EVERY real sibling subdirectory, not just the obvious one (D20)
-Related: ../../current.md (index), ../doc-condensation.md (router), ../agent-architecture.md
+Related: ../current.md (feature index), ../../agent-architecture/current.md, ../../madr-structure/current.md
 Last updated: 2026-07-20
 -->
 

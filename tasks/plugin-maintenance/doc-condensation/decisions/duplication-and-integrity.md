@@ -5,7 +5,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Cross-section AND cross-file OPEN-item duplication, plus `⚠️` density, are both mechanical litmus checks now (D37)
   - A diff adding a `<content>`-leak guard is not proof the leak is gone repo-wide (D40, renamed from a duplicate D32 — see Note)
   - Full duplication survey fixed two real cases, explicitly left shared-shape-not-duplication cases alone (D12)
-Related: ../../current.md (index), ../doc-condensation.md (router), ../agent-architecture.md
+Related: ../current.md (feature index), ../../agent-architecture/current.md, ../../madr-structure/current.md
 Last updated: 2026-07-20
 Note: This file's D40 was originally numbered D32 in the pre-split doc, colliding with agent-architecture's D32 (parallelism/run_in_background). Renumbered during the 2026-07-20 split — see D39's split note in current.md Last Session.
 -->

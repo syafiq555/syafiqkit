@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Reviews changes to skill/command markdown files for logical errors, broken workflow instructions, and convention violations. Use at session end or after editing SKILL.md/commands/*.md, before /done.
+description: Reviews changes to skill/command markdown files for logical errors, broken workflow instructions, and convention violations. Use at session end or after editing SKILL.md/commands/*.md, before /done — and ALSO the moment a skill/command edit is declared finished mid-conversation, not only when the user literally says "done". Cue phrases: "review this skill", "check my changes", "is this ready", "done editing". Do NOT dispatch mid-edit on an incomplete skill, for a workflow-completeness judgment (use product-reviewer), or for a pure wording/density cleanup with no logic change (use code-simplifier).
 tools:
   - Glob
   - Grep
@@ -28,7 +28,7 @@ This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it
 ## Process
 
 1. **Gather changes** — `git status --short` (this is your scope; not `git diff --name-only` — it hides staged AND untracked files and returns empty once work is staged, so you'd review nothing and report clean on real work)
-2. **Read task docs** — run the `/read-summary` skill (`Skill` tool) for the touched skill/domain: it discovers `tasks/plugin-maintenance/current.md` + relevant `decisions/*.md` by content. Can't invoke it? Read the doc directly. Task docs explain WHY a skill is structured a certain way, reducing false positives on intentional patterns.
+2. **Read task docs** — run the `/read-summary` skill (`Skill` tool) for the touched skill/domain: it discovers the relevant `tasks/plugin-maintenance/*/current.md` + `decisions/*.md` by content. Can't invoke it? Read the doc directly. Task docs explain WHY a skill is structured a certain way, reducing false positives on intentional patterns.
 3. **Read each changed file in full** — a SKILL.md's steps reference each other; a diff hunk alone hides whether a downstream step still makes sense
 4. **Check sibling skills** — does this change follow patterns established elsewhere (e.g. Bootstrap-pattern agents, `_shared/references/` pointers, frontmatter field usage)?
 5. **Check cross-references** — for a renamed skill/section/anchor, `Grep` every `SKILL.md`/`commands/*.md`/CLAUDE.md for the old name to find now-broken pointers

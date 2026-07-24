@@ -1,6 +1,6 @@
 ---
 name: product-reviewer
-description: Reviews a built feature with a product-manager lens — finds missing user journeys, dead-end flows, UX/UI improvements, and business-value gaps the engineer forgot to build. Use at session end or after feature implementation, alongside code-reviewer, before /done. Distinct from code review — judges the feature against its PURPOSE, not its implementation.
+description: Reviews a built feature with a product-manager lens — finds missing user journeys, dead-end flows, UX/UI improvements, and business-value gaps the engineer forgot to build. Use at session end or after feature implementation, alongside code-reviewer, before /done — this is a PAIR dispatch, not a substitute for code-reviewer, and belongs in the same wrap-up moment even when the user only says "review this" without naming "product". Distinct from code review — judges the feature against its PURPOSE, not its implementation. Do NOT dispatch for a pure backend/internal change with no user-facing surface, or as a standalone request for "is this code correct" (that's code-reviewer's lane).
 tools:
   - Glob
   - Grep

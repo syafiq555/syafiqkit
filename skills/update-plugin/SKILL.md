@@ -1,7 +1,7 @@
 ---
 name: update-plugin
 description: >
-  Scan the current session for learnings about the syafiqkit plugin itself, then patch the affected skill files (SKILL.md trigger descriptions, workflow steps, gotcha tables, rule tables) based on what was discovered. Use when the user says "update the plugin", "capture this for the skill", "improve the skill based on this session", "fix the skill trigger", or after any session where a skill misfired, a workflow step was wrong, or a new rule/pattern emerged from skill-creator work. This is the plugin equivalent of update-claude-docs — it writes to skill files, not to project CLAUDE.md.
+  Scan the current session for learnings about the syafiqkit plugin itself, then patch the affected skill files (SKILL.md trigger descriptions, workflow steps, gotcha tables, rule tables) based on what was discovered. Fire it the moment a skill misfired this session — triggered when it shouldn't have, stayed silent when it should have fired, a workflow step turned out wrong mid-execution, or you found yourself working around a skill's instructions instead of following them. Also fire near session end, after any skill-creator work, to sweep for missed signals. Cue phrases: "update the plugin", "capture this for the skill", "improve the skill based on this session", "fix the skill trigger". Do NOT use for a project-specific gotcha (schema, API key, service behavior — that's update-claude-docs) or a durable communication/working-style preference with no skill-trigger implication (also update-claude-docs) — the test is whether the fix changes how a *skill* triggers or behaves, not how Claude communicates generally. This is the plugin equivalent of update-claude-docs — it writes to skill files, not to project CLAUDE.md.
 ---
 
 # Update Plugin — Capture Session Learnings into Skill Files
@@ -54,7 +54,7 @@ For each signal, identify the target:
 |--------|------|
 | `skills/<name>/SKILL.md` → `description:` frontmatter | Trigger was wrong or missed |
 | `skills/<name>/SKILL.md` → body section | Workflow step, rule, or gotcha was wrong/missing |
-| `tasks/plugin-maintenance/current.md` | Architecture decision, new skill added, composition pattern changed |
+| Relevant `tasks/plugin-maintenance/{agent-architecture,doc-condensation,madr-structure}/current.md` | Architecture decision, composition pattern changed |
 | `syafiqkit/CLAUDE.md` → Skills table | New skill added to the registry |
 | `CHANGELOG.md` | A skill was meaningfully changed (not just minor wording) |
 | `skills/agent-setup/templates/<agent>.template.md` (the SOURCE) **+ every generated copy** | A behavioral fix to an AGENT (`.claude/agents/<agent>.md`) that has a template |
@@ -78,11 +78,11 @@ For each change, apply the most targeted edit possible, AND run the Step 3a dens
 
 ⚠️ **Write the general PRINCIPLE, not a retelling of the triggering session.** The incident revealed the gap; it is not the rule. A rule naming the session's specific artifact, marker, or exact words only fires on an identical recurrence and reads as noise everywhere else. Strip to the class of mistake — what category went wrong, what to do instead — no case-specific nouns. The incident belongs in the CHANGELOG entry (which SHOULD be concrete); the skill body carries only the abstracted rule. **Tell you over-fit: your rule contains a proper noun, a literal UI string, or a count from this run** — lift it out and name the category instead.
 
-**Adding an architecture decision** — append to the `## Architecture Decisions` table in `plugin-maintenance/current.md`. Format: `| Decision | Rationale |`. The rationale should explain *why* — not just what.
+**Adding an architecture decision** — append to the most relevant theme's `decisions/*.md` (`agent-architecture`, `doc-condensation`, or `madr-structure`). Format: `| Decision | Rationale |`. The rationale should explain *why* — not just what.
 
 **Adding a new skill to registries** — update both:
-1. `tasks/plugin-maintenance/current.md` → `### Current Skills` table
-2. `syafiqkit/CLAUDE.md` → `### Skills` table
+1. `syafiqkit/CLAUDE.md` → `### Skills` table
+2. `README.md` → its skills table
 
 Both tables must stay in sync.
 
@@ -132,7 +132,7 @@ A consumer can't patch, but they can **file** — and a GitHub issue notifies th
      --title "<skill>: <one-line defect>" --body "<the report>"
    ```
    Return the issue URL — the maintainer is notified by GitHub.
-4. On **no**, or if `gh` is unauthenticated/absent → print the same report as copy-pasteable text and point them at `github.com/syafiq555/syafiqkit/issues`.
+4. On **no**, or if `gh` is unauthenticated/absent → render the report in its own fenced block, labelled ("copy everything inside the fence below, nothing outside it"). ⚠️ **The fence is the LAST element of the reply — nothing follows it.** The pointer to `github.com/syafiq555/syafiqkit/issues` goes **above** the label, never after the closing fence — trailing text is invisible as a boundary once the report's own last line could read as more report.
 
 ⚠️ `gh label list --search` **lies** (returns empty for a label that exists). If you must verify a label, read `gh api repos/OWNER/REPO/labels/<name>` — never conclude "missing" from the search.
 
@@ -145,4 +145,4 @@ A consumer can't patch, but they can **file** — and a GitHub issue notifies th
 
 **Consumer** (Step 0 said `CONSUMER`) — no files were touched. Report:
 - **Skill** (+ version), **what happened** (reproducibly), **suggested fix** (the actual rule/wording).
-- Then Step 5: offer to file it as a GitHub issue. If filed, give the issue URL; if declined or `gh` is unavailable, leave the report copy-pasteable and point at `github.com/syafiq555/syafiqkit/issues`.
+- Then Step 5: offer to file it as a GitHub issue. If filed, give the issue URL. If declined or `gh` is unavailable, follow Step 5.4's fencing — pointer text above the fence, the report inside its own labelled fence, nothing after it.

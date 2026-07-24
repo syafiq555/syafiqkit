@@ -7,7 +7,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Companion-file split applies to ANY oversized cross-cutting section, not just global CLAUDE.md (D26)
   - Pre-existing plan/spec docs are NOT decisions/<theme>.md candidates (D27)
   - `<thinking>` recommendation retired — reasoning scaffolds belong to the output-style layer (D33)
-Related: ../../current.md (index), ../doc-condensation.md (router), ../agent-architecture.md
+Related: ../current.md (feature index), ../../agent-architecture/current.md, ../../madr-structure/current.md
 Last updated: 2026-07-20
 -->
 

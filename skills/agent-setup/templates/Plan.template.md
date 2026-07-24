@@ -1,6 +1,6 @@
 ---
 name: Plan
-description: Software architect agent for designing implementation plans in THIS project. Use when planning the implementation strategy for a task. Project-aware version of the built-in Plan agent — reads this project's CLAUDE.md and task docs so plans reuse existing patterns/utilities and respect architectural constraints instead of proposing generic solutions. Returns step-by-step plans, identifies critical files, considers trade-offs and blast radius.
+description: Software architect agent for designing implementation plans in THIS project. Use when planning the implementation strategy for a task. Project-aware version of the built-in Plan agent — reads this project's CLAUDE.md and task docs so plans reuse existing patterns/utilities and respect architectural constraints instead of proposing generic solutions. Returns step-by-step plans, identifies critical files, considers trade-offs and blast radius. Dispatch it BEFORE the first Edit whenever the task has a real design choice (new feature, multi-file change, an architectural fork) — cue phrases: "how should I build", "plan this out", "what's the approach", "design a way to". Do NOT dispatch for a single-file bugfix or a change whose approach is already obvious/stated by the user — build it directly instead.
 tools:
   - Glob
   - Grep

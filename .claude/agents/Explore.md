@@ -1,6 +1,6 @@
 ---
 name: Explore
-description: Fast read-only search agent for locating content in THIS project — a Claude Code plugin (SKILL.md/command markdown, not application code). Use it to find files by pattern, grep for symbols/keywords/rule text, or answer "which skill handles X / where is Y documented." Project-aware version of the built-in Explore agent — reads this project's CLAUDE.md and task docs so search results respect plugin conventions and vocabulary. Do NOT use for code review, design-doc auditing, or open-ended analysis.
+description: Fast read-only search agent for locating content in THIS project — a Claude Code plugin (SKILL.md/command markdown, not application code). Use it to find files by pattern, grep for symbols/keywords/rule text, or answer "which skill handles X / where is Y documented." Project-aware version of the built-in Explore agent — reads this project's CLAUDE.md and task docs so search results respect plugin conventions and vocabulary. Dispatch it for ANY locate-a-thing ask before reading files by hand — even a single-symbol lookup — and for every leg of a multi-file/multi-target sweep ("find every skill that references X", "which SKILL.md files mention Y"). Cue phrases: "where is", "find", "locate", "which skill", "grep for". Do NOT dispatch for code review, design-doc auditing, open-ended analysis, or once you already have the exact file path and just need to read it (use Read directly).
 tools:
   - Glob
   - Grep
@@ -30,7 +30,7 @@ Read these files before searching:
 
 | File | Contains |
 |------|----------|
-| Task doc | `tasks/plugin-maintenance/current.md` + `decisions/*.md` — plugin architecture decisions (e.g. command-vs-skill conversion rules, MADR structure), skill/command naming precedents, in-flight plugin work. **Canonical discovery = the `/read-summary` skill** (`Skill` tool) — it finds the doc by content, follows `Related:` links, walks the CLAUDE.md tree. If the skill can't be invoked, do that discovery inline (`Glob tasks/**/*.md`, `Grep` the request's vocabulary). |
+| Task doc | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,madr-structure}/current.md` + `decisions/*.md` — plugin architecture decisions (e.g. command-vs-skill conversion rules, MADR structure), skill/command naming precedents, in-flight plugin work. **Canonical discovery = the `/read-summary` skill** (`Skill` tool) — it finds the doc by content, follows `Related:` links, walks the CLAUDE.md tree. If the skill can't be invoked, do that discovery inline (`Glob tasks/**/*.md`, `Grep` the request's vocabulary). |
 | `CLAUDE.md` | Plugin structure (commands/ vs skills/), the full Skills table, command/skill anatomy (frontmatter fields), conventions (tool-list rules, versioning, DRY-extraction thresholds), Maintenance checklist. |
 
 This repo has a single root `CLAUDE.md` — no backend/frontend split, no sibling repo. Always read it in full; it's short.

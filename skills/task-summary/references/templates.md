@@ -143,6 +143,17 @@ A whole-doc MADR can itself outgrow one file (10+ ADRs, several hundred lines). 
 
 ⚠️ **`ls` the PARENT directory before finalizing the split.** Task folders often hold sibling files predating the split — design/plan docs, hand-off sheets, audit trails. These aren't decision records, but the routing table must still surface them or they become invisible dead weight once `current.md` stops being the one file opened. After building the index + `decisions/<theme>.md` set, `ls` the parent and account for every remaining file — give it a routing-table row, or fold stale content into a theme file if superseded.
 
+### Multi-domain fan-out: no surviving parent index
+
+The pattern above assumes `current.md` survives as the router. A different shape: a whole-doc MADR whose ADRs cluster into genuinely separate *features* (not themes within one feature), each promoted to its own sibling folder (`tasks/<domain>/<feature-a>/current.md`, `tasks/<domain>/<feature-b>/current.md`, …) — with **no single file left to be the parent index**. This happened splitting `tasks/plugin-maintenance/current.md` into `agent-architecture/`, `doc-condensation/`, `madr-structure/`.
+
+The router-preservation rule still applies, just with no router left to hold it — so before deleting the source doc, account for content that belonged to the *whole domain*, not to any one resulting feature:
+
+- **Doc-wide operational tables** (a skills/tools registry, a cross-cutting decisions index spanning all themes) have no home in any single sibling — either fold into the most relevant sibling's own operational tables (only if genuinely feature-scoped despite living in the shared doc), or flag it to the user as domain-level content with no folder to land in. Never let it silently drop because no sibling "owns" it.
+- **Cross-link every sibling** via `Related:` to its former siblings, same as a single-domain split's index+decisions files point back to each other.
+- **Grep the deleted path** (`grep -rn "<domain>/current.md" tasks/` and the plugin's own skill/CLAUDE.md files) and repoint every hit at whichever sibling now owns that fact — there is no single router left to catch strays, so a missed pointer 404s silently instead of resolving to a thin index.
+- This is exactly the shape `/done`'s referential-integrity pass exists to catch when the split step itself has no built-in check — don't rely on that pass as the primary mechanism; do the fold-or-flag call during the split.
+
 ### When a single `decisions/<theme>.md` itself outgrows budget
 
 A theme file earns its size the same way a whole-doc MADR does — one epic/ADR per non-duplicated chunk, nothing left to prune. `condense-task-doc` on a file like this deletes real facts (row-existence pruning has nothing to cut); the fix is another structural split, not denser prose. Signal: the file is >500-600 lines, every section is a distinct shipped item (not narrative bloat), and a `condense-task-doc` pass on it would be fighting the density rule, not bloat.

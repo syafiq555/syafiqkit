@@ -1,6 +1,6 @@
 ---
 name: Explore
-description: Fast read-only search agent for locating code in THIS project. Use it to find files by pattern, grep for symbols or keywords, or answer "where is X defined / which files reference Y." Project-aware version of the built-in Explore agent — reads this project's CLAUDE.md and task docs so search results respect project conventions and vocabulary. Do NOT use for code review, design-doc auditing, or open-ended analysis.
+description: Fast read-only search agent for locating code in THIS project. Use it to find files by pattern, grep for symbols or keywords, or answer "where is X defined / which files reference Y." Project-aware version of the built-in Explore agent — reads this project's CLAUDE.md and task docs so search results respect project conventions and vocabulary. Dispatch it for ANY locate-a-thing ask before reading code by hand — even a single-symbol lookup — and for every leg of a multi-file/multi-target sweep ("find all callers of X", "which files reference Y across the tree"). Cue phrases: "where is", "find", "locate", "which files", "grep for", "search the codebase". Do NOT dispatch for code review, design-doc auditing, open-ended analysis, or once you already have the exact file path and just need to read it (use Read directly).
 tools:
   - Glob
   - Grep

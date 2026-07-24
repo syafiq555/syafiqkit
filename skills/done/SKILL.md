@@ -20,7 +20,7 @@ Execute all steps in sequence without pausing for confirmation.
 ## Mode selection (decide first)
 
 **Docs-only mode** when the diff is **entirely documentation** — `*.md` only (task docs, CLAUDE.md, README), zero application code (`git status --short` shows no `.php`/`.ts`/`.tsx`/etc.):
-- Step 1: **skip all three code agents** — simplifier/reviewer/product-reviewer audit *code*; there is none. Running them against markdown is theater. Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve.
+- Step 1: **skip all three code agents** — simplifier/reviewer/product-reviewer audit *code*; there is none. Running them against markdown is theater. Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve, and no edited table has a row/callout wedged mid-table (a blank line or prose between `|`-rows splits one GFM table into two).
 - Steps 2-4 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run).
 - Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
 - ⚠️ **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Code already committed this session is NOT docs-only — it was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + uncommitted diff), and run full Step 1 against committed code files. The tell: a commit you authored this session in `git log`, but the working tree shows only `.md` changes.
@@ -100,7 +100,9 @@ When count >1 per role, **partition the file list** across the same-role agents 
 **After all complete:**
 - If reviewer found issues → **confirm each against the actual code before fixing** (grep the call site / re-read the line — a finding is a claim, not a verdict), then fix and continue. Don't blind-apply; don't dismiss either — a real bug a blanket `replace_all` left behind looks identical to a false positive until you check.
 - If simplifier made changes → verify they were applied (linter may have auto-formatted) AND that nothing was over-collapsed (an intentional guard/workaround removed). Re-run `php -l`/`tsc` on touched files — "declared but not used" = a half-done refactor.
-- If product reviewer found gaps → these are **product recommendations, not auto-fixes**. Do NOT silently build them. Surface 🔴/🟠 findings to the user and ask which to implement now vs add to the task doc's Next Steps — a missing journey is a scope decision the user owns. Confirm each gap is real (the deferral might be documented) before raising it.
+- If product reviewer found gaps → **triage by KIND, not by which agent reported it.** The product reviewer reads the feature's intent rather than the diff, so it will routinely catch things a diff-scoped code reviewer structurally cannot — e.g. a sibling call site outside the diff that needed the same new parameter/rule and didn't get it. That is a correctness defect wearing a product-reviewer badge, not a scope question.
+  - **Confirmed correctness/security defect** (a real bug, not a missing feature) → handle exactly like a code-reviewer finding: confirm against the actual code first (a finding is a claim, not a verdict), then fix it now. Do not downgrade it to a scope question just because the product reviewer found it.
+  - **Genuine missing journey / UX / business-value gap** → unchanged: these are **product recommendations, not auto-fixes**. Do NOT silently build them. Surface 🔴/🟠 findings to the user and ask which to implement now vs add to the task doc's Next Steps — a missing journey is a scope decision the user owns. Confirm each gap is real (the deferral might be documented) before raising it.
 
 ## Step 2: Clean up temp code
 
@@ -114,14 +116,14 @@ Scan session for temporary artifacts that should be removed:
 
 **Skip if**: No temp artifacts found.
 
-## Steps 3 + 4: Capture Knowledge + Update Task Docs (parallel)
+## Steps 3 + 4: Capture Knowledge + Update Task Docs (sequential — Step 3 before Step 4)
 
 ⚠️ **TWO skills, both mandatory — running only Step 3 and skipping the task doc is a common `/done` failure.** Tick both:
 
 - [ ] Step 3 — `syafiqkit:update-claude-docs`
 - [ ] Step 4 — `syafiqkit:task-summary`
 
-Run both **in parallel — both Skill calls in ONE assistant message**; they are independent. If you invoked one and not the other, the step is not done.
+⚠️ **Run Step 3 FIRST, then Step 4 — not in parallel.** Both skills scan the same conversation for the same class of signal and independently decide routing (CLAUDE.md vs. task doc) with no visibility into the sibling's decision — a parallel dispatch is two isolated routing judgments over shared state, not two independent tasks, and risks the same fact landing in both files or neither getting the version that should have deferred to the other. `update-claude-docs` decides what's broadly reusable; `task-summary`'s own rule ("only patterns that apply broadly go in CLAUDE.md") depends on that decision already being made, so Step 4 needs Step 3's result, not a race against it.
 
 **Step 3 — Capture Session Knowledge → CLAUDE.md:**
 

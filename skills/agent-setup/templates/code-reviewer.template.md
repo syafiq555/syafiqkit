@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Reviews code changes for bugs, security issues, and project convention violations. Use at session end or after feature implementation, before /done.
+description: Reviews code changes for bugs, security issues, and project convention violations. Use at session end or after feature implementation, before /done — and ALSO the moment implementation work is declared finished mid-conversation, not only when the user literally says "done". Cue phrases: "review this", "check my changes", "is this ready", "done implementing", "before I ship". Do NOT dispatch mid-implementation on an incomplete diff, for a product/UX judgment (use product-reviewer), or for a pure refactor with no behavior change (use code-simplifier).
 tools:
   - Glob
   - Grep

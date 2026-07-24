@@ -1,6 +1,6 @@
 ---
 name: claude-md-pruner
-description: Prunes CLAUDE.md files for staleness and bloat while preserving valuable reference content. Use after session CLAUDE.md updates, or periodically for maintenance.
+description: Prunes CLAUDE.md files for staleness and bloat while preserving valuable reference content. Use after session CLAUDE.md updates, or periodically for maintenance — AND whenever a CLAUDE.md is noticeably growing over several sessions, not only when someone flags it explicitly. Cue phrases: "prune CLAUDE.md", "this file is getting long", "clean up the docs", "is any of this stale". Do NOT dispatch for adding NEW content (that's update-claude-docs) or for restructuring dense-but-live content into a better shape (that's the condense-claude-md skill) — this agent's lane is staleness/duplication removal only.
 tools:
   - Glob
   - Grep

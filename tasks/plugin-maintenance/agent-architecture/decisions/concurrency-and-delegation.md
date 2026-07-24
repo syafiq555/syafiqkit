@@ -6,8 +6,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Explore can self-nest for multi-doc sweeps (depth-5 cap); generated-agent/template parity is a recurring drift class (D31)
   - Parallelism is the single-message block, not `run_in_background: false` — that flag is a hint, not a contract (D32)
   - On-disk transcript scanning was tried and REMOVED (D34→D36) — kept as design history only, the mechanism no longer runs
-Related: ../../current.md (index), ../agent-architecture.md (router), ../doc-condensation.md
-Last updated: 2026-07-20
+  - A skill pair that both scan the same conversation for overlapping signal classes and route dependently must dispatch sequentially, not in D32's parallel block (D42)
+Related: ../current.md (feature index), ../../doc-condensation/current.md, ../../madr-structure/current.md
+Last updated: 2026-07-24
 -->
 
 # Agent Architecture — Concurrency, Cheap-Model Delegation & Self-Nesting
@@ -119,5 +120,24 @@ Never had its own ADR block — was a routing-table stub for a since-removed tra
 
 **Decision**
 Reverses D34/D35. The on-disk transcript-scan mechanism (D34) cost an agent slot + ~47k tokens per run yet, in the session that removed it, returned a full record while the doc-update still failed — the failure was a false "done" report (reported invoked = done), not the recency miss the scan defends against. The real fix went into the exit gate instead: Task-docs/Knowledge rows now require confirming the artifact CHANGED, not just that the skill was invoked. `_shared/references/transcript-scan.md` deleted.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D42 — `done` Steps 3+4 (`update-claude-docs` + `task-summary`) Dispatch Sequentially, Not in Parallel — committed — v1.123.9
+
+**Problem**
+`done`'s Steps 3+4 ran `update-claude-docs` and `task-summary` in the same parallel block per D32's general "every `Agent`/`Skill` batch goes in one message" rule. But the two skills aren't independent tasks operating on disjoint state — both scan the *same* conversation for the *same* class of signal (durable pattern vs. feature-specific note) and each independently decides CLAUDE.md-vs-task-doc routing with zero visibility into the sibling's call. `task-summary`'s own rule ("only patterns that apply broadly go in CLAUDE.md") presupposes that judgment has already been made — it can't be, racing in parallel.
+
+**Decision**
+Chosen: `done`'s Steps 3+4 section now runs `update-claude-docs` first, `task-summary` second — sequential, not parallel. `update-claude-docs` decides what's broadly reusable and writes it; `task-summary` then routes the feature-specific remainder, aware of what already landed in CLAUDE.md.
+
+**Rejected**
+- Keep parallel dispatch and rely on each skill's own "no duplicates" check to reconcile after the fact. Why not: each skill greps for existing entries *in its own target files* — `update-claude-docs` greps CLAUDE.md, `task-summary` greps the task doc — so neither call can see a fact the sibling call is mid-write on. The dedup check is real but scoped to the wrong file to catch this race.
+
+**Consequences**
+- This is a narrow exception to D32's general parallel-batch rule, not a reversal of it — D32 still governs same-role agent batches (N simplifiers, N reviewers) where slices are genuinely disjoint. The exception applies specifically to skill pairs whose routing decisions depend on each other.
+- Any future skill pair added to `done` (or elsewhere) that both scan the same conversation for overlapping signal classes should default to sequential too — check for this shape before assuming D32's parallel-block rule applies.
 
 **Status**: committed · **Reversible**: yes

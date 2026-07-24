@@ -8,7 +8,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - A confirmation gate that defaults ON forces the caller to pre-empt it every invocation (D28)
   - Drift checks must cover addition (missing agent), not just modification (D38)
   - Widening a threshold table needs every downstream decision point checked, not just the table (D39)
-Related: ../../current.md (index), ../agent-architecture.md (router), ../doc-condensation.md
+Related: ../current.md (feature index), ../../doc-condensation/current.md, ../../madr-structure/current.md
 Last updated: 2026-07-20
 -->
 
@@ -135,3 +135,24 @@ Chosen: raised the three file-count tiers **≤15/16–40/41+ → ≤30/31–80/
 - Plugin version bumped 1.116.7→1.117.0 (minor bump: removes a documented mode, not a patch-level tweak).
 
 **Status**: committed · **Reversible**: yes (light mode can be reintroduced if the extra agent spend on trivial sessions proves unwanted)
+
+---
+
+### D40 — Template-Drift Check's Delegated Diff Missed Field-Level Drift — committed — 2026-07-24
+
+**Problem**
+Running `agent-setup`'s Step 5 on Autorentic's 8 generated agents, the Template-drift item's `diff` instruction was executed by delegating a single agent to summarize all 8 file-vs-template diffs in prose (~400-word budget). That agent correctly caught a whole-block issue (`code-reviewer.md` carrying a stray `Write`/`Edit` tool grant) but reported "no drift" on 5 files that, on direct `grep "^description:"`, had visibly thinner trigger descriptions than their templates — missing the newer cue-phrase/negative-guidance pattern entirely. A second manual check then found a third defect the same diff agent missed: 6 of 8 files carried an `Agent`-tool inline comment copy-pasted from `Explore`'s template line, naming the wrong agent (e.g. "lets this Explore spawn..." on `Plan`/`code-simplifier`/`product-reviewer`/`browser-verifier`/`claude-md-pruner`). Both defect classes are real per-field drift that a whole-section prose summary calls "no drift" because nothing whole (section/table/tool) is missing — only a value inside an otherwise-present line.
+
+**Decision**
+Chosen: added a checklist sub-item directly under Template-drift check mandating two specific greps run against BOTH copies directly, not via a delegated summary: `grep "^description:"` (read side-by-side in full, not just present/absent) and `grep -n "  - Agent\|# lets this"` (confirm the comment names THIS agent, not a copy-pasted one).
+
+**Rejected**
+- Telling the delegated diff agent to "be more thorough" or raising its word budget. Why not: the failure mode isn't insufficient effort, it's the unit of comparison — a prose summary naturally compares sections/tables as present-or-absent and has no natural trigger to flag "this line exists in both but reads differently." A larger budget doesn't fix the comparison granularity.
+- Replacing the delegated diff entirely with a mandatory literal `diff -u` dump per file. Why not: whole-file diffs on 8 generated files (each with large filled-in project-specific tables) would be mostly noise; the two targeted greps isolate exactly the fields known to drift (description, per-tool comments) without demanding the caller read 8 full diffs.
+
+**Consequences**
+- `agent-setup` Step 5's Template-drift checklist item now has a mandatory sub-check naming the exact two greps to run directly.
+- No template or generated-agent content changed by this decision — it's a process fix to how drift is VERIFIED, not a new rule about what agents should contain.
+- Plugin version bumped 1.123.9→1.123.10.
+
+**Status**: committed · **Reversible**: yes

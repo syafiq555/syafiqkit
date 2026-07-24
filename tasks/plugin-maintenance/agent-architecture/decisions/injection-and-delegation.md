@@ -5,7 +5,7 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Agents don't inherit CLAUDE.md — conventions must be injected into agent prompts (D1)
   - Orchestrator skills delegate, never inline a sibling's procedure (D4)
   - Correct wiring to invoke a sibling skill doesn't guarantee the model calls it (D15)
-Related: ../../current.md (index), ../agent-architecture.md (router), ../doc-condensation.md
+Related: ../current.md (feature index), ../../doc-condensation/current.md, ../../madr-structure/current.md
 Last updated: 2026-07-20
 -->
 

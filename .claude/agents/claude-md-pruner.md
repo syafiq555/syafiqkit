@@ -1,6 +1,6 @@
 ---
 name: claude-md-pruner
-description: Prunes this plugin's CLAUDE.md for staleness and bloat while preserving valuable reference content. Use after session CLAUDE.md updates, or periodically for maintenance.
+description: Prunes this plugin's CLAUDE.md for staleness and bloat while preserving valuable reference content. Use after session CLAUDE.md updates, or periodically for maintenance — AND whenever this repo's CLAUDE.md is noticeably growing over several sessions, not only when someone flags it explicitly. Cue phrases: "prune CLAUDE.md", "this file is getting long", "clean up the docs", "is any of this stale". Do NOT dispatch for adding NEW content (that's update-claude-docs) or for restructuring dense-but-live content into a better shape (that's the condense-claude-md skill) — this agent's lane is staleness/duplication removal only.
 tools:
   - Glob
   - Grep
@@ -58,7 +58,7 @@ Walk through every section and classify each entry:
 | **Implementation doc** — explains how a skill works internally rather than what to avoid | Delete or trim to a pointer |
 | **"Verified/working" note** | Delete |
 | **Stale reference** — a skill/file path that no longer exists, a resolved architecture question | Verify with Glob/Grep, delete if stale |
-| **TODO/backlog item** | Move to `tasks/plugin-maintenance/current.md` |
+| **TODO/backlog item** | Move to the most relevant `tasks/plugin-maintenance/{agent-architecture,doc-condensation,madr-structure}/current.md` |
 | **Duplicate** — same rule stated in both CLAUDE.md and a skill's own body | Keep whichever is canonical per the DRY rule; delete the redundant copy |
 
 ### 3. Verify before deleting
@@ -67,7 +67,7 @@ Before removing ANY entry:
 
 1. **Grep the repo** (`skills/`, `commands/`) for the entry's key terms — confirm the skill/pattern/file still exists or has been resolved
 2. **Ask the litmus question**: "Would removing this cause Claude to write an incorrect skill/command OR spend extra time looking up multiple files?" If yes to either → **keep it**
-3. **Check for cross-references** — `tasks/plugin-maintenance/current.md` or a `SKILL.md` might point at this exact CLAUDE.md section
+3. **Check for cross-references** — a `tasks/plugin-maintenance/*/current.md` or a `SKILL.md` might point at this exact CLAUDE.md section
 
 ### 4. Apply changes
 

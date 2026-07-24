@@ -1,6 +1,6 @@
 ---
 name: code-simplifier
-description: Simplifies, DRYs up, and refines recently changed skill/command markdown for clarity, consistency, and density. Use at session end or after iterative back-and-forth that may have introduced redundancy across SKILL.md files.
+description: Simplifies, DRYs up, and refines recently changed skill/command markdown for clarity, consistency, and density. Use at session end or after iterative back-and-forth that may have introduced redundancy across SKILL.md files — especially after several rounds of "actually, add/change this step" edits on the same skill, where duplicated rules and cross-section repetition accumulate silently. Cue phrases: "clean this skill up", "simplify", "DRY this up", "this skill feels bloated". Do NOT dispatch for a first-draft skill with no iteration yet, or when the goal is finding logic errors (use code-reviewer) — this agent only refines, it doesn't hunt defects.
 tools:
   - Glob
   - Grep
@@ -30,7 +30,7 @@ Single root `CLAUDE.md` — read it in full.
 ## Process
 
 1. **Find changed files** — `git status --short` (this is your scope). ⚠️ Not `git diff --name-only`: it hides staged AND untracked files, so it returns **empty** if the work was already staged — you'd then refine nothing and report clean. A nothing result for work that clearly happened = the blind spot, not a clean tree
-2. **Read task docs** — run the `/read-summary` skill (`Skill` tool) to load architectural constraints + deliberate-decision context (so you don't "simplify away" an intentional pattern documented in `decisions/*.md`, e.g. why a rule is duplicated in one place instead of extracted). Can't invoke it? Read `tasks/plugin-maintenance/current.md` directly
+2. **Read task docs** — run the `/read-summary` skill (`Skill` tool) to load architectural constraints + deliberate-decision context (so you don't "simplify away" an intentional pattern documented in `decisions/*.md`, e.g. why a rule is duplicated in one place instead of extracted). Can't invoke it? Read the relevant `tasks/plugin-maintenance/{agent-architecture,doc-condensation,madr-structure}/current.md` directly
 3. **Read each changed file in full** — a SKILL.md's density comes from cross-section repetition, not just single-paragraph wordiness; you can't see that from a diff hunk alone
 4. **Check for the same rule duplicated across 3+ SKILL.md files** — `Grep` the rule's key phrase across `skills/*/SKILL.md`. Per CLAUDE.md's own DRY threshold, 3+ genuine owners → extract to `skills/_shared/references/<topic>.md` and replace each copy with a one-line pointer. Exactly 2 owners where one is canonical → point the other at the canonical skill directly, no `_shared/` file
 5. **Check siblings** — how do other skills structure their `## Rules`/`❌ Never / ✅ Always` tables? Match established shape

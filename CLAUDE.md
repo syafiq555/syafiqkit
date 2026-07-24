@@ -146,7 +146,7 @@ No build step — markdown files are interpreted directly.
 | User preferences → skill/command changes, not memory | Plugin `memory/` dir is shared repo — personal prefs go in user's project memory or baked into skill defaults |
 | Commands/skills that need agents → instruct Claude to spawn, not "spawn" directly | Commands are prompts — Claude (the executor) reads and makes Agent tool calls. Same pattern as `/done` |
 | A skill's SCOPE outgrows its NAME → rename it in the same change that widens it | A name that misdescribes scope is a trigger bug, not cosmetics: the description drives model invocation, so a skill named for half its job fires for half its cases. `continue-task` gained a greenfield path and became `tackle` immediately. Renaming is cheap (`git mv` + grep every reference); a stale name silently under-fires forever |
-| Command outgrows "single workflow"? → Migrate to skill; if it's a pure alias into another skill, convert the wrapper itself to a skill (not a command) | A command can only invoke, never reference/point — once its whole body is "go run skill X," it belongs in `skills/`, registering `/name` via its own `name:` frontmatter. Precedent: `write-summary`/`update-summary` → `skills/write-summary`, `skills/update-summary` (thin pointers to `task-summary`); `read-summary`, `update-claude-docs` converted outright when their name matched the target skill (see `tasks/plugin-maintenance/decisions/madr-structure.md` D10) |
+| Command outgrows "single workflow"? → Migrate to skill; if it's a pure alias into another skill, convert the wrapper itself to a skill (not a command) | A command can only invoke, never reference/point — once its whole body is "go run skill X," it belongs in `skills/`, registering `/name` via its own `name:` frontmatter. Precedent: `write-summary`/`update-summary` → `skills/write-summary`, `skills/update-summary` (thin pointers to `task-summary`); `read-summary`, `update-claude-docs` converted outright when their name matched the target skill (see `tasks/plugin-maintenance/madr-structure/decisions/core.md` D10) |
 | Same rule/table duplicated verbatim across 3+ SKILL.md files → extract to `skills/_shared/references/<topic>.md`, replace each copy with a one-line pointer | One-place edits; e.g. `writing-style.md` (no-filler-words, one-idea-per-sentence) is referenced by `task-summary`, `notes-summary`, `update-claude-docs`, `condense-task-doc`, `condense-claude-md`. For a rule that's canonical in ONE skill but referenced elsewhere (not truly shared), point to that skill directly instead (e.g. `task-summary`'s merge rules point to `merge-task-docs`) — don't create a `_shared/` file for a single owner |
 | Never add `disable-model-invocation` unless user explicitly asks | User dislikes it — it drops the skill/command from Claude's context, killing auto-suggestion. Default to proactive invocation |
 | **Every change = version bump** | Bump both version files (see [Version Bumping](#version-bumping)) |
@@ -164,8 +164,8 @@ No build step — markdown files are interpreted directly.
    - Skill references a non-existent terminal skill (e.g. `writing-plans`) — always verify referenced skills exist in `skills/*/SKILL.md` before shipping
    - Same flow described in 4 places (checklist + diagram + prose + after-section) — one `## Steps` section is enough; redundancy causes section drift
    - Judging bloat by line count alone — a dense one-row-per-item table can sit at target line count while individual cells run 800+ characters; use `wc -c` alongside `wc -l` before ranking files by size. Compute the bytes/line ratio with a tool (`echo "scale=1; $(wc -c < f)/$(wc -l < f)" | bc`), never mentally — an eyeballed ratio that lands the wrong side of the ~80-90 threshold inverts the diagnosis (extract vs tighten) and reads as measured
-   - A skill "feels bloated" → run `syafiqkit:update-plugin`'s Step 3a density-pass checklist (stacked warnings, worked anecdotes, cold-path extraction) rather than a from-scratch audit — see `tasks/plugin-maintenance/decisions/doc-condensation/structural-splits.md` D23
-   - Touching ANY skill: the registry lives in **three** hand-maintained places — this file's `## Skills` table, `README.md`'s, and `tasks/plugin-maintenance/current.md`'s. Adding to one is the common miss; the worse failure is silent rot in tables nobody edited (3 skills were absent from this file's table for months while present in README). Never trust them by eye — diff against disk, which is the only source of truth:
+   - A skill "feels bloated" → run `syafiqkit:update-plugin`'s Step 3a density-pass checklist (stacked warnings, worked anecdotes, cold-path extraction) rather than a from-scratch audit — see `tasks/plugin-maintenance/doc-condensation/decisions/structural-splits.md` D23
+   - Touching ANY skill: the registry lives in **two** hand-maintained places — this file's `## Skills` table and `README.md`'s. Adding to one is the common miss; the worse failure is silent rot in tables nobody edited (3 skills were absent from this file's table for months while present in README). Never trust them by eye — diff against disk, which is the only source of truth:
      ```bash
      sed -n '/^### Skills/,/^### Typical/p' CLAUDE.md | grep -oE '^\| `[a-z-]+`' | tr -d '|` ' | sort > /tmp/c.txt
      ls -d skills/*/ | grep -v _shared | sed 's|skills/||;s|/||' | sort > /tmp/d.txt
@@ -173,7 +173,7 @@ No build step — markdown files are interpreted directly.
      ```
    - Inconsistent edits — when changing a concept (e.g., model name), verify all references (headings, body, comments) match
    - Inserting a new warning/callout between two existing table rows — a blank line + prose between `|`-rows splits one Markdown table into two; the second half loses its header separator and can fail to render. Move the callout to a table boundary (before the first row or after the last) instead
-3. **Reference**: `tasks/plugin-maintenance/current.md` for plugin patterns and research
+3. **Reference**: `tasks/plugin-maintenance/{agent-architecture,doc-condensation,madr-structure}/current.md` for plugin patterns and research
 
 ### Design Principles
 
@@ -193,7 +193,7 @@ Commands/skills are prompts — apply these patterns when authoring or refactori
 | **Constitutional (❌ constraints)** | Commands that make routing/write decisions | Add `❌ Never / ✅ Always` table before the action step |
 | **Validation Loop** | Commands that write or modify files | Add numbered self-check after write step: addresses all points? no deletions? format correct? revise if fails |
 
-⚠️ **Don't prescribe visible `<thinking>` blocks in a skill.** Retired 2026-07-16 after zero uptake across 18 skills — reasoning scaffolds belong to the harness/output-style layer, not to skill files, and a skill that hardcodes one fights whatever style is active. See D33 (`tasks/plugin-maintenance/decisions/doc-condensation/structural-splits.md`).
+⚠️ **Don't prescribe visible `<thinking>` blocks in a skill.** Retired 2026-07-16 after zero uptake across 18 skills — reasoning scaffolds belong to the harness/output-style layer, not to skill files, and a skill that hardcodes one fights whatever style is active. See D33 (`tasks/plugin-maintenance/doc-condensation/decisions/structural-splits.md`).
 
 **Skip for**: Simple commands (<3 decision branches), read-only commands (no files written). Adding these to trivial commands adds noise without benefit.
 

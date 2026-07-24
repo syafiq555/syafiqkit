@@ -1,6 +1,6 @@
 ---
 name: task-builder
-description: Implements a scoped, already-triaged slice of work against this project's conventions. Use when a task has been broken into file-partitioned build units and each needs writing. Reads the task doc and CLAUDE.md at runtime so it builds with the project's patterns instead of generic ones. Do NOT use for deciding WHAT to build (that's Plan), for cleanup (code-simplifier), or for review (code-reviewer).
+description: Implements a scoped, already-triaged slice of work against this project's conventions. Use when a task has been broken into file-partitioned build units and each needs writing — dispatch ONE per disjoint file partition, all in the same parallel batch, only after a plan already exists (from Plan or a prior conversation). Cue phrases: "build this slice", "implement unit N", "go build the partitioned tasks". Reads the task doc and CLAUDE.md at runtime so it builds with the project's patterns instead of generic ones. Do NOT use for deciding WHAT to build (that's Plan), for cleanup (code-simplifier), for review (code-reviewer), or for a small single-file change with no partitioning need — just build it directly.
 # NOTE: tools: is deliberately OMITTED — task-builder gets the FULL tool set, including Agent.
 # (CLAUDE.md: the tools: enum can't be appended to, so omitting the line is the only way to
 # grant Agent alongside everything else. Adding a tools: list back in silently revokes it.)
