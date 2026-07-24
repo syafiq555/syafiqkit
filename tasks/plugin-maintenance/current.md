@@ -6,16 +6,16 @@ Related:
   - decisions/agent-architecture.md (ROUTER) — how generated agents inherit conventions + invoke sibling skills; see its 3 sub-files
   - decisions/doc-condensation.md (ROUTER) — fighting duplication/bloat across docs, CLAUDE.md, skills; see its 3 sub-files
   - decisions/madr-structure.md — the MADR format itself: when to use it (now default, D16), pricing, how editing skills handle it
-Last updated: 2026-07-23 — see Quick Start / Last Session (v1.123.1: companion-check gate for update-claude-docs; md-to-pdf chart routing; task-summary compose-condensed rows)
+Last updated: 2026-07-24 — see Quick Start / Last Session (v1.123.8: done's Output-table markdown split fixed; Ownership-guard wording tightened across done/task-summary/condense-claude-md)
 -->
 
 # Plugin Maintenance
 
-**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.123.1.
+**Status**: Reference (ongoing) — index for a whole-doc MADR decision log split by theme into `decisions/*.md`. Current version: v1.123.8.
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: Plugin is a mature skill/command system (24 skills, 2 commands, 8 agent templates), v1.123.1. Latest changes since v1.122.1: (1.123.1) `update-claude-docs` Step 1's grep classified a companion-delegated CLAUDE.md's 0-hit search as "New" — a lean index keeps rules in `> 📖`-pointed companion files outside the recursive-grep tree, so a quotable-from-context rule shows 0 hits on disk; fixed with a 4th grep outcome that checks companion targets first; (1.123.0) `md-to-pdf` only described Mermaid *diagrams*, so a chart request got wrongly declined — added a chart-type routing table (`xychart-beta` for trend/comparison) plus two gotchas (pie slices >85% collide labels; `mmdc` exits 0 on unreadable-but-rendered charts); (1.122.5) `task-summary`'s Bugs Fixed/Critical Gotchas rows were written as full investigation narratives at write-time, needing a condense pass every few commits — now composed already-condensed at write time; (1.122.4) `update-plugin` Step 2's cross-skill grep had no Step 4 check that it actually ran — added a validation gate naming the grep or stating none applies (same class as existing D24); (1.122.3) `condense-claude-md` was offering subdir-vs-companion split as a user menu choice instead of running the seam-test grep itself first; (1.122.2) `update-plugin` rule-writing produced an over-fitted rule naming session-specific artifacts — added a generalization instruction + tell (proper noun/literal string/count = over-fit, same class as existing D23). Before that: v1.121.0-1.122.1, see decisions/doc-condensation for the split-index absence-gate work.
+**Where we are**: Plugin is a mature skill/command system (24 skills, 2 commands, 8 agent templates), v1.123.8. Latest changes since v1.123.1: (1.123.8) `done/SKILL.md`'s own Output table had a warning callout wedged between two rows, splitting one GFM table into two broken halves — caught by a docs-only `/done` run's referential-integrity check, fixed by moving the callout to the table boundary; also tightened Ownership-guard wording across `done`/`task-summary`/`condense-claude-md` (incremental hardening of 1.123.5/1.123.2, no new decision); (1.123.7) `read-summary`'s trigger only fired at session start, missing mid-conversation domain/repo shifts — rewrote frontmatter to name three re-trigger points; also fixed `read-summary`'s missing rule against re-deriving a decision the doc already settled and handing it back as a question; (1.123.6) the `git diff` pathspec-resolves-against-CWD trap (not repo root) hit the write-verification command itself — anchored to `git -C "$(git rev-parse --show-toplevel)"`; (1.123.5) `/done`'s concurrency guard only caught a RIVAL writer, missing a prior session's uncommitted work sitting dirty with nobody racing — renamed to **Ownership guard**, added the third tell; (1.123.4) `read-summary`'s Plan Mode delegation had an escape hatch that fired wrongest on the best-written docs — inverted the default to delegate-unless-the-doc-answers-outright; (1.123.3) `task-summary`'s trigger didn't cover mid-session re-entry ("rewrite with proper template" continuing later); (1.123.2) `condense-claude-md`'s failed seam-test (#6) was read as a dead end instead of falling through to the companion split (#7). Before that: v1.121.0-1.123.1, see decisions/doc-condensation for the split-index absence-gate + companion-check-gate work.
 
 **Immediate next actions (in order)**:
 1. Periodically re-run `gh issue list --state open` on `syafiq555/syafiqkit` — consumer-filed issues are the highest-signal bug source and don't surface any other way.
@@ -47,6 +47,8 @@ Last updated: 2026-07-23 — see Quick Start / Last Session (v1.123.1: companion
 - A required section (`Task Status`, `Bugs Fixed`, `Critical Gotchas`, `Next Steps`) may lose every row but never its heading — leave a pointer row rather than deleting the section, or a split doc silently stops showing open work
 - Still over budget after condensing, with the excess being MADR blocks already near their compression floor → that's Step 2's split trigger firing late, not a signal to compress harder; a second aggressive pass on tight prose erodes real content for no line-count gain
 - A CLAUDE.md that delegates detail to companion files (`> 📖` pointers) makes a 0-hit `grep` unreliable for classifying a rule as "New" — the rule may be quotable verbatim from context yet absent on disk because it lives in the pointed-to companion file, not the index. `grep -a` doesn't help (the text is in a different file, not unreadable) — `update-claude-docs` Step 1 now greps companion targets before classifying as New
+- Inserting a new warning/callout BETWEEN two existing Markdown table rows splits one GFM table into two — the half after the interruption loses its header separator and can fail to render. Move the callout to a table boundary (before the first row or after the last), never mid-table. Root CLAUDE.md now carries this in the skill-review checklist
+- `read-summary`'s re-trigger scope was session-start-only in its frontmatter, missing mid-conversation domain/repo shifts and near-end related-doc sweeps — now three explicit re-trigger points, plus a mirror rule against re-deriving a decision the doc already settled
 
 ---
 
@@ -226,10 +228,11 @@ Full ADR content lives in `decisions/*.md` (or one level deeper, `decisions/<the
 
 ---
 
-## Last Session (2026-07-23)
+## Last Session (2026-07-24)
 
-- **v1.122.2-1.123.1 shipped as a docs-only `/done` run** — 5 releases, no application code touched. Two entries (1.122.2, 1.122.4) reinforce existing D23/D24 rather than introducing new decisions — see Gotchas for the one genuinely new pattern (1.123.1's companion-file grep blind spot in `update-claude-docs`). Full per-version detail in CHANGELOG.md.
-- **This doc reconciled from v1.122.1 → v1.123.1** — 5 releases stale (Quick Start, version header, status line). Caught during this `/done` run's docs-only referential-integrity check; same drift pattern as the prior session, underscoring the still-open version-drift gate in Next Steps.
+- **This doc reconciled from v1.123.1 → v1.123.8** — 7 releases stale (Quick Start, version header, status line). Same drift pattern flagged in Next Steps, 4th occurrence of the doc itself lagging shipped versions.
+- **`/done` docs-only run found a real bug in `done/SKILL.md` itself**: a warning callout inserted between two Output-table rows split the GFM table in two. Fixed in place, shipped as v1.123.8 (see Gotchas).
+- **v1.123.8** also tightened Ownership-guard/verify-command wording across `done`/`task-summary`/`condense-claude-md` — no new decision, incremental hardening of 1.123.5/1.123.2.
 
 ---
 

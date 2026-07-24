@@ -33,13 +33,13 @@ Execute all steps in sequence without pausing for confirmation.
 
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
 
-## Concurrency guard — you may not own the whole diff
+## Ownership guard — you may not own the whole diff
 
-⚠️ **Check for another writer BEFORE Step 1.** Two tells: a background `Agent` you spawned is still running, or `git status` shows modified/staged files you never touched (a parallel Claude session). Every writing step below assumes the diff is yours; when it isn't, the default behavior destroys the other writer's work.
+⚠️ **Establish which files are YOURS before Step 1** — every writing step below assumes the diff is yours, and when it isn't the default behavior destroys work you can't see. Three tells, and the third has no other writer at all: a background `Agent` you spawned is still running · `git status` shows files you never touched (a parallel session) · **the tree carries uncommitted work predating this session**. That last one is the quiet case — nothing is racing you, so no guard trips, yet the exposure is identical.
 
-| Step | Default (assumes you own the diff) | With a concurrent writer |
+| Step | Default (you own the whole diff) | When you don't |
 |------|-----------------------------------|--------------------------|
-| 1 (agents) | Partition the `git status --short` file list | Scope every agent to the files **you** changed, and name the contested paths as off-limits — a reviewer handed another session's uncommitted file will "fix" it |
+| 1 (agents) | Partition the `git status --short` file list | Scope every agent to the files **you** changed and name the contested paths off-limits — a reviewer handed another session's uncommitted file will "fix" it. ⚠️ A file partition does not scope a REPO-WIDE command: also ban `git stash`/`checkout -- .`/`reset`/`clean`/`restore` **by name** in every prompt, since a review agent with edit tools runs one as readily as a build agent and takes the unstaged, unrecoverable work with it |
 | 3+4 (skills) | `task-summary` bare, so it multi-domain scans | Do **not** invoke it unscoped — its scan edits the contested docs. Pass a scoped read-only verification arg and say why |
 | Commit | — | Never `git add`/bare `git commit`: it sweeps the other writer's staged work into your commit. Explicit pathspec only (`git commit -m msg -- <your files>`) |
 
@@ -175,6 +175,8 @@ This check is not optional and not covered by the rows below — they audit whet
 | Knowledge | invoked `syafiqkit:update-claude-docs` **and confirmed the target CLAUDE.md changed** (not just launched the skill) | 1 skill call, edits landed |
 | Task docs | invoked `syafiqkit:task-summary` **and re-read the doc to confirm its `Last updated` + content actually changed** — invoking is not updating; a skill that ran as a separate process and silently no-op'd still reads as "invoked" | 1 skill call, doc verified changed |
 | Plugin | invoked `syafiqkit:update-plugin` | **usually absent** — Step 5 fires only when a real skill signal exists. Omit the row when none did; never invent a patch to fill it. (Not-the-owner is NOT a reason to skip — the skill switches to upstream-report mode.) |
+
+⚠️ **Verify the Knowledge/Task docs rows with `git -C "$(git rev-parse --show-toplevel)" diff HEAD --stat -- <repo-relative-path>`, never bare `git diff`.** Two blind spots make a landed write read as a missing one, both silent: a target staged earlier shows nothing in the unstaged plane, and a **pathspec resolves against CWD, not the repo root** — so a repo-relative path run from inside a subdirectory returns empty with exit 0. Anchoring to the toplevel closes both. **An empty result is inconclusive, never proof the write is missing** — fall through to a grep for the text you just wrote before concluding anything.
 
 A row you cannot substantiate is a step you skipped — go run it now rather than writing `✅` beside it. If you spawned agents of only ONE role in Step 1, the step is half-run: spawn the missing role before proceeding. (Plugin is the one row where absence is the norm, not a miss.)
 

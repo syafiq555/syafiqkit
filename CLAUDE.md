@@ -172,6 +172,7 @@ No build step — markdown files are interpreted directly.
      comm -13 /tmp/c.txt /tmp/d.txt   # any output = rows missing from CLAUDE.md
      ```
    - Inconsistent edits — when changing a concept (e.g., model name), verify all references (headings, body, comments) match
+   - Inserting a new warning/callout between two existing table rows — a blank line + prose between `|`-rows splits one Markdown table into two; the second half loses its header separator and can fail to render. Move the callout to a table boundary (before the first row or after the last) instead
 3. **Reference**: `tasks/plugin-maintenance/current.md` for plugin patterns and research
 
 ### Design Principles

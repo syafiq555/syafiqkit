@@ -1,6 +1,6 @@
 ---
 name: task-summary
-description: Create or update task summary documentation (current.md). Handles path resolution, domain inference, template selection, cross-references. Use for any task documentation workflow.
+description: Create, update, or rewrite task summary documentation (current.md and its decisions/*.md theme files). Handles path resolution, domain inference, template selection, cross-references, Quick Start writing, and splitting an oversized theme file into sub-files. Use for ANY task documentation workflow — including "rewrite with proper template", "conform to template", "add a Quick Start", or continuing/finishing doc work from an earlier turn in the same session — even if the template shape is already known from a prior read. Invoke this skill fresh each time rather than editing docs directly against a recalled structure; its rules (condense/split thresholds, validation greps) can move between sessions.
 ---
 
 # Task Summary
@@ -57,7 +57,7 @@ Litmus tests before finishing (also see Validate §5.8): (1) grep the doc for `c
 
 ## 1. Resolve Path
 
-⚠️ **Before scanning: is another writer mid-rewrite on these docs?** A background `Agent` still running, or `git status` showing `tasks/` files you never touched (a parallel session). If so, do NOT run the multi-domain scan — it will edit the contested docs and clobber work you can't see. Verify read-only instead (report gaps for the owner to fix), or scope to the one doc you own. A writer reads a file when it starts, not when it finishes.
+⚠️ **Before scanning: do you own these docs?** Three tells that you don't — a background `Agent` still running · `git status` showing `tasks/` files you never touched (a parallel session) · **uncommitted doc edits predating this session** (a prior session that never committed). The third has no rival writer, so nothing looks contested, yet an unscoped scan rewrites those docs just the same. Any tell → do NOT run the multi-domain scan. Verify read-only instead (report gaps for the owner to fix), or scope to the doc you actually own. A writer reads a file when it starts, not when it finishes.
 
 | Input | Action |
 |-------|--------|
