@@ -16,6 +16,12 @@ Referenced by skills whose workflow has a pure file-discovery / grep-sweep sub-s
 
 ⚠️ **`run_in_background: false` does NOT guarantee a blocking call — do not build a step around it blocking.** Since Claude Code v2.1.198 [subagents run in the background **by default**](https://code.claude.com/docs/en/sub-agents); `false` is a hint Claude may honour "when it needs the result before continuing", and [issue #69691](https://github.com/anthropics/claude-code/issues/69691) (OPEN) reports it is honoured in child sessions and **ignored in top-level interactive ones**. Pass it — it costs nothing and expresses intent — but write the step so an async return is fine: results arrive as a `<task-notification>` and are never lost. **Never poll** (`sleep`/`ScheduleWakeup`/`TaskOutput`) waiting for one, and never Read an agent's `.output` file (it's the full subagent JSONL — it overflows context).
 
+⚠️ **Delegating JUDGMENT anyway (an audit: "find every place matching this defect definition")? Two more clauses — an agent handed a definition treats its absence as its own failure and stretches it until something matches.** Requiring a count doesn't help; findings are the number it inflates.
+1. "Quote the line verbatim with its line number, and name which clause of the definition it satisfies" — a finding that can't cite both is the agent reasoning toward a match.
+2. "An unqualified 'clean' is not acceptable — say which steps you checked and why each is unexposed" — this inverts the reliability: enumerated *clean* verdicts hold up, unverified *findings* do not.
+
+Re-verify every finding against the file yourself before acting; the quotes make that cheap. **Tell: an agent's own quoted line disproves the finding it filed.**
+
 **Fallback:** no `Explore`-capable context (e.g. running inside an agent that can't itself spawn agents)? Run the same `grep` (never `rg`) directly in Bash instead.
 
 **Zero-candidate result:** treat exactly like an inline empty grep — don't conclude "no doc exists" from Explore's report alone. Re-run its search with a control query that must hit before accepting the empty result.

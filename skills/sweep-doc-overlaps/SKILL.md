@@ -52,7 +52,15 @@ Present the surviving candidates as one table, same format as `merge-task-docs` 
 
 ### Step 4 — Hand off
 
-Don't merge inline. For each confirmed group, invoke `merge-task-docs` (Skill tool) with that specific source/target pair — it owns the actual read-full/write/delete/reconcile workflow, its own `AskUserQuestion` forks (scope/structure/naming), and back-reference sweep. Running the merge logic here would duplicate it and risk drifting out of sync. Zero confirmed groups → the Step 3 summary line is the terminal output; nothing to hand off.
+Don't merge inline. For each confirmed group, invoke `merge-task-docs` (Skill tool) with that specific source/target pair — it owns the actual read-full/write/delete/reconcile workflow, its own `AskUserQuestion` forks (scope/structure/naming), and back-reference sweep. Running the merge logic here would duplicate it and risk drifting out of sync.
+
+⚠️ **Zero confirmed groups is a claim about the sweep, not about the tree — prove the sweep could have returned something before accepting it.** An all-`keep separate` result and a sweep that silently failed produce the identical Step 3 summary line (`"N pairs checked, correctly separated"`), and that line reads to the user as a verified all-clear. The verdicts are delegated (Step 2), so any batch agent that mis-scoped its `ls`, read the wrong domain dirs, or returned an empty table contributes zeroes that compile into a confident N. Before terminating on zero, confirm all three:
+
+1. **N reconciles with the Step 1 inventory** — every domain dir appears in some batch's report; a domain silently absent is a failed batch, not a clean one.
+2. **At least one batch returned a non-trivial `keep separate` verdict with a stated reason** — a batch whose every row is bare "no overlap" never read the docs.
+3. **Spot-check one `keep separate` pair yourself** — Step 2's own note calls every batch verdict provisional; that spot-check is what makes the zero-candidate exit trustworthy, and it is the ONLY path where no candidate forces you to look at a doc.
+
+Any of the three failing → re-run the affected batch, don't report the sweep clean. Only once all three hold is the Step 3 summary line the terminal output, with nothing to hand off. (Sibling rule: `merge-task-docs` Step 6 carries the same must-hit control on its post-merge scan.)
 
 ## Rules
 

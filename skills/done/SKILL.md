@@ -33,7 +33,15 @@ Execute all steps in sequence without pausing for confirmation.
 - Steps 2-4 as normal. Output: mark Simplify/Product as ➖ "infra-only".
 - ⚠️ **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer.
 
+**Ops-only mode** when the session changed a **running system rather than the repo** — provisioning/seeding an environment, a data migration or backfill, a deploy or config flip applied out-of-band — and produced **no repo diff and no session commit** in any repo. Throwaway scripts written outside a repo (scratchpad/tmp) are not a diff; they are never committed and never re-run.
+- Step 1: **skip all three code agents** — there is no repo code to review, and an empty partition returns a green report that means nothing. Do NOT substitute the docs-only integrity check either; nothing was edited yet at that point.
+- ⚠️ **The state you changed is the deliverable, so verification is a READ-BACK, not an agent.** Query the live system for each value the session claimed to set and report what it returned — an action's own return value is not evidence. This replaces Step 1's Output row.
+- Steps 2-5 as normal, and **Step 4 is the whole point**: a live-system change leaves no trace in `git log`, so the task doc is the only place it exists. Record what changed, in which environment, and anything synthetic/temporary that a later reader must not mistake for real.
+- Output: mark Simplify/Review/Product as ➖ "ops-only, no repo diff"; report the read-back on the Review row.
+
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
+
+⚠️ **An empty `git status --short` does not by itself select a no-code mode — establish WHY it's empty first.** Three causes look identical and need opposite handling: work already committed this session (→ full mode, count off the base commit), another writer's tree you don't own (→ see the ownership guard), or the session genuinely never touched the repo (→ ops-only). **Tell: you're skipping Step 1 because there was "nothing to review" without having named which of the three applies.**
 
 ## Ownership guard — you may not own the whole diff
 
@@ -200,9 +208,9 @@ One combined table. Detail only what was actually WRITTEN or FIXED — never enu
 
 | Step | Result |
 |------|--------|
-| Simplify | [changes made, or ✅ none needed; ➖ docs-only] (full mode only) |
-| Review | [issues found + fixed, or ✅ clean; in docs-only mode = referential-integrity result] |
-| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / docs-only / infra-only mode] (full mode only) |
+| Simplify | [changes made, or ✅ none needed; ➖ docs-only / ops-only] (full mode only) |
+| Review | [issues found + fixed, or ✅ clean; docs-only = referential-integrity result; ops-only = live read-back] |
+| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / docs-only / infra-only / ops-only mode] (full mode only) |
 | Cleanup | [removed, or ➖] |
 | Knowledge | [N entries → target files, one line each; "0 new" if none] |
 | Task docs | [doc path → one-line summary of the update] |

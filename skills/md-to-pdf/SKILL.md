@@ -30,10 +30,13 @@ Both run via `npx` — no global install required.
 ### 1. Check for Mermaid diagrams
 
 ```bash
+grep -c '' <input.md>          # control: total lines — MUST be > 0
 grep -c '```mermaid' <input.md>
 ```
 
 If count > 0 → proceed to Step 2. If 0 → skip to Step 4.
+
+⚠️ **A `0` mermaid count is only meaningful once the control line proves the file was actually read.** `grep -c` returns `0` identically for three different situations: no diagrams (the intended case), an unreadable/wrong path (the error goes to stderr, which a captured invocation discards), and a file ugrep classified as **binary** from a single NUL byte and skipped silently. The last one is live here — these docs are often generated or concatenated by other tooling. If the control returns `0` on a file `awk 'END{print NR}' <input.md>` counts lines in, re-run both with `grep -a`. Skipping to Step 4 on an unproven `0` ships a PDF with every diagram rendered as a raw code fence, and reports success.
 
 ### 2. Extract and render Mermaid diagrams
 

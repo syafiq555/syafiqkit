@@ -8,8 +8,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - A confirmation gate that defaults ON forces the caller to pre-empt it every invocation (D28)
   - Drift checks must cover addition (missing agent), not just modification (D38)
   - Widening a threshold table needs every downstream decision point checked, not just the table (D39)
+  - A verification whose input is empty emits the same output as a genuine pass — name the empty case, don't trust the checker (D49)
 Related: ../current.md (feature index), ../../doc-condensation/current.md, ../../madr-structure/current.md
-Last updated: 2026-07-20
+Last updated: 2026-07-26
 -->
 
 # Agent Architecture — Verification Rigor & Self-Audit
@@ -138,7 +139,7 @@ Chosen: raised the three file-count tiers **≤15/16–40/41+ → ≤30/31–80/
 
 ---
 
-### D40 — Template-Drift Check's Delegated Diff Missed Field-Level Drift — committed — 2026-07-24
+### D48 — Template-Drift Check's Delegated Diff Missed Field-Level Drift — committed — 2026-07-24 · renumbered from D40 (2026-07-26, collided with doc-condensation's older D40)
 
 **Problem**
 Running `agent-setup`'s Step 5 on Autorentic's 8 generated agents, the Template-drift item's `diff` instruction was executed by delegating a single agent to summarize all 8 file-vs-template diffs in prose (~400-word budget). That agent correctly caught a whole-block issue (`code-reviewer.md` carrying a stray `Write`/`Edit` tool grant) but reported "no drift" on 5 files that, on direct `grep "^description:"`, had visibly thinner trigger descriptions than their templates — missing the newer cue-phrase/negative-guidance pattern entirely. A second manual check then found a third defect the same diff agent missed: 6 of 8 files carried an `Agent`-tool inline comment copy-pasted from `Explore`'s template line, naming the wrong agent (e.g. "lets this Explore spawn..." on `Plan`/`code-simplifier`/`product-reviewer`/`browser-verifier`/`claude-md-pruner`). Both defect classes are real per-field drift that a whole-section prose summary calls "no drift" because nothing whole (section/table/tool) is missing — only a value inside an otherwise-present line.
@@ -154,5 +155,53 @@ Chosen: added a checklist sub-item directly under Template-drift check mandating
 - `agent-setup` Step 5's Template-drift checklist item now has a mandatory sub-check naming the exact two greps to run directly.
 - No template or generated-agent content changed by this decision — it's a process fix to how drift is VERIFIED, not a new rule about what agents should contain.
 - Plugin version bumped 1.123.9→1.123.10.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D49 — A Verification Step Whose Input Is Empty Reports a Pass, Not a Gap — committed — 2026-07-26 · renumbered from D44 (2026-07-26, collided with doc-condensation's older D44)
+
+**Problem**
+Two skills shipped the same defect in one release. `done`'s mode table (docs-only / infra-only / full) presupposed a repo diff, so a session that provisioned a production demo account entirely through `tinker` — clean tree, no session commit, only throwaway scratchpad scripts — matched no mode; Step 1 was skipped by improvisation, and an empty file partition handed to the three code agents would have returned a green report meaning nothing. Independently, `ship` Step 4 was singular throughout and literally ran `gh run list --limit 1`: a Dourr ship pushed `master` and forward-merged `production` seconds apart, starting two runs; the polled run passed while its sibling failed all 3 SSH retries, leaving staging a commit behind while the ship reported green. The user found out by email. Both share one shape — the check ran, found nothing to object to *because it was looking at nothing*, and emitted the same output as a genuine pass.
+
+**Decision**
+Chosen: name the empty-input case explicitly at each site rather than trusting the checker. `done` gains an **ops-only mode** (skip the three code agents; verify by reading the live system back, since an action's own return value is not evidence; Step 4 becomes the point of the run because a live-system change leaves no trace in `git log`), plus a rule that an empty `git status --short` does not by itself select a no-code mode — committed-this-session, another writer's tree, and no-repo-work look identical and need opposite handling. `ship` moves to `--limit 5 --json workflowName,status,conclusion,attempt,headSha`, must re-list at the end and assert zero unresolved failures across all runs, and records that a retried run reuses its id — so a stale failure email and a currently-green run can name the same id, and only `attempt` + `conclusion` settle it.
+
+**Rejected**
+- Letting the three code agents run against an empty partition in ops-only sessions. Why not: it produces a clean report indistinguishable from a real one, which is worse than an acknowledged skip — it manufactures the evidence of review that `done`'s Output table then reports as fact.
+- Treating the second CI run as the caller's problem to notice. Why not: the ship is the step that created both runs, so it owns the assertion; the failure surfaced via a user's inbox, precisely the notification path a ship exists to make unnecessary.
+
+**Consequences**
+- `done` has a fourth mode and a companion disambiguation rule above Full mode; its Output table's Simplify/Review/Product rows accept `➖ ops-only`.
+- `ship` Step 4 asserts across all runs a push started, not one id; Step 5 gained an issue-tracker item (post in the same run when the project documents a tracker, searching before creating).
+- A hand-fix applied on a deploy target must go through git — a `reset --hard` deploy discards it silently, and only gitignored env files legitimately live server-side.
+- Generalizes D25's must-hit control from a *scan's* zero-result exit to any verification whose input can be empty.
+- Plugin version 1.123.25→1.123.27.
+
+**Status**: committed · **Reversible**: yes (each rule is additive; reverting one leaves the others intact)
+
+---
+
+### D47 — Fleet Audit Closed Both Open Rows: D24 Is `done`-Only, D49 Hit Two More Skills — committed — 2026-07-26
+
+**Problem**
+D24 and D49 each left an audit row open: whether any skill besides `done`/`ship` carried the self-caught-deviation blind spot, and whether any carried the empty-input-pass shape. Both were unexamined across the other 19 substantive skills, and neither is visible without reading each file against the definition — no grep expresses either shape.
+
+**Decision**
+Chosen: audit all 19 in one pass (both shapes per file, since one read covers both), delegated to four `Explore` agents partitioned by FILE so no two could contradict each other on the same line, each reading this ADR file directly rather than a paraphrase. Results:
+- **D24: clean.** The shape requires a *reporting* gate — a step deciding what to tell the user about problems. `done` Step 5 is the only one in the plugin; `update-plugin` is the near-equivalent and already names deviation in its Step 1 signal table. Constraint tables (`brainstorming`'s HARD-GATE, `gchat-format`'s completeness check) decide what to do next, not what to report, and are not the shape.
+- **D49: two confirmed, both fixed.** `sweep-doc-overlaps` Step 4 terminated on zero merge candidates with no control, and because Step 2 delegates every verdict to batch agents, one mis-scoped batch contributes zeroes that compile into `"N pairs checked, correctly separated"` — a line the user reads as verified. Now gated on three checks (inventory reconciliation, a reasoned `keep separate` returned, one pair spot-checked inline). `md-to-pdf` Step 1 branched on a bare `grep -c` whose `0` is identical for no-diagrams, unreadable path, and a NUL-byte binary skip; gained a `grep -c ''` control and the `grep -a` recovery.
+- Left alone: `hobby-review` Step 5's unverified "after the conversation naturally reaches the 3 gates" — real but soft guidance, and it writes nothing.
+
+**Rejected**
+- Partitioning the agents by defect shape instead of by file. Why not: two agents would each read all 19 files for double the cost, and neither would hold the other's context on a shared line.
+- Accepting the agents' findings as reported. Why not: 3 of 4 filed findings that did not survive re-verification against the file — one quoted the very line disproving its own claim (`condense-task-doc` step 6 already carries "zero deletions means this step wasn't done"). An agent handed a defect definition treats the definition's absence as its own failure. Their *clean* verdicts were the reliable half, because the prompt required each to enumerate which steps were checked rather than assert "clean".
+
+**Consequences**
+- Both `## Next Steps` audit rows are answered and removed.
+- `sweep-doc-overlaps` inherits the must-hit control `merge-task-docs` has carried since D25 — the discovery front-end deciding whether the merge runs at all never got it, only the skill with the destructive step did. A shared-mechanism fix should have swept both then.
+- Generalizes the delegation lesson to a global `~/.claude/CLAUDE.md` agent-bootstrap row: an audit agent's findings need per-finding verbatim quotes plus your own re-verification; its clean verdicts need enumerated scope.
+- Folded into unreleased 1.123.27 rather than minting a version — same D49 theme as that entry's existing content.
 
 **Status**: committed · **Reversible**: yes

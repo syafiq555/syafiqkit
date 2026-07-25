@@ -5,7 +5,7 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../agent-architecture/current.md (sibling feature — how generated agents inherit conventions + invoke sibling skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-25 — D45: a heterogeneous companion split needs one file per topic cluster, not one grab-bag file; D46: the companion lever needs a budget gate before firing
+Last updated: 2026-07-26 — ADR-id collisions resolved in agent-architecture's favour of age: this feature's D40/D44 keep their numbers; the missing uniqueness gate is now a Next Step alongside the version-drift one
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
@@ -14,8 +14,7 @@ Last updated: 2026-07-25 — D45: a heterogeneous companion split needs one file
 
 **Where we are**: How the plugin fights duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage. 15 committed decisions across 3 themed sub-files.
 
-**Immediate next actions (in order)**:
-1. `plugin.json`/`marketplace.json` version drift hit its 3rd occurrence (D26 2026-07-15, 2026-07-17, 2026-07-22) — a pre-commit check or single-source-of-truth version file is still the only open item.
+**Immediate next actions (in order)**: see `## Next Steps` — both open items are missing automated gates (version-file drift, ADR-id uniqueness).
 
 **Gotchas that will trip you**:
 - A MADR block needs its own condensation rule shipped in the same change that introduces it — see D13 (../madr-structure/decisions/core.md)
@@ -24,7 +23,8 @@ Last updated: 2026-07-25 — D45: a heterogeneous companion split needs one file
 - Pre-existing plan/spec docs sitting next to a split `current.md`/`decisions/` set are a different document type, never move them into `decisions/` — but their routing table must still enumerate them — see D27 (decisions/structural-splits.md)
 - A large doc rewrite's "no rows deleted" check only covers the change's intended content — it misses collateral cuts to unrelated sections; requires a full before/after section diff — see D27 (decisions/structural-splits.md)
 - A diff adding a `<content>`-leak guard is not proof the leak is gone — grep the diff's own touched files AND sweep the whole repo for the literal tag — see D40 (decisions/duplication-and-integrity.md)
-- `plugin.json`/`marketplace.json` version drift recurs (3rd occurrence, 2026-07-15 D26 → 2026-07-17 → 2026-07-22): a version bump to one file without the other passes silently, no automated gate exists
+- **`D<n>` ids are one sequence shared by all three sibling features, and renumbering to fix a collision has itself caused one** — this file's D40 was renumbered off a duplicate D32 into an id `agent-architecture` later took (since resolved: theirs became D48/D49, these keep D40/D44). Re-run `uniq -d` across all three `*/decisions/*.md` AFTER writing, never just before — see ../agent-architecture/current.md Next Steps
+- `plugin.json`/`marketplace.json` version drift recurs and passes silently — see D26 (decisions/structural-splits.md) and `## Next Steps`
 - Condensation/duplication-scan units are the doc SET (`current.md` + `decisions/*.md`), never the single named file — a set member holding 2× the index's bytes goes untouched if the pass scopes to args only
 - A split index (`current.md` + `decisions/<theme>.md`) keeps THREE things, not two — Quick Start, doc-wide operational tables, and a routing table. Only per-theme detail moves down — see D41 (decisions/structural-splits.md)
 - A multi-domain fan-out (one whole-doc MADR → several sibling feature folders, no surviving parent index) has NO home for doc-wide content that isn't any one theme's — a skill registry table or cross-domain decision index gets silently dropped instead of migrated. `condense-task-doc`'s split rule only covers the single-domain case (index + its own `decisions/`); this session's `plugin-maintenance/current.md` → 3 sibling folders split had no index tier, so its `### Current Skills` and `## Architecture Decisions Index` tables had nowhere to go and were caught only by `/done`'s referential-integrity pass, not by the split itself
@@ -67,7 +67,9 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 ## Next Steps
 
-_(none open)_
+**Automated gates**
+- [ ] `plugin.json`/`marketplace.json` version drift — 3rd occurrence (D26 2026-07-15, then 2026-07-17, 2026-07-22). A bump to one file without the other passes silently; a pre-commit check or single-source-of-truth version file is the open fix.
+- [ ] ADR-id uniqueness has no post-write gate — the same "silently passes" shape as the row above. Mechanism + fix owned by [../agent-architecture/current.md](../agent-architecture/current.md) Next Steps. This feature's D40/D44 were the older ids and kept their numbers; nothing further is owed here.
 
 ---
 
