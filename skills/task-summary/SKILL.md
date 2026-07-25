@@ -57,7 +57,7 @@ Litmus tests before finishing (also see Validate §5.8): (1) grep the doc for `c
 
 ## 1. Resolve Path
 
-⚠️ **Before scanning: do you own these docs?** Three tells that you don't — a background `Agent` still running · `git status` showing `tasks/` files you never touched (a parallel session) · **uncommitted doc edits predating this session** (a prior session that never committed). The third has no rival writer, so nothing looks contested, yet an unscoped scan rewrites those docs just the same. Any tell → do NOT run the multi-domain scan. Verify read-only instead (report gaps for the owner to fix), or scope to the doc you actually own. A writer reads a file when it starts, not when it finishes.
+⚠️ **Before scanning: do you own these docs?** Settle it by diff CONTENT, never by status plane (`_shared/references/diff-ownership.md`) — auto-staging makes your own writes indistinguishable from another writer's staged work. Three tells that you don't — a background `Agent` still running · `git status` showing `tasks/` files you never touched (a parallel session) · **uncommitted doc edits predating this session** (a prior session that never committed). The third has no rival writer, so nothing looks contested, yet an unscoped scan rewrites those docs just the same. Any tell → do NOT run the multi-domain scan. Verify read-only instead (report gaps for the owner to fix), or scope to the doc you actually own. A writer reads a file when it starts, not when it finishes.
 
 | Input | Action |
 |-------|--------|

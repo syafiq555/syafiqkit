@@ -12,6 +12,8 @@ Referenced by skills whose workflow has a pure file-discovery / grep-sweep sub-s
 
 ⚠️ **Spawning several? Every `Agent` call goes in ONE assistant message** — that block IS the parallelism. One-per-message serialises them regardless of any flag.
 
+**Emit with NO prose before the calls** — no count, no plan, no "spawning N now". Narration is what ends a message after call #1; with nothing to finish saying, the rest follow. Sent a short block anyway? Next message is calls-only for the missing agents — a serialised batch still completes, an abandoned one doesn't.
+
 ⚠️ **`run_in_background: false` does NOT guarantee a blocking call — do not build a step around it blocking.** Since Claude Code v2.1.198 [subagents run in the background **by default**](https://code.claude.com/docs/en/sub-agents); `false` is a hint Claude may honour "when it needs the result before continuing", and [issue #69691](https://github.com/anthropics/claude-code/issues/69691) (OPEN) reports it is honoured in child sessions and **ignored in top-level interactive ones**. Pass it — it costs nothing and expresses intent — but write the step so an async return is fine: results arrive as a `<task-notification>` and are never lost. **Never poll** (`sleep`/`ScheduleWakeup`/`TaskOutput`) waiting for one, and never Read an agent's `.output` file (it's the full subagent JSONL — it overflows context).
 
 **Fallback:** no `Explore`-capable context (e.g. running inside an agent that can't itself spawn agents)? Run the same `grep` (never `rg`) directly in Bash instead.

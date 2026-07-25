@@ -5,7 +5,7 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../agent-architecture/current.md (sibling feature — how generated agents inherit conventions + invoke sibling skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-25 — D44: a file's own declared size budget outranks the skill default (issue #9); detection extracted to `_shared/references/declared-budget.md`
+Last updated: 2026-07-25 — D45: a heterogeneous companion split needs one file per topic cluster, not one grab-bag file; D46: the companion lever needs a budget gate before firing
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
@@ -31,6 +31,8 @@ Last updated: 2026-07-25 — D44: a file's own declared size budget outranks the
 - A required section (`Task Status`, `Bugs Fixed`, `Critical Gotchas`, `Next Steps`) may lose every row but never its heading — leave a pointer row rather than deleting the section
 - A CLAUDE.md that delegates detail to companion files (`> 📖` pointers) makes a 0-hit `grep` unreliable for classifying a rule as "New" — `update-claude-docs` Step 1 now greps companion targets before classifying
 - Inserting a new warning/callout BETWEEN two existing Markdown table rows splits one GFM table into two — move the callout to a table boundary instead
+- A heterogeneous companion split needs one file per topic cluster, not one grab-bag file — dumping a multi-topic block into a single `CLAUDE-<topic>.md` recreates the dense-wall problem one file over — see D45 (decisions/structural-splits.md)
+- "Split by category" names a shape, not a location — the companion lever fires only when the source file is ALSO over budget, not on request alone — see D46 (decisions/structural-splits.md)
 
 ---
 
@@ -45,7 +47,7 @@ Decisions about fighting duplication and bloat across task docs, CLAUDE.md files
 | # | Task | Status |
 |---|------|--------|
 | 1 | Fix bloat at the generator, not by hand-trimming (D3, D6, D17, D18, D19, D20) | ✅ |
-| 2 | Structural splits — byte thresholds, skill density, companion files, plan-doc typing (D22, D23, D26, D27, D33) | ✅ |
+| 2 | Structural splits — byte thresholds, skill density, companion files, plan-doc typing (D22, D23, D26, D27, D33, D45, D46) | ✅ |
 | 3 | Duplication detection + leak-guard integrity (D37, D40, D12) | ✅ |
 | 4 | Version-drift automated gate (plugin.json/marketplace.json) | ⏳ Pending — 3rd recurrence |
 
@@ -58,7 +60,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 | File | Read if you're asking |
 |------|------------------------|
 | [decisions/bloat-generator-fixes.md](decisions/bloat-generator-fixes.md) | *Where does the plugin fix doc bloat — at the generator (task-summary rules) or by hand-trimming? What structural levers exist for over-budget CLAUDE.md? What if the file declares its own budget?* (D3, D6, D17, D18, D19, D20, D44) |
-| [decisions/structural-splits.md](decisions/structural-splits.md) | *When does a doc/CLAUDE.md/skill need a structural split (byte thresholds, companion files, plan-doc typing) instead of denser prose?* (D22, D23, D26, D27, D33) |
+| [decisions/structural-splits.md](decisions/structural-splits.md) | *When does a doc/CLAUDE.md/skill need a structural split (byte thresholds, companion files, plan-doc typing) instead of denser prose?* (D22, D23, D26, D27, D33, D45, D46) |
 | [decisions/duplication-and-integrity.md](decisions/duplication-and-integrity.md) | *How does the plugin catch duplicated facts (within/across docs) and verify a fix actually landed everywhere?* (D37, D40, D12, demoted D2/D5/D7/D11) |
 
 ---

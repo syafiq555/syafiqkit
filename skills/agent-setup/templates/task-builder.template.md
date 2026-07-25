@@ -67,6 +67,7 @@ You have the full tool set and no allowlist. That is deliberate, and it means **
 - Match surrounding code's naming, idiom, and comment density
 - Reuse an existing helper/component over writing a new one
 - Follow the approach handed to you; if it's wrong, say so before building, not after
+- ⚠️ Told to "mirror"/"copy the pattern from" a named file? Resolve the convention against its documented source (the CLAUDE.md rule, the canonical helper) before copying — a sibling file is evidence of the convention, never proof of it. Copying its defect reads as faithful work and passes every gate. Say so if the two disagree
 - Read the whole file before your first `Edit` (the harness only tracks `Read`-tool reads)
 
 **Do NOT:**

@@ -117,3 +117,41 @@ Chosen: retire the CoT row from CLAUDE.md's prompting-techniques table and close
 - Absence of uptake is admissible evidence for retiring a recommendation — a monitoring item that never fires has reported its result.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D45 — A Heterogeneous Companion Split Needs One File Per Topic Cluster, Not One Grab-Bag File — committed — 2026-07-24
+
+**Problem**
+D26 widened the companion lever to any oversized cross-cutting section but assumed the source block was one coherent topic. Asked to shrink a 285-line `backend/CLAUDE.md` whose ~155-row gotchas table spanned Tenancy, OAuth/MyDigital ID, SMS/OTP, Trust/Bricks, PDF-stamping, and blog-sync bugs, the first pass trimmed row prose (56KB→47KB) and, on request for more, dumped every moved row into one `CLAUDE-backend-gotchas.md` — same dense-wall problem, new address. The user caught it twice: a minimap screenshot showing the file still read as one unbroken block despite the byte win, then "not all need to be in a single file."
+
+**Decision**
+Chosen: `condense-claude-md` Restructuring #7 now requires clustering moved rows by topic FIRST (grep each row's subject noun/class name, group matches), then writing one narrow `.claude-companions/<shared|local>/CLAUDE-<topic>.md` per cluster — or routing a cluster to an existing domain subdir CLAUDE.md when one already owns that topic, instead of a new companion. Process #5's exit criteria gained a matching check: byte reduction from row-trimming alone doesn't prove a still-single oversized table stopped reading as one block — re-run the atomic-file gate's multi-topic question before declaring done.
+
+**Rejected**
+- Treating the byte/line drop as sufficient completion evidence. Why not: a tightened single companion can hit its byte target while a reader checking one symptom still scrolls past five unrelated topics — the file itself becomes the next thing needing a split.
+- Splitting by row count instead of topic (e.g. first half / second half). Why not: defeats the pointer's purpose exactly like D26's rejected single-generic-trigger-phrase option — a reader can't predict which arbitrary half holds their symptom.
+
+**Consequences**
+- Final split (reference, not a rule): 64 of 141 rows moved to 4 new topic companions (`CLAUDE-oauth-gotchas.md`, `CLAUDE-sms-otp-gotchas.md`, `CLAUDE-blog-guide-sync-gotchas.md`, `CLAUDE-backend-misc-gotchas.md`) + 2 clusters routed to existing domain files (`Tenancy/CLAUDE.md`, `Trust/CLAUDE.md`) instead of a companion. `backend/CLAUDE.md` landed at 32,799 bytes (−42% from 56,322), each companion independently under 6KB.
+- `read-summary` and `update-claude-docs` checked (shared-mechanism grep) — both already describe consuming "a" companion file generically, not "the" one file; needed no change.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D46 — The Third Structural Lever (Manual Companion File) Needed a Budget Gate Before Firing — committed — 2026-07-25
+
+**Problem**
+`update-claude-docs`'s companion lever had no size gate — reachable from a bare "split by category" request even when the source file was nowhere near budget. Asked to split a 216-line `backend/CLAUDE.md`'s 79-row gotchas table "by category," the skill jumped straight to extracting 4 new `.claude-companions/shared/*.md` files, when the file sat well under the 200/350-line budget and every row was uniformly high-frequency Laravel content — no oversized-file problem existed to justify the lever at all. The user corrected: "no need to put in a companion file for the ones that's always needed... just in the same file but differentiated by category."
+
+**Decision**
+Chosen: `references/structure.md` §6 now gates all three structural levers (subdir push-down, task-doc pointer, manual companion) behind an explicit budget check before any is reached for. Under budget → in-place `### ` subsection headers, every row stays inline, no new file. The companion lever specifically is reserved for a block that's both over budget AND genuinely low-frequency — "split by category" names a shape, not a location.
+
+**Rejected**
+- Treating "split by category" as sufficient license to create new files regardless of budget. Why not: conflates a request about *organization* (subsection headers within one file) with a request about *size* (extraction to companions) — the two only coincide when the file is actually over budget.
+
+**Consequences**
+- A file under budget asked to "split by category" now gets `### ` subsections in place — zero new files, same navigability gain the user actually wanted.
+
+**Status**: committed · **Reversible**: yes

@@ -11,7 +11,7 @@ Execute all steps in sequence without pausing for confirmation.
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| Emitting one `Agent` call per message and calling it a parallel batch | **Every agent of a batch goes in ONE assistant message.** One-per-message serialises them regardless of any flag, and reciting the rule does not enforce it — count the `Agent` calls in the block against the roles you owe *before* sending |
+| Emitting one `Agent` call per message and calling it a parallel batch | **Every agent of a batch goes in ONE assistant message, opened with no prose before the calls** — see Step 1's emission block. Reciting the rule does not enforce it; the message shape does |
 | Treating `run_in_background: false` as a guarantee the call blocks | It isn't — [subagents run in the background by default since v2.1.198](https://code.claude.com/docs/en/sub-agents), and [#69691](https://github.com/anthropics/claude-code/issues/69691) reports `false` is ignored in top-level sessions. Pass it, but expect a `<task-notification>`; results are never lost. **Never poll** for one |
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
 | Send an agent a prompt whose ROLE doesn't match its `subagent_type` (product-review content to `code-reviewer`) | The prompt's role and the `subagent_type` must be the SAME role. A mis-prompted agent silently skips BOTH — the role you invoked never ran, and the role you asked for wasn't registered as run. It still looks "spawned" to every downstream check |
@@ -37,7 +37,7 @@ Execute all steps in sequence without pausing for confirmation.
 
 ## Ownership guard — you may not own the whole diff
 
-⚠️ **Establish which files are YOURS before Step 1** — every writing step below assumes the diff is yours, and when it isn't the default behavior destroys work you can't see. Three tells, and the third has no other writer at all: a background `Agent` you spawned is still running · `git status` shows files you never touched (a parallel session) · **the tree carries uncommitted work predating this session**. That last one is the quiet case — nothing is racing you, so no guard trips, yet the exposure is identical.
+⚠️ **Establish which files are YOURS before Step 1** — by diff CONTENT, never by status plane (`_shared/references/diff-ownership.md`): auto-staging lands your writes as `M ` identically to another writer's pre-existing staged work, so the plane misclassifies your own files as theirs and scopes every downstream step to nothing. Every writing step below assumes the diff is yours, and when it isn't the default behavior destroys work you can't see. Three tells, and the third has no other writer at all: a background `Agent` you spawned is still running · `git status` shows files you never touched (a parallel session) · **the tree carries uncommitted work predating this session**. That last one is the quiet case — nothing is racing you, so no guard trips, yet the exposure is identical.
 
 | Step | Default (you own the whole diff) | When you don't |
 |------|-----------------------------------|--------------------------|
@@ -49,7 +49,7 @@ This generalizes the settled-file rule `update-claude-docs` Step 4 already appli
 
 ## Step 1: Simplify + Review + Product Review (parallel)
 
-Run all applicable agents **in parallel — every `Agent` call in ONE assistant message**. That single block IS the parallelism; no flag substitutes for it. Pass `run_in_background: false` on each (it expresses intent), but do not depend on it blocking — expect results as `<task-notification>`s and never poll for them.
+Run all applicable agents **in parallel — every `Agent` call in ONE assistant message** (emission shape below). That single block IS the parallelism; no flag substitutes for it. Pass `run_in_background: false` on each (it expresses intent), but do not depend on it blocking — expect results as `<task-notification>`s and never poll for them.
 
 The three roles are deliberately different lenses, not redundant:
 - **Simplifier** — is the code *clean*? (duplication, readability)
@@ -85,7 +85,13 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 | 31–80 | 2 | 2 | 1 | **5** |
 | 81+ | 3 (cap) | 3 (cap) | 1 | **7** |
 
-⚠️ **The count is PER ROLE, and ALL agents go in ONE tool-call block — no exceptions.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer (never partitioned — it judges the whole feature). A block with fewer `Agent` calls than roles owed has already failed: there is no "spawn the rest next," the turn ends and missing roles are never registered as skipped. Stating the count correctly and then emitting one call anyway passes no gate and raises no error — it only surfaces when a human counts your tool calls. Anchor emission to the Glob you just ran, not to a number you wrote: each `.claude/agents/*.md` hit is one role, emit one call per hit (×N per role when the table says >1). After results start returning, count what you actually emitted against TOTAL before reading any result — a correct pre-send checklist can still be followed by a single call going out.
+⚠️ **The count is PER ROLE, and ALL agents go in ONE tool-call block.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer (never partitioned — it judges the whole feature).
+
+**Emit them like this — the shape is the enforcement, not the intent:**
+
+> The message that spawns agents contains **NO prose before the `Agent` calls** — no count, no plan, no "spawning N agents now". Open the message with the first `Agent` call and emit the rest back-to-back. Narration is what ends a message early; with nothing to finish saying, there is nothing to stop after call #1.
+
+Anchor the emission to the Glob you just ran — each `.claude/agents/*.md` hit is one role, one call per hit (×N when the table says >1). **Already sent a short block by mistake? The next message is calls-only for the missing roles** — a serialised batch still completes; an abandoned one does not.
 
 A user arg always wins: "2 agents each" / "4 each" sets the per-role count explicitly (ignore the table); a count is also implied by "split it up".
 
@@ -100,6 +106,7 @@ When count >1 per role, **partition the file list** across the same-role agents 
 > Project agents have a Bootstrap section — they read relevant CLAUDE.md files + the task doc themselves. Do NOT paste project conventions into the prompt.
 
 **After all complete:**
+- ⚠️ **Verify the SEAMS between partitions yourself — no agent owns them.** A file partition is also a blind spot: an agent given one side of a contract (backend, one layer, one repo) cannot see whether the other side consumes what it emits, so a half-built feature returns as two clean reports. Static gates span nothing here — a typed client silently drops a key it doesn't declare, and a new column/prop/response field can have a writer and no reader with everything green. For each value introduced this session, trace it to a *consuming* site (a render, a query, a branch), not just to its emitter. **Tell: two agents reported success on adjacent layers and you never opened the file where their work meets.**
 - If reviewer found issues → **confirm each against the actual code before fixing** (grep the call site / re-read the line — a finding is a claim, not a verdict), then fix and continue. Don't blind-apply; don't dismiss either — a real bug a blanket `replace_all` left behind looks identical to a false positive until you check.
 - If simplifier made changes → verify they were applied (linter may have auto-formatted) AND that nothing was over-collapsed (an intentional guard/workaround removed). Re-run `php -l`/`tsc` on touched files — "declared but not used" = a half-done refactor.
 - If product reviewer found gaps → **triage by KIND, not by which agent reported it.** The product reviewer reads the feature's intent rather than the diff, so it will routinely catch things a diff-scoped code reviewer structurally cannot — e.g. a sibling call site outside the diff that needed the same new parameter/rule and didn't get it. That is a correctness defect wearing a product-reviewer badge, not a scope question.
