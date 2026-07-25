@@ -90,7 +90,7 @@ Both tables must stay in sync.
 
 ### Step 3a — Density pass
 
-SKILL.md files are not CLAUDE.md files — `condense-claude-md`/`condense-task-doc` don't apply. Line count alone is a poor signal (most bloated skills in this plugin still sat under 250 lines); run `wc -lc` and flag anything above ~80-90 bytes/line for a closer read.
+SKILL.md files are not CLAUDE.md files — `condense-claude-md`/`condense-task-doc` don't apply. Line count alone is a poor signal (most bloated skills in this plugin still sat under 250 lines); flag anything above ~80-90 bytes/line for a closer read — compute the ratio, never eyeball it: `for f in skills/*/SKILL.md; do echo "$(echo "scale=1;$(wc -c<$f)/$(wc -l<$f)"|bc) $f"; done | sort -rn`.
 
 Execution model (draft/verify split): `_shared/references/two-tier-condense.md`. Checklist below is this skill's own — what to cut, specific to SKILL.md files:
 
@@ -102,6 +102,11 @@ Execution model (draft/verify split): `_shared/references/two-tier-condense.md`.
 | A skill that preaches density/conciseness while itself running long, self-justifying paragraphs | Highest-priority fix — the self-contradiction undermines the skill's own credibility |
 | A duplicate rule copied from a sibling skill instead of pointed to (e.g. a numeric threshold restated in two files) | Replace with a pointer to the canonical skill — divergence risk if only one gets updated later |
 | A clear hot-path default plus a distinct, infrequently-invoked mode/branch fully inlined in SKILL.md (15+ lines) | Extract to `references/<mode>.md`, leave a short pointer summary — SKILL.md stays lean for the path used every invocation |
+| The same rule stated in a Process step AND a Hard-rules bullet AND a `_shared/reference` | Keep the canonical statement in the shared reference; the Process step points to it. Three homes is how one of them silently goes stale |
+
+⚠️ **A skill at or over budget gains a rule only by REPLACING one or routing it to `references/` — this is an arrival-rate gate, not a density check.** Bytes/line measures how tightly rules are written; it says nothing about how many arrive. A skill that gains ~1 rule per session and retires none regrows to its pre-condense size within weeks no matter how well each rule is worded (see CHANGELOG for the measured regression). When adding to a file already above ~90 B/L, do one of: replace the rule the new one supersedes, move the new rule to `references/`, or state plainly in the report that the file grew and why no retirement was available. **Tell you skipped the gate: your CHANGELOG entry for a dense skill is purely additive.**
+
+⚠️ **Retirement is a real lever and absence of uptake is admissible evidence.** A rule whose trap can no longer fire (the tool is gone, the branch was deleted, the format changed) is dead weight that still costs a decision on every read. Before a density pass, grep each candidate rule's subject for live references; a rule prescribing an abandoned tool or a removed code path gets deleted, not compressed. Verify before cutting — a rule whose tool is still installed is a live guardrail regardless of what any "removed/abandoned" note claims.
 
 After verifying clean (per the shared reference's Verify step): bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention — **unless the user's invocation explicitly says to skip one or both** ("no need to touch the changelog", "don't bump the version"). Treat that as covering the whole write, not just the literal file named — "skip the changelog" on a run that would otherwise also bump the version means skip the version bump too, since the two only exist together as one convention. When in doubt which the user meant, ask rather than defaulting to "bump anyway."
 
@@ -112,6 +117,7 @@ After writing:
 - For trigger description changes: read the new description and ask "would this have caught what was missed in this session?" If no, revise.
 - For rule additions: ask "is this a one-time project quirk, or will this pattern recur across projects?" If one-time, skip it.
 - Confirm Step 3a's draft+verify ran on every file touched this session — `wc -lc` each, ratio dropped or held flat, and the diff-verify sub-step actually happened (not skipped because the draft "looked fine").
+- ⚠️ **For any file touched that was already above ~90 B/L: name which of the three the change was — a replace, a `references/` route, or a declared growth with the reason no retirement applied.** A purely additive CHANGELOG entry against a dense file is a FAILED check, not a pass. Without this row the arrival-rate gate is prose a session is trusted to remember, which is exactly how the previous capture of this same pattern regressed.
 - ⚠️ **Confirm Step 2's shared-mechanism grep actually ran, not just the one skill you patched.** Having the rule in Step 2 doesn't mean it fired — a fix framed as "this skill's bug" reads as self-contained and the cross-skill check silently gets skipped unless Step 4 asks for it explicitly. Before reporting done, name the grep you ran (or state that no shared mechanism applies) — don't let "I patched the skill I was using" stand in for it.
 
 ## What NOT to capture here

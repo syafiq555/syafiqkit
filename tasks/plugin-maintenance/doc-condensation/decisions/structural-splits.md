@@ -7,8 +7,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Companion-file split applies to ANY oversized cross-cutting section, not just global CLAUDE.md (D26)
   - Pre-existing plan/spec docs are NOT decisions/<theme>.md candidates (D27)
   - `<thinking>` recommendation retired — reasoning scaffolds belong to the output-style layer (D33)
+  - Skill-file bloat is ARRIVAL-RATE, not density — re-condensing regresses; extract + gate instead (D50)
 Related: ../current.md (feature index), ../../agent-architecture/current.md, ../../madr-structure/current.md
-Last updated: 2026-07-20
+Last updated: 2026-07-26
 -->
 
 # Doc Condensation — Byte Thresholds, Skill Density & Structural Splits
@@ -135,6 +136,32 @@ Chosen: `condense-claude-md` Restructuring #7 now requires clustering moved rows
 **Consequences**
 - Final split (reference, not a rule): 64 of 141 rows moved to 4 new topic companions (`CLAUDE-oauth-gotchas.md`, `CLAUDE-sms-otp-gotchas.md`, `CLAUDE-blog-guide-sync-gotchas.md`, `CLAUDE-backend-misc-gotchas.md`) + 2 clusters routed to existing domain files (`Tenancy/CLAUDE.md`, `Trust/CLAUDE.md`) instead of a companion. `backend/CLAUDE.md` landed at 32,799 bytes (−42% from 56,322), each companion independently under 6KB.
 - `read-summary` and `update-claude-docs` checked (shared-mechanism grep) — both already describe consuming "a" companion file generically, not "the" one file; needed no change.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D50 — Skill-File Bloat Is an ARRIVAL-RATE Problem, Not a Density Problem: Extraction + a Replace-or-Route Gate Replace Repeat Condensing — committed — 2026-07-26
+
+**Problem**
+D23 (2026-07-12) hand-condensed `condense-claude-md` and `condense-task-doc` from 147/140 bytes/line and captured a density checklist into `update-plugin` Step 3a. A full-plugin sweep on 2026-07-26 found both files back at **207 and 179 B/L** — past their pre-fix state — with `read-summary` at 202. The regression is not sloppy writing: the CHANGELOG shows six versions shipped in ~6 hours, each appending a hard-won rule to these same files, and 1.123.23 records `done/SKILL.md` being deliberately shrunk to 122 B/L only to sit at 126 three versions later. D23's own rejected option ("most skills are single-purpose with no hot/cold split") was judged when these files were roughly half their current size and no longer held.
+
+**Decision**
+Chosen, three parts. (1) **Extraction over re-wording** — the three offenders had no `references/` dir while every acceptable-density large skill (`task-summary`, `done`, `update-claude-docs`) does; cold paths moved to `condense-claude-md/references/structural-splits.md` and `read-summary/references/doc-authority.md`, each SKILL.md keeping the highest-cost fact inline above the pointer per #6's own rule. (2) **An arrival-rate gate** in `update-plugin` Step 3a: a skill above ~90 B/L gains a rule only by replacing one, routing it to `references/`, or stating in the report that it grew and why no retirement was available. (3) **Retirement as a named lever**, citing D33's precedent that absence of uptake is admissible evidence — gated on verifying the trap is actually dead, since a still-installed tool is a live guardrail whatever its own "abandoned" note claims.
+
+**Rejected**
+- Another in-place density pass, as D23 ran. Why not: that is the treadmill this ADR exists to name. Two rounds of it produced a sawtooth with a rising floor — the files ended denser than before the fix, so the pass demonstrably buys weeks, not a resolution. `condense-claude-md`'s own Process #5 already carries this diagnosis for CLAUDE.md files ("a file that has been condensed before is a GROWTH-RATE problem"); the skill layer had no equivalent.
+- Compressing `read-summary` further after extraction. Why not: its ratio moved 202 → 201 despite a −21% byte cut, which is precisely the atomic-file gate's predicted signature — extraction removed whole lines so bytes and lines fell together, leaving one distinct rule per line with nothing restating anything else. Compressing past that erodes content rather than bloat, and the gate exists to stop exactly this pass from running.
+- Making the gate a hard block on adding rules to a dense skill. Why not: the rules arriving are real, session-earned defects; refusing them loses more than the density costs. Requiring a replace/route/declare *decision* keeps every rule while making growth visible in the report instead of silent.
+
+**Consequences**
+- `condense-claude-md` 22,349 → 14,094 bytes (−37%, 207 → 164 B/L); `read-summary` 22,418 → 17,659 (−21%); `condense-task-doc` 21,071 → 19,575 (−7%). Two new `references/*.md` files.
+- ⚠️ **Extraction can silently drop an ENUMERATED item's visibility while every pointer still resolves.** Condensing this skill's Restructuring #6/#7 left the *task-doc* lever (the second of three) as a subordinate clause, contradicting the file's own L10 claim to own "every split decision (subdir, task doc, companion file)" — a numbered list visibly offering two options where the prose promises three. No link broke, so the pointer check passed. Caught only by re-reading the skill's self-description against its own list. When condensing a numbered/enumerated set, verify the COUNT the surrounding prose claims, not just that each surviving item resolves.
+- Collateral: the write-mode rule was found stated in **three** homes (Process step + Hard rules + `_shared/references/two-tier-condense.md`) across two skills, collapsed to the shared reference alone. A new Step 3a row names the three-homes pattern as its own bloat class.
+- Live bug found by the shared-mechanism grep, not the density scan: **four skill files still prescribed `rg`**, abandoned globally since 2026-07-13 — including `read-summary`, whose L82 prescribed `rg --files` while L20 warned against `rg`. Confirms a density pass should always carry a shared-mechanism grep.
+- Supersedes D23's rejected-option finding that preemptive extraction isn't warranted — true at that size, false at this one. The size at which a judgment was made is part of the judgment.
+- ⚠️ **The gate as first written was unenforced — a product review caught it shipping the same weakness it diagnosed.** Step 3a stated the rule but Step 4 (Validate) had no row checking it ran, making it prose a session is trusted to remember, which is structurally how D23's capture regressed. Fixed same session: Step 4 now requires naming which of replace / `references`-route / declared-growth a change to a >90 B/L file was, and treats a purely additive CHANGELOG entry against a dense file as a failed check. Step 3a also gained the ratio one-liner (the threshold had been stated with no way to compute it).
+- Open half: the gate is reachable only from `update-plugin`, while rules mostly arrive as direct hand-edits, and `references/*.md` files inherit no budget of their own — both tracked in `../current.md` Next Steps.
 
 **Status**: committed · **Reversible**: yes
 

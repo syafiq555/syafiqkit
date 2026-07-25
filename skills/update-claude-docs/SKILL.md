@@ -76,7 +76,7 @@ Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local
 
 A subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `resources/js/routes/X` loads root + `resources/js/` + `routes/`), so routing a rule down a level doesn't hide it — it scopes it. Prefer the subdir file when the rule is both needed in that subdir AND useless elsewhere (seam-test); if it's cross-cutting (a shared token/util/type used across sibling dirs), keep it at the layer level instead — pushing a cross-cutting rule into one subdir means the sibling dirs never load it. Creating the subdir `CLAUDE.md` if it doesn't exist yet is fine; that's the `app/Domain/*` pattern.
 
-⚠️ Run the seam-test against EVERY real sibling subdirectory, not just the one the rule's subject matter suggests — `rg -l` the rule's core symbols against each candidate and let usage counts decide (`references/structure.md` §1).
+⚠️ Run the seam-test against EVERY real sibling subdirectory, not just the one the rule's subject matter suggests — `grep -rl` the rule's core symbols against each candidate and let usage counts decide (`references/structure.md` §1).
 
 **Read target first** — check structure, existing entries, where new entry fits.
 

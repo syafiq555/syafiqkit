@@ -33,36 +33,13 @@ A keyword match lands you in the right *folder*, not necessarily the right *bug*
 
 **Tell you skipped a re-fire: the user points you at a doc/repo you should have found yourself** ("everything is in the task docs", "did you check X's docs").
 
-### Doc-staleness handoff (don't just narrate it)
+### After the doc loads: authority limits + staleness
 
-⚠️ Reading a doc is also **auditing** it. While loading context you will often catch the doc contradicting the code you just examined — a `Status:` that says "not done" for a feature that's built, a `Provider:`/dependency named that the code has since swapped, a `Key files` path that moved, a date-conditioned caveat now past. **Do NOT just mention the drift in passing and move on** — that drops the fix on the floor, the exact failure this skill exists to prevent. When you spot staleness:
+⚠️ **A task doc is authoritative for DECISIONS and GOTCHAS. It is NOT a live-state oracle** — anything about a running system (prod's DB, a flag, whether an "open" bug is still open, what a third-party tool actually deletes) decays the moment anyone touches a server. If the answer depends on current state, go MEASURE it; when doc and live system disagree, the live system wins.
 
-1. **Sweep, don't spot-report.** The line that contradicted the code is where you *noticed* drift, not its extent — the same doc's `Quick Start`, `Status:`, and `Immediate next actions` are written once and revisited least, so they hold the costliest staleness (a shipped fix still listed as "staged, deploy this next" sends the reader to redo it). Re-check those fields against reality before reporting, and report them together.
-2. **Name it explicitly** as a stale-doc finding (which doc, which line/field, what the code actually shows), separate from answering the user's question.
-3. **Route it so it survives silence** — this skill is read-only, so the fix belongs to `task-summary` (project facts) or `update-plugin` (skill/command defects). ⚠️ An offer parked on the user's reply is NOT routing: they will often act on your answer and never respond to the offer, and the finding dies. Either hand off in the same turn, or state the correction as an owed action you will carry into the next doc-writing skill — never as a question that expires unanswered.
+⚠️ **Reading a doc is also auditing it** — when it contradicts the code, do NOT narrate the drift and move on. Sweep the doc's least-revisited fields (`Quick Start`, `Status:`, `Immediate next actions`), name the finding explicitly, and **route it in the same turn** to `task-summary` or `update-plugin`. An offer parked on the user's reply is not routing — they act on your answer, never reply, and the finding dies.
 
-Staleness you surface and route is closed; staleness you narrate and abandon is a silent regression waiting for the user to catch it re-reading later.
-
-⚠️ **Treat any "diagnosis" for an open bug as a hypothesis, not a finding — confidence is the symptom, not the evidence.** Two shapes to catch, both making you (or an agent) confidently cite a wrong cause: (1) a live "OPEN BUG" row whose diagnosis a *different* doc has since RETRACTED — tells: the row prescribes a fix for a "decided" issue, or the behaviour has an accepted workflow around it documented in the owning doc; (2) a doc's stated root cause for a bug it *still* lists as open, uncontradicted by anything — tells: it prescribes a fix despite the bug being open (a decided fix implies a decided diagnosis), or its own `Last Session` admits writing it from the symptom. Either way: read the code path the doc blames before you change it. Expect the real cause to be adjacent but different in kind from what's written.
-
-### What the doc is authoritative FOR (and what it isn't)
-
-⚠️ **A task doc is authoritative for DECISIONS and GOTCHAS. It is NOT a live-state oracle.** Those decay the moment anyone touches a server:
-
-⚠️ **The mirror trap: when the doc HAS already made a decision, USE it — do not re-derive it and hand it back to the user as a question.** A decision-heavy doc often records the tradeoff, the rejected options, and the chosen answer for exactly the fork you're about to raise (a resource constraint, a concurrency cap, a build-vs-buy). Reading the doc and then presenting that same fork via `AskUserQuestion` reads as not having read it — the answer comes back "it's in the doc." **Tell: your clarifying question restates a tradeoff the doc's Decisions/ADRs already resolved.** Ask the user only what THEIR context decides (a preference, a priority, a fact only they hold); let the doc decide what it already decided, and measure what's live — never route a settled decision back through the user.
-
-| The doc IS authoritative for | The doc is NOT authoritative for |
-|------------------------------|----------------------------------|
-| Why it's built this way (ADRs, rejected options) | What's in prod's DB / `.env` / a bucket **right now** |
-| What will bite you (gotchas, traps, invariants) | Whether a flag is on, a table exists, a row is populated |
-| Vocabulary, ownership, blast radius | Whether a bug it calls "open" is still open |
-| Why we picked/evaluated a third-party tool | **What that tool actually DOES** — its delete/write scope lives in its source, never in our summary of it |
-
-A well-read doc feels *fully grounded* — the trap is answering a live-state question from a snapshot that may be weeks stale, with total confidence. **If the answer depends on the current state of a running system, go MEASURE it** (query the DB, read the server's config, call the API), then reconcile with the doc. A doc's claim about prod is a hypothesis to test, not evidence — when doc and live system disagree, the live system wins and the doc gets routed for update. This extends to three specific cases:
-
-- **Running a researched tool** — a doc researching X ("what did we learn about X") does not license running it once the task shifts to "let's use X" and X writes/deletes/migrates. Its summary bullets (stack, license, install command) describe the box, not the delete paths inside. Read the tool's actual source and issue tracker for data-loss reports before the first destructive command — measuring the live system doesn't substitute, since you can profile every byte on disk and still not know what the tool removes. Tell: you can't name, from code you read, the exact paths the command touches.
-- **Remote state from local absence** — never infer a REMOTE system's state from a LOCAL file's absence ("prod's `.env` has no `AWS_*`" describes wiring, not whether the bucket exists). Ask the remote system directly with a call that discriminates (`HeadBucket`: 403 = exists-but-denied vs 404 = absent).
-- **"It's the staging/test one"** — a live-state CLAIM, not a property of the name; measure before recommending anything irreversible there. A doc saying "staging exists for e2e, flag is on" describes what the env was SET UP to be, never what it IS now. Test-ness lives in one value (API-key prefix, bucket name, DB name, `mode` field) — name it and read it from the running process (`printenv KEY` + a control that must resolve).
+📖 **`references/doc-authority.md`** — the full authoritative-for/not table, the mirror trap (don't re-ask a fork the doc already decided), open-bug diagnoses as hypotheses, and the three live-state cases (running a researched tool · remote state from local absence · "it's the staging one"). Open it when a doc's claim about a running system or an open bug is load-bearing for your answer.
 
 ## Read Order
 
@@ -79,7 +56,7 @@ A well-read doc feels *fully grounded* — the trap is answering a live-state qu
    - **Domain**: `app/Domain/<Domain>/CLAUDE.md` (capitalized), inferred from task path
    - **Companion**: a `📖`/`> 📖` pointer inside a loaded CLAUDE.md/task doc to `.claude-companions/<shared|local>/CLAUDE-<topic>.md` at the repo root — these do NOT auto-load, so the tree-walk misses them. Follow the pointer when your task matches its named symptoms; the companion holds real facts the main file moved out to stay lean.
    - Plus any CLAUDE.md named in `Related:`
-   - Discovery: `rg --files -g '**/CLAUDE.md'` scoped to the dirs in play
+   - Discovery: `grep -rl --include='CLAUDE.md' "" <dirs>` scoped to the dirs in play (never `rg` — its `-r` is `--replace`, not recursive)
    - ⚠️ Scope to dirs actually in play (match blast radius, not repo size) — but this token-scoping is within-repo only, not licence to skip step 6.
 6. ⚠️ **SIBLING REPO** — if the question touches a second repo at all, Read its `CLAUDE.md` + `CLAUDE.local.md` FIRST. Gated on the **question's scope, not which files you'll edit** — a read-only planning question edits nothing, so step 5's tree-walk never fires and this is the one most often skipped. The harness only walks the tree from the working dir, so a sibling's CLAUDE.md is invisible while the current repo's *did* auto-load — context feels complete when it isn't. Read root `CLAUDE.md` + `CLAUDE.local.md` (per-env state/credentials) + any relevant subdir CLAUDE.md before any claim about the sibling's env keys, buckets, containers, credentials, deploy mechanics, or server state. Its task docs live in its own `tasks/**` tree.
    - ⚠️ **Follow their `> 📖` COMPANION pointers too** (step 5's Companion bullet, which a two-repo session never reaches) — the main file names the topic and delegates the detail, so stopping at it feels complete while the server/DB/container facts sit one hop away. You then measure the wrong environment and get a plausible wrong answer with no error: a real row from prod while believing it's staging.
