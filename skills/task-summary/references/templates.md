@@ -135,6 +135,8 @@ A whole-doc MADR can itself outgrow one file (10+ ADRs, several hundred lines). 
 
 **Structure**: keep `current.md` as a thin index — Quick Start, doc-wide operational tables, and a **routing table grouping ADRs by theme**, each row framed "read `decisions/<theme>.md` if you're asking: *[the question]*" rather than a bare title list. Move full ADR content into `decisions/<theme>.md`, 3-5 files typical (matches the "cluster don't fragment" convention). Each file is self-contained: own LLM-CONTEXT block, `Related:` pointing back to the index and sibling files.
 
+⚠️ **"Operational tables stay in the index" holds only while they're SMALL — they are append-only, so eventually they aren't.** A bug/gotcha/ops table gains a row per session and loses none, so an index can end up mostly archive while every ADR sits correctly filed below. When those tables outgrow the ADR detail they front, route each ROW to the theme file that owns its mechanism — the entry's own "see ADR-N" column usually already names it — and leave a routing table plus the still-open items in the index. Rows belonging to no theme (environment, fixtures, deploy mechanics) get their own **descriptively named** sibling, never a generic `bugs.md`/`misc.md` catch-all: a filename that names a grab-bag is a second index waiting to bloat. **Tell: the index's append-only tables outweigh the routing table they sit beside.**
+
 **Group by theme (the question a reader is asking), not chronology or ADR number** — an LLM cold-starting optimizes for fewest file-opens, favoring clustered related decisions over one-file-per-decision. If a decision doesn't cleanly fit an existing theme, check whether it belongs to one already present before creating a 4th file for one ADR.
 
 ⚠️ **Verify no fact duplicated across the split** — the LLM-CONTEXT `Gotchas:` teaser in the index is the most common place a decision gets silently re-explained instead of pointed-to. Grep the finished files for the 2-3 most load-bearing phrases — a phrase surviving in both the index and its owning file (beyond a one-line teaser) is duplication.
@@ -214,6 +216,35 @@ Last updated: [today]
 
 - [ ] [Pending work item]
 ```
+
+⚠️ **Next Steps is grouped by KIND of work, not by when items were found — enforce on sight, at any length.** Fix an ungrouped or date-grouped list the moment you touch the doc; don't wait for a length threshold. Canonical headings (use only the ones that have items — never emit an empty group):
+
+```markdown
+## Next Steps
+
+### Blocking <the next milestone>
+- [ ] 🔴 [Item that stops the release/deploy/handoff]
+
+### Broken or absent recovery paths
+- [ ] 🟠 [A failure state the user cannot get out of unaided]
+
+### Missing failure signals
+- [ ] 🟠 [Something fails silently — no toast, badge, or aggregate view]
+
+### Blocked on <external dependency>
+- [ ] 🟠 [Not buildable here yet; name what must land first]
+
+### Navigation & discoverability gaps
+- [ ] 🟠 [The capability exists but the user can't find or reach it]
+
+### Copy & polish
+- [ ] 🟡 [Wording, a11y label, hover-vs-click, minor UX]
+
+### Deferred / accepted
+- [ ] 🟡 [Decided not-now, with the reason — never silently dropped]
+```
+
+Rename a heading to fit the domain (`Blocking the deploy`, `Blocking go-live`, `Blocked on the vendor API`) — the axis is fixed, the wording isn't. Order groups most-urgent-first, and order items within a group by severity marker. **Test any heading you invent: will it still be true in three sessions?** "This session's findings" fails; "Missing failure signals" passes.
 
 ## Full Template
 
@@ -323,7 +354,16 @@ Last updated: [today]
 
 ## Next Steps
 
-- [ ] [Pending work item]
+Grouped by KIND of work — see the group vocabulary above. Emit only groups that have items.
+
+### Blocking [the next milestone]
+- [ ] 🔴 [Pending work item]
+
+### Missing failure signals
+- [ ] 🟠 [Pending work item]
+
+### Deferred / accepted
+- [ ] 🟡 [Pending work item + the reason it's deferred]
 ```
 
 ## Cross-Reference Examples

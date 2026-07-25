@@ -150,6 +150,8 @@ Cross-project rules only — environment, tool usage, working style, personal co
 
 Official guidance targets **under ~200 lines** per file — adherence measurably drops past it because live rules get lost among dead ones. Treat 200 as the soft cap, 350 as the hard "must act now" line.
 
+⚠️ **These are the DEFAULTS, not the authority — a file may declare its own budget, which then governs** (detection: `_shared/references/declared-budget.md`). A CLAUDE.md whose header records "line budget ~460 (user decision), splitting evaluated and declined" is held to 460 and is not offered the split again. Measure and report either way; only the threshold and the settled decision defer.
+
 When a create/rewrite would land a file over budget, the fix is **structural, not deletion**: push a coherent block down to a subdir/domain file (Section 1's seam-test), route it to a task-doc index+pointer (below, when the seam-test fails but the content is feature-specific), split a cross-cutting block to a manual companion file (third lever, below), or hand the whole file to `condense-claude-md` for a density pass. Do NOT cram — a file over budget that "needs everything" is a file whose rules want to live at different layers.
 
 ### Second structural lever: task-doc index + pointer (when the seam-test fails)

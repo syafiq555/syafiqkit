@@ -100,6 +100,31 @@ Chosen: add `Skill` to `claude-md-pruner`'s `tools:`; add a Philosophy paragraph
 
 ---
 
+### D43 — `claude-md-pruner` Gains a Task-Doc Branch; Keeps Its Legacy Name — committed — 2026-07-25
+
+**Extends D29** (does not reverse it). D29 rejected *dissolving* the agent into `condense-claude-md`, on the grounds that its liveness checks have no equivalent there. That reasoning is untouched and is exactly why the agent survives here — this ADR answers a different question D29 never reached: whether the agent should cover a second artifact.
+
+**Problem**
+Task docs had no pruner at all. `condense-task-doc` does row-pruning inline as part of a condense pass, but nothing carried `memory: project` or background-spawn capability for task-doc *staleness* the way `claude-md-pruner` did for CLAUDE.md — and neither condense skill does liveness verification, since both assume content is live and only judge shape. Research (3 parallel agents) also established there was no consolidation available: only one pruner agent existed, so this is one agent gaining an artifact, not two merging.
+
+**Decision**
+Chosen: branch the agent on artifact type. New Step 0.5 detects CLAUDE.md vs task doc; Bootstrap, the classify table (§2a/§2b), step 3's grep targets, and the NEVER-remove list each fork. Step 0's sizing delegation becomes artifact-dependent (`condense-claude-md` / `condense-task-doc`). Task-doc cut/keep rules are **pointed at, never copied** — `condense-task-doc` stays their single owner per `CLAUDE.md` § Conventions (canonical in one skill → point to that skill). The file keeps the name `claude-md-pruner`; the widened `description:` carries the task-doc trigger vocabulary.
+
+**Rejected**
+- **Renaming to `docs-pruner`.** Why not: `update-claude-docs` Step 4 Globs the literal filename and spawns by literal `subagent_type` string, and a Glob miss falls through to "skip pruning" — pruning would silently stop firing, with no error. Worse, `agent-setup`'s missing-agent check runs templates→agents only (no `comm -13` orphan direction), so every existing project would end up holding *both* files, one permanently dead. The name is inert for the existing spawn path; the `description:` is the real trigger surface. Accepted cost: this is a deliberate exception to `CLAUDE.md` § Conventions' rename-on-scope-change rule, recorded there so a future reader doesn't "fix" it.
+- **Moving the staleness logic into the condense skills** and making the agent a thin router. Why not: it would reverse D29's still-sound reasoning, and each skill would gain a lane it explicitly does not have (liveness verification against the live codebase).
+- **Extracting the shared core to `skills/_shared/references/`.** Why not: measured at ~25-30% artifact-agnostic (read/count, Edit-not-Write, report table, the grep-before-delete *pattern*) — below the 3+ duplication bar, and the remaining ~70-75% is artifact-vocabulary-bound. A `_shared/` file for one owner is what the Conventions rule warns against.
+
+**Consequences**
+- Agent + template branch on artifact (⚠️ parity: both copies, same change). Agent-specific vs template-generic voice differences preserved.
+- `agent-setup`: the `claude-md-pruner` carve-out from the `/read-summary`+`Skill` requirement is **removed** — it consumes task docs now, so it belongs inside that rule. Three registry surfaces + the "why 8" prose updated. A second on-sight migration item added (detector `grep -c "0.5 Detect the artifact"`, verified in both directions).
+- The highest-risk difference is structural, not stylistic: the CLAUDE.md branch deletes sections freely, while task docs require `Task Status`/`Bugs Fixed`/`Critical Gotchas`/`Next Steps` headings to survive emptying and MADR `Rejected` fields to be untouched. Every check in either skill detects *excess*, so a wrongly-deleted heading is invisible afterward.
+- Not adopted: the `comm -13` orphan check for `agent-setup` Step 5. It remains a real gap for any *future* rename — deferred only because this ADR avoids renaming.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
 ### D15 — Correct Wiring to Invoke a Sibling Skill ≠ the Model Reliably Calling It — committed
 
 **Problem**

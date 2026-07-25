@@ -14,7 +14,7 @@ Rewrite the file inline (current turn, no spawn):
 - Follow the skill's own cut/keep checklist (what content to remove/compress)
 - Hard constraint: reword/collapse/relocate/delete-per-checklist only — never silently change what the doc/skill *does* (a policy, a default, a table's meaning), only how densely it's stated
 - ⚠️ **Quote every number, count, version, and named quantity VERBATIM** — never recompute, round, or "helpfully" continue an obvious-looking sequence. A number is easy to treat as a paraphrasable detail rather than a fact requiring exact preservation, precisely because it looks small and unambiguous. Diff it against the original in Verify like any other fact.
-- Use `Write` for a full rewrite (not `Edit`), per the skill's own Hard Rules
+- Write mode depends on how much actually changes, per the calling skill's own rules: `Write` the whole file when most of it goes or its structure changes; `Edit` part by part when most of it survives. ⚠️ Never `Write`-rewrite a file just to preserve it — re-emitting unchanged bytes is waste, and each retyped line is a line you can silently corrupt.
 
 ## Verify — mandatory, never skip
 

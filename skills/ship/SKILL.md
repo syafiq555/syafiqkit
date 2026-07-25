@@ -7,6 +7,8 @@ description: Ship code to production — commit, changelog, push, verify CI/CD d
 
 End-to-end shipping workflow: commit → changelog → push → verify deploy → release note.
 
+⚠️ **Run the whole chain in one turn — a delegated sub-skill returning control is the middle, not the end.** Ending the turn with steps outstanding is a pause even when you announce it and ask nothing; honest partial progress ("committed, ready to push") reads as transparency while leaving the ship half-done and the deploy unverified. **Tell: your reply names a remaining step instead of performing it.**
+
 ## Prerequisites
 
 - `/done` has already been run (code reviewed, simplified, task docs updated)

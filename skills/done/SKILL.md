@@ -7,6 +7,8 @@ description: Post-task cleanup - simplify code, review changes, update docs, cap
 
 Execute all steps in sequence without pausing for confirmation.
 
+⚠️ **Ending the turn with steps outstanding is a pause, even when you announce it and ask nothing.** Honest partial progress ("Step 3 done, ready for Step 4") evades every guard below — it is neither a confirmation request nor a false claim, so it reads as transparency while leaving the run half-finished. A sub-skill returning control is the middle of this workflow, not a stopping point. **Tell: your reply names a remaining step instead of performing it.**
+
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
 | Emitting one `Agent` call per message and calling it a parallel batch | **Every agent of a batch goes in ONE assistant message.** One-per-message serialises them regardless of any flag, and reciting the rule does not enforce it — count the `Agent` calls in the block against the roles you owe *before* sending |

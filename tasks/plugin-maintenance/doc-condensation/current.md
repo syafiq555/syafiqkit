@@ -5,7 +5,7 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../agent-architecture/current.md (sibling feature — how generated agents inherit conventions + invoke sibling skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-24 — both Next Steps items patched (update-plugin Step 5 fencing; condense-task-doc/templates.md multi-domain fan-out case)
+Last updated: 2026-07-25 — D44: a file's own declared size budget outranks the skill default (issue #9); detection extracted to `_shared/references/declared-budget.md`
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
@@ -57,7 +57,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 | File | Read if you're asking |
 |------|------------------------|
-| [decisions/bloat-generator-fixes.md](decisions/bloat-generator-fixes.md) | *Where does the plugin fix doc bloat — at the generator (task-summary rules) or by hand-trimming? What structural levers exist for over-budget CLAUDE.md?* (D3, D6, D17, D18, D19, D20) |
+| [decisions/bloat-generator-fixes.md](decisions/bloat-generator-fixes.md) | *Where does the plugin fix doc bloat — at the generator (task-summary rules) or by hand-trimming? What structural levers exist for over-budget CLAUDE.md? What if the file declares its own budget?* (D3, D6, D17, D18, D19, D20, D44) |
 | [decisions/structural-splits.md](decisions/structural-splits.md) | *When does a doc/CLAUDE.md/skill need a structural split (byte thresholds, companion files, plan-doc typing) instead of denser prose?* (D22, D23, D26, D27, D33) |
 | [decisions/duplication-and-integrity.md](decisions/duplication-and-integrity.md) | *How does the plugin catch duplicated facts (within/across docs) and verify a fix actually landed everywhere?* (D37, D40, D12, demoted D2/D5/D7/D11) |
 

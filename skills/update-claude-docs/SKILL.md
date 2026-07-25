@@ -154,14 +154,17 @@ Glob: .claude/agents/claude-md-pruner.md
 
 | Agent found? | Action |
 |-------------|--------|
-| Yes | Launch `subagent_type: "claude-md-pruner"` with file paths to scan |
+| Yes, and the file declares no pruning decision | Launch `subagent_type: "claude-md-pruner"` with file paths to scan |
+| Yes, but the file records pruning/splitting as **decided** | **Skip the spawn** — report current size against the file's own budget instead |
 | No | Skip pruning — do not inline a pruning prompt |
+
+Detection rule for that middle row (declared budget, "don't re-open" note, recorded no-op passes): `_shared/references/declared-budget.md`. Re-running a pruner the owner has already concluded is a no-op burns an agent and re-opens a settled question.
 
 **Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.`
 
 The agent has its own classification rules, litmus tests, and NEVER-delete safeguards. Do not override its instructions.
 
-⚠️ **Only background-prune files that are SETTLED.** The pruner reads the file when it starts, not when it finishes — an entry added mid-edit can get deleted on a premise your later edits already invalidated. Finish all edits before listing a file, or hold the prune until the session's changes are done. If the pruner's report removed one of your fresh entries on a stale premise, restore it — your fresh write beats its stale read.
+⚠️ **Only background-prune files that are SETTLED — this is about TIMING WITHIN THIS SESSION, and does not cover the table row above** (a project having closed the pruning question permanently). Both read as "settled"; they gate different things, and treating this caveat as covering both is what lets the closed-decision case slip through. The pruner reads the file when it starts, not when it finishes — an entry added mid-edit can get deleted on a premise your later edits already invalidated. Finish all edits before listing a file, or hold the prune until the session's changes are done. If the pruner's report removed one of your fresh entries on a stale premise, restore it — your fresh write beats its stale read.
 
 ## 5. Validate
 
@@ -171,7 +174,7 @@ After writing each entry (in Step 3):
 3. "Would removing this cause Claude to repeat the mistake?" — if no, delete it
 4. Scan your entry for narrative markers ("happened", "repeatedly", "caught", "twice", numbered trigger lists) — rewrite to constraint-only
 5. **Fix column must be a specific, verifiable action, not a vague verb** ("investigate", "check", "handle better", "fix properly") — if the Fix reads as an open-ended task rather than a concrete change, name the actual file/method/config to touch or the exact guard to add
-6. If the target file is now >350 lines, flag it in your output — the Step-4 pruner pass handles the shrink
+6. If the target file is now over budget, flag it in your output — the Step-4 pruner pass handles the shrink. **Budget = the file's own declared figure when it states one, 350 otherwise** (`_shared/references/declared-budget.md`). A fixed 350 against a file declaring ~460 reports a false overage every run and trains the reader to ignore the flag
 
 **Task docs ≠ CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only patterns that apply broadly go in CLAUDE.md.
 

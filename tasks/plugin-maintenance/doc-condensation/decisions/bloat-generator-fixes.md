@@ -133,3 +133,27 @@ The seam-test itself was under-specified — "check the seam-test" meant "check 
 - D19's text kept as-written, correction note added rather than rewritten — MADR log preserves what was concluded at each point.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D44 — A File's Own Declared Size Budget Outranks the Skill's Default — committed — 2026-07-25
+
+**Problem**
+Reported by an external consumer as [issue #9](https://github.com/syafiq555/syafiqkit/issues/9) against installed 1.123.1. `update-claude-docs` Step 4 spawned `claude-md-pruner` unconditionally once the agent file existed, and Step 5 flagged overage against a hardcoded 350. A project whose CLAUDE.md header records the owner's decision — budget ~460 not 350, 13 consecutive passes confirming every gotcha row load-bearing, per-stack splitting evaluated and **declined**, "don't re-open either question" — therefore got an agent spawned to re-answer a closed question and a false overage on every run. The reporter deviated from the step twice in one session to behave correctly, which is the signal that a step is missing a case.
+
+Two things kept this alive. Step 4's existing ⚠️ "only background-prune files that are SETTLED" scopes to *timing within a session* (don't prune a file you're still editing), so it read as satisfied while the permanently-closed case went unhandled — a warning whose wording overlaps an uncovered case actively suppresses the fix. And the root cause was an authority inversion appearing at **four** sites, not the two the issue named: fixing only the caller leaves a directly-invoked pruner or condenser still re-litigating.
+
+**Decision**
+Chosen: a file's own stated budget/decision outranks every default. Detection lives once in `skills/_shared/references/declared-budget.md` (prose signals — a declared budget, a "don't re-open"/"declined" note, a recorded count of no-op passes — plus an act table and fallbacks), cited by one-line pointers from `update-claude-docs` Steps 4+5, `condense-claude-md` step 4, `structure.md` §6, and the pruner agent+template. Prose-signal detection over a formal marker, so files already written this way (including the reporter's) work with no retrofit. Step 4 gained a third table row: agent found **but the file records pruning/splitting as decided** → skip the spawn, report size against the file's own budget.
+
+**Rejected**
+- Patching only `update-claude-docs` Steps 4+5 as filed. Why not: four independent copies of "350 is the ceiling" is *why* the bug existed in four places; four independent copies of the fix rebuilds the same drift surface.
+- A formal header field (`Budget: 460 (decided)`) as the sole detection method. Why not: every existing file, the reporter's included, would need retrofitting before the skip fires — it would not close the reported case on its own.
+- Letting a declared budget suppress measurement too. Why not: deferring on the *threshold* is not deferring on whether it was met. A file 200 lines past its own stated 460 is over budget and must be told so.
+
+**Consequences**
+- A declared budget below the default is equally authoritative — the signal is "the owner decided", not "the owner wants more room".
+- A declared *split* decision suppresses `condense-claude-md`'s split offer, not merely its number — the reporter's file had declined the split specifically.
+- Follow-on the same session: the pruner stopped carrying any size policy at all (its `~200`/`350` figures deleted), leaving `condense-claude-md`/`condense-task-doc` as the single owners per artifact. Recorded as a `CLAUDE.md` § Conventions row. See D43 (`../../agent-architecture/decisions/injection-and-delegation.md`) for the agent's own scope change.
+
+**Status**: committed · **Reversible**: yes

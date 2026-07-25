@@ -5,14 +5,14 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../doc-condensation/current.md (sibling feature — fighting duplication/bloat across docs, CLAUDE.md, skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-24
+Last updated: 2026-07-25 — D43: `claude-md-pruner` gains a task-doc branch, keeps its legacy name
 -->
 
 # Plugin Maintenance — Agent Architecture
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 15 committed decisions across 3 themed sub-files.
+**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 16 committed decisions across 3 themed sub-files.
 
 **Immediate next actions (in order)**:
 1. This repo's own `.claude/agents/` is still missing `task-builder.md` and `browser-verifier.md` (templates exist, never generated) — run `/agent-setup` to backfill; exercises the Missing-agent check (D38) end-to-end.
@@ -27,6 +27,7 @@ Last updated: 2026-07-24
 - A scan's "zero results = done" exit condition needs a must-hit control, not just a correct command — see D25 (decisions/verification-rigor.md)
 - `merge-task-docs` Step 2 defaults to executing the recommended scope/structure/naming inline, asking only on genuine ambiguity — see D28 (decisions/verification-rigor.md)
 - Every generated agent template now carries `Skill` in `tools:` — see D14/D29 (decisions/injection-and-delegation.md)
+- `claude-md-pruner` prunes task docs too and its name is deliberately legacy — renaming silently breaks `update-claude-docs` Step 4's literal Glob/`subagent_type` and orphans the old file in every existing project — see D43 (decisions/injection-and-delegation.md)
 - Editing a generated `.claude/agents/*.md` requires porting the same edit into its source `skills/agent-setup/templates/*.template.md` in the same change — now a root CLAUDE.md `⚠️ MANDATORY` callout, 3rd recurrence — see D31 (decisions/concurrency-and-delegation.md)
 - Widening a threshold table (agent-count tiers, byte budgets) needs every downstream decision point checked, not just the table itself — see D39 (decisions/verification-rigor.md)
 - A skill pair that both scan the same conversation for the same signal class and route dependently must dispatch sequentially — D32's parallel-batch default assumes disjoint state, which this pair doesn't have — see D42 (decisions/concurrency-and-delegation.md)
@@ -44,7 +45,7 @@ Decisions about how generated project agents (`.claude/agents/*.md`) inherit con
 | # | Task | Status |
 |---|------|--------|
 | 1 | Prompt-injection agent architecture (D1) | ✅ |
-| 2 | Orchestrator delegation pattern (D4, D14, D29) | ✅ |
+| 2 | Orchestrator delegation pattern (D4, D14, D29, D43) | ✅ |
 | 3 | Verification rigor across skill checklists (D21, D24, D25, D28, D38, D39, D40) | ✅ |
 | 4 | Concurrency/cheap-model delegation (D30, D31, D32, D42); transcript-scan tried + removed (D34→D36) | ✅ |
 | 5 | Backfill `task-builder`/`browser-verifier` agents in this repo | ⏳ Pending |
@@ -57,7 +58,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 | File | Read if you're asking |
 |------|------------------------|
-| [decisions/injection-and-delegation.md](decisions/injection-and-delegation.md) | *How do generated agents inherit CLAUDE.md conventions and call sibling skills instead of reimplementing them?* (D1, D4, D14, D29, D15) |
+| [decisions/injection-and-delegation.md](decisions/injection-and-delegation.md) | *How do generated agents inherit CLAUDE.md conventions and call sibling skills instead of reimplementing them?* (D1, D4, D14, D29, D43, D15) |
 | [decisions/verification-rigor.md](decisions/verification-rigor.md) | *How do skills verify their own checklists actually ran, and catch self-caught deviations or silent-pass exit conditions?* (D21, D24, D25, D28, D38, D39, D40) |
 | [decisions/concurrency-and-delegation.md](decisions/concurrency-and-delegation.md) | *How does the plugin delegate to cheaper/parallel agents, what does `run_in_background` actually guarantee, and what happened to the transcript-scan mechanism?* (D30, D31, D32, D34, D35, D36, D42) |
 
