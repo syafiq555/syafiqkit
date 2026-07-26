@@ -205,3 +205,27 @@ Chosen: audit all 19 in one pass (both shapes per file, since one read covers bo
 - Folded into unreleased 1.123.27 rather than minting a version — same D49 theme as that entry's existing content.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D52 — A Review Pass Over the Same Session's Own Fixes Is Where the Agents Earn Their Cost; Findings-vs-Clean Reliability Is Prompt-Dependent, Not Fixed — committed — 2026-07-26
+
+**Problem**
+D47 concluded that an audit agent's *findings* need re-verification while its *clean* verdicts are the reliable half — measured on agents handed a defect definition to hunt across 19 files. Applying that as a general prior is wrong: a `/done` pass reviewing the **fixes this same session just wrote** inverts it. All three agents filed findings; all three survived verification; the one that mattered was invisible to both the author and the two file-scoped lenses.
+
+**Decision**
+Chosen: keep D47's rule scoped to *definition-handed audit* agents, and record the opposite case explicitly — a review of the session's own new work is high-yield, and the product reviewer is the lens that finds the defect the author structurally cannot see. What each found on D51's floor gate:
+- **Product reviewer** (🔴, the load-bearing one): the gate named two inputs *nothing in the workflow computed* before the deciding step read them. Neither file-scoped lens could see it — the defect was in the *ordering across steps*, not in any line. Same shape as D50's unenforced gate, 3rd recurrence.
+- **Reviewer**: "under ~half its applicable budget" was undecidable against a soft/hard pair (100 vs 175); and a conjunction fallthrough left an under-ratio-but-grown file matching no row.
+- **Simplifier**: 4 line-neutral cuts, plus the one recommendation the author had explicitly ruled out cutting — it respected the constraint and proposed a different, correct offset.
+
+**Rejected**
+- Skipping the agents because the diff was all-markdown (`/done`'s docs-only mode). Why not: in this repo markdown *is* the executable artifact — a skill file's logic error is a real defect. The mode was overridden by hand and the pass returned three real findings, so the override was correct — and the mode itself was then fixed, gating on prose-vs-executable rather than `.md`-vs-code (1.127.0), so no future session needs the override.
+- Treating the product reviewer as redundant with the reviewer on a 3-file diff. Why not: the two file-scoped lenses both read the same lines and both missed the cross-step ordering defect. Small diff ≠ product reviewer has nothing to add.
+- Generalizing "agent findings are reliable" from this pass. Why not: the difference is the *prompt shape*, not the agent — hunting a supplied definition across many files manufactures matches (D47); reviewing a small, fresh, self-authored change does not. Verify findings either way; expect the yield to differ.
+
+**Consequences**
+- ⚠️ **An author reviewing their own new rule cannot see whether anything computes its inputs** — the intent is in your head, so the missing step reads as present. This is why the pass runs even when the change is small and self-checked. Fix landed as a `CLAUDE.md` § Maintenance row; mechanism in D51 (`../../doc-condensation/decisions/bloat-generator-fixes.md`).
+- The simplifier's constraint-respecting behaviour is worth keeping: it was told one specific clause was off-limits *with the reason*, and it found a different offset rather than arguing. Naming the reason, not just the prohibition, is what made that work.
+
+**Status**: committed · **Reversible**: yes

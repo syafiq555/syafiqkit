@@ -152,13 +152,15 @@ After Steps 1–3, check for a project-level pruning agent and delegate:
 Glob: .claude/agents/claude-md-pruner.md
 ```
 
+**Measure before consulting the table** — the floor's two inputs are yours to compute here, not Step 5's: `wc -l <target>` and this session's net delta to it (`git diff --stat HEAD -- <target>`, or `--stat <base>..HEAD` if already committed). Step 5's own `wc -lc` runs later and per-entry, so it cannot answer this. ⚠️ **A floor you never measured resolves to "not under the floor" and spawns — the gate then reads as satisfied while doing nothing.**
+
 | Agent found? | Action |
 |-------------|--------|
 | Yes, no pruning decision declared, and the file is not under the floor | Launch `subagent_type: "claude-md-pruner"` with file paths to scan |
 | Yes, but pruning/splitting is recorded as **decided**, OR the file is under the floor | **Skip the spawn** — report current size against the file's own budget instead |
 | No | Skip pruning — do not inline a pruning prompt |
 
-Detection rules for both skip cases — declared budget, "don't re-open" note, recorded no-op passes, and the undersized floor: `_shared/references/declared-budget.md`. A spawn against either can only return a no-op.
+Detection rules for both skip cases: `_shared/references/declared-budget.md`. A spawn against either can only return a no-op.
 
 **Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.`
 

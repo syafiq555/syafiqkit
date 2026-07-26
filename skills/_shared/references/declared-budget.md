@@ -22,10 +22,12 @@ These are prose signals, not a formal field — match on meaning, not an exact s
 |--------|--------|
 | A declared budget | That number is the threshold. Report size against **it**, never the default |
 | Pruning/splitting recorded as decided | Do not spawn a pruner and do not propose the split. Report current size against the file's own budget and stop |
-| Under ~half its applicable budget, and this session added ≤5 net lines to it | Same as above — too small for a spawn to find anything. Report the size, skip |
-| Nothing declared, and not under that floor | Defaults govern unchanged — ~200 soft target, 350 hard ceiling; `condense-claude-md`'s ≤200 / >250 split-offer trigger |
+| Under half the **hard ceiling** (declared figure, else 350 → under 175), **and** this session added ≤5 net lines to it | Same as above — too small for a spawn to find anything. Report the size, skip |
+| Anything else, including under-ceiling-but-grown-by->5-lines | Defaults govern unchanged — ~200 soft target, 350 hard ceiling; `condense-claude-md`'s ≤200 / >250 split-offer trigger |
 
-A no-op result is not a success worth paying an agent for — it burns a run, and on the decided case re-litigates a settled question. The floor row needs no new threshold: both figures are ones the caller already computes (`wc -l`, `git diff --stat`), and the ratio derives from whichever budget applies, so a declared 460 and the 350 default both work.
+A no-op result is not a success worth paying an agent for — it burns a run, and on the decided case re-litigates a settled question.
+
+⚠️ **The floor measures against the HARD ceiling, never the soft target** — a soft/hard pair makes "half the budget" two different numbers (100 vs 175), and the last row is a catch-all precisely so a file that clears the size test but grew this session still gets a real pass. Both conditions must hold to skip; either one failing spawns.
 
 ⚠️ **A declared budget suppresses the DECISION, not the MEASUREMENT.** Still run `wc -lc`, still report the number, and still flag an overage — against the declared figure. A file 200 lines past its own stated 460 is over budget and must be told so; deferring to the owner's threshold is not deferring on whether it was met. **Tell: you skipped the size report entirely because the file declared a budget.**
 

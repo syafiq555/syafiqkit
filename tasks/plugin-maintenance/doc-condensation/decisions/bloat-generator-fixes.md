@@ -157,3 +157,26 @@ Chosen: a file's own stated budget/decision outranks every default. Detection li
 - Follow-on the same session: the pruner stopped carrying any size policy at all (its `~200`/`350` figures deleted), leaving `condense-claude-md`/`condense-task-doc` as the single owners per artifact. Recorded as a `CLAUDE.md` § Conventions row. See D43 (`../../agent-architecture/decisions/injection-and-delegation.md`) for the agent's own scope change.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D51 — An Undersized File Skips the Pruner Spawn, Gated on a Ratio Rather Than a Fourth Absolute Number — committed — 2026-07-26
+
+**Problem**
+Reported as [issue #10](https://github.com/syafiq555/syafiqkit/issues/10) against installed 1.124.1, and the direct successor to D44. D44 taught Step 4 to skip when the owner had *decided* against pruning, but the middle row gates on a decision, never on size — so a 26-line project CLAUDE.md (7% of the 350 default) with no declared decision still mandated a spawn that could only return a no-op. The reporter declined it, the same deviation signal D44 was filed on.
+
+`_shared/references/declared-budget.md` already stated the cost principle ("a no-op result … is not a success worth paying an agent for") but scoped it to the decided case, so it read as covering this and did not.
+
+**Decision**
+Chosen: a size floor in the shared reference's Act table — **under half the hard ceiling** (declared figure, else 350 → under 175) **and** ≤5 net lines added this session. Both conditions must hold to skip; the final row is an explicit catch-all so a file that clears the size test but grew this session still gets a real pass. Expressed as a ratio so no new absolute number enters a file that isn't one of the two condense skills (`CLAUDE.md` § Conventions), and so one rule covers a declared 460 and the 350 default alike. Both inputs are values a caller already computes (`wc -l`, `git diff --stat`).
+
+**Rejected**
+- An absolute floor (`<100 lines`), as the issue suggested. Why not: writes a fourth number (alongside 200/250/350) into `_shared/`, which the § Conventions row reserves to the condense skills, and needs a second rule for a file declaring a *small* budget — a ratio handles both with one row.
+- Measuring against the soft target rather than the hard ceiling. Why not: a soft/hard pair makes "half the budget" two different numbers (100 vs 175), leaving every file between them undecidable — a reader computing against either gets a defensible, opposite answer.
+- Routing the size question to `condense-claude-md` instead of stating a floor. Why not: turns a `wc -l` into a full skill invocation on every `/done`, and that skill rewrites files rather than answering yes/no.
+
+**Consequences**
+- All 6 sites citing `declared-budget.md` inherit the floor; only `update-claude-docs` Step 4 needed gating. `condense-claude-md` L48 already gates its own split levers on "only an over-budget file earns #6 or #7", so a tiny file never reaches a split decision there — verified, no sibling patch owed.
+- ⚠️ **A gate needs its measurement named at the DECIDING step.** As first written, nothing in Steps 1–4 computed either input — Step 5 owns `wc -lc` but runs after Step 4 and per-entry — so the unmeasured condition resolved to its permissive default and the gate passed by spawning anyway. Step 4 gained an explicit measure line. Third recurrence of the shape (D50's arrival-rate gate was stated in Step 3a and unchecked in Step 4); now a `CLAUDE.md` § Maintenance checklist row.
+
+**Status**: committed · **Reversible**: yes
