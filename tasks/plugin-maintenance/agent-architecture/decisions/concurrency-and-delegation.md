@@ -141,3 +141,24 @@ Chosen: `done`'s Steps 3+4 section now runs `update-claude-docs` first, `task-su
 - Any future skill pair added to `done` (or elsewhere) that both scan the same conversation for overlapping signal classes should default to sequential too — check for this shape before assuming D32's parallel-block rule applies.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D53 — A Contested Doc Inverts the Section-Overwrite Mandates; the Rule Lives in `_shared/`, Keyed to a Run-Wide Condition — committed — v1.130.0
+
+**Problem**
+Reported upstream as [issue #13](https://github.com/syafiq555/syafiqkit/issues/13) by an outside user. `task-summary` §4 marks a full `## Quick Start` rewrite and a `## Last Session` overwrite MANDATORY on every update, while §1's ownership guard mandates additive-only edits once another writer owns the doc. Both fire together on a contested `current.md`, so the only moves are to obey the mandate and delete a peer's bullets, or skip it silently. The reporter improvised a third path — the real cost, since an unwritten rule is re-invented differently each session. `## Last Session` already carried "Parallel sessions: overwrite only your own content", but the clause trailed the mandate mid-row: a reader executing the instruction has already acted before reaching it.
+
+**Decision**
+Chosen: the contested branch is stated at every mandate site, and the rule itself extracted to `skills/_shared/references/contested-doc-sections.md` (Quick Start → additive only; Last Session → don't overwrite, route facts to typed sections). §1's guard was rewritten from "Before **scanning**" to "Before writing — scan or explicit path alike", and now names the contested state the §4 branches refer to.
+
+**Rejected**
+- Keep the rule in `task-summary` alone, per the single-owner half of the extract convention. Why not: correct on the information at hand, reversed by measurement — grepping the *mandate's* vocabulary (`Overwrite in place`, `Rewrite on every update`) rather than the rule's own wording found the identical unguarded mandate in `condense-task-doc` and `merge-task-docs`. Three owners crosses the 3+ threshold.
+- Fold it into `_shared/references/diff-ownership.md`. Why not: that file answers *which files in a diff are mine* (consumed by `done`/`update-plugin` for agent partitioning); this answers *which sections I may overwrite*. Detection and remedy are different planes — diff-ownership keeps the former, the new file owns only the latter.
+
+**Consequences**
+- **The first fix shipped unreachable**, and this is the transferable half: all three branches keyed off a condition §1 only evaluated on the multi-domain-scan path, while the reporter's repro (and `write-summary`/`update-summary`) pass an explicit path. A branch is dead wherever no step computes its condition — the same defect as D52's unmeasured floor gate, one face over (threshold vs. reachability), 4th recurrence of the shape.
+- Caught by the **product reviewer**, after the code reviewer correctly returned the three changed lines as mutually consistent. Reachability lives *between* sections; a file-scoped lens structurally cannot see it. Second consecutive session where that lens found the load-bearing defect (D52) — treat its verdict on a rule change as load-bearing, not advisory.
+- An author cannot self-check this: the intent is in their head, so the branch reads as obviously reachable.
+
+**Status**: committed · **Reversible**: yes

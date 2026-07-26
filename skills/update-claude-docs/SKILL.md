@@ -114,6 +114,7 @@ Base writing-style rules (no filler words, one idea per sentence): `_shared/refe
 | **No session storytelling** | Never write how the mistake happened ("this happened twice", "a reviewer caught it", "#1/#2/#3 trigger" lists). The rule states the constraint, not its history. |
 | **One concrete example max** | One symptom string or code snippet. Multiple examples of the same failure add length, not signal. |
 | **Capture filter** | Before writing: "would Claude act differently without this?" If no, don't write it. |
+| ⚠️ **A correction is a claim — run the command that settles it BEFORE writing** | An entry asserting a doc, an agent, or a prior session got something wrong is the one kind of entry that is costlier when mistaken: it lands in a team-visible or global file that later sessions read as settled, and it discredits a source that was right. The asymmetry hides it — writing "that figure is stale" feels like diligence and costs nothing visible. If a single command decides it (a count, a version, a flag, a path), run it first; if none can, write the entry as the observation, not the verdict. |
 
 ### New signals → Add entry
 
