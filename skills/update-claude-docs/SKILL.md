@@ -154,11 +154,11 @@ Glob: .claude/agents/claude-md-pruner.md
 
 | Agent found? | Action |
 |-------------|--------|
-| Yes, and the file declares no pruning decision | Launch `subagent_type: "claude-md-pruner"` with file paths to scan |
-| Yes, but the file records pruning/splitting as **decided** | **Skip the spawn** — report current size against the file's own budget instead |
+| Yes, no pruning decision declared, and the file is not under the floor | Launch `subagent_type: "claude-md-pruner"` with file paths to scan |
+| Yes, but pruning/splitting is recorded as **decided**, OR the file is under the floor | **Skip the spawn** — report current size against the file's own budget instead |
 | No | Skip pruning — do not inline a pruning prompt |
 
-Detection rule for that middle row (declared budget, "don't re-open" note, recorded no-op passes): `_shared/references/declared-budget.md`. Re-running a pruner the owner has already concluded is a no-op burns an agent and re-opens a settled question.
+Detection rules for both skip cases — declared budget, "don't re-open" note, recorded no-op passes, and the undersized floor: `_shared/references/declared-budget.md`. A spawn against either can only return a no-op.
 
 **Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.`
 
