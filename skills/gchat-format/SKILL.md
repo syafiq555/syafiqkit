@@ -27,6 +27,8 @@ When the input is a **release note / deployment announcement** (not already-fina
 
 A staging-only change is at most a one-line "on staging for testing" note — it is not a full release announcement. Lead with the outcome a non-engineer reads; delete everything explaining the underlying implementation. When unsure how terse, err shorter and offer a one-liner variant.
 
+⚠️ **Regroup by feature; never inherit the source's `Added`/`Fixed` split.** Those headings sort by what the change did to the CODE, so one feature lands in both while a headline item and a tooltip tweak sit as equals — the reader gets a flat list with no way to tell what the release IS. Restructure to: a short prose lead naming what a user can now do and what they couldn't before; the main feature's items together, whichever heading they came from; everything unrelated demoted under a catch-all. A bug that reads as "this feature now works properly" goes under the feature, not beside it. When the source gives no before-state (a changelog rarely does), ask for it or pull it from the task doc — it's the sentence that makes the rest legible. **Tell: every bullet is a peer and the note opens with a bullet instead of a sentence.**
+
 ⚠️ **Completeness check before delivering**: count the distinct shipped items in the source (each `###`-level bullet under Added/Changed/Fixed, per repo if multi-repo) and count the bullets in your condensed output. If the output has fewer, that's expected only if you deliberately merged near-duplicates or cut a caveat/ops-step per the table above — if a genuine shipped item is simply missing, you condensed too aggressively and silently dropped real content. Re-scan the source once before sending.
 
 ## Key Rules
