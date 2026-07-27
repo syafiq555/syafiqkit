@@ -5,14 +5,14 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../doc-condensation/current.md (sibling feature — fighting duplication/bloat across docs, CLAUDE.md, skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-27 — D58 shipped in v1.132.0: `/done` docs-only mode now runs the full agent trio (prose-vs-executable sub-gate removed, superseding D52's 1.127.0 gate). Prior: D53 in v1.130.0 — a contested doc inverts the section-overwrite mandates; the rule moved to `_shared/` once a mandate-vocabulary grep found 3 owners, and its first fix was keyed to a condition only one code path evaluated
+Last updated: 2026-07-28 — D60 added in v1.135.2: `Explore` kept calling `Write` in Plan Mode despite a maximally-emphatic ban; `disallowedTools` blocks the call but not the intent, so the fix states the agent's ROLE instead of banning harder. Took three iterations — pure de-priming had to be re-anchored once a review showed an unbound abstraction fails silently on every dispatch. Prior: D58 in v1.132.0 — `/done` docs-only mode now runs the full agent trio (superseding D52's 1.127.0 gate)
 -->
 
 # Plugin Maintenance — Agent Architecture
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 24 decisions (23 live, D35 superseded) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`; the prior "21" was itself an increment off a stale figure).
+**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 26 decisions (25 live, D35 superseded) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`; the prior "21" was itself an increment off a stale figure).
 
 **State**: v1.130.0 is live on `origin/master` — this repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`.
 
@@ -36,6 +36,7 @@ Last updated: 2026-07-27 — D58 shipped in v1.132.0: `/done` docs-only mode now
 - A doc another session is writing inverts `task-summary`'s Quick Start/Last Session overwrite mandates; "single owner" is a grep of the MANDATE's vocabulary, not an impression — see D53 (decisions/concurrency-and-delegation.md)
 - `claude-md-pruner` prunes task docs too and its name is deliberately legacy — renaming silently breaks `update-claude-docs` Step 4's literal Glob/`subagent_type` and orphans the old file in every existing project — see D43 (decisions/injection-and-delegation.md)
 - Editing a generated `.claude/agents/*.md` requires porting the same edit into its source `skills/agent-setup/templates/*.template.md` in the same change — now a root CLAUDE.md `⚠️ MANDATORY` callout, 3rd recurrence — see D31 (decisions/concurrency-and-delegation.md)
+- A `disallowedTools` guard blocks an agent's *call*, never its *intent* — redirect by stating the agent's ROLE, and keep the redirect anchored to a named target category; de-priming to pure abstraction trades a loud rare failure for a silent universal one — see D60 (decisions/injection-and-delegation.md)
 - Widening a threshold table (agent-count tiers, byte budgets) needs every downstream decision point checked, not just the table itself — see D39 (decisions/verification-rigor.md)
 - A skill pair that both scan the same conversation for the same signal class and route dependently must dispatch sequentially — D32's parallel-batch default assumes disjoint state, which this pair doesn't have — see D42 (decisions/concurrency-and-delegation.md)
 
@@ -55,7 +56,8 @@ Decisions about how generated project agents (`.claude/agents/*.md`) inherit con
 | 2 | Orchestrator delegation pattern (D4, D14, D29, D43) | ✅ |
 | 3 | Verification rigor across skill checklists (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58) | ✅ |
 | 4 | Concurrency/cheap-model delegation (D30, D31, D32, D42, D53); transcript-scan tried + removed (D34→D36) | ✅ |
-| 5 | Backfill `task-builder`/`browser-verifier` agents in this repo | ⏳ Pending |
+| 5 | Agent tool-guard vs. intent; role-correction over prohibition (D60) | ✅ |
+| 6 | Backfill `task-builder`/`browser-verifier` agents in this repo | ⏳ Pending |
 
 ---
 

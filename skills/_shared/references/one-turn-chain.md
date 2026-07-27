@@ -23,6 +23,12 @@ A written artifact fires it too, not just a sub-skill's summary. Writing a plan 
 
 It isn't: an artifact nobody was asked to approve, or a finding nobody routed, has changed nothing. **Tell: you wrote a file and your closing paragraph describes it instead of submitting it.** The write and the act that makes it count belong in the same turn.
 
+## Naming the next step is the stop
+
+The cue at each handoff is addressed to the act of invoking, and a reply that *names* the next step satisfies nothing while feeling like it has: announcing "next is Step N" is a description of work, not work. It reads as orientation rather than as a pause, which is why a correctly-placed boundary warning can be read and followed and still not fire.
+
+Treat writing the next step's name as the trigger to call it, in that same message. **Tell: your closing sentence contains the next step's name and no tool call follows it.**
+
 ## What "done" means for the chain
 
 The parent workflow's final Output block is the only sign-off. Until it is written, every sub-skill return is a mid-point — including the last one before it.

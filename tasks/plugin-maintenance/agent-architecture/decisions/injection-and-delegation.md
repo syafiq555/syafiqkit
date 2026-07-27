@@ -140,3 +140,25 @@ Chosen: add an explicit counter-instruction to `Explore`/`Plan` templates — pr
 Only `Explore`/`Plan` needed this fix — `code-reviewer`/`code-simplifier`/`product-reviewer` trigger off `git diff`, not free-text prompts, so they aren't exposed to the same misjudgment.
 
 **Status**: committed · **Reversible**: yes
+
+### D60 — A `disallowedTools` Guard Blocks the Call, Not the Intent; Redirect by Role, and Keep the Redirect Anchored — committed — 2026-07-28
+
+**Problem**
+`Explore` spawned inside Plan Mode kept calling `Write` against the lead's plan file. `disallowedTools: [Write, Edit]` blocked every attempt, so nothing was written — but each attempt cost an error and a turn. The prohibition was already maximally emphatic (⚠️, bold, first line of Bootstrap) and named the failure it would cause; it lost anyway. Root cause is name-shadowing: `Explore` shadows the built-in agent the harness spawns *with* `Write` in Plan Mode, and the harness's document-building framing is addressed to the lead session but reaches the subagent, which absorbs it first-person.
+
+**Decision**
+Chosen: state the agent's ROLE, not a louder ban. Lead with the deliverable ("your findings are your final text response"), then reattribute the misaddressed instruction ("addresses the session that spawned you, never you") — the same move `Constraints` → "You ARE the search step" already uses for the identical misattribution. Reinforce at `## Output Format`, read immediately before emitting. Name the redirect's target category ("the harness's own Plan Mode framing") without quoting its wording.
+
+**Rejected**
+- **Granting `Write` scoped to the plans directory** (mirroring `Plan`'s carve-out). Why not: a `haiku` search agent would gain write access to the file the lead is actively building — trading a visible, harmless error for silent clobbering.
+- **Restating the prohibition more forcefully.** Why not: it already occupied the strongest position available and failed there; D50 measured this treadmill.
+- **Renaming the agent** to remove the shadowing outright. Why not: 4 call sites dispatch `subagent_type: "Explore"` by literal string and CLAUDE.md documents the name. Kept as the final escalation if the symptom recurs.
+- **Pure abstraction with the trigger phrase fully removed.** Why not: it failed to bind. See Consequences.
+
+**Consequences**
+- **A prohibition needs a competing destination, not more force** — a ban the model must argue past loses to an instruction that states where the output goes.
+- ⚠️ **De-priming has an asymmetric cost, and the naive version is worse than the problem.** Quoting a trigger phrase to redirect it re-emits the string whose first-person absorption is the root cause; removing it entirely makes the redirect unanchored. Those two failures are not comparable: quoting fails *rarely* and *announces itself* (a visible error), while an unbound abstraction fails on *every* dispatch and is *indistinguishable from the fix never having applied* — same symptom, no signal it regressed. Cheap-tier agents (`model: haiku`) are least able to complete an unanchored match. Resolution: name the target *category*, quote nothing.
+- Not verifiable in-session — the defect only manifests when `Explore` is spawned inside Plan Mode, and this repo has no harness to replay that. Confidence rests on analogy to a rule that works in the same file. Watch for the absence of "Error writing file".
+- ⚠️ Parity: both `.claude/agents/Explore.md` and `skills/agent-setup/templates/Explore.template.md`, each in its own vocabulary.
+
+**Status**: committed · **Reversible**: yes
