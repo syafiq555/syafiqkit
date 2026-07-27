@@ -1,7 +1,7 @@
 ---
 name: update-plugin
 description: >
-  Scan the current session for learnings about the syafiqkit plugin itself, then patch the affected skill files (SKILL.md trigger descriptions, workflow steps, gotcha tables, rule tables) based on what was discovered. Fire it the moment a skill misfired this session — triggered when it shouldn't have, stayed silent when it should have fired, a workflow step turned out wrong mid-execution, or you found yourself working around a skill's instructions instead of following them. Also fire near session end, after any skill-creator work, to sweep for missed signals. Cue phrases: "update the plugin", "capture this for the skill", "improve the skill based on this session", "fix the skill trigger". Do NOT use for a project-specific gotcha (schema, API key, service behavior — that's update-claude-docs) or a durable communication/working-style preference with no skill-trigger implication (also update-claude-docs) — the test is whether the fix changes how a *skill* triggers or behaves, not how Claude communicates generally. This is the plugin equivalent of update-claude-docs — it writes to skill files, not to project CLAUDE.md.
+  Scan the current session for learnings about the syafiqkit plugin itself, then patch the affected skill files (SKILL.md trigger descriptions, workflow steps, gotcha tables, rule tables) based on what was discovered. Fire it the moment a skill misfired this session — triggered when it shouldn't have, stayed silent when it should have fired, a workflow step turned out wrong mid-execution, or you found yourself working around a skill's instructions instead of following them. Also fire near session end, after any skill-creator work, to sweep for missed signals. Fire it too when a session simply HAND-EDITED a skill/command/agent file with no defect at all — that is the arrival-rate accounting case (`/done` Step 5 Gate B), where the deliverable is naming the replace/route/declared-growth per touched file rather than patching a bug. Cue phrases: "update the plugin", "capture this for the skill", "improve the skill based on this session", "fix the skill trigger". Do NOT use for a project-specific gotcha (schema, API key, service behavior — that's update-claude-docs) or a durable communication/working-style preference with no skill-trigger implication (also update-claude-docs) — the test is whether the fix changes how a *skill* triggers or behaves, not how Claude communicates generally. This is the plugin equivalent of update-claude-docs — it writes to skill files, not to project CLAUDE.md.
 ---
 
 # Update Plugin — Capture Session Learnings into Skill Files
@@ -25,6 +25,8 @@ git -C ~/.claude/plugins/syafiqkit remote get-url origin 2>/dev/null | grep -q '
 **Still run Step 1's scan** — a defect hit by a real user is the most valuable kind. Then route it upstream (see **Step 5 — Upstream a consumer finding** below) instead of patching.
 
 ## Step 1 — Scan: What happened involving the plugin?
+
+**Arrival-rate-only invocation — take this branch FIRST.** If you were invoked with **no defect signal** (typically `/done` Step 5's Gate B: this session hand-edited a `skills/*/SKILL.md`, `commands/*.md`, or `.claude/agents/*.md` and nothing misfired), **skip Step 1's signal scan and Step 2's routing entirely — they have no matching row and will read as "no signal, nothing to patch," which is the exact gap this branch exists to close.** Go straight to **Step 3a** and run it against every file the caller listed. The deliverable is the accounting, not a patch: per file, name the **replace**, the **route** to `references/`, or the **declared growth** with the reason no retirement applied. Then bump per the version convention. A defect-free session that grew a dense skill file is a valid, expected invocation — not a no-op.
 
 ⚠️ **"The session" means the WHOLE transcript back to its start, not the turn(s) immediately before this invocation — and stating that isn't enough, a mental "re-scan" still defaults to whatever's freshest.** A substantial recent action (a big merge, a long agent run) reads as "the session," and a mistake corrected in turn 3 feels closed just because it was fixed in the moment — it isn't, since fixing the instance doesn't patch the skill. **Before writing anything, list every distinct user message in the conversation as a numbered line** (one per message, in order, starting from message 1) — not a summary, an actual enumerated list — then mark which lines carry a correction/signal. Re-reading "the recent part again" instead of walking this list is the failure this artifact exists to prevent. If you cannot produce the list (context compacted, transcript unavailable), say so explicitly rather than silently scanning what's left.
 
@@ -92,6 +94,10 @@ Both tables must stay in sync.
 
 SKILL.md files are not CLAUDE.md files — `condense-claude-md`/`condense-task-doc` don't apply. Line count alone is a poor signal (most bloated skills in this plugin still sat under 250 lines); flag anything above ~80-90 bytes/line for a closer read — compute the ratio, never eyeball it: `for f in skills/*/SKILL.md; do echo "$(echo "scale=1;$(wc -c<$f)/$(wc -l<$f)"|bc) $f"; done | sort -rn`.
 
+**`references/*.md` files are OUT of the B/L gate's scope — decided, not deferred.** The ~90 B/L line measures a *hot path* that is read on every invocation; a reference is a *cold-path lookup* whose correct shape is a dense table with long rows. Applying the ratio there would push a good lookup table toward prose, which is backwards. What a reference owes instead: (1) stay **single-topic** — a grab-bag needs splitting per topic, not condensing (D45); (2) every rule in it must be reachable from a `📖` pointer that **names the symptom**, never a generic phrase; (3) **a prose reference stays under ~6KB**; above that it is the next thing needing a split. Measure with `wc -c`, never a ratio.
+
+**A CATALOG is exempt from (3) and grows with what it catalogs** — `task-summary/references/templates.md` (23KB) and `update-claude-docs/references/structure.md` (15KB) are correct at their size: a session opens the one template/section it needs, never the file end-to-end. The test is how the file is READ, not how big it is. Apply the ceiling only where a reader must scan the whole file to find their answer.
+
 Execution model (draft/verify split): `_shared/references/two-tier-condense.md`. Checklist below is this skill's own — what to cut, specific to SKILL.md files:
 
 | Pattern | Fix |
@@ -113,6 +119,12 @@ After verifying clean (per the shared reference's Verify step): bump the plugin 
 ## Step 4 — Validate
 
 After writing:
+
+**Arrival-rate-only run (Step 1's first branch)**: the rows validating a *defect capture* do not apply — there was no defect. Two rows still do, plus one that is **more** load-bearing here than on a defect run:
+
+- The B/L accounting below and Step 3a's draft+verify — the deliverable.
+- **The shared-mechanism grep IS owed, despite Step 2 being skipped.** Step 2's *routing* is what a no-defect run skips; its duplication check is not, and a hand-edited rule is the arrival most likely to restate a sibling's. Grep the MECHANISM's own vocabulary — the words the other skills already use — before accepting the edit. A rule stated in three places is the failure this row exists to catch, and an arrival-rate run is where it originates.
+
 - Re-read each changed file. Confirm the new content doesn't duplicate an existing row.
 - For trigger description changes: read the new description and ask "would this have caught what was missed in this session?" If no, revise.
 - For rule additions: ask "is this a one-time project quirk, or will this pattern recur across projects?" If one-time, skip it.
@@ -128,21 +140,9 @@ After writing:
 
 ## Step 5 — Upstream a consumer finding (CONSUMER only)
 
-A consumer can't patch, but they can **file** — and a GitHub issue notifies the maintainer instantly, with no secret shipped and no server to run. Authentication runs on *their* identity, not an embedded token.
+Reached only when Step 0 returned `CONSUMER`. A consumer can't patch, but they can **file** — a GitHub issue notifies the maintainer instantly, authenticated as *their* identity. **ASK FIRST — never file silently**; an unprompted outbound post carries the user's own name.
 
-⚠️ **ASK FIRST — never file silently.** An unprompted outbound post under the user's own GitHub name is a surprise action with their name on it. Show the drafted report, then ask.
-
-1. Check the channel is available: `gh auth status` (any authenticated account works — the repo is public).
-2. Show the drafted report (skill · version · what went wrong · the rule that would fix it) and ask: *"File this as an issue to `syafiq555/syafiqkit`? You'd post as @<their-login>; nothing else is sent."*
-3. On **yes**:
-   ```bash
-   gh issue create --repo syafiq555/syafiqkit --label skill-feedback \
-     --title "<skill>: <one-line defect>" --body "<the report>"
-   ```
-   Return the issue URL — the maintainer is notified by GitHub.
-4. On **no**, or if `gh` is unauthenticated/absent → render the report in its own fenced block, labelled ("copy everything inside the fence below, nothing outside it"). ⚠️ **The fence is the LAST element of the reply — nothing follows it.** The pointer to `github.com/syafiq555/syafiqkit/issues` goes **above** the label, never after the closing fence — trailing text is invisible as a boundary once the report's own last line could read as more report.
-
-⚠️ `gh label list --search` **lies** (returns empty for a label that exists). If you must verify a label, read `gh api repos/OWNER/REPO/labels/<name>` — never conclude "missing" from the search.
+📖 **`references/upstream-consumer-finding.md`** — the full flow: `gh auth status` check, the drafted-report ask, `gh issue create` invocation, and the fenced-report fallback when `gh` is unavailable or the user declines.
 
 ## Output
 

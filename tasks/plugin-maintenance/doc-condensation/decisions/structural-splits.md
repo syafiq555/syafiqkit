@@ -182,3 +182,26 @@ Chosen: `references/structure.md` §6 now gates all three structural levers (sub
 - A file under budget asked to "split by category" now gets `### ` subsections in place — zero new files, same navigability gain the user actually wanted.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D54 — The Arrival-Rate Gate Needs a Trigger That Fires With NO Defect; `references/*.md` Is Out of the B/L Gate's Scope — committed — 2026-07-27
+
+**Problem**
+D50 built the arrival-rate gate inside `update-plugin` Step 3a, but `update-plugin` only runs when `/done` Step 5 fires, and Step 5's single gate asked "does a real skill signal exist?" — a *defect* trigger. Rules mostly arrive as direct hand-edits during otherwise-clean sessions, so the dominant arrival path reached no checkpoint. Measured over a 7-day window: `skills/**/*.md` took **+418 net lines** (677 added / 259 removed, 2.6:1) across 22 commits. Separately, `references/*.md` had carried no size policy through two deferrals, and Step 3a's ~90 B/L line named SKILL.md only — a gap that widens every time a cold path is extracted.
+
+**Decision**
+Chosen, two parts. (1) **Step 5 gains a second, independent Gate B** — "did this session WRITE to a skill/command/agent file?" — with the detecting `git status` command and the B/L loop placed *at the deciding step*, per D51's rule that a gate whose inputs nothing computes resolves to its permissive default. Gate B fires on clean sessions by design; `update-plugin` Step 1 gained a matching arrival-rate-only branch that skips the defect scan and routes straight to Step 3a. (2) **`references/*.md` is OUT of the B/L gate's scope, decided rather than deferred** — the ratio measures a hot path read every invocation, while a reference is a cold-path lookup whose correct shape is a dense table with long rows; applying it would push good tables toward prose. A reference owes single-topic (D45), a symptom-naming `📖` pointer, and **~6KB for prose**; a **catalog is exempt** and grows with what it catalogs (`templates.md` 23KB, `structure.md` 15KB are correct). The test is how the file is READ.
+
+**Rejected**
+- Adopting the "remove 80%+ of the rules, let the model use judgment" advice from Anthropic's Claude-5 context-engineering article wholesale. Why not: that is a *density* prescription, and D23→D50 measured a regression from exactly it. The article describes a centrally-controlled, rarely-edited system prompt; this plugin is an incident-driven accumulator at 22 skill-fixing commits a week. Same goal, different dynamics — act on the rate, not the stock. Its progressive-disclosure and emphasis advice was adopted; its automatic-memory advice conflicts with a standing user decision.
+- Giving Gate B a significance floor so trivial edits don't trigger it. Why not: the gate already scales with the *file's* density, not the edit's size — a typo fix in a lean skill resolves in one `wc -lc` ("all under budget" is the complete output). A second threshold would be a new unmeasured condition, the defect D51 named.
+- Extending the ~90 B/L ratio to `references/` siblings. Why not: it would flag `templates.md` and `structure.md`, two files that are correct at their size, and a gate that fires on healthy files trains the reader to ignore it.
+
+**Consequences**
+- `⚠️` markers cut 291 → 233 corpus-wide (global `~/.claude/CLAUDE.md` 53 → 12, from 1 per 4 lines). **A marker downgrade is presentation, not condensation** — it changes no rule text, so it escapes D50's treadmill by construction. Verify it by diffing sorted word SETS, never `wc -w`: a stripped marker counts as a word, so a formatting-only edit reports a deficit that reads exactly like deleted rules.
+- Extraction stopped at 3 of 6 candidates. `read-summary`'s ratio ROSE post-extraction (199.8 → 206.8) — D50's documented floor signature, since extraction removes whole lines so bytes and lines fall together. Its queued ~130 B/L projection was stale: it assumed 4.9KB would move and only 621 bytes did, because the marker pass had already shortened those lines. **A projection made before an unrelated pass touched the same lines is not a target.**
+- Two unreachability defects found while wiring, both invisible to a file-scoped read: docs-only and infra-only modes excluded Step 5 entirely ("Steps 2-4"), and `done` promised accounting that `update-plugin`'s defect-shaped Step 1 could not receive. The second was the product reviewer's — 3rd consecutive session that lens carried the load-bearing finding. **Verifying a caller's reachability says nothing about whether the callee accepts the call.**
+- `condense-claude-md/references/structural-splits.md` (6,515 bytes) is the first live edge case of the new prose ceiling — flagged in Next Steps, not split; a 53-line file split gets harder to use.
+
+**Status**: committed · **Reversible**: yes

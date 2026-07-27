@@ -12,7 +12,7 @@ Execute all steps in sequence without pausing for confirmation.
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
 | Emitting one `Agent` call per message and calling it a parallel batch | **Every agent of a batch goes in ONE assistant message, opened with no prose before the calls** — see Step 1's emission block. Reciting the rule does not enforce it; the message shape does |
-| Treating `run_in_background: false` as a guarantee the call blocks | It isn't — [subagents run in the background by default since v2.1.198](https://code.claude.com/docs/en/sub-agents), and [#69691](https://github.com/anthropics/claude-code/issues/69691) reports `false` is ignored in top-level sessions. Pass it, but expect a `<task-notification>`; results are never lost. **Never poll** for one |
+| **Treating `run_in_background: false` as a guarantee the call blocks** | It isn't — [subagents run in the background by default since v2.1.198](https://code.claude.com/docs/en/sub-agents), and [#69691](https://github.com/anthropics/claude-code/issues/69691) reports `false` is ignored in top-level sessions. Pass it, but expect a `<task-notification>`; results are never lost. **Never poll** for one |
 | Run agents one at a time when independent | Two Agent calls in **same message** for parallel foreground execution |
 | Send an agent a prompt whose ROLE doesn't match its `subagent_type` (product-review content to `code-reviewer`) | The prompt's role and the `subagent_type` must be the SAME role. A mis-prompted agent silently skips BOTH — the role you invoked never ran, and the role you asked for wasn't registered as run. It still looks "spawned" to every downstream check |
 | Report a step done when only PART of it ran (reviewers but no simplifiers; Step 3 but no Step 4) | Every step below is a CHECKLIST, not prose. Before reporting, tick each named part — a step with an unticked part is NOT done. A part you deliberately skipped gets `➖ <reason>` in its Output row, never a silent blank |
@@ -21,17 +21,17 @@ Execute all steps in sequence without pausing for confirmation.
 
 ## Mode selection (decide first)
 
-**Docs-only mode** when the diff is entirely **PROSE** documentation — task docs, CLAUDE.md, README, and nothing else (`git status --short` shows no `.php`/`.ts`/`.tsx`/etc.). ⚠️ **The gate is prose-vs-executable, not `.md`-vs-code.** Markdown that a future session *executes* is code: `skills/*/SKILL.md`, `commands/*.md`, `.claude/agents/*.md`, and their `references/`. A logic error there — a gate whose inputs no step computes, a threshold ambiguous against two numbers, a table row nothing matches — ships and runs. An all-`.md` diff of instruction files takes **full mode**, and the product reviewer especially: file-scoped lenses read the same lines and miss ordering defects *between* steps.
+**Docs-only mode** when the diff is entirely **PROSE** documentation — task docs, CLAUDE.md, README, and nothing else (`git status --short` shows no `.php`/`.ts`/`.tsx`/etc.). **The gate is prose-vs-executable, not `.md`-vs-code.** Markdown that a future session *executes* is code: `skills/*/SKILL.md`, `commands/*.md`, `.claude/agents/*.md`, and their `references/`. A logic error there — a gate whose inputs no step computes, a threshold ambiguous against two numbers, a table row nothing matches — ships and runs. An all-`.md` diff of instruction files takes **full mode**, and the product reviewer especially: file-scoped lenses read the same lines and miss ordering defects *between* steps.
 - Step 1: **skip all three code agents** — they audit *code*, and prose has none; running them against a README is theater (this reasoning does NOT extend to instruction files — see the gate above). Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve, and no edited table has a row/callout wedged mid-table (a blank line or prose between `|`-rows splits one GFM table into two).
-- Steps 2-4 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run).
+- Steps 2-5 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run). **Step 5's Gate B runs in every mode** — a docs-only diff is exactly where a hand-edited skill file hides.
 - Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
-- ⚠️ **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Code already committed this session is NOT docs-only — it was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + uncommitted diff), and run full Step 1 against committed code files. The tell: a commit you authored this session in `git log`, but the working tree shows only `.md` changes. This covers *timing* only, and reads as satisfied whenever no application code exists at all — precisely when the gate above is the deciding one. Check both.
+- **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Code already committed this session is NOT docs-only — it was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + uncommitted diff), and run full Step 1 against committed code files. The tell: a commit you authored this session in `git log`, but the working tree shows only `.md` changes. This covers *timing* only, and reads as satisfied whenever no application code exists at all — precisely when the gate above is the deciding one. Check both.
 
 **Infra-only mode** when the diff is **entirely deploy/build/CI plumbing** and no application code — CI workflows (`.github/workflows/*.yml`, `.circleci/`), `docker-compose*.yml`/`Dockerfile`, build config (`next.config.*`, `vite.config.*`), nginx/env config. The **mirror image of docs-only**: docs need no reviewer; infra needs *only* the reviewer, and needs it badly.
 - Step 1: **reviewer ONLY.** Skip the simplifier (no logic to DRY) and the product reviewer (no user journey). Size-independent — the trigger is file KIND, not count.
-- ⚠️ **Prompt the reviewer adversarially: infra fails SILENTLY.** Broken deploy steps exit 0 while tests pass — review is the only catch. Give it the change's PURPOSE, what it must not break, ask for empirical verification. Two call sites of the same command can need opposite treatments.
-- Steps 2-4 as normal. Output: mark Simplify/Product as ➖ "infra-only".
-- ⚠️ **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer.
+- **Prompt the reviewer adversarially: infra fails SILENTLY.** Broken deploy steps exit 0 while tests pass — review is the only catch. Give it the change's PURPOSE, what it must not break, ask for empirical verification. Two call sites of the same command can need opposite treatments.
+- Steps 2-5 as normal. Output: mark Simplify/Product as ➖ "infra-only".
+- **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer.
 
 **Ops-only mode** when the session changed a **running system rather than the repo** — provisioning/seeding an environment, a data migration or backfill, a deploy or config flip applied out-of-band — and produced **no repo diff and no session commit** in any repo. Throwaway scripts written outside a repo (scratchpad/tmp) are not a diff; they are never committed and never re-run.
 - Step 1: **skip all three code agents** — there is no repo code to review, and an empty partition returns a green report that means nothing. Do NOT substitute the docs-only integrity check either; nothing was edited yet at that point.
@@ -41,15 +41,15 @@ Execute all steps in sequence without pausing for confirmation.
 
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
 
-⚠️ **An empty `git status --short` does not by itself select a no-code mode — establish WHY it's empty first.** Three causes look identical and need opposite handling: work already committed this session (→ full mode, count off the base commit), another writer's tree you don't own (→ see the ownership guard), or the session genuinely never touched the repo (→ ops-only). **Tell: you're skipping Step 1 because there was "nothing to review" without having named which of the three applies.**
+**An empty `git status --short` does not by itself select a no-code mode — establish WHY it's empty first.** Three causes look identical and need opposite handling: work already committed this session (→ full mode, count off the base commit), another writer's tree you don't own (→ see the ownership guard), or the session genuinely never touched the repo (→ ops-only). **Tell: you're skipping Step 1 because there was "nothing to review" without having named which of the three applies.**
 
 ## Ownership guard — you may not own the whole diff
 
-⚠️ **Establish which files are YOURS before Step 1** — by diff CONTENT, never by status plane (`_shared/references/diff-ownership.md`): auto-staging lands your writes as `M ` identically to another writer's pre-existing staged work, so the plane misclassifies your own files as theirs and scopes every downstream step to nothing. Every writing step below assumes the diff is yours, and when it isn't the default behavior destroys work you can't see. Three tells, and the third has no other writer at all: a background `Agent` you spawned is still running · `git status` shows files you never touched (a parallel session) · **the tree carries uncommitted work predating this session**. That last one is the quiet case — nothing is racing you, so no guard trips, yet the exposure is identical.
+**Establish which files are YOURS before Step 1** — by diff CONTENT, never by status plane (`_shared/references/diff-ownership.md`): auto-staging lands your writes as `M ` identically to another writer's pre-existing staged work, so the plane misclassifies your own files as theirs and scopes every downstream step to nothing. Every writing step below assumes the diff is yours, and when it isn't the default behavior destroys work you can't see. Three tells, and the third has no other writer at all: a background `Agent` you spawned is still running · `git status` shows files you never touched (a parallel session) · **the tree carries uncommitted work predating this session**. That last one is the quiet case — nothing is racing you, so no guard trips, yet the exposure is identical.
 
 | Step | Default (you own the whole diff) | When you don't |
 |------|-----------------------------------|--------------------------|
-| 1 (agents) | Partition the `git status --short` file list | Scope every agent to the files **you** changed and name the contested paths off-limits — a reviewer handed another session's uncommitted file will "fix" it. ⚠️ A file partition does not scope a REPO-WIDE command: also ban `git stash`/`checkout -- .`/`reset`/`clean`/`restore` **by name** in every prompt, since a review agent with edit tools runs one as readily as a build agent and takes the unstaged, unrecoverable work with it |
+| 1 (agents) | Partition the `git status --short` file list | Scope every agent to the files **you** changed and name the contested paths off-limits — a reviewer handed another session's uncommitted file will "fix" it. **A file partition does not scope a REPO-WIDE command: also ban `git stash`/`checkout -- .`/`reset`/`clean`/`restore` **by name** in every prompt, since a review agent with edit tools runs one as readily as a build agent and takes the unstaged, unrecoverable work with it** |
 | 3+4 (skills) | `task-summary` bare, so it multi-domain scans | Do **not** invoke it unscoped — its scan edits the contested docs. Pass a scoped read-only verification arg and say why |
 | Commit | — | Never `git add`/bare `git commit`: it sweeps the other writer's staged work into your commit. Explicit pathspec only (`git commit -m msg -- <your files>`) |
 
@@ -79,13 +79,13 @@ Glob: .claude/agents/product-reviewer.md
 
 Run the Glob first every time — don't assume the project agent exists or doesn't (e.g. a hit spawns `code-reviewer`; a miss spawns `feature-dev:code-reviewer`).
 
-⚠️ **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it **only when the user asked in words** — "the diff touches UI so they'd want runtime proof" is an inference, and inferring it is the auto-spawn this rule forbids. A UI diff is a reason to offer, never a reason to spawn. It is not counted in the agent table below and never partitioned. See `references/browser-verification.md`.
+**`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it **only when the user asked in words** — "the diff touches UI so they'd want runtime proof" is an inference, and inferring it is the auto-spawn this rule forbids. A UI diff is a reason to offer, never a reason to spawn. It is not counted in the agent table below and never partitioned. See `references/browser-verification.md`.
 
 **Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first with **`git status --short`** (run it in EVERY repo of a multi-repo project), then pick agents-per-role:
 
 ⚠️ **`git status --short` is canonical — NOT `git diff --name-only`.** `diff --name-only` shows only unstaged changes to tracked files — new/staged files are invisible. If you staged before `/done`, it returns empty for the entire session's work — you then partition zero files, every agent reports clean on an empty slice, and `/done` passes having reviewed nothing. `git status --short` shows staged + unstaged + untracked with status letters. **Tell: the command returns nothing for work you just did.**
 
-⚠️ **If `git status --short` is empty because the session's work is already committed, it's not a clean tree — count off the session's base commit instead.** Running `/done` after committing as you go is a normal flow, and a legitimately empty `git status --short` here is the *correct* output but the *wrong* signal — committed work is invisible to it, same failure as the staged case above, different cause. Recovery: `git diff --name-only <base>..HEAD`, where `<base>` is HEAD at session start (or the merge-base with trunk if unknown). Partition and review those files exactly as you would an uncommitted diff.
+**If `git status --short` is empty because the session's work is already committed, it's not a clean tree — count off the session's base commit instead.** Running `/done` after committing as you go is a normal flow, and a legitimately empty `git status --short` here is the *correct* output but the *wrong* signal — committed work is invisible to it, same failure as the staged case above, different cause. Recovery: `git diff --name-only <base>..HEAD`, where `<base>` is HEAD at session start (or the merge-base with trunk if unknown). Partition and review those files exactly as you would an uncommitted diff.
 
 | Changed files | Reviewers | Simplifiers | Product | TOTAL agents |
 |---------------|-----------|-------------|---------|--------------|
@@ -93,7 +93,7 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 | 31–80 | 2 | 2 | 1 | **5** |
 | 81+ | 3 (cap) | 3 (cap) | 1 | **7** |
 
-⚠️ **The count is PER ROLE, and ALL agents go in ONE tool-call block.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer (never partitioned — it judges the whole feature).
+**The count is PER ROLE, and ALL agents go in ONE tool-call block.** N reviewers means N reviewers **AND** N simplifiers, plus the single product reviewer (never partitioned — it judges the whole feature).
 
 **Emit them like this — the shape is the enforcement, not the intent:**
 
@@ -114,7 +114,7 @@ When count >1 per role, **partition the file list** across the same-role agents 
 > Project agents have a Bootstrap section — they read relevant CLAUDE.md files + the task doc themselves. Do NOT paste project conventions into the prompt.
 
 **After all complete:**
-- ⚠️ **Verify the SEAMS between partitions yourself — no agent owns them.** A file partition is also a blind spot: an agent given one side of a contract (backend, one layer, one repo) cannot see whether the other side consumes what it emits, so a half-built feature returns as two clean reports. Static gates span nothing here — a typed client silently drops a key it doesn't declare, and a new column/prop/response field can have a writer and no reader with everything green. For each value introduced this session, trace it to a *consuming* site (a render, a query, a branch), not just to its emitter. **Tell: two agents reported success on adjacent layers and you never opened the file where their work meets.**
+- **Verify the SEAMS between partitions yourself — no agent owns them.** A file partition is also a blind spot: an agent given one side of a contract (backend, one layer, one repo) cannot see whether the other side consumes what it emits, so a half-built feature returns as two clean reports. Static gates span nothing here — a typed client silently drops a key it doesn't declare, and a new column/prop/response field can have a writer and no reader with everything green. For each value introduced this session, trace it to a *consuming* site (a render, a query, a branch), not just to its emitter. **Tell: two agents reported success on adjacent layers and you never opened the file where their work meets.**
 - If reviewer found issues → **confirm the diagnosis against the file AS IT IS NOW, apply the fix, then re-run the failing thing and compare the count.** A finding is a claim, not a verdict (grep the call site / re-read the line); don't blind-apply, but don't dismiss either — a real bug a blanket `replace_all` left behind looks identical to a false positive until you check. ⚠️ **This step's own batch manufactures stale findings — the simplifier EDITS the files the reviewer READS, concurrently and by design.** A reported defect may already be fixed, and a fresh extraction can be reported as dead code. Where the two disagree on a remedy, **the one that executed code outranks the one that reasoned** — adopting the reasoned remedy can undo a correct fix. ⚠️ **A correct diagnosis licenses nothing about the remedy** — a suggested fix can cure the reported symptom and break something the failure was masking, and the new failure wears a different cause's clothes. The loop is confirm → fix → **re-run → count**; a fix whose command you never re-ran is unverified, however obviously right it looked.
 - If simplifier made changes → verify they were applied (linter may have auto-formatted) AND that nothing was over-collapsed (an intentional guard/workaround removed). Re-run `php -l`/`tsc` on touched files — "declared but not used" = a half-done refactor. ⚠️ **Where an agent's mandate RESTRICTED what it may change (comments only, docs only, a file list, "don't touch logic"), a syntax gate cannot verify it and neither can its own report** — added code parses exactly as clean as deleted comments, so both come back green while the agent's summary asserts it stayed in bounds. Filter the diff to what the mandate ALLOWED and require the remainder to be empty (`git diff -U0` piped through a `grep -v` of the permitted line shapes). **Tell: you're about to relay an agent's "no code was changed" claim.**
 - If product reviewer found gaps → **triage by KIND, not by which agent reported it.** The product reviewer reads the feature's intent rather than the diff, so it will routinely catch things a diff-scoped code reviewer structurally cannot — e.g. a sibling call site outside the diff that needed the same new parameter/rule and didn't get it. That is a correctness defect wearing a product-reviewer badge, not a scope question.
@@ -150,33 +150,51 @@ Skill: syafiqkit:update-claude-docs
 
 This is the **single** writer of CLAUDE.md / `CLAUDE.local.md` entries. It scans the FULL conversation for **both** conversational signals (user corrections, convention preferences, team/strategy context, things Claude got wrong) **and** code-level patterns (debugging root causes, env surprises, tool misuse), then handles dedup + routing to the narrowest scope. Do NOT pre-write CLAUDE.md entries in `/done` — delegate the whole capture to the skill, otherwise you force a "don't double-write" reconciliation.
 
-⚠️ **Invoke it BARE (no arg), or if you pass an arg keep it a HINT — never a scope limiter.** Handing the skill a pre-written arg that lists only this session's code facts silently narrows its scan and drops early-session behavioral misses (a wrong task-doc discovery, a source you checked wrong and the user corrected). Those "user had to correct" signals are the highest-value capture and the easiest to lose. If you do pass an arg, it must still say "and scan the full conversation for corrections/wrong-turns too."
+**Invoke it BARE (no arg), or if you pass an arg keep it a HINT — never a scope limiter.** Handing the skill a pre-written arg that lists only this session's code facts silently narrows its scan and drops early-session behavioral misses (a wrong task-doc discovery, a source you checked wrong and the user corrected). Those "user had to correct" signals are the highest-value capture and the easiest to lose. If you do pass an arg, it must still say "and scan the full conversation for corrections/wrong-turns too."
 
 **Step 4 — Update Task Docs:**
 
 Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-domain scan.
 
-⚠️ **Why it scans**: Passing an explicit path skips the scan, causing missed updates to related docs (roadmaps, bug reports mentioned in chat that need stubs).
+**Why it scans**: Passing an explicit path skips the scan, causing missed updates to related docs (roadmaps, bug reports mentioned in chat that need stubs).
 
-⚠️ **`task-summary` already ran THIS session → invoke it scoped, not bare.** `/commit`'s staleness gate forces a full run, and `/commit`+`/ship`+`/done` are routinely chained, so the docs are often already reconciled by Step 4. Pass an arg naming only what's NEW since that run (typically the product reviewer's gaps → Next Steps). The bare-scan rule above governs a COLD `/done`, not this case. A scoped invoke still counts as running the step; skipping it does not.
+**`task-summary` already ran THIS session → invoke it scoped, not bare.** `/commit`'s staleness gate forces a full run, and `/commit`+`/ship`+`/done` are routinely chained, so the docs are often already reconciled by Step 4. Pass an arg naming only what's NEW since that run (typically the product reviewer's gaps → Next Steps). The bare-scan rule above governs a COLD `/done`, not this case. A scoped invoke still counts as running the step; skipping it does not.
 
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 
 > Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
 
-## Step 5: Capture plugin learnings (CONDITIONAL — usually skipped)
+## Step 5: Capture plugin learnings (Gate A rare · Gate B fires whenever a skill file was touched)
 
 Steps 3+4 write to the *project*; this writes to the *plugin* — a global artifact shared across every project.
 
-**ONE gate: does a real skill signal exist?** A skill misfired, a workflow step was wrong/missing, a trigger missed, or an absent rule caused a mistake. **Most runs have none — that is the expected case, so skip silently (no Output row).** Merely *using* skills successfully is not a signal; never manufacture one, since a thin patch to a shared skill is worse than no patch.
+**TWO independent gates. Run BOTH — either one firing enters the step.**
 
-⚠️ **The signal you CAUGHT still counts — that is the one this gate keeps missing.** If you declined to follow a skill's step or worked around it, that IS the defect: you had the context to catch it, the next session won't. Ask: *did I deviate from any skill's written instructions this session, and why?* A deviation with a good reason is a skill that needs the reason written into it.
+**Gate A — does a real skill signal exist?** A skill misfired, a workflow step was wrong/missing, a trigger missed, or an absent rule caused a mistake. **Most runs have none — that is the expected case, so skip silently (no Output row).** Merely *using* skills successfully is not a signal; never manufacture one, since a thin patch to a shared skill is worse than no patch.
 
-⚠️ **A workaround you typed into an AGENT's prompt is the same signal, one level down.** If you had to hand-write an instruction to get an agent past something — an escape hatch, a correction to a doc it had believed, a recipe it couldn't derive — it still lacks that knowledge. The tell: a second agent spawned to redo what the first couldn't, with extra instructions. Ask: *what did I have to tell an agent that its own file or the project docs should have told it?* The fix belongs in the agent file or the docs — never in the prompt.
+**The signal you CAUGHT still counts — it is the one Gate A keeps missing.** If you declined to follow a skill's step or worked around it, that IS the defect: you had the context to catch it, the next session won't. Ask: *did I deviate from any skill's written instructions this session, and why?* A deviation with a good reason is a skill that needs the reason written into it.
 
-Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstream: it probes ownership itself and branches — **owner** → patch the skill files + version bump + CHANGELOG; **consumer** → draft the finding and *offer to file it as a GitHub issue* upstream (asking first, posting under the user's own identity). Either way the finding survives.
+**A workaround you typed into an AGENT's prompt is the same signal, one level down.** If you had to hand-write an instruction to get an agent past something — an escape hatch, a correction to a doc it had believed, a recipe it couldn't derive — it still lacks that knowledge. The tell: a second agent spawned to redo what the first couldn't, with extra instructions. Ask: *what did I have to tell an agent that its own file or the project docs should have told it?* The fix belongs in the agent file or the docs — never in the prompt.
 
-⚠️ Do NOT hand-patch skill files from `/done`, and do NOT skip this step just because you're not the owner — a defect hit by a real user is the most valuable kind.
+**Gate B — did this session WRITE to a skill file?** Measure it here, now — this gate is not satisfied by recalling whether you edited one:
+
+```bash
+git -C ~/.claude/plugins/syafiqkit status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
+```
+
+Any output → **a rule arrived by direct hand-edit, which is the dominant arrival path and the one Gate A cannot see.** A hand-edited rule is legitimate and usually earned; the point is not to refuse it but to make its arrival *visible*. Enter Step 5 and run `update-plugin`'s **Step 3a arrival-rate gate** against every file the command listed: for each file above ~90 B/L, the change must be a **replace** (a superseded rule removed), a **route** (moved to `references/`), or a **declared growth** with the reason no retirement applied. Compute the ratio, don't estimate it:
+
+```bash
+for f in <the files listed above>; do echo "$(echo "scale=1;$(wc -c<$f)/$(wc -l<$f)"|bc) $f"; done
+```
+
+Gate B fires on a clean, successful session with no defect at all — that is the point. Skill files grew +418 net lines in one recent 7-day window (677 added / 259 removed) with most arrivals never reaching a checkpoint.
+
+Either gate fires → invoke `syafiqkit:update-plugin`. It owns everything downstream: it probes ownership itself and branches — **owner** → patch the skill files + version bump + CHANGELOG; **consumer** → draft the finding and *offer to file it as a GitHub issue* upstream (asking first, posting under the user's own identity). Either way the finding survives.
+
+**Gate B alone is a lighter run than Gate A**: there is no defect to capture, so the work is the accounting above plus the version bump — nothing else. A file that grew with no retirement available is an acceptable outcome **stated**, never a silent one. **If every touched file measured under ~90 B/L, the accounting is one line ("all under budget") — that is the complete, correct output, not a skipped step.** The gate scales with the file's density, not with the edit's size, so a typo fix in a lean skill costs one `wc -lc`.
+
+**Do NOT hand-patch skill files from `/done`, and do NOT skip this step just because you're not the owner** — a defect hit by a real user is the most valuable kind.
 
 ## Exit gate — check BEFORE writing the Output
 
@@ -184,7 +202,7 @@ Signal exists → invoke `syafiqkit:update-plugin`. It owns everything downstrea
 
 This check is not optional and not covered by the rows below — they audit whether *this skill* ran, never whether the *work* finished. `/done` is the one skill that manufactures evidence of completion (a ✅ summary table, a task doc reading "shipped", a Quick Start saying "commit it"), so running it early doesn't just mislead the user — it writes artifacts you will later read back and believe. Part-done → stop, finish the work, then invoke.
 
-⚠️ Every row of the Output table below is a claim that a step ran. Before writing it, verify each claim against what you ACTUALLY invoked this session — not what you intended to:
+**Every row of the Output table below is a claim that a step ran.** Before writing it, verify each claim against what you ACTUALLY invoked this session — not what you intended to:
 
 | Row | Only fillable if you actually... | Full-mode expectation |
 |-----|----------------------------------|-----------------------|
@@ -193,7 +211,7 @@ This check is not optional and not covered by the rows below — they audit whet
 | Product | spawned the product-reviewer agent **with a product prompt** | exactly 1 |
 | Knowledge | invoked `syafiqkit:update-claude-docs` **and confirmed the target CLAUDE.md changed** (not just launched the skill) | 1 skill call, edits landed |
 | Task docs | invoked `syafiqkit:task-summary` **and re-read the doc to confirm its `Last updated` + content actually changed** — invoking is not updating; a skill that ran as a separate process and silently no-op'd still reads as "invoked" | 1 skill call, doc verified changed |
-| Plugin | invoked `syafiqkit:update-plugin` | **usually absent** — Step 5 fires only when a real skill signal exists. Omit the row when none did; never invent a patch to fill it. (Not-the-owner is NOT a reason to skip — the skill switches to upstream-report mode.) |
+| Plugin | invoked `syafiqkit:update-plugin` | Fires when **either** Step 5 gate does: a real skill signal (Gate A, usually absent) **or** this session having written to a skill/command/agent file (Gate B, measured by `git status`, not recalled). Omit the row only when both were checked and neither fired; never invent a patch to fill it. (Not-the-owner is NOT a reason to skip — the skill switches to upstream-report mode.) |
 
 ⚠️ **Verify the Knowledge/Task docs rows with `git -C "$(git rev-parse --show-toplevel)" diff HEAD --stat -- <repo-relative-path>`, never bare `git diff`.** Two blind spots make a landed write read as a missing one, both silent: a target staged earlier shows nothing in the unstaged plane, and a **pathspec resolves against CWD, not the repo root** — so a repo-relative path run from inside a subdirectory returns empty with exit 0. Anchoring to the toplevel closes both. **An empty result is inconclusive, never proof the write is missing** — fall through to a grep for the text you just wrote before concluding anything.
 

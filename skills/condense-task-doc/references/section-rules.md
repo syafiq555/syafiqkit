@@ -1,0 +1,17 @@
+# Section-by-Section Condensation Rules
+
+Cold-path lookup for `condense-task-doc`. Consult the row for the section you are currently editing — this is a per-section reference, not a start-to-finish read. The cut/keep policy and Process live in SKILL.md.
+
+| Section | Rule |
+|---------|------|
+| `<!--LLM-CONTEXT-->` | Gotchas block = 1-line teasers only. No full explanations — those live in Critical Gotchas. |
+| `## Quick Start` | ≤15 lines total. Rewrite on every update — **doc contested → additive only** (`_shared/references/contested-doc-sections.md`). Answers: next action, commands, state, 2-3 gotchas, success criteria. Points to other sections, does not restate them. |
+| `## Bugs Fixed` | One row per bug. Check Critical Gotchas for the same bug ID/topic first — if present, collapse to `Symptom | → See Critical Gotchas (section, ID)`. Otherwise: root cause 1-2 sentences, fix 1 sentence, date. No verification output, no commit SHAs (except the deploy SHA in the fix cell for cherry-pick disambiguation). Never merge two different bugs into one row even in the same subsystem — collapse the explanation, not the row count, unless symptom AND fix are both identical. |
+| `## Critical Gotchas` | Keep. Compress row cells to task-summary's `Rows ≤2 sentences` rule (Density Rules Layer 2). |
+| `## Key Technical Decisions` | Simple table-row decisions: keep, one row, WHY in ≤1 sentence. MADR-style blocks (Problem/Decision/Rejected/Consequences/Status): never flatten to a table row during condensation — that erases the "why we rejected X" record. To shrink a block, compress in order: Consequences (keep the one fact not already elsewhere, or delete if it's just a cross-reference) → Problem (1 sentence) → Decision's implementation bullets (file/symbol names, no prose) → never touch Rejected (shortest field, structurally irreplaceable). A block only demotes to a table row via `templates.md`'s demotion rule (settled + unrevisited), never as a generic condensation step. |
+| `## Last Session` | ≤5 bullets, ≤2 lines each. Overwrite in place — one session only; **doc contested → do NOT overwrite** (`_shared/references/contested-doc-sections.md`). Before cutting a bullet, fold any still-load-bearing fact into its typed section. |
+| `## Next Steps` | Delete completed items. No explanations — just the action. Regroup by KIND of work on sight if flat or date-grouped (`task-summary/references/templates.md` "Next Steps") — a condense pass is exactly when a list has grown past readable. |
+| `## Investigation <date>` sections | These should not exist after condensing. Collapse content into Bugs Fixed rows and delete the section. |
+| `## Files` | Living map only — ~10-15 key files, **filenames only, no per-feature/per-ADR grouped paragraphs and no parenthetical "what it does" annotations**. A doc that groups Files by feature/ADR/bug-number is really a changelog wearing a Files header — flatten to one list per repo/layer. The file→decision mapping already lives in the ADR file and Bugs Fixed; Files does not need to re-derive it. |
+| `## Task Status` | If every row's status is a duplicate of a Bugs Fixed row or an ADR routing-table entry ("see Bugs Fixed", "see ADR-19"), the whole table has failed the keep-test — collapse it to a short paragraph: what's merged-live vs branch-pending, plus any deploy blockers. Only keep per-row granularity when a row states a fact found NOWHERE else (a specific verification gap, a blocking dependency). |
+
