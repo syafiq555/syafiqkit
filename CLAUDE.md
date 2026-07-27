@@ -8,14 +8,6 @@ Claude Code plugin providing personal workflow automation: commit messages, task
 
 ## Plugin Structure
 
-```
-.claude-plugin/
-├── plugin.json          # Plugin metadata
-└── marketplace.json     # Marketplace listing
-commands/                # User-invocable slash commands
-skills/                  # Multi-step workflows (SKILL.md files)
-```
-
 | Type | Location | Trigger |
 |------|----------|---------|
 | Command | `commands/*.md` | `/syafiqkit:<name>` |
@@ -183,7 +175,7 @@ No build step — markdown files are interpreted directly.
    - Inserting a new warning/callout between two existing table rows — a blank line + prose between `|`-rows splits one Markdown table into two; the second half loses its header separator and can fail to render. Move the callout to a table boundary (before the first row or after the last) instead
    - Inserting a step into a numbered list — a `6b.`-style marker is not valid GFM and renders as a paragraph, *terminating* the list so every following item restarts at 1. Renumber the tail instead, then re-check any `item N`/`step N` cross-reference at or below the insertion point
    - Adding an ADR: **`D<n>` numbers are global across ALL `decisions/*.md` theme files, not per-file** — take the next number from `grep -rhoE "^### D[0-9]+" tasks/<domain>/<feature>/decisions/*.md | grep -oE "[0-9]+" | sort -n | tail -1`, never from the file you're editing. A duplicate number is silent (both render fine) until a citation resolves to the wrong decision; confirm with `... | sort | uniq -d` returning empty, and add the number to the index's routing row or the ADR is unreachable
-3. **Reference**: `tasks/plugin-maintenance/{agent-architecture,doc-condensation,madr-structure}/current.md` for plugin patterns and research
+3. **Reference**: `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` for plugin patterns and research
 
 ### Design Principles
 

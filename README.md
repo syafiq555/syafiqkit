@@ -37,7 +37,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/done` | Post-task cleanup — simplify, review, update docs |
 | `/update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files — the CLAUDE.md analog of task-summary |
 | `/update-plugin` | Scan the session for plugin learnings and patch the affected skill files — the plugin equivalent of update-claude-docs |
-| `/ship` | End-to-end ship: commit → changelog → push → CI verify → GitNexus re-index → release note |
+| `/ship` | End-to-end ship: commit → changelog → push → CI verify → release note |
 | `/pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev |
 | `/commit-invoice-generator` | Generate invoice line items from git commits |
 | `/gchat-format` | Convert Markdown to Google Chat syntax |

@@ -56,7 +56,7 @@ For each signal, identify the target:
 |--------|------|
 | `skills/<name>/SKILL.md` → `description:` frontmatter | Trigger was wrong or missed |
 | `skills/<name>/SKILL.md` → body section | Workflow step, rule, or gotcha was wrong/missing |
-| Relevant `tasks/plugin-maintenance/{agent-architecture,doc-condensation,madr-structure}/current.md` | Architecture decision, composition pattern changed |
+| Relevant `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` | Architecture decision, composition pattern changed; `external-guidance` owns verdicts on outside best-practice advice |
 | `syafiqkit/CLAUDE.md` → Skills table | New skill added to the registry |
 | `CHANGELOG.md` | A skill was meaningfully changed (not just minor wording) |
 | `skills/agent-setup/templates/<agent>.template.md` (the SOURCE) **+ every generated copy** | A behavioral fix to an AGENT (`.claude/agents/<agent>.md`) that has a template |
@@ -96,7 +96,7 @@ SKILL.md files are not CLAUDE.md files — `condense-claude-md`/`condense-task-d
 
 **`references/*.md` files are OUT of the B/L gate's scope — decided, not deferred.** The ~90 B/L line measures a *hot path* that is read on every invocation; a reference is a *cold-path lookup* whose correct shape is a dense table with long rows. Applying the ratio there would push a good lookup table toward prose, which is backwards. What a reference owes instead: (1) stay **single-topic** — a grab-bag needs splitting per topic, not condensing (D45); (2) every rule in it must be reachable from a `📖` pointer that **names the symptom**, never a generic phrase; (3) **a prose reference stays under ~6KB**; above that it is the next thing needing a split. Measure with `wc -c`, never a ratio.
 
-**A CATALOG is exempt from (3) and grows with what it catalogs** — `task-summary/references/templates.md` (23KB) and `update-claude-docs/references/structure.md` (15KB) are correct at their size: a session opens the one template/section it needs, never the file end-to-end. The test is how the file is READ, not how big it is. Apply the ceiling only where a reader must scan the whole file to find their answer.
+**A CATALOG is exempt from (3) and grows with what it catalogs** — a session opens the one template/section it needs, never the file end-to-end (`task-summary/references/templates.md`, `update-claude-docs/references/structure.md`). Apply the ceiling only where a reader must scan the whole file to find their answer. The test is how the file is READ, not how big it is.
 
 Execution model (draft/verify split): `_shared/references/two-tier-condense.md`. Checklist below is this skill's own — what to cut, specific to SKILL.md files:
 
@@ -120,10 +120,7 @@ After verifying clean (per the shared reference's Verify step): bump the plugin 
 
 After writing:
 
-**Arrival-rate-only run (Step 1's first branch)**: the rows validating a *defect capture* do not apply — there was no defect. Two rows still do, plus one that is **more** load-bearing here than on a defect run:
-
-- The B/L accounting below and Step 3a's draft+verify — the deliverable.
-- **The shared-mechanism grep IS owed, despite Step 2 being skipped.** Step 2's *routing* is what a no-defect run skips; its duplication check is not, and a hand-edited rule is the arrival most likely to restate a sibling's. Grep the MECHANISM's own vocabulary — the words the other skills already use — before accepting the edit. A rule stated in three places is the failure this row exists to catch, and an arrival-rate run is where it originates.
+**Arrival-rate-only run (Step 1's first branch)**: the rows validating a *defect capture* do not apply — there was no defect. Two still do: the B/L accounting and Step 3a's draft+verify (the deliverable), and the shared-mechanism grep two rows below. **Skipping Step 2 skips its *routing*, never its duplication check** — a hand-edited rule is the arrival most likely to restate a sibling's, so that grep is more load-bearing here than on a defect run, not less.
 
 - Re-read each changed file. Confirm the new content doesn't duplicate an existing row.
 - For trigger description changes: read the new description and ask "would this have caught what was missed in this session?" If no, revise.
