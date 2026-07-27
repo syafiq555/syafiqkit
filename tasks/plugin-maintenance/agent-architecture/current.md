@@ -5,7 +5,7 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../doc-condensation/current.md (sibling feature — fighting duplication/bloat across docs, CLAUDE.md, skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-27 — D53 shipped in v1.130.0: a contested doc inverts the section-overwrite mandates; the rule moved to `_shared/` once a mandate-vocabulary grep found 3 owners, and its first fix was keyed to a condition only one code path evaluated
+Last updated: 2026-07-27 — D58 shipped in v1.132.0: `/done` docs-only mode now runs the full agent trio (prose-vs-executable sub-gate removed, superseding D52's 1.127.0 gate). Prior: D53 in v1.130.0 — a contested doc inverts the section-overwrite mandates; the rule moved to `_shared/` once a mandate-vocabulary grep found 3 owners, and its first fix was keyed to a condition only one code path evaluated
 -->
 
 # Plugin Maintenance — Agent Architecture
@@ -53,7 +53,7 @@ Decisions about how generated project agents (`.claude/agents/*.md`) inherit con
 |---|------|--------|
 | 1 | Prompt-injection agent architecture (D1) | ✅ |
 | 2 | Orchestrator delegation pattern (D4, D14, D29, D43) | ✅ |
-| 3 | Verification rigor across skill checklists (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52) | ✅ |
+| 3 | Verification rigor across skill checklists (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58) | ✅ |
 | 4 | Concurrency/cheap-model delegation (D30, D31, D32, D42, D53); transcript-scan tried + removed (D34→D36) | ✅ |
 | 5 | Backfill `task-builder`/`browser-verifier` agents in this repo | ⏳ Pending |
 
@@ -66,7 +66,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 | File | Read if you're asking |
 |------|------------------------|
 | [decisions/injection-and-delegation.md](decisions/injection-and-delegation.md) | *How do generated agents inherit CLAUDE.md conventions and call sibling skills instead of reimplementing them?* (D1, D4, D14, D29, D43, D15) |
-| [decisions/verification-rigor.md](decisions/verification-rigor.md) | *How do skills verify their own checklists actually ran, and catch self-caught deviations or silent-pass exit conditions? When is an agent's finding trustworthy vs its clean verdict?* (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52) |
+| [decisions/verification-rigor.md](decisions/verification-rigor.md) | *How do skills verify their own checklists actually ran, and catch self-caught deviations or silent-pass exit conditions? When is an agent's finding trustworthy vs its clean verdict? When does `/done` run agents on an all-doc diff?* (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58) |
 | [decisions/concurrency-and-delegation.md](decisions/concurrency-and-delegation.md) | *How does the plugin delegate to cheaper/parallel agents, what does `run_in_background` actually guarantee, what happened to the transcript-scan mechanism, and how do skills write a doc another session owns?* (D30, D31, D32, D34, D35, D36, D42, D53) |
 
 ---

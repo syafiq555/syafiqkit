@@ -21,13 +21,13 @@ Execute all steps in sequence without pausing for confirmation.
 
 ## Mode selection (decide first)
 
-**Docs-only mode** when the diff is entirely **PROSE** documentation — task docs, CLAUDE.md, README, and nothing else (`git status --short` shows no `.php`/`.ts`/`.tsx`/etc.). **The gate is prose-vs-executable, not `.md`-vs-code.** Markdown that a future session *executes* is code: `skills/*/SKILL.md`, `commands/*.md`, `.claude/agents/*.md`, and their `references/`. A logic error there — a gate whose inputs no step computes, a threshold ambiguous against two numbers, a table row nothing matches — ships and runs. An all-`.md` diff of instruction files takes **full mode**, and the product reviewer especially: file-scoped lenses read the same lines and miss ordering defects *between* steps.
-- Step 1: **skip all three code agents** — they audit *code*, and prose has none; running them against a README is theater (this reasoning does NOT extend to instruction files — see the gate above). Instead run a **referential-integrity check** yourself (the real "review" for docs): no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve, and no edited table has a row/callout wedged mid-table (a blank line or prose between `|`-rows splits one GFM table into two).
+**Docs-only mode** when the diff is entirely documentation — task docs, CLAUDE.md, README, `skills/*/SKILL.md`, `commands/*.md`, `.claude/agents/*.md`, `references/`, and nothing else (`git status --short` shows no `.php`/`.ts`/`.tsx`/etc.). This mode is **additive, not subtractive** — it runs the full agent trio like full mode AND adds a docs-specific check; the agents are not skipped for prose. A doc can still hide a defect the agents catch: instruction markdown a future session *executes* has logic (a gate whose inputs no step computes, a threshold ambiguous against two numbers, an ordering defect *between* steps), and even a plain README can describe a workflow wrong — a referential check alone misses both.
+- Step 1: **run all three agents (full-mode counts + partition)** AND run a **referential-integrity check** yourself: no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve, and no edited table has a row/callout wedged mid-table (a blank line or prose between `|`-rows splits one GFM table into two).
 - Steps 2-5 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run). **Step 5's Gate B runs in every mode** — a docs-only diff is exactly where a hand-edited skill file hides.
-- Output: mark Simplify/Review/Product as ➖ with reason "docs-only, no code"; report the integrity-check result on the Review row.
-- **Exception — the trigger is "did THIS SESSION produce code", not "is code in the uncommitted diff".** Code already committed this session is NOT docs-only — it was never agent-reviewed. Count files from the SESSION's work (`git show --stat <this-session's commit>` + uncommitted diff), and run full Step 1 against committed code files. The tell: a commit you authored this session in `git log`, but the working tree shows only `.md` changes. This covers *timing* only, and reads as satisfied whenever no application code exists at all — precisely when the gate above is the deciding one. Check both.
+- Output: fill Simplify/Review/Product from the agent runs as in full mode; ALSO report the referential-integrity result (append it to the Review row).
+- **The partition must cover the whole SESSION's work, not just the uncommitted diff.** Code you already committed this session was never agent-reviewed, and the working tree may show only `.md` changes — so count files from `git show --stat <this-session's commit>` + the uncommitted diff and partition all of them. The tell: a commit you authored this session in `git log`, but `git status --short` lists only docs.
 
-**Infra-only mode** when the diff is **entirely deploy/build/CI plumbing** and no application code — CI workflows (`.github/workflows/*.yml`, `.circleci/`), `docker-compose*.yml`/`Dockerfile`, build config (`next.config.*`, `vite.config.*`), nginx/env config. The **mirror image of docs-only**: docs need no reviewer; infra needs *only* the reviewer, and needs it badly.
+**Infra-only mode** when the diff is **entirely deploy/build/CI plumbing** and no application code — CI workflows (`.github/workflows/*.yml`, `.circleci/`), `docker-compose*.yml`/`Dockerfile`, build config (`next.config.*`, `vite.config.*`), nginx/env config. Unlike docs-only (which runs the full trio), infra needs *only* the reviewer, and needs it badly.
 - Step 1: **reviewer ONLY.** Skip the simplifier (no logic to DRY) and the product reviewer (no user journey). Size-independent — the trigger is file KIND, not count.
 - **Prompt the reviewer adversarially: infra fails SILENTLY.** Broken deploy steps exit 0 while tests pass — review is the only catch. Give it the change's PURPOSE, what it must not break, ask for empirical verification. Two call sites of the same command can need opposite treatments.
 - Steps 2-5 as normal. Output: mark Simplify/Product as ➖ "infra-only".
@@ -158,7 +158,7 @@ Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-do
 
 **Why it scans**: Passing an explicit path skips the scan, causing missed updates to related docs (roadmaps, bug reports mentioned in chat that need stubs).
 
-**`task-summary` already ran THIS session → invoke it scoped, not bare.** `/commit`'s staleness gate forces a full run, and `/commit`+`/ship`+`/done` are routinely chained, so the docs are often already reconciled by Step 4. Pass an arg naming only what's NEW since that run (typically the product reviewer's gaps → Next Steps). The bare-scan rule above governs a COLD `/done`, not this case. A scoped invoke still counts as running the step; skipping it does not.
+**`task-summary` already ran THIS session → invoke it scoped, not bare.** `/commit`'s staleness gate forces a full run **when it hits genuine prose staleness** (a run resolved only by the lexical carve-out invoked nothing — don't assume the gate firing means `task-summary` ran; confirm it did), and `/commit`+`/ship`+`/done` are routinely chained, so the docs are often already reconciled by Step 4. Pass an arg naming only what's NEW since that run (typically the product reviewer's gaps → Next Steps). The bare-scan rule above governs a COLD `/done`, not this case. A scoped invoke still counts as running the step; skipping it does not.
 
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 
@@ -226,9 +226,9 @@ One combined table. Detail only what was actually WRITTEN or FIXED — never enu
 
 | Step | Result |
 |------|--------|
-| Simplify | [changes made, or ✅ none needed; ➖ docs-only / ops-only] (full mode only) |
-| Review | [issues found + fixed, or ✅ clean; docs-only = referential-integrity result; ops-only = live read-back] |
-| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / docs-only / infra-only / ops-only mode] (full mode only) |
+| Simplify | [changes made, or ✅ none needed; ➖ ops-only / infra-only] |
+| Review | [issues found + fixed, or ✅ clean; docs-only ALSO appends the referential-integrity result; ops-only = live read-back] |
+| Product | [🔴/🟠 gaps surfaced to user + decision, or ✅ journeys complete; ➖ if no project agent / infra-only / ops-only mode] |
 | Cleanup | [removed, or ➖] |
 | Knowledge | [N entries → target files, one line each; "0 new" if none] |
 | Task docs | [doc path → one-line summary of the update] |

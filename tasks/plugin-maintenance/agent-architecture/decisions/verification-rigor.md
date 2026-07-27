@@ -9,8 +9,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Drift checks must cover addition (missing agent), not just modification (D38)
   - Widening a threshold table needs every downstream decision point checked, not just the table (D39)
   - A verification whose input is empty emits the same output as a genuine pass — name the empty case, don't trust the checker (D49)
+  - `/done` docs-only runs the full agent trio (not just a referential check); the prose-vs-executable sub-gate is gone (D58, supersedes D52's 1.127.0 gate)
 Related: ../current.md (feature index), ../../doc-condensation/current.md, ../../madr-structure/current.md
-Last updated: 2026-07-26
+Last updated: 2026-07-27
 -->
 
 # Agent Architecture — Verification Rigor & Self-Audit
@@ -229,3 +230,23 @@ Chosen: keep D47's rule scoped to *definition-handed audit* agents, and record t
 - The simplifier's constraint-respecting behaviour is worth keeping: it was told one specific clause was off-limits *with the reason*, and it found a different offset rather than arguing. Naming the reason, not just the prohibition, is what made that work.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D58 — `/done`'s Docs-Only Mode Runs the Full Agent Trio, Not Just a Referential Check — Removing the Prose-vs-Executable Sub-Gate — committed (v1.132.0) — 2026-07-27
+
+**Problem**
+D52 fixed docs-only mode to gate on prose-vs-executable rather than `.md`-vs-code (1.127.0), so executable instruction markdown routed to full mode and only true prose skipped the agents. But the distinction was itself an error surface: it was subtle, easy to misread, and required a per-diff judgment call about whether a `.md` file was "executable." This session's own diff was mostly `.md`, ran (correctly, via that gate) in full mode, and the product reviewer caught a real 🟠 ordering defect (the GH #14 carve-out left a trailing "re-grep to zero" cleanup unsatisfiable for the carve-out path) — fresh evidence that a doc diff hides agent-catchable defects, and that the safe default is to always run the agents on docs.
+
+**Decision**
+Chosen: docs-only now runs the full agent trio (like full mode) PLUS the docs-specific referential-integrity check — "additive, not subtractive." The prose-vs-executable sub-gate is removed entirely, eliminating the wrong-call site. Only infra-only (reviewer-only) and ops-only (no agents, live read-back) still narrow the agent set. The whole-session partition rule (count committed + uncommitted files) survives as a plain file-counting rule, no longer a mode-selection escape hatch. User chose this explicitly over two narrower options.
+
+**Rejected**
+- Product-reviewer-only on docs (skip simplifier/reviewer). Why not: keeps the prose-has-no-code premise for two of three lenses, and the reviewer/simplifier do find real issues in executable markdown.
+- Only sharpening the prose-vs-executable gate's wording, no behaviour change. Why not: the distinction *itself* was the error surface, not merely its phrasing — a clearer gate is still a gate a reader can misjudge.
+
+**Consequences**
+- Docs-only is now a superset of full mode for doc diffs (adds the referential check), not a reduced mode — supersedes D52's rejected-option reasoning and the 1.127.0 prose-vs-executable gate it referenced.
+- One fewer mode-selection judgment call: any all-doc diff runs the same agents regardless of whether the markdown is "executable."
+
+**Status**: committed · **Reversible**: yes · **Supersedes** the 1.127.0 prose-vs-executable gate (D52's rejected option)

@@ -8,8 +8,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - `/read-summary` discovery in Explore/Plan is now unconditional, not gated on prompt specificity (D18)
   - Task-doc index + pointer is a second structural lever for over-budget CLAUDE.md (D19)
   - Seam-test must check EVERY real sibling subdirectory, not just the obvious one (D20)
+  - `/commit`'s staleness gate carves out lexical false positives (`pending` in an identifier) on a shape test, keeping D37's semantic absolutism (D57)
 Related: ../current.md (feature index), ../../agent-architecture/current.md, ../../madr-structure/current.md
-Last updated: 2026-07-20
+Last updated: 2026-07-27
 -->
 
 # Doc Condensation — Fix Bloat at the Generator, Not by Hand-Trimming
@@ -178,5 +179,26 @@ Chosen: a size floor in the shared reference's Act table — **under half the ha
 **Consequences**
 - All 6 sites citing `declared-budget.md` inherit the floor; only `update-claude-docs` Step 4 needed gating. `condense-claude-md` L48 already gates its own split levers on "only an over-budget file earns #6 or #7", so a tiny file never reaches a split decision there — verified, no sibling patch owed.
 - ⚠️ **A gate needs its measurement named at the DECIDING step.** As first written, nothing in Steps 1–4 computed either input — Step 5 owns `wc -lc` but runs after Step 4 and per-entry — so the unmeasured condition resolved to its permissive default and the gate passed by spawning anyway. Step 4 gained an explicit measure line. Third recurrence of the shape (D50's arrival-rate gate was stated in Step 3a and unchecked in Step 4); now a `CLAUDE.md` § Maintenance checklist row.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D57 — `/commit`'s Staleness Gate Gained a Lexical Carve-Out for Identifier/UI-Name Hits — committed (v1.132.0) — 2026-07-27
+
+**Problem**
+Reported as [issue #14](https://github.com/syafiq555/syafiqkit/issues/14) against 1.130.0. The `/commit` staleness gate greps task docs for `uncommitted|not yet pushed|pending` and, by D37's design, forbids any judgment about whether a hit is "real" staleness — the absolutism defeats *rationalization* ("it's accurate right now" excusing a genuinely stale hedge). But `pending` is ordinary domain vocabulary: in one real run it matched `pendingStep` (a DTO field) and "pending-step chip" (a UI element), neither a commit-state claim. The no-judgment rule forbade saying so, leaving only a pointless full `task-summary` run or an undocumented deviation — the latter is what happened, eroding the gate generally.
+
+**Decision**
+Chosen: a carve-out on a DIFFERENT axis from the one the absolutism guards. The absolutism is semantic (real-vs-rationalized staleness); the carve-out is lexical (identifier-vs-prose). A hit fused into a camelCase/kebab/Pascal identifier or a quoted UI-label (`pendingStep`, `pending-step chip`, `PendingTasks`) is the domain's vocabulary — note it inline, no `task-summary` run. Token SHAPE is mechanically checkable and never reopens the judgment door; anything not unambiguously code-shaped defaults to prose and the absolutism applies in full. Also fixed the coupling this exposed: `/commit` line 28 said the gate's run "satisfies" `/done` Step 4, but a carve-out-only resolution runs NO `task-summary`, so both `/commit` line 28 and `done` Step 4 now key on whether a run ACTUALLY happened, not on the gate firing — else a false-positive resolution makes `/done` skip a scan it owes.
+
+**Rejected**
+- Word-boundary anchoring the pattern (`\bpending\b`). Why not: still matches "pending-step chip", and bare "pending" is legitimate prose too — the discriminator is identifier-vs-prose, not word-boundary.
+- Relaxing the absolutism to "use judgment whether the hit is real staleness". Why not: reopens exactly the rationalization door D37 closed. The carve-out must be a mechanical shape test, not a semantic one.
+
+**Consequences**
+- The gate now has two axes — a mechanical shape filter (lexical) layered on the mandatory semantic absolutism; future edits must keep them distinct.
+- The `/done` Step 4 "already ran → scoped" optimization now requires confirming `task-summary` actually ran, not just that the gate fired.
+- Inverse of the "a gate is only real if a step computes its inputs" family (D50/D51): here the fix narrows a gate that fired too broadly, rather than wiring a gate that never measured.
 
 **Status**: committed · **Reversible**: yes
