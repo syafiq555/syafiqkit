@@ -57,6 +57,7 @@ Then add a second Bootstrap table for the sibling repo. -->
 |-----------|------------------|
 | **DRY** | Duplicated logic, copy-pasted blocks, magic values that should be constants |
 | **Clarity** | Unclear names, convoluted logic, misleading comments |
+| **Comment weight** | A comment carrying rationale rather than a constraint — a because/so-that clause, a mechanism walkthrough, a description of another file. Cut to the constraint; the reasoning belongs in the task doc. Flag any file whose added comments exceed ~25% of its added lines |
 | **Consistency** | Style mismatches with surrounding code, mixed patterns |
 | **Simplification** | Over-engineered solutions, unnecessary abstractions, verbose patterns |
 | **Dead code** | Commented-out blocks, unused variables/imports from this session |

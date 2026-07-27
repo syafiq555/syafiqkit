@@ -17,6 +17,17 @@ The single manager for CLAUDE.md files — the analog of `task-summary` for `cur
 | `create <dir>` / "write a CLAUDE.md for X" / target file is missing | **Create** | Scaffold a new CLAUDE.md in house style from codebase analysis. |
 | `rewrite <file>` / "restructure to best practice" | **Rewrite** | Restructure an existing file to the canonical section layout + formatting. |
 | `condense <file>` / "shrink this CLAUDE.md" | **Condense** | Delegate to `condense-claude-md` (don't reimplement). |
+| An `audit-instructions` handoff — a file arrives already graded, with a named axis and an evidence line | **Graded-handoff** | Skip §1's session scan entirely; the verdict IS the signal. See below. |
+
+**Graded-handoff mode — take this branch FIRST when it applies.** `audit-instructions` grades the CLAUDE.md fleet and routes flagged files here with an axis already named. There is no session narrative to scan, so §1 would read as "no signal, nothing to capture" and the handoff would die silently — the same gap `update-plugin` Step 1's arrival-rate branch exists to close on the skills side. Go straight to §2 (Route) / §3 (Write), driven by the axis you were handed:
+
+| Axis handed over | What to do |
+|---|---|
+| **Hot-vs-cold routing** | The rule is on the wrong side of the auto-load line. Move it — a narrow rule out of the always-loaded file into a `📖` companion, or a constantly-needed rule back inline. §2's ladder picks the layer; the pointer must name the SYMPTOM. |
+| **Emphasis dilution** | Downgrade the markers named as not trap-shaped. Presentation only — verify by diffing sorted word SETS, never `wc -w`; a stripped marker counts as a word and reports a false deficit. |
+| **Retirement candidate** | ⚠️ **A candidate is not a verdict — run the command that settles it before cutting.** A pass on 2026-07-26 found 0 of ~7 candidates actually dead; the rule that looks retired is usually a reintroduction ban or a live guardrail. Unsettled → leave it and say so. |
+
+The deliverable is the same accounting `update-plugin` produces: per file, name the **replace**, the **route**, or the **declared growth** with the reason no retirement applied.
 
 **Create and Rewrite read `references/structure.md` first** — it holds the hierarchy rules, capture filter, section taxonomy, formatting conventions, template family, and the 200-line budget. Capture mode uses only its Routing (§1) and Capture-filter (§2) sections, inlined below. When in doubt which mode, it's Capture — that's the one `/done` depends on.
 
@@ -113,7 +124,6 @@ Base writing-style rules (no filler words, one idea per sentence): `_shared/refe
 | **Rows ≤2 sentences** | State the constraint + the single reason it exists. ≤1 parenthetical per sentence. |
 | **No session storytelling** | Never write how the mistake happened ("this happened twice", "a reviewer caught it", "#1/#2/#3 trigger" lists). The rule states the constraint, not its history. |
 | **One concrete example max** | One symptom string or code snippet. Multiple examples of the same failure add length, not signal. |
-| **Capture filter** | Before writing: "would Claude act differently without this?" If no, don't write it. |
 | ⚠️ **A correction is a claim — run the command that settles it BEFORE writing** | An entry asserting a doc, an agent, or a prior session got something wrong is the one kind of entry that is costlier when mistaken: it lands in a team-visible or global file that later sessions read as settled, and it discredits a source that was right. The asymmetry hides it — writing "that figure is stale" feels like diligence and costs nothing visible. If a single command decides it (a count, a version, a flag, a path), run it first; if none can, write the entry as the observation, not the verdict. |
 
 ### New signals → Add entry

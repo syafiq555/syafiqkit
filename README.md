@@ -49,6 +49,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/hobby-review` | Socratic debrief of a hobby item against the taste rubric in the matching task doc |
 | `/merge-task-docs` | Find related task docs in a domain and merge them, reconciling all back-references |
 | `/sweep-doc-overlaps` | Fleet-wide scan across ALL `tasks/` domains for CROSS-domain merge candidates; hands confirmed groups to `merge-task-docs` |
+| `/audit-instructions` | Fleet-wide prompt-engineering audit across every `skills/*/SKILL.md` and every `CLAUDE.md`/companion — measures each corpus, grades on the four-verdict method, routes flagged files to their owning skill |
 | `/notes-summary` | Create, update, or read a personal session journal outside the repo |
 | `/condense-task-doc` | Aggressively condense a bloated task doc in place |
 | `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |

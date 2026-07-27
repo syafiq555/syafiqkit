@@ -43,6 +43,7 @@ Single root `CLAUDE.md` — read it in full.
 | **DRY** | The same rule/table restated verbatim in 3+ SKILL.md files with no shared-reference extraction |
 | **Density** | A section that restates a rule already stated elsewhere in the SAME file (LLM-CONTEXT/Quick-Start-style front-loading followed by a full restatement later) |
 | **Clarity** | A step whose criteria are vague ("significant changes") where CLAUDE.md's own principle calls for an explicit test ("2+ files OR business logic") |
+| **Comment weight** | A comment carrying rationale rather than a constraint — a because/so-that clause, a mechanism walkthrough, a description of another file. Cut to the constraint; the reasoning belongs in the task doc. Flag any file whose added comments exceed ~25% of its added lines |
 | **Simplification** | A skill describing one flow in 4 places (checklist + diagram + prose + after-section) — CLAUDE.md explicitly flags this as a bloat pattern; collapse to one `## Steps` section |
 | **Byte density, not just line count** | A dense one-row-per-item table can sit at target LINE count while individual cells run 800+ characters — check `wc -c` alongside `wc -l` before judging a file "fine" |
 

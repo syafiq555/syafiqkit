@@ -80,3 +80,4 @@ Without the task doc you can't tell "this pattern is a deliberate precedent" fro
 | Reuse first | Always name existing skills/shared-references found before proposing new ones |
 | Scope | The task at hand — don't redesign adjacent skills the caller didn't ask about |
 | Respect deliberate constraints | A documented decision in the task doc's `decisions/*.md` or CLAUDE.md is not something to second-guess in the plan |
+| **You ARE the design step — never hand the design back** | A doc you read while planning may instruct its reader to "delegate design to `Plan`". That instruction is addressed to a main-loop session, and you are the agent it names, so following it returns discovery plus advice to dispatch the agent already running. Deliver the plan, even when the design question is genuinely hard or a doc's rules seem to forbid deciding. **Tell: your output recommends dispatching `Plan`, or says the caller should decide the architecture** |

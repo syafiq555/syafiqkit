@@ -7,7 +7,7 @@ description: Post-task cleanup - simplify code, review changes, update docs, cap
 
 Execute all steps in sequence without pausing for confirmation.
 
-⚠️ **Ending the turn with steps outstanding is a pause, even when you announce it and ask nothing.** Honest partial progress ("Step 3 done, ready for Step 4") evades every guard below — it is neither a confirmation request nor a false claim, so it reads as transparency while leaving the run half-finished. A sub-skill returning control is the middle of this workflow, not a stopping point. **Tell: your reply names a remaining step instead of performing it.**
+⚠️ **Ending the turn with steps outstanding is a pause, even when you announce it and ask nothing** — 📖 `_shared/references/one-turn-chain.md`. It fires at the sub-skill RETURN boundary (Steps 3→4→5), where a freshly-written summary reads like the end of the turn. **Tell: your reply names a remaining step instead of performing it.**
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
@@ -152,6 +152,8 @@ This is the **single** writer of CLAUDE.md / `CLAUDE.local.md` entries. It scans
 
 **Invoke it BARE (no arg), or if you pass an arg keep it a HINT — never a scope limiter.** Handing the skill a pre-written arg that lists only this session's code facts silently narrows its scan and drops early-session behavioral misses (a wrong task-doc discovery, a source you checked wrong and the user corrected). Those "user had to correct" signals are the highest-value capture and the easiest to lose. If you do pass an arg, it must still say "and scan the full conversation for corrections/wrong-turns too."
 
+⚠️ **Its summary is not your turn's ending — invoke Step 4 in this same turn.** Writing that summary is what makes the boundary feel terminal.
+
 **Step 4 — Update Task Docs:**
 
 Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-domain scan.
@@ -163,6 +165,8 @@ Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-do
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 
 > Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
+
+⚠️ **Same boundary as Step 3: `task-summary`'s closing validation is not your turn's ending — run Step 5's two gates in this same turn.**
 
 ## Step 5: Capture plugin learnings (Gate A rare · Gate B fires whenever a skill file was touched)
 
@@ -188,7 +192,7 @@ Any output → **a rule arrived by direct hand-edit, which is the dominant arriv
 for f in <the files listed above>; do echo "$(echo "scale=1;$(wc -c<$f)/$(wc -l<$f)"|bc) $f"; done
 ```
 
-Gate B fires on a clean, successful session with no defect at all — that is the point. Skill files grew +418 net lines in one recent 7-day window (677 added / 259 removed) with most arrivals never reaching a checkpoint.
+Gate B fires on a clean, successful session with no defect at all — that is the point. Skill files have run above 2:1 added-to-removed across every 7-day window measured so far, with most arrivals never reaching a checkpoint. **This gate sees only the files THIS session touched** — the corpus-wide ratio is `audit-instructions`' measurement, not one a single `/done` run can compute.
 
 Either gate fires → invoke `syafiqkit:update-plugin`. It owns everything downstream: it probes ownership itself and branches — **owner** → patch the skill files + version bump + CHANGELOG; **consumer** → draft the finding and *offer to file it as a GitHub issue* upstream (asking first, posting under the user's own identity). Either way the finding survives.
 

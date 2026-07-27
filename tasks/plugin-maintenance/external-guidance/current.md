@@ -1,23 +1,23 @@
 <!--LLM-CONTEXT
-Status: ✅ Method proven on 2 sources — Claude-5 article (2 of 9 claims adopted) and a `/doctor` health report (0 of 3 live-state flags survived re-measurement)
+Status: ✅ Method proven on 3 sources — Claude-5 article (2 of 9 claims adopted), a `/doctor` health report (0 of 3 live-state flags survived re-measurement), and the plugin's own skill corpus (14 of 24 skills clean; 3 agent findings disproved)
 Domain: plugin-maintenance/external-guidance
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
   - ../doc-condensation/current.md (owns D54 and every skill-density decision this evaluation fed)
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-27 — D56 added: graded a `/doctor` health report as source #2; all 3 of its live-state flags failed re-measurement (including its one **Remove** row), and `/doctor` vs `claude doctor` are now distinguished
+Last updated: 2026-07-27 — D59 added: the method turned inward on the plugin's own corpus (source #3), producing `skills/audit-instructions/SKILL.md` and extending it to the CLAUDE.md family; 4 proposed changes rejected against D50, 3 agent findings disproved, and 3 defects in D59's own output caught by the `/done` reviews
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The method for judging outside best-practice advice (a vendor article, a blog post, a tool's own audit report) against this plugin's own measured evidence — and the record of two evaluations run so far. The answer is never "adopt" or "ignore"; it is a per-claim verdict with the measurement that decided it.
+**Where we are**: The method for judging outside best-practice advice (a vendor article, a blog post, a tool's own audit report) against this plugin's own measured evidence — and the record of three evaluations run so far. The answer is never "adopt" or "ignore"; it is a per-claim verdict with the measurement that decided it. The method now also runs INWARD: `skills/audit-instructions` grades the plugin's own corpus with it.
 
 **Immediate next actions (in order)**:
-1. Nothing pending. Re-open this doc when the next piece of external guidance arrives, and reuse the four-verdict table below rather than starting from impressions.
-2. If re-running the corpus measurement, use the commands in `## Architecture` — they are the whole method.
+1. Run `syafiqkit:audit-instructions` against the **CLAUDE.md family** — the skills half has an executed grade behind it, the CLAUDE.md half only a measurement. See `## Next Steps` for the full list.
+2. On the next piece of outside guidance, reuse the four-verdict table below rather than starting from impressions.
 
 **Gotchas that will trip you**:
 - **Generic advice describes a different SYSTEM, not just a different opinion** — match the advice's assumed dynamics against yours before weighing its merits, see D55
@@ -25,6 +25,8 @@ Last updated: 2026-07-27 — D56 added: graded a `/doctor` health report as sour
 - **A report's numbers are a snapshot of when it ran — re-measure before acting; 3 of 3 live-state flags failed** — the one marked **Remove** would have disabled a server used 3 days earlier, see D56
 - **A report generated in ANOTHER project names paths that do not exist here — but provenance is not staleness** — a user-scope MCP server reads as another project's row while being live in every project; run both checks, see D56
 - **A raw duplication count is not duplication** — 13 files shared a table *format*, not a rule; opening three settled it, see D55
+- **An agent's finding is a hypothesis whose line numbers are usually right even when the claim is wrong** — that is what makes it convincing; 3 of this corpus's findings died on re-reading the cited lines, see D59
+- **A "cold path to extract" that every invocation reads is hot path** — the commonest way a density pass becomes D50's treadmill, see D59
 - **The plugin's own ADRs outrank an external claim when they disagree, because they were measured here** — D23→D50 already ran the article's headline experiment, see ../doc-condensation/current.md
 
 **Success looks like**: every claim in a piece of guidance carries a verdict (adopt / already adopted / reject / unverified) and the command or ADR that decided it — no claim left as an impression.
@@ -35,7 +37,7 @@ Last updated: 2026-07-27 — D56 added: graded a `/doctor` health report as sour
 
 External guidance arrives regularly — a vendor article, a framework blog, a colleague's "you should be doing X." It is usually right *somewhere* and wrong *here*, and the failure mode is treating it as either gospel or noise. This feature holds the method for grading it claim-by-claim against local evidence, plus the record of each evaluation.
 
-Sources graded so far, both 2026-07-27: Anthropic's *"The new rules of context engineering for Claude 5 generation models"* (D55) and an in-session `/doctor` health report run in a different project (D56).
+Sources graded so far, all 2026-07-27: Anthropic's *"The new rules of context engineering for Claude 5 generation models"* (D55), an in-session `/doctor` health report run in a different project (D56), and the plugin's own 24-skill corpus (D59) — the first time the method was pointed inward rather than at an outside source.
 
 ---
 
@@ -66,6 +68,7 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 | `tasks/plugin-maintenance/doc-condensation/decisions/structural-splits.md` | D54 — where this evaluation's outcome landed; its Rejected block holds the article verdict |
 | `skills/update-plugin/SKILL.md` | Step 3a — owns the B/L gate and the `references/` scope rule the evaluation settled |
 | `skills/done/SKILL.md` | Step 5 — Gate B, the arrival-rate checkpoint the evaluation motivated |
+| `skills/audit-instructions/SKILL.md` | The method pointed inward — fleet grading of BOTH instruction families (skills + CLAUDE.md/companions); owns the FLEET arrival ratio and trajectory, no threshold of its own (D59) |
 | `CHANGELOG.md` | v1.131.0 — the per-claim verdicts as shipped, both sources (D55's 9 article claims, D56's report flags) |
 
 ---
@@ -79,6 +82,8 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 | 3 | Act on adopted claims — progressive disclosure + emphasis discipline | ✅ shipped as D54 |
 | 4 | Apply the method to a second piece of guidance — a `/doctor` health report | ✅ D56 |
 | 5 | Characterise the in-session `/doctor` (was accepted as unverified) | ✅ 10-check audit, distinct from the CLI — read-only half only |
+| 6 | Point the method inward — grade the plugin's own 24-skill corpus | ✅ D59 |
+| 7 | Make the audit re-runnable instead of a one-off | ✅ `skills/audit-instructions/SKILL.md` |
 
 ---
 
@@ -126,6 +131,34 @@ Chosen: run a tool report through D55's four verdicts unchanged, with **two addi
 
 **Status**: committed · **Reversible**: yes
 
+### D59 — Point the Method Inward: the Corpus Is Graded Like Any Other Source, and an Agent's Finding Is a Hypothesis Until Its Cited Lines Are Re-Read — committed — 2026-07-27
+
+**Problem**
+Nothing could grade the whole skill corpus. `update-plugin` Step 3a grades ONE file when a session touches it; `/done` Gate B measures only the files that session edited. Both are per-file by construction, so corpus-wide drift is invisible to them — and a request to "audit all our skills" had no method behind it, only impressions. Measured before grading: 24 skills, emphasis 235 corpus-wide, 10 of 24 with a `references/` dir, and a 7-day arrival of **added 833 / removed 346 / net +487 — 2.41:1 across 22 commits**, worse than the +418 that made D50 reject re-condensing.
+
+**Decision**
+Chosen: a discovery-only skill, `skills/audit-instructions/SKILL.md`, mirroring `sweep-doc-overlaps` — measure first, fan out graders **partitioned by file**, verify findings inline, hand flagged files to `update-plugin` Step 3a. It **carries no threshold**: the B/L gate, the density checklist and the replace/route/declare rule stay with Step 3a, cited not restated. Its one new measurement is the **fleet arrival ratio**, which is genuinely absent elsewhere rather than a second copy of an existing gate. Result: 14 of 24 skills graded clean.
+
+**Rejected**
+- Extracting `done`'s mode-selection and `merge-task-docs` Step 4.8. Why not: both are read on every invocation — hot path, so extraction is D50's treadmill wearing a progressive-disclosure label.
+- Extracting `read-summary`'s 3-line Agent example. Why not: saves 3 lines and costs a lookup in the highest-B/L file; D50 predicts irreducible, not under-cut.
+- Consolidating `agent-setup`'s three two-repo warnings. Why not: re-reading showed a routing-table cell, a banner instruction and a distinct hardcoded-absolute-path trap — three rules, not three copies. Consolidating would have deleted one.
+- Extracting `md-to-pdf`'s Prerequisites. Why not: 8 lines resolving to "runs via npx, nothing to install", in the corpus's lowest-density file. Pure churn.
+- Partitioning graders by AXIS rather than by file. Why not: no agent would hold a whole file, so any finding living between two axes in one skill is structurally invisible.
+
+**Consequences**
+- **Three agent findings were disproved by re-reading their cited lines** — a claimed absence of inbound pointers to `_shared/references/` (all 8 have 2-5; the grep's own filter excluded them, caught by a must-hit control), a claimed duplication of `writing-style.md` (the file already points at it and its rows are distinct — one genuinely duplicated row, deleted), and a claimed empty heading (the grep could not see fenced code blocks). Line numbers were right in all three; the claims were not. Disproved findings are now recorded rather than dropped, because the next run re-derives them otherwise.
+- **The graders missed the run's only correctness defect**: `gchat-format`'s worked example contradicted the skill's own regroup-by-feature rule by preserving `Added`/`Changed` in its output. Extraction became a fix, not a density move — `references/example-release-note.md` now demonstrates the mandated shape.
+- **Emphasis rose 235 → 240**: the new skill added 6 markers against 1 removed. The audit's own arrival-rate criticism applies to the audit, and stating that is the D54 accounting, not a failure to hide.
+- `done`'s Gate B lost its point-in-time figure (+418 net, 677/259) for the durable pattern plus a pointer to `audit-instructions` — a stale number inside a gate's own justification is D56's trap in-house.
+- **Extended the same session to the CLAUDE.md family, and the skill was renamed `audit-skills` → `audit-instructions`** per the scope-outgrows-name rule. Measured: the global `~/.claude/CLAUDE.md` grew **16.8KB → 40.1KB in 30 days at a 1.34:1 arrival ratio** — a *better* ratio than `skills/`' 2.41:1 while auto-loading on every turn of every project, which makes it the highest-leverage hot path in the setup and the one nothing watched. **A healthy ratio and a doubling file are compatible; report the trajectory beside the ratio or the number reassures.**
+- **CLAUDE.md gets three axes, not four — density is deliberately excluded.** The artifact reached D50's conclusion independently: its own maintenance note reads *"re-bloats by ARRIVAL RATE, not density — repeated condenses cannot hold it."* It also records a retirement pass run 2026-07-26 returning **0 of ~7 candidates dead**, so retirement is reported as candidates-with-a-settling-command, never as confirmed. Progressive disclosure becomes **hot-vs-cold routing**: the `📖` companion mechanism already exists, so the question is placement, not extraction.
+- **The extension pushed the skill to 95.0 B/L, over the ~90 gate — accepted as declared growth.** No superseded rule existed to retire and the new axes are read on exactly the invocations that grade CLAUDE.md, so neither replace nor route applied. Stating it is the D54 accounting; shaving prose to sneak under the line would have been gaming the measurement.
+- **The `/done` reviews then found three defects in what this decision shipped, all fixed.** (1) The CLAUDE.md command block ran a 30-day window while the prose beside it quoted the 7-day ratio, so a session following the file would report a figure its own command never produced — both windows now run and **every ratio carries its window label**, because the two disagree (1.34:1 at 7d, 1.46:1 at 30d) and an unlabelled one is unreproducible. (2) The `condense-claude-md` routing row was unreachable: no grading pass emits an "over budget" verdict when density is not an axis. Rescoped to fire only when the trajectory crosses a budget the file **declares for itself**.
+- **A skill routing to N owners needs a receiving branch in all N — wiring one hides the gap.** `update-plugin` was retrofitted to accept a graded handoff for the skills side; `update-claude-docs` was not, so a flagged CLAUDE.md would arrive with its verdict already decided, find a step that scans the session for a signal, and die silently as "no signal, nothing to capture." The wired path demonstrably worked, which is exactly what made the unwired sibling look wired. Fixed with a **Graded-handoff mode** keyed on the axis handed over; the general rule went to the plugin CLAUDE.md review checklist.
+
+**Status**: committed · **Reversible**: yes
+
 ---
 
 ## Critical Gotchas
@@ -140,6 +173,8 @@ Chosen: run a tool report through D55's four verdicts unchanged, with **two addi
 | A tool's report lists a finding as already-decided (a `Verdict` column, a **Remove** row) | Generated output arrives shaped as a to-do list, which reads as more settled than prose making the same claim | Grade it with the same four verdicts anyway. The formatting is not evidence |
 | A report's flag contradicts a fix you know shipped | Its numbers are a snapshot of run time; a flag on a since-fixed file inverts rather than softens | Re-measure before acting. A stale metric arrives looking rigorous, which is worse than none |
 | A report names paths that return nothing | It ran in a different project — `/doctor` audits the tree it was invoked in | Check provenance before treating any named path as actionable |
+| A grading agent's finding cites a line number and reads as settled | Its line numbers are usually right even when its claim is wrong — that is what makes it convincing | Re-read the cited lines yourself before acting. Record disproved findings; a wrong finding costs more than a missing one |
+| An agent proposes extracting a "cold path" to `references/` | A section read on every invocation (mode selection, a routing table) is hot path | Ask which invocations skip it. If none, extraction is D50's treadmill |
 | A report's row looks like another project's, so you dismiss it | Provenance and staleness are different tests — an MCP server configured at **user scope** (`~/.claude.json` `.mcpServers`) is live in every project, and a missing `.mcp.json` proves nothing | Enumerate every config scope, then re-measure. Being right for the wrong reason teaches the wrong rule |
 
 ### Measuring before judging
@@ -159,10 +194,10 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ## Last Session (2026-07-27)
 
-- Created this doc, recording **D55** — the method, which existed only in a CHANGELOG entry and D54's Rejected block, so the next session facing similar advice would have re-measured the whole corpus to answer it.
-- **The method got its first re-use the same day** — a `/doctor` report run in another project graded as source #2 → **D56**. All 3 of its live-state flags failed re-measurement, including the one row it marked **Remove**: `posthog-mcp` has **51 calls in 30 days** against the report's 0.
-- **That row also corrected D56 mid-session.** Dismissing it as another project's (no `.mcp.json` here) was right by luck — it is a **user-scope** server in `~/.claude.json`, live in every project. Provenance and staleness are separate checks; the ADR now says run both.
-- **`/doctor` closed this doc's own unverified item**: a 10-check audit, *not* the installation-health CLI the Bugs Fixed row grades. Prior wording would have led a reader to skip the useful one.
+- **The method turned inward for the first time** — graded the plugin's own 24-skill corpus as source #3 → **D59**, and shipped `skills/audit-instructions/SKILL.md` so the audit is re-runnable rather than a one-off.
+- **14 of 24 skills graded clean, and 4 proposed changes were rejected against D50** — the request implied the whole corpus needed work; the measurement said the arrival rate does (2.41:1 over 7 days), not the prose.
+- **3 agent findings died on re-reading their cited lines**, each with correct line numbers and a wrong claim. That asymmetry is now a gotcha row and a step in the new skill.
+- **The graders missed the only correctness defect** — `gchat-format`'s example contradicted its own regroup-by-feature rule. A fleet grade finds density; reading the content finds contradictions.
 
 ---
 
@@ -170,6 +205,8 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 **Applying the method**
 - [ ] Reuse D55's four-verdict table + D56's two report-specific checks on the next piece of guidance rather than judging by impression. No specific source queued.
+- [ ] Run `audit-instructions` against the CLAUDE.md family — the extension shipped but only the skills half has an executed grade behind it. The CLAUDE.md axes are so far validated by measurement, not by a full grading pass.
 
 **Deferred / accepted**
 - [ ] `/doctor`'s "can also fix issues" half is still untested — this run was read-only and nothing was applied from it. Accepted: it is user-run, and no verdict here depends on its fix mode.
+- [ ] `audit-instructions` has no proactive trigger — its description keys entirely on explicit user phrasing, so the fleet arrival ratio it owns is measured only when someone thinks to ask. `claude-md-pruner` by contrast fires on file growth. Accepted for now: a proactive trigger belongs in `/done`'s Gate B or a periodic check, and neither has a natural home yet.

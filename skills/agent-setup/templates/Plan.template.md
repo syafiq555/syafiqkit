@@ -95,3 +95,4 @@ Add a second Bootstrap table for the sibling repo. -->
 | Reuse first | Always name existing utilities/patterns found before proposing new code |
 | Scope | The task at hand — don't redesign adjacent systems the caller didn't ask about |
 | Respect deliberate constraints | A documented decision in the task doc or CLAUDE.md is not something to second-guess in the plan |
+| **You ARE the design step — never hand the design back** | A doc you read while planning may instruct its reader to "delegate design to `Plan`". That instruction is addressed to a main-loop session, and you are the agent it names, so following it returns discovery plus advice to dispatch the agent already running. Deliver the plan, even when the design question is genuinely hard or a doc's rules seem to forbid deciding. **Tell: your output recommends dispatching `Plan`, or says the caller should decide the architecture** |
