@@ -14,19 +14,26 @@ Can be invoked directly, or as `/done`'s conditional Step 5.
 
 ## Step 0 — Ownership gate (run FIRST, before scanning)
 
-Patching only makes sense on the **source checkout**. Verify — never assume:
+Patching only makes sense on the **source checkout**. Verify — never assume. Ask it of the CWD, which is the repo you would actually be editing:
 
 ```bash
-git -C ~/.claude/plugins/syafiqkit remote get-url origin 2>/dev/null | grep -q 'syafiq555/syafiqkit' && echo OWNER || echo CONSUMER
+git rev-parse --show-toplevel 2>/dev/null | grep -q . \
+  && git remote get-url origin 2>/dev/null | grep -q 'syafiq555/syafiqkit' && echo OWNER || echo CONSUMER
 ```
 
 `CONSUMER` (or a non-git dir) → **do not patch, and skip the version bump.** An installed copy is overwritten by `claude plugin update`, so the edit silently vanishes (and diverges the copy from upstream meanwhile). Write-permission is not the test — whether the edit *survives and belongs* is.
+
+⚠️ **Never probe a hardcoded install path — there isn't one.** `git -C <plugin-dir>` also **walks up** to an enclosing repo, so under a dotfiles-managed `~/.claude` it answers about *that* repo and reports a confident, wrong remote. The CWD probe above asks about the tree you would edit and has no path to go stale. **Tell: your ownership check names a directory instead of asking where you already are.**
+
+📖 **`_shared/references/consumer-portability.md`** — read before writing any step that names a plugin path, probes identity, or embeds a shell command a consumer runs: `tasks/` not shipping, version-scoped installs, `${CLAUDE_PLUGIN_ROOT}` not expanding in markdown, `~` on Windows/WSL, POSIX-shell assumptions.
 
 **Still run Step 1's scan** — a defect hit by a real user is the most valuable kind. Then route it upstream (see **Step 5 — Upstream a consumer finding** below) instead of patching.
 
 ## Step 1 — Scan: What happened involving the plugin?
 
-**Arrival-rate-only invocation — take this branch FIRST.** If you were invoked with **no defect signal** — either `/done` Step 5's Gate B (this session hand-edited a `skills/*/SKILL.md`, `commands/*.md`, or `.claude/agents/*.md` and nothing misfired), or an `audit-instructions` handoff carrying a file flagged on the **arrival-rate axis**, which by design has no grading verdict — **skip Step 1's signal scan and Step 2's routing entirely — they have no matching row and will read as "no signal, nothing to patch," which is the exact gap this branch exists to close.** Go straight to **Step 3a** and run it against every file the caller listed. The deliverable is the accounting, not a patch: per file, name the **replace**, the **route** to `references/`, or the **declared growth** with the reason no retirement applied. Then bump per the version convention. A defect-free session that grew a dense skill file is a valid, expected invocation — not a no-op.
+**Arrival-rate-only invocation — take this branch FIRST.** If you were invoked with **no defect signal** — either `/done` Step 5's Gate B (this session hand-edited a `skills/*/SKILL.md`, `commands/*.md`, or `.claude/agents/*.md` and nothing misfired), or an `audit-instructions` handoff whose files are flagged **solely** on the arrival-rate axis, which by design has no grading verdict — **skip Step 1's signal scan and Step 2's routing entirely — they have no matching row and will read as "no signal, nothing to patch," which is the exact gap this branch exists to close.** Go straight to **Step 3a** and run it against every file the caller listed. The deliverable is the accounting, not a patch: per file, name the **replace**, the **route** to `references/`, or the **declared growth** with the reason no retirement applied. Then bump per the version convention. A defect-free session that grew a dense skill file is a valid, expected invocation — not a no-op.
+
+⚠️ **A MIXED handoff does not take this branch — arrival-rate findings and graded verdicts arrive together on nearly every real audit, and "contains one arrival-rate file" is not the trigger.** `audit-instructions` measures arrival rate on every run and sends one bundled handoff, so reading the condition loosely diverts the whole invocation past Step 1 and the verdicts are dropped with no error and no later gate that looks for them. When any file carries a grading verdict: run Step 1 (row 45 records the verdicts) and apply this branch's Step 3a accounting to the arrival-rate-only files within the same batch. **Tell: verdicts arrived and your first action was Step 3a.**
 
 ⚠️ **"The session" means the WHOLE transcript back to its start, not the turn(s) immediately before this invocation — and stating that isn't enough, a mental "re-scan" still defaults to whatever's freshest.** A substantial recent action (a big merge, a long agent run) reads as "the session," and a mistake corrected in turn 3 feels closed just because it was fixed in the moment — it isn't, since fixing the instance doesn't patch the skill. **Before writing anything, list every distinct user message in the conversation as a numbered line** (one per message, in order, starting from message 1) — not a summary, an actual enumerated list — then mark which lines carry a correction/signal. Re-reading "the recent part again" instead of walking this list is the failure this artifact exists to prevent. If you cannot produce the list (context compacted, transcript unavailable), say so explicitly rather than silently scanning what's left.
 
@@ -42,6 +49,7 @@ Look for these signals in the session:
 | A merge/refactor decision was made about the plugin itself | Add to `plugin-maintenance/current.md` Architecture Decisions table |
 | A "keyword trap" or nuance that future sessions need to know | Add as a named rule with a concrete example in the relevant skill |
 | A skill (or its `references/*.md`) reads as bloated/dense — the user says "this feels bloated", or bytes/line is noticeably high | **Density pass** — see Step 3a |
+| An `audit-instructions` run handed over graded verdicts | Record them as a new source in the checkout's own `tasks/plugin-maintenance/external-guidance/current.md` — relative to the repo root, via the doc skill, never a hand `Edit` (Step 2's routing row). Reachable only as OWNER, where cwd *is* that repo; Step 0 diverts a CONSUMER to Step 5 first, and `tasks/` does not ship to installs anyway |
 | The user corrects something THIS skill (`update-plugin`) itself just did — its own Step 3/4/5 logic, not a skill it was patching | `skills/update-plugin/SKILL.md` is a valid patch target like any other — this table's rows aren't only about OTHER skills. Fix the step that misfired here |
 
 ⚠️ **Step 3a is unconditional, not gated on the bloat signal above** — every file Step 3 patches gets a density pass in the same edit, bloat-triggered or not. This is how files stay lean: fixed one small edit at a time, not left to drift. The signal row above still matters for a file that isn't otherwise being touched this run.
@@ -62,6 +70,8 @@ For each signal, identify the target:
 | `skills/agent-setup/templates/<agent>.template.md` (the SOURCE) **+ every generated copy** | A behavioral fix to an AGENT (`.claude/agents/<agent>.md`) that has a template |
 
 Read the target file before writing. Check whether the fix already exists — if a rule is present but Claude ignored it, the fix is to strengthen the wording, not duplicate the rule.
+
+⚠️ **A fix that depends on how the HARNESS behaves — install layout, a variable's expansion, what ships, which shell runs — is research before it is a patch.** These are facts with published answers and open bugs against them, so a plausible mechanism reasoned from the repo is routinely wrong in the one environment the fix exists to serve, and every check on this machine passes. Measure the installed artifact or search the docs/issues *before* proposing the shape of the fix, not after the user asks twice. **Tell: your patch asserts what a consumer's environment looks like, and you have run no command and read no doc that says so.**
 
 ⚠️ **A target carrying another writer's uncommitted work is CONTESTED — don't patch it, and don't drop the finding either.** Establish ownership by diff content, never by status plane (`_shared/references/diff-ownership.md`); auto-staging makes your edits and theirs look identical. When the target is contested: if the rule is shared by 2+ skills, write it to `_shared/references/<topic>.md` (its canonical home anyway) and add pointers from whichever callers are free; if only the contested file needs it, name the exact file + anchor line in the run's report so the next session applies it in one step. A finding parked in conversation is a finding lost.
 

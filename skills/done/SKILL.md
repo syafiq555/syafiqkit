@@ -183,8 +183,12 @@ Steps 3+4 write to the *project*; this writes to the *plugin* — a global artif
 **Gate B — did this session WRITE to a skill file?** Measure it here, now — this gate is not satisfied by recalling whether you edited one:
 
 ```bash
-git -C ~/.claude/plugins/syafiqkit status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
+# run from the plugin checkout (CWD), never `git -C <hardcoded path>` — that walks
+# up to an enclosing ~/.claude repo and reports the dotfiles tree's status instead
+git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
 ```
+
+Not in the plugin repo this session? Then no skill file was hand-edited here and Gate B cannot fire — say so, rather than reaching for a path.
 
 Any output → **a rule arrived by direct hand-edit, which is the dominant arrival path and the one Gate A cannot see.** A hand-edited rule is legitimate and usually earned; the point is not to refuse it but to make its arrival *visible*. Enter Step 5 and run `update-plugin`'s **Step 3a arrival-rate gate** against every file the command listed: for each file above ~90 B/L, the change must be a **replace** (a superseded rule removed), a **route** (moved to `references/`), or a **declared growth** with the reason no retirement applied. Compute the ratio, don't estimate it:
 

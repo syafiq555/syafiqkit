@@ -1,23 +1,24 @@
 <!--LLM-CONTEXT
-Status: ✅ Method proven on 3 sources — Claude-5 article (2 of 9 claims adopted), a `/doctor` health report (0 of 3 live-state flags survived re-measurement), and the plugin's own skill corpus (14 of 24 skills clean; 3 agent findings disproved)
+Status: ✅ Method proven on 4 sources — Claude-5 article (2 of 9 claims adopted), a `/doctor` health report (0 of 3 live-state flags survived re-measurement), the plugin's own skill corpus (14 of 24 skills clean; 3 agent findings disproved), and a real consumer's run that graded the grader (2 defects in `audit-instructions` itself)
 Domain: plugin-maintenance/external-guidance
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
   - ../doc-condensation/current.md (owns D54 and every skill-density decision this evaluation fed)
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-27 — D59 added: the method turned inward on the plugin's own corpus (source #3), producing `skills/audit-instructions/SKILL.md` and extending it to the CLAUDE.md family; 4 proposed changes rejected against D50, 3 agent findings disproved, and 3 defects in D59's own output caught by the `/done` reviews
+Last updated: 2026-07-28 — D61 added: a real consumer's run became source #4 and graded the grader, finding a reported path defect plus an undetected measurement artifact (a new file ranking as top grower by its own length); the ownership probe was found correct-by-luck and rewritten
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The method for judging outside best-practice advice (a vendor article, a blog post, a tool's own audit report) against this plugin's own measured evidence — and the record of three evaluations run so far. The answer is never "adopt" or "ignore"; it is a per-claim verdict with the measurement that decided it. The method now also runs INWARD: `skills/audit-instructions` grades the plugin's own corpus with it.
+**Where we are**: The method for judging outside best-practice advice (a vendor article, a blog post, a tool's own audit report) against this plugin's own measured evidence — and the record of four evaluations run so far. The answer is never "adopt" or "ignore"; it is a per-claim verdict with the measurement that decided it. The method runs INWARD too (`skills/audit-instructions`), and source #4 was a real consumer's run of that skill, which found two defects in it.
 
 **Immediate next actions (in order)**:
-1. Run `syafiqkit:audit-instructions` against the **CLAUDE.md family** — the skills half has an executed grade behind it, the CLAUDE.md half only a measurement. See `## Next Steps` for the full list.
-2. On the next piece of outside guidance, reuse the four-verdict table below rather than starting from impressions.
+1. Re-run the fleet audit — Step 1 now disqualifies in-window creations, and the one executed grade ranked an artifact first, so the ordering behind it is unverified.
+2. Grade the consumer's 22 findings against local ADRs before acting; they were produced against a different machine's setup. See `## Next Steps`.
+3. Reply to the consumer on their sequencing question (companion dirs first).
 
 **Gotchas that will trip you**:
 - **Generic advice describes a different SYSTEM, not just a different opinion** — match the advice's assumed dynamics against yours before weighing its merits, see D55
@@ -28,6 +29,8 @@ Last updated: 2026-07-27 — D59 added: the method turned inward on the plugin's
 - **An agent's finding is a hypothesis whose line numbers are usually right even when the claim is wrong** — that is what makes it convincing; 3 of this corpus's findings died on re-reading the cited lines, see D59
 - **A "cold path to extract" that every invocation reads is hot path** — the commonest way a density pass becomes D50's treadmill, see D59
 - **The plugin's own ADRs outrank an external claim when they disagree, because they were measured here** — D23→D50 already ran the article's headline experiment, see ../doc-condensation/current.md
+- **A growth ranking counts a file created in the window as having grown by its whole length** — the top-ranked entry is then an artifact that hides the real grower, see D61
+- **An instruction naming a path under `tasks/` is unfollowable off this checkout — `tasks/` is not shipped and installs are version-scoped** — there is no absolute path that fixes it, see D61
 
 **Success looks like**: every claim in a piece of guidance carries a verdict (adopt / already adopted / reject / unverified) and the command or ADR that decided it — no claim left as an impression.
 
@@ -56,6 +59,7 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
    git log --since="7 days ago" --numstat --format='' -- 'skills/**/*.md' \
      | grep -E '^[0-9]+\s+[0-9]+' | awk '{a+=$1; d+=$2} END {printf "added %d removed %d net %+d\n", a, d, a-d}'
    ```
+   ⚠️ Ranking files by that net figure needs the per-file variant in `audit-instructions` Step 1, which **disqualifies files created inside the window** — a new file's whole length otherwise counts as growth and ranks it first (D61).
 3. **Grade each claim against a local ADR or a command — not against plausibility.** Four verdicts: **adopt**, **already adopted**, **reject** (name the ADR or decision that refutes it), **unverified** (the claim is about a tool; run it).
 4. **Record the verdicts.** A rejected claim returns in six months wearing new words; the verdict table is what stops it being re-litigated from scratch.
 
@@ -161,6 +165,29 @@ Chosen: a discovery-only skill, `skills/audit-instructions/SKILL.md`, mirroring 
 
 ---
 
+### D61 — A consumer's audit run graded the skill: two defects, and the recording step was unreachable by construction
+
+**Problem**: A real consumer (marketplace install, not this checkout) ran `audit-instructions` and returned a complete 25-skill report — then stopped at Step 5 to ask where to record verdicts, because it named `tasks/plugin-maintenance/external-guidance/current.md` relatively. Their report also carried an undetected measurement artifact.
+
+**Decision**: Fix both, and take the destination out of the skill entirely. Step 5 hands verdicts to `update-plugin`, which owns the ownership gate; Step 1 disqualifies files created inside the measurement window.
+
+**Rejected**
+- Naming an absolute install path. Why not: **measured — there is none that works.** `tasks/` is not shipped to installs at all, and installs are version-scoped (`plugins/cache/<marketplace>/<plugin>/<version>/`), so any literal path is stale on the user's next update. `${CLAUDE_PLUGIN_ROOT}` does not expand in markdown ([#9354](https://github.com/anthropics/claude-code/issues/9354)), `~` does not resolve on native Windows, and a `~/.claude` shared with WSL stores paths broken on the other side ([#36575](https://github.com/anthropics/claude-code/issues/36575)).
+- Giving `audit-instructions` its own OWNER/CONSUMER probe. Why not: a second gate is a second failure mode, and `update-plugin` already owns one; three independent research passes agreed on delegating over branching.
+- Recording a consumer's verdicts into their own project's `tasks/`. Why not: that tree is the user's work, and the verdicts grade *this* plugin.
+
+**Consequences**
+- **A newly-created file reported its whole length as growth, and the artifact ranked #1.** `audit-instructions` (168 lines, created the day before) reported itself as the fleet's top grower at +168L, masking the real one (`done`, +43L). Step 1 now disqualifies in-window creations via `git log --diff-filter=A`; a file with no baseline has no arrival reading. The consumer routed the artifact into `update-plugin`'s queue, where it would have driven a density pass on a one-day-old file.
+- **`%+d` broke the ranking it fed.** A leading `+` defeats `sort -rn`, so the per-file list ordered `+9, +8, +43`. Bare `%d` restored it — the ranking is the command's only purpose, so a cosmetic format string was the whole defect.
+- **The ownership probe was right by luck.** `git -C <plugin-dir>` **walks up** to the enclosing `~/.claude` dotfiles repo and resolves *its* remote (`my-claude-settings.git`); the grep missed, yielding `CONSUMER` for the wrong reason, and would invert for anyone who forked that settings repo. Rewritten to ask the CWD (`git rev-parse --show-toplevel`) — verified OWNER from the checkout, CONSUMER from a non-git dir and from `~/.claude` itself.
+- **The receiving branch was unreachable, and both `/done` reviewers caught it independently.** `update-plugin` Step 1's arrival-rate branch skips Steps 1-2 whenever a handoff carries *any* arrival-rate file — and since arrival rate is measured every run, that is nearly every handoff, so the new row recording verdicts was dead on the common path. Narrowed to *solely* arrival-rate, with an explicit mixed-handoff rule. Same shape as D59's own N-owners defect, one layer down.
+- **The consumer upstream flow was singular-defect shaped.** Its template titles one skill and one defect; the real payload was 22 findings across 25 files. A fleet audit now files as ONE issue with the table as body — splitting it buries the corpus-wide signal a sweep exists to produce, under the user's own name.
+- **Scope came in narrower than approved, on evidence.** A full sweep found 7 further sites; 7 were correct as written — the 6 `.claude/agents/*.md` hits have templates that are already generic, so the hardcoded domain belongs in this repo's own copies, and `task-summary/references/templates.md` cites the path as split history, not as a path to read.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
 ## Critical Gotchas
 
 ### Grading a claim
@@ -176,6 +203,8 @@ Chosen: a discovery-only skill, `skills/audit-instructions/SKILL.md`, mirroring 
 | A grading agent's finding cites a line number and reads as settled | Its line numbers are usually right even when its claim is wrong — that is what makes it convincing | Re-read the cited lines yourself before acting. Record disproved findings; a wrong finding costs more than a missing one |
 | An agent proposes extracting a "cold path" to `references/` | A section read on every invocation (mode selection, a routing table) is hot path | Ask which invocations skip it. If none, extraction is D50's treadmill |
 | A report's row looks like another project's, so you dismiss it | Provenance and staleness are different tests — an MCP server configured at **user scope** (`~/.claude.json` `.mcpServers`) is live in every project, and a missing `.mcp.json` proves nothing | Enumerate every config scope, then re-measure. Being right for the wrong reason teaches the wrong rule |
+| A measurement's top-ranked file is one created inside the window | Its whole length counts as "added", so a brand-new file outranks every real grower and crowds out the signal | Disqualify in-window creations (`git log --diff-filter=A`) before ranking. **Tell: the reported growth equals the file's total length** — D61 |
+| An instruction names a path under `tasks/` that resolves on this checkout | `tasks/` is not shipped to installs, and installs are version-scoped — no literal path reaches it, so the step is unfollowable exactly where it was written for | State the step as source-checkout-only, or route the write through the skill owning the ownership gate — D61 |
 
 ### Measuring before judging
 
@@ -192,12 +221,13 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ---
 
-## Last Session (2026-07-27)
+## Last Session (2026-07-28)
 
-- **The method turned inward for the first time** — graded the plugin's own 24-skill corpus as source #3 → **D59**, and shipped `skills/audit-instructions/SKILL.md` so the audit is re-runnable rather than a one-off.
-- **14 of 24 skills graded clean, and 4 proposed changes were rejected against D50** — the request implied the whole corpus needed work; the measurement said the arrival rate does (2.41:1 over 7 days), not the prose.
-- **3 agent findings died on re-reading their cited lines**, each with correct line numbers and a wrong claim. That asymmetry is now a gotcha row and a step in the new skill.
-- **The graders missed the only correctness defect** — `gchat-format`'s example contradicted its own regroup-by-feature rule. A fleet grade finds density; reading the content finds contradictions.
+- **A real consumer's run became source #4 and graded the grader** → **D61**. Their 25-skill report was complete and high quality; the skill's own final step was what failed.
+- **Their report carried an undetected artifact** — `audit-instructions` ranked *itself* top grower at +168L, its exact total length, one day after creation. Fixing it surfaced the real top grower (`done`, +43L) the artifact had masked.
+- **Three distribution assumptions were wrong and the user caught all three** — `tasks/` does not ship to installs, installs are version-scoped, and consumers span macOS/Windows/WSL. Measured after the correction, not before.
+- **The ownership probe returned the right answer for the wrong reason** — `git -C` walked up to the `~/.claude` dotfiles repo and read *its* remote. Rewritten as a CWD probe and verified in three environments.
+- **Both `/done` reviewers independently flagged the new receiving branch as unreachable**, the same N-owners shape as D59 one layer down.
 
 ---
 
@@ -205,7 +235,11 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 **Applying the method**
 - [ ] Reuse D55's four-verdict table + D56's two report-specific checks on the next piece of guidance rather than judging by impression. No specific source queued.
-- [ ] Run `audit-instructions` against the CLAUDE.md family — the extension shipped but only the skills half has an executed grade behind it. The CLAUDE.md axes are so far validated by measurement, not by a full grading pass.
+- [ ] Re-run the fleet audit now that Step 1 disqualifies in-window creations — the one executed grade ranked an artifact first, so the corpus ordering behind it is unverified.
+
+**From the consumer's report (source #4)**
+- [ ] Grade their 22 adopt findings against local ADRs before acting on any — they arrive as verdicts but were produced against a different machine's setup (their global CLAUDE.md reads 305L/40.7KB vs 219L here).
+- [ ] Their sequencing call — build companion dirs first, as the prerequisite unblocking 5 of 6 routing verdicts — is sound and unanswered. Reply to them.
 
 **Deferred / accepted**
 - [ ] `/doctor`'s "can also fix issues" half is still untested — this run was read-only and nothing was applied from it. Accepted: it is user-run, and no verdict here depends on its fix mode.

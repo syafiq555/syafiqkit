@@ -6,7 +6,7 @@ description: >
 
 # Audit Instructions
 
-Parallel fleet grade of the instruction files a session loads, against the method in `tasks/plugin-maintenance/external-guidance/current.md` (D55/D56). Two artifact families, one method:
+Parallel fleet grade of the instruction files a session loads, against the method in the plugin's own `tasks/plugin-maintenance/external-guidance/current.md` (D55/D56) — **source-checkout only; `tasks/` is not shipped to installs, so off the checkout this method is restated below and the doc is unreachable, not merely elsewhere.** Two artifact families, one method:
 
 | Family | Files | Why it needs a fleet view |
 |---|---|---|
@@ -14,6 +14,8 @@ Parallel fleet grade of the instruction files a session loads, against the metho
 | **CLAUDE.md** | `~/.claude/CLAUDE.md`, project `CLAUDE.md`/`CLAUDE.local.md`, `.claude-companions/**` | The global file **auto-loads on every turn of every project** — the highest-leverage hot path in the setup, and nothing watches its growth |
 
 **This skill owns no threshold.** The ~90 B/L gate and the density checklist belong to `update-plugin` Step 3a; CLAUDE.md size policy belongs to `condense-claude-md`. Cite them, never restate them — a second copy is the defect D50 exists to stop.
+
+📖 **`_shared/references/consumer-portability.md`** — this skill runs on installs, not just the checkout: `tasks/` is not shipped, install paths are version-scoped, and the commands below assume a POSIX shell. Read it before adding any step that writes to a path or embeds a command.
 
 ⚠️ **Density is NOT an axis for CLAUDE.md.** Both artifacts independently reached the same conclusion — the plugin's D50 for skills, and `~/.claude/CLAUDE.md`'s own maintenance note for itself: *"re-bloats by ARRIVAL RATE, not density — repeated condenses cannot hold it."* Grade CLAUDE.md on emphasis, arrival rate, and hot-vs-cold routing only.
 
@@ -46,9 +48,17 @@ git ls-tree -r HEAD --name-only | grep -E '^skills/[^/]+/references/' | cut -d/ 
 # FLEET arrival rate — this skill's own measurement
 git log --since="7 days ago" --numstat --format='' -- 'skills/**/*.md' \
   | grep -E '^[0-9]+\s+[0-9]+' | awk '{a+=$1; d+=$2} END {printf "added %d removed %d net %+d ratio %.2f\n", a, d, a-d, a/d}'
+# per-file growth, DISQUALIFYING files created inside the window
+since="7 days ago"
+for f in $(git ls-tree -r HEAD --name-only | grep -E '^skills/.*SKILL\.md$'); do
+  [ -n "$(git log --since="$since" --diff-filter=A --format=%H -- "$f")" ] \
+    && { echo "NEW($(git log --diff-filter=A --format='%ad' --date=short -- "$f" | tail -1)) $f — no baseline, not a growth reading"; continue; }
+  git log --since="$since" --numstat --format='' -- "$f" \
+    | awk -v f="$f" '{a+=$1;d+=$2} END {if(a||d) printf "%d %s\n", a-d, f}'
+done | sort -rn   # bare int, not %+d — a leading '+' breaks numeric sort
 ```
 
-The fleet ratio is why this skill exists as a sweep. Gate B measures the files ONE session touched, so a corpus trending above 1:1 across dozens of commits is invisible to it by construction. Report the ratio every run; sustained above 1:1 means naming which files drove the growth (`git log --numstat` per file).
+The fleet ratio is why this skill exists as a sweep. Gate B measures the files ONE session touched, so a corpus trending above 1:1 across dozens of commits is invisible to it by construction. Report the ratio every run; sustained above 1:1 means naming which files drove the growth (per-file command above). ⚠️ **A file created inside the window has no baseline to have arrived against — report it `NEW`, never as a growth figure**, or it ranks #1 on its first audit and crowds out real signal. **Tell: your top grower's growth equals its total length.**
 
 **A file the ratio flags enters Step 4's table on that basis alone, with axis `arrival-rate` and no grading verdict** — growth is a finding in its own right, and the file the graders liked is exactly where an unretired rule hides. Otherwise a grader's silence would delete the measurement this skill exists to make. The emphasis command above counts `skills/` only; a corpus-wide figure additionally spans `.claude/agents/` and `CLAUDE.md`, so state which scope any number you report came from.
 
@@ -142,7 +152,7 @@ Don't patch inline. Route each flagged file to the skill that owns its family:
 
 Running any of that logic here would duplicate it and drift.
 
-Then record the run's verdicts in `tasks/plugin-maintenance/external-guidance/current.md` as a new source, via the doc skill — never a hand `Edit`. D55 exists so a rejected claim costs one lookup instead of one re-evaluation; an unrecorded audit is one the next session repeats from impressions.
+Then hand the run's verdicts to `update-plugin` alongside the flagged files — the same handoff as the table above, never a separate write of your own. It owns the destination because its Step 0 owns the OWNER/CONSUMER probe that decides where a verdict may land. ⚠️ **Never write verdicts into the running project's `tasks/`** — that tree is the user's work, and a bare relative path resolves there, not into the plugin. D55 exists so a rejected claim costs one lookup instead of one re-evaluation; an unrecorded audit is one the next session repeats from impressions.
 
 ⚠️ **"Everything graded clean" is a claim about the sweep, not about the corpus.** A batch that mis-scoped its file list, read the wrong paths, or returned an empty table contributes zeroes that compile into a confident all-clear. Before terminating clean, confirm all three:
 
@@ -163,6 +173,7 @@ Then record the run's verdicts in `tasks/plugin-maintenance/external-guidance/cu
 | Act on an agent finding as reported | Re-read its cited lines first; record disproved findings explicitly |
 | Report a retirement candidate as confirmed dead | Name the command that settles it — a prior pass found 0 of ~7 actually dead |
 | Read a healthy arrival ratio as a healthy file, or quote a ratio without its window | Report the size trajectory beside it and label the window — 1.34:1 (7d) still doubled the global CLAUDE.md over 30 days, and the 7d and 30d figures disagree |
+| Rank a file created inside the window as a grower | Disqualify in-window creations (`--diff-filter=A`) and report them `NEW` — a file with no baseline has no arrival reading |
 | Apply the B/L ratio to a `references/*.md` file | References are cold-path lookups, out of scope by D54 — judge them on single-topic + symptom-naming pointer + ~6KB prose ceiling |
 | Recommend condensing a file that was condensed before | That is D50's treadmill — route cold content out or accept declared growth |
 | Report a clean sweep without the three-part proof | Reconcile the file count, require one substantive verdict, spot-check one file |

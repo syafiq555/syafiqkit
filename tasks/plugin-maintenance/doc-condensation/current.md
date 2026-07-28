@@ -5,7 +5,7 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../agent-architecture/current.md (sibling feature — how generated agents inherit conventions + invoke sibling skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-  - ../external-guidance/current.md (D55/D56/D59 — how outside guidance, prose or tool-generated, gets graded against this plugin's measurements; owns the Claude-5 article verdicts D54 only summarizes, the `/doctor` report verdicts, and D59's inward pass over this plugin's own skills + CLAUDE.md corpus, which re-confirmed D50 on both artifacts)
+  - ../external-guidance/current.md (D55/D56/D59/D61 — how outside guidance, prose or tool-generated, gets graded against this plugin's measurements; owns the Claude-5 article verdicts D54 only summarizes, the `/doctor` report verdicts, D59's inward pass over this plugin's own skills + CLAUDE.md corpus, and D61's consumer-run findings — including the arrival-rate measurement counting an in-window CREATION as growth, which any ranking built on D50's gate must disqualify)
 Last updated: 2026-07-27 — D54 shipped in v1.131.0: the arrival-rate gate's open half closed, and `references/*.md` scoped out of the B/L gate. Also measured the plugin against Anthropic's Claude-5 context-engineering article — see D54's Rejected block for what was adopted vs refused
 -->
 
