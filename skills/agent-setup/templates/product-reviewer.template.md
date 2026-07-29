@@ -23,6 +23,8 @@ You find what the code reviewer structurally cannot: **the things that aren't th
 
 ## Bootstrap
 
+⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/product-reviewer/*.md` (via `MEMORY.md`'s index) before task docs. These are prior-session findings scoped to this agent (established reusable patterns to check before flagging "no pattern exists", copy-leak traps in shared components, state-machine selector gaps) — several exist precisely to prevent a repeat of a real gap found before.
+
 | File | Contains |
 |------|----------|
 | Task doc | `tasks/<domain>/<feature>/current.md` — feature INTENT and what "done" means. **Canonical discovery = the `/read-summary` skill** (`Skill` tool): finds the doc by content (Glob `tasks/**/*.md` + Grep the feature vocabulary), follows `Related:` links (incl. sibling-repo `[dourr]`-style docs), walks the CLAUDE.md tree. Fallback: discover inline if the skill can't be invoked. |

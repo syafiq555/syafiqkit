@@ -28,6 +28,8 @@ Your output is evidence, not reassurance. **A `BLOCKED` result is a valid, valua
 
 ## Bootstrap
 
+⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/browser-verifier/*.md` (via `MEMORY.md`'s index, if any files exist) before task docs. Prior-session findings scoped to this agent (login quirks, viewport traps, seed recipes that worked) are cheaper than rediscovering them.
+
 ⚠️ **Credentials, URLs and test accounts are NEVER written into this file.** They are env-specific and this agent template is shared/version-controlled. Read them at runtime from the project's `CLAUDE.local.md` (gitignored) — that is the single source of truth, and it is why this agent can be reused across projects without leaking anything.
 
 | File | Read for |

@@ -75,9 +75,15 @@ Then:
 git push
 ```
 
-### Step 4: Verify CI/CD Deploy
+### Step 4: Deploy and Verify
+
+⚠️ **"Ship" means every step that puts the change in front of users, not just the one that moves code — enumerate the artifacts the change spans and deploy each, or say which you are leaving and why.** A repo push updates *source*; anything the runtime consumes as a separate built artifact (a bundled frontend, a container image, a compiled asset, a mobile binary) is untouched by it, and a backend that deploys cleanly makes the ship look complete while the user-visible half never moved. The gap is silent by construction: every check on the deployed half passes. Derive the list from the DIFF's file types, not from what the deploy command reports — then deploy each or name it as outstanding in the Ship Summary. **Tell: your diff touched a frontend/asset/image source tree and your deploy was a `git pull` plus a cache clear.**
+
+⚠️ **A project rule reserving a step for the user ("user builds manually", "never run X") is scoped to the DEFAULT workflow — an explicit instruction to carry the whole ship overrides it, and a repeat of that instruction is a decision, not a nudge.** Reading the rule as absolute leaves the ship half-done while citing a document, which reads as procedural correctness and is the harder error to see. Do the step, name the rule you're overriding and the words that authorized it. **Tell: you declined an action the user just asked for twice and your reason was a doc you both read.**
 
 **Check the project's `CLAUDE.local.md` for a documented non-CI deploy path (rsync hotfix, manual sync, etc.) before assuming CI is the only route.** Some projects fast-track backend-only changes (no migration/deps/frontend touch) around CI entirely — polling `gh run list` for a deploy that was never queued will hang or false-negative. If such a path exists and applies to this change, follow it instead of Steps 4.1–4.2 (still do the prod-HEAD-mismatch style verification appropriate to that path, e.g. grep the deployed file/config on the server).
+
+⚠️ **A file transfer is verified at the DESTINATION, never from the sending command's exit — and a step that returned control without completing reports nothing at all.** A backgrounded or wrapper-mediated upload hands back control before (or instead of) transferring, so the next step operates on a file that was never written; the failure surfaces later as a confusing error about the wrong thing. `ls`/checksum the destination before consuming it, and when a wrapper rejects its own arguments, drop to the plain tool rather than retrying variations of the wrapper. **Tell: your next command assumes a file exists on the far side and nothing has listed it there.**
 
 ⚠️ **A fix you apply ON the deploy target must go through git, not stay on the server.** The deploy overwrites its own checkout (`git pull`, or a `reset --hard` that discards local edits without warning), so a hand-edit to a tracked file vanishes silently and the repo disagrees with what ran. Read how the deploy updates the checkout before editing there; per-server values belong in the gitignored env file, which survives. **Tell: you edited a file on a deploy target that the server's `git status` lists as modified.**
 
@@ -87,13 +93,8 @@ git push
 
 Otherwise, verify production matches once the deploy resolves:
 
-1. **Check CI status** — first establish **which CI provider** this repo uses (`CLAUDE.md`/`CLAUDE.local.md`, or look for `.circleci/`, `.github/workflows/`, `.gitlab-ci.yml`). ⚠️ `gh run list` is **blind to any non-GitHub-Actions provider** — against a CircleCI/GitLab repo it returns an **empty list and exit 0**, which reads exactly like "no deploy was queued" and invites you to re-push or declare the ship broken. Two repos in one session can differ (one GitHub Actions, one CircleCI). Poll the provider the repo actually uses in the background, and confirm the pipeline is building **your** SHA — not just that *a* pipeline exists.
-   - GitHub Actions: `gh run list --limit 5 --json workflowName,status,conclusion,attempt,headSha`
-   - Anything else: use that provider's API/CLI per the project's `CLAUDE.local.md` (it will document the token, project slug, and any manual approval gate).
-
-   ⚠️ **One push can start SEVERAL runs — re-list at the END and assert zero unresolved failures, never poll a single id.** Touching more than one branch, or a repo whose CI fans out, queues independent runs; watching one leaves a sibling's real failure invisible while every check says green. **Tell: you reported a deploy verified having polled exactly one identifier.**
-
-   ⚠️ **A retried run reuses its id**, so a stale failure notification and a currently-green run can share one. A user's failure email is evidence of neither state — read `attempt` + `conclusion`, and check whether a *different* run failed rather than assuming it refers to the one you watched.
+1. **Check CI status** — establish which provider the repo uses and poll it in the background. ⚠️ A repo with no CI config deploys manually; `gh run list` returns an empty list and exit 0 against a non-GitHub-Actions provider, which reads identically to "no deploy was queued".
+   📖 `references/ci-provider-polling.md` — provider commands, and the three traps: an empty list read as no-deploy, one push fanning out to several runs, a retried run reusing its id.
 
 2. **Verify production HEAD** — read the project's `CLAUDE.local.md` for the production server name and deploy path, then:
 

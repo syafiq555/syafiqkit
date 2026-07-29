@@ -17,6 +17,8 @@ memory: project
 
 ## Bootstrap (Do This First)
 
+⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/code-reviewer/*.md` (via `MEMORY.md`'s index) before reading CLAUDE.md files. These are prior-session findings scoped to this agent (false-positive patterns, sync traps between two call sites, non-obvious return shapes) — cheaper than rediscovering them via grep, and some directly prevent a repeat false positive.
+
 Read these files before reviewing any code:
 
 | File | Contains |

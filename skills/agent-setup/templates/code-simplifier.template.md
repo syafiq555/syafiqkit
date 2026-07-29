@@ -19,6 +19,8 @@ memory: project
 
 ## Bootstrap (Do This First)
 
+⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/code-simplifier/*.md` (via `MEMORY.md`'s index) before reading CLAUDE.md files. These are prior-session findings scoped to this agent (linter quirks, patterns intentionally NOT to simplify) — cheaper than rediscovering them, and some directly prevent undoing an intentional pattern.
+
 Read these files before refining any code:
 
 | File | Contains |

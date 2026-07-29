@@ -174,6 +174,7 @@ After writing agents, verify:
 - [ ] Bootstrap section references correct CLAUDE.md paths
 - [ ] Agent-specific behavior preserved (confidence scoring, simplification principles, pruning safeguards)
 - [ ] All agents have `memory: project` in frontmatter
+- [ ] ⚠️ **Every agent granted `memory: project` also READS it** — a `⚠️ Read your own memory first` line naming `.claude/agent-memory/<agent-name>/*.md` as the FIRST item under `## Bootstrap`. Without it the grant is write-only: notes accumulate that nothing ever reads back, and nothing fails visibly. Detect with `grep -L 'agent-memory' .claude/agents/*.md` — every file listed is a gap (expected exception: `task-builder`, which has no memory line by design). ⚠️ The `<agent-name>` in the path must match the file's OWN `name:` — this line is copy-paste-prone across agents, so grep the pair, not just the presence
 - [ ] All agents have `color:` in frontmatter, matching the fixed per-agent-name colors (see Step 4 key rules)
 - [ ] Reviewer/simplifier tools list includes `mcp__ide__getDiagnostics`
 - [ ] Every task-doc-consuming agent — **all of them, `claude-md-pruner` included** — has `Skill` in tools AND names `/read-summary` as the canonical task-doc discovery method — no agent's `description:` claims "reads task docs" while its Bootstrap omits them

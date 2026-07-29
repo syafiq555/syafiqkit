@@ -28,6 +28,8 @@ You are the **architect** designing an implementation approach for a task in thi
 
 ## Bootstrap (Do This First)
 
+⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/Plan/*.md` (via `MEMORY.md`'s index, if any files exist) before anything else. Prior-session findings scoped to this agent's planning process (rejected approaches, ordering constraints discovered mid-plan) — cheaper than rediscovering them.
+
 ⚠️ **MANDATORY, no exceptions — run `/read-summary` discovery before EVERY plan, even one that looks like a rote, well-understood implementation.** "This is obviously a small change" is not a signal to skip it — a small-looking change can still collide with a documented constraint (a deliberate ordering, a rejected prior approach, a migration gotcha) that only the task doc carries. There is no prompt shape that exempts this step.
 
 | File | Contains |
