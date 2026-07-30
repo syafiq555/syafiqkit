@@ -7,7 +7,7 @@ description: Create, rewrite, condense, or capture-into CLAUDE.md files followin
 
 The single manager for CLAUDE.md files — the analog of `task-summary` for `current.md`. Four modes; pick the one matching how it was invoked.
 
-⚠️ **This skill's output goes to CLAUDE.md only — never write NEW knowledge to `~/.claude/projects/*/memory/`, not for feedback, project context, or investigation lessons.** Claude Code's harness-native memory feature is real and legitimate elsewhere; it's the wrong target specifically for *this skill's* captures because memory is invisible to team members and other agents, while CLAUDE.md is team-visible and agent-readable. A cross-project working-style/feedback rule goes to global `~/.claude/CLAUDE.md`; a project rule goes to that project's CLAUDE.md/CLAUDE.local.md. If a memory file was already touched earlier this session, leave it as-is — write the CLAUDE.md entry alongside it, don't revert/delete it. This skill does not own cleanup of memory files from this or prior sessions, including pre-existing ones under an older convention; reverting only the newest one leaves the rest inconsistent, which is worse than leaving all of them.
+⚠️ **This skill's output goes to CLAUDE.md only — never write NEW knowledge to `~/.claude/projects/*/memory/`, not for feedback, project context, or investigation lessons.** Memory is invisible to team members and other agents; CLAUDE.md is team-visible and agent-readable. Route a cross-project rule to global `~/.claude/CLAUDE.md`, a project rule to that project's CLAUDE.md/CLAUDE.local.md. If a memory file was already touched this session, leave it as-is — this skill does not own memory-file cleanup.
 
 ## Mode selection (decide first)
 
@@ -31,6 +31,8 @@ The deliverable is the same accounting `update-plugin` produces: per file, name 
 
 **Create and Rewrite read `references/structure.md` first** — it holds the hierarchy rules, capture filter, section taxonomy, formatting conventions, template family, and the 200-line budget. Capture mode uses only its Routing (§1) and Capture-filter (§2) sections, inlined below. When in doubt which mode, it's Capture — that's the one `/done` depends on.
 
+⚠️ **MANDATORY on every Create/Rewrite: fix arrival rate, never rewrite existing rules for "clarity."** Measured here (D55/D59, `tasks/plugin-maintenance/external-guidance/current.md`) — a wholesale clarity rewrite regressed two skills to denser than before within two weeks (D23→D50); this plugin is an incident-driven accumulator, not a rarely-edited prompt, so the lever is arrival rate and hot/cold routing, not restyling existing prose. Concretely: don't touch a rule's wording unless it fails the capture filter or its position/table shape is wrong; do check `⚠️`/`MANDATORY` density (target: rare enough to still signal) and whether a rule is hot-path (read every invocation) vs cold-path (belongs in `references/`).
+
 ---
 
 # CAPTURE MODE (default)
@@ -39,9 +41,7 @@ Extract reusable patterns from this session into CLAUDE.md files.
 
 ⚠️ **A caller-supplied arg is ADDITIVE context, never a scope limiter.** Scan the WHOLE conversation for every signal in the Step-1 table — the arg is a hint about ONE signal, not the boundary of the scan. Most-missed: an arg naming only code facts still needs a scan for corrections/wrong-sources.
 
-⚠️ **Inline critical facts on CLAUDE.md-level pointers.** A `> 📖 See task doc` pointer FROM A CLAUDE.md FILE must also inline the 1-2 most critical facts — a session reading CLAUDE.md directly won't follow a bare pointer unprompted. Exception: a task doc's own `## Gotchas` table pointing to a reference file (`📖 See .../gotcha-name.md`) works bare — `Explore`/`Plan` reliably follow doc-level pointer rows (`references/structure.md` §6).
-
-⚠️ **Find the pointer's target by content, not folder name.** Folder names are engineer-domain-named and rarely match the topic (`upload-redesign` owns "QC", `payout` owns "refund"). `Glob tasks/**/*.md` + `Grep` for the concept's vocabulary + synonyms across doc body + header before writing `> 📖 See tasks/.../current.md` — a pointer to a non-existent or wrong doc is worse than no pointer.
+📖 **`references/pointer-discipline.md`** — read when a `> 📖` line is in play: a topic whose only grep hit IS the pointer line, a companion left stale because grep "found" it, a pointer's `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
 
 ## 1. Scan — What happened?
 
@@ -58,6 +58,7 @@ Look for these signals in the conversation:
 | Convention preference | Convention |
 | Debugging root cause discovered | Gotcha |
 | User states a durable preference for HOW Claude should communicate/behave (e.g. pastes a preferred summary format saying "give it like this instead") | Working-style rule → **global `~/.claude/CLAUDE.md`** Working Style bullet — the arg IS the capture target, don't treat it as content-to-summarize or answer inline |
+| The arg asserts a standard the CODEBASE should meet ("X is not needed to be long", "we always do Y") | **Two outputs, not one** — write the rule to its CLAUDE.md layer AND measure whether the tree currently violates it (count, ratio, longest instance). **Tell: your entry ships with the violation unmentioned** |
 | Team/strategy context | Context → `CLAUDE.local.md` |
 | Credentials/tokens/API headers used from config files | Env pattern → `CLAUDE.local.md` |
 | CLI pattern reused 3+ times (curl, scp, remote) | Env pattern → `CLAUDE.local.md` |
@@ -69,10 +70,13 @@ For each signal, extract 2-3 keywords and **grep all CLAUDE.md files**:
 | Grep result | Classification |
 |-------------|---------------|
 | No match | **New** — add entry, but clear the companion check below first |
+| Match only inside a `> 📖` pointer line | **Not a match — descend.** `Read` the pointed-to file and re-classify against ITS text |
 | Match in correct file | **Violation** — must refine (see Step 3) |
 | Match in wrong file | **Misplaced** — move to correct scope + refine |
 
-⚠️ **A CLAUDE.md that delegates to companion files makes "no match" unreliable — grep its `> 📖` targets before classifying as New.** A lean index keeps detail in companions outside the tree recursive grep walks, so an existing rule returns 0 hits and gets duplicated. `grep -a` won't save you — the text is in another FILE, not an unreadable one, so this misreads as the NUL-byte trap. **Tell: you can quote the rule verbatim from context yet grep finds it nowhere on disk** — context loaded what the index points to, so grep the pointers. A rule you're ADDING may likewise belong in a companion, not the index.
+⚠️ **`ls` and Read every `> 📖` target before classifying — a match inside a pointer line is not a match** (`references/pointer-discipline.md` §1-2). A rule you're ADDING may likewise belong in a companion, not the index.
+
+⚠️ **A change to a GLOBALLY-INSTALLED tool invalidates docs outside the repo you edited — scope the routing pass to the tool's blast radius, not the checkout's.** When the session changed something every project invokes (a CLI on `PATH`, a shared script, a plugin skill), the stale instructions live in the global corpus and its companions, where no amount of in-repo grepping reaches them; the project doc you did fix reads as complete. **Tell: the artifact you changed is invoked from projects other than the one you were working in.**
 
 ## 2. Route — Where does it go?
 
@@ -105,10 +109,7 @@ These belong in `CLAUDE.local.md` because they contain env-specific context (ser
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| Save NEW knowledge from this skill to auto-memory files | Write to CLAUDE.md, CLAUDE.local.md, or task doc — memory is invisible to team and agents |
 | Revert/delete a memory file this skill finds already written | Leave it — this skill doesn't own memory cleanup, and reverting only the newest file leaves older ones inconsistent |
-| Write feedback memory for investigation lessons | Add as `⚠️ MANDATORY` workflow section in CLAUDE.md — memory won't prevent next session's mistake |
-| `> 📖 See X` pointer without inline summary | Pointer + inline 1-2 critical facts |
 | Skip writing because "task doc has it" | CLAUDE.md must be self-sufficient for fresh sessions |
 | Skip CLAUDE.local.md because "it's just env stuff" | Save reusable env patterns — next session will waste 10 min rediscovering them |
 | Conclude from one data source without cross-checking | Add `❌/✅` behavioral rule to the relevant CLAUDE.md section |
@@ -182,7 +183,7 @@ The agent has its own classification rules, litmus tests, and NEVER-delete safeg
 ## 5. Validate
 
 After writing each entry (in Step 3):
-1. Re-grep keyword — confirm no duplicate created
+1. Re-grep keyword — confirm no duplicate created. This grep is also how you prove the write LANDED when the target is `CLAUDE.local.md`: it is gitignored, so no `git diff` can ever show it (`_shared/references/verifying-a-write-landed.md`)
 2. Count `|` separators — must match table header
 3. "Would removing this cause Claude to repeat the mistake?" — if no, delete it
 4. Scan your entry for narrative markers ("happened", "repeatedly", "caught", "twice", numbered trigger lists) — rewrite to constraint-only

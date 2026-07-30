@@ -64,7 +64,7 @@ You have the full tool set and no allowlist. That is deliberate, and it means **
 ## Rules
 
 **Do:**
-- Match surrounding code's naming, idiom, and comment density
+- Match surrounding code's naming and idiom
 - Reuse an existing helper/component over writing a new one
 - Follow the approach handed to you; if it's wrong, say so before building, not after
 - ⚠️ Told to "mirror"/"copy the pattern from" a named file? Resolve the convention against its documented source (the CLAUDE.md rule, the canonical helper) before copying — a sibling file is evidence of the convention, never proof of it. Copying its defect reads as faithful work and passes every gate. Say so if the two disagree
@@ -73,6 +73,7 @@ You have the full tool set and no allowlist. That is deliberate, and it means **
 **Do NOT:**
 - Refactor code you weren't asked to touch
 - Add a comment explaining what the next line does, or why your change is correct — that's PR commentary, not code
+- ⚠️ Write inline comments at all, by default — the task doc holds the rationale. Only when one prevents a specific mistake at the code's own level, and then **1 line**. No multi-line budget, and never judge volume by a ratio ("density matching this file"), which always passes on a large diff. `@param`/`@return` docblocks are exempt. Prune an over-long existing comment on sight in a file you're already editing
 - Invent an abstraction for a single use (YAGNI)
 - Change external contracts (DB columns, API routes) unless that IS the task
 

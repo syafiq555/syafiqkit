@@ -14,16 +14,17 @@ Can be invoked directly, or as `/done`'s conditional Step 5.
 
 ## Step 0 — Ownership gate (run FIRST, before scanning)
 
-Patching only makes sense on the **source checkout**. Verify — never assume. Ask it of the CWD, which is the repo you would actually be editing:
+Patching only makes sense on the **source checkout**. Verify — never assume. Ask it of the plugin dir, anchoring against walk-up (`$D` = the plugin dir the session resolved; ask the user if you cannot):
 
 ```bash
-git rev-parse --show-toplevel 2>/dev/null | grep -q . \
-  && git remote get-url origin 2>/dev/null | grep -q 'syafiq555/syafiqkit' && echo OWNER || echo CONSUMER
+D=~/.claude/plugins/syafiqkit   # the OWNER's dev checkout; a consumer install is version-scoped and will simply miss → CONSUMER
+[ "$(git -C "$D" rev-parse --show-toplevel 2>/dev/null)" = "$(cd "$D" && pwd -P)" ] \
+  && git -C "$D" remote get-url origin 2>/dev/null | grep -q 'syafiq555/syafiqkit' && echo OWNER || echo CONSUMER
 ```
 
 `CONSUMER` (or a non-git dir) → **do not patch, and skip the version bump.** An installed copy is overwritten by `claude plugin update`, so the edit silently vanishes (and diverges the copy from upstream meanwhile). Write-permission is not the test — whether the edit *survives and belongs* is.
 
-⚠️ **Never probe a hardcoded install path — there isn't one.** `git -C <plugin-dir>` also **walks up** to an enclosing repo, so under a dotfiles-managed `~/.claude` it answers about *that* repo and reports a confident, wrong remote. The CWD probe above asks about the tree you would edit and has no path to go stale. **Tell: your ownership check names a directory instead of asking where you already are.**
+⚠️ **Ownership is a property of the plugin dir, never of the CWD.** This skill's normal invocation (`/done` Step 5) runs from the project, so a bare `git rev-parse` reports on that repo and answers CONSUMER for the owner every time. **Tell: your ownership probe names no directory, or you reported CONSUMER without printing the plugin dir's own remote.**
 
 📖 **`_shared/references/consumer-portability.md`** — read before writing any step that names a plugin path, probes identity, or embeds a shell command a consumer runs: `tasks/` not shipping, version-scoped installs, `${CLAUDE_PLUGIN_ROOT}` not expanding in markdown, `~` on Windows/WSL, POSIX-shell assumptions.
 

@@ -15,16 +15,17 @@ The plugin's author works in a git checkout on macOS. Most people running these 
 
 **There is no portable path to the plugin's own files.** Don't hunt for one — state the step as source-checkout-only, or route the write through the skill that owns the ownership gate (`update-plugin`). A read-target degrades quietly; a **write**-target has no safe default, so the session stops and asks the user mid-skill.
 
-## Identity: ask the CWD, never a directory
+## Identity: ask the plugin dir, anchored against walk-up
 
-⚠️ **`git -C <dir>` walks UP to an enclosing repo.** Pointed at a plugin dir under a dotfiles-managed `~/.claude`, it answers about *that* repo and reports a confident, wrong remote — succeeding rather than erroring. A grep that happens to miss then yields the right verdict for the wrong reason, and inverts the moment someone forks the settings repo.
+⚠️ **`git -C <dir>` walks UP to an enclosing repo.** Pointed at a plugin dir under a dotfiles-managed `~/.claude`, it answers about *that* repo and reports a confident, wrong remote — succeeding rather than erroring. Fix: require the resolved toplevel to EQUAL the probed dir. Never substitute the CWD — that's the calling project, and it answers CONSUMER for the owner.
 
 ```bash
-git rev-parse --show-toplevel 2>/dev/null | grep -q . \
-  && git remote get-url origin 2>/dev/null | grep -q '<owner>/<repo>' && echo OWNER || echo CONSUMER
+D=<plugin-dir>
+[ "$(git -C "$D" rev-parse --show-toplevel 2>/dev/null)" = "$(cd "$D" && pwd -P)" ] \
+  && git -C "$D" remote get-url origin 2>/dev/null | grep -q '<owner>/<repo>' && echo OWNER || echo CONSUMER
 ```
 
-The CWD is the tree you would actually edit, and has no path to go stale.
+Negative control before trusting it: a subdir of an enclosing repo whose remote matches must still print `CONSUMER`.
 
 ## Shell: POSIX is an assumption, not a guarantee
 

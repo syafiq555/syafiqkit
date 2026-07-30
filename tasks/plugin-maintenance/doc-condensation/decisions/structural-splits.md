@@ -167,6 +167,28 @@ Chosen, three parts. (1) **Extraction over re-wording** — the three offenders 
 
 ---
 
+### D62 — A Stale Pointer Passes the Same Staleness Grep a Missing Rule Fails, So Two New `_shared/references/` Files Close the Gap Instead of a Rewording — committed — 2026-07-30
+
+**Problem**
+A remote-cli session's `update-claude-docs` grep for `scp` returned exactly one hit in the global `CLAUDE.md`: the file's own `> 📖` pointer line advertising the companion's contents. That read as "not covered here, nothing to update," so the companion (`CLAUDE-remote-cli.md`) was never opened — it still described the deleted bug. The existing classification rule only named the direction where grep finds **nothing**; a match that IS the pointer line itself was unhandled, and it's invisible precisely because the grep succeeds. Separately, `done`'s exit gate and `two-tier-condense`'s Diff step each independently carried the same "an empty `git diff` is inconclusive" rule with the same missing case (a gitignored target no git command can ever show), and `update-claude-docs`'s own Validate step was a third consumer with no shared home.
+
+**Decision**
+Chosen, three parts. (1) New `skills/update-claude-docs/references/pointer-discipline.md` (2.5KB) consolidating four pointer rules — a match-inside-a-pointer-line is not a match and must be followed; a pointer's own `Covers:` summary goes stale the moment the companion changes; a bare pointer needs 1-2 inlined facts unless it's a task-doc `## Gotchas` row; and resolve a pointer target by content, not folder name. `update-claude-docs/SKILL.md`'s classification table gained a row naming the trap directly. (2) New `skills/_shared/references/verifying-a-write-landed.md` (2.0KB) tabling all three causes of an empty `git diff` (staged target, CWD-relative pathspec, untracked/gitignored target) with the command that settles each — `done`, `two-tier-condense`, and `update-claude-docs` all now point to it instead of carrying their own copy. (3) New `skills/_shared/references/long-running-commands.md`, extracted from `done`'s Step-1 re-run rule (a verification command that mutates shared state must not race a second copy of itself).
+
+**Rejected**
+- Rewording the existing classification rule in place rather than adding a reference file. Why not: the rule already existed and was already followed correctly in the direction it named — the gap was a missing SECOND direction, not unclear wording in the first. A file consolidating both directions plus the `Covers:`-staleness and folder-name traps gives one place to check "am I about to trust a pointer" instead of three partial mentions.
+- Treating the three-owner empty-diff rule as `done`-only and patching it there alone. Why not: a shared-mechanism grep (`show-toplevel\|diff HEAD --stat`) found the identical rule, with the identical gap, already duplicated in `two-tier-condense.md` — two owners means the canonical home is `_shared/`, not either caller.
+
+**Consequences**
+- `update-claude-docs/SKILL.md`: gained a Step-1 pointer to `pointer-discipline.md` plus a classification-table row naming the trap; net B/L moved 94.1 → 94.3 (+142B) after retiring two rows the new reference now covers — a route, not a bare addition, consistent with D50's gate.
+- `done/SKILL.md` and `two-tier-condense.md`: inline empty-diff prose replaced with a pointer to `verifying-a-write-landed.md` (net bytes fell in both).
+- `task-summary/references/templates.md` gained a related but distinct rule: `D-N` inside a **split** doc set's `decisions/*.md` files is unique per DOMAIN, not per file — a theme file holding a chronologically-gapped subset is correct, and a bare cross-domain reference must carry its domain prefix. This does not change the cross-FEATURE global-uniqueness convention this doc's own D40/D44 already established; it governs numbering within one feature's split sub-files only.
+- CHANGELOG 1.136.10 and 1.136.11 hold the narrated incidents; this block is the durable decision record.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
 ### D46 — The Third Structural Lever (Manual Companion File) Needed a Budget Gate Before Firing — committed — 2026-07-25
 
 **Problem**

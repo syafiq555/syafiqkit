@@ -24,3 +24,13 @@ Cold-path for `task-summary` — read only when the user requests `merge A into 
 | Plain `mv` a renamed folder | `git mv` — keeps history |
 
 For merge-specific ❌/✅ rules (stub handling, reconcile-before-delete, `Related:` sweep scope, subsystem-vs-keyword, size budget), see `syafiqkit:merge-task-docs`'s Rules table — don't duplicate them here.
+
+**Reorganizing** (splitting the whole doc set onto a new axis — e.g. platform-based folders → feature-based folders): bigger than a rename or an A-into-B merge, and neither of those workflows covers the content-mapping step this needs.
+
+1. **Map old → new BEFORE moving anything.** For each source doc, decide per-section which new doc owns it — a platform doc's content routinely serves several features plus shared infra, so most sections need a real per-row decision, not a bulk move. Write the mapping down (a plan file, not memory) before the first `git mv`.
+2. **`git mv` what maps 1:1**, create new docs for what doesn't, using the Full Template per section 3 above.
+3. ⚠️ **A `decisions/<theme>.md` file whose content is FULLY absorbed into a new doc becomes an orphan — delete it, don't leave it behind.** It's invisible from the moved doc's own Decisions Index (which you already updated to stop pointing at it), so nothing flags it as stale; it just sits in the old folder duplicating content that now lives elsewhere.
+4. ⚠️ **A decision whose MADR block lived in an orphaned file needs a NEW home if it doesn't map to any of the new docs.** Deleting an orphaned theme file (step 3) is safe only for content that fully migrated — a file can hold 5 decisions where 3 moved and 2 didn't belong to any single new doc (e.g. they were about shared storage/deploy mechanics, not the feature the rest of the file was themed around). Audit every decision in a file before deleting it, not just the ones the plan already accounted for.
+5. **Renumber per-domain** (existing rule, `templates.md` MADR section — run `grep -rn "^## D" tasks/<domain>/<feature>/decisions/` there for the exact command) — a decision moving into a fresh domain gets the next sequential ID there, not its old number carried over.
+6. **Back-reference sweep is repo-wide, not just sibling task docs** — grep old paths across `tasks/**/*.md` AND the project's own `CLAUDE.md`/`CLAUDE.local.md`, which routinely hard-code a doc-routing sentence or a `📖` pointer into the old structure.
+7. Delete the emptied source folders once their `current.md` and `decisions/*.md` are all accounted for — an empty directory left behind resurfaces in the next `Glob tasks/**`.

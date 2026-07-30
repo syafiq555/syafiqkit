@@ -117,6 +117,14 @@ Chosen: [the option picked, one line]
 
 **Edit-in-place vs append, as the decision evolves over sessions**: `task-summary/SKILL.md`'s "MADR Blocks — Edit-in-Place vs Append" section owns this rule — the short version: the record getting more accurate about an unchanged decision is an edit to the existing block; the decision itself changing direction is a new block with `Supersedes D-N`.
 
+⚠️ **`D-N` is unique per DOMAIN, not per file — grep the whole `decisions/` dir before assigning one, never increment the file you're editing.** A split doc set assigns IDs chronologically across the domain while grouping blocks by theme, so any one theme file holds a gapped subset (`D10, D11` next to a sibling's `D12`) and its last number reads as the domain's. Nothing errors on a duplicate: both blocks render, and every `D-N` cross-reference silently becomes ambiguous.
+
+```bash
+grep -rn "^## D" tasks/<domain>/<feature>/decisions/   # every existing ID, then take the max + 1
+```
+
+Because the namespace is per-domain, the same integer legitimately exists in several domains — so a reference crossing domains always carries the prefix (`backend D13`), never a bare `D13`.
+
 ### Whole-doc MADR (decision-log) — the default once a doc has any real decisions
 
 MADR being the default per-decision structure means `## Key Technical Decisions` naturally becomes a decision-log the moment a doc records its first real (non-escape-hatch) decision — every architectural choice an ADR block, gotchas/bugs folded into each block's Consequences. No separate ask-gate: writing decisions the default way IS writing a whole-doc MADR, one block at a time.
