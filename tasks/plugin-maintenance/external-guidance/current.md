@@ -1,24 +1,23 @@
 <!--LLM-CONTEXT
-Status: ✅ Method proven on 4 sources — Claude-5 article (2 of 9 claims adopted), a `/doctor` health report (0 of 3 live-state flags survived re-measurement), the plugin's own skill corpus (14 of 24 skills clean; 3 agent findings disproved), and a real consumer's run that graded the grader (2 defects in `audit-instructions` itself)
+Status: ✅ Method proven on 4 sources — Claude-5 article (2 of 9 claims adopted), a `/doctor` health report (0 of 3 live-state flags survived re-measurement), the plugin's own skill corpus (14 of 24 skills clean; 3 agent findings disproved), and a real consumer's run that graded the grader (2 defects in the now-removed `audit-instructions` skill, D59/D61 — removed 2026-08-01, user decision not a defect)
 Domain: plugin-maintenance/external-guidance
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
   - ../doc-condensation/current.md (owns D54 and every skill-density decision this evaluation fed, plus D63 — the later-found scope boundary on the judgment-over-prescription claim)
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-31 — a mis-citation fixed (judgment-over-prescription was tagged D33, the unrelated `<thinking>`-scaffold decision) and cross-referenced to D63, which found the claim's real boundary via a live A/B test: correct for judgement-shaped content, wrong applied unconditionally to value-shaped content
+Last updated: 2026-08-01 — `audit-instructions` removal (separate user decision) reconciled across every live-read field; the D33→D63 mis-citation fix from 2026-07-31 stands unchanged
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The method for judging outside best-practice advice (a vendor article, a blog post, a tool's own audit report) against this plugin's own measured evidence — and the record of four evaluations run so far. The answer is never "adopt" or "ignore"; it is a per-claim verdict with the measurement that decided it. The method runs INWARD too (`skills/audit-instructions`), and source #4 was a real consumer's run of that skill, which found two defects in it.
+**Where we are**: The method for judging outside best-practice advice (a vendor article, a blog post, a tool's own audit report) against this plugin's own measured evidence — and the record of four evaluations run so far. The answer is never "adopt" or "ignore"; it is a per-claim verdict with the measurement that decided it. The method ran INWARD too, via `skills/audit-instructions` (D59/D61) — that skill was removed 2026-08-01, a user decision unrelated to the method's validity, not a defect; the fleet-audit capability could be reimplemented later if wanted. Source #4 was a real consumer's run of that (now-removed) skill, which found two defects in it — the fixes (D61) outlived the skill itself and remain correct for any future re-implementation.
 
 **Immediate next actions (in order)**:
-1. Re-run the fleet audit — Step 1 now disqualifies in-window creations, and the one executed grade ranked an artifact first, so the ordering behind it is unverified.
-2. Grade the consumer's 22 findings against local ADRs before acting; they were produced against a different machine's setup. See `## Next Steps`.
-3. Reply to the consumer on their sequencing question (companion dirs first).
+1. Grade the consumer's 22 findings against local ADRs before acting; they were produced against a different machine's setup. See `## Next Steps`.
+2. Reply to the consumer on their sequencing question (companion dirs first).
 
 **Gotchas that will trip you**:
 - **Generic advice describes a different SYSTEM, not just a different opinion** — match the advice's assumed dynamics against yours before weighing its merits, see D55
@@ -59,7 +58,7 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
    git log --since="7 days ago" --numstat --format='' -- 'skills/**/*.md' \
      | grep -E '^[0-9]+\s+[0-9]+' | awk '{a+=$1; d+=$2} END {printf "added %d removed %d net %+d\n", a, d, a-d}'
    ```
-   ⚠️ Ranking files by that net figure needs the per-file variant in `audit-instructions` Step 1, which **disqualifies files created inside the window** — a new file's whole length otherwise counts as growth and ranks it first (D61).
+   ⚠️ Ranking files by that net figure needs the disqualify-in-window-creations step D61 added (`audit-instructions` Step 1, before that skill's 2026-08-01 removal) — a new file's whole length otherwise counts as growth and ranks it first. Any future re-run of this measurement needs the same guard reimplemented.
 3. **Grade each claim against a local ADR or a command — not against plausibility.** Four verdicts: **adopt**, **already adopted**, **reject** (name the ADR or decision that refutes it), **unverified** (the claim is about a tool; run it).
 4. **Record the verdicts.** A rejected claim returns in six months wearing new words; the verdict table is what stops it being re-litigated from scratch.
 
@@ -72,7 +71,7 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 | `tasks/plugin-maintenance/doc-condensation/decisions/structural-splits.md` | D54 — where this evaluation's outcome landed; its Rejected block holds the article verdict |
 | `skills/update-plugin/SKILL.md` | Step 3a — owns the B/L gate and the `references/` scope rule the evaluation settled |
 | `skills/done/SKILL.md` | Step 5 — Gate B, the arrival-rate checkpoint the evaluation motivated |
-| `skills/audit-instructions/SKILL.md` | The method pointed inward — fleet grading of BOTH instruction families (skills + CLAUDE.md/companions); owns the FLEET arrival ratio and trajectory, no threshold of its own (D59) |
+| `skills/audit-instructions/SKILL.md` (removed 2026-08-01) | Had pointed the method inward — fleet grading of BOTH instruction families; owned the FLEET arrival ratio and trajectory (D59). Removal was a user decision, not a defect; D59/D61's fixes remain correct for any future re-implementation |
 | `CHANGELOG.md` | v1.131.0 — the per-claim verdicts as shipped, both sources (D55's 9 article claims, D56's report flags) |
 
 ---
@@ -87,7 +86,7 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 | 4 | Apply the method to a second piece of guidance — a `/doctor` health report | ✅ D56 |
 | 5 | Characterise the in-session `/doctor` (was accepted as unverified) | ✅ 10-check audit, distinct from the CLI — read-only half only |
 | 6 | Point the method inward — grade the plugin's own 24-skill corpus | ✅ D59 |
-| 7 | Make the audit re-runnable instead of a one-off | ✅ `skills/audit-instructions/SKILL.md` |
+| 7 | Make the audit re-runnable instead of a one-off | ✅ shipped as `skills/audit-instructions/SKILL.md`, then removed 2026-08-01 (user decision, not a defect) |
 
 ---
 
@@ -222,13 +221,10 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ---
 
-## Last Session (2026-07-28)
+## Last Session (2026-08-01)
 
-- **A real consumer's run became source #4 and graded the grader** → **D61**. Their 25-skill report was complete and high quality; the skill's own final step was what failed.
-- **Their report carried an undetected artifact** — `audit-instructions` ranked *itself* top grower at +168L, its exact total length, one day after creation. Fixing it surfaced the real top grower (`done`, +43L) the artifact had masked.
-- **Three distribution assumptions were wrong and the user caught all three** — `tasks/` does not ship to installs, installs are version-scoped, and consumers span macOS/Windows/WSL. Measured after the correction, not before.
-- **The ownership probe returned the right answer for the wrong reason** — `git -C` walked up to the `~/.claude` dotfiles repo and read *its* remote. Rewritten as a CWD probe and verified in three environments.
-- **Both `/done` reviewers independently flagged the new receiving branch as unreachable**, the same N-owners shape as D59 one layer down.
+- **`skills/audit-instructions/SKILL.md` was removed this session (a separate, unrelated user decision) — reconciled every live-read reference in this doc** (LLM-CONTEXT Status, Quick Start, `## Files`, a Task Status row, two Next Steps items) to state the removal instead of describing a skill that no longer exists. D59/D61's historical ADR blocks were left untouched — they record decisions made when the skill existed and stay accurate as history; only the fields a fresh session reads as *current* state needed the fix.
+- A `/done` product-reviewer agent caught the gap: this doc's own `audit-instructions` scan diff (2026-08-01) was scoped to a single D33→D63 citation fix and never touched the now-stale live-read fields.
 
 ---
 
@@ -236,7 +232,7 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 **Applying the method**
 - [ ] Reuse D55's four-verdict table + D56's two report-specific checks on the next piece of guidance rather than judging by impression. No specific source queued.
-- [ ] Re-run the fleet audit now that Step 1 disqualifies in-window creations — the one executed grade ranked an artifact first, so the corpus ordering behind it is unverified.
+- [x] ~~Re-run the fleet audit now that Step 1 disqualifies in-window creations~~ — moot: `audit-instructions` was removed 2026-08-01 (user decision). Its fixes (the disqualify-in-window-creations guard, the CWD-not-`-C` ownership probe) stay correct and worth reusing if the fleet-audit capability is ever reimplemented.
 
 **From the consumer's report (source #4)**
 - [ ] Grade their 22 adopt findings against local ADRs before acting on any — they arrive as verdicts but were produced against a different machine's setup (their global CLAUDE.md reads 305L/40.7KB vs 219L here).

@@ -6,14 +6,14 @@ Related:
   - ../agent-architecture/current.md (sibling feature — how generated agents inherit conventions + invoke sibling skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../external-guidance/current.md (D55/D56/D59/D61 — how outside guidance, prose or tool-generated, gets graded against this plugin's measurements; owns the Claude-5 article verdicts D54 only summarizes, the `/doctor` report verdicts, D59's inward pass over this plugin's own skills + CLAUDE.md corpus, and D61's consumer-run findings — including the arrival-rate measurement counting an in-window CREATION as growth, which any ranking built on D50's gate must disqualify)
-Last updated: 2026-07-31 — D63 shipped in v1.136.13: prose is now the default CLAUDE.md entry format for judgement-shaped content (A/B-tested against the Claude-5 article, not just reasoned from it), value-shaped content stays table/companion; refines D54's rejection rather than reversing it
+Last updated: 2026-08-01 — noted the new `unhobble-instructions` lever (overconstraint, distinct from this doc's density/bloat lens) as discoverable from Quick Start + Task Status; D63 (2026-07-31, prose-default CLAUDE.md format) stands unchanged
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: How the plugin fights duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage. 24 committed decisions across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`).
+**Where we are**: How the plugin fights duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage. 24 committed decisions across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`). A distinct lever shipped 2026-08-01: `skills/unhobble-instructions/SKILL.md` targets overconstraint (rigid `⚠️`/`Tell:`/bolded imperatives vs. genuine fact) rather than bloat/byte-count — the two levers are not substitutes for each other (D50).
 
 **Immediate next actions (in order)**: see `## Next Steps` — two open items are missing automated gates (version-file drift, ADR-id uniqueness); the rest is watching whether Gate B actually moves the 2.6:1 add/remove ratio, plus one over-budget doc set (this doc set itself — see below).
 
@@ -51,6 +51,7 @@ Decisions about fighting duplication and bloat across task docs, CLAUDE.md files
 | 1b | Size authority defers to the file — declared budget (D44) + undersized floor (D51) | ✅ |
 | 2 | Structural splits — byte thresholds, companion files, plan-doc typing (D22, D26, D27, D33, D45, D46, D62) | ✅ |
 | 2b | Skill-file density (D23, D50, D54) — D23's hand-condense regressed; D50 replaced it with extraction + an arrival-rate gate; D54 closed the gate's open half (Gate B) and scoped `references/*.md` out of it | ✅ (watch the ratio) |
+| 2c | Overconstraint as a distinct axis from density — `skills/unhobble-instructions/SKILL.md`, applied 2026-08-01 to `update-plugin`, `done`, `read-summary`, `update-claude-docs` | ✅ shipped, first real-world runs clean |
 | 3 | Duplication detection + leak-guard integrity (D37, D40, D12) | ✅ |
 | 4 | Version-drift automated gate (plugin.json/marketplace.json) | ⏳ Pending — 3rd recurrence |
 

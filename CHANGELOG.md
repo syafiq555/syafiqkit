@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.136.24
+
+- **`/done`'s Step 5 accounting caught an undocumented unhobbling pass on `read-summary/SKILL.md` + `references/doc-authority.md` — same treatment as `update-plugin` (1.136.20) and `done` (1.136.22/23), but never recorded.** Every `⚠️`, bolded-ALL-CAPS opener, and `Tell:` trip-wire in both files converted to plain prose stating the same reasoning (confirmed: 0 remaining hits in either file, was several per file before). The content itself was already correct and complete — this entry exists only to close the documentation gap, not to fix anything in the files.
+- **B/L rose slightly despite the pass (17.6KB→18.1KB, +571B) — not a regression.** `read-summary` is dense judgement prose by subject matter (when to re-trigger doc discovery, how to disambiguate an ambiguous "it," the investigation exit-gate distinction), not `⚠️`-bulleted scaffolding — removing the scaffolding here didn't shrink the file because there was little scaffolding to remove; the same wording just reads as prose instead of a callout. Matches D50's "irreducible" case (`../doc-condensation/current.md`): a B/L ratio barely moving after a genuine unhobbling pass means the rules were dense reasoning to begin with, not padding.
+- **No file changes required** — this is a pure accounting entry, added after Step 3a confirmed both files clean (0 duplication, 0 leftover rigid markers, no dangling references) and cross-checking every other file in this session's diff against the existing 1.136.12–1.136.23 entries found them all already correctly documented.
+
 ## 1.136.23
 
 - **`/done`'s Gate B, run on 1.136.22's own `done/SKILL.md` edit, surfaced a sibling defect the unhobble pass had already found and correctly deferred**: `task-summary/SKILL.md` line 60 carried the identical closed three-item ownership-guard enumeration (background agent / files-never-touched / pre-existing-uncommitted-work) that was just fixed in `done`, with the same gap — no branch for two sessions editing the *same doc*. Fixed in place, same shape as the `done` fix: the three cases reframed as "what 'not fully yours' has looked like in practice," not an exhaustive list, plus the same-doc-interleaved-edits case named explicitly with its own no-pathspec-separates-them consequence.
