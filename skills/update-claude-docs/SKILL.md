@@ -17,17 +17,6 @@ The single manager for CLAUDE.md files — the analog of `task-summary` for `cur
 | `create <dir>` / "write a CLAUDE.md for X" / target file is missing | **Create** | Scaffold a new CLAUDE.md in house style from codebase analysis. |
 | `rewrite <file>` / "restructure to best practice" | **Rewrite** | Restructure an existing file to the canonical section layout + formatting. |
 | `condense <file>` / "shrink this CLAUDE.md" | **Condense** | Delegate to `condense-claude-md` (don't reimplement). |
-| An `audit-instructions` handoff — a file arrives already graded, with a named axis and an evidence line | **Graded-handoff** | Skip §1's session scan entirely; the verdict IS the signal. See below. |
-
-**Graded-handoff mode — take this branch FIRST when it applies.** `audit-instructions` grades the CLAUDE.md fleet and routes flagged files here with an axis already named. There is no session narrative to scan, so §1 would read as "no signal, nothing to capture" and the handoff would die silently — the same gap `update-plugin` Step 1's arrival-rate branch exists to close on the skills side. Go straight to §2 (Route) / §3 (Write), driven by the axis you were handed:
-
-| Axis handed over | What to do |
-|---|---|
-| **Hot-vs-cold routing** | The rule is on the wrong side of the auto-load line. Move it — a narrow rule out of the always-loaded file into a `📖` companion, or a constantly-needed rule back inline. §2's ladder picks the layer; the pointer must name the SYMPTOM. |
-| **Emphasis dilution** | Downgrade the markers named as not trap-shaped. Presentation only — verify by diffing sorted word SETS, never `wc -w`; a stripped marker counts as a word and reports a false deficit. |
-| **Retirement candidate** | ⚠️ **A candidate is not a verdict — run the command that settles it before cutting.** A pass on 2026-07-26 found 0 of ~7 candidates actually dead; the rule that looks retired is usually a reintroduction ban or a live guardrail. Unsettled → leave it and say so. |
-
-The deliverable is the same accounting `update-plugin` produces: per file, name the **replace**, the **route**, or the **declared growth** with the reason no retirement applied.
 
 **Create and Rewrite read `references/structure.md` first** — it holds the hierarchy rules, capture filter, section taxonomy, formatting conventions, template family, and the 200-line budget. Capture mode uses only its Routing (§1) and Capture-filter (§2) sections, inlined below. When in doubt which mode, it's Capture — that's the one `/done` depends on.
 
@@ -129,9 +118,10 @@ Base writing-style rules (no filler words, one idea per sentence): `_shared/refe
 
 ### New signals → Add entry
 
-- Gotchas: `Symptom | Cause | Fix` table row
-- Guidance: `❌ NEVER | ✅ ALWAYS` table row
-- Behavioral corrections: `❌ NEVER | ✅ ALWAYS` row capturing what Claude did wrong and what it should do instead. Use when Claude concluded incorrectly, checked wrong source first, or user had to push back ("are you sure?")
+A new entry's shape follows from what kind of answer it's recording. If the honest answer to "should I do X here" is "it depends, reason about it," write that reasoning as prose — 2-4 sentences, ending in a `**Tell:**` naming the concrete signal that triggers the exception. If the answer is a specific string (an exact command, IP, id, credential), a table row is the right shape, since prose would just be padding around a lookup value. A signal that mixes both — some judgement plus one exact value — gets prose ending in a `📖 <companion> {#anchor}` pointer, with the value living at that anchor (`condense-claude-md/references/prose-vs-value-split.md`). **Tell:** the entry you just drafted reads as `**Never X**` followed by a parenthetical carve-out — that's the imperative shape reasserting itself, and the carve-out belongs inside the `**Tell:**` sentence instead.
+
+- Gotchas / Guidance: apply the test above.
+- Behavioral corrections: always `❌ NEVER | ✅ ALWAYS` — compared against a specific past action, not a general principle. Use when Claude concluded incorrectly, checked wrong source first, or user had to push back ("are you sure?")
 - Patterns: Prose + code (reusable only)
 - Pair every prohibition with an alternative ("don't X" needs "do Y instead")
 
@@ -189,6 +179,7 @@ After writing each entry (in Step 3):
 4. Scan your entry for narrative markers ("happened", "repeatedly", "caught", "twice", numbered trigger lists) — rewrite to constraint-only
 5. **Fix column must be a specific, verifiable action, not a vague verb** ("investigate", "check", "handle better", "fix properly") — if the Fix reads as an open-ended task rather than a concrete change, name the actual file/method/config to touch or the exact guard to add
 6. If the target file is now over budget, flag it in your output — the Step-4 pruner pass handles the shrink. **Budget = the file's own declared figure when it states one, 350 otherwise** (`_shared/references/declared-budget.md`). A fixed 350 against a file declaring ~460 reports a false overage every run and trains the reader to ignore the flag
+7. Re-read the entry against Step 3's own shape rule ("New signals → Add entry") — does the prose you just wrote violate the test it's applying? A judgement-shaped entry that landed as a flat `**Never X**` imperative (rather than reasoning ending in `**Tell:**`) is a shape violation the checks above won't catch, since none of them look at shape-vs-the-rule-that-governs-shape
 
 **Task docs ≠ CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only patterns that apply broadly go in CLAUDE.md.
 

@@ -16,7 +16,5 @@ A consumer can't patch, but they can **file** — and a GitHub issue notifies th
    Return the issue URL — the maintainer is notified by GitHub.
 4. On **no**, or if `gh` is unauthenticated/absent → render the report in its own fenced block, labelled ("copy everything inside the fence below, nothing outside it"). ⚠️ **The fence is the LAST element of the reply — nothing follows it.** The pointer to `github.com/syafiq555/syafiqkit/issues` goes **above** the label, never after the closing fence — trailing text is invisible as a boundary once the report's own last line could read as more report.
 
-⚠️ **A fleet audit is ONE issue with the full table as the body — never one issue per flagged file.** The steps above read singular ("<skill>: <one-line defect>") because the common case is one defect, but the highest-value arrival here is an `audit-instructions` handoff: a real consumer run produced 22 findings across 25 files. Splitting that into 22 issues buries the corpus-wide signal that was the whole point of a sweep, and spams the maintainer under the user's own name. Title it for the run (`audit-instructions: fleet audit, N findings`), keep the verdict table intact in the body, and let one issue carry it.
-
 ⚠️ `gh label list --search` **lies** (returns empty for a label that exists). If you must verify a label, read `gh api repos/OWNER/REPO/labels/<name>` — never conclude "missing" from the search.
 

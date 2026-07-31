@@ -6,14 +6,14 @@ Related:
   - ../agent-architecture/current.md (sibling feature — how generated agents inherit conventions + invoke sibling skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../external-guidance/current.md (D55/D56/D59/D61 — how outside guidance, prose or tool-generated, gets graded against this plugin's measurements; owns the Claude-5 article verdicts D54 only summarizes, the `/doctor` report verdicts, D59's inward pass over this plugin's own skills + CLAUDE.md corpus, and D61's consumer-run findings — including the arrival-rate measurement counting an in-window CREATION as growth, which any ranking built on D50's gate must disqualify)
-Last updated: 2026-07-30 — D62 shipped in v1.136.11: a stale pointer passing its own staleness grep (the direction D-classification's rule didn't name) closed via `pointer-discipline.md`; the three-owner empty-diff rule consolidated into `verifying-a-write-landed.md`
+Last updated: 2026-07-31 — D63 shipped in v1.136.13: prose is now the default CLAUDE.md entry format for judgement-shaped content (A/B-tested against the Claude-5 article, not just reasoned from it), value-shaped content stays table/companion; refines D54's rejection rather than reversing it
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: How the plugin fights duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage. 23 committed decisions across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`).
+**Where we are**: How the plugin fights duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage. 24 committed decisions across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`).
 
 **Immediate next actions (in order)**: see `## Next Steps` — two open items are missing automated gates (version-file drift, ADR-id uniqueness); the rest is watching whether Gate B actually moves the 2.6:1 add/remove ratio, plus one over-budget doc set (this doc set itself — see below).
 
@@ -33,6 +33,7 @@ Last updated: 2026-07-30 — D62 shipped in v1.136.11: a stale pointer passing i
 - A CLAUDE.md delegating to companion files makes a 0-hit `grep` unreliable for classifying a rule "New" — grep the `> 📖` targets first
 - `plugin.json`/`marketplace.json` version drift recurs and passes silently — see D26 and `## Next Steps`
 - **A pointer's OWN line can be the only grep hit for its topic — that reads as "not covered," not as "descend into the companion."** The stale content sits one hop away, undetected precisely because the grep succeeded — see D62
+- **A judgement-vs-value test now governs CLAUDE.md entry format, not "table is always the default."** Prose for "it depends, reason about it," a table row for "the answer is this specific string," prose+companion-pointer for a signal mixing both. Applies to `update-claude-docs`'s Create-mode SCAFFOLDING TEMPLATES too, not just its live capture rule — the two are separate code paths and fixing one without the other leaves a freshly created file inconsistent with one that grew through normal capture — see D63
 
 ---
 
@@ -62,7 +63,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 | File | Read if you're asking |
 |------|------------------------|
 | [decisions/bloat-generator-fixes.md](decisions/bloat-generator-fixes.md) | *Where does the plugin fix doc bloat — at the generator (task-summary rules) or by hand-trimming? What structural levers exist for over-budget CLAUDE.md? What if the file declares its own budget, or is far UNDER it? How does the `/commit` staleness gate avoid lexical false positives?* (D3, D6, D17, D18, D19, D20, D44, D51, D57) |
-| [decisions/structural-splits.md](decisions/structural-splits.md) | *When does a doc/CLAUDE.md/skill need a structural split (byte thresholds, companion files, plan-doc typing) instead of denser prose? Why does re-condensing the same skill keep failing? What checkpoint catches a rule that arrives with no defect, what size policy applies to `references/*.md`, and why does a stale pointer pass the same grep a missing rule fails?* (D22, D23, D26, D27, D33, D45, D46, D50, D54, D62) |
+| [decisions/structural-splits.md](decisions/structural-splits.md) | *When does a doc/CLAUDE.md/skill need a structural split (byte thresholds, companion files, plan-doc typing) instead of denser prose? Why does re-condensing the same skill keep failing? What checkpoint catches a rule that arrives with no defect, what size policy applies to `references/*.md`, why does a stale pointer pass the same grep a missing rule fails, and when should a CLAUDE.md entry be prose vs. a table row?* (D22, D23, D26, D27, D33, D45, D46, D50, D54, D62, D63) |
 | [decisions/duplication-and-integrity.md](decisions/duplication-and-integrity.md) | *How does the plugin catch duplicated facts (within/across docs) and verify a fix actually landed everywhere?* (D37, D40, D12, demoted D2/D5/D7/D11) |
 
 ---
@@ -85,10 +86,9 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 ---
 
-## Last Session (2026-07-30)
+## Last Session (2026-07-31)
 
-- **D62 — a stale pointer passes the exact grep that a missing rule fails.** A remote-cli session's routing grep hit only the global CLAUDE.md's own `> 📖` pointer line, read as "not covered," and left the companion's stale content unfixed. `pointer-discipline.md` (new, 2.5KB) closes it: a match inside a pointer line must trigger a descend-and-reclassify, not a "new" verdict.
-- **Same fix pass, second gap: the empty-`git diff`-is-inconclusive rule had 3 owners with the same missing case.** `done`, `two-tier-condense`, and `update-claude-docs`'s Validate step each independently warned about a staged target and a CWD-relative pathspec, but none named a gitignored/untracked target as the one cause no git command can ever resolve. Consolidated into `verifying-a-write-landed.md` (new, 2.0KB); all three now point to it.
-- **Third, smaller extraction**: `done`'s Step-1 re-run rule (don't race a second copy of a long mutating verification command) moved to `long-running-commands.md` (new).
-- **Related but distinct rule landed in `task-summary`**: `D-N` inside one feature's *split* `decisions/*.md` sub-files is unique per domain, not per file — doesn't change this doc's own cross-feature global-uniqueness convention.
-- Full trio review (reviewer/simplifier/product-reviewer) on the diff: 0 real findings; 2 minor product-reviewer clarity notes applied inline.
+- **D63 — prose is the new default CLAUDE.md entry format for judgement-shaped content, A/B-tested rather than re-reasoned from the article D54 already rejected.** A Dourr session ran two isolated Sonnet agents against a table-format vs. judgement-prose excerpt of the same real gotchas — both scored correctly on judgement questions, prose lost confidence only on a pure-lookup value question. Refines D54 (which rejected the article's *density* claim) rather than reversing it — this decision is scoped to *format*, not content removal.
+- **Same session, a user-caught gap**: the format fix landed in `update-claude-docs`'s live capture rule but not its Create-mode scaffolding templates (`references/structure.md`) — two separate code paths, so a freshly created CLAUDE.md still looked like the old convention. Fixed in the same D63 pass.
+- **Applied to the real Dourr `CLAUDE.local.md`** as the first live instance: prose for judgement calls, exact values moved to its companion. A follow-up review agent caught 2 real information-loss defects the session's own verification missed (a mechanism sentence softened away, an exception detail dropped entirely) plus 1 stale cross-reference in a project agent file — all fixed same-session.
+- Full trio review (reviewer/simplifier) on the Dourr-side diff via `/done`: 3 findings, all fixed. Product reviewer skipped — no user-facing feature to judge, this was documentation-only.

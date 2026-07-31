@@ -2,28 +2,17 @@
 
 Cold path for `read-summary`. Reached *after* a doc is loaded: what to trust it for, and what to do when it contradicts the code.
 
-## Staleness handoff (don't just narrate it)
+## Staleness handoff
 
-⚠️ Reading a doc is also **auditing** it. While loading context you will often catch the doc contradicting the code you just examined — a `Status:` saying "not done" for a built feature, a `Provider:`/dependency the code has since swapped, a `Key files` path that moved, a date-conditioned caveat now past. **Do NOT just mention the drift in passing and move on** — that drops the fix on the floor, the exact failure this skill exists to prevent.
-
-1. **Sweep, don't spot-report.** The contradicting line is where you *noticed* drift, not its extent — `Quick Start`, `Status:`, and `Immediate next actions` are written once and revisited least, so they hold the costliest staleness (a shipped fix still listed as "staged, deploy this next" sends the reader to redo it). Re-check those fields against reality and report them together.
-2. **Name it explicitly** as a stale-doc finding (which doc, which line/field, what the code actually shows), separate from answering the user's question.
-3. **Route it so it survives silence** — this skill is read-only, so the fix belongs to `task-summary` (project facts) or `update-plugin` (skill/command defects). ⚠️ An offer parked on the user's reply is NOT routing: they will often act on your answer and never respond, and the finding dies. Either hand off in the same turn, or state the correction as an owed action you carry into the next doc-writing skill — never as a question that expires unanswered.
-
-Staleness you surface and route is closed; staleness you narrate and abandon is a silent regression waiting for the user to catch it later.
+The sweep/name/route logic (reading a doc is also auditing it; don't narrate drift and move on) is stated in full in `SKILL.md`'s "After the doc loads: authority limits + staleness" section — this file doesn't restate it. What's specific to *this* file is the authoritative-for boundary and the live-state cases below, which govern what kind of drift is even worth flagging.
 
 ## A doc's diagnosis for an open bug is a hypothesis
 
-⚠️ **Confidence is the symptom, not the evidence.** Two shapes, both making you (or an agent) confidently cite a wrong cause:
-
-1. A live "OPEN BUG" row whose diagnosis a *different* doc has since RETRACTED — tells: the row prescribes a fix for a "decided" issue, or the behaviour has an accepted workflow around it in the owning doc.
-2. A doc's stated root cause for a bug it *still* lists as open, uncontradicted — tells: it prescribes a fix despite the bug being open (a decided fix implies a decided diagnosis), or its own `Last Session` admits writing it from the symptom.
-
-Either way: read the code path the doc blames before changing it. Expect the real cause to be adjacent but different in kind from what's written.
+A doc's stated root cause is easy to over-trust because the confidence in the writing isn't evidence the diagnosis is still correct. Two shapes lead to citing a wrong cause with full confidence: a live "OPEN BUG" row whose diagnosis a *different* doc has since retracted (the tell is that the row prescribes a fix for what's actually a decided/superseded issue, or the behaviour already has an accepted workaround in its owning doc); and a doc's stated root cause for a bug it still lists as open, uncontradicted (a decided fix implies a decided diagnosis, which is a contradiction if the bug is genuinely still open — or its own `Last Session` note admits it was written straight from the symptom, not the code). Either way, read the code path the doc blames before changing it, and expect the real cause to be adjacent to what's written but different in kind.
 
 ## Authoritative FOR vs. NOT
 
-⚠️ **A task doc is authoritative for DECISIONS and GOTCHAS. It is NOT a live-state oracle.**
+A task doc is authoritative for decisions and gotchas — it is not a live-state oracle:
 
 | The doc IS authoritative for | The doc is NOT authoritative for |
 |------------------------------|----------------------------------|
@@ -32,10 +21,14 @@ Either way: read the code path the doc blames before changing it. Expect the rea
 | Vocabulary, ownership, blast radius | Whether a bug it calls "open" is still open |
 | Why we picked/evaluated a third-party tool | **What that tool actually DOES** — its delete/write scope lives in its source, never in our summary |
 
-⚠️ **The mirror trap: when the doc HAS already made a decision, USE it — don't re-derive it and hand it back as a question.** A decision-heavy doc often records the tradeoff, the rejected options, and the chosen answer for exactly the fork you're about to raise. Reading the doc and then presenting that same fork via `AskUserQuestion` reads as not having read it — the answer comes back "it's in the doc." **Tell: your clarifying question restates a tradeoff the doc's Decisions/ADRs already resolved.** Ask only what THEIR context decides (a preference, a priority, a fact only they hold).
+**The mirror trap**: when the doc has already made a decision, use it — don't re-derive the same fork and hand it back as a question. A decision-heavy doc often records the tradeoff, the rejected options, and the chosen answer for exactly the fork about to be raised, so presenting that same fork via `AskUserQuestion` after having read the doc reads as not having read it (the answer comes back "it's in the doc"). Ask only what the user's own context decides — a preference, a priority, a fact only they hold — not a tradeoff the doc's Decisions/ADRs already resolved.
 
-A well-read doc feels *fully grounded* — the trap is answering a live-state question from a weeks-stale snapshot with total confidence. **If the answer depends on the current state of a running system, go MEASURE it**, then reconcile. When doc and live system disagree, the live system wins and the doc gets routed for update. Three specific cases:
+A well-read doc feels fully grounded, which is exactly the trap: answering a live-state question from a weeks-stale snapshot inherits that same confidence even though it's now unearned. If the answer depends on the current state of a running system, measure it, then reconcile — when doc and live system disagree, the live system wins and the doc gets routed for update. Three cases where this bites:
 
-- **Running a researched tool** — a doc researching X doesn't license running it once the task shifts to "let's use X" and X writes/deletes/migrates. Its summary bullets (stack, license, install command) describe the box, not the delete paths inside. Read the tool's source and issue tracker for data-loss reports before the first destructive command — measuring the live system doesn't substitute, since you can profile every byte on disk and still not know what the tool removes. Tell: you can't name, from code you read, the exact paths the command touches.
-- **Remote state from local absence** — never infer a REMOTE system's state from a LOCAL file's absence ("prod's `.env` has no `AWS_*`" describes wiring, not whether the bucket exists). Ask the remote system with a call that discriminates (`HeadBucket`: 403 = exists-but-denied vs 404 = absent).
-- **"It's the staging/test one"** — a live-state CLAIM, not a property of the name; measure before recommending anything irreversible. A doc saying "staging exists for e2e, flag is on" describes what the env was SET UP to be, never what it IS now. Test-ness lives in one value (API-key prefix, bucket name, DB name, `mode` field) — name it and read it from the running process (`printenv KEY` + a control that must resolve).
+- **Running a researched tool** — a doc researching X doesn't license running it once the task shifts to "let's use X" and X writes/deletes/migrates. Its summary bullets (stack, license, install command) describe the box, not the delete paths inside, and measuring the live system doesn't substitute for reading the tool's own behavior — profiling every byte on disk still doesn't reveal what the command removes. Read the tool's source and issue tracker for data-loss reports before the first destructive command; if you can't name the exact paths the command touches from code you've actually read, that's the signal you're not ready to run it.
+- **Remote state from local absence** — a local file's absence describes wiring, not whether a remote resource exists ("prod's `.env` has no `AWS_*`" doesn't mean the bucket is gone). Ask the remote system directly, with a call that discriminates presence from denial (`HeadBucket`: 403 = exists-but-denied vs 404 = absent).
+- **"It's the staging/test one"** — this is a live-state claim, not a property of the name, so it needs measuring before anything irreversible follows from it. A doc saying "staging exists for e2e, flag is on" describes what the env was set up to be, not what it is now. Test-ness lives in one concrete value (an API-key prefix, a bucket name, a DB name, a `mode` field) — name that value and read it from the running process (`printenv KEY` plus a control that must resolve) rather than trusting the label.
+
+## A doc's shorthand ID isn't a label the user carries in their head
+
+A MADR-style ID (`D8`, `R2`, `B3`) is handy as a doc's own internal cross-reference, but it's not something to hand back to the user as if it were self-explanatory — "keep D8 or switch to D16?" makes them stop and go re-open the doc just to find out what's being asked. When a doc-sourced ID ends up in a question for the user, say what it actually refers to; keep the ID alongside as a back-reference if useful, not as the whole answer.

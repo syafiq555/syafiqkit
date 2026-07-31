@@ -56,9 +56,9 @@ Ordered by how load-bearing each is at the top of a session. Commands and bounda
 | 1 | `<!--LLM-CONTEXT-->` header | Stack + domain + key-file pointers in a comment block | Never (cheap, high-signal) |
 | 2 | `## Commands {#commands}` | Exact commands Claude can't guess — highest-ROI lines | No non-obvious commands |
 | 3 | `## Architecture {#architecture}` | 3-5 key dirs w/ ✅/⚠️ markers — a code block, not prose | Trivial/flat structure |
-| 4 | `## Critical Rules {#critical}` | `❌ NEVER / ✅ INSTEAD` — the mistakes that actually recur | No hard constraints yet |
+| 4 | `## Critical Rules {#critical}` | Prose by default, `❌ NEVER / ✅ INSTEAD` for value-only — the mistakes that actually recur | No hard constraints yet |
 | 5 | Domain sections (`## Auth`, `## Audit`, …) | Per-subsystem rules + schema tables | — |
-| 6 | `## Gotchas {#gotchas}` | `Symptom | Cause | Fix` — searchable by error string | No debugged surprises |
+| 6 | `## Gotchas {#gotchas}` | Prose by default, `Symptom | Cause | Fix` for value-only — searchable by error string | No debugged surprises |
 | 7 | Cross-refs (`> 📖 See parent …`) | Point to the layer that owns a shared concept | Standalone file |
 
 ## 4. Formatting conventions — the house style
@@ -67,8 +67,9 @@ These are what make the existing files scannable; a created/rewritten file must 
 
 | Convention | Rule |
 |-----------|------|
-| `❌ NEVER / ✅ INSTEAD` tables | The default form for a constraint — most compressible, most scannable. Pair every prohibition with its alternative. |
-| `Symptom \| Cause \| Fix` tables | The default form for a gotcha. Lead with the literal error string so it's greppable. |
+| Prose, ending in `**Tell:**` | The default form for a judgement-shaped constraint or gotcha ("it depends, reason about it") — see "New signals → Add entry" for the full test. |
+| `❌ NEVER / ✅ INSTEAD` tables | For a bare do/don't constraint with no reasoning worth stating. Pair every prohibition with its alternative. |
+| `Symptom \| Cause \| Fix` tables | For a gotcha whose fix is purely a lookup value (an exact error string, command, id) — lead with the literal error string so it's greppable. A judgement-shaped gotcha mixing both: prose ending in a `📖 <companion> {#anchor}` pointer, exact value at that anchor. |
 | `{#anchor}` on every `##` | Enables `#{anchor}` cross-references between layers. Every section heading gets one. |
 | File path + symbol, never line numbers | `Invoice.php scopeOverdue()`, never `Invoice.php:112` — line numbers drift on every edit above them. |
 | Emphasis sparingly | `⚠️`, `IMPORTANT`, `YOU MUST` raise adherence — but only on the few rules that truly need it; overuse flattens the signal. |
@@ -93,8 +94,7 @@ Its job is to **route**, not to hold every rule — it points at the layer/domai
 | `api/` | … | … |
 
 ## Critical Rules {#critical}
-| ❌ NEVER | ✅ INSTEAD |
-|----------|-----------|
+[judgement-shaped rules as prose, ending in a `**Tell:**` sentence; `❌ NEVER | ✅ INSTEAD` rows only for a bare do/don't with no reasoning to state — see "New signals → Add entry" for the test]
 
 ## Data Model {#data-model}
 [shared hierarchy + key tables — the facts every sub-repo needs]
@@ -127,15 +127,13 @@ Key files: [3-5 entry points]
 ​```
 
 ## Critical Rules {#critical}
-| ❌ NEVER | ✅ INSTEAD |
-|----------|-----------|
+[judgement-shaped rules as prose, ending in a `**Tell:**` sentence; `❌ NEVER | ✅ INSTEAD` rows only for a bare do/don't with no reasoning to state — see "New signals → Add entry" for the test]
 
 ## <Domain sections> {#anchor}
 [per-subsystem rules + schema tables]
 
 ## Gotchas {#gotchas}
-| Symptom | Cause | Fix |
-|---------|-------|-----|
+[a gotcha whose fix is a judgement call: prose, 2-4 sentences, ending in `**Tell:**`. A gotcha whose fix is a specific value with no reasoning: `Symptom | Cause | Fix` row — this is a value lookup, prose adds nothing. A gotcha mixing both: prose ending in a `📖 <companion> {#anchor}` pointer, exact value at that anchor]
 ```
 
 ### Subdir (a section split down a level)

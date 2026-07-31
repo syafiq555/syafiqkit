@@ -3,10 +3,10 @@ Status: ✅ Method proven on 4 sources — Claude-5 article (2 of 9 claims adopt
 Domain: plugin-maintenance/external-guidance
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
-  - ../doc-condensation/current.md (owns D54 and every skill-density decision this evaluation fed)
+  - ../doc-condensation/current.md (owns D54 and every skill-density decision this evaluation fed, plus D63 — the later-found scope boundary on the judgment-over-prescription claim)
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-28 — D61 added: a real consumer's run became source #4 and graded the grader, finding a reported path defect plus an undetected measurement artifact (a new file ranking as top grower by its own length); the ownership probe was found correct-by-luck and rewritten
+Last updated: 2026-07-31 — a mis-citation fixed (judgment-over-prescription was tagged D33, the unrelated `<thinking>`-scaffold decision) and cross-referenced to D63, which found the claim's real boundary via a live A/B test: correct for judgement-shaped content, wrong applied unconditionally to value-shaped content
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
@@ -107,7 +107,8 @@ Chosen: grade each claim discretely with one of four verdicts — **adopt**, **a
 - Trusting the article's "eliminate repetition" claim from a raw count. Why not: `❌/✅` tables appeared in 13 files, which reads as damning until you open three and find the *content* distinct per skill. It was a shared **format**, not a duplicated rule. A count is a hypothesis about duplication; reading is the test.
 
 **Consequences**
-- Verdicts on the 9 claims: **adopt** progressive disclosure + skills-as-lightweight-guides; **already adopted** judgment-over-prescription (D33), CLAUDE.md-as-navigable-tree, comment rules (harness-level), tool-examples (measured: only 2 `Agent()` + 2 `Skill()` corpus-wide, nothing to cut); **reject** the 80% cut (D23→D50) · eliminate-repetition (measured distinct) · automatic memory (standing user decision, forbidden in global CLAUDE.md and plugin CLAUDE.md alike); **unverified→false** `claude doctor`.
+- Verdicts on the 9 claims: **adopt** progressive disclosure + skills-as-lightweight-guides; **already adopted** judgment-over-prescription (scope later refined by D63, not D33 — D33 is the unrelated `<thinking>`-scaffold retirement, a mis-citation fixed 2026-07-31), CLAUDE.md-as-navigable-tree, comment rules (harness-level), tool-examples (measured: only 2 `Agent()` + 2 `Skill()` corpus-wide, nothing to cut); **reject** the 80% cut (D23→D50) · eliminate-repetition (measured distinct) · automatic memory (standing user decision, forbidden in global CLAUDE.md and plugin CLAUDE.md alike); **unverified→false** `claude doctor`.
+- **Judgment-over-prescription's boundary, found by a live A/B test rather than reasoned**: correct for judgement-shaped content (a Sonnet agent scored 6/6 on reasoning questions from a prose-only excerpt), measurably wrong applied unconditionally to value-shaped content (the same agent's confidence dropped on a pure-lookup question prose had nowhere to carry a literal answer). `../doc-condensation/decisions/structural-splits.md` D63.
 - Shipped from the two adopted claims: `⚠️` 291 → 233 corpus-wide (global CLAUDE.md 53 → 12), three cold-path extractions, and Gate B (D54).
 - **A rejected claim now costs one lookup instead of one re-evaluation.** The next "shouldn't we just cut the rules?" resolves to D23→D50 + the arrival-rate number.
 

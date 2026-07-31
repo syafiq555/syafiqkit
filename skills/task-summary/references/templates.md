@@ -62,6 +62,8 @@ Always include error messages/symptoms for searchability:
 | Tests pass locally, fail CI | PHP version drift | Sync `composer.lock` from prod |
 ```
 
+An `ID | Symptom | Cause | Fix` variant (`G1`, `G2`, ...) is the same table with one column added — reach for it only once a row needs `see G3`-style cross-referencing (below); a doc with no cross-row relationships doesn't need the column.
+
 ### Bad vs Good Gotchas
 
 | Bad (abstract) | Good (concrete) |
@@ -70,6 +72,8 @@ Always include error messages/symptoms for searchability:
 | "Watch out for eager loading" | "`N+1 on /participants` → add `->with('enrollments')` to query" |
 
 ⚠️ **A Gotcha row can also fail the opposite way — too much, not too little.** A cell packing a full incident report (every affected file, every edge case, the reviewer, cross-refs) stops being scannable. If a Gotcha needs more than ~3 sentences, it wants its own subsection (or belongs in Key Technical Decisions if it's really explaining a choice) — not a wider cell.
+
+**A relationship between two rows is itself a fact, and it needs a home too.** Two Gotchas are sometimes the same mistake at different depths, or one caused the other — that link is worth recording, but writing it as a sentence inside one row's Fix cell ("the deeper version of the row above") makes it findable only by a reader who happens to scan both rows in the original order; re-sort, split the table, or file one row elsewhere and the pointer goes stale with nothing to catch it. Give Gotcha rows an ID column (`G1`, `G2`, ...) the same way Bugs Fixed already uses `B1`/`B13`, and reference by ID (`see G3`) when a link is worth naming. This isn't mandatory scaffolding for every table — a doc with no cross-row relationships doesn't need the column — but once one relationship exists, ID+cross-reference beats prose-in-a-cell for the same reason `condense-task-doc` already collapses a redundant Bugs-Fixed row to `Symptom | → See Critical Gotchas (section, ID)`: an ID survives reordering, a narrative aside doesn't.
 
 ## One Fact, One Home
 
