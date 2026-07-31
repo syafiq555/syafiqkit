@@ -6,14 +6,14 @@ Related:
   - ../agent-architecture/current.md (sibling feature — how generated agents inherit conventions + invoke sibling skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../external-guidance/current.md (D55/D56/D59/D61 — how outside guidance, prose or tool-generated, gets graded against this plugin's measurements; owns the Claude-5 article verdicts D54 only summarizes, the `/doctor` report verdicts, D59's inward pass over this plugin's own skills + CLAUDE.md corpus, and D61's consumer-run findings — including the arrival-rate measurement counting an in-window CREATION as growth, which any ranking built on D50's gate must disqualify)
-Last updated: 2026-08-01 — noted the new `unhobble-instructions` lever (overconstraint, distinct from this doc's density/bloat lens) as discoverable from Quick Start + Task Status; D63 (2026-07-31, prose-default CLAUDE.md format) stands unchanged
+Last updated: 2026-08-01 — D64: `unhobble-instructions`' 2nd real run (task-summary/condense-task-doc/merge-task-docs/sweep-doc-overlaps) found and fixed a genuine correctness regression, and the skill itself gained a decisions/*.md cross-check before softening an absolutist rule
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: How the plugin fights duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage. 24 committed decisions across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`). A distinct lever shipped 2026-08-01: `skills/unhobble-instructions/SKILL.md` targets overconstraint (rigid `⚠️`/`Tell:`/bolded imperatives vs. genuine fact) rather than bloat/byte-count — the two levers are not substitutes for each other (D50).
+**Where we are**: How the plugin fights duplication and bloat across task docs, CLAUDE.md files, and skills themselves — the "one fact, one home" lineage. 25 committed decisions across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`). A distinct lever shipped 2026-08-01: `skills/unhobble-instructions/SKILL.md` targets overconstraint (rigid `⚠️`/`Tell:`/bolded imperatives vs. genuine fact) rather than bloat/byte-count — the two levers are not substitutes for each other (D50). Its 2nd real run (same day) is not just a clean success story like the 1st — it caught the skill softening a rule that D57 had deliberately hardened, fixed via a new decisions/*.md cross-check in the skill's own Process step 2 (D64).
 
 **Immediate next actions (in order)**: see `## Next Steps` — two open items are missing automated gates (version-file drift, ADR-id uniqueness); the rest is watching whether Gate B actually moves the 2.6:1 add/remove ratio, plus one over-budget doc set (this doc set itself — see below).
 
@@ -27,13 +27,14 @@ Last updated: 2026-08-01 — noted the new `unhobble-instructions` lever (overco
 - **Byte-neutrality is not content-preservation** — the cheapest offset for a new rule is often deleting the clause that carries an existing rule's *motivation*, and moving it to a file self-declared as a cold path is how the original failure recurs. Cut genuine duplication instead — see D51
 - **`D<n>` ids are one sequence shared by all three sibling features, and renumbering to fix a collision has itself caused one.** Re-run `uniq -d` across all three `*/decisions/*.md` AFTER writing — testing by output, not exit code (`uniq -d` exits 0 either way) — see ../agent-architecture/current.md Next Steps
 - Every scan/sweep here needs a must-hit control before "zero results" means done — see ../agent-architecture/decisions/verification-rigor.md D25
-- The condensation unit is the doc SET (`current.md` + `decisions/*.md`), never the named file — a member holding 2× the index's bytes goes untouched if the pass scopes to args. A split index keeps THREE things: Quick Start, doc-wide tables, routing — canonical in `task-summary/references/templates.md` L136 (D41 is a retired id, cited in prose only)
+- The condensation unit is the doc SET (`current.md` + `decisions/*.md`), never the named file — a member holding 2× the index's bytes goes untouched if the pass scopes to args. A split index keeps THREE things: Quick Start, doc-wide tables, routing — canonical in `task-summary/references/templates.md`'s "Splitting a whole-doc MADR further" section (D41 is a retired id, cited in prose only)
 - Structural-split traps, all in decisions/structural-splits.md: plan/spec docs never move into `decisions/` but must be routed (D27) · a rewrite's "no rows deleted" check misses collateral cuts (D27) · one companion file per topic cluster, not a grab-bag (D45) · "split by category" is a shape, not a location — the lever needs an over-budget source (D46)
 - A required section may lose every row but never its heading — leave a pointer row instead of deleting it
 - A CLAUDE.md delegating to companion files makes a 0-hit `grep` unreliable for classifying a rule "New" — grep the `> 📖` targets first
 - `plugin.json`/`marketplace.json` version drift recurs and passes silently — see D26 and `## Next Steps`
 - **A pointer's OWN line can be the only grep hit for its topic — that reads as "not covered," not as "descend into the companion."** The stale content sits one hop away, undetected precisely because the grep succeeded — see D62
 - **A judgement-vs-value test now governs CLAUDE.md entry format, not "table is always the default."** Prose for "it depends, reason about it," a table row for "the answer is this specific string," prose+companion-pointer for a signal mixing both. Applies to `update-claude-docs`'s Create-mode SCAFFOLDING TEMPLATES too, not just its live capture rule — the two are separate code paths and fixing one without the other leaves a freshly created file inconsistent with one that grew through normal capture — see D63
+- **An absolutist-looking rule ("no exceptions," "no judgment permitted") can be the surviving fix to a documented incident, not unexamined scaffolding — `unhobble-instructions` had no check for this before softening one.** Grep `decisions/*.md` for the rule's keywords before loosening; a Rejected-alternatives entry naming the exact softening about to happen means don't. Caught 2nd-hand by a product reviewer, not by the pass's own verification step, which only checks that facts survived — never that a survived fact's original STRENGTH did too — see D64
 
 ---
 
@@ -51,7 +52,7 @@ Decisions about fighting duplication and bloat across task docs, CLAUDE.md files
 | 1b | Size authority defers to the file — declared budget (D44) + undersized floor (D51) | ✅ |
 | 2 | Structural splits — byte thresholds, companion files, plan-doc typing (D22, D26, D27, D33, D45, D46, D62) | ✅ |
 | 2b | Skill-file density (D23, D50, D54) — D23's hand-condense regressed; D50 replaced it with extraction + an arrival-rate gate; D54 closed the gate's open half (Gate B) and scoped `references/*.md` out of it | ✅ (watch the ratio) |
-| 2c | Overconstraint as a distinct axis from density — `skills/unhobble-instructions/SKILL.md`, applied 2026-08-01 to `update-plugin`, `done`, `read-summary`, `update-claude-docs` | ✅ shipped, first real-world runs clean |
+| 2c | Overconstraint as a distinct axis from density — `skills/unhobble-instructions/SKILL.md`, applied 2026-08-01 to `update-plugin`, `done`, `read-summary`, `update-claude-docs`, and (2026-08-01, same day) `task-summary`, `condense-task-doc`, `merge-task-docs`, `sweep-doc-overlaps` | ✅ shipped — 2nd run found a real defect the skill itself needed fixing for (D64) |
 | 3 | Duplication detection + leak-guard integrity (D37, D40, D12) | ✅ |
 | 4 | Version-drift automated gate (plugin.json/marketplace.json) | ⏳ Pending — 3rd recurrence |
 
@@ -83,13 +84,13 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 - [ ] `skills/agent-setup/templates/*.template.md` total **77KB — 12.5% of the corpus**, with `browser-verifier.template.md` alone at 15KB, larger than most skills. The Bootstrap pattern's premise is that agents read CLAUDE.md *at runtime* rather than carry injected content, so templates this size suggest it is leaking. Audit for content an agent would read anyway; **preserve** `browser-verifier`'s `USER-TRIGGERED ONLY` gate, which guards real unauthorised spend. Lower priority than the gates above — templates are read once at generation, not per invocation.
 
 **Doc size**
-- [ ] This doc SET is 544 lines / 63KB against a 300-line budget — pre-existing, not this session's growth. The index reads healthy at 87 lines, which is what hides it. Route to `condense-task-doc`; don't hand-condense.
+- [ ] This doc SET is 643 lines / 84KB against a 300-line budget — pre-existing, grew further with D64's addition this session. The index reads healthy at ~100 lines, which is what hides it. Route to `condense-task-doc`; don't hand-condense.
 
 ---
 
-## Last Session (2026-07-31)
+## Last Session (2026-08-01)
 
-- **D63 — prose is the new default CLAUDE.md entry format for judgement-shaped content, A/B-tested rather than re-reasoned from the article D54 already rejected.** A Dourr session ran two isolated Sonnet agents against a table-format vs. judgement-prose excerpt of the same real gotchas — both scored correctly on judgement questions, prose lost confidence only on a pure-lookup value question. Refines D54 (which rejected the article's *density* claim) rather than reversing it — this decision is scoped to *format*, not content removal.
-- **Same session, a user-caught gap**: the format fix landed in `update-claude-docs`'s live capture rule but not its Create-mode scaffolding templates (`references/structure.md`) — two separate code paths, so a freshly created CLAUDE.md still looked like the old convention. Fixed in the same D63 pass.
-- **Applied to the real Dourr `CLAUDE.local.md`** as the first live instance: prose for judgement calls, exact values moved to its companion. A follow-up review agent caught 2 real information-loss defects the session's own verification missed (a mechanism sentence softened away, an exception detail dropped entirely) plus 1 stale cross-reference in a project agent file — all fixed same-session.
-- Full trio review (reviewer/simplifier) on the Dourr-side diff via `/done`: 3 findings, all fixed. Product reviewer skipped — no user-facing feature to judge, this was documentation-only.
+- **D64 — `unhobble-instructions`' 2nd real run found a genuine correctness regression, not just a clean repeat of the 1st.** Applied to `task-summary`/`condense-task-doc`/`merge-task-docs`/`sweep-doc-overlaps` (plus fixes to a prior pass on `commit`/`ship`/`templates.md`). Two independent `/done` review agents (code-reviewer, product-reviewer) both flagged that softening `commit/SKILL.md`'s task-doc staleness gate reopened exactly the rationalization door D57 had deliberately closed — traced to a Rejected-alternatives entry in D57 itself naming this precise softening as the thing not to do.
+- **Fixed at three levels**: the commit gate's absolutism restored (as judgement prose, not reverted to bolded formatting); `unhobble-instructions/SKILL.md` Process step 2 gained a `decisions/*.md` cross-check before softening any absolutist-looking rule, so the same class of miss doesn't recur on the 3rd run; a smaller instance in `merge-task-docs` (a dropped "don't proceed without an answer" rule, silently overwritten by an unrelated sentence occupying the same paragraph position) and 3 pre-existing stale `templates.md` line-number citations were fixed in the same pass.
+- **Code-simplifier caught 2 more regressions on a second look**: `merge-task-docs`' closing `❌/✅` recap table had been deleted as "duplicative of the Steps above," missing that this plugin's own CLAUDE.md prescribes exactly that table shape for write-decision skills; and `ship/SKILL.md` Step 3's three independently-substantial checks had been flattened from a numbered list into one run-on sentence, losing load-bearing step structure. Both restored.
+- Full trio review via `/done` (reviewer + simplifier + product reviewer, all as project agents): 5 findings across the two review passes, all fixed and grep-verified against the original wording rather than assumed from the fix's intent.

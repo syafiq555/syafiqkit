@@ -6,7 +6,7 @@ description: >
 
 # Merge Task Docs
 
-Combines related `current.md` task docs into fewer, more complete documents. After merging: the source doc is deleted (no redirect stubs), all back-references point to the new path, and the merged doc reads as a single coherent current-state document — not two docs stapled together.
+Combines related `current.md` task docs into fewer, more complete documents. After merging: the source doc is deleted (no redirect stubs — a stub surviving past its own merge is clutter, not discoverability; Step 6's reconciliation is what replaces it), all back-references point to the new path, and the merged doc reads as a single coherent current-state document — not two docs stapled together.
 
 ## When to merge vs when to keep separate
 
@@ -35,7 +35,7 @@ Note: ">300 lines" alone is NOT a bad-merge signal if the subsystem test (above)
 
 When given a domain or keyword (e.g. "all payment docs"), delegate the file-listing to the `Explore` agent (`Agent({subagent_type: "Explore", run_in_background: false, prompt: "List every tasks/<domain>/*/current.md file, plus any _archive/ or flat tasks/<domain>/<feature>.md docs. Return file paths only, no summaries."})`), then Read them all yourself before deciding anything — the merge-fit judgment stays inline. Don't merge based on titles. Delegation rules: `_shared/references/explore-delegation.md`.
 
-⚠️ **Watch for dead redirect stubs from a PRIOR merge** — a doc whose entire body is "# Merged into: ..." or a one-line "content now lives at X" table. These aren't merge candidates, they're cleanup: delete them now (same as Step 5) and reconcile whatever still points at them (same as Step 6), even if nothing else in this session's merge touches that domain. A stub surviving past its own merge is exactly the clutter Step 5's "no redirect stubs" rule exists to prevent — check for it, don't just avoid creating new ones.
+**Watch for dead redirect stubs from a PRIOR merge** — a doc whose entire body is "# Merged into: ..." or a one-line "content now lives at X" table. These aren't merge candidates, they're cleanup: delete them now (same as Step 5) and reconcile whatever still points at them (same as Step 6), even if nothing else in this session's merge touches that domain. Check for these actively rather than only avoiding creating new ones.
 
 ### Step 2 — Build a merge plan
 
@@ -52,13 +52,13 @@ Present a table to the user before writing a single file:
 
 Also list what stays standalone and why.
 
-⚠️ **Confirm via `AskUserQuestion`, not a flat "does this look right?"** — three decision forks tend to show up in a merge, each its own question at the point it arises, not bundled upfront:
+Confirm via `AskUserQuestion`, not a flat "does this look right?" — three decision forks tend to show up in a merge, each genuinely a separate question rather than one bundled yes/no, and each belongs at the point it arises:
 
 1. **Scope** — does the proposed grouping match what the user wants merged? Options: your recommended grouping (subsystem reasoning as the description) vs. a broader/narrower alternative vs. "no merge, just tidy." If the user pushes back (e.g. picks "merge everything" against the subsystem test), don't silently comply — confirm the resulting size tradeoff before writing (see #2).
 2. **Structure** — if Step 4.8's split-doc trigger fires: ask flat-with-overage vs. index+`decisions/<theme>.md` split, before writing either.
 3. **Naming** — if the merge changes canonical paths: ask for the name explicitly rather than assuming the richest source doc's name is good enough. Offer 2-3 options with a Recommended pick and reasoning.
 
-Each question needs a Recommended option so the user can accept-by-default. Don't proceed past a fork without an answer, even if your recommendation seems obviously right — the point is catching when it isn't.
+Each question needs a Recommended option so the user can accept-by-default — but a strong recommendation still isn't an answer. Don't proceed past a fork without one, even when your own recommendation seems obviously right; the point of asking is catching the cases where it isn't. An answer that names a constraint on HOW ("not a generic name", "keep it under X") governs the whole run, not just the one option it was attached to.
 
 ### Step 3 — Scan back-references BEFORE writing
 
@@ -70,20 +70,20 @@ Agent({subagent_type: "Explore", run_in_background: false, prompt: "Using grep -
 
 Build the "needs updating" set from the agent's raw file+line list yourself, before the merge writes.
 
-⚠️ **`ls` every source folder now, not just its `current.md`.** A task folder can hold sibling files a plain domain/feature scan never reads (`stories.md`, `script.sql`, screenshots, exported data), and Step 5's `rm -rf` deletes the whole folder — a file never opened is destroyed with zero chance to review first. For each non-`current.md` file found: read it, then fold its content into the merged doc/a theme file, or copy it forward unchanged.
+**`ls` every source folder now, not just its `current.md`.** A task folder can hold sibling files a plain domain/feature scan never reads (`stories.md`, `script.sql`, screenshots, exported data), and Step 5's `rm -rf` deletes the whole folder — a file never opened is destroyed with zero chance to review first. For each non-`current.md` file found: read it, then fold its content into the merged doc/a theme file, or copy it forward unchanged.
 
 ### Step 4 — Write the merged docs
 
 For each merge group:
 
 1. **Read both docs in full** before writing anything.
-2. **Read `task-summary/references/templates.md`** — canonical source for section headings, table column names, field order, MADR-block structure, and the Density Rules (one fact one home, ≤15-line Quick Start, `Last updated` never restates commit/deploy status, rows ≤2 sentences). Don't paraphrase these rules from memory — the same drift risk `update-plugin` warns about for shared mechanisms applies: if `task-summary` tightens a rule later, a paraphrase here silently falls out of compliance.
+2. **Read `task-summary/references/templates.md`** — canonical source for section headings, table column names, field order, MADR-block structure, and the Density Rules (one fact one home, ≤15-line Quick Start, `Last updated` never restates commit/deploy status, rows ≤2 sentences). Don't paraphrase these rules from memory — if `task-summary` tightens a rule later, a paraphrase here silently falls out of compliance the same way any duplicated shared mechanism drifts.
 3. **Choose the canonical path** — keep the richer/primary doc's path as the merge target, UNLESS the naming fork (Step 2) produced a different confirmed name — then use that instead of silently keeping the old one.
-4. **Write the merged doc** to the canonical path matching `templates.md`'s structure: LLM-CONTEXT block (`Status`, `Domain`, `Related`, `Last updated`), Quick Start, Overview, Architecture, Files, Task Status, Key Technical Decisions, Critical Gotchas, Next Steps, Last Session — and the Density Rules from step 2 apply to every section written. ⚠️ **Concatenating two docs' `## Next Steps` yields one long flat list — regroup it by KIND of work** (`task-summary/references/templates.md` "Next Steps"), never by which source doc each item came from: source-provenance is a temporal axis wearing a different hat, and it is stale the moment the merged doc is edited once. ⚠️ Strip tool-output wrapper artifacts before writing — see `_shared/references/strip-tool-output-tags.md`.
+4. **Write the merged doc** to the canonical path matching `templates.md`'s structure: LLM-CONTEXT block (`Status`, `Domain`, `Related`, `Last updated`), Quick Start, Overview, Architecture, Files, Task Status, Key Technical Decisions, Critical Gotchas, Next Steps, Last Session — and the Density Rules from step 2 apply to every section written. Concatenating two docs' `## Next Steps` yields one long flat list — regroup it by KIND of work (`task-summary/references/templates.md` "Next Steps"), never by which source doc each item came from: source-provenance is a temporal axis wearing a different hat, and it's stale the moment the merged doc is edited once. Strip tool-output wrapper artifacts before writing — see `_shared/references/strip-tool-output-tags.md`.
 5. **Merging content**: combine sections without duplicating rows. If both docs have a Gotchas table, merge into one table — never two Gotchas sections. If both have a Files section, combine into one living map (don't keep per-doc subsections).
-6. **Last Session**: write ONE Last Session block that notes the merge happened. Don't preserve both docs' Last Session entries. ⚠️ **Unless a source doc is contested** — another session's uncommitted work in it means its bullets aren't yours to collapse (`_shared/references/contested-doc-sections.md`); fold them into typed sections instead of dropping them.
+6. **Last Session**: write ONE Last Session block that notes the merge happened. Don't preserve both docs' Last Session entries — unless a source doc is contested, meaning another session's uncommitted work sits in it and its bullets aren't yours to collapse (`_shared/references/contested-doc-sections.md`); fold those into typed sections instead of dropping them.
 7. **Size budget**: merged doc should stay under 300 lines. If it would exceed this, condense aggressively — collapse completed Task Status rows, trim Files to a living map, cut narrative from Gotchas to rule+symptom only.
-8. **When condensing can't reach budget**: two docs already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a flat file, and don't silently default to a split either — this is fork #2 from Step 2: ask flat-with-overage vs. index+`decisions/<theme>.md` split. If split is chosen, use `condense-task-doc`'s `templates.md` pattern ("Splitting a whole-doc MADR further"). ⚠️ **The index keeps THREE things, not two** — `templates.md` L136: "Quick Start, **doc-wide operational tables**, and a routing table". Only per-theme ADR/gotcha DETAIL moves down; `Task Status`, `Bugs Fixed`, `Critical Gotchas` and `Next Steps` stay in `current.md`, scoped to what's cross-cutting (label them so: "Next Steps (cross-cutting — see each decisions file for theme-specific items)"). Dropping them is invisible — the content still exists in `decisions/*.md`, so no gate fires, and the index silently stops showing open work. ⚠️ That holds only while those tables are SMALL — merging two mature docs doubles them at a stroke. If they outweigh the routing table, route each ROW to the theme owning its mechanism and keep only open items + a routing table in the index (`templates.md` L136-137). Plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by source doc. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is correct when merge candidates fail the ">300 lines" bad-merge signal in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
+8. **When condensing can't reach budget**: two docs already dense and near 300 lines (not narrative-bloated) can combine to 500+ lines with nothing left to cut without deleting real facts — this contradicts Step 7's "no rows deleted, facts absorbed" gate. Don't force a flat file, and don't silently default to a split either — this is fork #2 from Step 2: ask flat-with-overage vs. index+`decisions/<theme>.md` split. If split is chosen, use `condense-task-doc`'s `templates.md` pattern ("Splitting a whole-doc MADR further"). The index keeps THREE things, not two — that same section: "Quick Start, doc-wide operational tables, and a routing table." Only per-theme ADR/gotcha DETAIL moves down; `Task Status`, `Bugs Fixed`, `Critical Gotchas` and `Next Steps` stay in `current.md`, scoped to what's cross-cutting (label them so: "Next Steps (cross-cutting — see each decisions file for theme-specific items)"). Dropping them is invisible — the content still exists in `decisions/*.md`, so no gate fires, and the index silently stops showing open work. That holds only while those tables are SMALL — merging two mature docs doubles them at a stroke, and once they outweigh the routing table, route each ROW to the theme owning its mechanism and keep only open items + a routing table in the index (same section). Plus 3-5 `decisions/<theme>.md` files, grouped by the question a reader is asking, not by source doc. Each theme file is self-contained (own LLM-CONTEXT, `Related:` back to the index). This is correct when merge candidates fail the ">300 lines" bad-merge signal in isolation but pass the same-subsystem test — the subsystem is still one merge, it just needs more than one file.
 
 ### Step 5 — Delete source docs
 
@@ -111,7 +111,7 @@ grep -rn "tasks/<domain>/<deleted-feature>" /path/to/tasks/ /path/to/app/
 grep -rn "current.md" /path/to/tasks/ | head -1   # control: MUST return a hit
 ```
 
-Zero results = done — **but only if the control line above returned a hit.** A zero from a broken search (wrong flag, wrong path, gitignored dir) is indistinguishable from a genuinely clean tree, and the docs are already deleted by this point. Never accept an empty result you haven't proven the search *could* have filled.
+Zero results = done — **but only if the control line above returned a hit.** A zero from a broken search (wrong flag, wrong path, gitignored dir) is indistinguishable from a genuinely clean tree, and the docs are already deleted by this point. Don't accept an empty result you haven't proven the search *could* have filled.
 
 ### Step 7 — Validate
 
@@ -122,7 +122,7 @@ For each merged doc, re-read and verify:
 - No rows deleted from source docs (facts absorbed, not dropped)
 - Last Session notes the merge
 
-⚠️ **Absence gate — every check above detects EXCESS; none detects a MISSING section.** A merge that drops whole section types passes all of them cleanly, because the content still exists somewhere. Run an additive check: `grep '^## ' <index>`, then diff against `grep -h '^## ' <each source doc>` — every section TYPE present in any source must survive somewhere, and `Task Status` / `Bugs Fixed` / `Critical Gotchas` / `Next Steps` must be in the INDEX, not only in `decisions/*.md`. Sanity-check against a sibling split doc in the same repo rather than from memory.
+**Absence gate — every check above detects EXCESS; none detects a MISSING section.** A merge that drops whole section types passes all of them cleanly, because the content still exists somewhere. Run an additive check: `grep '^## ' <index>`, then diff against `grep -h '^## ' <each source doc>` — every section TYPE present in any source must survive somewhere, and `Task Status` / `Bugs Fixed` / `Critical Gotchas` / `Next Steps` must be in the INDEX, not only in `decisions/*.md`. Sanity-check against a sibling split doc in the same repo rather than from memory.
 
 ## Output
 
@@ -135,13 +135,11 @@ Tell the user:
 
 | ❌ Never | ✅ Always |
 |---------|---------|
-| Leave a `# Merged into:` redirect stub | Delete the source; reconcile every back-ref instead |
+| Leave a `# Merged into:` redirect stub | Delete the source; Step 6's reconciliation replaces discoverability |
 | Decide to merge based on shared keywords | Merge based on shared subsystem (same tables/services/journey) |
-| Delete source before reconciling back-refs | Reconcile to the new path FIRST, then delete (0 stale = gate) |
+| Delete source before reconciling back-refs | Reconcile to the new path first, then delete (Step 6's zero-stale check is the gate) |
 | Force a flat merged doc past 300 lines by deleting real facts | Condense first; if sources are already dense (not bloated), split into index + `decisions/<theme>.md` instead (Step 4.8) |
-| Leave the split index as Quick Start + routing table only | Operational tables (Task Status, Bugs Fixed, Critical Gotchas, Next Steps) stay in the index — only theme DETAIL moves down (Step 4.8 + Step 7 absence gate) |
-| Preserve both docs' Last Session entries | One merged Last Session noting the merge happened — unless a source is contested (Step 4.6) |
-| Stop at `Related:` fields | Sweep inline mentions + domain CLAUDE.md pointers too |
-| Plain `mv` a renamed folder | `git mv` — keeps history (for renames, not deletes) |
 | `rm -rf` a source folder having only read its `current.md` | `ls` the folder first — carry forward or absorb every sibling file (SQL scripts, stories docs, screenshots) before deleting |
-| Merge without user confirmation, or bundle scope/structure/naming into one flat "does this look right?" | Three separate `AskUserQuestion` forks, each at the point it arises — scope, flat-vs-split structure, canonical naming (Step 2) |
+| Preserve both docs' Last Session entries | One merged Last Session noting the merge happened — unless a source is contested (Step 4.6) |
+| Merge without user confirmation, or bundle scope/structure/naming into one flat "does this look right?" | Three separate `AskUserQuestion` forks, each at the point it arises — scope, structure, naming (Step 2) |
+| Plain `mv` a renamed folder | `git mv` — preserves file history (renames only; a deleted source has no history worth preserving since its content lives on in the merge target) |

@@ -24,7 +24,7 @@ Delegate to `Explore`: list every `tasks/<domain>/<feature>/current.md`, plus `_
 
 ### Step 2 — Fan out verification + candidate-finding
 
-Split the domain list into N batches (aim for ≤6 domains per batch so each agent's context stays light) and dispatch one `Explore` agent per batch (one-message parallelism rule: `_shared/references/explore-delegation.md`). Safe to fan out freely here — a read-only sweep has no file-partition conflict to worry about.
+Split the domain list into N batches (aim for ≤6 domains per batch so each agent's context stays light) and dispatch one `Explore` agent per batch (one-message parallelism rule: `_shared/references/explore-delegation.md`). A read-only sweep has no file-partition conflict, so fan out freely here.
 
 Each agent's prompt must:
 1. `ls` (never `find`/`grep` for existence) its assigned domain dirs to confirm the Step 1 inventory is still accurate — flag any drift.
@@ -33,9 +33,9 @@ Each agent's prompt must:
 4. Apply `merge-task-docs`'s own merge test — don't restate it from memory, point the agent at the one canonical definition: `Read merge-task-docs/SKILL.md`'s "When to merge vs when to keep separate" section first.
 5. Return a table: candidate pair/group, one-line reason, verdict (merge / keep separate) — plus the freshness check result.
 
-⚠️ **Deliberate departure from `explore-delegation.md`'s gather-only rule.** That reference says Explore should return raw hits, never a verdict — judgment stays inline. Here the verdict is left in-agent anyway: a real cross-domain hypothesis (do these two docs describe the same subsystem?) needs the full doc content in context to judge, and re-collecting that content inline after every batch would mean reading the same docs twice. The one canonical merge-test pointer (step 4) keeps the verdict criteria consistent across agents despite the delegation; treat each batch's verdict as provisional and spot-check a candidate before handing it to `merge-task-docs`.
+**This step deliberately breaks `explore-delegation.md`'s gather-only convention, and it's worth knowing why.** That reference says `Explore` should return raw hits, never a verdict — judgment normally stays with the calling session, inline. Here the verdict is left in-agent instead: judging whether two docs describe the same subsystem needs their full content in context, and re-collecting that content inline after every batch would mean reading the same docs twice for no benefit. Step 2.4's pointer to the one canonical merge-test definition is what keeps the verdict criteria consistent across agents despite the delegation — but each batch's verdict is still provisional, worth a spot-check before it reaches `merge-task-docs`, precisely because judgment moved further from the calling session than usual.
 
-⚠️ **Batching by domain, not by hypothesis** — a real cross-domain overlap (e.g. `statement/agency-leaderboard` belonging in `report/pm-reports`) only surfaces if the agent holding one domain also reads the other. Tell each agent explicitly which sibling domains to cross-check, based on plausible subsystem overlap (shared nouns in the domain names, or known shared tables from CLAUDE.md) — don't just hand it its batch and hope.
+**Batch by domain, not by hypothesis** — a real cross-domain overlap (e.g. `statement/agency-leaderboard` belonging in `report/pm-reports`) only surfaces if the agent holding one domain also reads the other. Tell each agent explicitly which sibling domains to cross-check, based on plausible subsystem overlap (shared nouns in the domain names, or known shared tables from CLAUDE.md) — handing it a batch with no cross-check guidance leaves the real cross-domain case undiscoverable by construction.
 
 ### Step 3 — Compile and present
 
@@ -54,20 +54,14 @@ Present the surviving candidates as one table, same format as `merge-task-docs` 
 
 Don't merge inline. For each confirmed group, invoke `merge-task-docs` (Skill tool) with that specific source/target pair — it owns the actual read-full/write/delete/reconcile workflow, its own `AskUserQuestion` forks (scope/structure/naming), and back-reference sweep. Running the merge logic here would duplicate it and risk drifting out of sync.
 
-⚠️ **Zero confirmed groups is a claim about the sweep, not about the tree — prove the sweep could have returned something before accepting it.** An all-`keep separate` result and a sweep that silently failed produce the identical Step 3 summary line (`"N pairs checked, correctly separated"`), and that line reads to the user as a verified all-clear. The verdicts are delegated (Step 2), so any batch agent that mis-scoped its `ls`, read the wrong domain dirs, or returned an empty table contributes zeroes that compile into a confident N. Before terminating on zero, confirm all three:
+**Zero confirmed groups is a claim about the sweep, not about the tree — worth proving the sweep could have returned something before accepting it.** An all-`keep separate` result and a sweep that silently failed produce the identical Step 3 summary line ("N pairs checked, correctly separated"), and that line reads to the user as a verified all-clear either way. Because the verdicts are delegated (Step 2), any batch agent that mis-scoped its `ls`, read the wrong domain dirs, or returned an empty table contributes zeroes that compile into a confident N indistinguishable from a genuine clean sweep. Before terminating on zero, confirm all three:
 
 1. **N reconciles with the Step 1 inventory** — every domain dir appears in some batch's report; a domain silently absent is a failed batch, not a clean one.
 2. **At least one batch returned a non-trivial `keep separate` verdict with a stated reason** — a batch whose every row is bare "no overlap" never read the docs.
-3. **Spot-check one `keep separate` pair yourself** — Step 2's own note calls every batch verdict provisional; that spot-check is what makes the zero-candidate exit trustworthy, and it is the ONLY path where no candidate forces you to look at a doc.
+3. **Spot-check one `keep separate` pair yourself** — Step 2's own note calls every batch verdict provisional; that spot-check is what makes the zero-candidate exit trustworthy, and it's the only path where no candidate forces you to look at a doc.
 
-Any of the three failing → re-run the affected batch, don't report the sweep clean. Only once all three hold is the Step 3 summary line the terminal output, with nothing to hand off. (Sibling rule: `merge-task-docs` Step 6 carries the same must-hit control on its post-merge scan.)
+Any of the three failing means re-running the affected batch rather than reporting the sweep clean. Only once all three hold is the Step 3 summary line the terminal output, with nothing to hand off. (Sibling rule: `merge-task-docs` Step 6 carries the same must-hit control on its post-merge scan.)
 
-## Rules
+## Scope
 
-| ❌ Never | ✅ Always |
-|---|---|
-| Merge or delete anything from this skill | Discovery only — hand confirmed groups to `merge-task-docs` |
-| Batch by "likely overlap topic" | Batch by domain (file-partition, no write conflict) and tell each agent which siblings to cross-check |
-| Report all ~20+ "keep separate" verdicts back to the user in full | Compile to one summary line; only show the table of actual merge candidates |
-| Let an agent restate the merge test from memory | Point it at `merge-task-docs/SKILL.md`'s own section — one canonical definition |
-| Assume the Step 1 inventory is still accurate | Each batch agent `ls`'s its own domains and flags drift |
+This skill is discovery only — it never merges or deletes anything itself; confirmed groups always go to `merge-task-docs`. Report every batch's full "keep separate" table back to the user is the one thing worth actively avoiding: compile to the one-line summary in Step 3 instead, since a 20-row confirmation of correctly-scoped docs buries the actual candidates in noise.
