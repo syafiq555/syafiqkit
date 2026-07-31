@@ -36,11 +36,11 @@ An external tracker ID (ClickUp/Jira/Linear) that shows up in prose explaining w
 
 ### Sentence style
 
-Base rules: `_shared/references/writing-style.md`. For task docs specifically: rows hold the rule plus the single strongest reason, in two sentences or fewer — rejected-alternative essays and verification narratives belong to git history, not the doc. Commit hashes live only in Last Session; elsewhere, verification is one word ("verified").
+Base rules: `../_shared/references/writing-style.md`. For task docs specifically: rows hold the rule plus the single strongest reason, in two sentences or fewer — rejected-alternative essays and verification narratives belong to git history, not the doc. Commit hashes live only in Last Session; elsewhere, verification is one word ("verified").
 
 ### Size budget
 
-`current.md` should stay under 300 lines, measured by byte size (`wc -c`), not line count — a whole-doc MADR rewrite can legitimately grow lines while shrinking bytes (a dense table cell becomes several short ADR Consequence bullets), so compare `wc -c` against the version you started from before concluding a doc needs condensing. `git show HEAD:<path>` is the right baseline only when the file was clean at session start; on an already-dirty doc, HEAD's copy includes a prior writer's unfinished edits, and the delta you'd report is theirs plus yours. Capture `wc -c` before your first write, or diff against `git show :<path>` (staged) — see `_shared/references/two-tier-condense.md` for the full baseline rule.
+`current.md` should stay under 300 lines, measured by byte size (`wc -c`), not line count — a whole-doc MADR rewrite can legitimately grow lines while shrinking bytes (a dense table cell becomes several short ADR Consequence bullets), so compare `wc -c` against the version you started from before concluding a doc needs condensing. `git show HEAD:<path>` is the right baseline only when the file was clean at session start; on an already-dirty doc, HEAD's copy includes a prior writer's unfinished edits, and the delta you'd report is theirs plus yours. Capture `wc -c` before your first write, or diff against `git show :<path>` (staged) — see `../_shared/references/two-tier-condense.md` for the full baseline rule.
 
 Once over budget, condense via `condense-task-doc` rather than improvising — its row-existence pass (deleting gotcha/decision rows that are discoverable from code) is the step most likely to get skipped under time pressure, and sentence-tightening alone doesn't move a 40+-row doc.
 
@@ -52,7 +52,7 @@ Before finishing a write that touched commit/deploy state, run two greps against
 
 ## 1. Resolve Path
 
-Before writing — scan or explicit path alike — settle whether you own these docs. Judge by diff *content*, never by status plane (`_shared/references/diff-ownership.md`): auto-staging makes your own writes indistinguishable from another writer's staged work at a glance. The real question is whether this session's own content traces this diff. A background `Agent` still running, `git status` showing `tasks/` files you never touched, uncommitted doc edits predating this session, two sessions having edited the same doc so the content itself is a mix — these all read as "the doc is contested for the rest of this run" once noticed, and a case resembling none of them still needs the same question asked. Check this when the session starts, not when it finishes.
+Before writing — scan or explicit path alike — settle whether you own these docs. Judge by diff *content*, never by status plane (`../_shared/references/diff-ownership.md`): auto-staging makes your own writes indistinguishable from another writer's staged work at a glance. The real question is whether this session's own content traces this diff. A background `Agent` still running, `git status` showing `tasks/` files you never touched, uncommitted doc edits predating this session, two sessions having edited the same doc so the content itself is a mix — these all read as "the doc is contested for the rest of this run" once noticed, and a case resembling none of them still needs the same question asked. Check this when the session starts, not when it finishes.
 
 Contested → don't run the multi-domain scan, and on an explicit path take §4's guard-fired branches instead of its overwrite mandates; verify read-only instead (report gaps for the owner to fix) or scope to the doc you actually own.
 
@@ -72,7 +72,7 @@ Don't assume one domain per session — scan the full conversation for every dom
 
 A sibling repo has its own `tasks/` tree that this scan doesn't reach on its own — two independent checkouts in sibling directories aren't the nested-sub-repo shape the commit/ship skills describe, so no `git -C <subdir>` walk finds them and the harness only walks from the working dir. Whenever the session's work touched a second repo at all, re-run the scan from that repo's root and update its own `tasks/**/current.md` in the same pass (mirrors `read-summary`'s sibling-repo step) — otherwise the feature's originating side gets documented exhaustively while the other side is never opened, and nothing about the doc you did write looks incomplete.
 
-Map each domain to its existing doc by content, not by folder name — a changed file path or feature name rarely matches the doc's folder (code `src/modules/qc-review/` → doc `setup/upload-redesign/`; folders are engineer-domain-named, not feature-named). Delegate raw candidate-gathering to the `Explore` agent, one call per domain/feature or one batched prompt covering all: `Glob tasks/**/*.md` (incl. `_archive/` and flat `tasks/<domain>/<feature>.md`) plus `Grep` for the concept's vocabulary and synonyms across doc body and header. The mapping judgment — which candidate is the actual match — stays inline against the returned raw data; delegation mechanics are in `_shared/references/explore-delegation.md`. Follow any surviving `Merged into`/`Supersedes` redirect to the live doc (older repos may have legacy stubs; new merges no longer create them — see §2a). This is what prevents creating a duplicate doc when one already exists under a different folder name.
+Map each domain to its existing doc by content, not by folder name — a changed file path or feature name rarely matches the doc's folder (code `src/modules/qc-review/` → doc `setup/upload-redesign/`; folders are engineer-domain-named, not feature-named). Delegate raw candidate-gathering to the `Explore` agent, one call per domain/feature or one batched prompt covering all: `Glob tasks/**/*.md` (incl. `_archive/` and flat `tasks/<domain>/<feature>.md`) plus `Grep` for the concept's vocabulary and synonyms across doc body and header. The mapping judgment — which candidate is the actual match — stays inline against the returned raw data; delegation mechanics are in `../_shared/references/explore-delegation.md`. Follow any surviving `Merged into`/`Supersedes` redirect to the live doc (older repos may have legacy stubs; new merges no longer create them — see §2a). This is what prevents creating a duplicate doc when one already exists under a different folder name.
 
 Build a table of all domains before writing anything:
 
@@ -105,7 +105,7 @@ LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
 
 Mermaid diagrams are fine in any section where a visual helps — architecture, data flow, layout, feature hierarchy, state transitions — not limited to one section.
 
-Strip tool-output wrapper artifacts before writing, whether creating fresh or rewriting the whole doc — see `_shared/references/strip-tool-output-tags.md`.
+Strip tool-output wrapper artifacts before writing, whether creating fresh or rewriting the whole doc — see `../_shared/references/strip-tool-output-tags.md`.
 
 ## 4. When Updating
 
@@ -121,14 +121,14 @@ A decision/gotcha/bug captured only in `## Last Session` is effectively lost —
 | Section | Action |
 |---------|--------|
 | `LLM-CONTEXT` | Update Status + Last updated |
-| `## Quick Start` | Rewrite entirely on every update — never append. §1 guard fired → additive only (`_shared/references/contested-doc-sections.md`). |
+| `## Quick Start` | Rewrite entirely on every update — never append. §1 guard fired → additive only (`../_shared/references/contested-doc-sections.md`). |
 | `## Task Status` | Tick off completed rows; once a whole stream is done, collapse its rows to the one summary row above rather than leaving every task itemized |
 | `## Bugs Fixed` | Append new bugs — compose the row already condensed: paraphrase root cause + fix into 1-2 sentences directly, rather than transcribing the session's investigation narrative (timestamps, assertion counts, "verified by X vs Y") and trimming after |
 | `## Critical Gotchas` | Append new rows to Backend or Frontend table — same compose-condensed rule |
 | `## Key Technical Decisions` | New decision → append. Same decision evolved → edit its existing row/block in place (see MADR sub-rule below) |
 | `## Files` | Add new files if introduced — this stays a living map of the ~15 key files, not a per-phase changelog; git history already owns what changed when |
 | `## Next Steps` | Remove done, add pending. Flat `- [ ]` checklist, grouped by kind of work (required, at any length) — never sub-headed by when items were found ("this session's findings", "earlier"), which drifts the section into a changelog; session provenance belongs in `## Last Session` instead. Order by priority if it helps. Canonical group vocabulary + skeleton: `references/templates.md` "Next Steps" — a good test for any heading you invent is whether it's still true in three sessions. A user's scope call on an item (defer, decline, deprioritize, block-on-X) is itself worth capturing — write it into the item with its reason, since chat-only acknowledgement is lost next session — and keep the item's markers consistent with that captured status (a priority marker on something the user just deferred contradicts itself). |
-| `## Last Session` | Overwrite in place — one session only, ≤5 bullets, ≤2 lines each. Delete the previous session's bullets entirely rather than appending below them. Fold anything still load-bearing into its proper Decision/Gotcha row before deleting it. §1 guard fired → don't overwrite; route facts to their typed sections instead (`_shared/references/contested-doc-sections.md`). |
+| `## Last Session` | Overwrite in place — one session only, ≤5 bullets, ≤2 lines each. Delete the previous session's bullets entirely rather than appending below them. Fold anything still load-bearing into its proper Decision/Gotcha row before deleting it. §1 guard fired → don't overwrite; route facts to their typed sections instead (`../_shared/references/contested-doc-sections.md`). |
 
 ### MADR Blocks — Edit-in-Place vs Append
 

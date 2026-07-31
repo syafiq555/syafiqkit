@@ -38,7 +38,7 @@ Living docs — CLAUDE.md files and task docs alike — are **constraint documen
 
 ### 0. Size policy is NOT this agent's — delegate it
 
-⚠️ **This agent owns no target length, no budget, and no split decision, for either artifact.** The artifact's condense skill is the single source of truth: default thresholds, deferring to a budget the file declares for itself (`skills/_shared/references/declared-budget.md`), and every structural-split decision. Do not restate a number here and do not reimplement that decision — a second copy is what drifts.
+⚠️ **This agent owns no target length, no budget, and no split decision, for either artifact.** The artifact's condense skill is the single source of truth: default thresholds, deferring to a budget the file declares for itself (`../../_shared/references/declared-budget.md`), and every structural-split decision. Do not restate a number here and do not reimplement that decision — a second copy is what drifts.
 
 1. **First** — run the normal prune (steps 1-5 below): staleness and duplication, verified against the live codebase. That is this agent's whole lane.
 2. **Then**, if the doc still reads as oversized after the prune, invoke the skill for its artifact and let it judge — **CLAUDE.md → `Skill(condense-claude-md)`; task doc → `Skill(condense-task-doc)`**. Do NOT delete additional live/verified/non-duplicate content to hit a number you inferred.

@@ -22,7 +22,7 @@ D=~/.claude/plugins/syafiqkit
 
 `CONSUMER` (or a non-git dir) → don't patch, don't bump the version. Still run Step 1 — a defect a real user hit is valuable regardless — then route it upstream via Step 5 instead of editing files.
 
-📖 **`_shared/references/consumer-portability.md`** — read before writing any step that names a plugin path or shell command a consumer would run: `tasks/` not shipping with installs, `${CLAUDE_PLUGIN_ROOT}` not expanding in markdown, `~` on Windows/WSL.
+📖 **`../_shared/references/consumer-portability.md`** — read before writing any step that names a plugin path or shell command a consumer would run: `tasks/` not shipping with installs, `${CLAUDE_PLUGIN_ROOT}` not expanding in markdown, `~` on Windows/WSL.
 
 ## Step 1 — Scan: What happened involving the plugin?
 
@@ -57,10 +57,10 @@ Skip anything project-specific or a general communication preference with no ski
 
 Read the target before writing, and check whether the fix already exists — if a rule is present but got ignored, strengthen the wording rather than duplicate it.
 
-The right target is whichever file actually owns the kind of fact the signal is — not necessarily the skill the session happened to be using when the gap showed up. The skill in front of you revealed the problem; it isn't automatically where the fix belongs. If the fix touches a mechanism several skills share (a shared field, a shared convention), route it to `_shared/references/` and point every owner at it rather than fixing one copy — a quick grep for how the other skills already talk about that mechanism (their own vocabulary, not the new rule's wording) usually settles who else needs it. And if the fix is really about how the *harness* behaves — install layout, what a variable expands to, which shell runs — that's worth actually checking (a doc, an installed artifact) rather than reasoned from the repo, since a plausible guess here is often wrong in exactly the environment the fix is meant to serve.
+The right target is whichever file actually owns the kind of fact the signal is — not necessarily the skill the session happened to be using when the gap showed up. The skill in front of you revealed the problem; it isn't automatically where the fix belongs. If the fix touches a mechanism several skills share (a shared field, a shared convention), route it to `../_shared/references/` and point every owner at it rather than fixing one copy — a quick grep for how the other skills already talk about that mechanism (their own vocabulary, not the new rule's wording) usually settles who else needs it. And if the fix is really about how the *harness* behaves — install layout, what a variable expands to, which shell runs — that's worth actually checking (a doc, an installed artifact) rather than reasoned from the repo, since a plausible guess here is often wrong in exactly the environment the fix is meant to serve.
 
 Two narrower structural facts worth knowing:
-- A target with another writer's uncommitted work on it is contested — don't patch through it, and don't drop the finding either. Tell contested state by diff content, not by git status (auto-staging makes edits from two sessions look identical). If the rule is shared, its natural home in `_shared/references/` is free to write even when the caller's own file isn't; if only the contested file needs it, just name the exact spot in your report so the next session can apply it in one step.
+- A target with another writer's uncommitted work on it is contested — don't patch through it, and don't drop the finding either. Tell contested state by diff content, not by git status (auto-staging makes edits from two sessions look identical). If the rule is shared, its natural home in `../_shared/references/` is free to write even when the caller's own file isn't; if only the contested file needs it, just name the exact spot in your report so the next session can apply it in one step.
 - An agent file under `.claude/agents/` is usually a generated copy — a durable fix belongs in its template (`skills/agent-setup/templates/`) first, then ported to the copies that should carry it, or it's lost on the next regeneration.
 
 ## Step 3 — Write: Patch the skill files

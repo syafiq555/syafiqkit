@@ -20,11 +20,11 @@ Parallel fleet scan of every `tasks/<domain>/*/current.md` to find subsystem ove
 
 ### Step 1 — Inventory
 
-Delegate to `Explore`: list every `tasks/<domain>/<feature>/current.md`, plus `_archive/`, flat `tasks/<domain>/<feature>.md`, and `decisions/*.md` siblings, grouped by domain. Raw paths only, per `_shared/references/explore-delegation.md`.
+Delegate to `Explore`: list every `tasks/<domain>/<feature>/current.md`, plus `_archive/`, flat `tasks/<domain>/<feature>.md`, and `decisions/*.md` siblings, grouped by domain. Raw paths only, per `../_shared/references/explore-delegation.md`.
 
 ### Step 2 — Fan out verification + candidate-finding
 
-Split the domain list into N batches (aim for ≤6 domains per batch so each agent's context stays light) and dispatch one `Explore` agent per batch (one-message parallelism rule: `_shared/references/explore-delegation.md`). A read-only sweep has no file-partition conflict, so fan out freely here.
+Split the domain list into N batches (aim for ≤6 domains per batch so each agent's context stays light) and dispatch one `Explore` agent per batch (one-message parallelism rule: `../_shared/references/explore-delegation.md`). A read-only sweep has no file-partition conflict, so fan out freely here.
 
 Each agent's prompt must:
 1. `ls` (never `find`/`grep` for existence) its assigned domain dirs to confirm the Step 1 inventory is still accurate — flag any drift.

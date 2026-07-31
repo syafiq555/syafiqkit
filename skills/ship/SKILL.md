@@ -7,7 +7,7 @@ description: Ship code to production — commit, changelog, push, verify CI/CD d
 
 End-to-end shipping workflow: commit → changelog → push → verify deploy → release note.
 
-Run the whole chain in one turn. A sub-skill's closing summary (or a written artifact like a report) is shaped like the end of a turn but isn't one — the chain isn't done until this skill's own Output block is written. See `_shared/references/one-turn-chain.md` for why this is easy to miss even while announcing the remaining step honestly.
+Run the whole chain in one turn. A sub-skill's closing summary (or a written artifact like a report) is shaped like the end of a turn but isn't one — the chain isn't done until this skill's own Output block is written. See `../_shared/references/one-turn-chain.md` for why this is easy to miss even while announcing the remaining step honestly.
 
 ## Prerequisites
 

@@ -107,7 +107,7 @@ These belong in `CLAUDE.local.md` because they contain env-specific context (ser
 
 ### Entry style (every entry you write)
 
-Base writing-style rules (no filler words, one idea per sentence): `_shared/references/writing-style.md`.
+Base writing-style rules (no filler words, one idea per sentence): `../_shared/references/writing-style.md`.
 
 | Rule | Detail |
 |------|--------|
@@ -162,7 +162,7 @@ Glob: .claude/agents/claude-md-pruner.md
 | Yes, but pruning/splitting is recorded as **decided**, OR the file is under the floor | **Skip the spawn** — report current size against the file's own budget instead |
 | No | Skip pruning — do not inline a pruning prompt |
 
-Detection rules for both skip cases: `_shared/references/declared-budget.md`. A spawn against either can only return a no-op.
+Detection rules for both skip cases: `../_shared/references/declared-budget.md`. A spawn against either can only return a no-op.
 
 **Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.`
 
@@ -173,12 +173,12 @@ The agent has its own classification rules, litmus tests, and NEVER-delete safeg
 ## 5. Validate
 
 After writing each entry (in Step 3):
-1. Re-grep keyword — confirm no duplicate created. This grep is also how you prove the write LANDED when the target is `CLAUDE.local.md`: it is gitignored, so no `git diff` can ever show it (`_shared/references/verifying-a-write-landed.md`)
+1. Re-grep keyword — confirm no duplicate created. This grep is also how you prove the write LANDED when the target is `CLAUDE.local.md`: it is gitignored, so no `git diff` can ever show it (`../_shared/references/verifying-a-write-landed.md`)
 2. Count `|` separators — must match table header
 3. "Would removing this cause Claude to repeat the mistake?" — if no, delete it
 4. Scan your entry for narrative markers ("happened", "repeatedly", "caught", "twice", numbered trigger lists) — rewrite to constraint-only
 5. **Fix column must be a specific, verifiable action, not a vague verb** ("investigate", "check", "handle better", "fix properly") — if the Fix reads as an open-ended task rather than a concrete change, name the actual file/method/config to touch or the exact guard to add
-6. If the target file is now over budget, flag it in your output — the Step-4 pruner pass handles the shrink. **Budget = the file's own declared figure when it states one, 350 otherwise** (`_shared/references/declared-budget.md`). A fixed 350 against a file declaring ~460 reports a false overage every run and trains the reader to ignore the flag
+6. If the target file is now over budget, flag it in your output — the Step-4 pruner pass handles the shrink. **Budget = the file's own declared figure when it states one, 350 otherwise** (`../_shared/references/declared-budget.md`). A fixed 350 against a file declaring ~460 reports a false overage every run and trains the reader to ignore the flag
 7. Re-read the entry against Step 3's own shape rule ("New signals → Add entry") — does the prose you just wrote violate the test it's applying? A judgement-shaped entry that landed as a flat `**Never X**` imperative (rather than reasoning ending in `**Tell:**`) is a shape violation the checks above won't catch, since none of them look at shape-vs-the-rule-that-governs-shape
 
 **Task docs ≠ CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only patterns that apply broadly go in CLAUDE.md.

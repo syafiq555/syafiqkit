@@ -113,7 +113,7 @@ Lightweight affordance only — heavy process kills the habit as surely as no pr
 
 ## 5. Density rules
 
-A journal bloats two ways: **transcript-dumping** and **restating the same insight in every entry**. Guard both. Base writing-style rules (no filler words, one idea per sentence): `_shared/references/writing-style.md`.
+A journal bloats two ways: **transcript-dumping** and **restating the same insight in every entry**. Guard both. Base writing-style rules (no filler words, one idea per sentence): `../_shared/references/writing-style.md`.
 
 | Rule | Detail |
 |------|--------|

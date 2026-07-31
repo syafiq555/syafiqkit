@@ -25,7 +25,7 @@ Converting a value-bearing row to prose is where information silently leaks out,
 - The value gets softened into a vague gesture ("can fail in confusing ways") instead of being routed to the companion verbatim (the specific error code, command, or consequence).
 - A cross-reference pointer, a "this already happened" precedent example, or an exact command gets cut as connective tissue during the same pass that converts the surrounding sentence — it looks like padding because it's short, but it was load-bearing.
 
-Verify per `_shared/references/two-tier-condense.md` item 7 after this split — specifically confirm every value the original row carried is findable, verbatim, at the pointer target.
+Verify per `../../_shared/references/two-tier-condense.md` item 7 after this split — specifically confirm every value the original row carried is findable, verbatim, at the pointer target.
 
 ## Not a mandate
 

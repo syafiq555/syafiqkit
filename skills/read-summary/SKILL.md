@@ -14,7 +14,7 @@ Read, find and understand task summary context. Run this **before** answering, i
 
 The request is usually a fuzzy task description, not a path. Folder names are engineer-domain-named and rarely match how you'd phrase the request (`upload-redesign` owns "QC delete child question"; `payout` owns "refund"). So **discover by content, not by folder name**:
 
-1. **Search by content — delegate the raw gathering, keep ranking inline.** Spawn the `Explore` agent to list candidate docs and grep them for the *concept's vocabulary* — include synonyms ("child"→"sub-question", "QC"→"review/screening", "refund"→"payout"), searching doc **body + header**, never the folder name alone, including `_archive/` and flat `tasks/<domain>/<feature>.md`. Delegation rules (raw-not-ranked, the `rg` clause, the Bash fallback): `_shared/references/explore-delegation.md`.
+1. **Search by content — delegate the raw gathering, keep ranking inline.** Spawn the `Explore` agent to list candidate docs and grep them for the *concept's vocabulary* — include synonyms ("child"→"sub-question", "QC"→"review/screening", "refund"→"payout"), searching doc **body + header**, never the folder name alone, including `_archive/` and flat `tasks/<domain>/<feature>.md`. Delegation rules (raw-not-ranked, the `rg` clause, the Bash fallback): `../_shared/references/explore-delegation.md`.
 
    ```
    Agent({subagent_type: "Explore", run_in_background: false, prompt: "In tasks/, find every current.md (plus _archive/ and flat tasks/<domain>/<feature>.md) mentioning: payout, disbursement, settlement (synonyms of 'refund'). Return matched paths, matched lines with line numbers, and each candidate's header block (<!--LLM-CONTEXT...--> if present) + # Title + ## Overview, all candidates raw."})

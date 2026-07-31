@@ -1,6 +1,6 @@
 # Structural Splits — Subdir, Task Doc, Companion
 
-Cold path for `condense-claude-md` Restructuring #6/#7. Reached only when a file is **over** its budget (`_shared/references/declared-budget.md`) and compression alone hasn't closed the gap. An under-budget file splits *in place* — `### ` subsections with `{#anchor}`s, every row inline, no new file.
+Cold path for `condense-claude-md` Restructuring #6/#7. Reached only when a file is **over** its budget (`../../_shared/references/declared-budget.md`) and compression alone hasn't closed the gap. An under-budget file splits *in place* — `### ` subsections with `{#anchor}`s, every row inline, no new file.
 
 ## Choosing a lever
 
