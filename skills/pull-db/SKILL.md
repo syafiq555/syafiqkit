@@ -28,97 +28,55 @@ Determine from context or ask the user:
 2. **Database name** — check with `remote <server> "mysql -u USER -pPASS -e 'SHOW DATABASES'"` or infer from server config
 3. **Credentials** — from CLAUDE.local.md, server config, or ask user
 4. **Local database name** — from project `.env` (`DB_DATABASE=`)
-5. **Local MySQL access** — Docker container name (`docker ps --format '{{.Names}}' | grep -i mysql`) or native
+5. **Local MySQL access** — Docker container name (`docker ps --format '{{.Names}}' | grep -i mysql'`) or native
 
-### Step 2: Dump on Server
+### Step 2: Dump on Server, Transfer via scp
 
-Always dump AND compress on the server itself. Never pipe binary through `remote` CLI (ANSI codes corrupt gzip streams).
+The `remote` CLI's output path injects ANSI codes into anything it prints — that's fine for text but corrupts a binary stream if you pipe a mysqldump through it directly. So dump and compress on the server itself, and only ever move the resulting file with `scp`, never by piping `remote` output into a local file:
 
 ```bash
 remote <server> "mysqldump -u USER -pPASS DBNAME --single-transaction --routines --triggers --no-tablespaces 2>/dev/null | gzip > ~/public_html/db_dump.sql.gz && ls -lh ~/public_html/db_dump.sql.gz"
 ```
 
-**Dump location strategy** (Cloudways users can't write to `~/` directly):
-1. Try `~/public_html/` (app directory — usually writable)
-2. Fall back to `/tmp/` then copy to app dir
-3. If both fail, ask user for writable path
+Cloudways-style hosts often can't write to `~/` directly, so if the dump command fails, retry against `~/public_html/` (the app directory is usually writable), then `/tmp/` as a last resort before asking the user for a writable path.
 
-### Step 3: Download via SCP
-
-Always use `scp` for binary transfer — never pipe `remote` output to a local file.
+Download and verify immediately:
 
 ```bash
 scp <ssh-alias>:~/public_html/db_dump.sql.gz /tmp/db_dump.sql.gz
-```
-
-Verify integrity immediately:
-```bash
 gunzip -t /tmp/db_dump.sql.gz
 ```
 
-If verification fails, the dump location may not be accessible via scp (chroot jail). Try the app directory path that `remote` showed in its output.
+If `gunzip -t` fails, the dump likely sits somewhere scp can't reach (a chroot jail) rather than being genuinely corrupt — retry against whichever app-directory path the dump command's `ls -lh` output actually showed.
 
-### Step 4: Import Locally
+### Step 3: Import Locally
 
-MariaDB → MySQL 8.x imports commonly fail on FK constraints (error 6125: non-unique column referenced by FK). The safest approach:
+MariaDB dumps commonly fail importing into MySQL 8.x with error 6125 (non-unique column referenced by FK) — a real cross-version incompatibility, not a data problem. Drop and recreate the local database, then strip the offending FK before importing:
 
-1. **Drop and recreate** the local database:
 ```bash
 docker exec -i <container> mysql -u root -e "DROP DATABASE IF EXISTS <dbname>; CREATE DATABASE <dbname> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-```
 
-2. **Strip known-bad FKs** and import with `--force`:
-```bash
 gunzip -c /tmp/db_dump.sql.gz | sed '/<problematic_fk_name>/d' | (echo "SET FOREIGN_KEY_CHECKS=0;" && cat) | docker exec -i <container> mysql -u root <dbname> --default-character-set=utf8mb4 --force
 ```
 
-If error 6125 appears, grep the dump for the FK name from the error, add it to the sed filter, recreate the database, and retry.
+If error 6125 names a different FK than the one already stripped, add that name to the sed filter and repeat (recreate the database first — a partial `--force` import can leave stale rows behind). Verify the table count landed:
 
-3. **Verify**:
 ```bash
 docker exec -i <container> mysql -u root <dbname> -e "SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema='<dbname>';"
 ```
 
-### Step 5: Post-Import Safety
+### Step 4: Post-Import Safety
 
-**Reset passwords** — use Laravel tinker (avoids shell escaping issues with bcrypt `$` characters):
+Reset passwords through Laravel tinker rather than raw SQL — bcrypt hashes contain `$` characters that the shell interprets when passed through a raw `mysql -e` command, so tinker (or the ORM) sidesteps that entirely:
+
 ```bash
 php <project-path>/artisan tinker --execute="\App\Models\User::query()->update(['password' => bcrypt('secret')]); echo \App\Models\User::count() . ' users updated';"
 ```
 
-If the project doesn't use Laravel, use a direct SQL update with a pre-computed bcrypt hash (generate fresh each time to avoid escaping issues).
+If the project isn't Laravel, use a direct SQL update with a bcrypt hash generated fresh for that call (still avoids the escaping issue).
 
-**Truncate sensitive data** (optional, if user requests):
-- `personal_access_tokens` — API tokens
-- `oauth_access_tokens` / `oauth_refresh_tokens` — OAuth tokens
-- `password_resets` / `password_reset_tokens`
+If the user wants sensitive data truncated, the usual candidates are `personal_access_tokens` (API tokens), `oauth_access_tokens`/`oauth_refresh_tokens`, and `password_resets`/`password_reset_tokens`.
 
-### Step 6: Cleanup
+### Step 5: Cleanup and Report
 
-Remove dump files from both locations:
-```bash
-# Remote
-remote <server> "rm -f ~/public_html/db_dump.sql.gz /tmp/db_dump.sql.gz && echo 'cleaned'"
-
-# Local
-rm -f /tmp/db_dump.sql.gz
-```
-
-### Step 7: Report
-
-Tell the user:
-- Table count imported
-- Any FKs that were stripped (and why — MariaDB/MySQL incompatibility)
-- Password reset confirmation
-- Reminder that local app now has production data (be careful with write operations)
-
-## Gotchas
-
-| Issue | Solution |
-|-------|----------|
-| `remote` output corrupts binary pipes | Always dump on server, download via scp |
-| scp can't reach `/tmp/` (Cloudways chroot) | Dump to app directory (`~/public_html/`) |
-| FK error 6125 on import | Strip the specific FK with sed, import with `--force` |
-| Password update via raw SQL fails | Bcrypt `$` chars get shell-interpreted; use tinker/ORM instead |
-| Home dir (`~/`) not writable | Use `~/public_html/` or app path shown by `remote` |
-| `gunzip -t` fails after download | ANSI codes leaked into pipe — re-download via scp (not remote) |
+Remove the dump file from both the server and `/tmp/` locally, then tell the user what happened: table count imported, any FKs that had to be stripped and why, password reset confirmation, and — this is the one that actually matters — that the local app now holds production data, so write operations there carry real consequences.
