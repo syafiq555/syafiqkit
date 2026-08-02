@@ -320,3 +320,25 @@ Chosen: put the shape rule at the two write points — `update-plugin` Step 3's 
 - **The authoring rule as first written governed body rules and missed frontmatter, which is where the same drift was worst.** Caught by the user within the same session, twice: the rule was added to `update-plugin`, then a third `Do NOT use` clause was stacked onto that very file's description minutes later, and the pass reported clean because it checked for the *vocabulary* of overconstraint (`NEVER`, `MUST`, `⚠️`) rather than its *shape* — a prescribed ask-the-user procedure and a stacked-negation description both pass a keyword scan. Descriptions were then rewritten (`update-plugin` 1379 → 769, `unhobble-instructions` 2148 → 1213 chars, 6 imperatives removed between them, all 25 trigger signals verified surviving) and the rule extended to say a description carries routing vocabulary while its reasoning lives in the body. A `WHENEVER`/`ESPECIALLY` marking a trigger *condition* is not the same shape and was left alone in three skills.
 
 **Status**: committed · **Reversible**: yes · Extends 2c, closes D64's verification gap
+
+---
+
+### D68 — The Unhobbling Pass Reads the File as a Document Before It Reads Any Rule — committed — 2026-08-02
+
+**Problem**
+Asked to unhobble four skills, a session grepped `⚠️`/`MANDATORY`/`**Tell:**`, graded the hits, and began editing callouts; the user stopped it — *"it means to read the skills according to judgement prose, not simply find those grep those thing, improving the file as whole."* The skill's own text invited that: its framing test opened "For every rule, callout, or instruction in the target," which makes the pass an enumeration over units before anything has looked at the file as a whole, and Process step 1's "read the target file whole" produced no artifact, so step 2's "go through it top to bottom" absorbed it. Nothing said the deliverable is a better-shaped file. This is D66's authoring rule holding while the *audit* half degraded to the keyword scan `{#own-output-shape}` already names as the failure mode.
+
+**Decision**
+Chosen: a document-level read runs first and must be written down before any rule is opened — what the file makes a reader do in order, where each rule sits relative to the moment it applies, and what it says more than once. The per-rule fact-vs-constraint test runs second, against what the shape pass leaves. Reporting leads with structural changes; a wording-only pass stays valid but must say so, since that is also what a marker hunt produces.
+
+**Rejected**
+- Adding a "don't just grep" warning to the existing text. Why not: the defect is the framing's *order*, not a missing prohibition — a warning above a per-rule test still yields a per-rule pass, and it grows the file D66 had just shrunk.
+- Making the whole-file read a checklist of named shape defects. Why not: the same enumeration one level up, and the four defects found this session were not a fixed set — a fifth file would need a fifth row.
+
+**Consequences**
+- The three shape findings were all invisible to a marker scan: `task-summary` carried nine rules averaging three homes each *in the file whose headline rule is "One fact, one home"*, plus a live contradiction between Validate's "No rows deleted" and an entire Pruning section about deleting rows; `update-claude-docs` mandates "rows ≤2 sentences" while running four to five and forbids session storytelling while telling one; `done`'s chain-break defenses are written as reasoning while its derivable material is written as dispatch tables, which is backwards if rigidity tracks risk.
+- `task-summary` 26,224 → 25,594 bytes with all sixteen inventoried facts verified by grep; `update-claude-docs` −1,064 bytes; `read-summary` returned a genuine negative (unhobbled the day before, one clause).
+- **A relocation in 1.137.17 orphaned a "the MANDATORY callout above" reference**, found by this pass and fixed by moving the arrival-rate rule back above its citing row rather than repointing the words — Capture is the mode that adds lines, so the rule governs it most.
+- The pass that finds only wording problems is now distinguishable in the report from the pass that never looked for shape ones.
+
+**Status**: committed · **Reversible**: yes · Extends D66

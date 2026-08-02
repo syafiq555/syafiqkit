@@ -117,6 +117,8 @@ Generate a Google Chat-formatted release note. Frame it from the task doc, not t
 
 Scope the note to everything the push carried, not just the commit `/commit` just made — a push that included prior-session backlog needs those CHANGELOG versions covered too. Find the last-known-*deployed* version (the task doc's prior live version, or the CHANGELOG entry for the last successful deploy's SHA, which isn't always the previous commit) and include every entry between it and the current one.
 
+A version's presence in `CHANGELOG.md` proves someone wrote the entry, not that it ever reached the remote — a repo that accumulates local commits across sessions can carry many unreleased versions' worth of entries before a single push sends all of them out at once, and skimming the file for "have I seen this feature mentioned already" answers a different question than "was this actually shipped before." Settle the boundary mechanically: `git log --oneline <pre-push-SHA>..<pushed-SHA> -- <version-file>` (or diff the version file's own value at each endpoint) tells you exactly which versions this push newly released, and that range — not whichever heading happens to be nearby in the file — is what the note must cover.
+
 1. Read the shipped work's `tasks/**/current.md` (use `read-summary`) for the framing: what the effort accomplished, and its real `Status:` (done vs mitigated vs deferred).
 2. Read every `CHANGELOG.md` entry in scope (see above) for the itemized change list — not just the latest one.
 3. Lead with the accomplishment, not caveats. The headline is what was done ("upgraded dependencies + hardened security"); deferred/partial work is a short closing note, not a co-headline.

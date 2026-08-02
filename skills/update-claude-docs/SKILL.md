@@ -18,9 +18,9 @@ The single manager for CLAUDE.md files — the analog of `task-summary` for `cur
 | `rewrite <file>` / "restructure to best practice" | **Rewrite** | Restructure an existing file to the canonical section layout + formatting. |
 | `condense <file>` / "shrink this CLAUDE.md" | **Condense** | Delegate to `condense-claude-md` (don't reimplement). |
 
-**Create and Rewrite read `references/structure.md` first** — it holds the hierarchy rules, capture filter, section taxonomy, formatting conventions, template family, and the 200-line budget. Capture mode uses only its Routing (§1) and Capture-filter (§2) sections, inlined below. When in doubt which mode, it's Capture — that's the one `/done` depends on.
+When in doubt which mode, it's Capture — that's the one `/done` depends on, and its own steps are inlined below. The other three read `references/structure.md` first; their rules live with them at the bottom of this file.
 
-⚠️ **MANDATORY on every Create/Rewrite: fix arrival rate, don't rewrite existing rules for "clarity."** A wholesale clarity pass regressed two skills to denser than before within two weeks (D23→D50, measured in `tasks/plugin-maintenance/external-guidance/current.md` D55/D59) — this plugin is an incident-driven accumulator, not a rarely-edited prompt, so the lever that actually works is arrival rate and hot/cold routing, not restyling prose that already reads fine. Leave a rule's wording alone unless it fails the capture filter or its position/table shape is wrong; do check `⚠️`/`MANDATORY` density (rare enough to still signal) and whether a rule is hot-path (read every invocation) vs cold-path (belongs in `references/`).
+⚠️ **Fix arrival rate; don't rewrite existing rules for "clarity."** This plugin is an incident-driven accumulator, so what controls density is what gets admitted and whether it's hot-path (inline) or cold-path (`references/`) — not restyling prose that already reads fine. A wholesale clarity pass measurably regressed two skills to denser than before their fix (`tasks/plugin-maintenance/external-guidance/current.md` D55/D59). Leave a rule's wording alone unless it fails the capture filter or its position is wrong. This governs every mode, Capture included — Capture is the mode that adds lines.
 
 ---
 
@@ -63,7 +63,7 @@ For each signal, extract 2-3 keywords and **grep all CLAUDE.md files**:
 | Match in correct file | **Violation** — must refine (see Step 3) |
 | Match in wrong file | **Misplaced** — move to correct scope + refine |
 
-Whichever row this grep lands you on, its decoration is worth one glance before you move past it — a leading `⚠️` or a trailing `**Tell:**` that just restates the row's own left-hand condition back at the reader is hollow, and since you're already reading the row for the match/violation check, dropping the hollow part costs nothing extra. This is a presentation fix, not a rewording pass: it changes no rule's meaning, so it doesn't reopen the arrival-rate treadmill the MANDATORY callout above guards against. Leave it alone the moment fixing it would mean rereading rows you weren't already touching for this signal — that's the independent sweep the callout forbids, and the difference is whether you got here by writing a new entry or by going looking.
+While you're in a row for the match check, a `⚠️` or `**Tell:**` that only restates the row's own condition is hollow and costs nothing to drop. Rows you didn't already open stay untouched — going looking is the wholesale rewrite the arrival-rate rule above forbids.
 
 ⚠️ **`ls` and Read every `> 📖` target before classifying — a match inside a pointer line is not a match** (`references/pointer-discipline.md` §1-2). A rule you're adding may likewise belong in a companion, not the index.
 
@@ -98,10 +98,7 @@ These belong in `CLAUDE.local.md` because they carry env-specific context (serve
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
-| Revert/delete a memory file this skill finds already written | Leave it — this skill doesn't own memory cleanup, and reverting only the newest file leaves older ones inconsistent |
 | Skip writing because "task doc has it" | CLAUDE.md must be self-sufficient for fresh sessions |
-| Skip CLAUDE.local.md because "it's just env stuff" | Save reusable env patterns — next session will waste 10 min rediscovering them |
-| Conclude from one data source without cross-checking | Add `❌/✅` behavioral rule to the relevant CLAUDE.md section |
 
 ## 3. Write — Hard rules
 
@@ -207,7 +204,7 @@ If no row matches, leave the agents alone and note "Agents: no sync needed (gotc
 
 # CREATE / REWRITE / CONDENSE MODES
 
-Cold-path — read `references/other-modes.md` for the full process. One-line summary of each:
+Cold-path — read `references/other-modes.md` for the full process, and `references/structure.md` for the hierarchy rules, section taxonomy, formatting conventions and 200-line budget these three modes all depend on. One-line summary of each:
 
 - **Create**: scaffold a new CLAUDE.md from codebase analysis, house style, target <200 lines.
 - **Rewrite**: restructure an existing file to canonical section order + formatting, inventory-then-diff to guarantee zero rules dropped.

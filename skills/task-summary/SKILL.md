@@ -10,7 +10,7 @@ Living documentation for humans and LLM agents. Always reflects current state �
 ## Workflow at a glance
 
 1. **Resolve path** — turn the input (full path / `domain/feature` / empty) into `tasks/<domain>/<feature>/current.md`. No explicit path → run the multi-domain scan first (§1).
-2. **Read the template** — `references/templates.md` holds the canonical sections; pick Full (multi-session) or Minimal (single fix).
+2. **Open `references/templates.md` and keep it open** — every section heading, table column and field name you write must match it verbatim, so this is a read-while-writing file, not a one-time skim. Pick Full (multi-session) or Minimal (single fix).
 3. **Create or update** — missing doc → Full template; existing doc → edit in place, gap-checking against the template for missing sections.
 4. **Validate** — re-read against the checks in §5.
 5. **Reconcile back-references** — sync any roadmap/hub/`Related:` doc that mirrors the status you just changed.
@@ -116,19 +116,25 @@ Start with a gap-check and structure-check against the template — this is what
 2. Verify each existing section's internal structure matches the template — table columns, field names, order — and fix non-conformant structure in place (free-form bullets where `| Issue | Rule |` is specified, wrong Bugs Fixed columns, a Gotchas table with no split axis at all). A domain-appropriate split axis (Hosting/Build-Pipeline on an infra doc, not Backend/Frontend) isn't drift — only a missing split or wrong columns is; a differently-named split that fits the doc's domain is correct as-is. The same in-place fix extends to a row's decoration, not just its columns: a Critical Gotchas row you're already touching for the structure check that carries a `**Tell:**` restating its own left-hand cell is worth trimming while you're there — this is presentation, not a rewrite of the rule, and it stops at the rows this pass already reads for a structural reason, not a fresh sweep for style.
 3. `## Next Steps` is grouped by kind of work, not by when items were found — regroup an ungrouped or date-grouped list the moment you touch the doc, regardless of length. Vocabulary: `references/templates.md` "Next Steps".
 
-A decision/gotcha/bug captured only in `## Last Session` is effectively lost — that section gets overwritten next run, so anything worth keeping needs to live in its typed table. The same update-in-place discipline applies to any row a section already has: a fact that changed updates its existing row rather than getting a second row alongside it, and a whole work stream finishing doesn't mean enumerating each of its now-done tasks forever — collapse them into one summary row ("Phase 2 built + reviewed + committed ✅") and keep itemizing only what's still open or current.
+Two sections are rewritten rather than added to: **Quick Start**, which describes the present rather than a history of presents, and **Last Session**, which holds one session only. Before overwriting Last Session, move anything still load-bearing into its typed table — that section is gone next run, so a decision, gotcha or bug left there is lost. Both invert when §1's ownership guard fires: additive only, facts routed to their typed sections instead (`../_shared/references/contested-doc-sections.md`).
+
+Everything else is edited in place. A fact that changed updates its existing row rather than gaining a second one beside it, and a finished work stream collapses to a single summary row ("Phase 2 built + reviewed + committed ✅") rather than staying itemized — don't wait for every row to tick ✅ first. New rows in Bugs Fixed and Critical Gotchas get composed already-condensed: paraphrase root cause and fix into a sentence or two directly, rather than transcribing the session's investigation (timestamps, assertion counts, "verified by X vs Y") and trimming after. A Critical Gotchas row instructs a reader rather than recording a decision, so the mechanism-not-trip-wire rule from the base writing-style rules applies to it the way it does to a CLAUDE.md entry; the ADR blocks are a different job and it doesn't reach them.
+
+Three sections grow without bound unless pruned on the way past: `## Bugs Fixed` past 10 rows keeps the last 5 and summarizes the rest as "N earlier bugs fixed"; `## Files` stays a living map of the ~15 key files, so per-phase subsections collapse into it; `## Next Steps` deletes done items rather than checking them off. A `## Completed (date)` section shouldn't exist at all — merge its content into the sections that own it.
 
 | Section | Action |
 |---------|--------|
 | `LLM-CONTEXT` | Update Status + Last updated |
-| `## Quick Start` | Rewrite entirely on every update — never append. §1 guard fired → additive only (`../_shared/references/contested-doc-sections.md`). |
-| `## Task Status` | Tick off completed rows; once a whole stream is done, collapse its rows to the one summary row above rather than leaving every task itemized |
-| `## Bugs Fixed` | Append new bugs — compose the row already condensed: paraphrase root cause + fix into 1-2 sentences directly, rather than transcribing the session's investigation narrative (timestamps, assertion counts, "verified by X vs Y") and trimming after |
-| `## Critical Gotchas` | Append new rows to Backend or Frontend table — same compose-condensed rule. These rows instruct a reader rather than record a decision, so the mechanism-not-trip-wire rule from the base writing-style rules applies here the way it does to a CLAUDE.md entry; the ADR blocks below are a different job and it doesn't reach them |
-| `## Key Technical Decisions` | New decision → append. Same decision evolved → edit its existing row/block in place (see MADR sub-rule below) |
-| `## Files` | Add new files if introduced — this stays a living map of the ~15 key files, not a per-phase changelog; git history already owns what changed when |
-| `## Next Steps` | Remove done, add pending. Flat `- [ ]` checklist, grouped by kind of work (required, at any length) — never sub-headed by when items were found ("this session's findings", "earlier"), which drifts the section into a changelog; session provenance belongs in `## Last Session` instead. Order by priority if it helps. Canonical group vocabulary + skeleton: `references/templates.md` "Next Steps" — a good test for any heading you invent is whether it's still true in three sessions. A user's scope call on an item (defer, decline, deprioritize, block-on-X) is itself worth capturing — write it into the item with its reason, since chat-only acknowledgement is lost next session — and keep the item's markers consistent with that captured status (a priority marker on something the user just deferred contradicts itself). |
-| `## Last Session` | Overwrite in place — one session only, ≤5 bullets, ≤2 lines each. Delete the previous session's bullets entirely rather than appending below them. Fold anything still load-bearing into its proper Decision/Gotcha row before deleting it. §1 guard fired → don't overwrite; route facts to their typed sections instead (`../_shared/references/contested-doc-sections.md`). |
+| `## Quick Start` | Rewrite entirely (see below) |
+| `## Task Status` | Tick off completed rows; collapse a finished stream to one summary row |
+| `## Bugs Fixed` | Append, composed condensed |
+| `## Critical Gotchas` | Append to the Backend or Frontend table, composed condensed |
+| `## Key Technical Decisions` | New decision → append. Same decision evolved → edit in place (MADR sub-rule below) |
+| `## Files` | Add new files; keep it a map, not a changelog |
+| `## Next Steps` | Remove done, add pending; regroup per step 3 above |
+| `## Last Session` | Fold out what's load-bearing, then overwrite — ≤5 bullets, ≤2 lines each |
+
+A user's scope call on a Next Steps item (defer, decline, deprioritize, block-on-X) is worth capturing in the item with its reason, since a chat-only acknowledgement is lost next session — and the item's markers should agree with it, because a priority marker on something the user just deferred contradicts itself.
 
 ### MADR Blocks — Edit-in-Place vs Append
 
@@ -155,19 +161,6 @@ Must answer these 5 questions in ≤15 lines total:
 
 Litmus test: if a Sonnet agent reads only the Quick Start and answers "what do I do first?", it should give the correct action and the correct command without reading any other section.
 
-### Pruning
-
-Prevent unbounded growth — apply when updating:
-
-| Section | Prune when |
-|---------|------------|
-| Whole doc | Over budget by bytes → condense first (see Size budget above). |
-| `## Task Status` | A work stream finishes (committed + reviewed) → collapse its rows to one summary row. Don't wait for ALL rows ✅. |
-| `## Bugs Fixed` | >10 rows → keep last 5, summarize older as "N earlier bugs fixed" |
-| `## Files` | Per-phase subsections exist → replace with one living map of key files |
-| `## Next Steps` | Remove ✅ items (don't just check them off — delete) |
-| `## Completed (date)` sections | Should not exist — merge content into relevant sections |
-
 ### Credentials
 
 Never include API keys, merchant keys, passwords, or secrets in task docs. Reference `.env` keys by name only (e.g., `2C2P_MERCHANT_KEY` not the actual value).
@@ -179,7 +172,7 @@ Re-read after writing. Most of what follows is one underlying question — does 
 1. LLM-CONTEXT has Status, Domain, Related, Last updated, and the date is today.
 2. Every section's structure matches the template — correct table columns, correct field names, no free-form bullets where a table is specified.
 3. Next Steps has no stale completed items, and is grouped by kind of work — no flat list, no group named for when its items were found, no empty groups.
-4. No rows deleted.
+4. No rows lost incidentally. Deliberate pruning is expected; what this catches is a row dropped while reflowing a section — a rewrite that touched large blocks wants `../_shared/references/two-tier-condense.md`'s diff pass, since re-reading confirms the result reads plausibly, not that nothing fell out of it.
 5. Back-references reconciled (§6) — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated. Compare the repos the session's work touched against the repos whose docs you opened — if the first count is larger, the sibling-repo step in §1 didn't fire and the pass is incomplete.
 6. MADR compliance — every row in `## Key Technical Decisions` is either an MADR block or legitimately hit the escape hatch (no real alternative existed); a plain table row for a decision that did have a rejected alternative isn't compliant, convert it now. If the doc is already whole-doc MADR and now >300 lines, split per Density rules rather than leaving it for next session.
 7. Cross-section duplication — grep the doc for its 2-3 most critical phrases. A phrase surviving in more than two sections, or the same fact split across two bullets in the same section (two Next Steps items both saying "then deploy via full CI"), means collapsing to one. This is easiest to miss during a condense pass done section-by-section, since a duplicate introduced in one section isn't visible from re-reading that section alone — only a doc-wide grep after all edits land catches it. If the write touched commit/deploy state, run the two Size-budget greps here too, even if the doc felt clean while you were editing it.

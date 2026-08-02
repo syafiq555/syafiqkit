@@ -29,6 +29,16 @@ The cue at each handoff is addressed to the act of invoking, and a reply that *n
 
 Treat writing the next step's name as the trigger to call it, in that same message. **Tell: your closing sentence contains the next step's name and no tool call follows it.**
 
+## When the turn ends without you choosing to
+
+Everything above describes a stop the model elects. A chain can also be severed involuntarily — context compaction between two steps — and the guards written for the voluntary case do not reach it, because they all assume the turn is still running.
+
+What survives a compaction is prose, and prose about an unfinished step reads as settled context rather than as outstanding work; a summary can name the remaining step in as many words and still be walked straight past. The resumed turn also lands mid-chain holding a sub-skill's terminal summary, which is the same artifact this file already identifies as manufacturing a false stopping point — only now there is no memory of the parent workflow to contradict it, and the instruction to resume without recapping discourages the re-orientation that would surface the gap.
+
+So on re-entry, which steps ran is a question to answer from evidence, not from the summary's account of itself. Each of a workflow's steps writes something — a file, a doc, a commit — and whether that artifact changed on disk is checkable in a way a narrative is not. `/done` already states the standard as its Output-table rule: a row is fillable only if the artifact it claims actually changed.
+
+**Tell:** you are resuming a multi-step workflow and your evidence that its earlier steps completed is the summary saying so.
+
 ## What "done" means for the chain
 
 The parent workflow's final Output block is the only sign-off. Until it is written, every sub-skill return is a mid-point — including the last one before it.

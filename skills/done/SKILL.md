@@ -7,11 +7,9 @@ description: Post-task cleanup - simplify code, review changes, update docs, cap
 
 Execute all steps in sequence without pausing for confirmation.
 
-⚠️ **Ending the turn with steps outstanding is a pause, even when you announce it and ask nothing** — 📖 `../_shared/references/one-turn-chain.md`. This bites hardest at the sub-skill RETURN boundaries (3→4, 4→5): `update-claude-docs` and `task-summary` each close with a summary of their own writes, and that summary reads like the end of the turn even though the next step hasn't run. Treat any sub-skill's closing output as mid-turn, and if your reply is naming a remaining step rather than performing it, that's the pause.
+⚠️ **Ending the turn with steps outstanding is a pause, even when you announce it and ask nothing** — 📖 `../_shared/references/one-turn-chain.md`. This bites hardest at the sub-skill RETURN boundaries (3→4, 4→5): `update-claude-docs` and `task-summary` each close with a summary of their own writes, and that summary reads like the end of the turn even though the next step hasn't run. Treat any sub-skill's closing output as mid-turn, and if your reply is naming a remaining step rather than performing it, that's the pause. A compaction landing on the same boundary severs the chain without you choosing to, and leaves a summary whose account of what ran is not evidence that it did — re-derive the ticked steps from the Exit gate's artifact check instead.
 
 **`run_in_background: false` is not a guarantee the call blocks** — [subagents run in the background by default since v2.1.198](https://code.claude.com/docs/en/sub-agents), and [#69691](https://github.com/anthropics/claude-code/issues/69691) reports `false` is ignored in top-level sessions. Pass it anyway to express intent, but expect results as `<task-notification>`s regardless — see Step 1 for what that means in practice.
-
-Two structural rules get their full reasoning where they're used rather than restated here: batch emission shape (Step 1's emission block — the message shape is the enforcement, not the stated rule) and step completeness (the Exit Gate section — a step with only part of its checklist ticked isn't done, and gets said there in the depth it needs).
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
 
@@ -47,9 +45,11 @@ The question to keep asking, for every file and every hunk in it, is: does this 
 
 | Step | Default (you own the whole diff) | When you don't |
 |------|-----------------------------------|--------------------------|
-| 1 (agents) | Partition the `git status --short` file list | Scope every agent to the files **you** changed and name the contested paths off-limits — a reviewer handed another session's uncommitted file will "fix" it. **A file partition does not scope a REPO-WIDE command: also ban `git stash`/`checkout -- .`/`reset`/`clean`/`restore` **by name** in every prompt, since a review agent with edit tools runs one as readily as a build agent and takes the unstaged, unrecoverable work with it** |
+| 1 (agents) | Partition the `git status --short` file list | Scope every agent to the files **you** changed and name the contested paths off-limits — a reviewer handed another session's uncommitted file will "fix" it |
 | 3+4 (skills) | `task-summary` bare, so it multi-domain scans | Do **not** invoke it unscoped — its scan edits the contested docs. Pass a scoped read-only verification arg and say why |
 | Commit | — | Never `git add`/bare `git commit`: it sweeps the other writer's staged work into your commit. An explicit pathspec (`git commit -m msg -- <your files>`) works when the split is file-level. When it isn't — the same file carries both sessions' work — no pathspec separates them: stop, describe the other work to the user, and let them decide rather than committing any slice of that file |
+
+A file partition doesn't scope a repo-wide command. Ban `git stash` / `checkout -- .` / `reset` / `clean` / `restore` by name in every agent prompt — a review agent with edit tools runs one as readily as a build agent does, and it takes the unstaged, unrecoverable work with it.
 
 This generalizes the settled-file rule `update-claude-docs` Step 4 already applies to the pruner: **a writer reads a file when it starts, not when it finishes.**
 
@@ -137,10 +137,7 @@ Scan session for temporary artifacts that should be removed:
 
 ## Steps 3 + 4: Capture Knowledge + Update Task Docs (sequential — Step 3 before Step 4)
 
-⚠️ **TWO skills, both mandatory — running only Step 3 and skipping the task doc is a common `/done` failure.** Tick both:
-
-- [ ] Step 3 — `syafiqkit:update-claude-docs`
-- [ ] Step 4 — `syafiqkit:task-summary`
+Running only Step 3 and skipping the task doc is a common `/done` failure — `syafiqkit:update-claude-docs` then `syafiqkit:task-summary`, both, in that order.
 
 ⚠️ **Run Step 3 FIRST, then Step 4 — not in parallel.** Both skills scan the same conversation for the same class of signal and independently decide routing (CLAUDE.md vs. task doc) with no visibility into the sibling's decision — a parallel dispatch is two isolated routing judgments over shared state, not two independent tasks, and risks the same fact landing in both files or neither getting the version that should have deferred to the other. `update-claude-docs` decides what's broadly reusable; `task-summary`'s own rule ("only patterns that apply broadly go in CLAUDE.md") depends on that decision already being made, so Step 4 needs Step 3's result, not a race against it.
 
@@ -154,6 +151,8 @@ This is the **single** writer of CLAUDE.md / `CLAUDE.local.md` entries. It scans
 
 **Invoke it BARE (no arg), or if you pass an arg keep it a HINT — never a scope limiter.** Handing the skill a pre-written arg that lists only this session's code facts silently narrows its scan and drops early-session behavioral misses (a wrong task-doc discovery, a source you checked wrong and the user corrected). Those "user had to correct" signals are the highest-value capture and the easiest to lose. If you do pass an arg, it must still say "and scan the full conversation for corrections/wrong-turns too."
 
+Its return is the riskiest moment in this workflow: a summary of CLAUDE.md writes is a complete-looking artifact, and reporting it is how Step 4 gets skipped. Step 3 is not finished until Step 4 has been invoked, so the next thing after that summary is the `task-summary` call — not a reply describing what Step 3 wrote.
+
 **Step 4 — Update Task Docs:**
 
 Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-domain scan.
@@ -163,6 +162,8 @@ Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-do
 **`task-summary` or `update-claude-docs` already ran THIS session → invoke it scoped, not bare.** Two routes reach this state: `/commit`'s staleness gate forcing a full run **when it hits genuine prose staleness** (a run resolved only by the lexical carve-out invoked nothing — don't assume the gate firing means `task-summary` ran; confirm it did), and a session that invoked the doc skills by hand before reaching `/done`. Either way the docs are often already reconciled by Step 4. Pass an arg naming only what's NEW since that run (typically the product reviewer's gaps → Next Steps). The bare-scan rule above governs a COLD `/done`, not this case. A scoped invoke still counts as running the step; skipping it does not.
 
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
+
+Its return closes the same trap Step 3's does — a doc-update summary is the last complete-looking artifact before the two gates below, and those gates only decide what Step 5 *does*, never that you reached it. Step 5's Gate B is a command to run, not a memory to consult, so the next thing after this summary is that check.
 
 > Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
 
