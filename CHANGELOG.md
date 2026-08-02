@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.137.14
+
+- **`/done`'s "the agent that ran code wins" tie-breaker didn't cover the case where BOTH sides ran something.** Run `claude plugin update syafiqkit@syafiqkit` to pick this up. If you've ever settled a disagreement between two agents (or an agent and yourself) by re-running the deciding case and trusting whichever side executed code, and that re-run happened in the same process as the thing being measured (e.g. reading a config value right after a request that itself mutates it), the result may have been measuring its own side effect rather than the real system — worth a second look if the call mattered. New reference: `skills/_shared/references/probe-isolation.md`.
+
 ## 1.137.13
 
 - **`/done`'s recovery instruction for a dead agent spawn now distinguishes two different failures it used to treat the same.** If an agent dies because its own definition is broken, re-running it as `general-purpose` on the same model tier is correct. If it dies with `effort 'max' not supported when thinking is disabled` (an Opus-pinned role hitting a spawn/routing fault), matching the same tier reproduces the identical error — the fix is switching tiers (Sonnet), not just the wrapper. No action needed; this only affects `/done` runs that hit a dead-agent retry.
