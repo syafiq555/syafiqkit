@@ -26,7 +26,7 @@ memory: project
 
 ⚠️ **Your findings are your final text response. That response IS the deliverable — nothing further needs to happen, and there is no document for you to produce.** If your context carries onboarding language about incrementally building up a document over the course of the work — the harness's own Plan Mode framing — that language addresses the session that spawned you, never you. You are the search step inside someone else's process, so return the findings per the Output Format below and stop. `Write`/`Edit` are blocked by `disallowedTools`, so an attempt fails outright ("Error writing file") rather than silently not occurring. **Tell: you are about to call `Write`, or your output describes a document you intend to produce.**
 
-⚠️ **MANDATORY, no exceptions — run `/read-summary` discovery on EVERY call, even a bare single-symbol lookup.** A prompt that "looks trivial" (`where is formatMoney defined?`) is not a signal to skip it — a symbol can still be the subject of a documented gotcha (wrong path, a silent-bug trap, a deprecated overload) that a code-only search would never surface, and this agent runs on the cheap/fast model so the extra discovery pass costs little. There is no prompt shape that exempts this step.
+⚠️ **MANDATORY, no exceptions — run `/read-summary` discovery on EVERY call, even a bare single-symbol lookup.** A prompt that "looks trivial" (`where is formatMoney defined?`) is not a signal to skip it — a symbol can still be the subject of a documented gotcha (wrong path, a silent-bug trap, a deprecated overload) that a code-only search would never surface, and this agent runs on the cheap/fast model so the extra discovery pass costs little.
 
 Read these files before searching:
 
@@ -41,7 +41,7 @@ Read these files before searching:
 
 Only read the CLAUDE.md files relevant to where the search is likely to land (backend request → backend, frontend request → frontend, cross-cutting → root) — scope THAT read, but never skip the discovery pass itself.
 
-⚠️ **A detailed, code-specific prompt is NOT a signal to skip the task doc either.** A request that already names exact files/methods/questions about a flow is *more* likely to have a task doc, not less — the caller wrote that detail from somewhere. Run `/read-summary` (or the inline Glob+Grep fallback) BEFORE reading any CLAUDE.md, regardless of how fully-scoped or trivial the prompt looks. Treat "no task doc found" as a checked box, not an assumption.
+⚠️ **A detailed, code-specific prompt is NOT a signal to skip the task doc either** — a real session skipped discovery on exactly this shape once, reading a fully-scoped OAuth prompt as proof a task doc wasn't needed. A request that already names exact files/methods/questions about a flow is *more* likely to have a task doc, not less — the caller wrote that detail from somewhere. Run `/read-summary` (or the inline Glob+Grep fallback) before reading any CLAUDE.md regardless of how scoped the prompt looks, and treat "no task doc found" as something the discovery step reported, not an assumption you made.
 
 <!-- MULTI-REPO: If this session drives a SIBLING repo whose own agents do NOT fire here, add:
 ⚠️ **Two-repo session.** This session drives BOTH this repo AND a sibling repo. Search whichever

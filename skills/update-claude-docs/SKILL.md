@@ -7,7 +7,7 @@ description: Create, rewrite, condense, or capture-into CLAUDE.md files followin
 
 The single manager for CLAUDE.md files — the analog of `task-summary` for `current.md`. Four modes; pick the one matching how it was invoked.
 
-⚠️ **This skill's output goes to CLAUDE.md only — never write NEW knowledge to `~/.claude/projects/*/memory/`, not for feedback, project context, or investigation lessons.** Memory is invisible to team members and other agents; CLAUDE.md is team-visible and agent-readable. Route a cross-project rule to global `~/.claude/CLAUDE.md`, a project rule to that project's CLAUDE.md/CLAUDE.local.md. If a memory file was already touched this session, leave it as-is — this skill does not own memory-file cleanup.
+⚠️ **Route everything this skill produces to CLAUDE.md — never to `~/.claude/projects/*/memory/`.** Memory is invisible to team members and other agents, so a feedback note, a project-context fact, or an investigation lesson written there never reaches anyone else — write it to the CLAUDE.md layer it belongs to instead (global for cross-project, project CLAUDE.md/CLAUDE.local.md for local). If a memory file was already touched this session, leave it — cleaning that up isn't this skill's job.
 
 ## Mode selection (decide first)
 
@@ -20,7 +20,7 @@ The single manager for CLAUDE.md files — the analog of `task-summary` for `cur
 
 **Create and Rewrite read `references/structure.md` first** — it holds the hierarchy rules, capture filter, section taxonomy, formatting conventions, template family, and the 200-line budget. Capture mode uses only its Routing (§1) and Capture-filter (§2) sections, inlined below. When in doubt which mode, it's Capture — that's the one `/done` depends on.
 
-⚠️ **MANDATORY on every Create/Rewrite: fix arrival rate, never rewrite existing rules for "clarity."** Measured here (D55/D59, `tasks/plugin-maintenance/external-guidance/current.md`) — a wholesale clarity rewrite regressed two skills to denser than before within two weeks (D23→D50); this plugin is an incident-driven accumulator, not a rarely-edited prompt, so the lever is arrival rate and hot/cold routing, not restyling existing prose. Concretely: don't touch a rule's wording unless it fails the capture filter or its position/table shape is wrong; do check `⚠️`/`MANDATORY` density (target: rare enough to still signal) and whether a rule is hot-path (read every invocation) vs cold-path (belongs in `references/`).
+⚠️ **MANDATORY on every Create/Rewrite: fix arrival rate, don't rewrite existing rules for "clarity."** A wholesale clarity pass regressed two skills to denser than before within two weeks (D23→D50, measured in `tasks/plugin-maintenance/external-guidance/current.md` D55/D59) — this plugin is an incident-driven accumulator, not a rarely-edited prompt, so the lever that actually works is arrival rate and hot/cold routing, not restyling prose that already reads fine. Leave a rule's wording alone unless it fails the capture filter or its position/table shape is wrong; do check `⚠️`/`MANDATORY` density (rare enough to still signal) and whether a rule is hot-path (read every invocation) vs cold-path (belongs in `references/`).
 
 ---
 
@@ -28,9 +28,9 @@ The single manager for CLAUDE.md files — the analog of `task-summary` for `cur
 
 Extract reusable patterns from this session into CLAUDE.md files.
 
-⚠️ **A caller-supplied arg is ADDITIVE context, never a scope limiter.** Scan the WHOLE conversation for every signal in the Step-1 table — the arg is a hint about ONE signal, not the boundary of the scan. Most-missed: an arg naming only code facts still needs a scan for corrections/wrong-sources.
+A caller-supplied arg is additive context, not a scope limiter — scan the whole conversation for every signal in the Step-1 table below, since the arg usually hints at only one of them (an arg naming a code fact still needs a separate pass for corrections/wrong-sources).
 
-📖 **`references/pointer-discipline.md`** — read when a `> 📖` line is in play: a topic whose only grep hit IS the pointer line, a companion left stale because grep "found" it, a pointer's `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
+📖 **`references/pointer-discipline.md`** — read when a `> 📖` line is in play: following a pointer, a companion left stale because grep "found" it, a pointer's own `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
 
 ## 1. Scan — What happened?
 
@@ -47,7 +47,7 @@ Look for these signals in the conversation:
 | Convention preference | Convention |
 | Debugging root cause discovered | Gotcha |
 | User states a durable preference for HOW Claude should communicate/behave (e.g. pastes a preferred summary format saying "give it like this instead") | Working-style rule → **global `~/.claude/CLAUDE.md`** Working Style bullet — the arg IS the capture target, don't treat it as content-to-summarize or answer inline |
-| The arg asserts a standard the CODEBASE should meet ("X is not needed to be long", "we always do Y") | **Two outputs, not one** — write the rule to its CLAUDE.md layer AND measure whether the tree currently violates it (count, ratio, longest instance). **Tell: your entry ships with the violation unmentioned** |
+| The arg asserts a standard the CODEBASE should meet ("X is not needed to be long", "we always do Y") | **Two outputs, not one** — write the rule to its CLAUDE.md layer AND measure whether the tree currently violates it (count, ratio, longest instance). An entry that ships with the violation unmentioned is only half the job |
 | Team/strategy context | Context → `CLAUDE.local.md` |
 | Credentials/tokens/API headers used from config files | Env pattern → `CLAUDE.local.md` |
 | CLI pattern reused 3+ times (curl, scp, remote) | Env pattern → `CLAUDE.local.md` |
@@ -63,9 +63,11 @@ For each signal, extract 2-3 keywords and **grep all CLAUDE.md files**:
 | Match in correct file | **Violation** — must refine (see Step 3) |
 | Match in wrong file | **Misplaced** — move to correct scope + refine |
 
-⚠️ **`ls` and Read every `> 📖` target before classifying — a match inside a pointer line is not a match** (`references/pointer-discipline.md` §1-2). A rule you're ADDING may likewise belong in a companion, not the index.
+Whichever row this grep lands you on, its decoration is worth one glance before you move past it — a leading `⚠️` or a trailing `**Tell:**` that just restates the row's own left-hand condition back at the reader is hollow, and since you're already reading the row for the match/violation check, dropping the hollow part costs nothing extra. This is a presentation fix, not a rewording pass: it changes no rule's meaning, so it doesn't reopen the arrival-rate treadmill the MANDATORY callout above guards against. Leave it alone the moment fixing it would mean rereading rows you weren't already touching for this signal — that's the independent sweep the callout forbids, and the difference is whether you got here by writing a new entry or by going looking.
 
-⚠️ **A change to a GLOBALLY-INSTALLED tool invalidates docs outside the repo you edited — scope the routing pass to the tool's blast radius, not the checkout's.** When the session changed something every project invokes (a CLI on `PATH`, a shared script, a plugin skill), the stale instructions live in the global corpus and its companions, where no amount of in-repo grepping reaches them; the project doc you did fix reads as complete. **Tell: the artifact you changed is invoked from projects other than the one you were working in.**
+⚠️ **`ls` and Read every `> 📖` target before classifying — a match inside a pointer line is not a match** (`references/pointer-discipline.md` §1-2). A rule you're adding may likewise belong in a companion, not the index.
+
+⚠️ **A change to a globally-installed tool invalidates docs outside the repo you edited — scope the routing pass to the tool's blast radius, not the checkout's.** When the session changed something every project invokes (a CLI on `PATH`, a shared script, a plugin skill), the stale instructions live in the global corpus and its companions, where no amount of in-repo grepping reaches them; the project doc you did fix only reads as complete. **Tell:** the artifact you changed is invoked from projects other than the one you were working in.
 
 ## 2. Route — Where does it go?
 
@@ -80,21 +82,19 @@ Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local
 
 A subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `resources/js/routes/X` loads root + `resources/js/` + `routes/`), so routing a rule down a level doesn't hide it — it scopes it. Prefer the subdir file when the rule is both needed in that subdir AND useless elsewhere (seam-test); if it's cross-cutting (a shared token/util/type used across sibling dirs), keep it at the layer level instead — pushing a cross-cutting rule into one subdir means the sibling dirs never load it. Creating the subdir `CLAUDE.md` if it doesn't exist yet is fine; that's the `app/Domain/*` pattern.
 
-⚠️ Run the seam-test against EVERY real sibling subdirectory, not just the one the rule's subject matter suggests — `grep -rl` the rule's core symbols against each candidate and let usage counts decide (`references/structure.md` §1).
+Run the seam-test against every real sibling subdirectory, not just the one the rule's subject matter suggests — `grep -rl` the rule's core symbols against each candidate and let usage counts decide (`references/structure.md` §1).
 
 **Read target first** — check structure, existing entries, where new entry fits.
 
 ### CLAUDE.local.md checklist
 
-Scan the session for these before finishing — easy to miss because they feel "obvious" in the moment:
+These belong in `CLAUDE.local.md` because they carry env-specific context (server passwords, account names, API tokens) that shouldn't be in team-visible `CLAUDE.md` — and they're the ones a session forgets to save because each feels too small on its own:
 
-- [ ] **Credentials/tokens** read from config files (`secrets.json`, `.env`, DB) — save the extraction pattern (e.g., `jq -r '.["key"]' path`)
-- [ ] **API headers** that required trial-and-error (auth headers, required headers that caused 401/403)
-- [ ] **CLI one-liners** used 3+ times (curl templates, scp with password, remote + mysql combos)
-- [ ] **External service URLs** discovered during the session (settings pages, portal URLs, API endpoints)
-- [ ] **Account mappings** (which token → which account → which subdomain)
-
-These belong in `CLAUDE.local.md` because they contain env-specific context (server passwords, account names, API tokens) that shouldn't be in team-visible `CLAUDE.md`.
+- **Credentials/tokens** read from config files (`secrets.json`, `.env`, DB) — save the extraction pattern (e.g., `jq -r '.["key"]' path`)
+- **API headers** that required trial-and-error (auth headers, required headers that caused 401/403)
+- **CLI one-liners** used 3+ times (curl templates, scp with password, remote + mysql combos)
+- **External service URLs** discovered during the session (settings pages, portal URLs, API endpoints)
+- **Account mappings** (which token → which account → which subdomain)
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
@@ -118,7 +118,7 @@ Base writing-style rules (no filler words, one idea per sentence): `../_shared/r
 
 ### New signals → Add entry
 
-A new entry's shape follows from what kind of answer it's recording. If the honest answer to "should I do X here" is "it depends, reason about it," write that reasoning as prose — 2-4 sentences, ending in a `**Tell:**` naming the concrete signal that triggers the exception. If the answer is a specific string (an exact command, IP, id, credential), a table row is the right shape, since prose would just be padding around a lookup value. A signal that mixes both — some judgement plus one exact value — gets prose ending in a `📖 <companion> {#anchor}` pointer, with the value living at that anchor (`condense-claude-md/references/prose-vs-value-split.md`). **Tell:** the entry you just drafted reads as `**Never X**` followed by a parenthetical carve-out — that's the imperative shape reasserting itself, and the carve-out belongs inside the `**Tell:**` sentence instead.
+A new entry's shape follows from what kind of answer it's recording. If the honest answer to "should I do X here" is "it depends, reason about it," write that reasoning as prose — 2-4 sentences stating the mechanism, so the reader recognises their own situation from it (the base writing-style rules cover when a trailing `**Tell:**` earns its place and when it just restates the opening). If the answer is a specific string (an exact command, IP, id, credential), a table row is the right shape, since prose would just be padding around a lookup value. A signal that mixes both — some judgement plus one exact value — gets prose ending in a `📖 <companion> {#anchor}` pointer, with the value living at that anchor (`condense-claude-md/references/prose-vs-value-split.md`). Watch for an entry that came out as `**Never X**` plus a parenthetical carve-out: that's the imperative shape reasserting itself, and the carve-out is usually the actual rule.
 
 - Gotchas / Guidance: apply the test above.
 - Behavioral corrections: always `❌ NEVER | ✅ ALWAYS` — compared against a specific past action, not a general principle. Use when Claude concluded incorrectly, checked wrong source first, or user had to push back ("are you sure?")
@@ -127,7 +127,7 @@ A new entry's shape follows from what kind of answer it's recording. If the hone
 
 ### Violations → Escalate by position + sharpness, NOT length
 
-A violated rule **always** needs an update — "the rule is clear" is not a valid reason to skip. But escalation means making the rule HARDER and BETTER-PLACED, never longer. **REPLACE the old text — never append a second warning below the first.** A repeat violation that grows the rule into a paragraph makes it less likely to be followed, not more.
+A violated rule always needs an update — "the rule is clear" isn't a valid reason to skip. But escalation means making the rule harder and better-placed, never longer. **Replace the old text — never append a second warning below the first**; a repeat violation that grows the rule into a paragraph makes it less likely to be followed, not more.
 
 | Check | Action |
 |-------|--------|
@@ -136,8 +136,6 @@ A violated rule **always** needs an update — "the rule is clear" is not a vali
 | Too vague / too long? | Rewrite: one hard constraint beats five soft guidelines |
 | Already a long paragraph from past escalations? | **Condense it** while sharpening the core constraint — strip the war stories, keep the trigger condition + the action |
 | Missing the "do Y" half? | Add the alternative action |
-
-**Never** conclude "rule is clear, no update needed" for a violation.
 
 ### Constraints
 
@@ -154,7 +152,7 @@ After Steps 1–3, check for a project-level pruning agent and delegate:
 Glob: .claude/agents/claude-md-pruner.md
 ```
 
-**Measure before consulting the table** — the floor's two inputs are yours to compute here, not Step 5's: `wc -l <target>` and this session's net delta to it (`git diff --stat HEAD -- <target>`, or `--stat <base>..HEAD` if already committed). Step 5's own `wc -lc` runs later and per-entry, so it cannot answer this. ⚠️ **A floor you never measured resolves to "not under the floor" and spawns — the gate then reads as satisfied while doing nothing.**
+**Measure before consulting the table** — the floor's two inputs are yours to compute here, not Step 5's: `wc -l <target>` and this session's net delta to it (`git diff --stat HEAD -- <target>`, or `--stat <base>..HEAD` if already committed). Step 5's own `wc -lc` runs later and per-entry, so it can't answer this — a floor you never measured resolves to "not under the floor" and spawns, so the gate reads as satisfied while doing nothing.
 
 | Agent found? | Action |
 |-------------|--------|
@@ -166,9 +164,9 @@ Detection rules for both skip cases: `../_shared/references/declared-budget.md`.
 
 **Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.`
 
-The agent has its own classification rules, litmus tests, and NEVER-delete safeguards. Do not override its instructions.
+The agent owns its own classification rules, litmus tests, and never-delete safeguards — delegate to it, don't second-guess its instructions from here.
 
-⚠️ **Only background-prune files that are SETTLED — this is about TIMING WITHIN THIS SESSION, and does not cover the table row above** (a project having closed the pruning question permanently). Both read as "settled"; they gate different things, and treating this caveat as covering both is what lets the closed-decision case slip through. The pruner reads the file when it starts, not when it finishes — an entry added mid-edit can get deleted on a premise your later edits already invalidated. Finish all edits before listing a file, or hold the prune until the session's changes are done. If the pruner's report removed one of your fresh entries on a stale premise, restore it — your fresh write beats its stale read.
+⚠️ **Only background-prune files that are SETTLED for this session — that's a different gate than the "decided permanently" row above, and treating the two as one lets the closed-decision case slip through.** The pruner reads the file when it starts, not when it finishes, so an entry you add mid-edit can get deleted on a premise your later edits already invalidated. Finish all edits before listing a file, or hold the prune until the session's changes are done — and if the pruner's report removed one of your fresh entries on a stale premise, restore it, since your fresh write beats its stale read.
 
 ## 5. Validate
 

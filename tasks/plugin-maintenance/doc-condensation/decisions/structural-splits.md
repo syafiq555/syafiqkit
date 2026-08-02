@@ -274,3 +274,49 @@ Chosen: patch `unhobble-instructions/SKILL.md` Process step 2 — before softeni
 - No new content-preservation gap found in `sweep-doc-overlaps` or `task-summary` — both agents and this session's own fact-by-fact grep verification (35 genuine facts inventoried across the four newly-touched files, each grepped post-rewrite) found these two clean.
 
 **Status**: committed · **Reversible**: yes
+
+### D65 — A Companion File Is a Condense Target in Its Own Right, Not Just a Destination Content Moves To — committed — 2026-08-01
+
+**Problem**
+`condense-claude-md`, `declared-budget.md`, and `update-claude-docs/references/structure.md` all described `.claude-companions/<shared|local>/CLAUDE-*.md` only as a place a section gets relocated TO during a split (Restructuring #7) — none stated that a pre-existing companion is itself subject to the condense process (atomic-file gate, longest-row scan, Restructuring #4) once it exists. A session ran `unhobble-instructions` across all seven companions of a project (correct, since unhobble's lens is judgement-vs-constraint), then ran a bare `/condense-claude-md` on the same project and explicitly excluded the companions, reasoning "already looked at these under the unhobble lens" — conflating unhobble's check with condense's own. The user caught it directly: "claude-companion supposed should be seen as claude.md too." Re-running condense against the companions (once told to) surfaced two real defects the exclusion had hidden, on that external project.
+
+**Decision**
+Fix at the shared root: `declared-budget.md` (the file all three size-judging consumers already point to) states a companion is a CLAUDE.md for every rule on the page, with the concrete action `Glob .claude-companions/**/*.md` alongside the usual `**/CLAUDE.md` sweep. `condense-claude-md/SKILL.md` and `update-claude-docs/references/structure.md` each get a short cross-reference back to it rather than restating the mechanics inline. `claude-md-pruner`'s own template already classified companions correctly (it decides pruning ELIGIBILITY, a different question from condense SCOPE) and needed no change.
+
+**Rejected**
+- Writing the full explanation independently in each of the three files. Why not: this plugin's own DRY convention (3+ owners of one rule → extract to `_shared/references/`) applies directly, and `condense-claude-md/SKILL.md`'s first draft of its cross-reference initially restated `declared-budget.md`'s internal mechanics (atomic-file gate, longest-row scan, Restructuring #4) verbatim instead of pointing at them — caught by this session's own `/done` simplifier pass against the file's own citation convention (compare its line 81, a bare `see <file>` pointer with no restatement) and tightened to match.
+- Treating `unhobble-instructions` as needing no reciprocal note. Why not: this session's `/done` product-reviewer flagged that the specific failure mode — sweeping every file under one directory feels exhaustive in a way a narrower single-file skill wouldn't, so "I already looked at these" under a different skill's lens is a standing trap for the *next* misapplication in this direction — has no dedicated line anywhere in `unhobble-instructions/SKILL.md`; its existing unhobble-vs-condense boundary (line 53) is real but generic and doesn't name the companion-plurality shape of the trap. Deferred as a recommendation rather than auto-fixed in this session, since it's a scope decision about a different skill than the one this fix targeted.
+
+**Consequences**
+- A bare `/condense-claude-md` or `/update-claude-docs` invocation now Globs companions alongside root/layer/subdir CLAUDE.md files — verified this session that both cross-reference paragraphs sit at a point in their file's own read order that precedes scope being decided (not after), so the fix is load-bearing rather than decorative.
+- The CHANGELOG's 1.136.28 entry originally stated "two real defects" as a directly-verified fact; this session's product-reviewer noted the defects live on an external project with no artifact in this repo (which has no `.claude-companions/` directory at all), so the entry was reworded to attribute the finding without overclaiming a re-verification that didn't happen in this repo's own tracked history.
+- `unhobble-instructions/SKILL.md` gaining the reciprocal companion-plurality note remains open — see this doc's Next Steps, not auto-applied here.
+- `.claude-plugin/marketplace.json` had drifted to 1.136.27 against `plugin.json`'s 1.136.28 (the recurring version-drift gap already tracked in this doc's Next Steps, 4th occurrence) — caught by this session's `/done` reviewer and bumped in the same pass.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D66 — Unhobbling Is an Authoring Default, Not Only an Audit Pass; the Standalone Skill Survives for What Authoring Cannot Reach — committed — 2026-08-01
+
+**Problem**
+`unhobble-instructions` shipped as a lever you invoke deliberately (2c), so a rule written between invocations still landed in whatever shape its author reached for. That makes the corpus a sawtooth for overconstraint exactly as D50 describes it for density: a pass cuts markers, authoring puts them back, and the next pass is needed because nothing changed at the point of arrival. Measured before this session: 54 `⚠️`, 11 `**Tell:**`, 5 `MANDATORY` across `skills/*/SKILL.md`, concentrated in four files. User's framing: *"the skills also should follow unhobble by default, so no need to run like this."*
+
+**Decision**
+Chosen: put the shape rule at the two write points — `update-plugin` Step 3's "Workflow rule" bullet and `agent-setup` Step 4 — and keep the standalone skill. The rule states when a marker is *earned* (a cost that is silent or irreversible, where a careful reader still walks past the problem) rather than banning markers, because a blanket ban is the same mistake in the opposite direction and would have stripped the five incident-backed rules this session's own sweep preserved. The skill stays because authoring only governs *new* rules in *this plugin*: an existing file, a project's `CLAUDE.md`, or a third-party agent definition is reachable by nothing else.
+
+**Rejected**
+- Retiring `unhobble-instructions` once the principle lives in the authoring skills (the `audit-instructions` precedent, D59). Why not: that skill was discovery-only over this plugin's own corpus, which authoring genuinely subsumes. This one audits arbitrary existing files including non-plugin ones, so retiring it removes a capability rather than a duplicate.
+- Authoring rule only, no backlog sweep. Why not: fixes arrival while leaving 70 markers in place, and the four concentrated files are the ones every session loads.
+- A corpus-wide marker budget enforced numerically. Why not: D50's treadmill with a new number, and the sweep showed markers are not fungible — five were the load-bearing survivors of real incidents.
+
+**Consequences**
+- Corpus `⚠️` 54 → 39, `**Tell:**` 11 → 7, `MANDATORY` unchanged at 5 (every instance incident-backed). Per-file: `agent-setup` 13 → 6, `update-claude-docs` 11 → 8, `condense-claude-md` 6 → 0.
+- **`done/SKILL.md` returned a negative finding and was not edited** — at its documented steady state (247 lines, 134.2 B/L) with every marker traceable to a decision that already rejected loosening it. A pass that finds nothing is a valid outcome; manufacturing a diff to justify the dispatch is the failure mode.
+- **D64's gap is closed in the skill itself**: verification checked that facts survived, never that an absolute rule's *strength* did. Step 3 now marks absolutist rules while listing facts, step 5 checks they still bind. D64 was caught by a downstream product reviewer rather than by the pass — this makes the pass able to catch it.
+- Three of four sweep agents independently grepped incident history and refused to loosen rules with documented backing, which is the D64 check working under delegation rather than only when the lead runs it by hand.
+- **A version-drift report that dissolved on the correct comparison**: the working copies read 1.136.29 vs 1.136.33 and were written up as a 5th occurrence of the recurring gap, but `git show HEAD:` put both at 1.136.27 — the difference was another session's uncommitted bumps. This is the failure the Version Bumping convention's own `⚠️` predicts verbatim, and it was reached anyway by reading the working copies first; the correction came from re-reading that convention while building an unrelated skill, not from any gate.
+
+- **The authoring rule as first written governed body rules and missed frontmatter, which is where the same drift was worst.** Caught by the user within the same session, twice: the rule was added to `update-plugin`, then a third `Do NOT use` clause was stacked onto that very file's description minutes later, and the pass reported clean because it checked for the *vocabulary* of overconstraint (`NEVER`, `MUST`, `⚠️`) rather than its *shape* — a prescribed ask-the-user procedure and a stacked-negation description both pass a keyword scan. Descriptions were then rewritten (`update-plugin` 1379 → 769, `unhobble-instructions` 2148 → 1213 chars, 6 imperatives removed between them, all 25 trigger signals verified surviving) and the rule extended to say a description carries routing vocabulary while its reasoning lives in the body. A `WHENEVER`/`ESPECIALLY` marking a trigger *condition* is not the same shape and was left alone in three skills.
+
+**Status**: committed · **Reversible**: yes · Extends 2c, closes D64's verification gap

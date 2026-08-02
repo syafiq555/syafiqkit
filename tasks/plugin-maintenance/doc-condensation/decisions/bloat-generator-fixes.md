@@ -202,3 +202,22 @@ Chosen: a carve-out on a DIFFERENT axis from the one the absolutism guards. The 
 - Inverse of the "a gate is only real if a step computes its inputs" family (D50/D51): here the fix narrows a gate that fired too broadly, rather than wiring a gate that never measured.
 
 **Status**: committed · **Reversible**: yes
+
+### D67 — `condense-task-doc`'s Aggregate Line/Byte Target Passed While Individual Sentences Stayed Bloated — committed — 2026-08-02
+
+**Problem**
+A real run on Dourr's `blog-automation/current.md` (a sibling project, not this repo) did a full row-existence pass per D-family precedent, cut the doc 21% by bytes, and reported the pass done against step 9's target. The user's reply was "each line also bloated" — several Task Status and Bugs Fixed rows were still single sentences running 500-1000+ characters, stacking parentheticals, inline measurements ("$2.8778", "13/107 vs 12/35"), and multiple `⚠️` clauses in one run-on. Step 9's tripwire is entirely aggregate (bytes-per-line, total size), which a doc can clear while only its worst few lines carry the bloat — most lines in a typical task doc are short table rows or short prose, so an average absorbs a handful of very long sentences without moving much.
+
+**Decision**
+Added step 11: after the row-existence pass, run `awk '{print length, NR}' <file> | sort -rn | head -15` directly against sentence length, not the aggregate. Tighten the worst offenders specifically — evidence/measurement detail collapses to its conclusion, three related facts fused into one run-on become one line naming the mechanism. Same underlying test as step 6's row-existence keep-test, just applied one level down: bytes-per-line already existed as a *derived* signal in step 9 ("bytes-per-line above ~120-150... means there's a second pass"), but nothing forced actually running that second pass, and a derived aggregate threshold is exactly the shape D50/D54 already flagged as gameable without a direct per-unit check.
+
+**Rejected**
+- *Lower the bytes-per-line aggregate threshold instead of adding a direct check.* Why not: same failure mode as D51's "a gate is only real if a step computes its inputs" — an aggregate can't distinguish "20 medium lines" from "19 short lines + 1 giant one," so tightening the number doesn't add discrimination, it just moves where the same blind spot sits.
+- *Fold this into step 6 (row-existence) instead of adding a new step.* Why not: row-existence is about whether a row/fact should exist at all; this is about whether a fact that DOES belong is stated at the length it needs. Conflating them makes step 6 harder to apply cleanly to either question.
+
+**Consequences**
+- `condense-task-doc` now has three tiers of check at increasing granularity: doc-set-wide duplication (step 5/10), row-existence (step 6), sentence length (step 11) — each catches a bloat shape the others structurally can't.
+- Same family as D50 ("byte-neutrality is not content-preservation") and D54 ("a marker downgrade is presentation, not condensation") — an aggregate or surface-level metric passing is not proof the underlying defect this skill exists to fix is actually gone.
+- The awk command is cheap enough to run unconditionally after every row-existence pass, so this doesn't need its own opt-in gate the way D51's undersized-file skip does.
+
+**Status**: committed · **Reversible**: yes — a future run could fold this back into step 9's aggregate check if a better single metric is found, but none currently discriminates "few giant lines" from "many medium ones."

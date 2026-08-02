@@ -4,6 +4,8 @@ Referenced by skills and agents that judge whether a CLAUDE.md is too big (updat
 
 **Rule:** a file's own stated budget/decision outranks the skill's default. Read the target before asserting a threshold — the owner may have already closed the question you are about to re-open.
 
+**Scope: a `.claude-companions/<shared|local>/CLAUDE-*.md` file is a CLAUDE.md for every rule on this page**, not just a destination content gets moved to. It carries its own budget, its own atomic-file gate, its own Restructuring-#4 redundancy check — the same as a root, layer, or subdir file. The companion-specific pages (`structural-splits.md`, `update-claude-docs/references/structure.md` §"companion file") describe how content arrives at a companion; they don't limit what a companion is once it exists. On a bare invocation naming "the CLAUDE.md files," `Glob` `.claude-companions/**/*.md` alongside the usual `**/CLAUDE.md` — a companion excluded from scope reads as reviewed when it was never opened.
+
 ## Detect
 
 Grep the target file (header region first — the skill already reads it in full) for the owner's own words:

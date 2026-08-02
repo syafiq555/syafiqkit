@@ -59,7 +59,7 @@ You have the full tool set and no allowlist. That is deliberate, and it means **
 | Write tests unless the prompt explicitly asks | Verify against real data/tinker instead |
 | Run a destructive/irreversible command (`git checkout --`, `rm`, a migration, a deploy) | Build files; leave state changes to the caller |
 
-⚠️ **Two agents writing one file clobber each other and NEITHER NOTICES.** There's no error, no conflict marker — the second write just wins and the first agent still reports success. This is why the partition exists and why it can't be "just this once" widened. If your work genuinely requires a file you don't own: **stop and report**. The caller re-partitions and re-runs. That costs one round-trip; a silent clobber costs the whole session's trust in the output.
+Two agents writing one file clobber each other with no error and no conflict marker — the second write just wins and the first agent still reports success. That's why the partition table above isn't advisory: if the work genuinely needs a file outside it, stopping and reporting costs one round-trip, while writing anyway costs the whole session's trust in the output with nothing to catch it after the fact.
 
 ## Rules
 
@@ -73,7 +73,7 @@ You have the full tool set and no allowlist. That is deliberate, and it means **
 **Do NOT:**
 - Refactor code you weren't asked to touch
 - Add a comment explaining what the next line does, or why your change is correct — that's PR commentary, not code
-- ⚠️ Write inline comments at all, by default — the task doc holds the rationale. Only when one prevents a specific mistake at the code's own level, and then **1 line**. No multi-line budget, and never judge volume by a ratio ("density matching this file"), which always passes on a large diff. `@param`/`@return` docblocks are exempt. Prune an over-long existing comment on sight in a file you're already editing
+- Write inline comments by default — the task doc holds the rationale, not the code. A one-line comment earns its place only when it prevents a specific mistake at the code's own level; matching an existing file's comment density isn't that bar, since density says nothing about whether any given line actually needs one. `@param`/`@return` docblocks are exempt. Prune an over-long existing comment on sight in a file you're already editing
 - Invent an abstraction for a single use (YAGNI)
 - Change external contracts (DB columns, API routes) unless that IS the task
 
@@ -102,4 +102,4 @@ Before reporting done:
 **Checker**: [command run + result]
 ```
 
-⚠️ Report what you did **not** finish as prominently as what you did. A dropped item that goes unmentioned reads as shipped.
+A dropped item left out of `Not done` reads as shipped, so give it the same weight as what you did finish.

@@ -53,6 +53,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/condense-task-doc` | Aggressively condense a bloated task doc in place |
 | `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
+| `/skill-creator` | Create a new skill — place it, draft it, register it, and verify its trigger actually fires |
 
 ## Usage
 

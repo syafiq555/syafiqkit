@@ -5,7 +5,7 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../doc-condensation/current.md (sibling feature — fighting duplication/bloat across docs, CLAUDE.md, skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-07-28 — D60 added in v1.135.2: `Explore` kept calling `Write` in Plan Mode despite a maximally-emphatic ban; `disallowedTools` blocks the call but not the intent, so the fix states the agent's ROLE instead of banning harder. Took three iterations — pure de-priming had to be re-anchored once a review showed an unbound abstraction fails silently on every dispatch. Prior: D58 in v1.132.0 — `/done` docs-only mode now runs the full agent trio (superseding D52's 1.127.0 gate)
+Last updated: 2026-08-02 — `unhobble-instructions` Process gained an explicit row-decoration check in steps 2/3/5 (the ADR for WHY lives in the sibling doc-condensation feature, D63-D66) after running it on itself mis-stripped a genuine Tell alongside hollow ones; no new numbered decision in this feature's own decisions/*.md this session. Prior: D60 in v1.135.2: `Explore` kept calling `Write` in Plan Mode despite a maximally-emphatic ban; `disallowedTools` blocks the call but not the intent, so the fix states the agent's ROLE instead of banning harder.
 -->
 
 # Plugin Maintenance — Agent Architecture
@@ -14,7 +14,7 @@ Last updated: 2026-07-28 — D60 added in v1.135.2: `Explore` kept calling `Writ
 
 **Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 26 decisions (25 live, D35 superseded) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`; the prior "21" was itself an increment off a stale figure).
 
-**State**: v1.130.0 is live on `origin/master` — this repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`.
+**State**: v1.130.0 is live on `origin/master` — this repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`. Uncommitted work from this and other sessions currently sits ahead of that tag (see Last Session).
 
 **Immediate next actions (in order)**:
 1. This repo's own `.claude/agents/` is still missing `task-builder.md` and `browser-verifier.md` (templates exist, never generated) — run `/agent-setup` to backfill; exercises the Missing-agent check (D38) end-to-end.
@@ -39,6 +39,7 @@ Last updated: 2026-07-28 — D60 added in v1.135.2: `Explore` kept calling `Writ
 - A `disallowedTools` guard blocks an agent's *call*, never its *intent* — redirect by stating the agent's ROLE, and keep the redirect anchored to a named target category; de-priming to pure abstraction trades a loud rare failure for a silent universal one — see D60 (decisions/injection-and-delegation.md)
 - Widening a threshold table (agent-count tiers, byte budgets) needs every downstream decision point checked, not just the table itself — see D39 (decisions/verification-rigor.md)
 - A skill pair that both scan the same conversation for the same signal class and route dependently must dispatch sequentially — D32's parallel-batch default assumes disjoint state, which this pair doesn't have — see D42 (decisions/concurrency-and-delegation.md)
+- `unhobble-instructions`' own Process didn't wire its row-decoration check into the numbered steps that actually drive execution, so running the skill on its own logic still mis-stripped a genuine `**Tell:**` alongside hollow ones — checking content is not the same test as checking decoration, and a step that isn't referenced by the linear Process doesn't get applied even when it exists elsewhere in the file — see D63–D66 (../doc-condensation/decisions/structural-splits.md, not this feature's own decisions/ — unhobbling's ADR history lives in doc-condensation)
 
 ---
 
@@ -79,7 +80,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 - [ ] This repo's own `.claude/agents/` is missing `task-builder.md` and `browser-verifier.md` (templates exist, never generated) — run `/agent-setup` to backfill; would also exercise the Missing-agent check (D38) end-to-end.
 
 **Doc integrity**
-- [ ] **Add the post-write ADR-id gate — the numbers are fixed, the allocator is not.** This was the 2nd collision round and the 1st caused it: `doc-condensation`'s D40 was renumbered off a duplicate D32 on 2026-07-20 into an id this feature then took. Picking "the next free number" is a pre-write lookup; without re-running `grep -rhoE "^### D[0-9]+" */decisions/*.md | grep -oE "[0-9]+" | sort -n | uniq -d` across **all three sibling features after writing**, round 3 is the same mistake. Belongs in the plugin CLAUDE.md's ADR row. ⚠️ Never reuse a numbering gap — D2/D5/D7/D11/D41 are demoted/retired ids still cited in prose. Highest id is 53; the check runs clean today, which is exactly why the gate keeps getting deferred.
+- [ ] **Add the post-write ADR-id gate — the numbers are fixed, the allocator is not.** This was the 2nd collision round and the 1st caused it: `doc-condensation`'s D40 was renumbered off a duplicate D32 on 2026-07-20 into an id this feature then took. **2026-08-02: round 3 happened exactly as predicted** — `doc-condensation`'s own D66 was independently minted twice (a `/done` review caught it, renumbered to D67), because the allocator step CLAUDE.md's ADR row already prescribes (`grep -rhoE "^### D[0-9]+" tasks/ | ...`) wasn't run against the global corpus before writing. The manual fix works; the gate to make it automatic is still open. ⚠️ Never reuse a numbering gap — D2/D5/D7/D11/D41 are demoted/retired ids still cited in prose. Highest id is now 67.
 
 **Doc size**
 - [ ] The doc SET is 633 lines / 70KB against a 300-line budget — 605 at HEAD, so pre-existing, not this session's growth (`cat current.md decisions/*.md | wc -lc`). The index reads healthy at 96 lines, which is what hides it. Weight is `decisions/verification-rigor.md` (231 lines), not the theme file most recently edited. Route to `condense-task-doc` — it owns the thresholds and any further split; don't hand-condense.
@@ -89,10 +90,11 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 ---
 
-## Last Session (2026-07-27)
+## Last Session (2026-08-02)
 
-- **D53**: fixed upstream issue #13 — `task-summary`'s §4 overwrite mandates contradicted its own §1 ownership guard on a contested doc. Rule extracted to `_shared/references/contested-doc-sections.md` after a mandate-vocabulary grep found `condense-task-doc` and `merge-task-docs` carrying it unguarded too.
-- **The first fix was unreachable and shipped that way** until review: the branches keyed off a guard scoped "before **scanning**", while the reporter's repro passes an explicit path. §1 is now run-wide. Same defect as D52's unmeasured gate, 4th recurrence of the shape.
-- The 🔴 came from the **product reviewer** again, after the code reviewer correctly cleared the three changed lines — reachability lives between sections, not in them. 2nd consecutive session that lens carried the load-bearing finding.
-- `marketplace.json` was found 3 versions behind `plugin.json` (1.127.0 vs 1.130.0), present at HEAD and unrelated to #13. Corrected; no automated guard added (scope call).
-- Shipped as `b7c9f8d` — 1.128.0–1.130.0 in one push. Verified at the remote, not just locally: `git ls-remote` matches local HEAD and `contested-doc-sections.md` reads back from `origin/master` (control returned 13). Issue #13 was already closed 2026-07-26 by someone else; only the explanatory comment was posted this session.
+- Ran `unhobble-instructions` on the global agent-bootstrap CLAUDE.md section and its companion table; user caught a mis-strip (a genuine `**Tell:**` removed alongside hollow ones) — traced to the skill's own Process never wiring the decoration check into its numbered steps, only into prose the linear read skips.
+- Fixed: restored the dropped Tell, wired the decoration check into Process steps 2/3/5, added a `done/SKILL.md` note on repos outside a project's own tree (dotfiles, a separately-cloned plugin checkout), and a new agent-bootstrap row on citation-accuracy-vs-attribution-accuracy (an agent's cited facts can each verify while the claimed baseline/diff scope is still wrong).
+- Code review + product review both ran clean on the fix itself; a third agent's (simplifier) report was independently caught citing content from the wrong git baseline — not acted on.
+- Later same day, `/done`'s review pass found the D66 collision above, plus `read-summary/references/doc-authority.md`'s router-detection grep (`^### D-`) silently false-negatives against this plugin's own hyphen-less ADR convention — widened to match both. Both fixed same session.
+- An Opus-pinned `code-simplifier` spawn 400s with `effort 'max' not supported when thinking is disabled`; the fix (re-dispatch as `general-purpose` on sonnet, not opus) is already in `CLAUDE-agent-bootstrap.md`/`CLAUDE-platform-gotchas.md` — the miss was not reading those companions before retrying at the same tier first.
+- Uncommitted at end of session — this doc's own edit is part of that same uncommitted state.

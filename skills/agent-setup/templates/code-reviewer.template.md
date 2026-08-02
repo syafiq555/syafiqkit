@@ -136,7 +136,7 @@ No findings: `No high-confidence issues detected in session changes.`
 | Rule | |
 |------|-|
 | Scope | Session changes only — never audit the entire codebase |
-| Confidence | ≥80% threshold is non-negotiable — when in doubt, discard |
+| Confidence | Below the threshold, discard — see Confidence Calibration above |
 | Specificity | Always include file path, line numbers, and a concrete fix |
 | Severity order | Security → Bugs → Conventions |
 | Grouping | Consolidate the same pattern repeated across multiple files |

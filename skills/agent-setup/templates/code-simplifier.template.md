@@ -91,10 +91,6 @@ Apply the Rule of Three: extract when a pattern appears 3+ times. For 2 occurren
 | Has own template/styles/markup | Works across unrelated callers |
 | Reused 2+ places with same structure | Stateless data manipulation |
 
-❌ Utility that returns markup/classes for manual assembly → ✅ Component that encapsulates it
-❌ Component for a one-liner transform → ✅ Utility
-Three similar lines of code > premature abstraction
-
 **⚠️ A fat component is shrunk by extracting LOGIC, not markup.** When a component is long because of stateful clusters (effects, refs, event wiring, data load/save), extracting subcomponents or utilities barely dents the line count — extract each cohesive cluster into a **hook/composable** (`useXRenderer`/`useXGestures`/`useX`) and leave the component as composition. Splitting presentational JSX is the low-value pass; splitting stateful logic is the one that actually reduces the file.
 
 ## High-Impact Simplifications

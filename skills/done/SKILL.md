@@ -7,7 +7,7 @@ description: Post-task cleanup - simplify code, review changes, update docs, cap
 
 Execute all steps in sequence without pausing for confirmation.
 
-⚠️ **Ending the turn with steps outstanding is a pause, even when you announce it and ask nothing** — 📖 `../_shared/references/one-turn-chain.md`. It fires at the sub-skill RETURN boundary (Steps 3→4→5), where a freshly-written summary reads like the end of the turn. **Tell: your reply names a remaining step instead of performing it.**
+⚠️ **Ending the turn with steps outstanding is a pause, even when you announce it and ask nothing** — 📖 `../_shared/references/one-turn-chain.md`. This bites hardest at the sub-skill RETURN boundaries (3→4, 4→5): `update-claude-docs` and `task-summary` each close with a summary of their own writes, and that summary reads like the end of the turn even though the next step hasn't run. Treat any sub-skill's closing output as mid-turn, and if your reply is naming a remaining step rather than performing it, that's the pause.
 
 **`run_in_background: false` is not a guarantee the call blocks** — [subagents run in the background by default since v2.1.198](https://code.claude.com/docs/en/sub-agents), and [#69691](https://github.com/anthropics/claude-code/issues/69691) reports `false` is ignored in top-level sessions. Pass it anyway to express intent, but expect results as `<task-notification>`s regardless — see Step 1 for what that means in practice.
 
@@ -81,7 +81,7 @@ Run the Glob first every time — don't assume the project agent exists or doesn
 
 **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** It drives a real browser against a running app, so it is slow, needs the app up, and is meaningless on a backend-only diff. Spawn it **only when the user asked in words** — "the diff touches UI so they'd want runtime proof" is an inference, and inferring it is the auto-spawn this rule forbids. A UI diff is a reason to offer, never a reason to spawn. It is not counted in the agent table below and never partitioned. See `references/browser-verification.md`.
 
-**Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first with **`git status --short`** (run it in EVERY repo of a multi-repo project), then pick agents-per-role:
+**Agent count — auto-scale by changed-file count, user arg overrides.** Count changed files first with **`git status --short`** (run it in EVERY repo of a multi-repo project), then pick agents-per-role. "Multi-repo" here isn't limited to a project's known sub-repos — a global dotfiles checkout (`~/.claude`) or a separately-cloned plugin repo sits outside the project directory entirely, so a session that writes to one has touched a git tree no `Glob`/directory walk from the project root will ever surface.
 
 ⚠️ **`git status --short` is canonical — NOT `git diff --name-only`.** `diff --name-only` shows only unstaged changes to tracked files — new/staged files are invisible. If you staged before `/done`, it returns empty for the entire session's work — you then partition zero files, every agent reports clean on an empty slice, and `/done` passes having reviewed nothing. `git status --short` shows staged + unstaged + untracked with status letters. **Tell: the command returns nothing for work you just did.**
 
@@ -154,8 +154,6 @@ This is the **single** writer of CLAUDE.md / `CLAUDE.local.md` entries. It scans
 
 **Invoke it BARE (no arg), or if you pass an arg keep it a HINT — never a scope limiter.** Handing the skill a pre-written arg that lists only this session's code facts silently narrows its scan and drops early-session behavioral misses (a wrong task-doc discovery, a source you checked wrong and the user corrected). Those "user had to correct" signals are the highest-value capture and the easiest to lose. If you do pass an arg, it must still say "and scan the full conversation for corrections/wrong-turns too."
 
-⚠️ **Its summary is not your turn's ending — invoke Step 4 in this same turn.** Writing that summary is what makes the boundary feel terminal.
-
 **Step 4 — Update Task Docs:**
 
 Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-domain scan.
@@ -167,8 +165,6 @@ Invoke `syafiqkit:task-summary` **with no args** — let the skill do a multi-do
 The skill auto-detects create vs update. Handles: path resolution, status updates, completed work, cross-references.
 
 > Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
-
-⚠️ **Same boundary as Step 3: `task-summary`'s closing validation is not your turn's ending — run Step 5's two gates in this same turn.**
 
 ## Step 5: Capture plugin learnings (Gate A rare · Gate B fires whenever a skill file was touched)
 
@@ -192,7 +188,9 @@ git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
 
 Not in the plugin repo this session? Then no skill file was hand-edited here and Gate B cannot fire — say so, rather than reaching for a path.
 
-Any output → **a rule arrived by direct hand-edit, which is the dominant arrival path and the one Gate A cannot see.** A hand-edited rule is legitimate and usually earned; the point is not to refuse it but to make its arrival *visible*. Enter Step 5 and run `update-plugin`'s **Step 3a arrival-rate gate** against every file the command listed: for each file above ~90 B/L, the change must be a **replace** (a superseded rule removed), a **route** (moved to `references/`), or a **declared growth** with the reason no retirement applied. Compute the ratio, don't estimate it:
+Output here is a starting point, not a verdict — that checkout is shared by every project, so it routinely carries another session's uncommitted work, and a file you only *read* this session looks identical to one you wrote. Settle it by mtime against when this session began before treating the gate as fired; on macOS that's `stat -f '%Sm' -t '%m-%d %H:%M' <file>` (BSD `stat`, so the GNU `ls --time-style=...` spelling silently prints nothing). Files predating the session, or ones you recognise as untouched, drop out — if that empties the list, Gate B did not fire, and saying so is the complete answer.
+
+Any surviving output → **a rule arrived by direct hand-edit, which is the dominant arrival path and the one Gate A cannot see.** A hand-edited rule is legitimate and usually earned; the point is not to refuse it but to make its arrival *visible*. Enter Step 5 and run `update-plugin`'s **Step 3a arrival-rate gate** against every file the command listed: for each file above ~90 B/L, the change must be a **replace** (a superseded rule removed), a **route** (moved to `references/`), or a **declared growth** with the reason no retirement applied. Compute the ratio, don't estimate it:
 
 ```bash
 for f in <the files listed above>; do echo "$(echo "scale=1;$(wc -c<$f)/$(wc -l<$f)"|bc) $f"; done
@@ -227,7 +225,7 @@ This check is not optional and not covered by the rows below — they audit whet
 
 A row you cannot substantiate is a step you skipped — go run it now rather than writing `✅` beside it. If you spawned agents of only ONE role in Step 1, the step is half-run: spawn the missing role before proceeding. (Plugin is the one row where absence is the norm, not a miss.)
 
-⚠️ **Spawning is not running — an agent that returns a FAILURE instead of findings leaves its row unfillable, and `✅ none needed` there is a false completion claim.** A role whose agent died produced no findings, which is indistinguishable in the Output table from a role that found nothing. Re-run the role. When the cause is the agent's own definition, editing that file does not take effect this session — the registry is read at session start — so re-run the ROLE as `general-purpose` with an explicit `model:` matching what the agent file pins, and fix the file for next time. **Tell: you are writing a `✅` for a role whose agent you never saw return findings.**
+⚠️ **Spawning is not running — an agent that returns a FAILURE instead of findings leaves its row unfillable, and `✅ none needed` there is a false completion claim.** A role whose agent died produced no findings, which is indistinguishable in the Output table from a role that found nothing. Re-run the role. When the cause is the agent's own definition, editing that file does not take effect this session — the registry is read at session start — so re-run the ROLE as `general-purpose` with an explicit `model:` matching what the agent file pins, and fix the file for next time. But when the failure is a spawn/routing fault rather than a definition problem — an opus-pinned role 400ing with `effort 'max' not supported when thinking is disabled` is the recurring shape — matching the same model tier reproduces the identical fault; re-dispatch on a different tier (`general-purpose model: "sonnet"`) instead of retrying opus a second way. **Tell: you are writing a `✅` for a role whose agent you never saw return findings, or your retry changed the wrapper but not the model tier that actually faulted.**
 
 ## Output
 

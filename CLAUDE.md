@@ -51,6 +51,7 @@ Claude Code plugin providing personal workflow automation: commit messages, task
 | `condense-claude-md` | Aggressively condense a bloated CLAUDE.md (removes excess — not the analog that adds content) | User invokes, or `update-claude-docs` Condense mode |
 | `ci-ssh-deploy-timeout` | Diagnose CI/CD deploys that intermittently can't SSH the target; convert to a connect-retry pattern instead of allowlisting runner IPs | User invokes or proactive on "deploy keeps timing out" |
 | `unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint (rigid imperatives, "Tell:" trip-wires, mechanical thresholds) vs. genuine fact, per Anthropic's "Unhobbling Claude" framing. Narrower and stricter than a plain density pass — the lens is judgement-vs-constraint, not byte count | User invokes explicitly ("apply unhobbling to X", "is this overconstrained") |
+| `skill-creator` | Create a NEW skill — judge whether it should be one at all, place it (plugin vs project vs personal), draft the SKILL.md, register it in both tables, pressure-test the trigger. Creates; `update-plugin` maintains | User invokes ("create a skill for X", "turn this into a skill"), or a session reveals a repeated procedure no skill covers |
 
 ### Typical invocation sequence
 
@@ -218,7 +219,4 @@ Commands/skills are prompts — apply these patterns when authoring or refactori
 | `.claude-plugin/plugin.json` | `"version"` |
 | `.claude-plugin/marketplace.json` | `plugins[0].version` |
 
-Then run:
-```bash
-claude plugin update syafiqkit@syafiqkit
-```
+When several agents patch this plugin in the same window — a fan-out like `unhobble-instructions` dispatching one background agent per file group is the common case — each one reading-then-bumping the version independently races the others, since none of them can see a sibling's in-flight edit. Re-read the version immediately before writing your own bump rather than trusting the value you read at the start of your turn, and expect to bump again if it moved. `claude plugin update syafiqkit@syafiqkit` reloads the installed copy from the checkout, so it's a one-time action for whoever is coordinating the whole batch, not something each parallel agent should run on its own edit — running it mid-batch reloads a partial, in-progress version of the plugin.

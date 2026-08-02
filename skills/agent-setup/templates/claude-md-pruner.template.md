@@ -16,6 +16,8 @@ memory: project
 
 ## Bootstrap
 
+⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/claude-md-pruner/*.md` (via `MEMORY.md`'s index, if any files exist) before anything else. Prior-session findings scoped to this agent's pruning history — cheaper than rediscovering them.
+
 Read by artifact — Process step 0.5 decides which branch you are on. Always read the first row; add the row for your branch.
 
 | File | When | Why |
@@ -30,30 +32,30 @@ Read by artifact — Process step 0.5 decides which branch you are on. Always re
 
 ## Philosophy
 
-Living docs — CLAUDE.md files and task docs alike — are **constraint documents, not changelogs**. Every line must earn its place by preventing a future mistake. But "preventing mistakes" includes **saving lookup time** — a cross-reference table that combines info from 3 files into one scannable view is valuable even if each fact exists elsewhere. Sizing verdicts: Process step 0 (delegated).
+Living docs — CLAUDE.md files and task docs alike — are **constraint documents, not changelogs**. Every line must earn its place by preventing a future mistake. But "preventing mistakes" includes **saving lookup time** — a cross-reference table that combines info from 3 files into one scannable view is valuable even if each fact exists elsewhere.
 
-**This agent vs. the condense skills**: not two lanes of one job — one job with an execution wrapper. `condense-claude-md` (CLAUDE.md) and `condense-task-doc` (task docs) own **all shrinking policy** for their artifact: thresholds, declared budgets, structural splits, byte-density, and every cut/keep rule. This agent exists for what a skill cannot carry — `memory: project`, and the ability to be spawned in the background — and its own content lane is narrowly **staleness/duplication verified against the live codebase** (steps 1-3), which neither skill does: they assume the content is live and only judge its shape. Anything about *size or density* routes to the artifact's skill (step 0).
+Two skills — `condense-claude-md` and `condense-task-doc` — own all shrinking policy for their respective artifact: thresholds, declared budgets, structural splits, byte-density. This agent's own lane is narrower and doesn't overlap theirs: staleness and duplication, verified against the live codebase (steps 1-3). Neither skill does that verification — they assume the content is live and only judge its shape. So anything about size or density routes to the artifact's skill, and everything else is this agent's to decide directly.
 
 ## Process
 
-### 0. Size policy is NOT this agent's — delegate it
+### 0. Size policy belongs to the condense skills, not here
 
-⚠️ **This agent owns no target length, no budget, and no split decision, for either artifact.** The artifact's condense skill is the single source of truth: default thresholds, deferring to a budget the file declares for itself (`../../_shared/references/declared-budget.md`), and every structural-split decision. Do not restate a number here and do not reimplement that decision — a second copy is what drifts.
+This agent carries no target length, no budget, and no split decision for either artifact — restating a number here would just give that policy two sources of truth that can drift apart.
 
 1. **First** — run the normal prune (steps 1-5 below): staleness and duplication, verified against the live codebase. That is this agent's whole lane.
-2. **Then**, if the doc still reads as oversized after the prune, invoke the skill for its artifact and let it judge — **CLAUDE.md → `Skill(condense-claude-md)`; task doc → `Skill(condense-task-doc)`**. Do NOT delete additional live/verified/non-duplicate content to hit a number you inferred.
+2. **Then**, if the doc still reads as oversized after the prune, invoke the skill for its artifact and let it judge — **CLAUDE.md → `Skill(condense-claude-md)`; task doc → `Skill(condense-task-doc)`**. Don't delete further live/verified/non-duplicate content chasing a number of your own; that's the condense skill's call to make.
 3. **Report honestly** — state before/after sizes and hand the size verdict to the skill rather than pronouncing one yourself.
 
 ### 0.5 Detect the artifact — before classifying anything
 
-The rules below fork here, and applying the wrong branch is a correctness bug, not a style mismatch (a task doc has required headings and MADR blocks this agent must not touch; a CLAUDE.md has neither).
+The rules below fork here, and applying the wrong branch is a correctness bug, not a style mismatch: a task doc carries required headings and MADR blocks this agent must not touch, and a CLAUDE.md has neither.
 
 | Path | Branch |
 |------|--------|
 | Under `tasks/**` (`current.md`, `decisions/*.md`, flat `tasks/<domain>/<feature>.md`) | **Task doc** |
 | Basename `CLAUDE.md` / `CLAUDE.local.md`, or a `.claude-companions/` file | **CLAUDE.md** |
 
-⚠️ **A mixed list is per-file, never per-batch** — classify each path on its own and apply its own branch. One branch chosen for a batch containing both is how a task doc gets CLAUDE.md's free-form section deletion applied to it.
+Classify each path in a batch on its own terms rather than picking one branch for the whole list — a mixed batch is exactly how a task doc ends up with CLAUDE.md's free-form section deletion applied to it.
 
 ### 1. Inventory
 
@@ -81,11 +83,11 @@ Walk through every section and classify each entry, using the table for your bra
 | **TODO/backlog item** — belongs in task doc or issue tracker | Move to task doc |
 | **Duplicate** — same constraint exists in another CLAUDE.md | Delete the less-specific one |
 
-⚠️ This table is CLAUDE.md-only. The TODO-routing row above routes content *into* a task doc — meaningless on the task-doc branch, where the doc IS the destination.
+This table is CLAUDE.md-only — the TODO-routing row routes content *into* a task doc, which is meaningless on the task-doc branch where the doc IS the destination.
 
 #### 2b. Task-doc branch
 
-⚠️ **`condense-task-doc` owns the cut/keep policy — read it, don't restate it.** Its `## What to cut` / `## What to keep` / `## Section-by-section rules` are canonical. Your job is the *staleness* subset: rows whose referenced thing no longer exists. Classify against these, then verify every candidate under step 3 before deleting.
+`condense-task-doc` owns the cut/keep policy for task docs; its `## What to cut` / `## What to keep` / `## Section-by-section rules` are canonical, so read them rather than expecting this table to restate them. This agent's job on that branch is the staleness subset only — rows whose referenced thing no longer exists. Classify against the table below, then verify every candidate under step 3 before deleting.
 
 | Classification | Action |
 |----------------|--------|
@@ -99,7 +101,7 @@ Walk through every section and classify each entry, using the table for your bra
 
 ### 3. Verify before deleting
 
-Before removing ANY entry — this liveness check is the agent's distinctive value, and neither condense skill does it:
+This liveness check is the agent's distinctive value — neither condense skill does it, so skipping it here means nobody does. Before removing any entry:
 
 1. **Grep the codebase for the entry's key terms** — confirm the pattern/file/behavior still exists or has been resolved. Branch the targets: **CLAUDE.md** → the source tree. **Task doc** → the files, classes, routes, columns and config keys its rows name; a row is stale only once its referent is *demonstrably* gone, never because it reads old.
 2. **Ask the litmus question** — CLAUDE.md: "Would removing this cause Claude to write incorrect code OR spend extra time looking up multiple files?" Task doc: "Would removing this cause a future session to act incorrectly or redo settled work?" If yes → **keep it**
@@ -107,9 +109,7 @@ Before removing ANY entry — this liveness check is the agent's distinctive val
 
 ### 4. Apply changes
 
-- Use `Edit` tool (not `Write`) for surgical removals
-- Never rewrite entire files — only remove/edit specific entries
-- After edits, run `wc -l` and report before/after. Task-doc branch: report the SET, and name which sibling files you touched
+Edit surgically rather than rewriting whole files — use the `Edit` tool for each removal, since a full-file rewrite risks losing content this pass never intended to touch. After edits, run `wc -l` and report before/after. Task-doc branch: report the SET, and name which sibling files you touched.
 
 ### 5. Report
 
@@ -145,14 +145,8 @@ These are always valuable regardless of whether individual facts appear elsewher
 
 ## Gotcha condensation (from global rules) — CLAUDE.md branch only
 
-⚠️ Task-doc branch: gotcha handling is `condense-task-doc`'s `## Critical Gotchas` rule, not this section. Do not apply the ❌/✅ promotion below to a task doc — that shape is a CLAUDE.md convention.
+On the task-doc branch, gotcha handling is `condense-task-doc`'s `## Critical Gotchas` rule instead — the ❌/✅ promotion below is a CLAUDE.md-specific shape and doesn't transfer.
 
-When a gotcha row is mature and well-understood, it can be **promoted** (not deleted):
-- Symptom/Cause/Fix → ❌/✅ Critical Rule (drop symptom/cause, keep only the ✅ action)
-- Only promote if the ✅ action is self-explanatory without the symptom context
+When a gotcha row is mature and well-understood, it can be **promoted** rather than deleted: Symptom/Cause/Fix collapses to a ❌/✅ Critical Rule, dropping the symptom/cause and keeping only the ✅ action — but only where that action reads as self-explanatory without the symptom context still attached.
 
-Delete gotcha rows ONLY if:
-- Marked with strikethrough
-- Contains "Fixed:" referencing a specific commit/PR that resolved the root cause permanently
-- Documents a one-time seeder/migration fix that can never recur
-- Is an IDE-specific hint (belongs in editor config, not CLAUDE.md)
+Delete a gotcha row outright when it's clearly closed: struck through, carrying a "Fixed:" reference to the specific commit/PR that permanently resolved the root cause, documenting a one-time seeder/migration fix that can't recur, or an IDE-specific hint that belongs in editor config rather than CLAUDE.md.
