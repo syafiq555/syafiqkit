@@ -14,7 +14,7 @@ Last updated: 2026-08-02 — `unhobble-instructions` Process gained an explicit 
 
 **Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 26 decisions (25 live, D35 superseded) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`; the prior "21" was itself an increment off a stale figure).
 
-**State**: v1.130.0 is live on `origin/master` — this repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`. Uncommitted work from this and other sessions currently sits ahead of that tag (see Last Session).
+**State**: v1.137.13 ships via `/ship` — this repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`.
 
 **Immediate next actions (in order)**:
 1. This repo's own `.claude/agents/` is still missing `task-builder.md` and `browser-verifier.md` (templates exist, never generated) — run `/agent-setup` to backfill; exercises the Missing-agent check (D38) end-to-end.
@@ -97,4 +97,4 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 - Code review + product review both ran clean on the fix itself; a third agent's (simplifier) report was independently caught citing content from the wrong git baseline — not acted on.
 - Later same day, `/done`'s review pass found the D66 collision above, plus `read-summary/references/doc-authority.md`'s router-detection grep (`^### D-`) silently false-negatives against this plugin's own hyphen-less ADR convention — widened to match both. Both fixed same session.
 - An Opus-pinned `code-simplifier` spawn 400s with `effort 'max' not supported when thinking is disabled`; the fix (re-dispatch as `general-purpose` on sonnet, not opus) is already in `CLAUDE-agent-bootstrap.md`/`CLAUDE-platform-gotchas.md` — the miss was not reading those companions before retrying at the same tier first.
-- Uncommitted at end of session — this doc's own edit is part of that same uncommitted state.
+- Shipped via `/ship` at v1.137.13 — this doc's own edit is part of that same commit.
