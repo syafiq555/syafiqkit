@@ -13,9 +13,9 @@ These defaults match the common setup but can be overridden by user context or C
 
 | Setting | Default | Override source |
 |---------|---------|----------------|
-| Remote access | `remote` CLI (from `~/.config/remote-cli/servers.json`) | User can specify SSH alias directly |
+| Remote access | plain `ssh <host>` (or the `remote` CLI, from `~/.config/remote-cli/servers.json`, if set up) | User can specify SSH alias directly |
 | Local MySQL | Docker container named `mysql`, root user, no password | Adapt if native MySQL or different container |
-| Transfer method | scp via SSH alias | Always binary-safe (never pipe `remote` to local file) |
+| Transfer method | scp via SSH alias | Always binary-safe (never pipe a decorating wrapper's stdout to a local file) |
 | Post-import | Reset all passwords + clean up dump files | User can skip with "just the data" |
 
 ## Workflow
@@ -25,17 +25,17 @@ These defaults match the common setup but can be overridden by user context or C
 Determine from context or ask the user:
 
 1. **Source server** — which remote alias or SSH host (check `~/.config/remote-cli/servers.json` or `~/.ssh/config`)
-2. **Database name** — check with `remote <server> "mysql -u USER -pPASS -e 'SHOW DATABASES'"` or infer from server config
+2. **Database name** — check with `ssh <host> "mysql -u USER -pPASS -e 'SHOW DATABASES'"` (or your own SSH wrapper) or infer from server config
 3. **Credentials** — from CLAUDE.local.md, server config, or ask user
 4. **Local database name** — from project `.env` (`DB_DATABASE=`)
 5. **Local MySQL access** — Docker container name (`docker ps --format '{{.Names}}' | grep -i mysql'`) or native
 
 ### Step 2: Dump on Server, Transfer via scp
 
-The `remote` CLI's output path injects ANSI codes into anything it prints — that's fine for text but corrupts a binary stream if you pipe a mysqldump through it directly. So dump and compress on the server itself, and only ever move the resulting file with `scp`, never by piping `remote` output into a local file:
+Dump and compress on the server itself, then move the resulting file with `scp` — never pipe a mysqldump through the SSH command's stdout into a local file. Any wrapper that decorates its output (the `remote` CLI injects ANSI colour codes, and plain `ssh` can allocate a TTY) corrupts a binary stream silently, while text passes through looking fine:
 
 ```bash
-remote <server> "mysqldump -u USER -pPASS DBNAME --single-transaction --routines --triggers --no-tablespaces 2>/dev/null | gzip > ~/public_html/db_dump.sql.gz && ls -lh ~/public_html/db_dump.sql.gz"
+ssh <host> "mysqldump -u USER -pPASS DBNAME --single-transaction --routines --triggers --no-tablespaces 2>/dev/null | gzip > ~/public_html/db_dump.sql.gz && ls -lh ~/public_html/db_dump.sql.gz"
 ```
 
 Cloudways-style hosts often can't write to `~/` directly, so if the dump command fails, retry against `~/public_html/` (the app directory is usually writable), then `/tmp/` as a last resort before asking the user for a writable path.

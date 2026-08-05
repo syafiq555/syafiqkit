@@ -250,3 +250,22 @@ Chosen: docs-only now runs the full agent trio (like full mode) PLUS the docs-sp
 - One fewer mode-selection judgment call: any all-doc diff runs the same agents regardless of whether the markdown is "executable."
 
 **Status**: committed · **Reversible**: yes · **Supersedes** the 1.127.0 prose-vs-executable gate (D52's rejected option)
+
+---
+
+### D-emission-shape-reanchor — Reordering a Rule Earlier in a Doc Fixes the Cold Read, Not the Behavioral Miss — committed — v1.139.10
+
+**Problem**
+Reported upstream as [issue #18](https://github.com/syafiq555/syafiqkit/issues/18). `/done` Step 1's "Ownership" section (file-partitioning guard) sat ~45 lines before the "emission-shape" rule (all `Agent` calls in one message). A session doing non-trivial ownership reasoning (contested files) lost track of emission-shape by the time it drafted the `Agent` calls, and split the batch across two messages. The first fix reordered Step 1 so "Emission shape" is read *before* "Ownership." The product reviewer then asked the harder question: does reading the rule earlier in a cold pass actually prevent the reporter's failure, which happened *after* a full read, once attention was absorbed by the ownership partitioning itself?
+
+**Decision**
+Chosen: reordering stays (it helps the cold-start case) AND a one-line re-anchor is added at the end of Ownership, immediately before "Agents to run" — the exact point where partitioning reasoning ends and `Agent`-call drafting begins: "Once the partition is decided, emit every agent from it in the single message described above." This is the reporter's own suggested fix ("closer to, or immediately after, the ownership-guard section") — document position alone doesn't survive a reasoning-heavy section in between; the constraint needs to re-trigger at the moment of action, not just appear earlier in a linear read.
+
+**Rejected**
+- Reordering alone (ship the first fix as sufficient). Why not: fixes the failure mode for a reader who acts immediately after reading Emission-shape, but the original reporter's miss happened with the OLD order too — after fully processing Ownership, not before it. A rule read once, then followed by several paragraphs of unrelated reasoning, needs a second trigger at the point where that reasoning ends, not just an earlier read.
+
+**Consequences**
+- Same shape as D52/D53 (a branch/rule dead wherever no step re-checks its own condition at the moment it's needed) — this is the "salience," not "reachability," face of the same underlying pattern: a true statement earlier in a document is not the same as a statement present at the point of action.
+- Caught by the product reviewer against the two GitHub issues' original text, not by the code reviewer (which correctly verified the reorder was internally consistent) or by the author re-reading their own fix — 3rd consecutive session where the product-reviewer lens found the load-bearing defect a file-scoped/self lens couldn't (D52, D53, this).
+
+**Status**: committed · **Reversible**: yes

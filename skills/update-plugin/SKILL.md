@@ -20,7 +20,11 @@ D=~/.claude/plugins/syafiqkit
   && git -C "$D" remote get-url origin 2>/dev/null | grep -q 'syafiq555/syafiqkit' && echo OWNER || echo CONSUMER
 ```
 
-`CONSUMER` (or a non-git dir) → don't patch, don't bump the version. Still run Step 1 — a defect a real user hit is valuable regardless — then route it upstream via Step 5 instead of editing files.
+`CONSUMER` (or a non-git dir) → don't patch, don't bump the version.
+
+**A consumer's whole path is Step 1 then upstream** — the patching steps below (2, 3, 3a, 4) don't apply, so read Step 1, then read the upstreaming flow below. A defect a real user hit is worth capturing regardless of who can commit the fix.
+
+Upstreaming means filing a GitHub issue under the user's own identity, which reaches the maintainer fast. **Ask before filing; never post unprompted under the user's name.** 📖 **`references/upstream-consumer-finding.md`** — `gh auth status`, drafting the report, `gh issue create`, and the fenced fallback when `gh` isn't available or the user declines. Report the skill + version, what happened reproducibly, and the suggested fix.
 
 📖 **`../_shared/references/consumer-portability.md`** — read before writing any step that names a plugin path or shell command a consumer would run: `tasks/` not shipping with installs, `${CLAUDE_PLUGIN_ROOT}` not expanding in markdown, `~` on Windows/WSL.
 
@@ -71,6 +75,8 @@ Apply the most targeted edit for the kind of change:
 - **Workflow rule** — goes into the most relevant existing section; don't spin up a new section for one rule. State the general principle the incident revealed, not a retelling of the incident itself — a rule that names this session's specific artifact or exact wording only fires again on an identical recurrence. The concrete story belongs in the CHANGELOG entry; the skill body carries the abstracted rule.
 
   Write it in the shape `unhobble-instructions` audits for, so a later pass has nothing to undo: state the reasoning and let the reader apply it, rather than pre-empting each way it could go wrong with its own trip-wire. A new rule earns a `⚠️`, a bolded imperative, or a `**Tell:**` when the cost of missing it is genuinely silent or irreversible — the marker is for the cases where a careful reader would still walk past the problem, and it stops carrying that meaning if every rule gets one. A fact the reader can't derive (a harness quirk, an exact command, a real binary) is worth stating flatly and keeping; a rule that mostly restates what a competent read of the surrounding prose already concludes is the kind that accumulates.
+
+  These files ship publicly — before writing an example, check whether it's the tool this session happened to have or the general mechanism a stranger would recognize. 📖 **`../_shared/references/consumer-portability.md`** for how to generalise it, plus paths, identity probes and shell assumptions.
 - **Architecture decision** — append to the relevant `decisions/*.md` theme file as `Decision | Rationale`, and make the rationale actually explain why.
 - **New skill in the registries** — both `CLAUDE.md`'s skill table and `README.md`'s need the entry; they're hand-maintained and easy to update one without the other.
 
@@ -98,14 +104,8 @@ Re-read what changed. Does the new text actually address what was missed this se
 - Vague notes with no actionable rule → skip
 - Something already documented but just forgotten → strengthen the wording, don't duplicate
 
-## Step 5 — Upstream a consumer finding (CONSUMER only)
-
-A consumer can't patch, but can file — a GitHub issue reaches the maintainer fast, under their own identity. Ask before filing; never post unprompted under the user's name.
-
-📖 **`references/upstream-consumer-finding.md`** — the flow: `gh auth status`, drafting the report, `gh issue create`, and the fenced fallback if `gh` isn't available or the user declines.
-
 ## Output
 
 **Owner** — tell the user which files were patched and what changed, whether `plugin-maintenance/current.md` or `CHANGELOG.md` moved, and any signals found but skipped and why.
 
-**Consumer** — no files touched. Report the skill + version, what happened (reproducibly), and the suggested fix. Then offer Step 5.
+**Consumer** — no files touched; report per the upstreaming flow in Step 0.

@@ -143,7 +143,7 @@ A user's scope call on a Next Steps item (defer, decline, deprioritize, block-on
 | Signal | Action |
 |--------|--------|
 | Record of an already-recorded decision got more accurate (status flipped `planned`→`shipped`, a Consequence turned out different, an implementation bullet changed) | Edit the existing block's fields in place — same "edit in place, don't append" rule Quick Start follows. Update Status/date to show it was touched. |
-| The decision itself changed — genuinely new decision, or a Rejected option got reconsidered and adopted | Append a new block with `Supersedes D-N` in its Status line. Don't rewrite the old block to match — that D-N was later reversed is itself worth keeping. |
+| The decision itself changed — genuinely new decision, or a Rejected option got reconsidered and adopted | Append a new block with `Supersedes D-[id]` in its Status line (new blocks use a slug ID, e.g. `D-gateway-fee-cap` — see `references/templates.md`). Don't rewrite the old block to match — that D-[id] was later reversed is itself worth keeping. |
 
 ### Quick Start Section (cold-start context for next session)
 
@@ -160,6 +160,8 @@ Must answer these 5 questions in ≤15 lines total:
 | 5 | What does "success" look like? | One sentence with concrete numbers/expected output |
 
 Litmus test: if a Sonnet agent reads only the Quick Start and answers "what do I do first?", it should give the correct action and the correct command without reading any other section.
+
+A named environment resource is the one kind of Quick Start content that decays without anything in the doc changing — a fixture id, a seeded account, a test record, a queue name. Nothing marks it stale when someone restores a database or reseeds, so a section that named it correctly last month reads exactly as authoritative today, and a cold-start agent builds on an id that resolves to nothing. Cheap to settle while you're already in the doc: query for the ones this session didn't touch, not just the ones it did. If a named resource is gone, replacing the id matters less than saying what changed and what the environment now holds, since the next reader's real question is which fixtures are reachable at all.
 
 ### Credentials
 

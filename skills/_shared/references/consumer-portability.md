@@ -37,6 +37,12 @@ Published skills across the ecosystem simply assume bash; there is no official A
 - **A command that must run verbatim** (a measurement whose exact form matters) — fine to embed, but it belongs to a maintainer workflow, not a consumer path. Say which.
 - **Never** make a consumer-facing step's success depend on a tool you never verified is present.
 
+## Examples: a rule illustrated with a tool only the author has
+
+A session measures a trap in whatever environment it happens to be standing in, so the example that reaches the draft is the one from that environment — a personal wrapper CLI, a company-internal command, a project-specific alias. When the underlying mechanism is general, an example nobody else can run is worse than no example: a consumer reads an unfamiliar command, finds nothing matching it on their machine, and concludes the rule is about that tool rather than about them. The rule ships, is read, and is correctly reasoned past.
+
+Generalise the example to the layer the mechanism actually lives at, not the layer you met it at — an SSH-wrapper trap is a property of `ssh`, not of whatever wraps it, so `ssh host "..."` reaches every reader while the wrapper reaches one. When the personal tool genuinely is the point of the step, name it beside its generic equivalent the way `pull-db` does (`remote` CLI *or* a plain SSH alias from `~/.ssh/config`), so a reader without it still has a path. The author's own environment-specific wording keeps its home in their private CLAUDE.md companions, which never ship.
+
 ## Tell
 
-You are writing a skill step and about to pick between an absolute and a relative path — when the answer is that the file is unreachable, and the step needs a different shape.
+You are writing a skill step and about to pick between an absolute and a relative path — when the answer is that the file is unreachable, and the step needs a different shape. Or: the command in your example is one you ran this session, and you have not asked whether a stranger has it.

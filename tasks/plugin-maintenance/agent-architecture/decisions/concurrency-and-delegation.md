@@ -162,3 +162,21 @@ Chosen: the contested branch is stated at every mandate site, and the rule itsel
 - An author cannot self-check this: the intent is in their head, so the branch reads as obviously reachable.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-commit-staleness-same-session-carveout — `/commit`'s Staleness Gate Gains a Same-Session Carve-Out, Mirroring `/done`'s Own Scoped-Invoke Rule — committed — v1.139.10
+
+**Problem**
+Reported upstream as [issue #16](https://github.com/syafiq555/syafiqkit/issues/16). `/commit`'s task-doc staleness gate is absolutist by design (judgment here is a rationalization trap) — any prose hit forces a full `task-summary` run, with only one carve-out (a lexical/identifier-shaped match, D57). But a `/done → /commit/ship` chain routinely hits the gate *after* `/done` Step 4 already ran `task-summary` scoped earlier the same session — re-invoking the full skill for a one-line fix is redundant, and `/done` Step 4 already states the opposite principle for itself ("`task-summary` already ran this session → invoke it scoped, not bare"). The two skills disagreed about the same state.
+
+**Decision**
+Chosen: a second carve-out, same shape as D57's (mechanical condition, not judgment) — when `task-summary` already ran this session (scoped or bare), a real hit may be resolved by direct scoped edit instead of a fresh full invocation, provided the existing sweep-to-zero obligation still runs. Cross-references `/done` Step 4's principle explicitly rather than restating it.
+
+**Rejected**
+- Loosen the gate's absolutism generally for "recently-verified" docs. Why not: reintroduces the exact rationalization surface D57/D53 close — "recently" is a judgment call, and every stale claim looks locally true at commit time regardless of session history.
+
+**Consequences**
+- Two mechanical carve-outs now sit side by side in the same paragraph (identifier-shape, same-session-already-ran) — both restructured into labeled sub-bullets during the same fix (unhobble-instructions pass) to keep the gate's absolutism legible against two exceptions instead of a run-on qualifier chain.
+
+**Status**: committed · **Reversible**: yes

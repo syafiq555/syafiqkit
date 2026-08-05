@@ -89,7 +89,7 @@ Mirrors `update-claude-docs`'s capture rule: one fact, one home, cross-reference
 `Key Technical Decisions` defaults to an MADR-style block (Problem/Decision/Rejected/Consequences/Status) for every decision — this is the default shape, not an upgrade reserved for decision-heavy docs. The only escape is a plain 2-column table row (`| Decision | Rationale |`), and it applies only when the decision genuinely had no alternative considered (obvious/only-sane-option choices — "used the existing X pattern because that's what every sibling does"). Don't manufacture a "Rejected" section for a non-decision just to force MADR shape, but don't reach for the table row out of habit either — the honest test is whether Rejected would actually come up empty.
 
 ```markdown
-### D[N] — [Decision title] [committed | planned | debating] — [YYYY-MM-DD]
+### D-[slug] — [Decision title] [committed | planned | debating] — [YYYY-MM-DD]
 
 **Problem**
 [What was broken/suboptimal that prompted this?]
@@ -106,22 +106,24 @@ Chosen: [the option picked, one line]
 **Consequences**
 [What follows — gotchas, tradeoffs, what it does NOT do]
 
-**Status**: committed | planned | debating · **Reversible**: yes/no · [Supersedes D-N if replacing a prior decision]
+**Status**: committed | planned | debating · **Reversible**: yes/no · [Supersedes D-[slug] if replacing a prior decision]
 ```
+
+**New decisions get a slug ID, not a number** — `D-<kebab-slug>` (e.g. `D-gateway-fee-cap`, `D-quota-invoice-fix`), derived from the decision's own topic. This replaces the old chronological `D-N` convention going forward: a slug is self-describing at the point of citation (no need to open the file to know what `D-gateway-fee-cap` is about, the way `D-13` requires), and it sidesteps the numbering ritual entirely — there's no "grep the whole domain and take max+1" step, because a topic-derived slug isn't competing for the next integer in a shared counter. Existing `D-N` blocks from before this convention stay as-is; don't renumber or re-slug them retroactively, and both forms are valid ADR IDs going forward within the same doc set.
+
+A slug still needs to be unique per **domain**, not per file — check the whole `decisions/` dir for a collision before writing a new one, since two decisions independently named `D-refund-window` in sibling theme files is exactly as ambiguous as a duplicate number was:
+
+```bash
+grep -rln "D-<slug>" tasks/<domain>/*/decisions/ tasks/<domain>/*/current.md   # any hit means pick a more specific slug
+```
+
+If the exact topic is already taken, sharpen the slug rather than appending a counter (`D-gateway-fee-cap-v2` defeats the point) — fold in the distinguishing detail instead (`D-gateway-fee-cap-fpx` vs `D-gateway-fee-cap-ewallet`). Because the namespace is per-domain, the same slug could in principle exist in two different domains with different meanings — a reference crossing domains always carries the domain prefix (`backend D-gateway-fee-cap`), never a bare slug, same as the numeric form.
 
 A MADR block runs ~18-20 lines against ~1 for an escape-hatch row — that's the size budget for several other facts, which is the practical reason to apply the escape-hatch test honestly rather than defaulting out of habit. Size ceiling is ~20 lines: if Problem + Decision + Rejected + Consequences run longer, the block is doing Overview's job — trim Consequences to the one fact not recorded elsewhere and cross-reference Gotchas/Bugs instead (see One Fact, One Home).
 
 A MADR block demotes back to a plain table row (`Decision | Rationale`, WHY in ≤1 sentence) once Rejected alternatives haven't been asked about in 3+ sessions AND Status is `committed`/`shipped` — fold the strongest rejection reason into Rationale before deleting the block. `condense-task-doc` does not do this automatically; see that skill's rule for what it may touch in a MADR block.
 
-Edit-in-place vs append as the decision evolves over sessions: `task-summary/SKILL.md`'s "MADR Blocks — Edit-in-Place vs Append" section owns this rule — short version, the record getting more accurate about an unchanged decision is an edit to the existing block, and the decision itself changing direction is a new block with `Supersedes D-N`.
-
-`D-N` is unique per **domain**, not per file. A split doc set assigns IDs chronologically across the whole domain while grouping blocks by theme, so any one theme file legitimately holds a gapped subset (`D10, D11` next to a sibling's `D12`) — its own last number is not the domain's last number. Grep the whole `decisions/` dir before assigning a new one, never increment off the file you're editing, since nothing errors on a duplicate ID and every cross-reference to it silently becomes ambiguous:
-
-```bash
-grep -rn "^## D" tasks/<domain>/<feature>/decisions/   # every existing ID, then take the max + 1
-```
-
-Because the namespace is per-domain, the same integer legitimately exists in several domains — a reference crossing domains always carries the prefix (`backend D13`), never a bare `D13`.
+Edit-in-place vs append as the decision evolves over sessions: `task-summary/SKILL.md`'s "MADR Blocks — Edit-in-Place vs Append" section owns this rule — short version, the record getting more accurate about an unchanged decision is an edit to the existing block, and the decision itself changing direction is a new block with `Supersedes D-[slug]`.
 
 ### Whole-doc MADR (decision-log) — the default once a doc has any real decisions
 

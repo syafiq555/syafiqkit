@@ -5,16 +5,16 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../doc-condensation/current.md (sibling feature — fighting duplication/bloat across docs, CLAUDE.md, skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-08-02 — `unhobble-instructions` Process gained an explicit row-decoration check in steps 2/3/5 (the ADR for WHY lives in the sibling doc-condensation feature, D63-D66) after running it on itself mis-stripped a genuine Tell alongside hollow ones; no new numbered decision in this feature's own decisions/*.md this session. Prior: D60 in v1.135.2: `Explore` kept calling `Write` in Plan Mode despite a maximally-emphatic ban; `disallowedTools` blocks the call but not the intent, so the fix states the agent's ROLE instead of banning harder.
+Last updated: 2026-08-06 — Two upstream issues fixed (#16, #18): `/commit`'s staleness gate gained a same-session `task-summary`-already-ran carve-out (D-commit-staleness-same-session-carveout), and `/done` Step 1's Ownership→Emission-shape reorder got a point-of-action re-anchor after the product reviewer showed reordering alone doesn't survive a reasoning-heavy section in between (D-emission-shape-reanchor). Prior: 2026-08-02, `unhobble-instructions` row-decoration check (D63-D66, doc-condensation).
 -->
 
 # Plugin Maintenance — Agent Architecture
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 26 decisions (25 live, D35 superseded) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`; the prior "21" was itself an increment off a stale figure).
+**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 28 decisions (27 live, D35 superseded) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`; the prior "21" was itself an increment off a stale figure).
 
-**State**: v1.137.13 ships via `/ship` — this repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`.
+**State**: v1.139.10 ships via `/ship` — this repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`.
 
 **Immediate next actions (in order)**:
 1. This repo's own `.claude/agents/` is still missing `task-builder.md` and `browser-verifier.md` (templates exist, never generated) — run `/agent-setup` to backfill; exercises the Missing-agent check (D38) end-to-end.
@@ -40,6 +40,8 @@ Last updated: 2026-08-02 — `unhobble-instructions` Process gained an explicit 
 - Widening a threshold table (agent-count tiers, byte budgets) needs every downstream decision point checked, not just the table itself — see D39 (decisions/verification-rigor.md)
 - A skill pair that both scan the same conversation for the same signal class and route dependently must dispatch sequentially — D32's parallel-batch default assumes disjoint state, which this pair doesn't have — see D42 (decisions/concurrency-and-delegation.md)
 - `unhobble-instructions`' own Process didn't wire its row-decoration check into the numbered steps that actually drive execution, so running the skill on its own logic still mis-stripped a genuine `**Tell:**` alongside hollow ones — checking content is not the same test as checking decoration, and a step that isn't referenced by the linear Process doesn't get applied even when it exists elsewhere in the file — see D63–D66 (../doc-condensation/decisions/structural-splits.md, not this feature's own decisions/ — unhobbling's ADR history lives in doc-condensation)
+- Two skills disagreeing about the same run-time state (`/commit`'s absolutist staleness gate vs. `/done` Step 4's scoped-invoke principle) needs the later skill's carve-out named explicitly in the earlier gate, not left as an implicit contradiction — see D-commit-staleness-same-session-carveout (decisions/concurrency-and-delegation.md)
+- Reordering a rule earlier in a doc fixes the cold-start read, not a behavioral miss that happens mid-reasoning — the constraint needs to re-trigger at the point of action, not just appear earlier in a linear read — see D-emission-shape-reanchor (decisions/verification-rigor.md)
 
 ---
 
@@ -55,8 +57,8 @@ Decisions about how generated project agents (`.claude/agents/*.md`) inherit con
 |---|------|--------|
 | 1 | Prompt-injection agent architecture (D1) | ✅ |
 | 2 | Orchestrator delegation pattern (D4, D14, D29, D43) | ✅ |
-| 3 | Verification rigor across skill checklists (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58) | ✅ |
-| 4 | Concurrency/cheap-model delegation (D30, D31, D32, D42, D53); transcript-scan tried + removed (D34→D36) | ✅ |
+| 3 | Verification rigor across skill checklists (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58, D-emission-shape-reanchor) | ✅ |
+| 4 | Concurrency/cheap-model delegation (D30, D31, D32, D42, D53, D-commit-staleness-same-session-carveout); transcript-scan tried + removed (D34→D36) | ✅ |
 | 5 | Agent tool-guard vs. intent; role-correction over prohibition (D60) | ✅ |
 | 6 | Backfill `task-builder`/`browser-verifier` agents in this repo | ⏳ Pending |
 
@@ -69,8 +71,8 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 | File | Read if you're asking |
 |------|------------------------|
 | [decisions/injection-and-delegation.md](decisions/injection-and-delegation.md) | *How do generated agents inherit CLAUDE.md conventions and call sibling skills instead of reimplementing them?* (D1, D4, D14, D29, D43, D15) |
-| [decisions/verification-rigor.md](decisions/verification-rigor.md) | *How do skills verify their own checklists actually ran, and catch self-caught deviations or silent-pass exit conditions? When is an agent's finding trustworthy vs its clean verdict? When does `/done` run agents on an all-doc diff?* (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58) |
-| [decisions/concurrency-and-delegation.md](decisions/concurrency-and-delegation.md) | *How does the plugin delegate to cheaper/parallel agents, what does `run_in_background` actually guarantee, what happened to the transcript-scan mechanism, and how do skills write a doc another session owns?* (D30, D31, D32, D34, D35, D36, D42, D53) |
+| [decisions/verification-rigor.md](decisions/verification-rigor.md) | *How do skills verify their own checklists actually ran, and catch self-caught deviations or silent-pass exit conditions? When is an agent's finding trustworthy vs its clean verdict? When does `/done` run agents on an all-doc diff? Does reordering a rule earlier in a doc actually fix a salience miss?* (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58, D-emission-shape-reanchor) |
+| [decisions/concurrency-and-delegation.md](decisions/concurrency-and-delegation.md) | *How does the plugin delegate to cheaper/parallel agents, what does `run_in_background` actually guarantee, what happened to the transcript-scan mechanism, how do skills write a doc another session owns, and how do two skills reconcile disagreeing about the same run-time state?* (D30, D31, D32, D34, D35, D36, D42, D53, D-commit-staleness-same-session-carveout) |
 
 ---
 
@@ -90,11 +92,10 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 ---
 
-## Last Session (2026-08-02)
+## Last Session (2026-08-06)
 
-- Ran `unhobble-instructions` on the global agent-bootstrap CLAUDE.md section and its companion table; user caught a mis-strip (a genuine `**Tell:**` removed alongside hollow ones) — traced to the skill's own Process never wiring the decoration check into its numbered steps, only into prose the linear read skips.
-- Fixed: restored the dropped Tell, wired the decoration check into Process steps 2/3/5, added a `done/SKILL.md` note on repos outside a project's own tree (dotfiles, a separately-cloned plugin checkout), and a new agent-bootstrap row on citation-accuracy-vs-attribution-accuracy (an agent's cited facts can each verify while the claimed baseline/diff scope is still wrong).
-- Code review + product review both ran clean on the fix itself; a third agent's (simplifier) report was independently caught citing content from the wrong git baseline — not acted on.
-- Later same day, `/done`'s review pass found the D66 collision above, plus `read-summary/references/doc-authority.md`'s router-detection grep (`^### D-`) silently false-negatives against this plugin's own hyphen-less ADR convention — widened to match both. Both fixed same session.
-- An Opus-pinned `code-simplifier` spawn 400s with `effort 'max' not supported when thinking is disabled`; the fix (re-dispatch as `general-purpose` on sonnet, not opus) is already in `CLAUDE-agent-bootstrap.md`/`CLAUDE-platform-gotchas.md` — the miss was not reading those companions before retrying at the same tier first.
-- Shipped via `/ship` at v1.137.13 — this doc's own edit is part of that same commit.
+- Fixed two upstream issues (#16, #18) reported against `/commit` and `/done`; verified each against its own original report text via product-reviewer, not just "a related change happened nearby."
+- `/done` Step 1's review trio caught 8 findings across the 23-file staged diff this session touched (typo, em-dash spacing, a silently-narrowed `tasks/shared/*.md` check, an `Explore.md`/template `disallowedTools` parity break, stale cross-references, a duplicated example) — all fixed same session.
+- A code-reviewer and a simplifier dispatched in parallel against the same file (`Explore.md`) produced a transient disagreement: the reviewer's finding was true when reported, false by the time it was independently re-checked, because the simplifier's fix landed in between. Already-documented pattern (`CLAUDE-agent-bootstrap.md` rows 28-29) — no new entry needed.
+- New global gotcha captured: `gh issue view --comments` can silently return empty (exit 0) even with correct auth; `gh api .../issues/<n>/comments` is the reliable path. Written to `~/.claude/.claude-companions/shared/CLAUDE-shell-gotchas.md`.
+- Shipping via `/ship` at v1.139.10 — this doc's own edit is part of that same commit.

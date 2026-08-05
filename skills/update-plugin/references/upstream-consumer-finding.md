@@ -1,6 +1,6 @@
 # Upstreaming a Consumer Finding
 
-Cold path for `update-plugin` Step 5. Reached **only** when Step 0's ownership gate returned `CONSUMER` — an installed copy that cannot be patched, because `claude plugin update` overwrites it. On the source checkout (the common case) this file is never needed.
+Cold path for `update-plugin`'s upstreaming flow. Reached **only** when Step 0's ownership gate returned `CONSUMER` — an installed copy that cannot be patched, because `claude plugin update` overwrites it. On the source checkout (the common case) this file is never needed.
 
 A consumer can't patch, but they can **file** — and a GitHub issue notifies the maintainer instantly, with no secret shipped and no server to run. Authentication runs on *their* identity, not an embedded token.
 

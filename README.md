@@ -31,6 +31,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/commit` | Create git commits from staged changes; single-repo and multi-repo |
 | `/read-summary` | Load existing task summary for context |
 | `/tackle` | Vague multi-item doc continuation only — reads the doc, judges what's buildable, builds it (use `/read-summary` for a specific ask) |
+| `/plan-worklist` | Turn a pre-scoped list of items (findings, backlog, ClickUp paste) into a build plan — dispatches `product-reviewer` to size/sequence them, then stops before writing code |
 | `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |
 | `/update-summary` | Append findings to existing summary (thin pointer → `task-summary`) |
 | `/task-summary` | Create/update task summary docs with path resolution, templates, cross-refs |
@@ -54,6 +55,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
 | `/skill-creator` | Create a new skill — place it, draft it, register it, and verify its trigger actually fires |
+| `/self-organize-agent-memory` | Dispatch a project agent onto its own bloated `.md` file to decide what stays inline vs. what moves to its own agent-memory |
 
 ## Usage
 

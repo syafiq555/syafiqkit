@@ -18,6 +18,8 @@ while kill -0 <PID> 2>/dev/null; do sleep 5; done; cat <output-file>
 
 A `0.0%` CPU reading is not proof of a hang — it can be a lock wait that clears. Check twice, seconds apart, before calling anything stuck.
 
+⚠️ **Both forms above assume the job runs where you do.** Run the check on another host — `ssh host "pgrep -f 'next build'"`, or any wrapper around it — and the pattern travels inside the remote shell's own command line, so the predicate matches its own carrier process and can never return false. A `while ! ...; do` wait-loop then spins its full timeout no matter what the job is doing, and reports whatever the timeout implies. Bracketing the first character (`'[n]ext build'`) doesn't rescue it, since that literal is in the same command line; a PID is no help either, because each connection is a separate session. Poll an artifact the job itself produces instead — a build id, an output file's mtime, a sentinel line appended to its log. **Tell: your remote predicate contains the very string you typed into the ssh command.**
+
 ## Killing one
 
 `pkill -f` matches broadly and its exit is not proof the process is gone. Confirm with a follow-up `pgrep -fl`, and remember a killed run can hold its DB connection briefly — the next run may still see contention.
