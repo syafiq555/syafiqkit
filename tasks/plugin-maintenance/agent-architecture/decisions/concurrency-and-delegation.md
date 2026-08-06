@@ -52,7 +52,7 @@ Chosen: verified against the official Claude Code docs (not agent paraphrase —
 **Consequences**
 - Nested Explore-spawns-Explore for raw multi-doc reads is the mechanical-retrieval case D30 already carves out as safe for cheap-model delegation — no judgment crosses the boundary, so this doesn't reopen D30's blanket-delegation rejection.
 - A nested Explore at depth 5 loses the `Agent` tool and can't spawn further; the fixed cap is not configurable, so extremely deep fan-out plans must flatten before depth 5.
-- Generated-agent/template parity is now a documented recurring drift class (3rd occurrence, after D14's description/Bootstrap gap and D29's missing `Skill` tool) — root CLAUDE.md gained a `⚠️ MANDATORY` callout under Project-Specific Agents rather than a fourth ad-hoc fix.
+- Generated-agent/template parity is now a documented recurring drift class (4th occurrence, after D14's description/Bootstrap gap, D29's missing `Skill` tool, and a later untracked instance) — root CLAUDE.md gained a `⚠️ MANDATORY` callout under Project-Specific Agents rather than another ad-hoc fix. 2026-08-06: drift can surface with no edit trigger at all — `code-simplifier.md` alone had drifted to `model: opus` while its template already read `sonnet`, discovered only when a `/done` spawn 400'd with `effort 'xhigh' not supported`; the CLAUDE.md callout gained a line naming this as worth diffing against the template before treating a spawn fault as an unfixable routing/environment issue.
 - Plugin version bumped 1.82.0→1.83.0.
 
 **Status**: committed · **Reversible**: yes

@@ -6,6 +6,8 @@ Applies to any command measured in minutes that MUTATES shared state: a test sui
 
 ⚠️ **Before launching a long-running mutating command, confirm an identical one is not already in flight — `pgrep -f '<command>'`.** Two runs sharing one database or output dir corrupt each other, and the damage does not announce itself: a test suite whose tables another run is truncating fails on *arbitrary* tests, so the corruption presents as a plausible code defect in whatever happened to be mid-flight. You then debug a bug that does not exist.
 
+⚠️ **The guard has to be its own call — chained ahead of the run (`pgrep …; <run>`), it reports on the moment before anything was launched and passes by construction.** A clean guard then sits directly above output from a run that raced anyway, which reads as proof the two are unrelated and sends you looking for a code defect in whatever failed. Same shape as the remote-predicate trap below: the check is worded correctly and cannot observe what it was written to catch. Run it, read it, then launch — and where a suite has already failed once for no reason you can reproduce, re-run it alone before believing any of its output. **Tell: your guard and the command it guards are separated by a `;` or `&&`.**
+
 ⚠️ **An empty background-output file means STILL BUFFERING, not failed.** A command piping through `tail`, `head`, or any non-line-buffered stage writes nothing until it exits, so "no output yet" and "never started" are indistinguishable from the file alone. Decide it with `ps`/`pgrep`, never by reading the file's size. **Tell: you are about to re-launch something because its output file looked empty.**
 
 ## Waiting correctly

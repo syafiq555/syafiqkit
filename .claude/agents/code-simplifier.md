@@ -12,7 +12,7 @@ tools:
   - mcp__ide__getDiagnostics
   - Agent  # lets this simplifier spawn Explore agents to find duplicate patterns across the tree (depth-5 cap applies)
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
-model: opus
+model: sonnet
 color: cyan
 memory: project
 ---

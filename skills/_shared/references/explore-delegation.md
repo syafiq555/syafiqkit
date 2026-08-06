@@ -22,6 +22,8 @@ Referenced by skills whose workflow has a pure file-discovery / grep-sweep sub-s
 
 Re-verify every finding against the file yourself before acting; the quotes make that cheap. **Tell: an agent's own quoted line disproves the finding it filed.**
 
+**Handing an agent a SKILL whose value is its judgement** (`unhobble-instructions`, `task-summary`, a review skill) inverts the clause-stacking above: the more you specify, the less of the skill actually runs. Listing which facts must survive, prescribing the counts to hit, pre-writing the conclusion it may reach — each reads as diligence and each replaces a decision the skill exists to make, until the agent is ratifying a plan you already wrote. Give it the skill name, the target, and the ownership boundary; the constraints that matter are the ones a stranger to your session couldn't infer (which files are contested, what must not be run). Where the worry is that the agent destroys something, prompt text is the wrong instrument anyway — it can't fail loudly. Snapshot the target first and diff after, which also catches the case a prompt never could: an agent that reports success while having deleted things, since a self-report is a claim about the work and not evidence of it. **Tell: your prompt tells the agent what it should conclude.**
+
 **Fallback:** no `Explore`-capable context (e.g. running inside an agent that can't itself spawn agents)? Run the same `grep` (never `rg`) directly in Bash instead.
 
 **Zero-candidate result:** treat exactly like an inline empty grep — don't conclude "no doc exists" from Explore's report alone. Re-run its search with a control query that must hit before accepting the empty result.
