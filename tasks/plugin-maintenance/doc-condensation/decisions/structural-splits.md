@@ -342,3 +342,21 @@ Chosen: a document-level read runs first and must be written down before any rul
 - The pass that finds only wording problems is now distinguishable in the report from the pass that never looked for shape ones.
 
 **Status**: committed · **Reversible**: yes · Extends D66
+
+### D-haiku-condense-delegation — Condensation Drafting May Be Delegated to a `haiku` Agent; Verifying May Not — committed — 2026-08-07
+
+**Problem**
+`two-tier-condense.md` forbade spawning any agent for the draft step ("dropped per explicit preference: no agent for this task"). The preference changed; a new `haiku` skill (`skills/haiku/SKILL.md`) was built this session to dispatch mechanical rewrite work to haiku-tier agents with a mandatory post-return verification pass, and `condense-claude-md`/`condense-task-doc` needed to point at it instead of restating "work inline."
+
+**Decision**
+Chosen: allow delegating the Draft step to a `haiku` agent; keep Verify non-delegable. Measured this session: a haiku condense of a 375-line CLAUDE.md cut 35% of bytes with the rules intact. The split is what makes delegation safe — an agent grading its own rewrite uses the same read that produced it, so its closing report is an artifact to check, never evidence.
+
+**Rejected**
+- Keeping "no spawned agent" as a blanket rule. Why not: superseded by explicit preference change, and the measured haiku run showed the restructuring quality is there when verification is external to the drafter.
+
+**Consequences**
+- `two-tier-condense.md` rewritten: Draft section now states the delegation call (`Skill(skill: "syafiqkit:haiku")`) explicitly — a first pass had described delegation as possible without ever naming the dispatch mechanic, caught by this session's own `/done` product-review pass.
+- New failure mode named: a delegated rewrite can keep a backtick-quoted identifier intact while reversing the claim around it (kebab-case keys relabelled "camelCase", a hyphen-vs-underscore mismatch called "case-sensitive") — survives an identifier-survival grep because only the identifier is checked, not the sentence. `two-tier-condense.md`, `unhobble-instructions/SKILL.md`, and `haiku/SKILL.md` all now carry this check.
+- `condense-claude-md/SKILL.md` step 3 and `condense-task-doc/SKILL.md` step 7 both repointed at `two-tier-condense.md` instead of restating "no spawned agent."
+
+**Status**: committed · **Reversible**: yes

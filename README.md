@@ -49,6 +49,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/setup-playwright` | Set up a Playwright E2E suite, or harden a flaky one (per-worker fixtures, seeded test data, throttle-safe auth) |
 | `/function-parameter-limits` | Apply + enforce the 0/2/3+ function-parameter rule — advises parameter-object/DTO refactors and sets up the right linter (ESLint/PHPMD/Pylint) with DI-constructor carve-outs |
 | `/hobby-review` | Socratic debrief of a hobby item against the taste rubric in the matching task doc |
+| `/haiku` | Run a task or a named skill on haiku agents instead of the current session, with a verification pass over what comes back |
 | `/merge-task-docs` | Find related task docs in a domain and merge them, reconciling all back-references |
 | `/sweep-doc-overlaps` | Fleet-wide scan across ALL `tasks/` domains for CROSS-domain merge candidates; hands confirmed groups to `merge-task-docs` |
 | `/notes-summary` | Create, update, or read a personal session journal outside the repo |
