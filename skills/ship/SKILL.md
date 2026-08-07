@@ -11,7 +11,7 @@ Run the whole chain in one turn. A sub-skill's closing summary (or a written art
 
 ## Prerequisites
 
-- `/done` has already been run (code reviewed, simplified, task docs updated) — or `/quick-done`, for a small session reviewed without the simplifier/product lens
+- `/done` has already been run (code reviewed, simplified, task docs updated). `/quick-done` does **not** satisfy this — it is docs-only and spawns no reviewer, so a session wrapped there reaches this skill with its code unread. Say so and get a review before shipping, rather than treating the wrap-up as cover
 - Changes are staged or ready to stage
 
 ## Workflow

@@ -207,6 +207,46 @@ Chosen: a separate user-invoked skill `quick-done` — one reviewer agent, one b
 
 ---
 
+### D-quick-done-docs-only — `/quick-done` Trades Its Reviewer for the CLAUDE.md Capture — committed — 2026-08-07
+
+**Problem**
+D-quick-done chose a reviewer plus `task-summary`, rejecting `update-claude-docs` as "the larger half of the cost." Used once, the shape was wrong for what a small session actually loses: a two-line fix rarely has defects a reviewer finds, but the one reusable thing it surfaced dies unrecorded, and `/quick-done` had named that loss without preventing it.
+
+**Decision**
+Chosen: swap the reviewer for `update-claude-docs`, keeping `task-summary` and the plugin gate. The skill is now docs-only and reads no code for defects. Supersedes D-quick-done's step composition; its separate-skill-not-a-mode holding stands unchanged.
+
+**Rejected**
+- Adding `update-claude-docs` alongside the reviewer. Why not: restores most of `/done`'s cost, which is the only reason this skill exists.
+- Dropping the reviewer with no replacement. Why not: leaves a wrap-up skill whose sole act is one `task-summary` call, too thin to be worth a trigger of its own.
+
+**Consequences**
+- Instruction load is 53.6KB against `/done`'s 76.6KB (`cat` + `wc -c`, 2026-08-07) — a ~30% saving, not the ~58% D-quick-done's 31.9KB figure advertised. **The shipped CHANGELOG entry for v1.140.0 quotes that superseded number.**
+- A session wrapped here has unreviewed code. `/ship`'s Prerequisites now reject `/quick-done` as satisfying its reviewed-code precondition, reversing D-quick-done's "ship accepts either skill"; `tackle`'s terminal call is scoped to sessions not heading for a ship.
+- The docs-only Step 1 opens with `git status`, which surfaces a contaminated shared checkout earlier than a reviewer dispatch would have. Unplanned.
+
+**Status**: committed · **Reversible**: yes · **Supersedes** D-quick-done (step composition only)
+
+---
+
+### D-mtime-cannot-see-concurrent-writers — Ownership Needs a Diff Read, Not a Timestamp — committed — 2026-08-07
+
+**Problem**
+`/done` Gate B and `/quick-done`'s plugin gate both settled shared-checkout ownership by comparing file mtime against session start. That excludes work finished *before* the session and nothing else: a second session editing this checkout concurrently stamps its files inside the same window, so every foreign file passes. Three foreign skill edits landed within 60 seconds of this session's own and read as owned.
+
+**Decision**
+Chosen: mtime stays as the cheap first filter, with a diff read on anything the session doesn't remember editing, and an ask before treating an unrecognised file as owned. A foreign edit is recognisable on sight; nothing cheaper distinguishes it.
+
+**Rejected**
+- Comparing against a session-start snapshot of `git status`. Why not: correct, but it must be captured at session start, and a gate that fails when someone forgets step zero is worse than one that reads a diff on demand.
+
+**Consequences**
+- The failure was biased toward over-claiming — the gate hands `update-plugin` *more* files than it should, which then version-bumps and ships another session's in-flight work under the wrong changelog entry.
+- Stated in both `done` and `quick-done` at the point each prescribes the test. Two copies, below `_shared/`'s 3-copy extraction threshold.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
 ### D-agent-verb-ban-shared — The Destructive-Verb Ban Belongs to Every Spawner, Not Just `/done` — committed — 2026-08-07
 
 **Problem**

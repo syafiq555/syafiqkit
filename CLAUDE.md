@@ -56,7 +56,7 @@ Claude Code plugin providing personal workflow automation: commit messages, task
 | `unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint (rigid imperatives, "Tell:" trip-wires, mechanical thresholds) vs. genuine fact, per Anthropic's "Unhobbling Claude" framing. Narrower and stricter than a plain density pass — the lens is judgement-vs-constraint, not byte count | User invokes explicitly ("apply unhobbling to X", "is this overconstrained") |
 | `skill-creator` | Create a NEW skill — judge whether it should be one at all, place it (plugin vs project vs personal), draft the SKILL.md, register it in both tables, pressure-test the trigger. Creates; `update-plugin` maintains | User invokes ("create a skill for X", "turn this into a skill"), or a session reveals a repeated procedure no skill covers |
 | `self-organize-agent-memory` | A project agent's own `.md` definition has a bloated inline reference table crowding out its procedural steps — dispatch THAT SAME agent onto its own file to decide what stays inline vs. what moves to its own `.claude/agent-memory/<agent>/`, in whatever format it judges serves the content. Verify with an identifier sweep afterward, never trust the migration summary alone | User invokes ("this agent file is too long, move some to memory", "let the agent organize its own memory") |
-| `quick-done` | The cheap sibling of `/done` for a session already known to be small — one reviewer agent, one `task-summary` pass, the plugin gate. Deliberately no simplifier, no product reviewer, no CLAUDE.md capture | User invokes explicitly ("quick done", "small change, just quick-done it") |
+| `quick-done` | The cheap sibling of `/done` for a session already known to be small — an `update-claude-docs` pass, one `task-summary` pass, the plugin gate. Docs-only by design: it spawns no reviewer, so nothing reads the code for defects | User invokes explicitly ("quick done", "small change, just quick-done it") |
 
 ### Typical invocation sequence
 
@@ -65,7 +65,7 @@ These skills compose but are usually invoked as SEPARATE commands in sequence, n
 1. `/commit` + `/ship` — usually given together as one instruction; `ship`'s own commit step already covers it.
 2. `/update-summary` (task-summary) then `/update-claude-docs` — run back-to-back as individual invocations after a ship, not combined.
 3. `/update-plugin` — invoked standalone afterward, sometimes much later in the session. Frequently followed by mid-skill "improvise/extend this too" instructions — treat those as widening the CURRENT run's scope (e.g. patch sibling skills sharing the same mechanism, per its own Step 2 rule), not as a cue to re-invoke.
-4. `/quick-done` is an ALTERNATIVE to `/done`, never a step after it — a session the user knows was small and low-risk runs one or the other, not both. It skips the simplifier, the product reviewer, and the CLAUDE.md capture pass, so `/done` stays the default whenever the size isn't already settled.
+4. `/quick-done` is an ALTERNATIVE to `/done`, never a step after it — a session the user knows was small and low-risk runs one or the other, not both. It runs `update-claude-docs` and `task-summary` and nothing else, so it skips every review lens including the code review; `/done` stays the default whenever the size isn't already settled, and is the only one of the two that satisfies `/ship`'s reviewed-code precondition.
 
 ## Project-Specific Agents
 

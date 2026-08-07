@@ -1,6 +1,6 @@
 ---
 name: quick-done
-description: The cheap post-task check for a session you already know was small — one code reviewer, one task-doc update, nothing else. Use when the user says "quick done", "quick wrap", "small change, just quick-done it", "wrap it up cheaply", or otherwise pairs a wrap-up request with a size or cost signal ("small", "quick", "cheap", "light", "just a typo") — that pairing beats /done's bare "wrap up" trigger. Deliberately skips the simplifier, the product reviewer, and the CLAUDE.md capture pass. Use /done instead for anything multi-file, multi-domain, a new user-facing flow, or when it isn't clear which fits — /done is the safe default, this skill is the deliberate exception.
+description: The cheap post-task wrap-up for a session you already know was small — the CLAUDE.md capture pass and one task-doc update, nothing else. Use when the user says "quick done", "quick wrap", "small change, just quick-done it", "wrap it up cheaply", or otherwise pairs a wrap-up request with a size or cost signal ("small", "quick", "cheap", "light", "just a typo") — that pairing beats /done's bare "wrap up" trigger. This skill is docs-only and spawns no reviewer, so nothing here reads the code for defects; it deliberately skips the code review, the simplifier, and the product reviewer. Use /done instead for anything multi-file, multi-domain, a new user-facing flow, anything about to ship, or when it isn't clear which fits — /done is the safe default, this skill is the deliberate exception.
 ---
 
 # Quick Done
@@ -9,26 +9,17 @@ The cheap sibling of `/done`, for a session the user has already judged small.
 
 If the session turns out bigger than it looked — several unrelated changes, a new user-facing journey, more than one domain — say `/done` fits better rather than absorbing the extra scope here. Growing this skill to cover a large session is how it stops being the cheap option.
 
-## Step 1: Review
+## Step 1: CLAUDE.md capture
 
-Run `git status --short` in every repo in play, then spawn one reviewer:
+Run `git status --short` in every repo in play first — the changed-file list is what tells you which CLAUDE.md files are even in scope.
 
-| Project agent at `.claude/agents/code-reviewer.md`? | `subagent_type` |
-|---|---|
-| Yes | `"code-reviewer"` |
-| No | `"feature-dev:code-reviewer"` |
+Invoke `syafiqkit:update-claude-docs`. It owns the capture decision, including deciding there's nothing worth capturing; a small session often surfaces no reusable pattern, and an empty pass is a real outcome, not a failed step.
 
-Give it the full changed-file list and a review-shaped prompt — bugs, security, logic errors, convention violations. Not cleanup, not journey completeness. One agent, no partitioning: a file count that genuinely doesn't fit one reviewer's attention is the signal this session doesn't fit this skill.
-
-Project agents read CLAUDE.md and the task doc themselves — don't paste project conventions into the prompt.
-
-Ban the repo-wide verbs in the prompt — `../_shared/references/agent-prompt-verb-ban.md`. A one-agent dispatch is no safer here than `/done`'s fan-out; the exposure is per-agent.
-
-When the reviewer returns, a finding is a diagnosis, not a verified defect. Confirm it against the file as it stands now before acting, and re-run whatever failed after fixing it.
+If that skill spawns an agent, the repo-wide verb ban applies — `../_shared/references/agent-prompt-verb-ban.md`. The exposure is per-agent, so one dispatch is no safer than a fan-out.
 
 ## Step 2: Task doc
 
-Invoke `syafiqkit:task-summary` bare. An explicit path skips its multi-domain scan and misses related docs. This is the only doc write in this skill.
+Invoke `syafiqkit:task-summary` bare. An explicit path skips its multi-domain scan and misses related docs. Run it after Step 1, not alongside — the two doc skills are sequential-dependent, so overlapping them is what the ordering exists to prevent.
 
 ## Step 3: Plugin gate — only if it fires
 
@@ -38,16 +29,20 @@ git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
 
 Run it from the plugin checkout as CWD, not `git -C <path>` — that walks up to an enclosing repo and answers about the wrong tree.
 
-The checkout is shared across every project, so it may carry another session's work. Settle ownership by mtime against session start (`stat -f '%Sm' -t '%m-%d %H:%M' <file>` on macOS); files predating the session drop out. Anything surviving means a skill file was hand-edited this session — invoke `syafiqkit:update-plugin`, which owns everything downstream. An empty list means the gate didn't fire; skip silently and omit the row.
+The checkout is shared across every project, so it may carry another session's work. Settle ownership by mtime against session start (`stat -f '%Sm' -t '%m-%d %H:%M' <file>` on macOS); files predating the session drop out. An empty list means the gate didn't fire; skip silently and omit the row.
+
+Mtime only separates work finished *before* you started — a session editing this checkout *concurrently* stamps its files inside your window too, so a clean pass is not ownership. Read `git diff` on anything you don't remember editing; a foreign edit is recognisable on sight, and shipping one under your version bump is the failure this gate exists to prevent. Ask before treating an unrecognised file as yours.
+
+What survives both checks was hand-edited this session — invoke `syafiqkit:update-plugin`, which owns everything downstream.
 
 ## Exit gate
 
-Each Output row claims a step ran. The reviewer must have actually run with a review prompt, and `task-summary`'s target doc must actually have changed — invoking is not updating, so check with `git diff HEAD --stat -- <path>`. A row you can't substantiate is a step to go run, not a row to write.
+Each Output row claims a step ran. Both doc steps write files, so substantiate them the same way — `git diff HEAD --stat -- <path>` — since invoking a skill is not the same as it having changed anything. The one asymmetry: `update-claude-docs` legitimately writes nothing when the session surfaced no reusable pattern, so an empty diff there is a real result to report as such, while an empty diff from `task-summary` means the step still needs running. A row you can't substantiate is a step to go run, not a row to write.
 
 ## What this deliberately doesn't do
 
+- **No code review.** Nothing in this skill reads the diff for bugs, security holes, or convention violations — the steps are both documentation writes. A session wrapped here has unreviewed code, which matters most on the way to `/ship`: run `/done`, or a review of your own, before shipping anything wrapped this way.
 - **No simplifier, no product reviewer.** A new user-facing flow, or any doubt the feature is complete end-to-end, wants `/done`'s product lens.
-- **No `update-claude-docs` pass.** A broadly reusable pattern this session surfaced — an env gotcha, a convention worth keeping — will not reach CLAUDE.md through this skill. If one came up, say so and either run `/update-claude-docs` directly or use `/done`.
 - **No temp-artifact cleanup scan.**
 - **No Gate A** — `/done` also captures a skill that misfired or a step that was wrong. Nothing here prompts for that, so if something felt off about a skill this session, say so and let `/update-plugin` judge it.
 - **No mode selection.** A session varied enough to need one is a session for `/done`.
@@ -59,9 +54,9 @@ Each Output row claims a step ran. The reviewer must have actually run with a re
 
 | Step | Result |
 |------|--------|
-| Review | [issues found + fixed, or ✅ clean] |
+| CLAUDE.md | [file path → what was captured, or "nothing reusable surfaced"] |
 | Task doc | [doc path → one-line summary] |
 | Plugin | [skill files patched + version bump — omit row if the gate didn't fire] |
 
-Skipped by design: simplify, product review, CLAUDE.md capture, cleanup scan.
+Skipped by design: code review, simplify, product review, cleanup scan. The code was not read for defects.
 ```

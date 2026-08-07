@@ -159,6 +159,8 @@ git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
 
 The checkout is shared by every project, so it may carry another session's work. Settle ownership by mtime against session start time — on macOS: `stat -f '%Sm' -t '%m-%d %H:%M' <file>`. Files predating the session drop out. If the list empties, Gate B did not fire.
 
+That test only separates work finished *before* you started; a session editing this checkout *concurrently* stamps its files inside your window too, and the shared checkout makes that the ordinary case. So a clean mtime pass is not ownership — read `git diff` on anything you don't remember editing, since a foreign edit is recognisable on sight and nothing else distinguishes it. Getting this wrong ships someone else's in-flight work under your version bump, which is the failure the paragraph above exists to prevent. If the file survives the diff read too, ask before treating it as yours.
+
 Any surviving output means a rule arrived by direct hand-edit. Invoke `syafiqkit:update-plugin` — it owns everything downstream. It probes ownership and branches: **owner** → patch the skill files + version bump + CHANGELOG; **consumer** → draft and offer to file as a GitHub issue upstream. Either way the finding survives.
 
 ## Exit gate — verify steps actually ran BEFORE writing the Output

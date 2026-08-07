@@ -58,7 +58,7 @@ claude plugin install syafiqkit@syafiqkit
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
 | `/skill-creator` | Create a new skill — place it, draft it, register it, and verify its trigger actually fires |
 | `/self-organize-agent-memory` | Dispatch a project agent onto its own bloated `.md` file to decide what stays inline vs. what moves to its own agent-memory |
-| `/quick-done` | Cheap post-task check for a small session — one reviewer + task-doc update, skipping /done's simplifier, product review, and CLAUDE.md capture |
+| `/quick-done` | Cheap docs-only wrap-up for a small session — CLAUDE.md capture + task-doc update, and no review of any kind (no code review, simplifier, or product lens) |
 
 ## Usage
 

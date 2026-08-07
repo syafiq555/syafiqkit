@@ -5,16 +5,16 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../doc-condensation/current.md (sibling feature — fighting duplication/bloat across docs, CLAUDE.md, skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-08-07 — new `quick-done` skill: a cheap `/done` sibling (1 reviewer + `task-summary` + the plugin gate, 31.9KB vs 75.8KB), taking D39's recorded reversal as a separate skill rather than the mode it removed (D-quick-done). Prior: 2026-08-06, `code-simplifier` project agent had silently drifted to `model: opus` against its already-correct `sonnet` template, discovered via a spawn 400 rather than an edit (D31, 4th recurrence); same-day, two upstream issues fixed (#16, #18) — `/commit`'s staleness gate carve-out (D-commit-staleness-same-session-carveout) and `/done` Step 1's point-of-action re-anchor (D-emission-shape-reanchor).
+Last updated: 2026-08-07 — `quick-done` reshaped docs-only: `update-claude-docs` + `task-summary` + the plugin gate, no reviewer, 53.6KB vs `/done`'s 76.6KB (D-quick-done-docs-only, superseding D-quick-done's step composition). Same day: mtime cannot separate a concurrently-editing session, so both ownership gates now require a diff read (D-mtime-cannot-see-concurrent-writers). Prior: new `quick-done` skill as a separate skill rather than the mode D39 removed (D-quick-done); 2026-08-06, `code-simplifier` project agent had silently drifted to `model: opus` against its already-correct `sonnet` template, discovered via a spawn 400 rather than an edit (D31, 4th recurrence); same-day, two upstream issues fixed (#16, #18) — `/commit`'s staleness gate carve-out (D-commit-staleness-same-session-carveout) and `/done` Step 1's point-of-action re-anchor (D-emission-shape-reanchor).
 -->
 
 # Plugin Maintenance — Agent Architecture
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 30 decisions (29 live, D35 superseded) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`).
+**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 32 decisions (31 live, D35 superseded; D-quick-done superseded in its step composition only) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`).
 
-**State**: v1.140.0 is live on `origin/master` (`68db6da`, 2026-08-07) — verified by `git ls-tree origin/master` showing `skills/quick-done/SKILL.md` and `skills/_shared/references/agent-prompt-verb-ban.md` present on the remote. This repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`.
+**State**: v1.140.0 is live on `origin/master` (`68db6da`, 2026-08-07); the tree is at v1.140.2. This repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`. A concurrent session's edits to `condense-claude-md`, `haiku` and `unhobble-instructions` are in the tree alongside this feature's — the user chose to ship them together, so don't read those diffs as this feature's work.
 
 **Immediate next actions (in order)**:
 1. This repo's own `.claude/agents/` is still missing `task-builder.md` and `browser-verifier.md` (templates exist, never generated) — run `/agent-setup` to backfill; exercises the Missing-agent check (D38) end-to-end.
@@ -86,8 +86,10 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 **Doc integrity**
 - [ ] **Add the post-write ADR-id gate — the numbers are fixed, the allocator is not.** This was the 2nd collision round and the 1st caused it: `doc-condensation`'s D40 was renumbered off a duplicate D32 on 2026-07-20 into an id this feature then took. **2026-08-02: round 3 happened exactly as predicted** — `doc-condensation`'s own D66 was independently minted twice (a `/done` review caught it, renumbered to D67), because the allocator step CLAUDE.md's ADR row already prescribes (`grep -rhoE "^### D[0-9]+" tasks/ | ...`) wasn't run against the global corpus before writing. The manual fix works; the gate to make it automatic is still open. ⚠️ Never reuse a numbering gap — D2/D5/D7/D11/D41 are demoted/retired ids still cited in prose. Highest id is now 67.
 
+- [ ] **The shipped v1.140.0 CHANGELOG advertises `/quick-done` at 31.9KB vs 75.8KB.** Both halves are now wrong — the skill loads 53.6KB against `/done`'s 76.6KB since it gained `update-claude-docs` (D-quick-done-docs-only). A published comparative figure invalidated by a later change needs correcting in the next release note, not silently left; consumers sized the skill on it.
+
 **Doc size**
-- [ ] The doc SET is 742 lines / 86.7KB against a 300-line budget — 716 before the v1.140.0 commit, so overwhelmingly pre-existing (`cat current.md decisions/*.md | wc -lc`). The index reads healthy at 101 lines, which is what hides it. Weight is `decisions/verification-rigor.md` (271 lines), not the theme file most recently edited. Route to `condense-task-doc` — it owns the thresholds and any further split; don't hand-condense.
+- [ ] The doc SET is 763 lines / 89.1KB against a 300-line budget — 742 at the start of this session, so overwhelmingly pre-existing (`cat current.md decisions/*.md | wc -lc`). The index reads healthy at ~102 lines, which is what hides it. Weight is `decisions/verification-rigor.md` (271 lines), not the theme file most recently edited. Route to `condense-task-doc` — it owns the thresholds and any further split; don't hand-condense.
 
 **Deferred**
 - [ ] `hobby-review` Step 5 emits its verdict template after "the conversation naturally reaches the 3 gates" with nothing verifying it did — D49's shape, judged not worth fixing (soft guidance, writes nothing to disk). Revisit only if a verdict ever lands on an unfinished arc.
@@ -96,7 +98,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 ## Last Session (2026-08-07)
 
-- Built `quick-done` (v1.139.15→1.140.0) after the user asked for a lighter `/done`. D39's rejected light mode shaped the design: the objection was to a mode branch inside `/done`, and that ADR left the reversal open, so this landed as a separate skill with `/done` untouched (D-quick-done).
-- Published "~28KB" for the new skill's cost without measuring it; the code reviewer caught it and `cat … | wc -c` gave 31.9KB. The paired figure disguised it — `/done`'s "~76KB" happened to be right, so both read as computed. Widened the plugin CLAUDE.md's `wc -c` rule, which had been scoped to file-ranking, to cover any size figure reaching a reader.
-- Product reviewer found the gap neither the code review nor I could: `tackle`'s two-line body hardcodes `invoke done`, so every `tackle` run was locked to the expensive path. I had cleared `tackle` during planning by reasoning from its `description:` without opening it.
-- Code reviewer found the new skill spawned the same Bash-capable `code-reviewer` agent without `/done`'s destructive-verb ban; verified the agent really does hold `Bash` before fixing.
+- Reshaped `quick-done` docs-only one day after building it: reviewer out, `update-claude-docs` in (D-quick-done-docs-only). The user's framing — "no need reviewer, and change with update-claude-docs" — was ambiguous between swapping and adding, and the two produce different skills, so it went to `AskUserQuestion` before any edit.
+- Swapping a step falsified claims in files the swap never touched: `ship`'s Prerequisites asserted a `/quick-done` session was "reviewed", `tackle` offered it as an equal alternative on size alone. Both were sibling files making claims about this skill's behaviour.
+- The verification grep for those stale claims searched the defect's vocabulary (`review`, `quick-done`) and passed, while a sentence containing neither word — "This is the only doc write in this skill" — stayed false. A cold re-read of the file caught it; the grep could not have.
+- Ran the reshaped skill on itself. Its Step 1 `git status` surfaced three foreign skill edits from a concurrent session, which the mtime ownership test had cleared as owned (D-mtime-cannot-see-concurrent-writers). User chose to ship them together.
