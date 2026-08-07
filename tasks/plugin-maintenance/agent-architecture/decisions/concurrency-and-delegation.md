@@ -7,8 +7,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - Parallelism is the single-message block, not `run_in_background: false` — that flag is a hint, not a contract (D32)
   - On-disk transcript scanning was tried and REMOVED (D34→D36) — kept as design history only, the mechanism no longer runs
   - A skill pair that both scan the same conversation for overlapping signal classes and route dependently must dispatch sequentially, not in D32's parallel block (D42)
+  - Cost relief for an expensive skill goes in a separate sibling skill, not a mode branch inside it — and its name must not reuse the parent's trigger vocabulary (D-quick-done)
 Related: ../current.md (feature index), ../../doc-condensation/current.md, ../../madr-structure/current.md
-Last updated: 2026-07-24
+Last updated: 2026-08-07
 -->
 
 # Agent Architecture — Concurrency, Cheap-Model Delegation & Self-Nesting
@@ -178,5 +179,48 @@ Chosen: a second carve-out, same shape as D57's (mechanical condition, not judgm
 
 **Consequences**
 - Two mechanical carve-outs now sit side by side in the same paragraph (identifier-shape, same-session-already-ran) — both restructured into labeled sub-bullets during the same fix (unhobble-instructions pass) to keep the gate's absolutism legible against two exceptions instead of a run-on qualifier chain.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D-quick-done — A Cheap `/done` Sibling as a Separate Skill, Not a Mode — committed — 2026-08-07
+
+**Problem**
+`/done`'s floor is nearly flat: a two-line fix still loads 75.8KB of instructions (`done` + `update-claude-docs` + `task-summary`, measured `cat … | wc -c`), spawns 3 agents minimum, and runs two full-conversation scans back-to-back in the main context. D39 had removed the only size-scaled carve-out, so nothing cheap remained.
+
+**Decision**
+Chosen: a separate user-invoked skill `quick-done` — one reviewer agent, one bare `task-summary`, and `/done`'s Step 5 Gate B. `/done` is unmodified. Only `task-summary` runs because D42 makes the two doc skills sequential-dependent; running one alone is safe (no concurrent router), running both would restore most of the cost. The name carries the size signal because `/done`'s own `description:` already claims the phrase "wrap up", so a name reusing that vocabulary leaves both skills competing for one trigger.
+
+**Rejected**
+- A `light` mode inside `/done`. Why not: this is D39's removed shape — a fourth case threaded through four decision points. D39 recorded the reversal as available ("if the extra agent spend on trivial sessions proves unwanted"), which this takes without re-adding a branch.
+- `/wrap-up` as the name. Why not: a cold-read trigger test showed it competing directly with `/done`'s literal "wrap up" trigger, resolvable only by a body clause the model reads after routing has already happened.
+- Keeping `update-claude-docs`. Why not: it is the larger half of the cost, and D42 forbids the cheap parallel form.
+
+**Consequences**
+- A `/quick-done` session does not capture broadly reusable patterns into CLAUDE.md. Named in the skill's own "What this deliberately doesn't do" so it is a stated loss, not a silent one.
+- `ship` accepts either skill as its prerequisite (both its `description:` and Prerequisites list), and `tackle`'s hardcoded terminal `invoke done` became a size judgment — a caller's `description:` cannot reveal a hardcoded terminal call, so callers need opening, not reasoning about.
+- The reviewer prompt carries `/done`'s destructive-verb ban; a one-agent dispatch is no safer than a fan-out, since the same Bash-capable agent runs.
+- Plugin version bumped 1.139.15→1.140.0 (minor: adds a user-facing skill).
+
+**Status**: committed · **Reversible**: yes (delete the skill + 4 registration edits; `/done` needs no unwinding)
+
+---
+
+### D-agent-verb-ban-shared — The Destructive-Verb Ban Belongs to Every Spawner, Not Just `/done` — committed — 2026-08-07
+
+**Problem**
+`/done` Step 1 told its spawned agents not to run `stash`/`checkout -- .`/`reset`/`clean`/`restore`/`commit`/`push`. Writing `quick-done` reproduced the dispatch without the ban, which surfaced the real scope: six skills spawn agents and only one stated it. Measuring the frontmatter (`awk '/^tools:/…' .claude/agents/*.md`) showed every spawned agent holds `Bash` — `Explore` holds `Bash Write Edit` and `claude-md-pruner` holds `Bash Edit`, despite both reading as retrieval roles.
+
+**Decision**
+Chosen: extract to `skills/_shared/references/agent-prompt-verb-ban.md` with the verification command inline, and point `quick-done`, `update-claude-docs`, and `explore-delegation.md` (covering both `Explore` callers) at it. `explore-delegation.md`'s "read-only, cheap" description of `Explore` was corrected in the same edit — it was false against the frontmatter and was the reason the exposure stayed invisible.
+
+**Rejected**
+- Merging into `diff-ownership.md`/`contested-doc-sections.md`, which carry the same verb list. Why not: those state a self-directed rule (don't run these to clear contested work); this states a delegation rule (put this in the prompt). Same vocabulary, different trigger — merging would make both harder to find.
+- Restating the list per skill. Why not: 4+ owners, past the plugin's extraction threshold.
+
+**Consequences**
+- An agent's declared role is not evidence of its tool grants; read the frontmatter before calling one read-only.
+- `/done` still carries its own inline copy — it was off-limits this session. A future pass can point it at the shared file, making 5 pointers and one owner.
 
 **Status**: committed · **Reversible**: yes

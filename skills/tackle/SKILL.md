@@ -5,4 +5,4 @@ description: Vague multi-item doc continuation ("let's continue", "do the next s
 
 # Tackle
 
-Read the doc via `read-summary`, then invoke `done` when finished.
+Read the doc via `read-summary`, then invoke `done` when finished — or `quick-done`, if what you actually built turned out small and single-domain. Judge that at the end, against the work done, not from how the request sounded.

@@ -2,7 +2,9 @@
 
 Referenced by skills whose workflow has a pure file-discovery / grep-sweep sub-step (read-summary, merge-task-docs, task-summary). Apply when a step's work splits into *gather raw hits* (mechanical) + *judge what they mean* (inline judgment).
 
-**Rule:** delegate only the gathering. Spawn `Explore` (read-only, cheap) to run the `Glob`/`grep`, and have it return **raw candidates + hits only** — file paths, matched lines, header blocks — never a ranked pick or "the answer is X". The judgment (ranking, merge-fit, mapping, which hit matters) stays inline against that raw data.
+**Rule:** delegate only the gathering. Spawn `Explore` to run the `Glob`/`grep`, and have it return **raw candidates + hits only** — file paths, matched lines, header blocks — never a ranked pick or "the answer is X". The judgment (ranking, merge-fit, mapping, which hit matters) stays inline against that raw data.
+
+`Explore` is read-only by *role*, not by *tools* — its frontmatter grants `Bash Write Edit`, so the repo-wide verb ban belongs in its prompt like any other agent's (`agent-prompt-verb-ban.md`, same directory). A search-shaped mandate is what makes this easy to skip.
 
 ⚠️ **Why:** Explore's search process — exploratory Glob misses, intermediate tool calls, retries — never touches the caller's context. Only the final hit list does. The caller absorbs that payload (an `Agent` call's result inlines into whoever spawned it), so "raw candidates" is not smaller than inline `grep` would return; the saving is that all the search churn stays isolated to the agent's own context, not yours.
 

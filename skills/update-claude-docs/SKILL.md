@@ -159,7 +159,7 @@ Glob: .claude/agents/claude-md-pruner.md
 
 Detection rules for both skip cases: `../_shared/references/declared-budget.md`. A spawn against either can only return a no-op.
 
-**Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.`
+**Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.` — plus the repo-wide verb ban (`../_shared/references/agent-prompt-verb-ban.md`); this agent holds `Bash` and `Edit`.
 
 The agent owns its own classification rules, litmus tests, and never-delete safeguards — delegate to it, don't second-guess its instructions from here.
 

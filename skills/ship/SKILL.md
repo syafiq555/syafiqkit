@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Ship code to production — commit, changelog, push, verify CI/CD deploy, generate release note. Use when the user says "ship", "ship it", "deploy", "push to prod", "send it", or after /done is complete and code is ready to go live. Works with single repos and multi-repo setups (root + sub-repos). Assumes /done was already run.
+description: Ship code to production — commit, changelog, push, verify CI/CD deploy, generate release note. Use when the user says "ship", "ship it", "deploy", "push to prod", "send it", or after /done is complete and code is ready to go live. Works with single repos and multi-repo setups (root + sub-repos). Assumes /done (or /quick-done for a small session) was already run.
 ---
 
 # Ship
@@ -11,7 +11,7 @@ Run the whole chain in one turn. A sub-skill's closing summary (or a written art
 
 ## Prerequisites
 
-- `/done` has already been run (code reviewed, simplified, task docs updated)
+- `/done` has already been run (code reviewed, simplified, task docs updated) — or `/quick-done`, for a small session reviewed without the simplifier/product lens
 - Changes are staged or ready to stage
 
 ## Workflow
