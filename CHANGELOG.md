@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.140.3
+
+- **`/ship`: a changelog heading you just consolidated is the weakest evidence of release scope, not the strongest.** Step 5 already said to settle the note's boundary from the commit range rather than "whichever heading happens to be nearby" — but it framed that as a *stale*-heading risk, so it didn't fire on a heading edited seconds earlier. Live case: folding a project's `[Unreleased]` backlog into today's dated heading (a correct changelog fix) left 31 items sitting under today's date while the push carried 3 commits; the note went out covering all 31 until the user cut it back. Nothing looks wrong at the time — the entries are real, dated today, and sit directly above your own new bullet. The rule now names consolidation explicitly and gives the tell: a large gap between the commit range's item count and the heading's bullet count means you're reading a merged section, not a release.
+
 ## 1.140.2
 
 - **`condense-claude-md`: a table's shape is a means, the dropped cell's content is what must survive.** The old hard rule pinned the format itself (`Symptom | Cause | Fix` "stays verbatim"), which reads as protecting the header when the real risk is what leaves with the column. A delegated pass collapsed a 49KB backend CLAUDE.md to 3-column→2-column and took 167 backticked identifiers and 9 of 23 `See <Class>` pointers with it — the merged rows read complete, so nothing flagged the loss. Collapsing to two columns or to prose is now explicitly legitimate when the result reads better; renaming columns you're *keeping* stays discouraged, with the actual reason attached (it breaks the positional `awk -F'|'` checks further down the same file).
