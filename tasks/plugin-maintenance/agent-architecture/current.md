@@ -14,7 +14,7 @@ Last updated: 2026-08-07 — new `quick-done` skill: a cheap `/done` sibling (1 
 
 **Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents. 30 decisions (29 live, D35 superseded) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`).
 
-**State**: v1.140.0 ships via `/ship` — this repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`.
+**State**: v1.140.0 is live on `origin/master` (`68db6da`, 2026-08-07) — verified by `git ls-tree origin/master` showing `skills/quick-done/SKILL.md` and `skills/_shared/references/agent-prompt-verb-ban.md` present on the remote. This repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`.
 
 **Immediate next actions (in order)**:
 1. This repo's own `.claude/agents/` is still missing `task-builder.md` and `browser-verifier.md` (templates exist, never generated) — run `/agent-setup` to backfill; exercises the Missing-agent check (D38) end-to-end.
@@ -87,7 +87,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 - [ ] **Add the post-write ADR-id gate — the numbers are fixed, the allocator is not.** This was the 2nd collision round and the 1st caused it: `doc-condensation`'s D40 was renumbered off a duplicate D32 on 2026-07-20 into an id this feature then took. **2026-08-02: round 3 happened exactly as predicted** — `doc-condensation`'s own D66 was independently minted twice (a `/done` review caught it, renumbered to D67), because the allocator step CLAUDE.md's ADR row already prescribes (`grep -rhoE "^### D[0-9]+" tasks/ | ...`) wasn't run against the global corpus before writing. The manual fix works; the gate to make it automatic is still open. ⚠️ Never reuse a numbering gap — D2/D5/D7/D11/D41 are demoted/retired ids still cited in prose. Highest id is now 67.
 
 **Doc size**
-- [ ] The doc SET is 742 lines / 86.7KB against a 300-line budget — 716 at HEAD, so overwhelmingly pre-existing (`cat current.md decisions/*.md | wc -lc`). The index reads healthy at 101 lines, which is what hides it. Weight is `decisions/verification-rigor.md` (271 lines), not the theme file most recently edited. Route to `condense-task-doc` — it owns the thresholds and any further split; don't hand-condense.
+- [ ] The doc SET is 742 lines / 86.7KB against a 300-line budget — 716 before the v1.140.0 commit, so overwhelmingly pre-existing (`cat current.md decisions/*.md | wc -lc`). The index reads healthy at 101 lines, which is what hides it. Weight is `decisions/verification-rigor.md` (271 lines), not the theme file most recently edited. Route to `condense-task-doc` — it owns the thresholds and any further split; don't hand-condense.
 
 **Deferred**
 - [ ] `hobby-review` Step 5 emits its verdict template after "the conversation naturally reaches the 3 gates" with nothing verifying it did — D49's shape, judged not worth fixing (soft guidance, writes nothing to disk). Revisit only if a verdict ever lands on an unfinished arc.
