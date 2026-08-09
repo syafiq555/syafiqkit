@@ -47,6 +47,8 @@ A row that already reads as a clear fact can still carry this in its decoration 
 
 Facts stay, stated plainly. Constraints get rewritten as judgement prose — state the reasoning, let the reader apply it, don't pre-empt every way it could go wrong with a named trap for each one. Losing a genuine fact while chasing this is the actual failure mode to watch for, not the deletion count.
 
+A stated limitation is a fact, and it's the one this pass is most likely to read as hedging: text saying what a tool cannot do, what a check does not prove, or what a result is not evidence of has the cadence of an author covering themselves, so a pass hunting over-caution cuts it and counts the cut as a win. Deleting it leaves the confident half of the sentence asserting a guarantee the original withheld.
+
 ## Reading the five target types
 
 The test above is constant; what counts as a "genuine fact" differs by target, and getting this wrong in either direction — treating a real boundary as removable constraint, or treating stale scaffolding as an untouchable fact — is the actual risk of this pass.

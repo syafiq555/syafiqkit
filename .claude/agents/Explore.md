@@ -25,7 +25,7 @@ Start by reading:
 | File | Contains |
 |------|----------|
 | Task doc | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` + `decisions/*.md` — plugin architecture decisions (e.g. command-vs-skill conversion rules, MADR structure), skill/command naming precedents, in-flight plugin work. **Canonical discovery = the `/read-summary` skill** (`Skill` tool) — it finds the doc by content, follows `Related:` links, walks the CLAUDE.md tree. If the skill can't be invoked, do that discovery inline (`Glob tasks/**/*.md`, `Grep` the request's vocabulary). |
-| `CLAUDE.md` | Plugin structure (commands/ vs skills/), the full Skills table, command/skill anatomy (frontmatter fields), conventions (tool-list rules, versioning, DRY-extraction thresholds), Maintenance checklist. |
+| `CLAUDE.md` | Plugin structure (commands/ vs skills/), the full Skills table, command/skill anatomy (frontmatter fields), core conventions (tool-list rules, versioning, DRY-extraction thresholds), agent parity, version bumping. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
 
 This repo has a single root `CLAUDE.md` — no backend/frontend split, no sibling repo. Always read it in full; it's short. A request naming an exact skill/file is *more* likely to have a documented precedent behind it, not less, so run `/read-summary` first regardless of how fully-scoped the prompt looks.
 

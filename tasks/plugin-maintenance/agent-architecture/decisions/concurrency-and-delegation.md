@@ -264,3 +264,29 @@ Chosen: extract to `skills/_shared/references/agent-prompt-verb-ban.md` with the
 - `/done` still carries its own inline copy — it was off-limits this session. A future pass can point it at the shared file, making 5 pointers and one owner.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-cross-session-messaging — Peer Discovery Belongs at the Entry Point, Not the Write Sites — committed — 2026-08-09
+
+**Problem**
+Claude Code 2.1.224+ shipped cross-session messaging (`ListAgents`/`SendMessage`), raised as a fix for the plugin's documented concurrency gaps. The real exposure it maps to: two sessions on one project, both reaching a doc-writing skill, where `task-summary`'s "Rewrite entirely" mandate destroys one session's work with no error and a success report from the loser. Existing detection (`diff-ownership.md`, `contested-doc-sections.md`) is retrospective and disk-bound, so a peer mid-edit or holding changes in memory doesn't exist yet.
+
+**Decision**
+Chosen: judge each problem by shape before reaching for the tool. Two of the four documented concurrency problems — version-bump races and `/done` Step 1's simplifier+reviewer pair — are *intra-session* subagent races with no session boundary to cross, so messaging is the wrong tool reached for by name similarity; their existing fixes (re-read-before-write, D32 disjoint partitioning) stand. For the two that are genuinely cross-session, the check goes in `read-summary`'s "Rediscover whenever scope changes" block, not at the write sites: `read-summary` opens ~9/10 sessions, re-triggers on scope change, and runs before both code and doc work, so one check covers a shared source file and a shared `current.md` alike. A write-site check fires after the session has already been editing for an hour. Limits live in `skills/_shared/references/cross-session-messaging.md`, written as a limits document; the write-side skills carry pointers only.
+
+Found while surveying: `update-claude-docs` had no ownership handling at all, while its sibling `task-summary` carried a run-wide guard — and `/done` invokes them back-to-back (Steps 3→4), so concurrent sessions meet there first. Its new guard sits above the mode-selection table, since Rewrite and Condense restructure whole files and would never reach a guard placed inside Capture mode.
+
+**Rejected**
+- Treating the feature as a general fix and reworking the ownership gates around it. Why not: a plain-text, best-effort channel has no ack or lock semantics — a receiver that is busy, on `bypassPermissions` (held, 5-min expiry, then dropped), or set to `refuse` is indistinguishable from one with no objection, so silence can never be consent.
+- Hosting the check at each write site (`task-summary`, `update-claude-docs`, `merge-task-docs`). Why not: too late to prevent anything, and it duplicates the rule into every skill that touches a file while still missing the same-source-file case.
+- A new skill wrapping the tools. Why not: the legitimate use is one `ListAgents` call plus a courtesy message — judgement attached to existing gates, not a repeatable multi-step workflow.
+
+**Consequences**
+- **The tool and the command are not the same surface**, settled by running both in one session: `/list-agents` prints each local session's working directory, while the `ListAgents` tool returns name/kind/status/ref and no directory. A session driving this itself therefore sees less than the user does. The first draft asserted the cwd was simply absent, which was true of the tool and false of the command. It changes nothing structurally — the cwd appears only for local rows, whose names already identify them, and never for the Remote Control majority. Revisit if the tool gains cwd or delivery becomes guaranteed.
+- **A large listing is history, not concurrency.** 81 rows, of which one was a live local session; the other 80 were resumable Remote Control sessions (other machines and the web), recognisable as past conversations by their first-message-derived names. Reading the total as a peer count is the wrong inference — filter to local interactive first.
+- **An empty listing does not mean no concurrent writer**, which the implementation session demonstrated on itself: three files in this checkout changed mtime within the preceding minute while the only local interactive peer was idle in an unrelated project, so the writer was never addressable. The first draft of the reference said a listing with no local peer "means proceed normally" and was corrected before landing. Where the listing and `git status` disagree, `git status` observed a write and the listing observed nothing — the diff-content check stays mandatory, and the same run confirmed it separates cleanly (8 owned files carried the session's marker, 4 foreign ones carried none) where mtime could not, all four foreign files being stamped inside the session window.
+- Fixed in passing: `merge-task-docs` L84 parked its contested clause *after* its mandate, the exact defect `contested-doc-sections.md` names.
+- Out of scope by user decision: a version-file disagreement (`plugin.json` 1.140.5 vs `marketplace.json` 1.140.4) left in the working tree by a prior fan-out race, observed while planning. Reported, not fixed — no parity check added, so the next recurrence surfaces the same way.
+
+**Status**: committed · **Reversible**: yes

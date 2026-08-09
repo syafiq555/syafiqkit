@@ -15,6 +15,8 @@ A personal session journal for the things that don't belong in code. Task docs (
 - **Not auto-memory.** Memory is for durable *facts* the assistant recalls passively. A journal is something the user deliberately reads, appends to, and reasons over across sessions — it needs structure and a stable address, not scattered fact-files.
 - **Like task-summary in shape, not in home.** It borrows task-summary's living-doc discipline (header, Quick Start, dated entries, density rules) because that discipline works. It just points at `~/.claude/notes/` instead of `tasks/`.
 
+The privacy that makes this work also makes it undiscoverable: nothing under `tasks/` or in a project tree can link here, so a session doing project work reaches the journal only if it thinks to look. `read-summary`'s Read Order step 6 is where that looking is supposed to happen, and it's worth knowing about from this side too — a thread recording *why* a decision was made is only worth writing if a later session reading around that decision can find it.
+
 ## Storage convention
 
 ```

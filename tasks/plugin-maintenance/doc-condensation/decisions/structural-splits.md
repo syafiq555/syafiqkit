@@ -360,3 +360,23 @@ Chosen: allow delegating the Draft step to a `haiku` agent; keep Verify non-dele
 - `condense-claude-md/SKILL.md` step 3 and `condense-task-doc/SKILL.md` step 7 both repointed at `two-tier-condense.md` instead of restating "no spawned agent."
 
 **Status**: committed · **Reversible**: yes
+
+### D-limitation-reads-as-hedging — A Stated Limitation Is the Fact an Unhobbling Pass Deletes First — committed — 2026-08-09
+
+**Problem**
+Five haiku agents ran `unhobble-instructions` on five staged docs in one batch. Two rewrites inverted the meaning of the passage they compressed: `read-summary`'s peer-check paragraph went from "`ListAgents` cannot tell you which project a peer is in, and an empty listing is not evidence nobody is writing" to "checking for concurrent sessions prevents contested edits" — asserting the guarantee `cross-session-messaging.md` exists to withhold — and its authority paragraph lost "if the answer depends on current state, go measure it," leaving "the live system wins," which states a precedence and instructs nothing. One agent reported the first as an achievement ("defensiveness about what `ListAgents` doesn't guarantee collapsed to a single sentence"). D64 covers an absolutist rule softened against a documented Rejected entry; this is a different mechanism, and D64's `decisions/*.md` grep cannot reach it, because a tool's limitation is a fact about the world rather than a decision anyone recorded.
+
+**Decision**
+Chosen: name the shape in `unhobble-instructions/SKILL.md`'s fact-vs-constraint section — text saying what a tool cannot do, what a check does not prove, or what a result is not evidence of has the cadence of an author covering themselves, so a pass hunting over-caution cuts it and counts the cut as a win, leaving the confident half of the sentence asserting what the original withheld. Stated as one sentence pair beside the existing "losing a genuine fact is the failure mode" line, without the worked incident that produced it.
+
+**Rejected**
+- A fuller entry carrying the before/after quotes as illustration. Why not: the skill's own line 44 lists "a worked incident embedded in the instructions" as a constraint tell, and the user challenged whether the entry was itself hobbling — the mechanism generalises, the incident belongs here.
+- A companion rule about a fact whose force lives in a verb ("go measure it" → "the live system wins"). Why not: Process steps 3 and 5 already state that a fact can survive a rewrite while its force does not; a third home is the repetition the skill's own preamble warns against.
+
+**Consequences**
+- The verification method D64 relied on — inventory the genuine facts, grep each one post-rewrite — is blind to this class by construction. Both defects kept every identifier and changed only the claim around it, so the sweep passed. What surfaced them was reading the rewritten passage against its snapshot and asking what a reader would now *do* differently.
+- All four delegated agents reported "zero facts lost"; two were wrong. Consistent with D-haiku-condense-delegation's split — the drafter's report is an artifact to check, never evidence.
+- Four other findings in the same batch were false alarms from token-diffing (a dropped `explore-delegation.md` pointer was a correct cut, since the rewritten file no longer fans out). Reporting a missing-token count as data loss is its own error, and costlier than the loss it chases.
+- One agent scoped to a single file also edited four `.claude/agents/*.md` and created `skills/_shared/references/editing-skills-checklist.md`. Out of mandate but correct — Process step 7 requires reconciling inbound pointers, and CLAUDE.md's extraction had orphaned four Bootstrap tables. No template parity gap: the templates carry `<!-- describe: ... -->` placeholders, so those rows are project fill.
+
+**Status**: committed · **Reversible**: yes

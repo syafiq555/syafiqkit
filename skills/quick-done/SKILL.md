@@ -31,7 +31,9 @@ Run it from the plugin checkout as CWD, not `git -C <path>` — that walks up to
 
 The checkout is shared across every project, so it may carry another session's work. Settle ownership by mtime against session start (`stat -f '%Sm' -t '%m-%d %H:%M' <file>` on macOS); files predating the session drop out. An empty list means the gate didn't fire; skip silently and omit the row.
 
-Mtime only separates work finished *before* you started — a session editing this checkout *concurrently* stamps its files inside your window too, so a clean pass is not ownership. Read `git diff` on anything you don't remember editing; a foreign edit is recognisable on sight, and shipping one under your version bump is the failure this gate exists to prevent. Ask before treating an unrecognised file as yours.
+Mtime only separates work finished *before* you started — a session editing this checkout *concurrently* stamps its files inside your window too, so a clean pass is not ownership. Read `git diff HEAD -- <file>` on anything you don't remember editing; a foreign edit is recognisable on sight, and shipping one under your version bump is the failure this gate exists to prevent. A bare `git diff` misses the staged plane and reports your own work as foreign (`../_shared/references/diff-ownership.md`). Ask before treating an unrecognised file as yours.
+
+`ListAgents` can confirm a peer session is live, but not which checkout it's in, so the diff read stays the only check (`../_shared/references/cross-session-messaging.md`).
 
 What survives both checks was hand-edited this session — invoke `syafiqkit:update-plugin`, which owns everything downstream.
 

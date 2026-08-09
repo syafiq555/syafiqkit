@@ -71,10 +71,7 @@ These skills compose but are usually invoked as SEPARATE commands in sequence, n
 
 `/agent-setup` creates project-local agents in `.claude/agents/` using the **Bootstrap pattern** — agents read CLAUDE.md at runtime instead of having content injected. See `skills/agent-setup/templates/` for agent templates. `/done` uses these project agents (with fallback to external plugins).
 
-⚠️ **MANDATORY — a fix to any agent file is a fix to BOTH copies AND every sibling sharing that line.** Two directions, one grep:
-
-1. **Parity**: editing a generated `.claude/agents/<name>.md` requires patching its source `skills/agent-setup/templates/<name>.template.md` in the same change (and vice versa) — otherwise the next `/agent-setup` regenerates the old behavior. Recurred 4+ times. Drift also happens with no edit trigger at all — a spawn 400ing with `effort 'xhigh'/'max' not supported` on an Opus-pinned generated agent is worth diffing against its template before working around it as an environment fault; one instance was the generated file alone having drifted to `model: opus` while its template already read `sonnet`, making the real fix a one-line sync rather than a routing workaround.
-2. **Blast radius**: agent files are written by copy-paste, so a wrong line is almost never in one file. Before fixing, `grep -rn` the literal line across `.claude/agents/` **and** `templates/`; fix every hit. A single `Agent`-tool comment claiming its host was `Explore` sat in **11 files** — found only by grepping past the one file the typo was noticed in.
+**Agent file parity**: Editing a generated `.claude/agents/<name>.md` requires patching its source `skills/agent-setup/templates/<name>.template.md` in the same change. Otherwise the next `/agent-setup` regenerates the old behavior. Before fixing an agent file, grep the literal line across both `.claude/agents/` **and** `templates/`; fix every hit. Drift often happens silently — a spawn failing with `effort 'xhigh'/'max' not supported` is worth diffing against its template before treating it as an environment fault; one instance was the generated file alone drifting to `model: opus` while its template read `sonnet`.
 
 ## Command/Skill Anatomy
 
@@ -98,7 +95,7 @@ model: sonnet                           # Optional: override model
 ---
 ```
 
-⚠️ **`allowed-tools:`/`tools:` is a fixed enum, not an appendable allowlist — there is no way to add `Agent` to an existing list.** A skill that needs to spawn agents (background Haiku drafts, sub-delegation) omits the `tools:`/`allowed-tools:` line entirely instead — see `done`, `ship`, `agent-setup`, none of which declare it. Appending `Agent` to an existing list silently fails to grant it.
+The `allowed-tools:` field is a fixed enum, not an appendable allowlist — there is no way to add `Agent` to an existing list. A skill that needs to spawn agents omits the `tools:`/`allowed-tools:` line entirely instead — see `done`, `ship`, `agent-setup`, none of which declare it. Appending `Agent` to an existing list silently fails to grant the permission.
 
 **Agent templates** (`skills/agent-setup/templates/*.template.md`):
 ```yaml
@@ -134,67 +131,64 @@ claude plugin update syafiqkit@syafiqkit
 
 No build step — markdown files are interpreted directly.
 
-## Conventions
+## Core Conventions
 
-| Rule | Rationale |
-|------|-----------|
-| Keep commands focused (single workflow) | Easier to compose, debug |
+| Principle | Rationale |
+|-----------|-----------|
+| Keep commands focused | Single workflow per command; easier to compose and debug |
 | Include examples in markdown | Helps Claude execute correctly |
 | Use tables for structured guidance | More scannable than prose |
-| Agents use Bootstrap pattern | Agents read CLAUDE.md at runtime; only ~15 critical rules kept inline for zero-latency access |
-| Plugin must be self-contained | Never reference user's global `~/.claude/CLAUDE.md` - other users won't have it |
-| User preferences → skill/command changes, not memory | Plugin `memory/` dir is shared repo — personal prefs go in user's project memory or baked into skill defaults |
-| Commands/skills that need agents → instruct Claude to spawn, not "spawn" directly | Commands are prompts — Claude (the executor) reads and makes Agent tool calls. Same pattern as `/done` |
-| A skill's SCOPE outgrows its NAME → rename it in the same change that widens it | A name that misdescribes scope is a trigger bug, not cosmetics: the description drives model invocation, so a skill named for half its job fires for half its cases. `continue-task` gained a greenfield path and became `tackle` immediately. Renaming is cheap (`git mv` + grep every reference); a stale name silently under-fires forever |
-| Command outgrows "single workflow"? → Migrate to skill; if it's a pure alias into another skill, convert the wrapper itself to a skill (not a command) | A command can only invoke, never reference/point — once its whole body is "go run skill X," it belongs in `skills/`, registering `/name` via its own `name:` frontmatter. Precedent: `write-summary`/`update-summary` → `skills/write-summary`, `skills/update-summary` (thin pointers to `task-summary`); `read-summary`, `update-claude-docs` converted outright when their name matched the target skill (see `tasks/plugin-maintenance/madr-structure/decisions/core.md` D10) |
-| Same rule/table duplicated verbatim across 3+ SKILL.md files → extract to `skills/_shared/references/<topic>.md`, replace each copy with a one-line pointer | One-place edits; e.g. `writing-style.md` (no-filler-words, one-idea-per-sentence) is referenced by `task-summary`, `notes-summary`, `update-claude-docs`, `condense-task-doc`, `condense-claude-md`. For a rule that's canonical in ONE skill but referenced elsewhere (not truly shared), point to that skill directly instead (e.g. `task-summary`'s merge rules point to `merge-task-docs`) — don't create a `_shared/` file for a single owner. ⚠️ **Count the owners by grepping the MANDATE, before deciding placement — "single owner" is a measurement, not an impression.** Grep the behaviour the rule governs (`"Overwrite in place"`, `"Rewrite on every update"`), not the rule's own wording, which by definition exists in only the one file you're editing. Issue #13 read as single-owner and shipped as such; the sweep afterwards found the identical mandate in `condense-task-doc` and `merge-task-docs`, making it 3 and reversing the call. **Tell: you concluded "only this skill needs it" without a grep whose pattern came from the OTHER skills' vocabulary** |
-| A pointer to `_shared/references/` is a literal relative path, not a topic label — write it at the citing file's own depth, never bare | The bare form `_shared/references/X.md` resolves against the CITING file's own directory, so from `skills/<name>/SKILL.md` (depth 1) it 404s unless prefixed `../`, and from `skills/<name>/references/*.md` or `templates/*.md` (depth 2) it needs `../../`. 17 files across the plugin shipped the bare form for an unknown number of releases before a literal `cat` on one finally surfaced it — every prior reader had silently recovered by locating the file some other way (grep, memory) instead of treating the 404 as a defect. Verify a new pointer resolves (`cd` to the citing file's dir, test the relative path) before landing it; don't just eyeball the `../` count |
-| Never add `disable-model-invocation` unless user explicitly asks | User dislikes it — it drops the skill/command from Claude's context, killing auto-suggestion. Default to proactive invocation |
-| **Shrinking a file routes to the condense skill for that artifact — no skill or agent carries its own size policy** | CLAUDE.md → `condense-claude-md`; task doc → `condense-task-doc`. They own thresholds, budgets a file declares for itself (`skills/_shared/references/declared-budget.md`), and every split decision. Callers may name a number as a *trigger to delegate* (`task-summary` L20/L52 is the pattern: "delegate rather than hand-rolling"), never as a policy they enforce. `claude-md-pruner` was the outlier — it ran a second implementation until its step 0 was collapsed; an agent earns its existence through `memory:`/background spawning, not by owning a threshold. **Tell: you're about to write a line count into a file that isn't one of the two condense skills** |
-| ⚠️ **`claude-md-pruner`'s name is DELIBERATELY legacy — it prunes task docs too. Do not "fix" it** | Its scope is intentionally wider than its name, which is a knowing exception to the rename-on-scope-change row above. Renaming breaks two things silently: `update-claude-docs` Step 4 Globs the literal filename and spawns by literal `subagent_type`, and a Glob miss falls through to "skip pruning" with **no error**; and `agent-setup`'s missing-agent check runs templates→agents only, so every existing project would keep the old file alongside the new one. The name is inert for the spawn path — the `description:` carries the real trigger surface, and it names both artifacts. 📖 D43, `tasks/plugin-maintenance/agent-architecture/decisions/injection-and-delegation.md` |
-| **Every change = version bump** | Bump both version files (see [Version Bumping](#version-bumping)) |
-| **A release note for this plugin states the reader's ACTIONS, not just the diagnosis** | Consumers install via the marketplace and cannot see the repo, so a note explaining only what broke leaves them with nothing to do. Required: (1) `claude plugin update syafiqkit@syafiqkit`; (2) **what prior output is now invalid** — a fix to a *measurement* (a ranking, a count, a gate's threshold) silently invalidates every earlier run, so say re-run it; (3) any genuine non-action, but only where a reader would independently wonder. Skills are re-read on every invocation, so a skill-only release needs no regeneration step — say that only if agents/templates were plausibly in scope. **Tell: your note's last section explains a root cause and the reader still doesn't know whether to re-run anything** |
+| Agents use Bootstrap pattern | Read CLAUDE.md at runtime; only essential rules kept inline |
+| Plugin is self-contained | Never reference user's global `~/.claude/CLAUDE.md` — other users won't have it |
+| User preferences → skill changes, not memory | Plugin `memory/` is shared repo — personal prefs go in project-local memory or skill defaults |
+| Skills that need agents → instruct Claude to spawn | Commands are prompts; Claude reads and makes Agent calls. Same pattern as `/done` |
+| Scope outgrows name → rename in same change | A name misdescribing scope is a trigger bug: description drives model invocation. Example: `continue-task` gained greenfield path and became `tackle` immediately. Renaming is cheap; a stale name under-fires forever |
+| Command outgrows single workflow → migrate to skill | A command can only invoke, never point. Once its body is "go run skill X," it belongs in `skills/`. Precedent: `write-summary`/`update-summary` became skills; when name matched target skill, convert outright |
+| Shared rule/table across 3+ skills → extract to reference | One-place edits; example: `writing-style.md` (no filler, one idea per sentence) is referenced by six skills. For a rule canonical in ONE skill, point to that skill directly instead |
+| References in `_shared/` use literal relative paths | `_shared/references/X.md` resolves against citing file's directory; from `skills/<name>/SKILL.md` it needs `../`; from `skills/<name>/references/*.md` it needs `../../`. Verify a new pointer resolves before landing it |
+| Never add `disable-model-invocation` without user request | User dislikes it — kills auto-suggestion. Default to proactive invocation |
+| Size policy lives in condense skills only | CLAUDE.md → `condense-claude-md`; task doc → `condense-task-doc`. They own thresholds and split decisions. Callers may name a number as a trigger to delegate, never as a policy to enforce |
+| `claude-md-pruner` scope is intentionally wider than its name | It prunes task docs too. Do not "fix" the name — renaming breaks silent gates (`update-claude-docs` Step 4 Globs the literal filename, and `agent-setup` checks templates→agents only). The name is inert for spawn; `description:` carries the real trigger surface |
+| Every change = version bump | Bump both files (below). A fan-out of parallel edits means re-read immediately before writing; expect to bump again if it moved |
+| Release notes state the reader's action | Consumers install via marketplace without repo access. Required: (1) `claude plugin update syafiqkit@syafiqkit`; (2) what prior output is now invalid (re-run? regenerate?); (3) any edge case the reader would wonder about. Skills get re-read every invocation, so skill-only changes need no regeneration — say that only if agents/templates were touched |
 
-## Maintenance {#maintenance}
+## Version Bumping {#version-bumping}
 
-### When Modifying Commands/Skills
+The version lives in two files and must match:
 
-1. **Run code-simplifier**: Target <100 lines per command; 47%+ reduction signals bloat
-2. **Review checklist**:
-   - Missing `path` param on Glob/Grep instructions
-   - Inconsistent behavior vs related commands/skills
-   - Ambiguous criteria (define what "related" or "connection" means)
-   - Missing edge cases (archived docs, Status: Done)
-   - Skill references a non-existent terminal skill (e.g. `writing-plans`) — always verify referenced skills exist in `skills/*/SKILL.md` before shipping
-   - Same flow described in 4 places (checklist + diagram + prose + after-section) — one `## Steps` section is enough; redundancy causes section drift
-   - Judging bloat by line count alone — a dense one-row-per-item table can sit at target line count while individual cells run 800+ characters; use `wc -c` alongside `wc -l` before ranking files by size. Compute the bytes/line ratio with a tool (`echo "scale=1; $(wc -c < f)/$(wc -l < f)" | bc`), never mentally — an eyeballed ratio that lands the wrong side of the ~80-90 threshold inverts the diagnosis (extract vs tighten) and reads as measured
-   - **Any size figure that reaches a reader gets `wc` run on it first, not just the ones deciding a condense.** The row above reads as scoped to ranking work, so a comparative figure written into a CHANGELOG, release note, or plan ("~76KB vs ~28KB") escapes it and ships as measured — the paired figure is what disguises this, since one side being right makes both look computed. A skill's real cost is the sum of what it loads (`cat <skill> <every skill it invokes> | wc -c`), which is not derivable from the SKILL.md you have open. **Tell: you're about to publish two numbers in a comparison and only estimated one of them**
-   - **A clean code review of the changed lines does not clear a rule whose defect is REACHABILITY** — the two review lenses fail differently, and only one can see this class. A file-scoped reviewer reads the diff and correctly reports three new branches as mutually consistent; whether any code path evaluates their condition lives *between* sections and is invisible to it. That is the product reviewer's question ("can a real session actually get here?"), so on a rule change treat its verdict as load-bearing rather than advisory — issue #13's 🔴 came from it after the code review came back accurate and clean. **Tell: you're about to ship a conditional on the strength of a review that only read the lines you changed**
-   - A skill "feels bloated" → run `syafiqkit:update-plugin`'s Step 3a density-pass checklist (stacked warnings, worked anecdotes, cold-path extraction) rather than a from-scratch audit — see `tasks/plugin-maintenance/doc-condensation/decisions/structural-splits.md` D23, D50
-   - A skill that was condensed BEFORE is an arrival-rate problem, not a density one — re-condensing it regressed both times it was tried. Extract cold paths to `references/` and apply Step 3a's replace-or-route gate; a B/L ratio that barely moves after extraction means the rules are irreducible, not that you cut too little (D50)
-   - **A skill that ROUTES to N owners needs a receiving branch in all N — wiring one and not the rest fails silently.** The target's entry step scans the session for a signal, but a handoff arrives with the verdict already decided and no narrative to scan, so it reads as "no signal, nothing to do" and the finding dies. Retrofitting the first owner makes the gap invisible: that path demonstrably works, so the unwired siblings look equally wired. Enumerate every owner the routing table names and open each one's entry step. **Tell: your new skill's hand-off table has more rows than the number of target skills you edited**
-   - **The reverse direction: a new skill needs its EXISTING callers re-pointed, and a caller's `description:` cannot tell you whether it has one.** A skill body ends in a hardcoded `invoke <name>`, so the routing decision was made once at authoring time and never re-evaluates — adding a cheaper sibling leaves every such caller locked to the original, and the caller keeps working, which is why nothing surfaces it. Reasoning from the caller's description is what misses it (`tackle`'s reads as vague multi-item work, so it cleared a blast-radius check while its two-line body said `invoke done`). Grep the old skill's name across `skills/*/SKILL.md` bodies and open each hit. **Tell: you cleared a caller as unaffected without opening it**
-   - **A gate is only real if some step computes its inputs — name the measurement at the deciding step, not a later one.** A new condition ("skip when under the floor", "only if over budget") reads as enforced while nothing instructs the executor to take the number, and an unmeasured condition resolves to its permissive default, so the gate passes by doing nothing. A sibling step that *does* measure is not cover: `update-claude-docs` Step 5 owns `wc -lc` but runs after Step 4 and per-entry, so Step 4's floor needed its own measure line. 4th recurrence of this shape (D50's arrival-rate gate stated in Step 3a and unchecked in Step 4; the floor; issue #13's contested-doc branch). **Tell: your new row names a threshold and no step above it runs a command**
-   - **The same defect wears a second face: a BRANCH whose condition only one code path evaluates.** A conditional added to a rule ("X fired → do Y instead") is dead on every invocation that never reaches the step setting X — and the untaken path is usually the common one. Issue #13's fix keyed three branches off a guard whose own text read "before **scanning**", while the reporter's repro passed an explicit path; the branches were unreachable exactly where the bug was filed. State the condition run-wide, and trace it from *each* entry point in the caller's table, not just the one you were editing. **Tell: your branch names a condition set in a step a reader can skip**
-   - **Establish tree state BEFORE measuring anything** — `git status --short` first. A ratio table computed against a dirty tree describes files that already carry another session's unshipped edits, and the numbers read as a clean baseline. A dirty target also invalidates `git diff HEAD` as the condense-verify baseline (the other writer's lines appear as `-` and "restoring" them destroys their work) — commit or snapshot first
-   - ⚠️ **Running `git status` is not the rule — TAKING THE BASELINE FROM `git show HEAD:<path>` is.** On a dirty file the working copy is someone else's starting point plus yours, so a `wc -c` of it reports their bytes as your growth; noting the tree is dirty and then measuring the file anyway satisfies the letter of the row above and none of its purpose. Quote every before/after figure from `git show HEAD:<path> | wc -lc`. **Tell: a size delta you're about to publish came from a file `git status` listed as modified**
-   - Touching ANY skill: the registry lives in **two** hand-maintained places — this file's `## Skills` table and `README.md`'s. Adding to one is the common miss; the worse failure is silent rot in tables nobody edited (3 skills were absent from this file's table for months while present in README). Never trust them by eye — diff against disk, which is the only source of truth:
-     ```bash
-     sed -n '/^### Skills/,/^### Typical/p' CLAUDE.md | grep -oE '^\| `[a-z-]+`' | tr -d '|` ' | sort > /tmp/c.txt
-     ls -d skills/*/ | grep -v _shared | sed 's|skills/||;s|/||' | sort > /tmp/d.txt
-     comm -13 /tmp/c.txt /tmp/d.txt   # any output = rows missing from CLAUDE.md
-     ```
-   - ⚠️ **A skill step naming a plugin-internal path (`tasks/**`) as something to READ or WRITE — there is NO path that reaches it from an install, so state the step as source-checkout-only instead of hunting for one.** `tasks/` is not shipped (verify: `ls ~/.claude/plugins/cache/syafiqkit/syafiqkit/<ver>/`), a marketplace install is version-scoped so any literal path goes stale on the user's next update, `~` does not resolve on native Windows (`%USERPROFILE%`), a `~/.claude` shared with WSL stores paths broken on the other side ([#36575](https://github.com/anthropics/claude-code/issues/36575)), and `${CLAUDE_PLUGIN_ROOT}` does not expand in markdown ([#9354](https://github.com/anthropics/claude-code/issues/9354)). A read-target degrades quietly; a **write**-target has no safe default, so the session stops and asks the user mid-skill. Route the write through `update-plugin`, the only skill with an ownership gate. **Tell: you're picking between an absolute and a relative path, when the answer is that the file is unreachable**
-   - ⚠️ **`git -C <dir>` WALKS UP to an enclosing repo — an ownership/identity probe pointed at a plugin dir can answer about `~/.claude` itself and report a confident, wrong remote.** Under dotfiles management the parent is a real repo with a real origin, so the probe succeeds and misattributes rather than erroring; a grep that happens to miss then yields the right verdict for the wrong reason, and inverts the moment someone forks the settings repo. Ask the question of the CWD (`git rev-parse --show-toplevel`), which is the tree you would actually edit and has no path to go stale. **Tell: your probe names a directory instead of asking where you already are**
-   - ⚠️ **A `git log --since` growth measurement counts a file CREATED in the window as having grown by its whole length** — so a brand-new file ranks #1 on its first audit and routes into an action queue as a finding, crowding out real signal. Disqualify in-window creations (`git log --diff-filter=A`) before ranking; a file with no baseline has no arrival reading. **Tell: your top grower's reported growth equals its total line count**
-   - **A skill step that writes prose under a stated formatting/style rule is a candidate to violate that same rule in its own wording** — a fix for "don't write flat imperatives" can itself land as a bolded flat imperative, and nothing catches it because every other check reviews the TARGET file's pre-existing content, never text the session just wrote. `update-plugin` Step 4 and `update-claude-docs` Step 5 each now carry this as a named check (re-read your new text against the rule it's applying, ask which failure-mode row it would flag); any OTHER skill that writes formatted output under its own stated house style (`task-summary`, `notes-summary`, `condense-task-doc`) is exposed to the same gap until it gains an equivalent line. **Tell: your fix for a formatting/style violation is itself prose, and you haven't re-read it against the rule it's fixing**
-   - Inconsistent edits — when changing a concept (e.g., model name), verify all references (headings, body, comments) match
-   - Inserting a new warning/callout between two existing table rows — a blank line + prose between `|`-rows splits one Markdown table into two; the second half loses its header separator and can fail to render. Move the callout to a table boundary (before the first row or after the last) instead
-   - Inserting a step into a numbered list — a `6b.`-style marker is not valid GFM and renders as a paragraph, *terminating* the list so every following item restarts at 1. Renumber the tail instead, then re-check any `item N`/`step N` cross-reference at or below the insertion point
-   - Adding an ADR: **new decisions get a topic slug (`D-<kebab-slug>`), not the next chronological integer** — see `skills/task-summary/references/templates.md`'s MADR section for the convention and its per-domain collision check. Existing `D-N` blocks stay as-is; don't renumber or re-slug them retroactively.
-3. **Reference**: `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` for plugin patterns and research
+| File | Field |
+|------|-------|
+| `.claude-plugin/plugin.json` | `"version"` |
+| `.claude-plugin/marketplace.json` | `plugins[0].version` |
 
-### Design Principles
+When editing, re-read both files immediately before writing your own bump — working copies may disagree from a prior uncommitted bump. Take the highest value anyone has claimed (working copies, unreleased CHANGELOG headings), not just the committed baseline.
+
+The bump and its CHANGELOG entry are one change. When the entry can't be written — the file is contested, the work isn't finished — don't land the bump alone and note the entry as owed: a tree advertising a version with no heading behind it is worse than either half, because a concurrent session re-reading the version files takes its next number from a string nobody has published, and the two of you collide on it. Leave the version at the committed baseline and let whoever writes the entry take the number then. When multiple agents edit in parallel, each re-reads before bumping to avoid racing to a stale value. Running `claude plugin update syafiqkit@syafiqkit` reloads the installed copy once, after all changes land — don't run it mid-batch, or you reload a partial version.
+
+## Prompting Techniques for Skills and Commands
+
+Commands and skills are prompts — apply these patterns when authoring:
+
+| Technique | When to use | How |
+|-----------|-------------|-----|
+| **Constitutional (❌ constraints)** | Routing/write decisions | Add `❌ Never / ✅ Always` table before the action step |
+| **Validation Loop** | File writes/modifications | Add numbered self-check after write: all points addressed? no deletions? format correct? revise if needed |
+
+A skill that writes formatted output under its own style rule should re-read its own new text against that rule — a fix for "don't write flat imperatives" can itself land as bolded imperatives, and nothing else catches that gap.
+
+The `<thinking>` block pattern was retired 2026-07-16 after zero uptake — reasoning scaffolds belong to the harness, not skill files. A skill that hardcodes them fights the active output style.
+
+## Prompting for Skill Maintenance
+
+When modifying skills or commands, reference the detailed checklist in `skills/_shared/references/editing-skills-checklist.md`. That guide covers: tool-parameter validation, reachability analysis, registry sync, path portability, and the specific failure modes that each class of edit can introduce.
+
+Critical structural checks remain inline:
+
+- **Skill registry sync**: The registry lives in two places — this file's Skills table and `README.md`. Both must stay in sync. Never trust them by eye; diff against disk (`ls -d skills/*/`).
+- **Plugin-internal paths**: `tasks/**` is not shipped in marketplace installs. A skill cannot read or write there; route writes through `update-plugin` (the only skill with an ownership gate).
+- **Git probes in plugin code**: `git -C <plugin-dir>` walks up to an enclosing repo, so an ownership probe can answer about `~/.claude` itself and report a confident, wrong remote — it succeeds and misattributes rather than erroring, which is what makes it worth avoiding. Ask the CWD instead (`git rev-parse --show-toplevel`): that's the tree you'd actually edit, and it has no path to go stale.
+
+## Design Principles
 
 | Principle | Application |
 |-----------|-------------|
@@ -202,29 +196,3 @@ No build step — markdown files are interpreted directly.
 | Auto-create over abort | Missing docs → create minimal template, don't block workflow |
 | Explicit criteria | "2+ files OR business logic" not "significant changes" |
 | Graceful degradation | PRIMARY missing → auto-create; SECONDARY missing → skip + suggest |
-
-### Prompting Techniques for Commands {#prompting-techniques}
-
-Commands/skills are prompts — apply these patterns when authoring or refactoring them:
-
-| Technique | When to use | How |
-|-----------|-------------|-----|
-| **Constitutional (❌ constraints)** | Commands that make routing/write decisions | Add `❌ Never / ✅ Always` table before the action step |
-| **Validation Loop** | Commands that write or modify files | Add numbered self-check after write step: addresses all points? no deletions? format correct? revise if fails |
-
-⚠️ **Don't prescribe visible `<thinking>` blocks in a skill.** Retired 2026-07-16 after zero uptake across 18 skills — reasoning scaffolds belong to the harness/output-style layer, not to skill files, and a skill that hardcodes one fights whatever style is active. See D33 (`tasks/plugin-maintenance/doc-condensation/decisions/structural-splits.md`).
-
-**Skip for**: Simple commands (<3 decision branches), read-only commands (no files written). Adding these to trivial commands adds noise without benefit.
-
-### Version Bumping {#version-bumping}
-
-⚠️ **Read both versions from `git show HEAD:<path>` before calling either one drifted.** A prior session's uncommitted bump makes the working copies disagree, so the working-copy comparison reports drift that the committed state does not have — and names the wrong file as stale. Compare committed-to-committed, then bump from there. **Tell: you're about to write "X had drifted to N" from a value `git status` lists as modified.**
-
-**⚠️ Update BOTH files** — missing one causes silent version mismatch:
-
-| File | Field |
-|------|-------|
-| `.claude-plugin/plugin.json` | `"version"` |
-| `.claude-plugin/marketplace.json` | `plugins[0].version` |
-
-When several agents patch this plugin in the same window — a fan-out like `unhobble-instructions` dispatching one background agent per file group is the common case — each one reading-then-bumping the version independently races the others, since none of them can see a sibling's in-flight edit. Re-read the version immediately before writing your own bump rather than trusting the value you read at the start of your turn, and expect to bump again if it moved. `claude plugin update syafiqkit@syafiqkit` reloads the installed copy from the checkout, so it's a one-time action for whoever is coordinating the whole batch, not something each parallel agent should run on its own edit — running it mid-batch reloads a partial, in-progress version of the plugin.

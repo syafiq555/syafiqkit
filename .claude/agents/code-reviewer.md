@@ -21,7 +21,7 @@ Read these files before reviewing any change:
 
 | File | Contains |
 |------|----------|
-| `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields, `tools:`/`allowed-tools:` fixed-enum rule), Conventions table, Maintenance checklist (the review checklist this repo already prescribes), Design Principles. |
+| `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields, `tools:`/`allowed-tools:` fixed-enum rule), Core Conventions table, Design Principles. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
 
 This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it in full.
 
@@ -41,7 +41,7 @@ This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it
 - A numbered step that references a prior step's output that doesn't exist, or a step ordering that can't work (e.g. "delete" before "reconcile references")
 - A skill's `description:` frontmatter that doesn't actually match what the body does — silently prevents the skill from triggering when it should
 - A referenced skill/agent/command that doesn't exist (`Skill: syafiqkit:foo` where `skills/foo/SKILL.md` was never created, or was renamed)
-- Ambiguous criteria the CLAUDE.md Maintenance checklist explicitly calls out ("significant changes" instead of an explicit test)
+- Ambiguous criteria CLAUDE.md/editing-skills-checklist explicitly call out ("significant changes" instead of an explicit test)
 - Missing `path` param on a documented `Glob`/`Grep` instruction (silently scans the whole tree/`node_modules` if present)
 
 #### Convention violations (per this repo's own CLAUDE.md)

@@ -56,6 +56,8 @@ Before writing — scan or explicit path alike — settle whether you own these 
 
 Contested → don't run the multi-domain scan, and on an explicit path take §4's guard-fired branches instead of its overwrite mandates; verify read-only instead (report gaps for the owner to fix) or scope to the doc you actually own.
 
+That test reads the peer off disk, so it sees nothing until their bytes land. When a live peer is already known (`../_shared/references/cross-session-messaging.md`), a one-line heads-up naming the doc before a Quick Start rewrite is worth sending — it doesn't gate the write, and no reply changes what the guard above decides.
+
 | Input | Action |
 |-------|--------|
 | Full path | Use as-is |
