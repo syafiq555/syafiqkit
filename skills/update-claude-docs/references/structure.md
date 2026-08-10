@@ -69,12 +69,12 @@ These are what make the existing files scannable; a created/rewritten file must 
 
 | Convention | Rule |
 |-----------|------|
-| Prose, ending in `**Tell:**` | The default form for a judgement-shaped constraint or gotcha ("it depends, reason about it") — see "New signals → Add entry" for the full test. |
+| Prose | The form for a judgement-shaped constraint or gotcha ("it depends, reason about it"). State the mechanism and what it costs, then stop — a reader who has the mechanism recognises the symptom on their own. |
 | `❌ NEVER / ✅ INSTEAD` tables | For a bare do/don't constraint with no reasoning worth stating. Pair every prohibition with its alternative. |
 | `Symptom \| Cause \| Fix` tables | For a gotcha whose fix is purely a lookup value (an exact error string, command, id) — lead with the literal error string so it's greppable. A judgement-shaped gotcha mixing both: prose ending in a `📖 <companion> {#anchor}` pointer, exact value at that anchor. |
 | `{#anchor}` on every `##` | Enables `#{anchor}` cross-references between layers. Every section heading gets one. |
 | File path + symbol, never line numbers | `Invoice.php scopeOverdue()`, never `Invoice.php:112` — line numbers drift on every edit above them. |
-| Emphasis sparingly | `⚠️`, `IMPORTANT`, `YOU MUST` raise adherence — but only on the few rules that truly need it; overuse flattens the signal. |
+| Emphasis sparingly | `⚠️` and `IMPORTANT` mark a fact whose cost of being missed is real, and they work only while they stay rare. An imperative that restates reasoning the reader would reach anyway flattens signal rather than raising it — state the consequence instead. |
 | Code block for structure/commands | Directory trees and command lists go in ``` blocks, not tables or prose. |
 | `@path/import` for launch-time includes | `@README` pulls a file in at launch; path is relative to the importing file. Loads in full every session like inline content — no token savings, only a DRY/reuse win. Use for genuinely-always-needed external content only. |
 | No session storytelling | State the constraint, never its history ("this bit us twice", "a reviewer caught it"). The rule is the deliverable, not the war story. |
@@ -96,7 +96,7 @@ Its job is to **route**, not to hold every rule — it points at the layer/domai
 | `api/` | … | … |
 
 ## Critical Rules {#critical}
-[judgement-shaped rules as prose, ending in a `**Tell:**` sentence; `❌ NEVER | ✅ INSTEAD` rows only for a bare do/don't with no reasoning to state — see "New signals → Add entry" for the test]
+[judgement-shaped rules as prose stating mechanism and consequence; `❌ NEVER | ✅ INSTEAD` rows only for a bare do/don't with no reasoning to state — see "New signals → Add entry" for the test]
 
 ## Data Model {#data-model}
 [shared hierarchy + key tables — the facts every sub-repo needs]
@@ -129,13 +129,13 @@ Key files: [3-5 entry points]
 ​```
 
 ## Critical Rules {#critical}
-[judgement-shaped rules as prose, ending in a `**Tell:**` sentence; `❌ NEVER | ✅ INSTEAD` rows only for a bare do/don't with no reasoning to state — see "New signals → Add entry" for the test]
+[judgement-shaped rules as prose stating mechanism and consequence; `❌ NEVER | ✅ INSTEAD` rows only for a bare do/don't with no reasoning to state — see "New signals → Add entry" for the test]
 
 ## <Domain sections> {#anchor}
 [per-subsystem rules + schema tables]
 
 ## Gotchas {#gotchas}
-[a gotcha whose fix is a judgement call: prose, 2-4 sentences, ending in `**Tell:**`. A gotcha whose fix is a specific value with no reasoning: `Symptom | Cause | Fix` row — this is a value lookup, prose adds nothing. A gotcha mixing both: prose ending in a `📖 <companion> {#anchor}` pointer, exact value at that anchor]
+[a gotcha whose fix is a judgement call: prose, 2-4 sentences, stating the mechanism and what it costs. A gotcha whose fix is a specific value with no reasoning: `Symptom | Cause | Fix` row — this is a value lookup, prose adds nothing. A gotcha mixing both: prose ending in a `📖 <companion> {#anchor}` pointer, exact value at that anchor]
 ```
 
 ### Subdir (a section split down a level)
@@ -154,7 +154,7 @@ Official guidance targets **under ~200 lines** per file — adherence measurably
 
 When a create/rewrite would land a file over budget, the fix is **structural, not deletion**: push a coherent block down to a subdir/domain file (Section 1's seam-test), route it to a task-doc index+pointer (below, when the seam-test fails but the content is feature-specific), split a cross-cutting block to a manual companion file (third lever, below), or hand the whole file to `condense-claude-md` for a density pass. Do NOT cram — a file over budget that "needs everything" is a file whose rules want to live at different layers.
 
-⚠️ **"Split by category" names a SHAPE, not a location.** All three levers above exist to fix an over-budget file — check the actual line count against its budget (§6) first. Under budget → in-place `### ` subsection headers, every row stays inline, no new file. Only reach for the third lever when the block is ALSO genuinely low-frequency content, not merely large. **Tell: you're about to create a new file and the source file's line count is under its budget.**
+⚠️ **"Split by category" names a SHAPE, not a location.** All three levers above exist to fix an over-budget file — check the actual line count against its budget (§6) first. Under budget → in-place `### ` subsection headers, every row stays inline, no new file. Only reach for the third lever when the block is ALSO genuinely low-frequency content, not merely large.
 
 ### Second structural lever: task-doc index + pointer (when the seam-test fails)
 
@@ -170,7 +170,7 @@ Contrast with §5's "Subdir" template: that lever needs a REAL directory both si
 
 ### Third structural lever: manual companion file (when the block is cross-cutting — no subdir AND no feature owner)
 
-The case both levers above reject: a big block (a 100+-row gotchas table) that is a general layer convention — no subdirectory passes the seam-test, no single feature owns it. This is NOT a dead end where the block must stay inline. Split it into `.claude-companions/<shared|local>/CLAUDE-<topic>.md` — one folder at the nearest git-repo root (never a same-directory file), `shared/` (tracked) for a companion supporting a checked-in file, `local/` (gitignored) for one supporting `CLAUDE.local.md` or similar — keeping only the highest-frequency rows inline. For the global `~/.claude/CLAUDE.md`, `~/.claude` is not itself a git repo — use `~/.claude-companions/`, a sibling of `~/.claude/`, never nested inside it. ⚠️ A companion does NOT auto-load like a subdir CLAUDE.md — so the `📖` pointer replacing the moved block must earn the open:
+The case both levers above reject: a big block (a 100+-row gotchas table) that is a general layer convention — no subdirectory passes the seam-test, no single feature owns it. This is NOT a dead end where the block must stay inline. Split it into `.claude-companions/<shared|local>/CLAUDE-<topic>.md` — one folder at the nearest git-repo root (never a same-directory file), `shared/` (tracked) for a companion supporting a checked-in file, `local/` (gitignored) for one supporting `CLAUDE.local.md` or similar — keeping only the highest-frequency rows inline. For the global `~/.claude/CLAUDE.md`, check whether `~/.claude` is a git repo (`git -C ~/.claude rev-parse --show-toplevel`) rather than assuming — when it's a tracked dotfiles/settings repo, the companion goes **nested** at `~/.claude/.claude-companions/`, since that's the only backed-up path and a sibling `~/.claude-companions/` is unbacked-up. Use the sibling only when `~/.claude` genuinely isn't a repo. ⚠️ A companion does NOT auto-load like a subdir CLAUDE.md — so the `📖` pointer replacing the moved block must earn the open:
 
 - Name **concrete trigger symptoms**, never a bare "see `CLAUDE-<topic>.md`" (the "silently unfollowed pointer" failure).
 - If the moved block had **multiple sub-categories**, the pointer must be a **per-category symptom index** — one line per category listing its distinctive symptoms — so a reader matches their bug against the index without opening the file.

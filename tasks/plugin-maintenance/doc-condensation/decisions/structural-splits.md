@@ -361,6 +361,32 @@ Chosen: allow delegating the Draft step to a `haiku` agent; keep Verify non-dele
 
 **Status**: committed · **Reversible**: yes
 
+### D-mandate-vs-judgement — The Write Path's Defect Was Contradicting Mandates, Not Missing Guidance — committed — 2026-08-09
+
+**Problem**
+A session set out to make every doc-writing skill "follow" the Claude-5 article, having already spent hours on it the day before without opening D55 (the failure D-verdict-records-lever records). An exhaustive read found the framing wrong twice over: D55 had graded all 9 claims, D63 had A/B-tested the central one and found blanket judgement-prose measurably *wrong* for value-shaped content, and D50 had rejected from-scratch rewriting twice — with `skills/` measured live at 2.04:1 add/remove over 7 days, the rate that makes a rewrite refill.
+
+What the read did find was concrete: the write path carries mandates that override judgement, and five contradict each other or themselves. `condense-task-doc` required table shape to match `templates.md` "exactly" while its sibling `condense-claude-md` called shape "a means, not the thing being preserved". Two files mandated different CLAUDE.md section orders. `templates.md` shipped literal empty rows (`| | |`) under pre-seeded `### Backend`/`### Frontend` headings and a phantom `| B1 | Critical | | |`, so a literally-followed template emitted empty tables. Columns were locked "regardless of which axis is used" while the same file mandated different columns two sections earlier. `condense-claude-md` contradicted itself on whether an under-budget file may be split.
+
+**Decision**
+Chosen: fix the five contradictions, add nothing else. Each is a disagreement between two files that already exist, which bounds the work and keeps it off D50's treadmill. Shape mandates become judgement with the reasoning stated; facts that were carried inside them (Backend/Frontend, Hosting/Build-Pipeline, both column shapes) survive as guidance rather than requirements. One addition only: D63's measured prose-vs-value boundary moves into `_shared/references/writing-style.md`, which `task-summary`, `update-claude-docs`, `condense-claude-md` and `notes-summary` all already read, so every consumer gets the boundary instead of just `update-claude-docs`.
+
+**Rejected**
+- Rewriting the write-path skills from scratch. Why not: D50 rejected it twice, and the measured 2.04:1 arrival rate is what makes stock fixes temporary. The correlation found while surveying is the same story — `skill-creator` is ~10% mandate with no output template and names judgement explicitly; `templates.md` is ~65-70% mandate and never mentions it. The defect tracks mandate density, not article awareness.
+- Making judgement prose the universal output shape. Why not: D63 measured the boundary with two isolated agents over six scenarios — prose won on judgement questions and *lost confidence* on the one needing an exact value. Applying it past its tested half is D54's error inverted.
+- Treating the global `~/.claude/CLAUDE.md` as the fix. Why not: the plugin ships and the global file does not. A consumer running `/update-claude-docs` gets these templates with nothing in their environment to supply the missing judgement, since the plugin is barred from reading a user's global file. The global file's flatness is a symptom of the skill that maintains it.
+
+**Consequences**
+- Five contradictions resolved: `condense-task-doc`'s conformance rule now conserves content over form (keeping the one real fact — renaming *kept* columns breaks the positional `awk -F'|'` checks); the divergent section order in `condense-claude-md` cites `structure.md` §3 as its single home; `templates.md` emits shape rather than empty rows; `condense-claude-md`'s split rule reads as one instruction across all three of its former sites.
+- **A third copy of the section order surfaced during verification** — `other-modes.md:26` inlined the same list. It matched §3 exactly, so it was redundancy rather than a second contradiction, but a fact that has already drifted between two copies does not get a third; collapsed to a pointer.
+- **A downstream enforcement site outlived the mandate it enforced.** `task-summary/SKILL.md` step 2 still called "wrong columns" drift against a template that no longer locks them — found by grepping the mandate's vocabulary, not the changed file's name. A mandate's removal has to reach whatever enforces it.
+- **Gate B now asks the replace/route/declare question**, closing the open half D50 named: that gate hung off `update-plugin` while rules arrive as direct hand-edits, which is exactly what Gate B detects. Declared growth stays a legitimate answer; what it stops being is the silent default.
+- Arrival rate is the measurement to watch, not this change's byte delta — 2.04:1 (7d) and 1.74:1 (30d) at the time of writing. A single re-measure proves nothing.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
 ### D-limitation-reads-as-hedging — A Stated Limitation Is the Fact an Unhobbling Pass Deletes First — committed — 2026-08-09
 
 **Problem**

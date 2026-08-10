@@ -32,6 +32,8 @@ Extract reusable patterns from this session into CLAUDE.md files.
 
 A caller-supplied arg is additive context, not a scope limiter — scan the whole conversation for every signal in the Step-1 table below, since the arg usually hints at only one of them (an arg naming a code fact still needs a separate pass for corrections/wrong-sources).
 
+**When the conversation has no scannable session** (invoked right after `/clear`, or on a topic never touched this session) but the user still names a subject ("make CLAUDE.md aware of X"), Step 1's table doesn't apply — there's nothing to scan. Read the actual source for that subject instead (the relevant directory/files) and diff it against what CLAUDE.md currently claims; a stale worker count, an undocumented code path, or a description that no longer matches the source is the same "New" or "Violation" signal Step 1 would have produced from a conversation. Say so explicitly ("no session content — reading the codebase directly") rather than silently switching modes.
+
 📖 **`references/pointer-discipline.md`** — read when a `> 📖` line is in play: following a pointer, a companion left stale because grep "found" it, a pointer's own `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
 
 ## 1. Scan — What happened?
@@ -50,19 +52,21 @@ Look for these signals in the conversation:
 | Debugging root cause discovered | Gotcha |
 | User states a durable preference for HOW Claude should communicate/behave (e.g. pastes a preferred summary format saying "give it like this instead") | Working-style rule → global `~/.claude/CLAUDE.md` |
 | The arg asserts a standard the CODEBASE should meet ("X is not needed to be long", "we always do Y") | Codebase standard → measure violation before writing |
-| Team/strategy context | Context → `CLAUDE.local.md` |
+| Personal/per-machine context (this engineer's local setup, not a fact every teammate needs) | Env pattern → `CLAUDE.local.md` |
 | Credentials/tokens/API headers used from config files | Env pattern → `CLAUDE.local.md` |
 | CLI pattern reused 3+ times (curl, scp, remote) | Env pattern → `CLAUDE.local.md` |
 | External API auth that required trial-and-error | Env pattern → `CLAUDE.local.md` |
 | A domain/layer file read this session is all Gotchas with **no `## Architecture {#architecture}` section**, and the domain has non-trivial structure (3+ sibling classes, multiple adapters/contracts) | Structural gap → add Architecture section per `references/structure.md` §3/§5 |
 
-For each signal, extract 2-3 keywords and grep all CLAUDE.md files:
+A signal is a candidate, not a verdict. Most sessions produce several and most of those shouldn't become entries — the file's health depends on what arrives, not on how well each arrival is worded, and a table of thirteen signals with no rejecting row will otherwise turn every session into net growth. Before grepping, ask what the reader gains: a fact they couldn't derive is worth a line, and a restatement of something the surrounding rules already imply costs a line and dilutes them. Prefer sharpening or replacing an existing rule to adding a neighbour, and where a session produced many signals, take the one or two that would actually change a future decision. Writing nothing is a legitimate outcome, and saying "no capture: the corrections this session were applications of rules already stated" is a real report rather than a skipped step.
+
+For each signal that clears that, extract 2-3 keywords and grep all CLAUDE.md files:
 
 | Grep result | Classification |
 |-------------|---------------|
 | No match | **New** — add entry, but first check whether it belongs in a companion file |
 | Match only inside a `> 📖` pointer line | **Not a match.** Read the pointed-to file and re-classify against its text, since the pointer itself isn't the rule |
-| Match in correct file | **Violation** — refinement steps below |
+| Match in correct file | **Violation** — refinement steps below. Read the matched rule before treating it as inadequate; it may have been correct and simply outweighed by its surroundings |
 | Match in wrong file | **Misplaced** — move to correct scope |
 
 When a grep matches a pointer line rather than the companion's own text, descend into the companion before classifying. A rule you're adding may belong in a companion, not the index. See `references/pointer-discipline.md` §1-2 for when a match inside a pointer line counts as no match.
@@ -73,7 +77,7 @@ A change to a globally-installed tool (a CLI on PATH, a shared script, a plugin 
 
 Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local.md`). This ladder is the same hierarchy `references/structure.md` §1 documents in full — read it if a routing call is unclear:
 
-1. Personal/team context → `./CLAUDE.local.md` (project root)
+1. Personal, per-machine context (never team-wide facts) → `./CLAUDE.local.md` (project root)
 2. Same domain as modified files → that domain's CLAUDE.md
 3. **Subdir-level** (`resources/js/routes/CLAUDE.md`, `app/Domain/X/CLAUDE.md`) — when a rule only matters inside one subdirectory
 4. Layer-level (`app/CLAUDE.md`, `resources/js/CLAUDE.md`)
@@ -120,13 +124,15 @@ A new entry's shape follows from the kind of answer it's recording. If the answe
 On first capture, default to plain statement-of-fact prose — no `⚠️` callout, no trigger phrases, no prescribed sequences. Reserve the imperative shape (`**Never X**`) for the "Violations → Escalate" path, after a rule has already been violated. An entry that came out as `**Never X**` plus a parenthetical carve-out is the imperative shape reasserting itself where prose was cleaner; that shape signals a repeat violation, not a first discovery.
 
 - Gotchas / Guidance: apply the test above.
-- Behavioral corrections: use `❌ NEVER | ✅ ALWAYS` when Claude concluded incorrectly, checked wrong source first, or the user had to push back. Compare against specific past actions, not general principles.
+- Behavioral corrections: the same test applies — if the correction is "you reached for the wrong thing, here's why", that's reasoning and belongs in prose. `❌ NEVER | ✅ ALWAYS` earns its place when the correction is a bare swap with no reasoning worth stating (this command, not that one). Either way, compare against specific past actions rather than general principles.
 - Patterns: Prose + code (reusable only).
 - Pair every prohibition with an alternative ("don't X" needs "do Y instead").
 
 ### Violations → Escalate by position + sharpness, NOT length
 
 A violated rule always needs an update — "the rule is clear" isn't a valid reason to skip. Escalation means making the rule harder and better-placed, not longer. Replace the old text rather than appending a second warning below the first; a repeat violation that grows the rule into a paragraph makes it less likely to be followed.
+
+Before sharpening, ask whether the rule was actually the problem. A rule can be correct, well-placed and still get walked past because the section around it teaches a different reflex — twenty instrumental rows beside one judgement sentence will produce a reader who reaches for the instrument, and adding a twenty-first is the wrong repair. When a violation happens in a section whose bulk points the other way, the fix is the section's proportion, not this rule's wording. That finding is `unhobble-instructions`'s territory; name it and hand it over rather than escalating into it.
 
 When refining a violated rule, consider:
 
@@ -174,7 +180,7 @@ Background-prune only files that are finished being edited this session. The pru
 After writing each entry (in Step 3):
 1. Re-grep the keyword to confirm no duplicate was created. This grep also proves a write landed when the target is `CLAUDE.local.md` (which is gitignored, so `git diff` can't show it).
 2. Count `|` separators — must match the table header.
-3. Ask: "Would removing this let Claude repeat the mistake?" If no, delete the entry.
+3. Ask: "Would removing this let Claude repeat the mistake?" If no, delete the entry. Then ask the same question of the section it landed in: if a reader absorbed the whole section, what would they now default to? A row can pass on its own and still be the twentieth mechanical row beside one line of judgement, which is how a section ends up training the opposite of what it says.
 4. Scan for narrative markers ("happened", "repeatedly", "caught", "twice", numbered lists) — rewrite to state the constraint, not its history.
 5. Any "Fix" column must name a specific, verifiable action — a file, method, config, or exact guard to add. Not a vague verb like "investigate" or "handle better."
 6. If the file is now over budget, flag it in your output (the Step-4 pruner handles the shrink). Default budget is 350 lines; check `../_shared/references/declared-budget.md` if the file states its own figure.

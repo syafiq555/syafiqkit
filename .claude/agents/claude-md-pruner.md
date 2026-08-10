@@ -54,7 +54,7 @@ The rules below fork here, and applying the wrong branch is a correctness bug, n
 ### 1. Inventory
 
 1. Read the target in full — the CLAUDE.md, or (task-doc branch) the index **and every `decisions/*.md` sibling**
-2. Run `wc -lc` to get current line + byte count (this repo's own convention: byte density matters as much as line count — a dense table can hit the line target while individual cells run 800+ characters). Task-doc branch: measure the SET (`cat current.md decisions/*.md | wc -c`), since an index measured alone reads healthy while the feature's docs are the real problem
+2. Run `wc -lc` to get current line + byte count (this repo's own convention: byte density matters as much as line count — a dense table can hit the line target while individual cells run 800+ characters). Task-doc branch: measure the SET (`find <doc-dir> -name '*.md' | xargs cat | wc -lc`), since an index measured alone reads healthy while the feature's docs are the real problem. Use `find`, not a `decisions/*.md` glob — an unsplit doc has no such directory and zsh aborts on the unmatched glob, reporting 0
 
 ### 2. Classify each section
 

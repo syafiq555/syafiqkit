@@ -202,22 +202,19 @@ Last updated: [today]
 
 ## Gotchas
 
-Split axis is domain-appropriate — Backend/Frontend is the default for application docs, not a fixed requirement. An infra/deploy doc with no back/frontend (hosting, CI pipeline, build config) uses whatever axis actually separates its gotchas (e.g. Hosting/Build-Pipeline) — the `| Issue | Rule |` columns stay fixed regardless of which axis is used.
-
-### Backend
+### [Split axis — whatever actually separates this doc's gotchas]
 | Issue | Rule |
 |-------|------|
-| | |
-
-### Frontend
-| Issue | Rule |
-|-------|------|
-| | |
+| [the gotcha] | [what to do about it] |
 
 ## Next Steps
 
 - [ ] [Pending work item]
 ```
+
+Emit only sections that have content. A heading over an empty table is worse than its absence — it reads as "nothing here to know" rather than "nobody has hit this yet", and a reader trusts it.
+
+The split axis is whatever genuinely separates this doc's gotchas: Backend/Frontend suits most application docs, an infra doc separates better on Hosting/Build-Pipeline, and a doc with one stack needs no split at all. Columns follow the same judgement — `| Issue | Rule |` when the fix is a rule to apply, `| Symptom | Cause | Fix |` when a reader arrives holding an error string and needs to match it.
 
 Next Steps is grouped by kind of work, not by when items were found — fix an ungrouped or date-grouped list the moment you touch the doc, regardless of length. Canonical headings (use only the ones that have items — never emit an empty group):
 
@@ -326,17 +323,12 @@ Last updated: [today]
 
 ## Critical Gotchas
 
-Split axis is domain-appropriate (see `## Gotchas` above) — Backend/Frontend for application docs, e.g. Hosting/Build-Pipeline for infra/deploy docs. Columns stay `| Issue | Rule |` either way.
+Split axis and columns follow the same judgement as `## Gotchas` above.
 
-### Backend
+### [Split axis]
 | Issue | Rule |
 |-------|------|
-| | |
-
-### Frontend
-| Issue | Rule |
-|-------|------|
-| | |
+| [the gotcha] | [what to do about it] |
 
 ---
 
@@ -344,7 +336,7 @@ Split axis is domain-appropriate (see `## Gotchas` above) — Backend/Frontend f
 
 | ID | Severity | Issue | Fix |
 |----|----------|-------|-----|
-| B1 | Critical | | |
+| B1 | [Critical/High/…] | [what broke] | [what fixed it] |
 
 ---
 

@@ -61,7 +61,7 @@ Classify each path in a batch on its own terms rather than picking one branch fo
 
 For each file path provided:
 1. Read the file — task-doc branch: the index **and every `decisions/*.md` sibling**
-2. Run `wc -l` to get current line count. Task-doc branch: measure the SET (`cat current.md decisions/*.md | wc -c`), since an index measured alone reads healthy while the feature's docs are the real problem
+2. Run `wc -l` to get current line count. Task-doc branch: measure the SET (`find <doc-dir> -name '*.md' | xargs cat | wc -lc`), since an index measured alone reads healthy while the feature's docs are the real problem. Use `find`, not a `decisions/*.md` glob — an unsplit doc has no such directory and zsh aborts on the unmatched glob, reporting 0
 3. Read root `CLAUDE.md` as the authoritative reference
 
 ### 2. Classify each section

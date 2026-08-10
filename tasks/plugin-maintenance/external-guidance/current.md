@@ -6,7 +6,7 @@ Related:
   - ../doc-condensation/current.md (owns D54 and every skill-density decision this evaluation fed, plus D63 — the later-found scope boundary on the judgment-over-prescription claim)
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-08-01 — `audit-instructions` removal (separate user decision) reconciled across every live-read field; the D33→D63 mis-citation fix from 2026-07-31 stands unchanged
+Last updated: 2026-08-09 — the method's own trigger gap (D-verdict-records-lever): the Claude-5 article was re-worked for hours without D55 being opened, so a graded-false tool got recommended and a verdict got restated inverted
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
@@ -186,6 +186,25 @@ Chosen: a discovery-only skill, `skills/audit-instructions/SKILL.md`, mirroring 
 
 **Status**: committed · **Reversible**: yes
 
+### D-verdict-records-lever — A Verdict Records Which Lever Was Rejected, Not Which Outcome — committed — 2026-08-09
+
+**Problem**
+D55 rejects the article's 80%-cut claim, and the entry reads as settled. A session working from the same article four hours without opening D55 then wrote "its headline claim is **rejected here**" into `unhobble-instructions/SKILL.md` — a sentence that would stop the next reader from performing a large cut, which is the opposite of what D55 argues. D55's actual claim is about durability: for a file edited ~22 times a week, cutting stock without changing admission just refills, so the lever is arrival rate. It says nothing against the cut itself. The D50 regression cited as evidence was two skills *hand-condensed* — prose squeezed for bytes, `condense-claude-md`'s operation — not rules deleted and rewritten as principle, which is what the article describes and what this session actually did (192 table rows → 6 paragraphs in the global CLAUDE.md, every mechanism retained).
+
+**Decision**
+Chosen: a rejection records the **lever**, and any downstream restatement names which. Where a verdict could be read as forbidding an outcome, the entry states the outcome it permits — here, that a large cut is often right and what makes it durable is a change to what gets admitted.
+
+**Rejected**
+- Softening D55's reject to "partially adopted". Why not: the lever claim is correct and measured; the defect is in restatement, not the verdict.
+- Leaving the skill's "rejected here" line and relying on the reader to follow the pointer to D55. Why not: this session had the pointer and didn't follow it. A compressed restatement is what gets read.
+
+**Consequences**
+- `unhobble-instructions/SKILL.md` now states a large cut is a fine outcome, names the operation (delete what stopped being true, rewrite the rest as principle — `never write multi-line comment blocks` → `match the surrounding code's comment density`), and keeps arrival rate as the durability point.
+- **D63's boundary is the load-bearing half and now travels with the verdict**: prose-only is right for judgement-shaped content and wrong for value-shaped. The global cut initially dropped value-shaped harness facts (`localStorage` eviction across browser agents, NULL `causer_id` from a sibling's in-flight write, an agent's `HEAD~1` baseline) as "variations on a principle"; restored as reasoning with the identifiers literal.
+- `/doctor` was recommended into the skill from the article, then removed — D55 had graded it unverified→false against the installed tooling on 2026-07-27. Cost: one false CHANGELOG bullet, caught by review before ship.
+
+**Status**: committed · **Reversible**: yes
+
 ---
 
 ## Critical Gotchas
@@ -221,17 +240,20 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ---
 
-## Last Session (2026-08-01)
+## Last Session (2026-08-09)
 
-- **`skills/audit-instructions/SKILL.md` was removed this session (a separate, unrelated user decision) — reconciled every live-read reference in this doc** (LLM-CONTEXT Status, Quick Start, `## Files`, a Task Status row, two Next Steps items) to state the removal instead of describing a skill that no longer exists. D59/D61's historical ADR blocks were left untouched — they record decisions made when the skill existed and stay accurate as history; only the fields a fresh session reads as *current* state needed the fix.
-- A `/done` product-reviewer agent caught the gap: this doc's own `audit-instructions` scan diff (2026-08-01) was scoped to a single D33→D63 citation fix and never touched the now-stale live-read fields.
+- **The article was re-worked from scratch without anyone opening D55**, which had already graded its nine claims. Four hours of edits to `unhobble-instructions` and `update-claude-docs` were built on the source this doc owns; D55 surfaced only when the user asked why a rule wasn't being changed. Cost: `/doctor` recommended into a skill despite being graded false here, and a "rejected here" line that inverted D55's meaning. D-verdict-records-lever records the restatement rule.
+- **`unhobble-instructions` restructured** 30.7KB → 9.1KB + two `references/` files, on the grounds that it taught progressive disclosure while being a single file with no references dir. A haiku agent then ran the rewritten skill against the global CLAUDE.md with a one-line prompt and followed it — all four document-level questions, both reference files read, value-shaped content kept literal.
+- **`update-claude-docs` Capture had no rejecting row**: 13 signal rows, every one producing an entry. That is the arrival-rate mechanism D55 names, sitting in the mode `/done` runs every session. A gate now sits between signal and entry; a product reviewer correctly flagged it as unenforced (judgement prose, no check fires when ignored).
+- Two review agents reached opposite verdicts on whether the global cut happened, because one read `HEAD` and the other the working tree. The uncommitted-work case is the one that produces a confident, fully-cited, wrong refutation.
 
 ---
 
 ## Next Steps
 
 **Applying the method**
-- [ ] Reuse D55's four-verdict table + D56's two report-specific checks on the next piece of guidance rather than judging by impression. No specific source queued.
+- [x] ~~Reuse D55's four-verdict table on the next piece of guidance~~ — done 2026-08-09, and the failure mode was arriving at the source without checking whether it had already been graded. See D-verdict-records-lever.
+- [ ] The method has no trigger. D55 exists and was not consulted for four hours of work built on the same article it grades; nothing in `unhobble-instructions` or `update-claude-docs` says "grep `tasks/**/decisions/` for this source before adopting it." A global CLAUDE.md entry now covers it (`{#outside-guidance}`), but the skills that actually read outside guidance still don't point here.
 - [x] ~~Re-run the fleet audit now that Step 1 disqualifies in-window creations~~ — moot: `audit-instructions` was removed 2026-08-01 (user decision). Its fixes (the disqualify-in-window-creations guard, the CWD-not-`-C` ownership probe) stay correct and worth reusing if the fleet-audit capability is ever reimplemented.
 
 **From the consumer's report (source #4)**
