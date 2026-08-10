@@ -419,6 +419,8 @@ Chosen: split the question in two, and settle the second against the target skil
 
 Second rule, on the response rather than the finding: severity decides it. Systemic damage — missing sections, a fabricated companion file, report numbers contradicting themselves — makes the whole run untrustworthy, so reverting to the snapshot and re-dispatching with the failure named in the retry prompt is cheaper than auditing it clause by clause. A single contained gap in an otherwise-sound rewrite gets patched back from the snapshot instead of discarding the pass.
 
+Third rule (1.140.11), on the report rather than the check: when the dispatch ran a named skill, the report names that skill and states its job in one line before presenting results, instead of presenting the outcome as `haiku`'s own. Two skills are in play — `haiku` dispatches and verifies, the named skill decides what the rewrite should look like — and the layering was invisible in the report, which is what let a correctness verdict get argued from `haiku`'s reasoning rather than the target skill's rules. Without this, the rule above is unreachable in practice: a reader who can't see that a second skill governs the passage has no cue to go consult its criteria.
+
 **Rejected**
 - Forbidding the verifier from ever grading a drop as correct, treating every absence as a loss to restore. Why not: D-limitation-reads-as-hedging already records four false alarms from token-diffing in one batch, where a dropped pointer was a correct cut; a rule that restores everything reinstates the bloat the pass was dispatched to remove, and costs more than the loss it chases.
 - A list of marker types that always survive (`**Tell:**`, `⚠️`, bolded imperatives). Why not: the marker isn't the discriminator — the same `**Tell:**` shape is sometimes a restatement of its own row and sometimes the only home of an exact command. Naming shapes would re-encode the eyeballing this entry removes.
@@ -427,5 +429,6 @@ Second rule, on the response rather than the finding: severity decides it. Syste
 - Completes the pair with D-limitation-reads-as-hedging. That entry taught the rewriter what not to cut; this one stops the verifier from ratifying the cut when it happens anyway. Both are needed because the verifier's read and the rewriter's read fail the same way.
 - The verification pass now has an escalation ladder rather than a single flag-it outcome, so a confirmed loss no longer terminates in an unresolved finding handed back to the user.
 - Third consecutive real `unhobble-instructions` run to surface a defect in the tooling around it (D64, D-limitation-reads-as-hedging, this). The pattern is that every defect so far has been invisible to the structural checks and visible only on a full read against the snapshot.
+- A rule about which criteria govern a judgment needs the report to make the governing party visible, or it can't be followed — the 1.140.11 addition is that half, found one version later by the same defect recurring through a different surface.
 
-**Status**: committed · **Reversible**: yes · Extends D-limitation-reads-as-hedging
+**Status**: committed · **Reversible**: yes · Extends D-limitation-reads-as-hedging · Updated 1.140.11 (report-layering half)

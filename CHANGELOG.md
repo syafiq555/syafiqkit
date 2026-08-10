@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.140.11
+
+- **A `haiku` dispatch that runs a named skill reported the result as its own, leaving the layering invisible.** When `haiku` launches an agent whose first action is `Skill(unhobble-instructions)`, the outcome is really unhobble-instructions' work product, verified by haiku — but the report read as one undifferentiated thing, which is how a verdict about the rewrite's correctness got argued from haiku's own reasoning instead of the target skill's stated rules. The report step now names the skill and its job in one line before presenting results, and says explicitly that a should-this-have-survived judgment belongs to whichever skill's own criteria govern the passage.
+
 ## 1.140.10
 
 - **`haiku`'s verification step had no check for whether a dropped-looking rule was actually correct trimming, and eyeballing it got the wrong answer.** Two live `unhobble-instructions` dispatches against the same file: the first deleted whole sections and fabricated a companion file's existence in its own report (caught and reverted); the second was a mostly-clean rewrite with a dropped `**Tell:**` rule that read as the kind of mechanical step the skill exists to remove — until it was checked against `unhobble-instructions`' own stated bar for what a marker needs to earn its place, which it passed, meaning the drop was a real loss and had to be restored. The file now says: don't call that verdict from your own read of whether a passage looks rigid, apply the target skill's own fact-vs-constraint test to it directly. Also added: severity decides the response to a confirmed loss — systemic damage (missing sections, a claimed file that doesn't exist) is cheaper to revert-and-redo with the failure named in the retry prompt; a single contained gap in an otherwise-sound rewrite gets patched back in from the snapshot rather than discarding the whole pass.
