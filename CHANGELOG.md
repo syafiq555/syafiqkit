@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.140.14
+
+- **A new checklist rule shipped with an unverified claim about which skills already followed it.** `editing-skills-checklist.md` gained a "Pointer citations" check: when a `📖` reference holds a fact with a checkable, silent-failure consequence (not just background depth), the citing skill must restate that fact inline before pointing to the reference for mechanics. `read-summary` was rewritten as the worked example, but the rule's own "Model:" line named three sibling skills as already compliant without grepping them — false for all three, plus a fourth citer the rule never named at all. `merge-task-docs`, `haiku`, `task-summary`, and `sweep-doc-overlaps` now all state the shadowing rule (don't re-read/re-grep a file while the `Explore` agent you spawned against it is still running) inline at the point they dispatch, matching `read-summary`. No action needed — this only affects how these skills read internally, not what they do when invoked.
+
 ## 1.140.13
 
 - **A rewrite was verified entirely by grep and byte-delta, judged as damage, and reverted — destroying an improvement.** `unhobble-instructions` was dispatched at four plugin files; the first `condense-claude-md` result shed 25% and three greps for old phrasing came back empty, which got reported as systemic loss. The file was never opened. The drop was mostly redistribution (detail moved behind a `📖` pointer — the case `haiku` already warns makes a correct pass read as mass deletion), only two of the three "losses" were real, and each took one edit to patch back on a re-run. The rule existed and was walked past, so `haiku`'s wording is sharpened rather than extended: size reduction is never the failure signal, only meaning getting worse is, and no instrument in that section detects it. Added the tell — you are about to revert on evidence you could have resolved by opening the file.

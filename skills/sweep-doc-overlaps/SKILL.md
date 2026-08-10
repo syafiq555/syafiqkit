@@ -26,6 +26,8 @@ Delegate to `Explore`: list every `tasks/<domain>/<feature>/current.md`, plus `_
 
 Split the domain list into N batches (aim for ≤6 domains per batch so each agent's context stays light) and dispatch one `Explore` agent per batch (one-message parallelism rule: `../_shared/references/explore-delegation.md`). A read-only sweep has no file-partition conflict, so fan out freely here.
 
+Once the batches are dispatched, don't re-read or re-grep any domain's docs inline while its agent runs — that pays for the same facts twice and the agent's own report lands later and longer anyway. Wait for each batch's completion notification instead of shadowing it.
+
 Each agent's prompt must:
 1. `ls` (never `find`/`grep` for existence) its assigned domain dirs to confirm the Step 1 inventory is still accurate — flag any drift.
 2. Read each `current.md`'s LLM-CONTEXT block (Status/Domain/Related) and Overview — skim, not deep-read every line.

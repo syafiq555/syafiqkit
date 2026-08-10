@@ -27,6 +27,7 @@ When modifying a skill, before landing the change, verify:
 - **Skill references**: Non-existent terminal skills (verify they exist in `skills/*/SKILL.md`)
 - **Redundancy**: Same flow described in 4+ places (checklist + diagram + prose + after-section) — one `## Steps` section is enough
 - **Reachability analysis**: A clean code review of changed lines doesn't clear rules whose defect is reachability — whether any code path evaluates their condition lives between sections, invisible to file-scoped review. Product reviewer finds this; code reviewer doesn't.
+- **Pointer citations**: for every `📖 <file>` line added or touched, apply `unhobble-instructions`' fact-vs-constraint test to the cited file's content — does it hold a fact with a checkable, silent-failure consequence at a specific moment in THIS skill's own workflow (not just background depth)? If yes, that fact must be restated in this skill's own prose at the point it applies, with the pointer left for mechanics/depth only. A pointer whose surrounding prose only describes what the companion *contains*, never what it *requires*, is a bibliographic citation, not an instruction — the reader never descends into it until after already having violated it once. Model: `read-summary`/`merge-task-docs`/`haiku`/`task-summary`/`sweep-doc-overlaps`'s citations of `explore-delegation.md` state the constraint inline first, then point for depth.
 
 ## Specific Edit Types
 

@@ -19,6 +19,8 @@ Before writing to a doc, check for concurrent sessions via `ListAgents` — anot
 
 Folder names are domain-scoped and rarely match how a user phrases a request — `payout` might own "refund" work, `upload-redesign` might own "QC delete child question." Discover by content, using the Explore agent to search doc bodies and headers (including synonyms) across `tasks/`, `_archive/`, and flat `tasks/<domain>/<feature>.md` files.
 
+Once that agent is dispatched, don't re-read or re-grep the same files inline while it runs — that pays for the same facts twice and the agent's own report lands later and longer anyway. The pull to re-read feels like making progress; it isn't. Wait for the completion notification instead.
+
 Skim the top hits (header + title + overview) until you're confident you've found the right doc — surface-level similarity often masks unrelated subsystems. Follow redirects (`Merged into`, `Supersedes`, `> 📖` pointers) to the live doc, and treat hub docs (roadmap, `shared/`, `*-architecture`) as routers, not endpoints.
 
 Once a doc lands, restate the user's claim and confirm the doc actually addresses that symptom, not a nearby topic mentioned in passing. An empty search result is usually a search error (bad flag, typo, gitignored dir), not a missing doc — run a control query like `grep -rl "current.md" tasks/ | head -1` to verify the search mechanism works before concluding there's no doc.
@@ -77,9 +79,9 @@ After reading the docs, three patterns determine what happens:
 
 ## Agents
 
-For doc discovery, use the `Explore` agent to search task docs by content. For implementing the work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline — this skill only prescribes the agent for its own discovery step.
+For doc discovery, use the `Explore` agent to search task docs by content (shadowing rule: see "Finding the Right Doc" above). For implementing the work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline — this skill only prescribes the agent for its own discovery step.
 
-📖 **`../_shared/references/explore-delegation.md`** — read before spawning: what to delegate versus keep inline, the two non-negotiable prompt clauses, batching several calls in one message, and why re-reading the delegated files while agents run costs more than it saves.
+📖 **`../_shared/references/explore-delegation.md`** — the two non-negotiable prompt clauses (batching, `grep -rn` not `rg`), what counts as delegable gathering vs. inline judgment, and the full shadowing mechanics.
 
 ---
 

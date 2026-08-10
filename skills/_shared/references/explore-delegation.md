@@ -2,6 +2,8 @@
 
 Referenced by skills whose workflow has a pure file-discovery / grep-sweep sub-step (read-summary, merge-task-docs, task-summary). Apply when a step's work splits into *gather raw hits* (mechanical) + *judge what they mean* (inline judgment).
 
+**If you're citing this file with a `📖` pointer from a skill:** the shadowing rule under "The Waiting Game" below is a fact, not background reading — a skill whose own workflow spawns an agent and then continues must state that constraint in its own prose at the point it applies, not leave it only in this file. See `editing-skills-checklist.md`'s "Pointer citations" check for why.
+
 ## When to Delegate
 
 **The core rule:** delegate only gathering, not judgment. Spawn `Explore` to run `Glob`/`grep` and return **raw candidates + hits only** — file paths, matched lines, header blocks — never a ranked pick or interpretation. The judgment (ranking, merge-fit, which hit matters, whether a hit is real) stays inline, against that raw data.

@@ -33,7 +33,7 @@ Note: ">300 lines" alone is NOT a bad-merge signal if the subsystem test (above)
 
 ### Step 1 — Read all candidates
 
-When given a domain or keyword (e.g. "all payment docs"), delegate the file-listing to the `Explore` agent (`Agent({subagent_type: "Explore", run_in_background: false, prompt: "List every tasks/<domain>/*/current.md file, plus any _archive/ or flat tasks/<domain>/<feature>.md docs. Return file paths only, no summaries."})`), then Read them all yourself before deciding anything — the merge-fit judgment stays inline. Don't merge based on titles. Delegation rules: `../_shared/references/explore-delegation.md`.
+When given a domain or keyword (e.g. "all payment docs"), delegate the file-listing to the `Explore` agent (`Agent({subagent_type: "Explore", run_in_background: false, prompt: "List every tasks/<domain>/*/current.md file, plus any _archive/ or flat tasks/<domain>/<feature>.md docs. Return file paths only, no summaries."})`), then Read them all yourself before deciding anything — the merge-fit judgment stays inline. Don't merge based on titles. While that agent runs, don't re-`Glob`/re-grep the same tree inline — wait for its report rather than duplicating the gathering. Delegation rules: `../_shared/references/explore-delegation.md`.
 
 **Watch for dead redirect stubs from a PRIOR merge** — a doc whose entire body is "# Merged into: ..." or a one-line "content now lives at X" table. These aren't merge candidates, they're cleanup: delete them now (same as Step 5) and reconcile whatever still points at them (same as Step 6), even if nothing else in this session's merge touches that domain. Check for these actively rather than only avoiding creating new ones.
 
@@ -62,7 +62,7 @@ Each question needs a Recommended option so the user can accept-by-default — b
 
 ### Step 3 — Scan back-references BEFORE writing
 
-For every source doc being deleted, delegate the back-reference grep sweep to the `Explore` agent (Step 6 judges which hits matter, inline). Delegation rules: `../_shared/references/explore-delegation.md`.
+For every source doc being deleted, delegate the back-reference grep sweep to the `Explore` agent (Step 6 judges which hits matter, inline). Don't re-grep the same paths inline while it runs — wait for its raw hit list instead. Delegation rules: `../_shared/references/explore-delegation.md`.
 
 ```
 Agent({subagent_type: "Explore", run_in_background: false, prompt: "Using grep -rn (never rg), search /path/to/tasks/ and /path/to/app/ for every occurrence of these paths/names: tasks/payment/analytics-instrumentation, analytics-instrumentation, tasks/payment/bank-warning, bank-warning. Return every file path + line number + matched line, verbatim. Do not summarize or filter — return the raw hit list. If output looks truncated, redirect to a temp file and Read it back before returning."})

@@ -33,6 +33,8 @@ Snapshot every target the agent may write (`cp` to the session scratchpad) and r
 
 ## After it returns
 
+**Don't shadow the agent while it's still running** — re-reading or re-grepping its target files inline pays for the same facts twice and its own report lands later and longer anyway. Wait for the completion notification before starting any of the checks below.
+
 The agent's closing report is a claim about the work, not evidence of it. Measured across three runs this way, each returned a confident summary and each had something wrong in it — including one whose headline structural claim (a section renamed, a table restructured) had simply not happened, while the honest work sat further down the list. The parts of a report that read most decisively are not the parts most likely to be true — a report that volunteers a *preservation* claim ("preserved all exact references to classes, methods, migrations", often under its own Verification heading) is asserting precisely what the checks below measure, and costs the agent nothing to write whether or not it holds; one such claim sat above a diff that had dropped 9 of 23 `See <Class>` pointers.
 
 **Nothing below is worth running until the file has stopped moving.** 📖 `../_shared/references/explore-delegation.md` ("The Waiting Game") owns why a target read mid-pass is a torn page and the `wc -c`-twice check that confirms it stopped.
