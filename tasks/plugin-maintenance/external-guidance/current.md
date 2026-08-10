@@ -68,7 +68,7 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 
 | File | Role |
 |------|------|
-| `tasks/plugin-maintenance/doc-condensation/decisions/structural-splits.md` | D54 — where this evaluation's outcome landed; its Rejected block holds the article verdict |
+| `tasks/plugin-maintenance/doc-condensation/decisions/structural-mechanics.md` | D54 — where this evaluation's outcome landed; its Rejected block holds the article verdict |
 | `skills/update-plugin/SKILL.md` | Step 3a — owns the B/L gate and the `references/` scope rule the evaluation settled |
 | `skills/done/SKILL.md` | Step 5 — Gate B, the arrival-rate checkpoint the evaluation motivated |
 | `skills/audit-instructions/SKILL.md` (removed 2026-08-01) | Had pointed the method inward — fleet grading of BOTH instruction families; owned the FLEET arrival ratio and trajectory (D59). Removal was a user decision, not a defect; D59/D61's fixes remain correct for any future re-implementation |
@@ -107,7 +107,7 @@ Chosen: grade each claim discretely with one of four verdicts — **adopt**, **a
 
 **Consequences**
 - Verdicts on the 9 claims: **adopt** progressive disclosure + skills-as-lightweight-guides; **already adopted** judgment-over-prescription (scope later refined by D63, not D33 — D33 is the unrelated `<thinking>`-scaffold retirement, a mis-citation fixed 2026-07-31), CLAUDE.md-as-navigable-tree, comment rules (harness-level), tool-examples (measured: only 2 `Agent()` + 2 `Skill()` corpus-wide, nothing to cut); **reject** the 80% cut (D23→D50) · eliminate-repetition (measured distinct) · automatic memory (standing user decision, forbidden in global CLAUDE.md and plugin CLAUDE.md alike); **unverified→false** `claude doctor`.
-- **Judgment-over-prescription's boundary, found by a live A/B test rather than reasoned**: correct for judgement-shaped content (a Sonnet agent scored 6/6 on reasoning questions from a prose-only excerpt), measurably wrong applied unconditionally to value-shaped content (the same agent's confidence dropped on a pure-lookup question prose had nowhere to carry a literal answer). `../doc-condensation/decisions/structural-splits.md` D63.
+- **Judgment-over-prescription's boundary, found by a live A/B test rather than reasoned**: correct for judgement-shaped content (a Sonnet agent scored 6/6 on reasoning questions from a prose-only excerpt), measurably wrong applied unconditionally to value-shaped content (the same agent's confidence dropped on a pure-lookup question prose had nowhere to carry a literal answer). `../doc-condensation/decisions/verification-rigor.md` D63.
 - Shipped from the two adopted claims: `⚠️` 291 → 233 corpus-wide (global CLAUDE.md 53 → 12), three cold-path extractions, and Gate B (D54).
 - **A rejected claim now costs one lookup instead of one re-evaluation.** The next "shouldn't we just cut the rules?" resolves to D23→D50 + the arrival-rate number.
 

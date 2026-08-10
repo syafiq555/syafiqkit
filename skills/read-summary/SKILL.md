@@ -19,11 +19,11 @@ Before writing to a doc, check for concurrent sessions via `ListAgents` — anot
 
 Folder names are domain-scoped and rarely match how a user phrases a request — `payout` might own "refund" work, `upload-redesign` might own "QC delete child question." Discover by content, using the Explore agent to search doc bodies and headers (including synonyms) across `tasks/`, `_archive/`, and flat `tasks/<domain>/<feature>.md` files.
 
-After the raw results come back, read the top 2-3 candidates' header block + title + overview to disambiguate. Follow redirects (`Merged into`, `Supersedes`, `> 📖` pointers) to the live doc, and treat hub docs (roadmap, `shared/`, `*-architecture`) as routers, not endpoints.
+Skim the top hits (header + title + overview) until you're confident you've found the right doc — surface-level similarity often masks unrelated subsystems. Follow redirects (`Merged into`, `Supersedes`, `> 📖` pointers) to the live doc, and treat hub docs (roadmap, `shared/`, `*-architecture`) as routers, not endpoints.
 
 Once a doc lands, restate the user's claim and confirm the doc actually addresses that symptom, not a nearby topic mentioned in passing. An empty search result is usually a search error (bad flag, typo, gitignored dir), not a missing doc — run a control query like `grep -rl "current.md" tasks/ | head -1` to verify the search mechanism works before concluding there's no doc.
 
-When a claim shifts mid-conversation, rediscover from the new claim rather than pivoting within the old doc — a regression investigation starts fresh.
+When a claim shifts mid-conversation, start a fresh discovery pass rather than pivoting within prior findings — a regression investigation in particular starts fresh, since the doc that explained the original behaviour rarely owns the reason it broke.
 
 ---
 
@@ -39,7 +39,7 @@ A `## Decisions Index` section is a routing table, not content — read the spec
 
 Any `📖 <file>` pointer points to external facts — read those. Companion files don't appear in recursive grepping, so verify with `ls`.
 
-Read every doc in `Related:`, even tangential titles — audience-split docs describe the same subsystem from different angles. Check `tasks/shared/*.md` too, even if `Related:` doesn't name it.
+Read every doc in `Related:` — audience-split docs describe the same subsystem from different angles and fill gaps one angle alone misses. Check `tasks/shared/*.md` too, even if `Related:` doesn't name it.
 
 **3. CLAUDE.md files**
 
@@ -78,6 +78,8 @@ After reading the docs, three patterns determine what happens:
 ## Agents
 
 For doc discovery, use the `Explore` agent to search task docs by content. For implementing the work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline — this skill only prescribes the agent for its own discovery step.
+
+📖 **`../_shared/references/explore-delegation.md`** — read before spawning: what to delegate versus keep inline, the two non-negotiable prompt clauses, batching several calls in one message, and why re-reading the delegated files while agents run costs more than it saves.
 
 ---
 

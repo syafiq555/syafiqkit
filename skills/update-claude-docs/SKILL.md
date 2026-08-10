@@ -68,6 +68,7 @@ For each signal that clears that, extract 2-3 keywords and grep all CLAUDE.md fi
 | Match only inside a `> 📖` pointer line | **Not a match.** Read the pointed-to file and re-classify against its text, since the pointer itself isn't the rule |
 | Match in correct file | **Violation** — refinement steps below. Read the matched rule before treating it as inadequate; it may have been correct and simply outweighed by its surroundings |
 | Match in wrong file | **Misplaced** — move to correct scope |
+| Match, but this session's work made the rule FALSE | **Invalidated** — rewrite it to what now holds, or delete it. A stale convention reads as settled and sends the next reader down the path you just fixed, so it costs more than no rule at all. |
 
 When a grep matches a pointer line rather than the companion's own text, descend into the companion before classifying. A rule you're adding may belong in a companion, not the index. See `references/pointer-discipline.md` §1-2 for when a match inside a pointer line counts as no match.
 
@@ -75,7 +76,9 @@ A change to a globally-installed tool (a CLI on PATH, a shared script, a plugin 
 
 ## 2. Route — Where does it go?
 
-Find the **most specific** CLAUDE.md (`Glob: **/CLAUDE.md` + check `CLAUDE.local.md`). This ladder is the same hierarchy `references/structure.md` §1 documents in full — read it if a routing call is unclear:
+**Ask what the fact is ABOUT before asking where it was found.** A fact about this codebase — its schema, its helpers, its own conventions — routes down the ladder below. A fact about a tool, framework or the harness is true in every project that uses them, so it belongs at the level it holds at, which is usually global: the ladder will otherwise bury it in whichever project happened to surface it, and the next project rediscovers it from scratch. Subject matter tells you where a fact came from, never where it is true. **Tell: the fact would still be true if this codebase didn't exist.**
+
+Find the **most specific** CLAUDE.md for what's left (`Glob: **/CLAUDE.md` + check `CLAUDE.local.md`). This ladder is the same hierarchy `references/structure.md` §1 documents in full — read it if a routing call is unclear:
 
 1. Personal, per-machine context (never team-wide facts) → `./CLAUDE.local.md` (project root)
 2. Same domain as modified files → that domain's CLAUDE.md

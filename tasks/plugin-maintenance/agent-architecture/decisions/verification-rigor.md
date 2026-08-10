@@ -73,8 +73,9 @@ Chosen: replace `rg -rn` with `grep -rn` (ugrep's `-r` is genuinely recursive) i
 **Consequences**
 - Global `~/.claude/CLAUDE.md` already carried the `rg`-has-no-recursive-flag rule in its Shell Commands table; this decision is that rule failing anyway at the exact moment (mid-skill-authoring, "I'm finding a doc" framing) it existed to prevent — a documented rule surviving in prose doesn't guarantee the moment-of-use command gets typed correctly. Reinforces D3/D6's "fix the generator, not the instance" lineage: the fix isn't a fourth restatement of the rule, it's making the *unsafe form structurally unreachable* (mandate `grep -rn`, name the tell) rather than trusting recall.
 - Plugin version bumped 1.64.4→1.64.5; CHANGELOG entry added.
+- 1.140.13: the must-hit-control rule was itself generalised away by a later `unhobble-instructions` pass over `explore-delegation.md` and had to be restored — the same "documented rule surviving in prose doesn't survive an editing pass" shape this decision's own first bullet names, recurring one level up (against the rule, not just the moment-of-use command). Same change added the non-empty-inventory half D49 doesn't cover: an empty result is easy to distrust, but a short, real-looking list (2 files where 9 exist; a plausible sibling path missing the one that matters) reads settled and gets none of the scrutiny D49's empty-input case does. Both were locally accurate and wrong as inventories. Fix: before acting on any absence an agent asserts, run the one-line count yourself — same instrument as the must-hit control, aimed at a non-empty result instead of a zero one.
 
-**Status**: committed · **Reversible**: yes
+**Status**: committed · **Reversible**: yes · Updated 1.140.13 (control-query regained + non-empty-inventory half)
 
 ---
 
