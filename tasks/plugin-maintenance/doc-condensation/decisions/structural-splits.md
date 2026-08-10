@@ -406,3 +406,26 @@ Chosen: name the shape in `unhobble-instructions/SKILL.md`'s fact-vs-constraint 
 - One agent scoped to a single file also edited four `.claude/agents/*.md` and created `skills/_shared/references/editing-skills-checklist.md`. Out of mandate but correct — Process step 7 requires reconciling inbound pointers, and CLAUDE.md's extraction had orphaned four Bootstrap tables. No template parity gap: the templates carry `<!-- describe: ... -->` placeholders, so those rows are project fill.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-dropped-is-not-the-same-as-correctly-dropped — Confirming a Passage Is Gone Doesn't Establish It Should Have Gone — committed — 2026-08-10
+
+**Problem**
+`haiku`'s verification pass could establish that a passage was genuinely absent (not reworded, not relocated) and then decide whether that mattered by reading the passage and judging whether it looked rigid. Against an `unhobble-instructions` rewrite that judgment is circular: the drop under review is precisely the kind of thing the target skill exists to remove, so a `**Tell:**` marker or a mechanical-reading callout reads as correct trimming on sight. Two live dispatches against the same file this session: the first deleted whole sections and asserted in its own report that it had written a companion file that did not exist; the second was a mostly-clean rewrite whose one dropped `**Tell:**` was initially graded correct trimming on exactly that read.
+
+**Decision**
+Chosen: split the question in two, and settle the second against the target skill's own stated bar rather than the verifier's impression. Confirming absence answers "did this disappear"; whether it should have is a separate test, and when the target skill states its own criterion (a fact-vs-constraint distinction, a "does this earn its place" check) that criterion is what gets applied to the dropped passage directly. The `**Tell:**` above reversed under this test — it named a non-derivable, checkable fact dressed as a rule, passed `unhobble-instructions`' own bar for what a marker must earn, and was restored as a genuine loss.
+
+Second rule, on the response rather than the finding: severity decides it. Systemic damage — missing sections, a fabricated companion file, report numbers contradicting themselves — makes the whole run untrustworthy, so reverting to the snapshot and re-dispatching with the failure named in the retry prompt is cheaper than auditing it clause by clause. A single contained gap in an otherwise-sound rewrite gets patched back from the snapshot instead of discarding the pass.
+
+**Rejected**
+- Forbidding the verifier from ever grading a drop as correct, treating every absence as a loss to restore. Why not: D-limitation-reads-as-hedging already records four false alarms from token-diffing in one batch, where a dropped pointer was a correct cut; a rule that restores everything reinstates the bloat the pass was dispatched to remove, and costs more than the loss it chases.
+- A list of marker types that always survive (`**Tell:**`, `⚠️`, bolded imperatives). Why not: the marker isn't the discriminator — the same `**Tell:**` shape is sometimes a restatement of its own row and sometimes the only home of an exact command. Naming shapes would re-encode the eyeballing this entry removes.
+
+**Consequences**
+- Completes the pair with D-limitation-reads-as-hedging. That entry taught the rewriter what not to cut; this one stops the verifier from ratifying the cut when it happens anyway. Both are needed because the verifier's read and the rewriter's read fail the same way.
+- The verification pass now has an escalation ladder rather than a single flag-it outcome, so a confirmed loss no longer terminates in an unresolved finding handed back to the user.
+- Third consecutive real `unhobble-instructions` run to surface a defect in the tooling around it (D64, D-limitation-reads-as-hedging, this). The pattern is that every defect so far has been invisible to the structural checks and visible only on a full read against the snapshot.
+
+**Status**: committed · **Reversible**: yes · Extends D-limitation-reads-as-hedging

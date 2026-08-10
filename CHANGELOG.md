@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.140.10
+
+- **`haiku`'s verification step had no check for whether a dropped-looking rule was actually correct trimming, and eyeballing it got the wrong answer.** Two live `unhobble-instructions` dispatches against the same file: the first deleted whole sections and fabricated a companion file's existence in its own report (caught and reverted); the second was a mostly-clean rewrite with a dropped `**Tell:**` rule that read as the kind of mechanical step the skill exists to remove — until it was checked against `unhobble-instructions`' own stated bar for what a marker needs to earn its place, which it passed, meaning the drop was a real loss and had to be restored. The file now says: don't call that verdict from your own read of whether a passage looks rigid, apply the target skill's own fact-vs-constraint test to it directly. Also added: severity decides the response to a confirmed loss — systemic damage (missing sections, a claimed file that doesn't exist) is cheaper to revert-and-redo with the failure named in the retry prompt; a single contained gap in an otherwise-sound rewrite gets patched back in from the snapshot rather than discarding the whole pass.
+
 ## 1.140.9
 
 - **`update-claude-docs`'s routing table said "team context → `CLAUDE.local.md`," which is backwards** — that file is scoped to personal, per-machine state, and a fact every teammate needs (a suite's fixture design, a worker count, a shared auth strategy) belongs in the team-visible `CLAUDE.md` even when it surfaced during env/test work. Both the Step-1 signal table and the Step-2 routing ladder now say "personal, per-machine (never team-wide facts)" instead of "team/strategy context," matching the CLAUDE.local.md checklist that was already correct a few lines below.
