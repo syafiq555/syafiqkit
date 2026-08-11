@@ -21,19 +21,14 @@ Decisions about WHEN a doc/CLAUDE.md/skill needs a structural split (byte thresh
 ### D22 — `condense-claude-md`'s Verification Diff Needed a Second-Pass Filter, and Completion Needed a Byte Threshold Alongside the Line Threshold — committed — 2026-07-12
 
 **Problem**
-Two gaps in a live Dourr `CLAUDE.md` condensation run. (1) Prescribed `diff`/`comm -23` verification flagged ~30 lines as possibly-dropped; all were false positives (reworded labels, table-header artifacts). (2) The pass hit the ≤200-line target (257→221) but was still 20.4KB — line count doesn't catch table-row byte density.
+Two gaps in a `CLAUDE.md` condensation. (1) `diff`/`comm` verification flagged ~30 lines as dropped; all were false positives (rewordings). (2) Pass hit line target (257→221) but bytes still high (20.4KB) — line count doesn't catch table density.
 
 **Decision**
-Two patches to `condense-claude-md/SKILL.md`. (1) Verification rule now warns `diff`/`comm` output is a *candidate list, not a verdict* — each flag needs `grep -c '<substring>'` confirmation. (2) Added Process step 6: hitting the line target isn't done if bytes are still high (originally set at ~15KB for a root CLAUDE.md, corrected to the actual 40KB ceiling on 2026-07-19 after a real condense run showed the old target was ~2.5x too tight); proactively offer a seam-test split via `AskUserQuestion`.
-
-**Rejected**
-- Leaving the diff/comm check as-is, treating the manual `grep -c` triage as implicit good practice. Why not: the same false-positive noise will recur on every future run of this exact command shape (rewording is the norm, not the exception, in a condensation pass) — worth naming as a known step, not left to be independently re-discovered each time, matching this doc's own D20/D6 lineage of promoting a repeated ad hoc fix into a stated rule.
-- Raising the line-count target itself (e.g. ≤150) instead of adding a parallel byte check. Why not: line count and byte density are orthogonal axes for a one-row-per-item table — a lower line target doesn't fix a table whose rows are already irreducibly long; the existing ⚠️ note under Process already identifies this shape as line-count-deceptive, so the real fix is checking the metric that shape actually hides (bytes), not tightening the metric that was never diagnostic for it.
-- Making the seam-test split offer mandatory/automatic without asking. Why not: splitting creates a new file and changes what loads when — a structural change with real tradeoffs (the seam-test can fail, or the user may prefer to accept more lines over more files), consistent with this skill already gating splits behind `AskUserQuestion` rather than executing them unprompted.
+Verification now warns `diff` output is candidate-list, not verdict — each flag needs `grep -c` confirmation. Added Process step 6: byte check (40KB ceiling for root CLAUDE.md); offer seam-test split via `AskUserQuestion`.
 
 **Consequences**
-- `condense-claude-md/SKILL.md`: verification bullet gained the false-positive-filter note; Process gained step 6.
-- Dourr `CLAUDE.md` further split: root (181 lines/12.7KB) + new `docker/CLAUDE.md` (53 lines/8.5KB, passes seam-test).
+- `condense-claude-md/SKILL.md`: verification gained false-positive-filter; Process gained step 6.
+- Line and byte density are orthogonal axes; check the one that hides bloat.
 
 **Status**: committed · **Reversible**: yes
 
@@ -42,19 +37,14 @@ Two patches to `condense-claude-md/SKILL.md`. (1) Verification rule now warns `d
 ### D23 — Skill-File Density Is a Distinct Bloat Class From CLAUDE.md/Task-Doc Bloat, and `update-plugin` Now Owns Its Checklist — committed — 2026-07-12
 
 **Problem**
-User flagged plugin skills as "bloated," naming `update-claude-docs` and `task-summary`. Both sat under their line budgets — line count didn't explain the complaint. A full-plugin audit found the real signal was bytes/line: `condense-claude-md` and `condense-task-doc` — whose JOB is fixing this pattern — were themselves the densest files (147 and 140 bytes/line), stacking multiple ⚠️ callouts and embedding worked-incident anecdotes as instruction text.
+Skills flagged as bloated despite being under line budget. Bytes/line was the real signal: `condense-claude-md` and `condense-task-doc` (147 and 140 B/L) stacked ⚠️ callouts and embedded anecdotes.
 
 **Decision**
-Two-round hand-edit pass. Round 1 (v1.62.0): collapsed stacked warnings and stripped anecdotes across 7 skills; `update-claude-docs` extracted its cold-path CREATE/REWRITE/CONDENSE modes to `references/other-modes.md` (239→205 lines, 27% smaller hot path). Round 2 (v1.63.0): `read-summary` revised (82→71 lines), `task-summary`'s rare merge/rename branch extracted to `references/merge-rename.md` (223→202 lines). Captured the pattern into `update-plugin/SKILL.md` (v1.63.1) as Step 1 signal + Step 3a checklist for future density passes.
-
-**Rejected**
-- Delegating skill-density fixes to `condense-claude-md`/`condense-task-doc`. Why not: those skills' entire density-rule vocabulary (WHY-column stripping, `Symptom|Cause|Fix` table shape, `{#anchor}` preservation) is CLAUDE.md/task-doc specific; SKILL.md files have different structure (frontmatter, mode sections, `references/` split) and no equivalent skill existed to point to.
-- Treating this as one-time manual cleanup with no reusable capture. Why not: the same shape (stacked warnings, worked anecdotes, self-contradiction, cold-path-in-hot-path) is exactly the kind of recurring, nameable pattern this doc's own D3/D6/D13 lineage says belongs in the generator/checklist, not re-discovered by inspection each time a skill grows dense again.
-- Extracting cold-path content from every skill preemptively, not just the two found. Why not: the round-2 plugin-wide scan explicitly checked all 12 remaining skills for this lever and found only `task-summary` §2a qualified — most skills are single-purpose with no hot/cold split; forcing an extraction where none is warranted adds indirection without a token-budget payoff.
+Two-round hand-edit: collapsed warnings (7 skills), stripped anecdotes; extracted cold paths (`update-claude-docs` CREATE/REWRITE/CONDENSE → `references/other-modes.md`; `task-summary` merge/rename → `references/merge-rename.md`). Captured pattern in `update-plugin/SKILL.md` Step 3a checklist.
 
 **Consequences**
-- 9 skill files edited across two rounds; 2 new `references/*.md` files created; `update-plugin/SKILL.md` gained permanent density-pass capability.
-- Plugin version bumped 1.61.2→1.63.1 across three CHANGELOG entries; kept `plugin.json`/`marketplace.json` in sync.
+- 9 skill files edited; 2 new `references/*.md` files. `update-plugin/SKILL.md` gained density-pass capability.
+- Plugin version bumped 1.61.2→1.63.1; kept `plugin.json`/`marketplace.json` in sync.
 
 **Status**: committed · **Reversible**: yes
 
@@ -63,18 +53,14 @@ Two-round hand-edit pass. Round 1 (v1.62.0): collapsed stacked warnings and stri
 ### D26 — Companion-File Split Widened From Global-Only to Any Oversized Cross-Cutting Section — committed — 2026-07-15
 
 **Problem**
-`condense-claude-md` Restructuring #7 documented companion files as global-only. A layer file sat at 42kb with a ~130-row gotchas block that failed the subdir seam-test — genuinely cross-cutting, no single subdirectory owned it. Wording-compression alone got it to 28kb; the model concluded "dense, not bloated" and stopped, since the only documented lever was "stays inline." The user pushed back twice before the companion split was tried — it cut the file to 18kb (56%).
+Cross-cutting oversized gotchas block (42KB, ~130 rows) failed seam-test. Wording compression got it to 28KB; no documented lever for "cross-cutting but not global" existed, so condensation stopped. User pushed back twice before trying companion split — it cut to 18KB (56%).
 
 **Decision**
-Chosen: widen Restructuring #7 to any file whose oversized section is cross-cutting (fails seam-test per #6, isn't feature-owned). Three coordinated patches: `condense-claude-md` (Restructuring #7 + step-5 completion check) now treats failed seam-test as the split's *trigger*, not a dead end; `update-claude-docs/references/structure.md` gained a **Third structural lever** section; `read-summary` step 5 gained a **Companion** bullet. All three now require a **per-category symptom index** for moved blocks with multiple sub-categories, plus a grep-and-repoint pass for sub-anchors (3 task-doc cross-refs broke silently this session).
-
-**Rejected**
-- Leaving the lever global-only and treating every cross-cutting layer-file overflow as a permanent "stays inline" case. Why not: D19/D20 already established the pointer lever's boundary (needs a real feature owner); this left a real third case — no subdirectory AND no feature owner — with no lever at all, and "dense, not bloated" is not actually a resolution to a 42kb auto-loading file.
-- A single generic trigger phrase on the companion pointer, matching the original global-file wording. Why not: a multi-category source block (React/Chakra/Data gotchas) collapsed under one phrase gives a reader no way to match their specific symptom without opening the file — defeats the pointer's purpose. Confirmed insufficient live; the user asked for a per-category index twice before it landed.
+Widen Restructuring #7 to any file with oversized cross-cutting section. Failed seam-test is now the split's *trigger*, not dead-end. All three (condense, update-docs, read-summary) now require per-category symptom index for multi-category blocks.
 
 **Consequences**
-- `condense-claude-md/SKILL.md` Restructuring #7 rewritten; caught internal miscitation (`#49` → `#7`, fixed same session).
-- Plugin version bumped 1.75.0→1.76.0; also fixed pre-existing `plugin.json` (1.75.0) vs `marketplace.json` (1.74.0) drift.
+- `condense-claude-md/SKILL.md` Restructuring #7 rewritten; fixed internal miscitation.
+- Plugin version bumped 1.75.0→1.76.0; also fixed version drift (plugin.json 1.75.0 vs marketplace.json 1.74.0).
 
 **Status**: committed · **Reversible**: yes
 
@@ -83,19 +69,13 @@ Chosen: widen Restructuring #7 to any file whose oversized section is cross-cutt
 ### D27 — Pre-Existing Plan/Spec Docs Are a Distinct Type From `decisions/<theme>.md`, and Split-Doc Guidance Needed a Parent-Directory Audit Step — committed — 2026-07-15
 
 **Problem**
-A Dourr `tasks/trust-engine/` merge left 5 pre-existing plan files (`phase2-plan.md`, etc.) untouched in the parent folder, cited by 13+ PHPDoc comments. The user asked whether they should move into `decisions/` for consistency. Two independent research passes concluded they shouldn't: `decisions/<theme>.md` is specifically for ADR blocks split out of budget-overrun `current.md`; these files were pre-build engineering PLANS that never originated that way. Real-world convention (adr-tools, MADR, Diátaxis) confirmed teams keep plan/spec docs and decision logs separate. The actual gap wasn't folder layout — it was that `current.md`'s routing table only listed the 3 `decisions/*.md` files, silently omitting the 5 siblings.
+5 pre-existing plan files in a task folder. Should they move to `decisions/`? No — `decisions/<theme>.md` is for ADRs split from budget-overrun `current.md`, not pre-build plans. Real-world convention (adr-tools, MADR, Diátaxis) keeps plans and decisions separate. Actual gap: `current.md` routing table omitted the 5 siblings.
 
 **Decision**
-Chosen: (1) leave plan/spec docs as siblings of `current.md`, never move them into `decisions/`; (2) when retiring siblings, absorb still-load-bearing content into a NEW themed `decisions/<theme>.md` grouped by reader question, not source file; (3) patch `templates.md`'s split-doc section + `merge-task-docs` Step 3 with an explicit "`ls` the PARENT directory" audit — the existing sibling-file rule only scanned folders being deleted, never the folder the split lands in.
-
-**Rejected**
-- Converting the plan docs into ADR blocks to fit `decisions/` uniformly. Why not: their content (schemas, edge-case tables, build-order checklists) doesn't fit Problem/Decision/Rejected/Consequences without stripping real engineering detail to force a shape — information loss dressed as tidiness, the exact failure `condense-task-doc`/`merge-task-docs` warn against.
-- Folding the plan docs' content directly into `current.md`'s body once retiring them. Why not: `current.md` must stay a thin index (Quick Start + routing only) per `templates.md`'s own split-doc rule — pulling ~1,100 lines of schemas/edge-cases back in would recreate the exact bloat the split existed to fix.
-- Accepting a single research pass (internal skill re-read) as sufficient before making the call. Why not: the user explicitly asked for external verification (real-world ADR/Diátaxis convention) before trusting the internal skill's own guidance on itself — a second, independent source corroborating the same conclusion is what actually earned confidence here, not the first pass alone.
+(1) Leave plan/spec docs as siblings, never in `decisions/`. (2) When retiring, absorb content into NEW themed `decisions/<theme>.md` grouped by reader question, not source. (3) Audit: `templates.md` + `merge-task-docs` Step 3 need explicit "also `ls` the DESTINATION folder" — existing rule scanned only folders being deleted.
 
 **Consequences**
-- `templates.md`'s "Splitting" section gained a parent-directory audit paragraph; `merge-task-docs/SKILL.md` Step 3 gained matching "also `ls` the DESTINATION folder" note.
-- Establishes durable rule: `decisions/<theme>.md` routing table must enumerate EVERY file in its parent folder, even when siblings correctly stay outside `decisions/` — routing completeness and folder placement are separate concerns.
+- Routing table must enumerate EVERY parent-folder file, even siblings correctly outside `decisions/` — routing completeness and placement are separate concerns.
 
 **Status**: committed · **Reversible**: yes
 
@@ -124,18 +104,13 @@ Chosen: retire the CoT row from CLAUDE.md's prompting-techniques table and close
 ### D45 — A Heterogeneous Companion Split Needs One File Per Topic Cluster, Not One Grab-Bag File — committed — 2026-07-24
 
 **Problem**
-D26 widened the companion lever to any oversized cross-cutting section but assumed the source block was one coherent topic. Asked to shrink a 285-line `backend/CLAUDE.md` whose ~155-row gotchas table spanned Tenancy, OAuth/MyDigital ID, SMS/OTP, Trust/Bricks, PDF-stamping, and blog-sync bugs, the first pass trimmed row prose (56KB→47KB) and, on request for more, dumped every moved row into one `CLAUDE-backend-gotchas.md` — same dense-wall problem, new address. The user caught it twice: a minimap screenshot showing the file still read as one unbroken block despite the byte win, then "not all need to be in a single file."
+285-line `backend/CLAUDE.md` (155-row gotchas) spanned 6 unrelated topics (Tenancy, OAuth, SMS, Trust, PDF, blog-sync). First pass: trimmed to 47KB. Second pass: dumped into one `CLAUDE-backend-gotchas.md` — same dense-wall, new address. User: "not all need to be in a single file."
 
 **Decision**
-Chosen: `condense-claude-md` Restructuring #7 now requires clustering moved rows by topic FIRST (grep each row's subject noun/class name, group matches), then writing one narrow `.claude-companions/<shared|local>/CLAUDE-<topic>.md` per cluster — or routing a cluster to an existing domain subdir CLAUDE.md when one already owns that topic, instead of a new companion. Process #5's exit criteria gained a matching check: byte reduction from row-trimming alone doesn't prove a still-single oversized table stopped reading as one block — re-run the atomic-file gate's multi-topic question before declaring done.
-
-**Rejected**
-- Treating the byte/line drop as sufficient completion evidence. Why not: a tightened single companion can hit its byte target while a reader checking one symptom still scrolls past five unrelated topics — the file itself becomes the next thing needing a split.
-- Splitting by row count instead of topic (e.g. first half / second half). Why not: defeats the pointer's purpose exactly like D26's rejected single-generic-trigger-phrase option — a reader can't predict which arbitrary half holds their symptom.
+Cluster moved rows by topic FIRST, then write one companion per cluster (or route to existing domain CLAUDE.md). Process #5: re-run atomic-file's multi-topic check after byte-trimming — byte drop doesn't prove a still-single table stopped reading as one block.
 
 **Consequences**
-- Final split (reference, not a rule): 64 of 141 rows moved to 4 new topic companions (`CLAUDE-oauth-gotchas.md`, `CLAUDE-sms-otp-gotchas.md`, `CLAUDE-blog-guide-sync-gotchas.md`, `CLAUDE-backend-misc-gotchas.md`) + 2 clusters routed to existing domain files (`Tenancy/CLAUDE.md`, `Trust/CLAUDE.md`) instead of a companion. `backend/CLAUDE.md` landed at 32,799 bytes (−42% from 56,322), each companion independently under 6KB.
-- `read-summary` and `update-claude-docs` checked (shared-mechanism grep) — both already describe consuming "a" companion file generically, not "the" one file; needed no change.
+- 64 of 141 rows moved to 4 topic companions + 2 routed to existing domain files. `backend/CLAUDE.md` → 32.8KB (−42%), each companion under 6KB.
 
 **Status**: committed · **Reversible**: yes
 
@@ -144,24 +119,16 @@ Chosen: `condense-claude-md` Restructuring #7 now requires clustering moved rows
 ### D50 — Skill-File Bloat Is an ARRIVAL-RATE Problem, Not a Density Problem: Extraction + a Replace-or-Route Gate Replace Repeat Condensing — committed — 2026-07-26
 
 **Problem**
-D23 (2026-07-12) hand-condensed `condense-claude-md` and `condense-task-doc` from 147/140 bytes/line and captured a density checklist into `update-plugin` Step 3a. A full-plugin sweep on 2026-07-26 found both files back at **207 and 179 B/L** — past their pre-fix state — with `read-summary` at 202. The regression is not sloppy writing: the CHANGELOG shows six versions shipped in ~6 hours, each appending a hard-won rule to these same files, and 1.123.23 records `done/SKILL.md` being deliberately shrunk to 122 B/L only to sit at 126 three versions later. D23's own rejected option ("most skills are single-purpose with no hot/cold split") was judged when these files were roughly half their current size and no longer held.
+D23's condense (207→147 B/L) regressed: same files back at 207/179 B/L by 2026-07-26 after 6 versions shipped in ~6 hours. Each version appended a hard-won rule. D23's rejected option ("no hot/cold split") was judged at half the current size.
 
 **Decision**
-Chosen, three parts. (1) **Extraction over re-wording** — the three offenders had no `references/` dir while every acceptable-density large skill (`task-summary`, `done`, `update-claude-docs`) does; cold paths moved to `condense-claude-md/references/structural-splits.md` and `read-summary/references/doc-authority.md`, each SKILL.md keeping the highest-cost fact inline above the pointer per #6's own rule. (2) **An arrival-rate gate** in `update-plugin` Step 3a: a skill above ~90 B/L gains a rule only by replacing one, routing it to `references/`, or stating in the report that it grew and why no retirement was available. (3) **Retirement as a named lever**, citing D33's precedent that absence of uptake is admissible evidence — gated on verifying the trap is actually dead, since a still-installed tool is a live guardrail whatever its own "abandoned" note claims.
-
-**Rejected**
-- Another in-place density pass, as D23 ran. Why not: that is the treadmill this ADR exists to name. Two rounds of it produced a sawtooth with a rising floor — the files ended denser than before the fix, so the pass demonstrably buys weeks, not a resolution. `condense-claude-md`'s own Process #5 already carries this diagnosis for CLAUDE.md files ("a file that has been condensed before is a GROWTH-RATE problem"); the skill layer had no equivalent.
-- Compressing `read-summary` further after extraction. Why not: its ratio moved 202 → 201 despite a −21% byte cut, which is precisely the atomic-file gate's predicted signature — extraction removed whole lines so bytes and lines fell together, leaving one distinct rule per line with nothing restating anything else. Compressing past that erodes content rather than bloat, and the gate exists to stop exactly this pass from running.
-- Making the gate a hard block on adding rules to a dense skill. Why not: the rules arriving are real, session-earned defects; refusing them loses more than the density costs. Requiring a replace/route/declare *decision* keeps every rule while making growth visible in the report instead of silent.
+(1) Extract to `references/` (cold paths to `condense-claude-md/references/structural-splits.md`, `read-summary/references/doc-authority.md`); skills keep highest-cost fact inline above pointer. (2) Arrival-rate gate: ~90 B/L skills gain rules only by replace/route/declare. (3) Retirement as named lever (D33 precedent: absence of uptake is evidence).
 
 **Consequences**
-- `condense-claude-md` 22,349 → 14,094 bytes (−37%, 207 → 164 B/L); `read-summary` 22,418 → 17,659 (−21%); `condense-task-doc` 21,071 → 19,575 (−7%). Two new `references/*.md` files.
-- ⚠️ **Extraction can silently drop an ENUMERATED item's visibility while every pointer still resolves.** Condensing this skill's Restructuring #6/#7 left the *task-doc* lever (the second of three) as a subordinate clause, contradicting the file's own L10 claim to own "every split decision (subdir, task doc, companion file)" — a numbered list visibly offering two options where the prose promises three. No link broke, so the pointer check passed. Caught only by re-reading the skill's self-description against its own list. When condensing a numbered/enumerated set, verify the COUNT the surrounding prose claims, not just that each surviving item resolves.
-- Collateral: the write-mode rule was found stated in **three** homes (Process step + Hard rules + `_shared/references/two-tier-condense.md`) across two skills, collapsed to the shared reference alone. A new Step 3a row names the three-homes pattern as its own bloat class.
-- Live bug found by the shared-mechanism grep, not the density scan: **four skill files still prescribed `rg`**, abandoned globally since 2026-07-13 — including `read-summary`, whose L82 prescribed `rg --files` while L20 warned against `rg`. Confirms a density pass should always carry a shared-mechanism grep.
-- Supersedes D23's rejected-option finding that preemptive extraction isn't warranted — true at that size, false at this one. The size at which a judgment was made is part of the judgment.
-- ⚠️ **The gate as first written was unenforced — a product review caught it shipping the same weakness it diagnosed.** Step 3a stated the rule but Step 4 (Validate) had no row checking it ran, making it prose a session is trusted to remember, which is structurally how D23's capture regressed. Fixed same session: Step 4 now requires naming which of replace / `references`-route / declared-growth a change to a >90 B/L file was, and treats a purely additive CHANGELOG entry against a dense file as a failed check. Step 3a also gained the ratio one-liner (the threshold had been stated with no way to compute it).
-- Open half: the gate is reachable only from `update-plugin`, while rules mostly arrive as direct hand-edits, and `references/*.md` files inherit no budget of their own — both tracked in `../current.md` Next Steps.
+- `condense-claude-md` 22.3KB→14.1KB (−37%); `read-summary` 22.4KB→17.7KB (−21%); `condense-task-doc` 21.1KB→19.6KB (−7%).
+- Gate was unenforced until Step 4 validation added the check.
+- Enumerated-set extraction dropped a lever from a numbered list (task-doc was second of three); caught only by re-reading the file's own count claim.
+- Shared-mechanism grep found 4 skills still prescribing `rg` (abandoned 2026-07-13).
 
 **Status**: committed · **Reversible**: yes
 
@@ -170,20 +137,15 @@ Chosen, three parts. (1) **Extraction over re-wording** — the three offenders 
 ### D62 — A Stale Pointer Passes the Same Staleness Grep a Missing Rule Fails, So Two New `_shared/references/` Files Close the Gap Instead of a Rewording — committed — 2026-07-30
 
 **Problem**
-A remote-cli session's `update-claude-docs` grep for `scp` returned exactly one hit in the global `CLAUDE.md`: the file's own `> 📖` pointer line advertising the companion's contents. That read as "not covered here, nothing to update," so the companion (`CLAUDE-remote-cli.md`) was never opened — it still described the deleted bug. The existing classification rule only named the direction where grep finds **nothing**; a match that IS the pointer line itself was unhandled, and it's invisible precisely because the grep succeeds. Separately, `done`'s exit gate and `two-tier-condense`'s Diff step each independently carried the same "an empty `git diff` is inconclusive" rule with the same missing case (a gitignored target no git command can ever show), and `update-claude-docs`'s own Validate step was a third consumer with no shared home.
+Pointer grep for `scp` returned one hit: the pointer line itself. "Not covered here," so companion never opened. Pointer-IS-the-match case unhandled. Three separate files carried overlapping "empty `git diff` is inconclusive" with same missing case (gitignored targets).
 
 **Decision**
-Chosen, three parts. (1) New `skills/update-claude-docs/references/pointer-discipline.md` (2.5KB) consolidating four pointer rules — a match-inside-a-pointer-line is not a match and must be followed; a pointer's own `Covers:` summary goes stale the moment the companion changes; a bare pointer needs 1-2 inlined facts unless it's a task-doc `## Gotchas` row; and resolve a pointer target by content, not folder name. `update-claude-docs/SKILL.md`'s classification table gained a row naming the trap directly. (2) New `skills/_shared/references/verifying-a-write-landed.md` (2.0KB) tabling all three causes of an empty `git diff` (staged target, CWD-relative pathspec, untracked/gitignored target) with the command that settles each — `done`, `two-tier-condense`, and `update-claude-docs` all now point to it instead of carrying their own copy. (3) New `skills/_shared/references/long-running-commands.md`, extracted from `done`'s Step-1 re-run rule (a verification command that mutates shared state must not race a second copy of itself).
-
-**Rejected**
-- Rewording the existing classification rule in place rather than adding a reference file. Why not: the rule already existed and was already followed correctly in the direction it named — the gap was a missing SECOND direction, not unclear wording in the first. A file consolidating both directions plus the `Covers:`-staleness and folder-name traps gives one place to check "am I about to trust a pointer" instead of three partial mentions.
-- Treating the three-owner empty-diff rule as `done`-only and patching it there alone. Why not: a shared-mechanism grep (`show-toplevel\|diff HEAD --stat`) found the identical rule, with the identical gap, already duplicated in `two-tier-condense.md` — two owners means the canonical home is `_shared/`, not either caller.
+(1) New `pointer-discipline.md` (2.5KB) consolidating pointer rules: match-inside-pointer-line isn't a match; `Covers:` summary goes stale when companion changes; bare pointer needs 1-2 inlined facts; resolve by content, not folder name. (2) New `verifying-a-write-landed.md` (2.0KB) tabling empty-diff causes (staged target, CWD-relative pathspec, gitignored) with settling commands — replaces copies in `done`, `two-tier-condense`, `update-claude-docs`. (3) New `long-running-commands.md` extracted from `done` Step-1 re-run rule.
 
 **Consequences**
-- `update-claude-docs/SKILL.md`: gained a Step-1 pointer to `pointer-discipline.md` plus a classification-table row naming the trap; net B/L moved 94.1 → 94.3 (+142B) after retiring two rows the new reference now covers — a route, not a bare addition, consistent with D50's gate.
-- `done/SKILL.md` and `two-tier-condense.md`: inline empty-diff prose replaced with a pointer to `verifying-a-write-landed.md` (net bytes fell in both).
-- `task-summary/references/templates.md` gained a related but distinct rule: `D-N` inside a **split** doc set's `decisions/*.md` files is unique per DOMAIN, not per file — a theme file holding a chronologically-gapped subset is correct, and a bare cross-domain reference must carry its domain prefix. This does not change the cross-FEATURE global-uniqueness convention this doc's own D40/D44 already established; it governs numbering within one feature's split sub-files only.
-- CHANGELOG 1.136.10 and 1.136.11 hold the narrated incidents; this block is the durable decision record.
+- `update-claude-docs`: net B/L 94.1 → 94.3 (+ 142B, a route not bare addition).
+- `done`/`two-tier-condense`: inline prose replaced with pointers (net bytes fell).
+- `D-N` inside split-doc `decisions/*.md` is unique per DOMAIN only, not per file.
 
 **Status**: committed · **Reversible**: yes
 

@@ -177,8 +177,8 @@ Chosen: a size floor in the shared reference's Act table — **under half the ha
 - Routing the size question to `condense-claude-md` instead of stating a floor. Why not: turns a `wc -l` into a full skill invocation on every `/done`, and that skill rewrites files rather than answering yes/no.
 
 **Consequences**
-- All 6 sites citing `declared-budget.md` inherit the floor; only `update-claude-docs` Step 4 needed gating. `condense-claude-md` L48 already gates its own split levers on "only an over-budget file earns #6 or #7", so a tiny file never reaches a split decision there — verified, no sibling patch owed.
-- ⚠️ **A gate needs its measurement named at the DECIDING step.** As first written, nothing in Steps 1–4 computed either input — Step 5 owns `wc -lc` but runs after Step 4 and per-entry — so the unmeasured condition resolved to its permissive default and the gate passed by spawning anyway. Step 4 gained an explicit measure line. Third recurrence of the shape (D50's arrival-rate gate was stated in Step 3a and unchecked in Step 4); now a `CLAUDE.md` § Maintenance checklist row.
+- All 6 sites citing `declared-budget.md` inherit the floor.
+- ⚠️ **A gate needs its measurement named at the DECIDING step.** Step 4 gained an explicit measure line. This recurrence is why a `CLAUDE.md` § Maintenance checklist now requires it.
 
 **Status**: committed · **Reversible**: yes
 
@@ -224,58 +224,47 @@ Added step 11: after the row-existence pass, run `awk '{print length, NR}' <file
 
 ---
 
-### D-done-owes-the-condense — `/done` Measures the Doc Set It Just Wrote, Because a Rule Enforced Nowhere Passes by Doing Nothing — committed — 2026-08-10
+### D-done-owes-the-condense — `/done` Measures the Doc Set It Just Wrote — committed — 2026-08-10
 
 **Problem**
-Reported as [issue #19](https://github.com/syafiq555/syafiqkit/issues/19) against installed 1.140.6, by a consumer. `/done` completed cleanly on a session whose task doc finished 332 lines against `condense-task-doc`'s budget. The overage was measured, reported in the Output, and left alone; the condense ran later only because the user asked by hand.
-
-`task-summary` owns the rule ("once over budget, condense via `condense-task-doc` rather than improvising"). `/done` Step 4's exit-gate row verified something else — that the skill was invoked and the doc's content changed. Both were true, so **reporting the overage satisfied every check the workflow made.** Measured: `grep -rn -i "budget\|condense\|300\|wc -l"` across `skills/done/` returned zero hits against a must-hit control.
+Reported as [issue #19](https://github.com/syafiq555/syafiqkit/issues/19). A task doc finished 332 lines against budget; the overage was measured, reported, and never condensed. The rule lived in `task-summary` and no step enforced it.
 
 **Decision**
-Chosen: the measurement moves to Step 4, the step that decides. Over budget leaves two outcomes and no third — condense in the same turn, or state in the Output that it was skipped and why. The exit-gate row gained "measuring is not condensing", mirroring the "invoking is not updating" clause already beside it. `condense-task-doc` keeps sole ownership of the threshold; `/done` cites it and carries no number, per § Conventions.
-
-**Rejected**
-- The issue's suggested `cat current.md decisions/*.md | wc -c`. Why not: byte-only, and the budget is a line target — bytes are the *delta* metric that distinguishes real growth from a MADR restructure. It also breaks on unsplit docs (see D-unmatched-glob-measures-zero).
-- Restating the threshold in `/done` so the gate is self-contained. Why not: a fourth home for a number the § Conventions row reserves to the condense skills, and it would drift the first time the budget moves.
+Measurement moves to Step 4, the deciding step. Over budget → condense in the same turn, or state why it was skipped. `condense-task-doc` owns the threshold; `/done` cites it with no number (§ Conventions).
 
 **Consequences**
-- **4th recurrence of D50/D51's shape** — a gate whose inputs no step computes resolves to its permissive default. D51's remedy was a CLAUDE.md checklist row, and the shape recurred anyway: **a checklist row is itself an unenforced gate**, which is the thing it was written about. What breaks the cycle is a measurement at the deciding step, not another line telling someone to remember.
-- **The named pull: an overage that predates the session doesn't feel caused by the current work**, and a condense rewrites content earlier sessions wrote. Both read as reasons to hand the decision back to the user, and both are the same deferral. Step 4 now names them rather than only forbidding the outcome.
-- **A gate can be present and unreachable.** The first version of this fix landed *after* a sentence reading "After this summary, run the Step 5 check next" — so a reader following the text jumps past it. Invisible to grep (every token present) and to the diff; caught only by reading the section top-to-bottom as its reader meets it. The measurement now precedes the hand-off sentence.
+- Measurement at the deciding step is the only thing that makes a gate real; a checklist row is itself an unenforced gate.
+- A gate can be present and unreachable (placed after the hand-off sentence).
+- Overage-that-feels-inherited is the same deferral as overage-I-caused; both now named rather than only forbidden.
 
 **Status**: committed · **Reversible**: yes
 
-### D-guard-scoped-to-what-it-can-see — Contest Is a Property of the Working Tree, Not of Authorship History — committed — 2026-08-10
+### D-guard-scoped-to-what-it-can-see — Contest Is Uncommitted State, Not History — committed — 2026-08-10
 
 **Problem**
-Same issue #19, but the cause was in the reporter's chat rather than the issue text: their session declined the condense because it "would rewrite a lot of another session's content." The reporter's own instinct was that running it would be fine, and they were right.
+Same issue #19. A session declined the condense as "another session's content," but the reporter's instinct was right — they would have been fine.
 
-`condense-task-doc` step 0's mechanism is `git diff HEAD` — which by construction sees only uncommitted work (`diff-ownership.md` states ownership is read from disk and "can only see a peer that has already written something"). Committed content from earlier sessions yields an empty diff; there is no party to collide with. Step 0 stated the dirty case ("a dirty doc is a peer's baseline") and never its converse, so "another session wrote this history" read as contested when it wasn't.
+`condense-task-doc` step 0 uses `git diff HEAD` (uncommitted work only). Committed history has no live party to collide with.
 
 **Decision**
-Chosen: state the boundary the mechanism already has — a doc whose `git diff HEAD` is empty is uncontested and free to condense however many earlier sessions wrote its committed content. Additive only; no existing contested-branch instruction was loosened, since each is correct for the case it names.
-
-**Rejected**
-- Relaxing the contested branches so the guard fires less often. Why not: trades a false positive for a false negative, and the branches guard real unrecoverable loss. D64's shape — softening a rule that was deliberately hardened.
-- Leaving it and treating the reporter's session as a judgement error. Why not: the wording it produced is the reading the text invites, and a second session would reach it the same way.
+Docs whose `git diff HEAD` is empty are uncontested and free to condense. Additive; no existing guard was loosened.
 
 **Consequences**
-- **The rarer failure direction, and the more expensive one.** A missing gate lets a bad thing through; a misscoped guard blocks a safe operation and leaves a user distrusting a tool that would have worked. It also compounded D-done-owes-the-condense — even had the gate fired, this guard would have talked the session out of the condense.
-- Verified in both directions rather than one: a doc clean at HEAD now reads uncontested, and a genuinely dirty one still fires. A one-direction check cannot distinguish a scoping from a loosening.
-- Local instance of the global CLAUDE.md `{#guard-scope}` rule — trace whether a guard's stated mechanism actually reaches what it ends up blocking.
+- A misscoped guard blocks safe operations and erodes trust; a missing gate lets bad things through — the rarer failure is expensive.
+- This guard compounded D-done-owes-the-condense (even had it fired, this wording would have talked the session out of the fix).
 
 **Status**: committed · **Reversible**: yes
 
-### D-unmatched-glob-measures-zero — A Doc-Set Measurement Must Survive an Unsplit Doc — committed — 2026-08-10
+### D-unmatched-glob-measures-zero — Doc-Set Measurement Must Survive Unsplit Docs — committed — 2026-08-10
 
 **Problem**
-`cat current.md decisions/*.md | wc -c` was the doc-set measurement in four places. On an **unsplit** doc there is no `decisions/` directory, and zsh aborts the whole command on the unmatched glob before `cat` runs — `2>/dev/null` does not suppress it, because the failure is shell-level rather than stderr. The set reports **0**, which fails permissive: every unsplit doc passes any budget gate by appearing empty. Measured live — `external-guidance` (265 lines / 37KB) reported 0 lines.
+`cat current.md decisions/*.md | wc -c` aborts on unsplit docs (unmatched glob in zsh, shell-level). The set reports 0 — every unsplit doc passes any budget gate by appearing empty.
 
 **Decision**
-Chosen: `find <doc-dir> -name '*.md' | xargs cat | wc -lc`. Correct on split and unsplit sets alike, and it counts lines and bytes together rather than bytes alone.
+Use `find <doc-dir> -name '*.md' | xargs cat | wc -lc` (works split and unsplit; counts lines + bytes).
 
 **Consequences**
-- Fixed at all four sites carrying it: `done/SKILL.md`, `task-summary/SKILL.md`, `agent-setup/templates/claude-md-pruner.template.md`, and the generated `.claude/agents/claude-md-pruner.md` (template→agent parity, per CLAUDE.md).
-- **The defect was introduced by the fix for D-done-owes-the-condense and caught by running it**, not by review — the same permissive-default shape, one layer down, inside the gate written to close it. A measurement command is worth running against its own edge case before it becomes a gate's input.
+- Fixed at 4 sites: `done/SKILL.md`, `task-summary/SKILL.md`, `agent-setup/templates/claude-md-pruner.template.md`, generated `.claude/agents/claude-md-pruner.md`.
+- The defect was in the gate written to close D-done-owes-the-condense — same permissive-default shape, one layer down.
 
 **Status**: committed · **Reversible**: yes

@@ -41,6 +41,8 @@ The split for a section with no auto-loading target. Two cases: the **global `~/
 
 ⚠️ **Moving content into `shared/` strips it of machine-specific paths, even if the source already had them.** A tracked project `CLAUDE.md` can carry a hardcoded `~/<user>/<checkout>/...` path nobody caught; copying it verbatim ships it to every teammate whose checkout differs. Grep the moved block for `~/`, `/Users/`, or any absolute path and reword to a portable reference first.
 
+⚠️ **Some rows can't be evicted at any frequency, because a companion is reached by searching a symptom and they have none.** Low reference-frequency is the right eviction criterion for a lookup row — an exact error string, a command, an id — where the reader arrives already holding the failure. It misjudges a rule that governs a routine choice (which tool to reach for, how to shape a command, what to check before a common action): that rule is consulted rarely precisely because it's meant to be absorbed, and nobody consults a symptom index before doing something that hasn't broken yet. Evicting it produces a file that's smaller and a rule that never fires again. Ask what the reader is doing when they need the row — holding a failure, or about to act — and keep the second kind inline regardless of how seldom it's referenced.
+
 ### The pointer is the whole ballgame
 
 A companion does NOT auto-load, so it helps ONLY if the pointer makes a reader open it. A bare "see `CLAUDE-<topic>.md`" is the silently-unfollowed failure. Requirements:

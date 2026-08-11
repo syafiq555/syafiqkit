@@ -40,7 +40,13 @@ The signature: two spec files that each pass alone fail together, on assertions 
 
 `test.describe.serial` orders tests only *within* one file. Under `fullyParallel`, two files touching the same rows land on different workers and interleave, and no Playwright construct serialises them — the database is external to the runner and workers are separate processes.
 
-Reproduce it before fixing it, or you can't tell the fix worked: run just the two suspect files with `--repeat-each=2` about eight times and count failures. Confirm they actually run concurrently with `--reporter=json` (compare `workerIndex` and start times) rather than inferring it.
+Reproduce it before fixing it, or you can't tell the fix worked — and the number to establish is the failure RATE, not one captured instance. A single failure supports a plausible story every time, and that story survives the fix because the next run was going to pass anyway; take a baseline over enough runs that the failure appears more than once, then require the fix to move that same number.
+
+`--repeat-each` does not give you that number on a `describe.serial` file: the first failure aborts the block's remaining repeats, so the run reports "N did not run" and yields no rate at all. Loop whole runs instead and count. Confirm the two files actually collide with `--reporter=json` — compare `parallelIndex` (per the rule below, not `workerIndex`) and start times rather than inferring it, since two specs on *different* slots hold different fixtures and never touched the same rows however alike their failures look.
+
+Write the JSON to a file rather than piping it: with a second reporter configured, the streams interleave and `jq` dies on the non-JSON lines, which reads as "no failures found" when it means the parse failed.
+
+Establish the mechanism, not just the correlation. Every fact an audit hands you can be individually true while the causal claim built on them is invented — a report citing real files and lines argued two specs share a worker and mutate one fixture, which Playwright never does; the JSON above disproved it in one run. Before acting on any "X fails because Y", run the one command that would come out differently if Y were false.
 
 **Fix by partitioning, not locking.** Give each worker its own data — its own account/tenant/org and everything hanging off it — so no two can collide. A lockfile mutex is the tempting alternative and it does work, but it becomes a global bottleneck, and it fails in ways that read as unrelated bugs: a killed worker leaves a stale lock that wedges every later run, and if the lock's acquire timeout exceeds the hook timeout, the hook dies first and reports a bare `"beforeAll" hook timeout` while the lock's own diagnostic never prints.
 

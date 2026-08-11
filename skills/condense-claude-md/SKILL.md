@@ -62,7 +62,7 @@ Two decisions can't be conflated: *should this auto-load every session* (asked e
 
 **Lever #1: Subdir CLAUDE.md** — for sections that are subdir-local and auto-load additively (parent keeps a `> 📖` pointer). Decided by seam-test: grep 3-5 core symbols against sibling dirs; let usage counts decide. If it fails seam-test but is **feature-scoped**, route it to that feature's task doc instead.
 
-**Lever #2: Companion file** — for genuinely cross-cutting sections (no subdir owner, failed seam-test). Moves lowest-frequency rows to `.claude-companions/<shared|local>/`, clustered by reader-search topic, behind a symptom index. A row mixing judgement with exact values (IP, command, id) can split within itself instead of moving wholesale — see `references/prose-vs-value-split.md`.
+**Lever #2: Companion file** — for genuinely cross-cutting sections (no subdir owner, failed seam-test). Moves lowest-frequency rows to `.claude-companions/<shared|local>/`, clustered by reader-search topic, behind a symptom index. Frequency alone doesn't decide eviction: a companion is reached by searching a symptom, so a rule governing a routine choice (which tool to reach for, what to check before a common action) has no symptom to search under and stays inline however seldom it's referenced — 📖 `references/structural-splits.md#7`. A row mixing judgement with exact values (IP, command, id) can split within itself instead of moving wholesale — see `references/prose-vs-value-split.md`.
 
 📖 **Full mechanics: `references/structural-splits.md`** — lever-selection table, seam-test rules, companion trackability, and pointer requirements.
 

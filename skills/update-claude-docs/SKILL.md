@@ -44,8 +44,8 @@ Look for these signals in the conversation:
 |--------|----------|
 | User correction ("not X, it's Y") | Gotcha or Convention |
 | Claude struggled / repeated attempts | Gotcha |
-| Claude ignored existing rule | **Violation** — see refinement steps below |
-| Claude concluded wrong (checked wrong source, premature narrative, user had to correct) | **Behavioral rule** |
+| Claude ignored existing rule (including a rule this skill itself is applying, e.g. skipped its own one-off test before writing) | **Violation** — see refinement steps below |
+| Claude concluded wrong for a reason no existing rule already covered | **Behavioral rule** |
 | Same pattern used 2+ times | Pattern |
 | Environment surprise | Gotcha |
 | Convention preference | Convention |
@@ -90,6 +90,8 @@ Find the **most specific** CLAUDE.md for what's left (`Glob: **/CLAUDE.md` + che
 A subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `resources/js/routes/X` loads root + `resources/js/` + `routes/`), so routing a rule down a level doesn't hide it — it scopes it. Prefer the subdir file when the rule is both needed in that subdir AND useless elsewhere (seam-test); if it's cross-cutting (a shared token/util/type used across sibling dirs), keep it at the layer level instead — pushing a cross-cutting rule into one subdir means the sibling dirs never load it. Creating the subdir `CLAUDE.md` if it doesn't exist yet is fine; that's the `app/Domain/*` pattern.
 
 Run the seam-test against every real sibling subdirectory, not just the one the rule's subject matter suggests — `grep -rl` the rule's core symbols against each candidate and let usage counts decide (`references/structure.md` §1).
+
+**Settling the scope leaves a second choice: the auto-loading file at that scope, or a `.claude-companions/` companion hanging off it.** These are not two places for the same rule. A companion is demand-loaded and indexed by symptom, so it's read by someone who already has a failure in hand and a phrase to search; the auto-loading file is read every session by someone about to act. Route on **when the rule needs to arrive**, not on what it's about — a rule that governs a routine choice (which tool to reach for, how to shape a command) has to be in the auto-loading file or it never fires, because nobody consults a symptom index before doing something that hasn't broken yet. The companion earns rules whose trigger is a specific observed failure the reader can name. **Tell: you picked the companion because its topic matched the rule's subject** — subject matter is how the fact got filed, never how the reader will come looking for it.
 
 **Read target first** — check structure, existing entries, where new entry fits.
 

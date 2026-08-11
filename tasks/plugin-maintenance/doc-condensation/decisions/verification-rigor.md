@@ -21,22 +21,15 @@ Decisions about whether `unhobble-instructions` rewrites and their verifiers get
 ### D63 — Prose Is the New Entry-Format Default, Not a Blanket Replacement for Tables — A/B-Tested, Not Just Reasoned — committed — 2026-07-31
 
 **Problem**
-D54 rejected the Claude-5 article's density-reduction advice wholesale as measuring a different dynamic (a rarely-edited system prompt vs. this plugin's incident-driven accumulation) — but never tested the article's narrower, separate claim: "rigid rules → let Claude use judgement" as a *format* choice (prose vs. table), independent of *how much* content survives. A Dourr session ran a controlled test: two isolated Sonnet agents each answered 6 real scenarios (an OOM-killer misconfiguration, hand-editing a prod server, copying a password hash, a green-test-suite/dev-DB mismatch, a port-binding choice, a staging/prod DB ambiguity) using only one excerpt of `CLAUDE.local.md` — the existing gotcha-table format, or the same facts converted to judgement-prose. Both scored correctly on every judgement-shaped question. The one gap: the prose agent got the right principle on the port-binding question but explicitly downgraded its own confidence, since prose had nowhere to carry the literal answer (which exact IP) without becoming a table again. Executing the finding on the real file then hit a second, related failure twice more: the experimental table excerpt's own "trim" pass cut a real cross-reference pointer and a precedent example, and the live prose conversion softened away a specific error-code detail — both instances of a value/pointer being mistaken for prose padding because it reads as a short trailing clause, not a rule of its own.
+D54 rejected density-reduction wholesale but never tested format choice (prose vs. table). A/B test: two agents, 6 scenarios (OOM, hand-edit prod, password copy, test-DB mismatch, port-binding, staging/prod DB). Both scored correctly on judgement questions. Prose agent lost confidence on the one needing an exact value (port binding). Prose conversion also dropped cross-reference pointers and example precedents, mistaking value/pointers for padding.
 
 **Decision**
-Chosen, three parts, all format/routing changes, no density mandate. (1) A **judgement-vs-value test** replaces the unconditional "gotchas/guidance default to a table row" rule in `update-claude-docs` — response is "it depends, reason about it" → prose ending in a `**Tell:**` sentence; response is "the answer is this specific string" → table row; a signal mixing both → prose with a `📖 <companion> {#anchor}` pointer, exact value at the anchor. Applied to BOTH `update-claude-docs`' live capture rule AND its Create-mode scaffolding templates (`references/structure.md` §3/§4/§5) — the templates still showed pure `❌/✅` and `Symptom|Cause|Fix` tables after the capture rule changed, so a freshly scaffolded CLAUDE.md would have looked like the old convention regardless. (2) `condense-claude-md` gained the inverse lever — `references/prose-vs-value-split.md` — for splitting an existing table row WITHIN itself (judgement stays as prose, attached exact value moves to a companion) as an alternative to the existing lever's whole-row-by-frequency move. (3) `_shared/references/two-tier-condense.md`'s verify checklist gained an explicit check for this specific failure mode (a rule's core claim surviving while its pointer/precedent/exact-value appendage doesn't) — shared by `condense-claude-md` and `condense-task-doc`, since both condense existing content and both are exposed to it.
-
-**Rejected**
-- Making prose the default everywhere, including for pure-lookup content. Why not: the A/B test's own port-binding result showed prose measurably loses on value-shaped content — the article's advice is real but narrower than "always prose," and applying it unconditionally would repeat D54's mistake in the opposite direction (a density-shaped fix applied to a format-shaped problem, here a format-shaped fix applied past its tested domain).
-- Treating this as contradicting D54. Why not: D54 rejected *removing content* (density); this decision only changes *how surviving content is shaped* (format) and is evidence-backed by a live agent test, not re-reasoned from the same article — the two decisions answer different questions about the same source.
-- Leaving `update-claude-docs`'s Create-mode templates untouched since the capture-mode rule already covered "new signals added during a session." Why not: a user caught the gap directly ("u didnt update the reference template") — Create mode is a separate code path from Capture mode and reads the templates in `references/structure.md`, not the capture-mode rule table, so fixing one without the other leaves a freshly scaffolded file inconsistent with a file that grew through normal session capture.
+(1) Judgement-vs-value test replaces unconditional "table row default": "it depends" → prose + `**Tell:**`; exact string → table row; mixed → prose + `📖 pointer` to exact value. Apply to capture rule AND Create-mode templates (`structure.md` §3/§4/§5). (2) `condense-claude-md` gains inverse lever: split table row WITHIN itself (keep prose judgment, move exact value to companion). (3) Verify checklist: flag core claim surviving while value/pointer/precedent appendage doesn't.
 
 **Consequences**
-- `update-claude-docs/SKILL.md` was already over its ~90 B/L gate (94.3) with no retirable rule found — the capture-mode change is a **declared growth** (94.3 → 96.2 B/L, +623B after a same-turn tightening pass removed a restated test from the per-signal bullets).
-- `condense-claude-md/SKILL.md` was already over budget (165.5) with nothing to retire — the new lever is a one-sentence **declared growth** (165.5 → 167.6 B/L) pointing to the new reference file rather than inlining the technique.
-- `references/structure.md` (`update-claude-docs`) is a CATALOG per D54's exemption (read section-by-section, not scanned whole) — the template fix added prose there freely with no B/L concern, but the file's own explicit "default form" claim (§4 Formatting conventions) had to be corrected in the same pass or it would keep contradicting the capture-mode rule two sections earlier.
-- The technique is deliberately scoped as one lever among several, not a mandate — `prose-vs-value-split.md`'s own closing section states this explicitly, matching the session's instruction not to invent a rigid always-split rule from a single test.
-- **`task-summary`'s own table conventions (Critical Gotchas `| Issue | Rule |`, task-doc Gotchas format) were checked and correctly left unchanged** — a task-doc gotcha row is tied to a specific bug/error-string by design (investigation-log shaped, i.e. value-shaped), which is exactly the case D63's own test already routes to a table. MADR blocks are task docs' existing judgement-shaped format for decisions. The two skills already implement the split naturally; only `update-claude-docs` (which previously had NO judgement/value distinction at all) needed the fix.
+- `update-claude-docs`: declared growth (94.3→96.2 B/L, +623B).
+- `condense-claude-md`: declared growth (165.5→167.6 B/L) pointing to new reference.
+- `task-summary`'s table conventions already implement this split naturally (gotchas are value-shaped by design).
 
 **Status**: committed · **Reversible**: yes
 
@@ -45,107 +38,80 @@ Chosen, three parts, all format/routing changes, no density mandate. (1) A **jud
 ### D64 — `unhobble-instructions` Softened an Absolutist Rule That Was a Deliberate Fix, Not Unexamined Scaffolding — committed — 2026-08-01
 
 **Problem**
-`unhobble-instructions` ran a second time (`task-summary`, `condense-task-doc`, `merge-task-docs`, `sweep-doc-overlaps`, plus three files carrying a prior pass on `commit`/`ship`/`templates.md`). The `/done` product-reviewer flagged that the rewrite had turned `commit/SKILL.md`'s task-doc staleness gate — "the grep hitting is the ENTIRE trigger; no judgment about whether the hit is 'real' staleness is permitted" — into "A real hit means..., run `task-summary`... rather than reasoning that the line is technically accurate right now." That phrasing invites exactly the judgment call the original forbade. Traced to D37/D57 (this same file): D57 explicitly rejected "relaxing the absolutism to 'use judgment whether the hit is real staleness'" as a listed alternative, because it reopens the rationalization pattern that caused an undocumented deviation (issue #14) before the gate existed in its current form. `unhobble-instructions`' own test — "is this a fact, or a constraint standing in for judgement the model already has?" — has no step that checks whether a rigid-looking rule already survived exactly that judgement call once and lost.
+`unhobble-instructions` rewrite softened `commit/SKILL.md`'s absolutist staleness gate. D57 explicitly rejected this softening in its Rejected alternatives. Rule already survived one attempt to loosen it and lost (issue #14).
 
 **Decision**
-Chosen: patch `unhobble-instructions/SKILL.md` Process step 2 — before softening an absolutist rule ("no exceptions," "no judgment permitted," not a garden-variety `⚠️ MANDATORY`), grep the project's `decisions/*.md` for the rule's own keywords; a Rejected-alternatives entry matching the softening about to happen means the absolutism is deliberate and outranks this pass's default lean toward loosening. The commit gate itself was restored to its no-judgment trigger, kept as flowing judgement prose (no reintroduced `⚠️ MANDATORY` formatting) rather than reverted to the original's bolded-callout shape.
-
-**Rejected**
-- Reverting the commit-gate rewrite to the original's exact wording (`⚠️ MANDATORY`, ALL-CAPS). Why not: the absolutism was the load-bearing part, not the formatting — D57 fixed a lexical carve-out onto the same rule with plain prose already, so a bolded revert would undo an unrelated, correct improvement to fix an unrelated regression.
-- Treating this as a one-off fix scoped to the single file. Why not: the same review also caught a smaller instance in `merge-task-docs` (a fork's "don't proceed without an answer" rule dropped, silently replaced by a different rule's sentence that happened to occupy the same paragraph position) and three stale `templates.md` line-number citations (pre-existing, but this session had the content open and didn't catch them) — three separate instances of the same underlying miss (a rewrite trusting the position/shape of the old text instead of re-deriving what specifically needed to survive there).
+Patch `unhobble-instructions` Process step 2: before softening absolutist rule ("no exceptions," "no judgment"), grep `decisions/*.md` for the rule's keywords. If Rejected-alternatives matches the softening, the absolutism is deliberate. Restore commit gate to no-judgment trigger (prose, not `⚠️ MANDATORY` formatting).
 
 **Consequences**
-- `commit/SKILL.md`'s staleness gate reads as judgement prose with the absolute trigger, the rationalization-trap reasoning, and the shape-not-meaning carve-out test all restored in one paragraph — grep-verified against the original wording, not assumed from the fix's intent.
-- `merge-task-docs/SKILL.md` Step 2 regained its "don't proceed past a fork without an answer, even if the recommendation seems obviously right" sentence, restored separately from (not merged into) the constraint-scope sentence it had been overwritten by.
-- `condense-task-doc/SKILL.md` and `merge-task-docs/SKILL.md`'s `templates.md` citations converted from line numbers to the section name ("Splitting a whole-doc MADR further") — this repo's own CLAUDE.md maintenance table already names stale line-number cross-refs as a known-bad pattern; these predated this session but were caught while the content was open.
-- The code-simplifier pass (run after the fixes above) caught two further regressions on re-read: `merge-task-docs`' closing `❌ Never / ✅ Always` table had been deleted outright during the original rewrite on the reasoning that it duplicated the numbered Steps above it — but this repo's own CLAUDE.md prescribes exactly this table shape for write-decision skills ("Prompting Techniques for Commands" § Constitutional), a rule that existed and was simply not checked before the deletion; and `ship/SKILL.md` Step 3's three independently-substantial checks (which branch deploys, is there a gate, what rides along) had been flattened from a numbered list into one run-on sentence, losing the checklist structure a real push needs to step through one item at a time. Both restored.
-- No new content-preservation gap found in `sweep-doc-overlaps` or `task-summary` — both agents and this session's own fact-by-fact grep verification (35 genuine facts inventoried across the four newly-touched files, each grepped post-rewrite) found these two clean.
+- `commit/SKILL.md` staleness gate restored: absolute trigger + rationalization-trap reasoning + shape-not-meaning test.
+- Simplifier found two collateral regressions: `merge-task-docs` lost a checklist (flattened to run-on), `ship/SKILL.md` Step 3 lost numbered check structure. Both restored.
+- `templates.md` citations converted from line numbers to section names (stale line-number refs are a known-bad pattern).
 
 **Status**: committed · **Reversible**: yes
 
 ### D65 — A Companion File Is a Condense Target in Its Own Right, Not Just a Destination Content Moves To — committed — 2026-08-01
 
 **Problem**
-`condense-claude-md`, `declared-budget.md`, and `update-claude-docs/references/structure.md` all described `.claude-companions/<shared|local>/CLAUDE-*.md` only as a place a section gets relocated TO during a split (Restructuring #7) — none stated that a pre-existing companion is itself subject to the condense process (atomic-file gate, longest-row scan, Restructuring #4) once it exists. A session ran `unhobble-instructions` across all seven companions of a project (correct, since unhobble's lens is judgement-vs-constraint), then ran a bare `/condense-claude-md` on the same project and explicitly excluded the companions, reasoning "already looked at these under the unhobble lens" — conflating unhobble's check with condense's own. The user caught it directly: "claude-companion supposed should be seen as claude.md too." Re-running condense against the companions (once told to) surfaced two real defects the exclusion had hidden, on that external project.
+Companions treated as condense *destination* only, never as condense *target*. A session unhobbled companions, then bare `/condense-claude-md` excluded them (reasoning "already looked at these"). User: "companions should be seen as claude.md too." Re-running revealed two hidden defects.
 
 **Decision**
-Fix at the shared root: `declared-budget.md` (the file all three size-judging consumers already point to) states a companion is a CLAUDE.md for every rule on the page, with the concrete action `Glob .claude-companions/**/*.md` alongside the usual `**/CLAUDE.md` sweep. `condense-claude-md/SKILL.md` and `update-claude-docs/references/structure.md` each get a short cross-reference back to it rather than restating the mechanics inline. `claude-md-pruner`'s own template already classified companions correctly (it decides pruning ELIGIBILITY, a different question from condense SCOPE) and needed no change.
-
-**Rejected**
-- Writing the full explanation independently in each of the three files. Why not: this plugin's own DRY convention (3+ owners of one rule → extract to `_shared/references/`) applies directly, and `condense-claude-md/SKILL.md`'s first draft of its cross-reference initially restated `declared-budget.md`'s internal mechanics (atomic-file gate, longest-row scan, Restructuring #4) verbatim instead of pointing at them — caught by this session's own `/done` simplifier pass against the file's own citation convention (compare its line 81, a bare `see <file>` pointer with no restatement) and tightened to match.
-- Treating `unhobble-instructions` as needing no reciprocal note. Why not: this session's `/done` product-reviewer flagged that the specific failure mode — sweeping every file under one directory feels exhaustive in a way a narrower single-file skill wouldn't, so "I already looked at these" under a different skill's lens is a standing trap for the *next* misapplication in this direction — has no dedicated line anywhere in `unhobble-instructions/SKILL.md`; its existing unhobble-vs-condense boundary (line 53) is real but generic and doesn't name the companion-plurality shape of the trap. Deferred as a recommendation rather than auto-fixed in this session, since it's a scope decision about a different skill than the one this fix targeted.
+`declared-budget.md` (shared root for size-judging consumers): companions are CLAUDE.md under every rule. Add `Glob .claude-companions/**/*.md` alongside `**/CLAUDE.md`. `condense-claude-md`/`structure.md` cross-reference back rather than restate.
 
 **Consequences**
-- A bare `/condense-claude-md` or `/update-claude-docs` invocation now Globs companions alongside root/layer/subdir CLAUDE.md files — verified this session that both cross-reference paragraphs sit at a point in their file's own read order that precedes scope being decided (not after), so the fix is load-bearing rather than decorative.
-- The CHANGELOG's 1.136.28 entry originally stated "two real defects" as a directly-verified fact; this session's product-reviewer noted the defects live on an external project with no artifact in this repo (which has no `.claude-companions/` directory at all), so the entry was reworded to attribute the finding without overclaiming a re-verification that didn't happen in this repo's own tracked history.
-- `unhobble-instructions/SKILL.md` gaining the reciprocal companion-plurality note remains open — see this doc's Next Steps, not auto-applied here.
-- `.claude-plugin/marketplace.json` had drifted to 1.136.27 against `plugin.json`'s 1.136.28 (the recurring version-drift gap already tracked in this doc's Next Steps, 4th occurrence) — caught by this session's `/done` reviewer and bumped in the same pass.
+- Bare `/condense-claude-md` now includes companions. Cross-references sit before scope is decided (load-bearing).
+- `unhobble-instructions` reciprocal note (companion-plurality trap name) deferred to Next Steps.
 
 **Status**: committed · **Reversible**: yes
 
 ---
 
-### D66 — Unhobbling Is an Authoring Default, Not Only an Audit Pass; the Standalone Skill Survives for What Authoring Cannot Reach — committed — 2026-08-01
+### D66 — Authoring Should Follow Unhobble by Default, Not Only on Audit — committed — 2026-08-01
 
 **Problem**
-`unhobble-instructions` shipped as a lever you invoke deliberately (2c), so a rule written between invocations still landed in whatever shape its author reached for. That makes the corpus a sawtooth for overconstraint exactly as D50 describes it for density: a pass cuts markers, authoring puts them back, and the next pass is needed because nothing changed at the point of arrival. Measured before this session: 54 `⚠️`, 11 `**Tell:**`, 5 `MANDATORY` across `skills/*/SKILL.md`, concentrated in four files. User's framing: *"the skills also should follow unhobble by default, so no need to run like this."*
+`unhobble-instructions` ran on-demand only, so rules written between runs landed as authored. Corpus was a sawtooth: pass cuts markers, authoring restores them. Measured: 54 `⚠️`, 11 `**Tell:**`, 5 `MANDATORY` (concentrated in 4 files).
 
 **Decision**
-Chosen: put the shape rule at the two write points — `update-plugin` Step 3's "Workflow rule" bullet and `agent-setup` Step 4 — and keep the standalone skill. The rule states when a marker is *earned* (a cost that is silent or irreversible, where a careful reader still walks past the problem) rather than banning markers, because a blanket ban is the same mistake in the opposite direction and would have stripped the five incident-backed rules this session's own sweep preserved. The skill stays because authoring only governs *new* rules in *this plugin*: an existing file, a project's `CLAUDE.md`, or a third-party agent definition is reachable by nothing else.
-
-**Rejected**
-- Retiring `unhobble-instructions` once the principle lives in the authoring skills (the `audit-instructions` precedent, D59). Why not: that skill was discovery-only over this plugin's own corpus, which authoring genuinely subsumes. This one audits arbitrary existing files including non-plugin ones, so retiring it removes a capability rather than a duplicate.
-- Authoring rule only, no backlog sweep. Why not: fixes arrival while leaving 70 markers in place, and the four concentrated files are the ones every session loads.
-- A corpus-wide marker budget enforced numerically. Why not: D50's treadmill with a new number, and the sweep showed markers are not fungible — five were the load-bearing survivors of real incidents.
+Authoring rule at two write points (`update-plugin` Step 3, `agent-setup` Step 4): marker earns place if it signals silent/irreversible cost. Keep standalone skill for existing files/projects.
 
 **Consequences**
-- Corpus `⚠️` 54 → 39, `**Tell:**` 11 → 7, `MANDATORY` unchanged at 5 (every instance incident-backed). Per-file: `agent-setup` 13 → 6, `update-claude-docs` 11 → 8, `condense-claude-md` 6 → 0.
-- **`done/SKILL.md` returned a negative finding and was not edited** — at its documented steady state (247 lines, 134.2 B/L) with every marker traceable to a decision that already rejected loosening it. A pass that finds nothing is a valid outcome; manufacturing a diff to justify the dispatch is the failure mode.
-- **D64's gap is closed in the skill itself**: verification checked that facts survived, never that an absolute rule's *strength* did. Step 3 now marks absolutist rules while listing facts, step 5 checks they still bind. D64 was caught by a downstream product reviewer rather than by the pass — this makes the pass able to catch it.
-- Three of four sweep agents independently grepped incident history and refused to loosen rules with documented backing, which is the D64 check working under delegation rather than only when the lead runs it by hand.
-- **A version-drift report that dissolved on the correct comparison**: the working copies read 1.136.29 vs 1.136.33 and were written up as a 5th occurrence of the recurring gap, but `git show HEAD:` put both at 1.136.27 — the difference was another session's uncommitted bumps. This is the failure the Version Bumping convention's own `⚠️` predicts verbatim, and it was reached anyway by reading the working copies first; the correction came from re-reading that convention while building an unrelated skill, not from any gate.
-
-- **The authoring rule as first written governed body rules and missed frontmatter, which is where the same drift was worst.** Caught by the user within the same session, twice: the rule was added to `update-plugin`, then a third `Do NOT use` clause was stacked onto that very file's description minutes later, and the pass reported clean because it checked for the *vocabulary* of overconstraint (`NEVER`, `MUST`, `⚠️`) rather than its *shape* — a prescribed ask-the-user procedure and a stacked-negation description both pass a keyword scan. Descriptions were then rewritten (`update-plugin` 1379 → 769, `unhobble-instructions` 2148 → 1213 chars, 6 imperatives removed between them, all 25 trigger signals verified surviving) and the rule extended to say a description carries routing vocabulary while its reasoning lives in the body. A `WHENEVER`/`ESPECIALLY` marking a trigger *condition* is not the same shape and was left alone in three skills.
+- Corpus: `⚠️` 54→39, `**Tell:**` 11→7, `MANDATORY` stable at 5 (all incident-backed).
+- `done/SKILL.md` returned negative finding (at steady state); manufacturing a diff would be the failure mode.
+- Step 3 marks absolutist rules, Step 5 checks they bind (closes D64 gap).
+- Authoring rule extended: descriptions carry routing vocabulary, bodies carry reasoning; `WHENEVER`/`ESPECIALLY` marking trigger condition are left alone.
 
 **Status**: committed · **Reversible**: yes · Extends 2c, closes D64's verification gap
 
 ---
 
-### D68 — The Unhobbling Pass Reads the File as a Document Before It Reads Any Rule — committed — 2026-08-02
+### D68 — Read the File as a Document Before Reading Any Rule — committed — 2026-08-02
 
 **Problem**
-Asked to unhobble four skills, a session grepped `⚠️`/`MANDATORY`/`**Tell:**`, graded the hits, and began editing callouts; the user stopped it — *"it means to read the skills according to judgement prose, not simply find those grep those thing, improving the file as whole."* The skill's own text invited that: its framing test opened "For every rule, callout, or instruction in the target," which makes the pass an enumeration over units before anything has looked at the file as a whole, and Process step 1's "read the target file whole" produced no artifact, so step 2's "go through it top to bottom" absorbed it. Nothing said the deliverable is a better-shaped file. This is D66's authoring rule holding while the *audit* half degraded to the keyword scan `{#own-output-shape}` already names as the failure mode.
+Session grepped for markers, graded hits, began editing. User: "read the skills as a document, not just grep-and-edit." Skill's framing invited a per-rule enumeration before any document-level read.
 
 **Decision**
-Chosen: a document-level read runs first and must be written down before any rule is opened — what the file makes a reader do in order, where each rule sits relative to the moment it applies, and what it says more than once. The per-rule fact-vs-constraint test runs second, against what the shape pass leaves. Reporting leads with structural changes; a wording-only pass stays valid but must say so, since that is also what a marker hunt produces.
-
-**Rejected**
-- Adding a "don't just grep" warning to the existing text. Why not: the defect is the framing's *order*, not a missing prohibition — a warning above a per-rule test still yields a per-rule pass, and it grows the file D66 had just shrunk.
-- Making the whole-file read a checklist of named shape defects. Why not: the same enumeration one level up, and the four defects found this session were not a fixed set — a fifth file would need a fifth row.
+Document-level read runs FIRST (what reader must do in order; where rules sit relative to their moment; what is stated twice). Per-rule fact-vs-constraint test runs SECOND. Report leads with structural changes; wording-only pass says so.
 
 **Consequences**
-- The three shape findings were all invisible to a marker scan: `task-summary` carried nine rules averaging three homes each *in the file whose headline rule is "One fact, one home"*, plus a live contradiction between Validate's "No rows deleted" and an entire Pruning section about deleting rows; `update-claude-docs` mandates "rows ≤2 sentences" while running four to five and forbids session storytelling while telling one; `done`'s chain-break defenses are written as reasoning while its derivable material is written as dispatch tables, which is backwards if rigidity tracks risk.
-- `task-summary` 26,224 → 25,594 bytes with all sixteen inventoried facts verified by grep; `update-claude-docs` −1,064 bytes; `read-summary` returned a genuine negative (unhobbled the day before, one clause).
-- **A relocation in 1.137.17 orphaned a "the MANDATORY callout above" reference**, found by this pass and fixed by moving the arrival-rate rule back above its citing row rather than repointing the words — Capture is the mode that adds lines, so the rule governs it most.
-- The pass that finds only wording problems is now distinguishable in the report from the pass that never looked for shape ones.
+- Three shape defects invisible to marker scan: `task-summary` had 9 rules at 3 homes each + contradiction (Validate says "no rows deleted", Pruning section deletes rows); `update-claude-docs` mandates "≤2 sentences" while running 4-5; `done`'s chain-breaks are reasoning, derivable material is dispatch tables (backwards).
+- `task-summary` 26.2KB→25.6KB (16 facts verified by grep); `update-claude-docs` −1.1KB.
+- Orphaned reference in 1.137.17 fixed by moving arrival-rate rule back above its citation.
+- Report now distinguishes wording-only pass from one that never checked shape.
 
 **Status**: committed · **Reversible**: yes · Extends D66
 
-### D-haiku-condense-delegation — Condensation Drafting May Be Delegated to a `haiku` Agent; Verifying May Not — committed — 2026-08-07
+### D-haiku-condense-delegation — Draft May Be Delegated to `haiku`; Verify May Not — committed — 2026-08-07
 
 **Problem**
-`two-tier-condense.md` forbade spawning any agent for the draft step ("dropped per explicit preference: no agent for this task"). The preference changed; a new `haiku` skill (`skills/haiku/SKILL.md`) was built this session to dispatch mechanical rewrite work to haiku-tier agents with a mandatory post-return verification pass, and `condense-claude-md`/`condense-task-doc` needed to point at it instead of restating "work inline."
+`two-tier-condense.md` forbade spawning agents for draft. Preference changed; `haiku` skill built for mechanical rewrite + external verification. Need delegation path for condense skills.
 
 **Decision**
-Chosen: allow delegating the Draft step to a `haiku` agent; keep Verify non-delegable. Measured this session: a haiku condense of a 375-line CLAUDE.md cut 35% of bytes with the rules intact. The split is what makes delegation safe — an agent grading its own rewrite uses the same read that produced it, so its closing report is an artifact to check, never evidence.
-
-**Rejected**
-- Keeping "no spawned agent" as a blanket rule. Why not: superseded by explicit preference change, and the measured haiku run showed the restructuring quality is there when verification is external to the drafter.
+Allow Draft delegation to `haiku` agent; keep Verify non-delegable. Measured: haiku condense of 375-line file cut 35% bytes with rules intact. External verification makes delegation safe (agent grading its own output uses same read that produced it — report is artifact, not evidence).
 
 **Consequences**
-- `two-tier-condense.md` rewritten: Draft section now states the delegation call (`Skill(skill: "syafiqkit:haiku")`) explicitly — a first pass had described delegation as possible without ever naming the dispatch mechanic, caught by this session's own `/done` product-review pass.
-- New failure mode named: a delegated rewrite can keep a backtick-quoted identifier intact while reversing the claim around it (kebab-case keys relabelled "camelCase", a hyphen-vs-underscore mismatch called "case-sensitive") — survives an identifier-survival grep because only the identifier is checked, not the sentence. `two-tier-condense.md`, `unhobble-instructions/SKILL.md`, and `haiku/SKILL.md` all now carry this check.
-- `condense-claude-md/SKILL.md` step 3 and `condense-task-doc/SKILL.md` step 7 both repointed at `two-tier-condense.md` instead of restating "no spawned agent."
+- `two-tier-condense.md`: Draft section now states delegation call explicitly (`Skill(skill: "syafiqkit:haiku")`).
+- New failure mode: delegated rewrite can keep identifier intact while reversing claim around it (kebab-case relabelled "camelCase") — survives grep. All three (two-tier, unhobble, haiku) now carry this check.
+- `condense-claude-md`/`condense-task-doc` repoint at `two-tier-condense.md` instead of restating "no spawned agent."
 
 **Status**: committed · **Reversible**: yes
 
@@ -175,17 +141,17 @@ Chosen: fix the five contradictions, add nothing else. Each is a disagreement be
 
 ---
 
-### D-limitation-reads-as-hedging — A Stated Limitation Is the Fact an Unhobbling Pass Deletes First — committed — 2026-08-09
+### D-limitation-reads-as-hedging — Stated Limitations Read as Hedging to Unhobble — committed — 2026-08-09
 
 **Problem**
-Five haiku agents ran `unhobble-instructions` on five staged docs in one batch. Two rewrites inverted the meaning of the passage they compressed: `read-summary`'s peer-check paragraph went from "`ListAgents` cannot tell you which project a peer is in, and an empty listing is not evidence nobody is writing" to "checking for concurrent sessions prevents contested edits" — asserting the guarantee `cross-session-messaging.md` exists to withhold — and its authority paragraph lost "if the answer depends on current state, go measure it," leaving "the live system wins," which states a precedence and instructs nothing. One agent reported the first as an achievement ("defensiveness about what `ListAgents` doesn't guarantee collapsed to a single sentence"). D64 covers an absolutist rule softened against a documented Rejected entry; this is a different mechanism, and D64's `decisions/*.md` grep cannot reach it, because a tool's limitation is a fact about the world rather than a decision anyone recorded.
+Two haiku agents inverted passage meaning by compressing: `read-summary` changed "`ListAgents` CANNOT..." (withholding guarantee) to "checking PREVENTS..." (asserting guarantee). D64's grep of `decisions/*.md` doesn't catch this — tool limitations are facts about the world, not recorded decisions.
 
 **Decision**
-Chosen: name the shape in `unhobble-instructions/SKILL.md`'s fact-vs-constraint section — text saying what a tool cannot do, what a check does not prove, or what a result is not evidence of has the cadence of an author covering themselves, so a pass hunting over-caution cuts it and counts the cut as a win, leaving the confident half of the sentence asserting what the original withheld. Stated as one sentence pair beside the existing "losing a genuine fact is the failure mode" line, without the worked incident that produced it.
+Name the shape in `unhobble-instructions` fact-vs-constraint: text saying what a tool cannot do or what a check doesn't prove reads as hedging; pass hunting over-caution cuts it. Stated as one sentence pair beside "losing genuine fact is failure mode," no worked incident.
 
-**Rejected**
-- A fuller entry carrying the before/after quotes as illustration. Why not: the skill's own line 44 lists "a worked incident embedded in the instructions" as a constraint tell, and the user challenged whether the entry was itself hobbling — the mechanism generalises, the incident belongs here.
-- A companion rule about a fact whose force lives in a verb ("go measure it" → "the live system wins"). Why not: Process steps 3 and 5 already state that a fact can survive a rewrite while its force does not; a third home is the repetition the skill's own preamble warns against.
+**Consequences**
+- Verification method (inventory facts, grep post-rewrite) is blind to this class — both defects kept every identifier, changed only claims around them.
+- Reading rewritten passage against snapshot and asking "what would reader do differently?" surfaces this class.
 
 **Consequences**
 - The verification method D64 relied on — inventory the genuine facts, grep each one post-rewrite — is blind to this class by construction. Both defects kept every identifier and changed only the claim around it, so the sweep passed. What surfaced them was reading the rewritten passage against its snapshot and asking what a reader would now *do* differently.
