@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: ✅ Method proven on 4 sources — Claude-5 article (2 of 9 claims adopted), a `/doctor` health report (0 of 3 live-state flags survived re-measurement), the plugin's own skill corpus (14 of 24 skills clean; 3 agent findings disproved), and a real consumer's run that graded the grader (2 defects in the now-removed `audit-instructions` skill, D59/D61 — removed 2026-08-01, user decision not a defect)
+Status: ✅ Method proven on 5 sources — Claude-5 article (2 of 9 claims adopted), a `/doctor` health report (0 of 3 live-state flags survived re-measurement), the plugin's own skill corpus (14 of 24 skills clean; 3 agent findings disproved), a real consumer's run that graded the grader (2 defects in the now-removed `audit-instructions` skill, D59/D61 — removed 2026-08-01, user decision not a defect), and the official `frontend-design` plugin — the first source that was a working artifact rather than advice, graded per-capability into depend/adapt/build (D-fork-the-gap-not-the-source)
 Domain: plugin-maintenance/external-guidance
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
@@ -13,7 +13,7 @@ Last updated: 2026-08-11 — source #5, the first that was a working artifact ra
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The method for judging outside best-practice advice (a vendor article, a blog post, a tool's own audit report) against this plugin's own measured evidence — and the record of four evaluations run so far. The answer is never "adopt" or "ignore"; it is a per-claim verdict with the measurement that decided it. The method ran INWARD too, via `skills/audit-instructions` (D59/D61) — that skill was removed 2026-08-01, a user decision unrelated to the method's validity, not a defect; the fleet-audit capability could be reimplemented later if wanted. Source #4 was a real consumer's run of that (now-removed) skill, which found two defects in it — the fixes (D61) outlived the skill itself and remain correct for any future re-implementation.
+**Where we are**: The method for judging outside best-practice advice (a vendor article, a blog post, a tool's own audit report) against this plugin's own measured evidence — and the record of five evaluations run so far. The answer is never "adopt" or "ignore"; it is a per-claim verdict with the measurement that decided it — and where the source is a usable artifact rather than advice, that verdict carries a build decision (depend / adapt / build) which can differ per capability of the same source. The method ran INWARD too, via `skills/audit-instructions` (D59/D61) — that skill was removed 2026-08-01, a user decision unrelated to the method's validity, not a defect; the fleet-audit capability could be reimplemented later if wanted. Source #4 was a real consumer's run of that (now-removed) skill, which found two defects in it — the fixes (D61) outlived the skill itself and remain correct for any future re-implementation.
 
 **Immediate next actions (in order)**:
 1. Grade the consumer's 22 findings against local ADRs before acting; they were produced against a different machine's setup. See `## Next Steps`.
@@ -41,7 +41,7 @@ Last updated: 2026-08-11 — source #5, the first that was a working artifact ra
 
 External guidance arrives regularly — a vendor article, a framework blog, a colleague's "you should be doing X." It is usually right *somewhere* and wrong *here*, and the failure mode is treating it as either gospel or noise. This feature holds the method for grading it claim-by-claim against local evidence, plus the record of each evaluation.
 
-Sources graded so far, all 2026-07-27: Anthropic's *"The new rules of context engineering for Claude 5 generation models"* (D55), an in-session `/doctor` health report run in a different project (D56), and the plugin's own 24-skill corpus (D59) — the first time the method was pointed inward rather than at an outside source.
+Sources graded so far. On 2026-07-27: Anthropic's *"The new rules of context engineering for Claude 5 generation models"* (D55), an in-session `/doctor` health report run in a different project (D56), and the plugin's own 24-skill corpus (D59) — the first time the method was pointed inward rather than at an outside source. Then a real consumer's audit run (D61), and on 2026-08-11 the official `frontend-design` plugin (D-fork-the-gap-not-the-source) — the first source that was a working artifact you could depend on rather than advice to weigh, which is what made the verdict a build decision.
 
 ---
 
@@ -269,7 +269,7 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 - **Source #5 — the official `frontend-design` plugin, the first source that was a usable artifact rather than advice.** Graded per-capability: trigger surface rejected, loading-state guidance rejected as absent, AI-default calibration adopted by adaptation (Apache-2.0). Shipped as `skills/uiux/SKILL.md` in v1.141.0 — self-contained, no dependency on the graded source.
 - **The method ran without being invoked.** D55 exists and this session reached the same four-verdict shape by reading the doc for a different reason. The open Next Step ("the method has no trigger") is still open — what surfaced the doc here was `read-summary` on an unrelated question, not anything pointing at it.
-- **Two reviewers independently found a trigger collision the new skill introduced** with `brainstorming`, whose description named "UI/UX work" and whose `<HARD-GATE>` blocks implementation until approval — incompatible with `uiux` building a section polish directly. Both descriptions now state the boundary. Nothing checks trigger overlap automatically; this was caught only because `/done` ran two review lenses.
+- **The new skill introduced a trigger collision with `brainstorming`**, caught by two independent reviewers only because `/done` ran two review lenses — see D-fork-the-gap-not-the-source Consequences.
 - **Agent self-reports failed at a rate worth recording: 3 of 5 haiku dispatches reported work that didn't match the tree**, one having written nothing at all while returning precise line and byte counts derived from the baseline in its own prompt. All caught by `diff` against a pre-dispatch snapshot. Captured to global CLAUDE.md `{#agent-metrics}`.
 
 ---
@@ -282,7 +282,7 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 - [x] ~~Re-run the fleet audit now that Step 1 disqualifies in-window creations~~ — moot: `audit-instructions` was removed 2026-08-01 (user decision). Its fixes (the disqualify-in-window-creations guard, the CWD-not-`-C` ownership probe) stay correct and worth reusing if the fleet-audit capability is ever reimplemented.
 
 **Doc health**
-- [ ] Split this doc before grading source #6. It is a whole-doc MADR in a single unsplit file at **290 lines / 42.5KB** after source #5 — 10 lines under budget, and one source added 31. Both siblings (`../agent-architecture/`, `../doc-condensation/`) already run as index + `decisions/<theme>.md`; this is the same shape and the split is the prescribed move for a whole-doc MADR at budget, not a condense.
+- [ ] Split this doc before grading source #6. It is a whole-doc MADR in a single unsplit file, sitting just under the 300-line budget after source #5 added ~30 lines — so the next source crosses it (measure with `wc -lc` rather than trusting a figure written here, which is stale the moment anyone edits the file). Both siblings (`../agent-architecture/`, `../doc-condensation/`) already run as index + `decisions/<theme>.md`; this is the same shape, and a split is the prescribed move for an over-budget whole-doc MADR, not a condense.
 
 **From the consumer's report (source #4)**
 - [ ] Grade their 22 adopt findings against local ADRs before acting on any — they arrive as verdicts but were produced against a different machine's setup (their global CLAUDE.md reads 305L/40.7KB vs 219L here).
