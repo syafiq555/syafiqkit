@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Use this before creative work that involves design decisions - new features with multiple approaches, UI/UX work, or architectural changes. Explores intent and requirements before implementation. Triggers on brainstorming, design exploration, "how should we build", or when multiple valid approaches exist.
+description: Use this before creative work that involves design decisions - new features with multiple approaches, or architectural changes. Explores intent and requirements before implementation. Triggers on brainstorming, design exploration, "how should we build", or when multiple valid approaches exist. For UI/UX specifically, `uiux` owns design judgement on a surface whose purpose is already settled (polish, rethink, redesign) — this skill runs first only when what to build is itself open, since its hard gate blocks all implementation until the user approves a direction.
 ---
 
 # Brainstorming Ideas Into Designs

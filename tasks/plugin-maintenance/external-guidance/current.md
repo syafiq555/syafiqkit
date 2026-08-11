@@ -6,7 +6,7 @@ Related:
   - ../doc-condensation/current.md (owns D54 and every skill-density decision this evaluation fed, plus D63 — the later-found scope boundary on the judgment-over-prescription claim)
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
-Last updated: 2026-08-09 — the method's own trigger gap (D-verdict-records-lever): the Claude-5 article was re-worked for hours without D55 being opened, so a graded-false tool got recommended and a verdict got restated inverted
+Last updated: 2026-08-11 — source #5, the first that was a working artifact rather than advice: the official `frontend-design` plugin, graded per-capability into depend/adapt/build (D-fork-the-gap-not-the-source)
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
@@ -28,6 +28,8 @@ Last updated: 2026-08-09 — the method's own trigger gap (D-verdict-records-lev
 - **An agent's finding is a hypothesis whose line numbers are usually right even when the claim is wrong** — that is what makes it convincing; 3 of this corpus's findings died on re-reading the cited lines, see D59
 - **A "cold path to extract" that every invocation reads is hot path** — the commonest way a density pass becomes D50's treadmill, see D59
 - **The plugin's own ADRs outrank an external claim when they disagree, because they were measured here** — D23→D50 already ran the article's headline experiment, see ../doc-condensation/current.md
+- **A source that is a working artifact gets a build decision per capability, not one verdict** — depend / adapt / build can all be right for different parts of the same plugin, see D-fork-the-gap-not-the-source
+- **An official plugin's DEFAULT can be inverted for your use even when its content is good** — greenfield "invent a palette" applied to an existing app produces the inconsistency it exists to prevent; a wrapper inherits that no matter how the trigger is worded
 - **A growth ranking counts a file created in the window as having grown by its whole length** — the top-ranked entry is then an artifact that hides the real grower, see D61
 - **An instruction naming a path under `tasks/` is unfollowable off this checkout — `tasks/` is not shipped and installs are version-scoped** — there is no absolute path that fixes it, see D61
 
@@ -186,6 +188,29 @@ Chosen: a discovery-only skill, `skills/audit-instructions/SKILL.md`, mirroring 
 
 **Status**: committed · **Reversible**: yes
 
+### D-fork-the-gap-not-the-source — Grading an Official Plugin Ends in a Build Decision, and the Verdict Is Per-Capability — committed — 2026-08-11
+
+**Problem**
+Anthropic's official `frontend-design` plugin was installed and the ask was whether to route syafiqkit's frontend work through it. It arrives with maximum authority — first-party, Apache-2.0, actively maintained — and the obvious readings are both wrong: adopt it wholesale, or dismiss it and write everything fresh. Neither is a verdict. The prior four sources were all *advice* (an article, a report, a corpus); this is the first source that is a **working artifact you could depend on**, so the four verdicts needed a build decision attached rather than a claim-by-claim score.
+
+**Decision**
+Chosen: grade it per *capability*, then let each verdict pick its own disposition — depend, adapt, or build. Three capabilities, three different answers: its **trigger surface** rejected (measured: aesthetics-flavored, cannot fire on "something wrong with the image slider" — the actual reporting shape); its **loading-state guidance** rejected as absent (grep: covers empty/error at line 53, mentions page-load only as an *animation* idea); its **AI-default calibration** adopted by adaptation under Apache-2.0 (names three looks concretely, which is what makes "generic" checkable rather than a vibe). Result: `skills/uiux/SKILL.md`, self-contained, carrying the one adopted piece with attribution.
+
+**Rejected**
+- Routing to it via a thin-pointer skill, the cheapest option. Why not: **its default is inverted for this use.** It is written for greenfield briefs — invent a palette, pick a signature element — and applied to an existing app that instruction *produces* the inconsistency it was meant to prevent. A wrapper inherits the wrong default no matter how the trigger is worded.
+- Depending on it at all. Why not: colleagues install syafiqkit from its marketplace and may not have `frontend-design`; the plugin's own self-contained convention forbids a hard dependency. This is the D61 shape one layer up — an instruction that only resolves on the author's machine.
+- Forking its full text. Why not: 55 lines of greenfield aesthetic process for a delta that is three named looks. The `skill-creator@claude-plugins-official` precedent (CHANGELOG v1.126.0) rejected building on an official skill for a *different* reason — generic workflow vs local conventions — and does not transfer: this source has no workflow to conflict with, only judgement prose.
+- Scoping the new skill to "make the model look at screenshots," which is where the first design landed. Why not: **generalised from a bug fix, where the design space is tiny.** The originating session reasoned well about spinner timing unaided, which read as evidence that aesthetic direction was unnecessary — it isn't, for "redesign this page." The user named *generic output* as a real failure and the calibration went back in.
+
+**Consequences**
+- **The trigger gap is the finding, and it is not fixable by wording.** The user's own framing: *"the user dont know if it's related to ui or what."* You cannot enumerate vocabulary for people who don't know their problem is a UI problem, so the skill keys on an image of a UI arriving and on reports of what someone *saw*, independent of whether anyone says "UI".
+- **Evidence it was real**: a slider bug session ran `read-summary` + two Explore agents, correctly found an unused `card` conversion and a Spatie `preview_url` naming mismatch — and never mentioned that the attached screenshot showed the photo overflowing its container and colliding with the title. Two exchanges, unmentioned. Good code diagnosis is not the missing part; *looking* is.
+- **A near-miss rule made it worse, not better.** `read-summary` already said "enumerate what each image is evidence *of*" — that rule fired in this very session and still missed the layout defect, because treating a screenshot as *evidence for a bug* is a different act from reading it as a *rendered interface*. Fixed with a pointer, not a second image rule.
+- **Two reviewers independently found a trigger collision the build introduced**: `brainstorming`'s description named "UI/UX work" and carries a `<HARD-GATE>` blocking implementation until approval, while `uiux` says a section polish builds directly — incompatible collaboration models on one request. Both descriptions now state the boundary. **A new skill's trigger is a claim about every sibling trigger, and nothing checks that automatically.**
+- **Greenfield was missing and the skill would have fired anyway** — it activates on "redesign a page" and then stalls, because its first instruction is to read an app language that doesn't exist. Caught by the user asking, not by any check. A skill that fires and has nothing to say is worse than one that stays silent.
+
+**Status**: committed · **Reversible**: yes
+
 ### D-verdict-records-lever — A Verdict Records Which Lever Was Rejected, Not Which Outcome — committed — 2026-08-09
 
 **Problem**
@@ -240,12 +265,12 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ---
 
-## Last Session (2026-08-09)
+## Last Session (2026-08-11)
 
-- **The article was re-worked from scratch without anyone opening D55**, which had already graded its nine claims. Four hours of edits to `unhobble-instructions` and `update-claude-docs` were built on the source this doc owns; D55 surfaced only when the user asked why a rule wasn't being changed. Cost: `/doctor` recommended into a skill despite being graded false here, and a "rejected here" line that inverted D55's meaning. D-verdict-records-lever records the restatement rule.
-- **`unhobble-instructions` restructured** 30.7KB → 9.1KB + two `references/` files, on the grounds that it taught progressive disclosure while being a single file with no references dir. A haiku agent then ran the rewritten skill against the global CLAUDE.md with a one-line prompt and followed it — all four document-level questions, both reference files read, value-shaped content kept literal.
-- **`update-claude-docs` Capture had no rejecting row**: 13 signal rows, every one producing an entry. That is the arrival-rate mechanism D55 names, sitting in the mode `/done` runs every session. A gate now sits between signal and entry; a product reviewer correctly flagged it as unenforced (judgement prose, no check fires when ignored).
-- Two review agents reached opposite verdicts on whether the global cut happened, because one read `HEAD` and the other the working tree. The uncommitted-work case is the one that produces a confident, fully-cited, wrong refutation.
+- **Source #5 — the official `frontend-design` plugin, the first source that was a usable artifact rather than advice.** Graded per-capability: trigger surface rejected, loading-state guidance rejected as absent, AI-default calibration adopted by adaptation (Apache-2.0). Shipped as `skills/uiux/SKILL.md` in v1.141.0 — self-contained, no dependency on the graded source.
+- **The method ran without being invoked.** D55 exists and this session reached the same four-verdict shape by reading the doc for a different reason. The open Next Step ("the method has no trigger") is still open — what surfaced the doc here was `read-summary` on an unrelated question, not anything pointing at it.
+- **Two reviewers independently found a trigger collision the new skill introduced** with `brainstorming`, whose description named "UI/UX work" and whose `<HARD-GATE>` blocks implementation until approval — incompatible with `uiux` building a section polish directly. Both descriptions now state the boundary. Nothing checks trigger overlap automatically; this was caught only because `/done` ran two review lenses.
+- **Agent self-reports failed at a rate worth recording: 3 of 5 haiku dispatches reported work that didn't match the tree**, one having written nothing at all while returning precise line and byte counts derived from the baseline in its own prompt. All caught by `diff` against a pre-dispatch snapshot. Captured to global CLAUDE.md `{#agent-metrics}`.
 
 ---
 
@@ -255,6 +280,9 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 - [x] ~~Reuse D55's four-verdict table on the next piece of guidance~~ — done 2026-08-09, and the failure mode was arriving at the source without checking whether it had already been graded. See D-verdict-records-lever.
 - [ ] The method has no trigger. D55 exists and was not consulted for four hours of work built on the same article it grades; nothing in `unhobble-instructions` or `update-claude-docs` says "grep `tasks/**/decisions/` for this source before adopting it." A global CLAUDE.md entry now covers it (`{#outside-guidance}`), but the skills that actually read outside guidance still don't point here.
 - [x] ~~Re-run the fleet audit now that Step 1 disqualifies in-window creations~~ — moot: `audit-instructions` was removed 2026-08-01 (user decision). Its fixes (the disqualify-in-window-creations guard, the CWD-not-`-C` ownership probe) stay correct and worth reusing if the fleet-audit capability is ever reimplemented.
+
+**Doc health**
+- [ ] Split this doc before grading source #6. It is a whole-doc MADR in a single unsplit file at **290 lines / 42.5KB** after source #5 — 10 lines under budget, and one source added 31. Both siblings (`../agent-architecture/`, `../doc-condensation/`) already run as index + `decisions/<theme>.md`; this is the same shape and the split is the prescribed move for a whole-doc MADR at budget, not a condense.
 
 **From the consumer's report (source #4)**
 - [ ] Grade their 22 adopt findings against local ADRs before acting on any — they arrive as verdicts but were produced against a different machine's setup (their global CLAUDE.md reads 305L/40.7KB vs 219L here).
