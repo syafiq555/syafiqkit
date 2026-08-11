@@ -2,6 +2,25 @@
 
 Referenced by skills whose steps must prove an edit reached disk (done's exit gate, update-claude-docs' Validate, two-tier-condense's Diff step). Distinct from `diff-ownership.md`, which decides *whose* a change is, not *whether* it exists.
 
+**First, can git answer at all?** Everything below assumes it can. Two states break that, and they need separate probes because each command answers a different question:
+
+| Probe | Answers | Fails when |
+|-------|---------|-----------|
+| `git rev-parse --git-dir` | is there a repo? | never `git init`ed — a small tool, a scratch prototype, a vendored directory. Everything errors `fatal: not a git repository` |
+| `git rev-parse HEAD` | is there a commit to diff against? | repo exists, no first commit yet. `--git-dir` and `git status` both succeed, so this state passes a repo check and *then* errors `fatal: ambiguous argument 'HEAD'` on every `git diff HEAD` |
+
+The second is the one that bites, because it looks handled: a session that probed only for a repo proceeds believing git works, and hits the failure at the Exit gate instead of at mode selection. Settle both once per session and carry the answers; don't re-probe per file.
+
+Either way every file is permanently in the third row's state below, so these substitutions are the whole verification rather than a fallback:
+
+| Need | Substitute |
+|------|-----------|
+| Did this write land? | Re-read the file, or grep it for the text you wrote. There is no diff to consult |
+| What changed this session? | mtime against session start — `find . -newermt "<session start>" -type f -not -path './node_modules/*' -not -path './vendor/*'` |
+| Whose change is this? | Sole by construction, *if* no peer session is on the tree — an assumption git would normally let you test and here you cannot. `ListAgents` is the only remaining check, and an empty listing isn't proof (see `cross-session-messaging.md`) |
+
+⚠️ **Ownership caution gets stronger without git, not weaker.** The usual reassurance — a bad edit is recoverable — is gone: no stash, no `checkout --`, no reflog. Anything an agent overwrites or deletes is gone for good, so scope agent file-partitions tightly and prefer additive edits over rewrites.
+
 **Rule:** an empty `git diff` is inconclusive about a write, never proof it is missing. Three separate causes return empty with exit 0, and they need different fixes:
 
 | Cause | Settle it with | Fix |

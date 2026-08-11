@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.144.0
+
+Both fixes below came from a user hitting `/done` and `/agent-setup` in a project that wasn't a git repository. Nothing to do unless you previously hand-edited your own `Explore` agent — see the second item.
+
+- **`/condense-task-doc` no longer reports a size verdict it couldn't actually measure.** Its "is this really bloat, or just restructuring?" check compares against the last committed copy, which doesn't exist in an unversioned project or one that hasn't had a first commit yet. It now says the check couldn't run rather than quoting a delta measured against nothing.
+
+- **`/done` now works in projects that aren't git repos.** Previously it would fail partway through, or silently skip the code review agents entirely — the worse outcome, since it looked like it had run cleanly. It now reviews your code either way, using a file-modified-time listing in place of git where needed. One thing worth knowing: without git there's no undo, so if you're not using version control, be a little more cautious about letting agents make sweeping edits.
+
+- **`/agent-setup` no longer fights itself when generating a fresh `Explore` agent.** Its own setup checklist and the agent template it generates from had drifted out of sync, so a newly generated `Explore` agent would fail the checklist's own check every time, no matter how many times you re-ran it. Fixed by reconciling the two — `Explore` keeps the scratchpad access it needs for large searches. If you generated agents before this fix, running `/agent-setup` again will bring them in line; nothing you built on top needs to change.
+
+  **If you already hand-edited your own `Explore` agent to satisfy the old checklist** — removing `Write`/`Edit` and adding a `disallowedTools` block — that edit is now the out-of-date one, and `/agent-setup` won't necessarily undo it. Delete the `disallowedTools` block and let the tools stay granted. Related: the `1.60.1` entry below said both agent templates set that block explicitly. That was true when written and stopped being true shortly after, so it did not describe any release in the `1.140`–`1.143` range — worth knowing if you relied on it.
+
 ## 1.143.1
 
 - **CLAUDE.md's own skill-table restructure broke the tool that checks CLAUDE.md's skill table.** Reorganizing the registry into "Skills by Invocation Pattern" renamed the section headers `editing-skills-checklist.md`'s registry-sync command targets (`### Skills` → three separate sub-sections, `### Typical` → `## Typical Workflow Sequences`), so its `sed` extraction silently matched nothing and reported the registry clean regardless of what was actually missing — which it was: `notes-summary` had dropped out of every CLAUDE.md table despite still being a real, user-invocable skill listed in README.md. Both fixed: the `sed` range now matches the current structure, plus a sanity floor (confirm the extracted table isn't near-empty before trusting a clean result) so the same silent self-disable can't recur on the next restructure.

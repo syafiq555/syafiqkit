@@ -91,19 +91,16 @@ Two agent-steering gaps in one session. (1) The doc-update skills (`update-plugi
 
 **Decision**
 Chosen, both:
-- ⚠️ **SUPERSEDED (v1.116.0, D36) — REMOVED from `/done`.** The mechanism below is kept only as design history; it no longer runs, and `transcript-scan.md` is deleted. It cost an agent slot + ~47k tokens/run and didn't prevent the false-"done" doc miss it was meant to guard (that was a reporting failure, not recency). **Transcript scan as a shared reference, not a new agent** (`_shared/references/transcript-scan.md`). A caller resolves the session `.jsonl` path itself (`ls -t ~/.claude/projects/*/"$CLAUDE_CODE_SESSION_ID".jsonl | head -1` — glob by the unique session-id UUID, sidestepping the lossy cwd encoding of #7009/#21085) and passes it literally to an `Explore` agent, which runs a two-pass filter (jq drops tool_result bulk; contaminant-strip drops harness-injected `type=="user"` turns — skill-body injections, `<task-notification>`, `<local-command-caveat>`, `[Request interrupted by user]`, bare command scaffolding) and returns a RAW numbered list of the human's genuine messages. Judgment (which lines are signals) stays on the caller's model (D30). Wired into `done` Step 1's agent batch only this pass — `update-plugin`/`update-claude-docs` standalone deferred.
+- ⚠️ **SUPERSEDED (v1.116.0, D36) — REMOVED from `/done`, and `transcript-scan.md` is deleted.** Transcript scanning ran as a shared reference (a caller resolved the session `.jsonl` and handed it to an `Explore` agent for a two-pass filter, judgment staying on the caller's model per D30). It cost an agent slot + ~47k tokens/run and didn't prevent the false-"done" doc miss it was meant to guard — that was a reporting failure, not recency. The operating detail is dropped as unusable; what survives is the verdict, so a future session proposing transcript scanning recognises it as tried and measured rather than new.
 - **A sub-spawn grant must name its allowed agent type in the runtime-visible body**, not just a `tools:` comment. `browser-verifier`'s Constraints now state Explore-only, never another browser-verifier or an editing agent; the `tools:` comment tightened to match.
 
 **Rejected**
-- A registered `transcript-inspector` agent (SKILL.md registry + template). Why not: user chose the lighter shared-reference form — no registry sync, no template-parity surface; skills spawn a generic `Explore` following the reference.
-- Subagent self-locates the transcript via inherited `$CLAUDE_CODE_SESSION_ID`. Why not: it forces re-implementing the lossy, collision-prone cwd encoding in a second place; empirically the var IS inherited (returns the parent's id), so it's kept only as a cheap stale-path cross-check, never the primary lookup.
-- A blocklist-only Pass 2. Why not: verified leaky against a real transcript (a full `read-summary` skill body survived until markers were matched *anywhere* in the turn, not just line 1) — the reference makes the human-eye completeness skim the authoritative check, the pattern list only the first cut.
+- A registered `transcript-inspector` agent. Why not: the lighter shared-reference form avoided a registry-sync and template-parity surface. Moot once D36 removed the mechanism.
+- A blocklist-only filter pass. Why not: verified leaky against a real transcript — a full skill body survived until markers were matched on line 1 rather than anywhere in the turn. Worth keeping because the shape recurs: a pattern list is a first cut, never the authoritative check.
 
 **Consequences**
-- `done` gains a Transcript row (exit-gate audit + Output table); the scan skips in light/docs/infra *minimal* runs but not a substantive docs session.
-- The scan agent is never partitioned by file slice (whole-session, like the product reviewer) and its list is an async enrichment to Steps 3/5, never a hard dependency — if it hasn't returned, those steps run their own scan bare.
 - `browser-verifier` fix lands in the template only; this plugin repo generates no `browser-verifier.md`, so consuming projects pick it up on their next `/agent-setup`.
-- ⚠️ Both bullets superseded/removed by D36 — kept here as design history only.
+- ⚠️ The transcript-scan half is superseded/removed by D36 — the sub-spawn-grant half stands.
 
 **Status**: committed · **Reversible**: yes
 

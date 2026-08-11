@@ -121,6 +121,10 @@ memory: project                         # Persistent memory scoped to project
 
 Generated `.claude/agents/<name>.md` files must stay in sync with their source `skills/agent-setup/templates/<name>.template.md`. Editing an agent file requires patching its template in the same change; otherwise the next `/agent-setup` run regenerates the old behavior. When fixing an agent, grep both locations and update every hit. Drift is silent — a spawn failure with `effort 'xhigh'/'max' not supported` is worth diffing against the template before treating it as an environment fault.
 
+**Parity proves the two files agree, never that either is right.** An edit that touches both — which is what the rule above asks for — leaves them matching whatever it did, so a regression introduced in one pass is invisible to every subsequent parity check. What catches it instead is the frontmatter's own claims: an agent's `description:` calling itself read-only while `tools:` grants `Write`/`Edit`, or a `disallowedTools` block a skill's checklist demands and no template produces. Read the tool grants against what the agent says it is, and treat a checklist item that no generated file can satisfy as a defect in one of them rather than an accepted deviation.
+
+A safety-relevant grant is worth stating twice — once in frontmatter, once in the body prose that scopes it — because a density or `unhobble-instructions` pass reads a YAML guard as prohibition-shaped machinery and can strip it along with the sentence explaining it. Where only body text scopes a grant, say so at the point the checklist verifies it, so the sentence is a checked artifact rather than incidental prose.
+
 ## Authoring Skills and Commands
 
 ### Conventions
@@ -141,7 +145,7 @@ When modifying or creating skills and commands:
 
 - **Skill registry sync**: The registry lives in two places — this file's Skills table and `README.md`. Diff against disk to verify (`ls -d skills/*/`).
 - **Plugin-internal paths**: `tasks/**` is not shipped in marketplace. Route writes through `update-plugin` (the only skill with an ownership gate).
-- **Git probes**: `git -C <plugin-dir>` walks up to an enclosing repo and can answer about the wrong one. Use `git rev-parse --show-toplevel` instead to query the CWD.
+- **Git probes**: `git -C <plugin-dir>` walks up to an enclosing repo and can answer about the wrong one. Use `git rev-parse --show-toplevel` instead to query the CWD. A skill step that reads state from git needs to say what happens when git *errors* rather than returns empty — consumers run these skills in unversioned projects and in repos whose first commit doesn't exist yet, where `git status` succeeds and every `git diff HEAD` fails. Those are two states, not one: `rev-parse --git-dir` asks whether a repo exists, `rev-parse HEAD` whether there's a commit to diff against, and a branch written for the first still breaks on the second. `skills/_shared/references/verifying-a-write-landed.md` owns the substitutes; cite it rather than restating them.
 - **Scope and naming**: When a name stops matching scope, rename in the same change — a stale name under-fires forever. When a command's body becomes "run skill X", migrate it to a skill.
 - **Shared rules**: When a rule appears in 3+ skills, extract it to `skills/_shared/references/` — reference files use literal relative paths resolved against the citing file's directory: `../` from `skills/<name>/SKILL.md`, `../../` from `skills/<name>/references/*.md`. Verify a new pointer resolves before landing it.
 - **Prompting style**: Constitutional constraints (`❌ Never / ✅ Always` tables) for routing decisions. Validation loops (numbered checks) for file writes. A skill writing formatted output should re-read its own output against its style rule.

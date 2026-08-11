@@ -37,6 +37,8 @@ Choose a mode that reflects what the session changed, then apply its step cascad
 
 **An empty `git status --short` doesn't by itself select a no-code mode.** It means three different things: work may be already committed this session (full mode, count off the base commit — recovery command in Step 1's Agent-count section), may be another writer's tree you don't own (see the ownership section below), or may be a session that genuinely never touched the repo (ops-only). Name which one applies before treating "nothing to review" as the answer.
 
+**A git command that *errors* is a fourth state, and it selects no mode either.** In a project that was never `git init`ed, `git status --short` returns `fatal: not a git repository` rather than empty. A repo with no first commit yet is the sneakier version: `git status` succeeds and reads empty, then every `git diff HEAD` in the steps below errors on the missing revision — so the failure surfaces at the Exit gate rather than here. Either way the steps that establish what changed, who owns it, or whether a write landed need substitutes. **Ops-only is the trap here**: it looks like the closest fit ("no repo diff") and is wrong, because it skips all three agents on the grounds there's no repo code to review. An unversioned project still has code. Run **full mode** and substitute only the mechanisms — mtime off session start for the changed-file list, re-read/grep for write verification — per `../_shared/references/verifying-a-write-landed.md`, which owns the substitution table and the ownership caveat that comes with it.
+
 
 ## Step 1: Simplify + Review + Product Review (parallel)
 
@@ -87,6 +89,8 @@ Auto-scale by changed-file count; user arg overrides. Count changed files first 
 `git status --short` is canonical, not `git diff --name-only` — the latter omits new/staged files. If staged before `/done`, it returns empty, every agent reports clean on an empty slice, and `/done` passes having reviewed nothing.
 
 For the "already committed" case (work may be committed but not yet pushed): count off the session's base commit instead of the working tree. Recovery: `git diff --name-only <base>..HEAD`, where `<base>` is HEAD at session start (or merge-base with trunk if unknown).
+
+In a non-git project, count by mtime against session start instead — `find . -newermt "<session start>" -type f -not -path './node_modules/*' -not -path './vendor/*'`. The tier table below reads the same off that list; ownership is sole by construction, with the caveat in `../_shared/references/verifying-a-write-landed.md`.
 
 | Changed files | Reviewers | Simplifiers | Product | TOTAL agents |
 |---|---|---|---|---|
@@ -201,7 +205,7 @@ Confirm the WORK is done, not just this skill's steps. `/done` wraps up finished
 | Task docs | invoked `syafiqkit:task-summary` **and re-read the doc to confirm its `Last updated` + content actually changed** — invoking is not updating — **and measured the doc SET, with any overage either condensed this turn or stated as skipped in the Output** — measuring is not condensing | 1 skill call, doc verified changed, set measured |
 | Plugin | invoked `syafiqkit:update-plugin` | Fires when **either** Step 5 gate does: a real skill signal (Gate A, usually absent) **or** this session having written to a skill/command/agent file (Gate B). Omit the row only when both were checked and neither fired. (Not-the-owner is NOT a reason to skip — the skill switches to upstream-report mode.) |
 
-Verify Knowledge/Task docs rows with `git -C "$(git rev-parse --show-toplevel)" diff HEAD --stat -- <repo-relative-path>`. An empty result is inconclusive (three causes return empty with exit 0; gitignored targets like `CLAUDE.local.md` never show in git output — grep them instead, see `../_shared/references/verifying-a-write-landed.md`).
+Verify Knowledge/Task docs rows with `git -C "$(git rev-parse --show-toplevel)" diff HEAD --stat -- <repo-relative-path>`. An empty result is inconclusive (three causes return empty with exit 0; gitignored targets like `CLAUDE.local.md` never show in git output — grep them instead, see `../_shared/references/verifying-a-write-landed.md`). In a non-git project that command errors rather than returning anything, and the same reference's substitutes ARE the verification: re-read or grep each target. Substantiating a row that way is a filled row, not a skipped step.
 
 A row you cannot substantiate is a step you skipped — go run it before writing `✅`. If you spawned only ONE agent role, the step is half-run: spawn the missing role before proceeding.
 

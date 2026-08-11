@@ -162,3 +162,28 @@ Chosen: state the agent's ROLE, not a louder ban. Lead with the deliverable ("yo
 - ⚠️ Parity: both `.claude/agents/Explore.md` and `skills/agent-setup/templates/Explore.template.md`, each in its own vocabulary.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-explore-write-is-granted-scoped-by-role — `Explore` Keeps `Write`/`Edit`; the Scope Lives in Body Text, Not a Guard — committed — 2026-08-11
+
+**Problem**
+Upstream issue #20 reported `skills/agent-setup/templates/Explore.template.md` granting `Write`/`Edit` while `agent-setup/SKILL.md` Step 4/Step 5 demanded `disallowedTools: [Write, Edit]` — so a first-time `/agent-setup` generated an agent failing the skill's own checklist, and the Step 5 item could never pass. Git history showed why: `85104d8` (an unhobble/review pass over 23 files) deleted the `disallowedTools` block and moved both tools up into `tools:`, in the same hunk that stripped the ⚠️ Bootstrap paragraph naming the guard. The `## 1.60.1` CHANGELOG entry (2026-07-28) had advertised the guard as landed; it was untrue for the whole 1.140.x–1.143.1 range. (Cited by version heading — a line number drifts every time CHANGELOG grows at the top, and this release moved it by 8.) Blast radius was `Explore` alone — `Plan` and `browser-verifier` kept theirs.
+
+**Decision**
+Chosen: **keep the grant, drop the demand for a guard.** `Explore` legitimately writes a scratchpad on sweeps too large to hold in context, and a tool-level block cannot distinguish that from the lead's plan file — `Write` is `Write`. So the scoping is instructional, matching what `Plan` already does: the body text states that findings ARE the deliverable, reattributes the harness's Plan Mode framing as addressed to the spawning session, and names the plan file as *its* file, actively being written, with a temp path as the competing destination. The prose was reconciled to `explore-delegation.md:13`'s existing wording — read-only by *role*, not by *tools* — across `SKILL.md` lines 34/45/144/172 and both `description:` fields.
+
+This **partially supersedes D60's mechanism, not its finding.** D60's rejection of granting `Write` stands as a description of the risk (a `haiku` agent clobbering the lead's in-flight plan file), and its de-priming rules govern the replacement wording. What changed is which half enforces it: D60 had guard + role statement as a pair, and this keeps only the role statement.
+
+**Rejected**
+- Restoring `disallowedTools: [Write, Edit]` per D60. Why not: costs a real use case (the scratchpad) to block a failure mode that body text already addresses, and D60 itself records the guard producing a wasted turn per attempt rather than preventing the intent.
+- `Write` granted, `Edit` disallowed (`Plan`'s exact shape). Why not: considered and not taken — `Edit` only reaches files that already exist, so the split is defensible, but the user judged the scratchpad case to cover both and the extra asymmetry wasn't earning anything.
+- Adding a rule to `unhobble-instructions` that frontmatter grants are facts, never prohibition-shaped prose to fold away. Why not: user's call — `85104d8` treated as a one-off slip. Note the exposure is unchanged, and the body text is now the *only* thing scoping the grant, so a future density pass stripping that sentence is a real regression with no YAML backstop. Step 5's checklist item was rewritten to check for that sentence specifically, which is the only detection that exists.
+
+**Consequences**
+- **A checklist item demanding something the template won't produce is worse than no item** — it fails on every first-time run, trains the operator to hand-edit past it, and the reporter correctly read it as a defect rather than an accepted deviation.
+- **A CHANGELOG entry is a claim about the tree, and it decays.** This one was true when written and false nine days later, with nothing tying the two together. A consumer reading it had no way to know.
+- **Parity held *through* the regression and hid it** — template and generated agent were edited together, so the parity check compared two equally-wrong files and passed. Parity proves agreement, never correctness.
+- Verified: `grep -rn disallowedTools .claude/agents/ skills/agent-setup/templates/` now returns only `Plan` and `browser-verifier`, both of which genuinely carry the block.
+
+**Status**: committed · **Reversible**: yes

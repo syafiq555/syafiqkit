@@ -270,3 +270,28 @@ Chosen: reordering stays (it helps the cold-start case) AND a one-line re-anchor
 - Caught by the product reviewer against the two GitHub issues' original text, not by the code reviewer (which correctly verified the reorder was internally consistent) or by the author re-reading their own fix — 3rd consecutive session where the product-reviewer lens found the load-bearing defect a file-scoped/self lens couldn't (D52, D53, this).
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-non-git-projects-error-they-dont-return-empty — An Erroring Git Command Is a Fourth State With No Branch — committed — 2026-08-11
+
+**Problem**
+Upstream issue #20, second half: running `/done` in a project that was never `git init`ed. Every step establishing what changed, who owns it, or whether a write landed reaches for git, and in a non-git project those commands **error** (`fatal: not a git repository`) rather than returning empty. `/done`'s mode-selection carefully disambiguates three meanings of an *empty* `git status --short` — all three presuppose the command ran. The reporter improvised every substitute (mtime listing, re-reading files to verify writes) and noted the Exit gate's rule, "a row you cannot substantiate is a step you skipped," is hard to honour when the substantiating command can't run. `git log -S "not a git repository" -- skills/done/SKILL.md` returns empty against a control returning 3 commits: no branch ever existed.
+
+**Decision**
+Chosen: host the substitution table in `_shared/references/verifying-a-write-landed.md` and point the three git-reaching sites at it. That file already carried the exact fix one level too narrow — its "untracked/gitignored → no git invocation can ever show it, grep instead" row is per-*file*, and its own detection commands (`git ls-files`, `git check-ignore`) error in a non-git repo. Added a repo-level case above the table, then every file is permanently in that row. `/done` additionally gets its own mode-selection paragraph, because pointing at the reference doesn't stop a session picking the wrong mode before it reads anything.
+
+**Detection takes two probes, not one** — corrected during this session's own review. `git rev-parse --git-dir` asks whether a repo exists; `git rev-parse HEAD` asks whether there is a commit to diff against. A repo initialised but never committed passes the first and fails every `git diff HEAD` (reproduced: `--git-dir` exit 0 and `git status --short` exit 0, `git diff HEAD --stat` exit 128). That state is the more dangerous of the two precisely because it looks handled — a session probing only for a repo proceeds believing git works and hits the failure at the Exit gate rather than at mode selection.
+
+**Rejected**
+- Inline branches at each site. Why not: three sites restating the same substitutions, past the plugin's extraction threshold, and they'd drift.
+- Reference only, no `/done` paragraph. Why not: mode selection happens before any pointer is followed, and the wrong mode is the actual harm.
+
+**Consequences**
+- **Ops-only was the trap, and it fails silently.** It's the closest-fitting existing mode ("no repo diff and no session commit") and it skips all three review agents on the grounds there's no repo code to review. An unversioned project has code. A session landing there reviews nothing and reports a clean `/done` — named explicitly in the new paragraph for that reason.
+- **Ownership guidance gets stronger without git, not weaker** — the reporter's own observation, worth keeping: no stash, no `checkout --`, no reflog, so anything an agent overwrites is unrecoverable. The usual "it's recoverable" reassurance behind loose agent partitioning is absent exactly where it's most assumed.
+- Sole-by-construction ownership holds only where no peer session is on the tree, and git is normally what tests that. `ListAgents` is the only remaining check, and an empty listing isn't proof (D-cross-session-messaging).
+- **The first pass fixed the write-verification primitive and missed the ownership one beside it.** `diff-ownership.md` is a separate reference that `/done`, `task-summary` and `update-claude-docs` all cite for "whose file is this", and its whole mechanism is `git diff HEAD -- <file>`; it errors identically and had no branch. Both reviewers found it independently. The tell was structural rather than clever: the fix traced forward from the value it introduced and never asked which *sibling* primitives answer a related question off the same command. When generalising a shared reference, grep for the others cited from the same steps.
+- Not runtime-verifiable for the no-repo half here — this repo IS a git repo, so that branch rests on reading it against the reporter's list of erroring commands. The zero-commit half WAS reproduced live in a scratch dir, which is what caught the single-probe defect.
+
+**Status**: committed · **Reversible**: yes

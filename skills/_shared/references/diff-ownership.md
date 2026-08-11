@@ -20,6 +20,8 @@ Pick a marker only your session could have written: an identifier you added, a f
 
 This rule reads ownership off disk, so it can only see a peer that has already written something. A live peer can be known earlier and more cheaply, before the collision (`cross-session-messaging.md`) — worth starting a session with when one is plausible, since arriving here means a file is already contested.
 
+**In a project with no git repo, the command above errors rather than answering** (`fatal: not a git repository`), and so does every variant of it — there is no diff plane to classify against, so nothing here degrades gracefully. Ownership falls back to sole-by-construction, which is weaker than it sounds: `cross-session-messaging.md` is the only remaining way to learn a peer exists, and an empty listing isn't proof. `verifying-a-write-landed.md` carries the detection command and the rest of the substitutions. Note the caution inverts from the usual reassurance — with no stash, no `checkout --` and no reflog, anything a peer or an agent overwrites is unrecoverable, so a case this file would normally call merely contested is closer to fatal.
+
 ## When a file you must patch is contested
 
 Do not edit it and do not defer the finding. Put the rule where it survives:

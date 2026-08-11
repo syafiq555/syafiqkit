@@ -164,7 +164,7 @@ After Steps 1–3, check for a project-level pruning agent and delegate:
 Glob: .claude/agents/claude-md-pruner.md
 ```
 
-Measure the pruning floor before consulting the table, since the gate's decision depends on data only you can compute at this step: the file's current line count (`wc -l <target>`) and this session's net delta to it (`git diff --stat HEAD -- <target>`, or `--stat <base>..HEAD` if already committed). If you defer this to Step 5, a floor you never measured defaults to "not under the floor," and the gate spawns the pruner on a stale premise.
+Measure the pruning floor before consulting the table, since the gate's decision depends on data only you can compute at this step: the file's current line count (`wc -l <target>`) and this session's net delta to it (`git diff --stat HEAD -- <target>`, or `--stat <base>..HEAD` if already committed; in a non-git project that errors — the line count still measures, and the delta comes from what you wrote this session, see `../_shared/references/verifying-a-write-landed.md`). If you defer this to Step 5, a floor you never measured defaults to "not under the floor," and the gate spawns the pruner on a stale premise.
 
 | Agent found? | Action |
 |-------------|--------|
