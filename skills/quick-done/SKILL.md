@@ -52,6 +52,13 @@ Each Output row claims a step ran. Both doc steps write files, so substantiate t
 ## Output
 
 ```
+## Decisions
+
+1️⃣ [what's true now]
+   [the question]
+
+(only when something open surfaced — shape and thresholds in `../_shared/references/decision-first-output.md`)
+
 ## Quick Done Summary
 
 | Step | Result |
@@ -62,3 +69,5 @@ Each Output row claims a step ran. Both doc steps write files, so substantiate t
 
 Skipped by design: code review, simplify, product review, cleanup scan. The code was not read for defects.
 ```
+
+No product reviewer runs here, so a build-or-skip gap is rare — but `task-summary` can still surface something the user has to decide (a stub worth creating, a doc stale enough to act on).

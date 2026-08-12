@@ -151,6 +151,7 @@ When modifying or creating skills and commands:
 - **Prompting style**: Constitutional constraints (`❌ Never / ✅ Always` tables) for routing decisions. Validation loops (numbered checks) for file writes. A skill writing formatted output should re-read its own output against its style rule.
 - **Model invocation**: Never add `disable-model-invocation` without user request — it kills auto-suggestion. Default to proactive invocation.
 - **Internal cross-references**: Cite a named heading or bullet ("the every-invocation-vs-twice-a-year test"), never a raw line number ("line 28's trigger") — an edit above the citation shifts every number below it silently, and nothing re-checks the reference after that edit lands.
+- **A rule governing how a session behaves needs a host that's read early, not one whose topic matches.** A wrap-up skill only reaches sessions that invoke it, so a rule about how every turn should read lands nowhere if it sits in `done`. `read-summary` runs at the start of most sessions and ships to consumers, which makes it the furthest-reaching host a skill file offers; the user's own global `CLAUDE.md` reaches further still but doesn't ship, so it can't carry anything colleagues need. Nothing re-injects a standing rule mid-session — say plainly that it's best-effort where it's stated, so a later reader doesn't mistake the section heading for a gate.
 
 📖 `skills/_shared/references/editing-skills-checklist.md` — tool validation, reachability analysis, registry sync, path portability, and failure modes per edit class.
 

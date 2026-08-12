@@ -147,6 +147,13 @@ A heading this session just edited is the weakest evidence of scope, not the str
 ## Output
 
 ````
+## Decisions
+
+1️⃣ [what's true now]
+   [the question]
+
+(only when the ship left something the user has to decide — shape and thresholds in `../_shared/references/decision-first-output.md`)
+
 ## Ship Summary
 
 | Step | Status | Details |
@@ -157,7 +164,7 @@ A heading this session just edited is the weakest evidence of scope, not the str
 | Prod Verify | ✅ | [what you observed on the server — HEAD match, or the shipped behavior itself] |
 | Release Note | ✅ | See below |
 
-[Operator commentary — open items, caveats for the user, offers, next decisions. Omit if none. This is the ONLY place it goes.]
+[Operator commentary — open items, caveats, offers, status the user should know. Omit if none. This is the ONLY place commentary goes; a choice they have to make goes in the Decisions block above instead, since anything parked down here is something they can read past.]
 
 **Release note — copy everything inside the fence below, nothing outside it:**
 

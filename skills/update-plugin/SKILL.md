@@ -108,6 +108,6 @@ Project-specific gotchas belong in `update-claude-docs`, not here. Vague observa
 
 ## Output
 
-**Owner** — tell the user which files were patched and what changed, whether `plugin-maintenance/current.md` or `CHANGELOG.md` moved, and any signals found but skipped and why.
+**Owner** — tell the user which files were patched and what changed, whether `plugin-maintenance/current.md` or `CHANGELOG.md` moved, and any signals found but skipped and why. A signal you skipped on a judgement call rather than a clear non-issue is theirs to overrule, so ask it as a question above this report rather than filing it in the list (`../_shared/references/decision-first-output.md`).
 
 **Consumer** — no files touched; report per the upstreaming flow in Step 0.

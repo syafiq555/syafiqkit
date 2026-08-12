@@ -68,6 +68,7 @@ These are the highest-value findings and the easiest to miss, because a diff-onl
 - Primary action whose destination doesn't exist (button → 404 / nowhere)
 - Flow that starts but can't finish (form with no submit path, modal with no save)
 - Entity created in one screen with no way to *use* it elsewhere
+- A surface that only REPORTS — accurate figures, nowhere to go. It answers "what is true" and never "what do I do now", so every other reviewer passes it and the gap reaches the person using it. Ask what the reader does next with each figure; where there's an honest next step and no way to take it, that's a finding. Where there genuinely isn't one, the surface should say what the state means instead — and a drill-down built on a filter the API can't serve is worse than the readout, since it looks like an answer and leads nowhere
 
 ### Missing journeys a user will expect
 - Results shown but no way to act on a single row (export, resend, re-trigger)

@@ -47,6 +47,12 @@ A gate is only real if some step computes its inputs. A new condition ("skip whe
 
 A branch whose condition only one code path evaluates is dead on every invocation skipping that step. Example: a rule keyed off a guard ("before scanning") while the reporter's repro passed an explicit path — the branches are unreachable exactly where the bug was filed. State the condition run-wide and trace it from every entry point, not just the one you were editing.
 
+### Changing What a Skill Prints
+
+A skill with an `## Output` template has two places its shape can live, and only one of them gets copied. A rule added as prose ("ask it above this table", "put X before the summary") tells the reader where something goes and leaves them nothing to reproduce, while the template beside it still shows the old shape — so the template wins, because that's what gets followed. Worse, prose describing a position can contradict its own location: a sentence inside the operator-commentary slot saying "above this table" sits below the table it names.
+
+Render the change in the template. Where several skills share the shape, each one's template carries it and a single reference owns the reasoning, so the rendered blocks stay identical while the argument for them is stated once. Check by reading only the fenced template of each skill you touched: if the new element isn't visible there, a session copying the template won't produce it.
+
 ### Editing Agent Files
 
 Agent template/generated file parity is non-negotiable: editing `.claude/agents/<name>.md` requires patching `skills/agent-setup/templates/<name>.template.md` in the same change. Otherwise the next `/agent-setup` regenerates the old behavior. Before fixing, grep the literal line across both `.claude/agents/` and `templates/`; fix every hit. Drift happens silently — a spawn 400ing with `effort` not supported might be a template mismatch, not an environment fault.

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.147.0
+
+Nothing to regenerate, and no action needed. This changes how wrap-ups read, from feedback that they were hard to follow.
+
+- **When a reply needs an answer from you, it now asks at the top instead of the bottom.** Replies used to lead with everything that got finished and leave the actual question for the last line, or fold it into a table cell as a statement. You already know what you asked for, so that ordering put the only part you had to act on behind the part you could skip. A single open question now comes as a proper picker you click. Two or more come as a numbered list at the very top, before the summary. When nothing is genuinely open there's no block at all, and a question with no real "no" answer ("both changes landed, proceed?") doesn't count as one.
+
+- **This applies to ordinary turns, not just `/done`.** The complaint that prompted it came from a normal mid-work reply, so putting the rule only in the wrap-up skills would have missed it. It now sits in `read-summary`, which most sessions run at the start, so it governs every turn that follows. `/done`, `/quick-done` and `/ship` follow the same rule for their closing summaries, and `/done` checks before sending that a gap it found actually got asked about rather than quietly marked complete.
+
+- **Two smaller fixes found while building the above.** Changing what a skill prints now means changing its output template, not writing a sentence next to it describing the new shape — the first attempt here did the latter for two skills, and a sentence saying "put this above the table" leaves nothing to copy while the template beside it still shows the old shape. And a doc that states a count about itself (how many decisions it holds) now re-runs the command instead of adding one to the number, after an index was found claiming 33 where 36 existed.
+
+- **The summary underneath is plainer.** Cells report what was found and stop. Phrases whose only job was to reassure ("landed precisely", "exactly the failure mode I flagged earlier") are gone, and a gap that was already raised as a question above is pointed at rather than explained a second time, so you don't have to work out whether two paragraphs describe the same thing.
+
+## 1.146.0
+
+Two changes to how UI work gets judged. The first came from a pasted note about progressive fetching; the second from a session that shipped an admin card reporting a money figure with nowhere to go. Three code reviewers and the product reviewer all passed it; the user spotted it immediately.
+
+- **`uiux` now treats deferred loading as a design decision.** Lazy loading a component, a route's data or the rest of a list is usually filed as performance work, but what you defer decides what a user can find — and the trade lands hardest on mobile, where the deferred thing is below the fold and a slow connection turns "loads on demand" into "appears never". The skill now says to defer what someone goes looking for and keep resident whatever tells them what the screen is for, to check the weight is actually there before splitting (something small costs a round trip and a loading state to save bytes nobody waited on), and that deferred content still needs a placeholder at the real size or the layout shifts when it arrives.
+
+- **`uiux` and `product-reviewer` now ask what a reader DOES with a surface, not just whether it renders correctly.** Both files already carried a version of this — `uiux` said "empty is an invitation to act", the reviewer listed "the now what? after each action" — and both got walked past, for the same two reasons. The rule only covered empty states, while the surface that failed was fully populated and accurate; and in `uiux` it sat at the tail of a paragraph about loading spinners, where nobody scanning for it would land. A surface that only reports is now its own paragraph in `uiux` and its own bullet under the reviewer's highest-value lens, with the point that correctness review structurally cannot catch this: nothing is wrong, so every other check passes. Also stated is the trap on the other side, since the obvious fix is worse than the defect — a drill-down link built on a filter the API can't actually serve looks like an answer and leads nowhere.
+
 ## 1.145.0
 
 Nothing here needs action from you, and no output you've already generated becomes invalid. The first two items came from a session drafting a Google Chat reply into a client's thread; the rest tighten how skills point at their own reference material.

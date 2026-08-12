@@ -273,6 +273,33 @@ Chosen: reordering stays (it helps the cold-start case) AND a one-line re-anchor
 
 ---
 
+### D-decision-first-output — A Rule About How Every Turn Reads Cannot Live in a Wrap-Up Skill — committed — 2026-08-12
+
+**Problem**
+A colleague using the plugin (English is his second language) reported that output buries the one question needing his answer. His words: "kdg2 dia sembang giberish apa yang dia dah siap je. Aku nak baca apa yang nak go next" — sometimes it just rambles about what it finished, I want to read what to do next; and "Kau nak apa dari aku. just make it as a question la kot" — what do you want from me, just make it a question. The triggering output ran ~18 lines of prose and reached "Want me to build it now?" on the last line. He had to type "i dont want to know whats done, i want to know what you tell me" to get a usable 3-line reply. Two defects: `/done`'s prescribed table was not used at all that session, AND the table itself rendered a product gap as a cell (`[🔴/🟠 gaps surfaced to user + decision]`) — mid-document, inside a grid, phrased as a finding.
+
+**Decision**
+Chosen: `_shared/references/decision-first-output.md` owns the shape — exactly one open question uses `AskUserQuestion`, two or more use a `## Decisions` block with keycap numerals rendered first, zero omits it. The count picks the mechanism, so it must be counted before writing rather than discovered mid-draft. The `Product` cell collapses to a pointer so the gap is stated once.
+
+The host matters more than the wording. A wrap-up skill only reaches sessions that invoke it, and the complaint came from an ordinary mid-implementation turn — so the rule sits in `read-summary`, which runs at the start of most sessions and ships to consumers. The user made this call; the session had proposed the private global `CLAUDE.md`, which reaches further but ships to nobody.
+
+**Rejected**
+- Rule in `done`/`quick-done`/`ship` only. Why not: the reported failure was not a wrap-up. Four invocation boundaries would have left the shape that produced the complaint untouched.
+- Global `~/.claude/CLAUDE.md` as the session-wide host. Why not: reaches every turn of the author's own sessions and none of a colleague's. The audience needing this most is the one it cannot reach.
+- Numbered text for every count, including one. Why not: the single-gap case IS the reported case, and a picker cannot be scrolled past. The four-question cap cannot bite at N=1.
+- A hard sentence cap on summary cells. Why not: the user chose judgement prose. Front-loading the question makes length largely moot, since a satisfied reader stops there.
+
+**Consequences**
+- **Only `done`'s exit gate enforces anything.** Everywhere else this is a standing rule read once at session start, which is the furthest a skill file reaches without a hook — a long session drifting back to question-last output is the expected failure, and the reference says so rather than letting `{#decision-first}` read as a guarantee.
+- Moving the gap out of the `Product` cell created a path where a triaged gap lands nowhere (cell reads `✅`, block never written). The gate's Product row now requires every surviving gap to be asked above, which the old design got for free because the gap text lived in the cell being verified.
+- Same salience face as D-emission-shape-reanchor: a rule stated where the reader is not yet acting doesn't fire. Here the axis is which FILE gets read at all, not position within one.
+- `merge-task-docs` was flagged as a peer candidate and rejected on inspection — its three `AskUserQuestion` forks already fire at the point each decision arises, which is the rule working. `update-plugin` took the pointer, since "signals found but skipped and why" is a judgement call the user can overrule.
+- Product review found the load-bearing defect again (the host being wrong), against a code review that returned zero findings — 4th consecutive session, extending the D52/D53/D-emission-shape-reanchor run.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
 ### D-non-git-projects-error-they-dont-return-empty — An Erroring Git Command Is a Fourth State With No Branch — committed — 2026-08-11
 
 **Problem**
