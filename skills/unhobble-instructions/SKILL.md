@@ -53,6 +53,22 @@ Facts stay, stated plainly. Constraints become reasoning. Two things to protect 
 
 📖 `references/target-types.md` — what counts as a genuine fact per target class, and the ADR-blocks-inside-a-task-doc case where the boundary runs through a file rather than around it.
 
+## Routing decisions during rewrite
+
+As constraints become reasoning and enumerations collapse into mechanisms, ask where the resulting content actually belongs — some fact may have earned its way to the page but still doesn't belong in an always-loaded file. Four routing questions run in sequence:
+
+1. **Is it derivable?** (same test as `update-claude-docs/SKILL.md` §2a) — if a reader could reconstruct it with `ls`, `grep`, reading the manifest, or running `--help`, cut it outright rather than rewriting it.
+
+2. **Is it safety-critical?** — prohibitions that *must* fire even if ignored by a prior session (e.g., "never edit generated files", "never push to main") are always resident, never deferred. Their cost is fixed; their value is irreplaceable.
+
+3. **Does it need to arrive before action, or only during failure?** — A rule governing a routine choice (which tool to use, what to check before an action) needs to be resident, absorbed preemptively, because deferring it behind a pointer means it only fires again after someone violates it. A consultation rule, implementation detail, or symptom-indexed gotcha is different: it's read by someone already holding a failure, so moving it to a `📖` pointer or a lazy-load skill costs nothing and gains resident clarity. This is line 28's reading-frequency test applied to the rewritten content.
+
+4. **Is it a reference table or lookup?** — A section that reads like a catalog (error strings, commands, configuration paths) should usually move behind a pointer in `references/` or become a lazy-load skill, even if you've just finished sharpening its prose. The densest reference table is still the wrong thing to auto-load on every invocation unless it *must* fire unasked.
+
+If content passes all four tests, keep it resident and rewrite as planned. If it fails any, decide whether to delete it (derivable), defer it (failure-triggered), move it to a skill (task-specific), or split it into a companion (reference table). The rewrite — making constraints into judgment — doesn't change this routing; it just clarifies what the content is, so the routing decision lands correctly.
+
+**Coupling note:** A SKILL.md that accumulates multiple routing tiers (resident rules + lazy-loaded content) is a signal to split it. Each tier has a distinct reader audience (absorbed on every session vs. invoked on-demand), and they fight for brevity differently.
+
 ## Rewrite the file
 
 List the genuine facts first, marking which are stated absolutely — that list is what verification checks against, and a fact can survive in full while its force quietly doesn't.

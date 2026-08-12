@@ -78,6 +78,48 @@ A change to a globally-installed tool (a CLI on PATH, a shared script, a plugin 
 
 **Ask what the fact is ABOUT before asking where it was found.** A fact about this codebase — its schema, its helpers, its own conventions — routes down the ladder below. A fact about a tool, framework or the harness is true in every project that uses them, so it belongs at the level it holds at, which is usually global: the ladder will otherwise bury it in whichever project happened to surface it, and the next project rediscovers it from scratch. Subject matter tells you where a fact came from, never where it is true. **Tell: the fact would still be true if this codebase didn't exist.**
 
+### 2a. Derivability gate — Should it even be in CLAUDE.md?
+
+Before routing a signal to CLAUDE.md, ask whether it's derivable from the codebase itself. If a session's signal is reconstructible with a few tool calls — `ls`, `grep`, reading the manifest, running `--help` — it's dead weight every session pays for. These get cut outright:
+
+| Derivable | Example | Action |
+|-----------|---------|--------|
+| **Directory and file layouts** | "project structure is app/, config/, tests/" | Cut — `find` and `ls` already show it |
+| **Tech stack and dependency lists** | "we use Laravel, React, Node" | Cut — `cat composer.json`, `package.json` already say it |
+| **Build/test commands (standard invocation)** | "`npm test` runs tests", "`composer install` installs deps" | Cut — the tool's defaults and the manifest scripts already document this |
+| **API signatures, types, schemas copied from source** | "function foo(x, y) returns bool" | Cut — source code is the canonical definition |
+| **Architecture tours (reads like README)** | "here's a walkthrough of the codebase" | Cut — codebase is self-describing to someone who reads it |
+| **Generic best practices** | "write clean code, handle errors, add tests" | Cut — the model already follows these |
+| **Rules enforced by hooks, lint, or CI** | "runs prettier on commit" | Cut — the hook/lint config is the canonical truth, not CLAUDE.md |
+
+Keep facts that **are NOT derivable**:
+
+| Non-derivable | Example | Keep |
+|---------------|---------|------|
+| **Gotchas and failure contracts** | "X looks safe but does Y; Z triggers when you don't expect it" | Yes — code can't explain "gotcha" |
+| **Design rationale and "why it's this way"** | "we chose React because of real-time needs, not Redux because..." | Yes — the source doesn't explain intent |
+| **Non-standard conventions** (differ from language/tool defaults) | "use kebab-case not camelCase for API routes" (if non-standard) | Yes — code doesn't teach exceptions to defaults |
+| **Agent directives and safety-critical prohibitions** | "never push to main", "never edit generated files" | **ALWAYS** — safety rules must be resident |
+| **Repo etiquette and workflow** | "branch naming: feature/..., pr titles: imperative", "commit via `/commit`" | Yes — conventions aren't in the code |
+| **Domain glossaries** | "a 'transaction' here means X, not Y" | Yes — terminology needs explicit definition |
+| **Non-guessable build/test commands** | "run `npm run integration` (not just `npm test`)", flags needed for CI" | Yes — non-standard patterns can't be discovered |
+| **Pointers to context elsewhere** | "`@path/to/import` for this type", "skill guidance at `skills/agent-bootstrap/SKILL.md`" | Yes — routing information |
+
+### 2b. Residency gate — Does it belong inline or in lazy-load?
+
+A fact that passed the derivability gate still faces a second choice: **resident in CLAUDE.md (every session) or lazy-loaded (on-demand)**. Route on **when the rule needs to fire**, not subject matter:
+
+| Resident (inline) | Lazy-load (skill or companion) |
+|-------------------|--------------------------------|
+| **Universal constraints** — apply to *every* decision in the repo (e.g., "never push to main") | **Task-specific workflows** — only needed when doing that particular work (e.g., "agent bootstrapping steps") |
+| **Code style and judgment principles** — used constantly and cross-cutting (e.g., "prefer clean separation over minimal-diff") | **Consultation-on-demand** — read only when diagnosing a specific failure (e.g., "Docker Compose quirks", "macOS memory pressure signals") |
+| **Safety-critical prohibitions** — must fire even when ignored by a prior session (e.g., "never edit generated files") | **Implementation detail and environment-specific setup** — needed once per machine/project setup (e.g., "Herd PHP memory_limit lives here") |
+| **Routing rules** — "go to skill X for Y" — need to be resident so they're read before a session acts | **Reference tables and lookup rows** — best behind a `📖` pointer and indexed by symptom |
+
+**Signal: "I'm reading this before any action"** → resident. **Signal: "I'm reading this because something broke"** → lazy-load.
+
+If a rule doesn't fire unless the reader already knew to look for it, move it to a skill (invoked by name) or a companion (invoked by symptom) — the resident cost is too high for content that only helps a reader mid-failure. Root CLAUDE.md after trimming should feel like "the things you need to know before you act," not "everything about everything."
+
 Find the **most specific** CLAUDE.md for what's left (`Glob: **/CLAUDE.md` + check `CLAUDE.local.md`). This ladder is the same hierarchy `references/structure.md` §1 documents in full — read it if a routing call is unclear:
 
 1. Personal, per-machine context (never team-wide facts) → `./CLAUDE.local.md` (project root)
