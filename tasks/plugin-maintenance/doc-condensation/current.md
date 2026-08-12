@@ -8,7 +8,7 @@ Related:
   - ../agent-architecture/current.md (generated agents inherit conventions + sibling skill invocation)
   - ../madr-structure/current.md (the MADR format itself)
   - ../external-guidance/current.md (grading outside guidance against plugin measurements)
-Last updated: 2026-08-11
+Last updated: 2026-08-12
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
@@ -70,8 +70,8 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 - [ ] `plugin.json`/`marketplace.json` version drift — 5th occurrence (D26 2026-07-15, then 2026-07-17, 2026-07-22, 2026-08-01, 2026-08-11). Caught this time by `/done`'s reviewer + product-reviewer agents rather than a pre-commit gate, so the recurrence still happened, only the catch moved earlier. A bump to one file without the other passes silently; a pre-commit check or single-source-of-truth version file is the open fix.
 - [ ] ADR-id uniqueness has no post-write gate — the same "silently passes" shape as the row above. **2026-08-02: this collided for real** — two unrelated decisions both minted `### D66` (fixed this session, renumbered to D67), the exact failure this item predicted before the gate existed. Mechanism + fix owned by [../agent-architecture/current.md](../agent-architecture/current.md) Next Steps.
 
-**Extraction candidate (flagged 2026-08-11, not yet actioned)**
-- [ ] The "companion vs. auto-load" routing principle is stated near-identically in `condense-claude-md/SKILL.md`, `condense-claude-md/references/structural-splits.md`, `unhobble-instructions/SKILL.md`, and `update-claude-docs/SKILL.md` — 4 sites, past the 3+ extraction threshold. Extracting to `skills/_shared/references/` needs each site's phrasing re-tuned to a shared version without losing per-skill fit; hold until a session has bandwidth to do the rewrite carefully rather than mechanically.
+**Extraction candidate (flagged 2026-08-11, deferral re-confirmed 2026-08-12 — growing)**
+- [ ] The "resident vs. lazy-load" routing principle is now stated near-identically in `condense-claude-md/SKILL.md`, `condense-claude-md/references/structural-splits.md`, `unhobble-instructions/SKILL.md`, and `update-claude-docs/SKILL.md` (2026-08-12: this last site's §2a/§2b derivability+residency gates ported the same test into a 5th/6th citing location — commit dd51665). Past the 3+ extraction threshold and still growing each time a session touches one of these skills without doing the extraction. Extracting to `skills/_shared/references/` needs each site's phrasing re-tuned to a shared version without losing per-skill fit; user explicitly re-confirmed the hold on 2026-08-12 rather than actioning it during that session — pick this up as its own dedicated session rather than a `/done` side-effect.
 
 **Reciprocal note (D65)**
 - [ ] `unhobble-instructions/SKILL.md` line 53's unhobble-vs-condense boundary is real but generic — it doesn't name the specific trap that caused D65 (sweeping every file under `.claude-companions/` for overconstraint feels exhaustive enough to skip condense's own pass, which is a different check). Add a line naming this specific companion-plurality shape so the same reasoning error doesn't recur in this direction next time.
@@ -115,9 +115,10 @@ Defensive traps organized by mechanism. Full context: open the cited decision fi
 
 ---
 
-## Last Session (2026-08-11)
+## Last Session (2026-08-12)
 
-- Registry/compliance fixes: `notes-summary` drop in CLAUDE.md, `editing-skills-checklist.md` citations.
-- 5th version-drift recurrence caught; companion-vs-auto-load duplication flagged for extraction.
-- Doc set split: `structural-splits.md` → `structural-mechanics.md` + `verification-rigor.md`; verification defects added to Critical Gotchas.
-- `editing-skills-checklist.md` worked example fixed across all four citers.
+- `/done` review of commit dd51665 (routing heuristic ported into `update-claude-docs` §2a/§2b + `unhobble-instructions`): fixed 2 stale line-number cross-references (`unhobble-instructions/SKILL.md` — self-citing "line 28" when the target bullet is at line 30) and one garbled table cell (`update-claude-docs/SKILL.md` mismatched quotes).
+- Captured a new CLAUDE.md authoring rule: cite named headings/bullets internally, never raw line numbers (drift-prone).
+- Product reviewer flagged the commit as adding a 5th/6th near-duplicate site to the already-flagged "resident vs. lazy-load" extraction candidate (below) — user re-confirmed the hold rather than actioning it this session.
+
+**Prior session (2026-08-11)**: Registry/compliance fixes; 5th version-drift recurrence caught; doc set split (`structural-splits.md` → `structural-mechanics.md` + `verification-rigor.md`); `editing-skills-checklist.md` worked example fixed across all four citers.

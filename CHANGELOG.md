@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.144.1
+
+- **`update-claude-docs` and `unhobble-instructions`: fixed two stale internal citations and a garbled table cell** left over from the previous commit's routing-heuristic addition. One citation pointed at the wrong bullet after an earlier edit shifted line numbers (a pattern now called out in this file's own CLAUDE.md — cite named headings, not raw line numbers). No behavior change; content-only fix.
+
 ## 1.144.0
 
 Both fixes below came from a user hitting `/done` and `/agent-setup` in a project that wasn't a git repository. Nothing to do unless you previously hand-edited your own `Explore` agent — see the second item.

@@ -150,6 +150,7 @@ When modifying or creating skills and commands:
 - **Shared rules**: When a rule appears in 3+ skills, extract it to `skills/_shared/references/` — reference files use literal relative paths resolved against the citing file's directory: `../` from `skills/<name>/SKILL.md`, `../../` from `skills/<name>/references/*.md`. Verify a new pointer resolves before landing it.
 - **Prompting style**: Constitutional constraints (`❌ Never / ✅ Always` tables) for routing decisions. Validation loops (numbered checks) for file writes. A skill writing formatted output should re-read its own output against its style rule.
 - **Model invocation**: Never add `disable-model-invocation` without user request — it kills auto-suggestion. Default to proactive invocation.
+- **Internal cross-references**: Cite a named heading or bullet ("the every-invocation-vs-twice-a-year test"), never a raw line number ("line 28's trigger") — an edit above the citation shifts every number below it silently, and nothing re-checks the reference after that edit lands.
 
 📖 `skills/_shared/references/editing-skills-checklist.md` — tool validation, reachability analysis, registry sync, path portability, and failure modes per edit class.
 

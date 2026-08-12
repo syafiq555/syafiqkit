@@ -102,7 +102,7 @@ Keep facts that **are NOT derivable**:
 | **Agent directives and safety-critical prohibitions** | "never push to main", "never edit generated files" | **ALWAYS** — safety rules must be resident |
 | **Repo etiquette and workflow** | "branch naming: feature/..., pr titles: imperative", "commit via `/commit`" | Yes — conventions aren't in the code |
 | **Domain glossaries** | "a 'transaction' here means X, not Y" | Yes — terminology needs explicit definition |
-| **Non-guessable build/test commands** | "run `npm run integration` (not just `npm test`)", flags needed for CI" | Yes — non-standard patterns can't be discovered |
+| **Non-guessable build/test commands** | "run `npm run integration` (not just `npm test`)", "flags needed for CI" | Yes — non-standard patterns can't be discovered |
 | **Pointers to context elsewhere** | "`@path/to/import` for this type", "skill guidance at `skills/agent-bootstrap/SKILL.md`" | Yes — routing information |
 
 ### 2b. Residency gate — Does it belong inline or in lazy-load?
