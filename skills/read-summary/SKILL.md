@@ -19,7 +19,7 @@ Before writing to a doc, check for concurrent sessions via `ListAgents` — anot
 
 Folder names are domain-scoped and rarely match how a user phrases a request — `payout` might own "refund" work, `upload-redesign` might own "QC delete child question." Discover by content, using the Explore agent to search doc bodies and headers (including synonyms) across `tasks/`, `_archive/`, and flat `tasks/<domain>/<feature>.md` files.
 
-Once that agent is dispatched, don't re-read or re-grep the same files inline while it runs — that pays for the same facts twice and the agent's own report lands later and longer anyway. The pull to re-read feels like making progress; it isn't. Wait for the completion notification instead.
+Once that agent is dispatched, don't re-read or re-grep the same files inline while it runs — that pays for the same facts twice and the agent's own report lands later and longer anyway. The pull to re-read feels like making progress; it isn't, and the tell is that your calls cover the scope you just assigned rather than that they feel redundant. Wait for the completion notification, then verify the report's claims against the source — that check is what shadowing destroys, since a fact you derived in parallel reads as corroboration when the report restates it while confirming nothing.
 
 Skim the top hits (header + title + overview) until you're confident you've found the right doc — surface-level similarity often masks unrelated subsystems. Follow redirects (`Merged into`, `Supersedes`, `> 📖` pointers) to the live doc, and treat hub docs (roadmap, `shared/`, `*-architecture`) as routers, not endpoints.
 

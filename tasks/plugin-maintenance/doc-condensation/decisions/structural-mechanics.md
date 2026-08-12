@@ -190,3 +190,25 @@ Chosen, two parts. (1) **Step 5 gains a second, independent Gate B** — "did th
 
 **Status**: committed · **Reversible**: yes
 
+
+---
+
+### D-pointer-needs-a-trigger — A `📖` Pointer Only Fires If Something Summons It; Closed-Sounding Citations Are Unreachable — committed — 2026-08-12
+
+**Problem**
+D54 settled what a reference owes in shape (single-topic, symptom-naming pointer, ~6KB prose ceiling) but not whether its citing line ever gets opened. Sorting all 15 `_shared/references/*.md` against "what concretely makes a reader open this" split them three ways: **job-required** (the pointer names work the reader is mid-way through — `two-tier-condense`, `declared-budget`, `verifying-a-write-landed`, `probe-isolation`), **symptom-triggered** (indexed by a failure the reader is staring at — `diff-ownership` at 10 citers, `contested-doc-sections`, `cross-session-messaging`, `long-running-commands`), and **unreachable** (nothing triggers the open — `strip-tool-output-tags`, `one-turn-chain`, `writing-style`, `agent-prompt-verb-ban` at `update-claude-docs:219`, and `consumer-portability` at `update-plugin:83` only). The tell runs backwards from intuition: the unreachable ones are cited by lines that read as *finished instructions*, so the reader feels complete and has no question left to send them looking.
+
+**Decision**
+A pointer earns its cold-path placement only under clear delegation (the citing line names a job whose completion requires the file) or a nameable symptom. Failing both, the content is inline-or-cut, not pointer-able. Test when authoring: does the citing line leave a question the reader can feel? `strip-tool-output-tags` is the canonical failure — "strip tool-output wrapper artifacts before writing" is a closed imperative across 5 citers, and a leaked `</content>` tag produces no symptom at write time (it surfaces when someone reads the file later). Its one reachable citer, `update-claude-docs/references/other-modes.md:31`, names a "leaked-tag check" and so has a real trigger.
+
+**Rejected**
+- ~~Fixing the unreachable cases by rewording their pointers.~~ **Narrowed on execution (same day).** The original objection — a better-worded closed imperative is still closed — holds for rewording that leaves the line terminating, but it was written as though no rewording could open a citation, and that's false. Six citations were reworded open by naming an artifact the reader doesn't yet hold ("generalise it to the layer the mechanism actually lives at" raises *which layer?*; the pointer answers it). Inline-or-cut is the lever only where the whole reference is small enough that the pointer costs more than the content — `strip-tool-output-tags` at 8 lines, retired. Everywhere else the remedy is the reword, per the first Consequence below.
+- Treating "is the rule restated inline" as the audit bar. Why not: that measures structure, not behaviour — a well-placed restatement still fails if nothing prompts the reader to act on it, and the same bar passes a pointer nobody opens. Three delegated agents run against that bar returned confident inverted findings (one declared the shadowing meta-rule "almost entirely violated" when all four accused skills state it inline; another declared `editing-skills-checklist.md` unreachable having grepped only `skills/`, missing `CLAUDE.md:155` and four agent bootstrap tables).
+
+**Consequences**
+- The remedy is per-CITATION, not per-file: one reference can carry a reachable pointer and an unreachable one. `consumer-portability` is job-required at `update-plugin:29` ("read before writing any step that names a plugin path or shell command a consumer would run" — a condition recognisable from outside) and unreachable at `:83` ("check whether it's the tool this session happened to have", which asks the agent to catch its own blind spot). Reword the one citation, don't relocate the file. `agent-prompt-verb-ban` splits the same way — two citers state the rule's shape, `update-claude-docs:219` names the ban without naming a verb.
+- The reachability difference is grammatical rather than about emphasis or placement: a citation that TERMINATES ("strip wrapper artifacts before writing") closes the reader's question, while one naming a check not yet performed ("Also run the leaked-tag check from…", `other-modes.md:31`) leaves it open. Same reference, opposite reachability.
+- The global `~/.claude/CLAUDE.md` maintenance section carried the unqualified advice "Put detail behind a `📖` pointer rather than inline," which is what produces this bucket; sharpened there this session (`{#pointer-needs-a-trigger}`).
+- A delegated audit cannot answer "would a reader open this" — agents self-report reachability unreliably. This sort was done inline.
+
+**Status**: committed · **Reversible**: yes

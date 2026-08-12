@@ -36,7 +36,7 @@ An external tracker ID (ClickUp/Jira/Linear) that shows up in prose explaining w
 
 ### Sentence style
 
-Base rules: `../_shared/references/writing-style.md`. For task docs specifically: rows hold the rule plus the single strongest reason, in two sentences or fewer — rejected-alternative essays and verification narratives belong to git history, not the doc. Commit hashes live only in Last Session; elsewhere, verification is one word ("verified").
+Base rules — including the **capture filter**, **prose-vs-value** and **mechanism-not-trip-wire**, the three that need deciding rather than just applying: 📖 `../_shared/references/writing-style.md`. For task docs specifically: rows hold the rule plus the single strongest reason, in two sentences or fewer — rejected-alternative essays and verification narratives belong to git history, not the doc. Commit hashes live only in Last Session; elsewhere, verification is one word ("verified").
 
 ### Size budget
 
@@ -107,7 +107,7 @@ LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
 
 Mermaid diagrams are fine in any section where a visual helps — architecture, data flow, layout, feature hierarchy, state transitions — not limited to one section.
 
-Strip tool-output wrapper artifacts before writing, whether creating fresh or rewriting the whole doc — see `../_shared/references/strip-tool-output-tags.md`.
+Strip tool-output wrapper artifacts before writing, whether creating fresh or rewriting the whole doc. A `Read` result wraps file content in `<content>` tags, so a rewrite that echoes it back — directly, or via a drafting agent that saw the same `Read` — can carry the wrapper into the `Write` payload as a literal trailing line.
 
 ## 4. When Updating
 
@@ -181,7 +181,8 @@ Re-read after writing. Most of what follows is one underlying question — does 
 4. No rows lost incidentally. Deliberate pruning is expected; what this catches is a row dropped while reflowing a section — a rewrite that touched large blocks wants `../_shared/references/two-tier-condense.md`'s diff pass, since re-reading confirms the result reads plausibly, not that nothing fell out of it. The diff has to be run by whoever will act on the result: a rewrite delegated to an agent comes back reporting the check passed regardless of whether it did, and "zero fact loss" is the sentence such a report reaches for precisely when rows went missing. Capture the counts (`grep -c '^|'`, `grep -c '⚠️'`, and a copy of the files) BEFORE dispatching, since afterwards there is nothing left to compare against. A large byte drop on a doc that was only being restructured is the tell — restructuring moves text, it doesn't remove it, so anything past roughly a tenth means content went, and a set of files each shedding a third of their bytes is a deletion wearing a rewrite's description.
 5. Back-references reconciled (§6) — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated. Compare the repos the session's work touched against the repos whose docs you opened — if the first count is larger, the sibling-repo step in §1 didn't fire and the pass is incomplete.
 6. MADR compliance — every row in `## Key Technical Decisions` is either an MADR block or legitimately hit the escape hatch (no real alternative existed); a plain table row for a decision that did have a rejected alternative isn't compliant, convert it now. If the doc is already whole-doc MADR and now >300 lines, split per Density rules rather than leaving it for next session.
-7. Cross-section duplication — grep the doc for its 2-3 most critical phrases. A phrase surviving in more than two sections, or the same fact split across two bullets in the same section (two Next Steps items both saying "then deploy via full CI"), means collapsing to one. This is easiest to miss during a condense pass done section-by-section, since a duplicate introduced in one section isn't visible from re-reading that section alone — only a doc-wide grep after all edits land catches it. If the write touched commit/deploy state, run the two Size-budget greps here too, even if the doc felt clean while you were editing it.
+7. The file's last line is real content, not a `</content>` tag carried in from a `Read` result — `tail -c 40 <file>`, or read the final `+` line of `git diff HEAD -- <file>`. A full-file rewrite is where this rides in; it costs one command and the tag is invisible until someone reads the doc later.
+8. Cross-section duplication — grep the doc for its 2-3 most critical phrases. A phrase surviving in more than two sections, or the same fact split across two bullets in the same section (two Next Steps items both saying "then deploy via full CI"), means collapsing to one. This is easiest to miss during a condense pass done section-by-section, since a duplicate introduced in one section isn't visible from re-reading that section alone — only a doc-wide grep after all edits land catches it. If the write touched commit/deploy state, run the two Size-budget greps here too, even if the doc felt clean while you were editing it.
 
 ## 6. Cross-References
 

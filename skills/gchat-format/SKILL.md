@@ -14,6 +14,14 @@ description: >
 
 Convert Markdown or plain text into Google Chat's formatting syntax.
 
+## Whose thread is this? Settle standing before drafting
+
+A Chat message lands in a thread with an existing power structure, and the draft encodes an assumption about where the sender sits in it. Getting that wrong produces text that is well-formed, on-topic, and still wrong to send: it assigns work to people who don't report to the sender, @-mentions one of them with an action item, or closes out a discussion that isn't the sender's to close.
+
+The common case is a vendor or support engineer answering into a **customer's** internal thread. There, the participants are coordinating among themselves and the sender is a guest: state what the product does and what was found, then leave the decision with them, and where a fix touches their data or their tenant, offer rather than direct. Reverse the posture and it reads as the vendor running their operations.
+
+Ask who the participants are to the sender before drafting, not after a rejected draft. **Tell: the draft tells a named person on the other side what to do, or ends with a summary block closing out their conversation.**
+
 ## Release notes: shape the content BEFORE formatting
 
 When the input is a **release note / deployment announcement** (not already-final prose the user just wants reformatted), the Chat version is a short user-facing announcement, not a work log. Get to the point:
@@ -122,16 +130,18 @@ Tables are not supported in Google Chat. Convert each row to a bullet, with the 
 ### Em dashes
 ⚠️ **NEVER output an em dash (`—`) in the converted result.** This applies to both Claude-generated prose and converted source content.
 
-Strip all em dashes from the source — both the Unicode `—` (U+2014) and ASCII `--` forms:
+Strip all em dashes from the source, both the Unicode `—` (U+2014) and ASCII `--` forms:
 
 ```
 *Label* — description     ->  *Label*: description
-*Label* -- description    ->  *Label*: description
-sentence — continuation   ->  sentence - continuation
-sentence -- continuation  ->  sentence - continuation
+*Label* -- description     ->  *Label*: description
+sentence — continuation   ->  sentence, continuation
+sentence -- continuation   ->  sentence. Continuation
 ```
 
-After a bold label: replace with `:`. In flowing prose: replace with `-`. Never leave an em dash in the output.
+After a bold label: replace with `:`. In flowing prose: use a comma, full stop, or colon, whichever the sentence actually wants.
+
+⚠️ **Substituting a single ASCII hyphen for an em dash does not satisfy this.** What reads as an em dash to the person reviewing the draft is the *clause break*, not the character, so `sentence - continuation` is the same output with a narrower glyph and gets rejected the same way. A hyphen is only correct inside a compound modifier (`14-day`, `send-date`), where it isn't punctuating a clause. **Tell: the dash has a space on both sides** — that's a clause break needing a comma or a full stop, not a shorter dash.
 
 ### Unsupported -- remove or simplify
 - `---` horizontal rules -> remove entirely

@@ -7,7 +7,9 @@ description: Ship code to production — commit, changelog, push, verify CI/CD d
 
 End-to-end shipping workflow: commit → changelog → push → verify deploy → release note.
 
-Run the whole chain in one turn. A sub-skill's closing summary (or a written artifact like a report) is shaped like the end of a turn but isn't one — the chain isn't done until this skill's own Output block is written. See `../_shared/references/one-turn-chain.md` for why this is easy to miss even while announcing the remaining step honestly.
+Run the whole chain in one turn. A sub-skill's closing summary (or a written artifact like a report) is shaped like the end of a turn but isn't one — the chain isn't done until this skill's own Output block is written.
+
+If you are **resuming** this skill mid-chain (a compaction landed between two steps), which steps already ran is a question to answer from evidence, not from the summary saying so: each step writes something — a commit, a push, a release note — and whether that artifact exists is checkable in a way a narrative is not. 📖 `../_shared/references/one-turn-chain.md` — the two boundaries where the stop actually lands, and why announcing the remaining step honestly evades every guard framed around false claims.
 
 ## Prerequisites
 
@@ -38,6 +40,8 @@ Two rules apply ON TOP of `/commit`, and only under `/ship`:
 1. **Version-bump gate (plugin/package repos)** — if the repo has version files, bump **EVERY** file carrying the version before staging. `grep -rn '"version"' <manifest-dir>` finds them all (secondary fields like `plugins[0].version` drift silently when only the primary is bumped). See the repo's `CLAUDE.md#version-bumping`.
 
 2. **Deploy-state override on the staleness gate** — `/commit`'s gate hunts "pending / not yet pushed" language and demands you eliminate it before committing. Under `/ship` the deploy is minutes away, so resolving that gate by writing the pre-deploy state ("not yet deployed", "🚢 in flight") is wrong the moment it's written and costs a second commit to undo. Leave deploy-state lines alone here — Step 4 writes them once, from the verified outcome. Fix only genuinely-stale non-deploy content in this step, and if you catch a false "deployed" claim along the way, correct it straight to the real outcome rather than to the transient midpoint.
+
+**When `/commit` returns, go straight to Step 3 in this same turn.** This is where the chain breaks: a sub-skill signs off with a summary shaped exactly like the end of a turn, so completing the *sub-skill* reads as completing the *work* — and the code is now committed but unpushed, which is the worst place to stop. Naming the next step is not performing it; if your reply says "next is the push", that sentence is the stop. Call it instead.
 
 ### Step 3: Push
 

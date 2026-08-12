@@ -155,7 +155,7 @@ These belong in `CLAUDE.local.md` because they carry env-specific context (serve
 
 ### Entry style (every entry you write)
 
-Base writing-style rules (no filler words, one idea per sentence): `../_shared/references/writing-style.md`.
+Five base writing-style rules govern every entry. Three — **capture filter**, **prose-vs-value**, **mechanism-not-trip-wire** — are judgement calls to make before you start writing, not edits to apply on the way past: 📖 `../_shared/references/writing-style.md`. The other two — no filler words, one idea per sentence — apply as you write.
 
 | Rule | Detail |
 |------|--------|
@@ -216,7 +216,7 @@ Measure the pruning floor before consulting the table, since the gate's decision
 
 Detection rules for both skip cases: `../_shared/references/declared-budget.md`. A spawn against either can only return a no-op.
 
-**Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.` — plus the repo-wide verb ban (`../_shared/references/agent-prompt-verb-ban.md`); this agent holds `Bash` and `Edit`.
+**Agent prompt**: `Prune these CLAUDE.md files: [list paths]. Run in background.` — plus the repo-wide verb ban, written into the prompt verbatim: `stash · checkout -- . · reset · clean · restore · commit · push`. This agent holds `Bash` and `Edit`, so a file slice scopes what it *reads* and never what a `git` command it runs *touches*. 📖 `../_shared/references/agent-prompt-verb-ban.md` for why each verb is on the list and how to check any agent's real tool grants.
 
 The agent owns its own classification rules, litmus tests, and never-delete safeguards — delegate to it, don't second-guess its instructions from here.
 

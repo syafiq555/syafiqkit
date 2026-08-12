@@ -90,7 +90,7 @@ Do not keep implementation detail that's obvious from reading the code, or root 
 
    **Still >300 lines after condensing, and the excess is MADR blocks** (each near its ~20-line floor, not compressible): This is step 2's split trigger firing late. Split Key Technical Decisions into `decisions/<theme>.md` per `templates.md`'s "Splitting a whole-doc MADR further" section — no user ask required. Report both the condensed delta and the split.
 
-10. **Verification: Run step 5's cross-file grep again after all writes land.** Section-by-section editing is the most common way duplication is introduced *during* the pass. The per-file diff-verify in step 7 is blind by construction to the same fact surviving twice across files. Only a set-wide grep after the last write catches that.
+10. **Verification: Run step 5's cross-file grep again after all writes land, and confirm each rewritten file's last line is real content** rather than a `</content>` tag carried in from a `Read` (`tail -c 40 <file>` per file — see Hard Rules). Section-by-section editing is the most common way duplication is introduced *during* the pass. The per-file diff-verify in step 7 is blind by construction to the same fact surviving twice across files. Only a set-wide grep after the last write catches that.
 
 11. **Execution choice:** Most condensing is an `Edit` job (section rewrites, row deletions); a full `Write` rewrite landing under ~15% byte delta signals a wrong mode choice on an already-tight doc. Name the mode when reporting rather than presenting a small delta as a finished result.
 
@@ -105,7 +105,7 @@ Do not keep implementation detail that's obvious from reading the code, or root 
 ## Hard Rules
 
 - **A restructure fork goes through `AskUserQuestion`, not inline prose** — condensing needs no permission, but choosing between preserving-vs-deleting, or between competing target structures, changes what the doc BECOMES. Ask it as options at the point it arises. An answer that names a constraint governs the whole run.
-- **Strip tool-output wrapper artifacts before writing** — see `../_shared/references/strip-tool-output-tags.md`.
+- **Strip tool-output wrapper artifacts before writing** — a `Read` result wraps file content in `<content>` tags, so a full-file rewrite that echoes it back (directly, or via a drafting agent that saw the same `Read`) can carry the wrapper into the `Write` payload as a literal trailing line. Confirm after writing that the last line is real content: `tail -c 40 <file>`. The tag is invisible until someone reads the doc later, so nothing else catches it.
 - **Never invent content** — only restructure what exists. If a fact is ambiguous, compress rather than rewrite its meaning.
 - **Never delete a Next Step** — only remove items marked ✅ or described in past tense in a Bugs Fixed row.
 - **Preserve LLM-CONTEXT block** — update it to match the condensed content, but keep all fields (Status, Domain, Gotchas, Related, Last updated). The `Last updated` field states the date + a one-line summary of what changed — it does NOT restate deploy/environment status prose ("LIVE in production", "deployed to staging"); that belongs solely in Quick Start's state line. If duplicated in both places, collapse it to Quick Start and point `Last updated` there.
