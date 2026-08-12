@@ -212,3 +212,27 @@ A pointer earns its cold-path placement only under clear delegation (the citing 
 - A delegated audit cannot answer "would a reader open this" — agents self-report reachability unreliably. This sort was done inline.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D69 — A Split Index's `## Next Steps` Is Never Routable, And Doesn't Count Toward The Line Budget — committed — 2026-08-12
+
+**Problem**
+GitHub #21 (reported by a consumer, not by any internal gate): `condense-task-doc:65` told a session to route each row of an oversized split index down to its owning theme file, while `task-summary:121` required every open actionable to stay in the index. When `## Next Steps` was itself the overage — the reporter's doc had it at 13.5KB, 40% of a 370-line index — no compliant move existed. Their pass ended at 337 lines and read as a failure on a doc that was already correct.
+
+The damage traced to one phrase, "leave a routing table plus still-open items in the index," which never said whether those items were the routed rows or a remainder left behind. Both readings are coherent, which is why it survived authoring and every subsequent read.
+
+**Decision**
+Open actionables stay in the index at any size, and `## Next Steps` is excluded from the 300-line count before the result is judged. An index over budget on live backlog alone is a complete pass, reported as such with the backlog's size noted. The other operational tables route down as before.
+
+**Rejected**
+- Making actionables routable instead (the reporter's alternative). Why not: three files already voted the other way (`task-summary:121`, `merge-task-docs:126`'s absence gate, `duplication-and-integrity.md:25`'s canonical-home rule), so it was the more expensive edit *and* it scatters the one list a reader checks to answer "what's outstanding?".
+- Naming the exception without the budget carve-out. Why not: it documents the unreachable target rather than removing it, so the pass keeps reporting a miss it can't act on — the half that made this read as a failed condense rather than a rule conflict.
+
+**Consequences**
+- Seven sites, five files: `condense-task-doc` step 2 (both branches) + step 9 + `references/section-rules.md`'s `## Next Steps` row, `task-summary:121`, `task-summary/references/templates.md:144`, `merge-task-docs:86`. `merge-task-docs` had disagreed with *itself* — its step 8 label ("Next Steps (cross-cutting — see each decisions file for theme-specific items)") presumed exactly what its own line 126 gate forbade. That label is retired; docs still carrying it aren't broken, but the parenthetical points at items that shouldn't be there.
+- **A keyword sweep cannot find this class of drift, and neither reviewer's lens found all of it.** Grepping the ambiguous phrase caught four sites. `code-reviewer`, reading for text agreement, found a fifth: the sibling branch four lines above the one being patched, expressing the same wrong idea as "scoped to cross-cutting" with no shared vocabulary. `product-reviewer`, walking the skill as an executing session, found two more that the text-agreement lens had no reason to flag — `section-rules.md`'s per-section row (the reference a session opens *while editing that section*), and step 9, where the verdict is actually rendered. Correct instructions in step 2 don't fire for a session re-deriving its result at step 9. Same silent cross-file shape as the version-drift item in `../current.md` Next Steps, and the practical lesson is that the two reviewers are not redundant: one asks whether the files agree, the other whether the rule reaches the moment it applies.
+- The rule depended on two measurements the skill only gestured at (`awk '/^## /{...}'`, a literal ellipsis predating this change). Both are now real commands, tested against a live doc — per-section counts, and a total that excludes `## Next Steps`. A judgement instruction resting on an unrunnable command is a rule with no way to be applied.
+- The reporter's own diagnosis stopped at two files because that's what their reproducer exercised. A consumer bug report scopes to the path they walked; check the neighbours before accepting the boundary.
+
+**Status**: committed · **Reversible**: yes

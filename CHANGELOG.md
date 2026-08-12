@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.147.1
+
+Nothing to regenerate. If a condense pass recently told you a split task doc was still over budget, it may have been wrong.
+
+- **A doc whose backlog is long no longer counts as a failed condense.** Once a task doc is split into an index plus `decisions/` files, the index has a line budget. Three skills disagreed about whether your open to-do items could be moved out of the index to meet it: `condense-task-doc` said route rows to the file that owns them, `task-summary` said every open item stays in the index so there's one list to check, and `merge-task-docs` contradicted both and itself. When the to-do list was the thing making the doc long, no legal move existed and the pass reported a miss on a doc that was already correct.
+
+- **Open items stay in the index, and they no longer count toward the budget.** A reader asking "what's outstanding?" gets one list in one file, whatever its size. The other tables still get routed down to their theme files as before. All five files now say this the same way, so which skill you happen to invoke no longer changes the answer, and the two measurement commands the rule depends on are spelled out rather than left as a sketch.
+
+- **One label is gone.** Split indexes used to get a heading reading "Next Steps (cross-cutting — see each decisions file for theme-specific items)". Nothing produces it now. Existing docs carrying it still work, but the parenthetical points at items that shouldn't be in those files.
+
+Reported by @munajaf, with a reproducer precise enough to diagnose from.
+
 ## 1.147.0
 
 Nothing to regenerate, and no action needed. This changes how wrap-ups read, from feedback that they were hard to follow.
