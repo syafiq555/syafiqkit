@@ -17,84 +17,57 @@ Investigation narratives, evidence, and verification logs fail that test — git
 
 ## What Gets Cut vs. What Stays
 
-The cut-or-keep decision applies to whole rows, sentences, and sections. The distinction is whether the material survives the underlying test:
+The distinction is whether the material survives the underlying test. Apply the test to whole rows, sentences, and sections.
 
-**Remove:**
-- Investigation narratives and "how we found it" stories (evidence tables, live API outputs, SQL queries run during the session, stale variant ID lists)
-- Verification numbers, commit SHAs (outside Last Session), and "confirmed X=Y on prod" evidence in rows — "verified" suffices
-- Duplicated facts: if a gotcha lives in Critical Gotchas AND Quick Start AND LLM-CONTEXT, keep it in one place and point to it from the others
-- Over-used `⚠️` — if it appears roughly every 8–10 lines or less, most instances aren't marking an irreversible/destructive consequence and should downgrade to plain/bold text. Reserve it for data loss, a broken audit trail, a silent prod regression, or an unrecoverable action
-- Bugs Fixed rows that re-explain a bug already in Critical Gotchas — collapse to `Symptom | → See Critical Gotchas (section, ID)` instead
-- Historical metrics (e.g. "1,957 zero-stock syncs over 3 days, 209 models") and stale lists of row/variant/order IDs
-- Process history ("Step 1 we reviewed X, then we checked Y") — captures session narrative, not future-session knowledge
-- Sections that only exist as dated incident logs (e.g. `## Investigation 2026-06-03`) — collapse into Bugs Fixed rows
-- Git-tracked state ("committed", "uncommitted", "pushed", "not yet pushed") on sight — `git log`/`git status` answers this; the doc's copy is stale the moment someone commits. (This is distinct from deploy/environment status, which belongs in Quick Start and stays.)
+**Derivable facts (delete):** Investigation narratives, evidence of how something was found, verification logs, commit SHAs outside Last Session, duplicated facts living in multiple sections, historical metrics and stale lists, git-tracked state ("committed"/"pushed"), and sections that only exist as dated incident logs. These all have permanent homes in git history. Similarly, drop dated evidence from rows ("confirmed X=Y on prod" → "verified").
 
-**Compress (not delete):**
-- Long multi-sentence Bugs Fixed rows → fix description + one-line summary
-- Quick Start > 15 lines → drop anything restated in Bugs Fixed or Critical Gotchas
-- Last Session > 5 bullets → keep only what hasn't folded into a Decision or Gotcha row
+**Inert explanation (delete):** Root cause narration beyond what a future session needs to *recognize* a recurrence. A reader doesn't need the story of how it failed, just the signature that will let them spot it again.
 
-**Keep:**
-Every fact that, if removed, would cause a future agent to act incorrectly:
-- A counter-intuitive behavior specific to this project (e.g. "successful_syncs:1 = dispatch, NOT API success")
-- A gotcha that looks safe but silently fails (e.g. "combo `available_qty` is always 0 in DB — use getComboStock()")
-- A non-obvious ordering constraint or guard
-- A current-state fact needed to pick up work (e.g. "B14 deployed as cherry-pick, not feature branch SHA")
+**Loud but routine (downgrade):** Over-used warning symbols. If `⚠️` appears every 8–10 lines or less, most instances aren't marking irreversible consequences — they're decorating routine cautions. Downgrade to plain text or bold; reserve the emoji for data loss, broken audit trails, silent regressions, or genuinely unrecoverable actions.
 
-Do not keep implementation detail that's obvious from reading the code, or root cause narration beyond what's needed to recognize a recurrence.
+**Compressed (not deleted):** Long multi-sentence rows → fix description + one-line summary. Quick Start > 15 lines → drop anything already restated in Bugs Fixed or Critical Gotchas. Last Session > 5 bullets → keep only what hasn't folded into a Decision or Gotcha row.
 
-**Required sections:** Task Status, Bugs Fixed, Critical Gotchas, and Next Steps may lose every row and still keep their heading — use a pointer row (`| — | see decisions/<theme>.md |`) instead of deleting the section. A missing section is invisible to later checks.
+**Preserved (essential facts):** Counter-intuitive project behaviors (e.g. "successful_syncs:1 = dispatch, NOT API success"), gotchas that look safe but fail silently (e.g. "combo `available_qty` is always 0 in DB — use getComboStock()"), non-obvious ordering constraints, and current-state facts needed to pick up work (e.g. "B14 deployed as cherry-pick, not feature branch SHA"). Do not preserve implementation detail obvious from the code.
+
+**Duplicated facts:** If a gotcha lives in Critical Gotchas AND Quick Start AND LLM-CONTEXT, keep it once and point to it from the others. Before trusting any pointer, grep the target for the fact — a pointer to missing content is worse than duplication.
+
+**Required sections:** Task Status, Bugs Fixed, Critical Gotchas, and Next Steps may lose every row and still keep their heading — use a pointer row (`| — | see decisions/<theme>.md |`) instead of deleting. A missing heading is invisible to later checks.
 
 ---
 
 ## Process
 
-0. **Settle whose doc this is before rewriting it.** This skill rewrites whole files in place, so it destroys more than a section-scoped mandate does when the doc turns out to belong to someone else. Judge by diff *content*, never by `git status` plane (`../_shared/references/diff-ownership.md`); a dirty doc is a peer's baseline, not just a measurement problem for step 2. Contested → take the additive branches in `../_shared/references/contested-doc-sections.md` and don't collapse rows you didn't write, or condense only the siblings you own. A live peer can be known before any of its bytes reach disk (`../_shared/references/cross-session-messaging.md`).
+**Prerequisites:** Before starting, check ownership. This skill rewrites whole files in place. Judge by diff *content* (📖 `../_shared/references/diff-ownership.md`); a dirty doc is a baseline, not a measurement problem. A live peer can be known before bytes reach disk (📖 `../_shared/references/cross-session-messaging.md`). The ordinary case: a mature doc was written by sessions long gone, and "another session committed this" describes git history, not a reason to defer. Rewriting committed content is what this skill does.
 
-   **Contest is a property of the working tree, not of authorship history.** The check above reads uncommitted state — a peer's in-flight bytes — so a doc whose `git diff HEAD` is empty is uncontested and free to condense however many earlier sessions wrote its committed content. That is the ordinary case: every mature task doc was written by sessions that are long gone, and none of them is a party to collide with. Rewriting a lot of content someone else committed is what this skill *does*, not a reason to defer it. Where the guard genuinely fires there is a live writer whose work you can still destroy; where it doesn't, "another session wrote this" describes git history and blocks nothing.
+**Core facts first:**
+- **Never invent content.** Only restructure what exists. Compress rather than rewrite if a fact is ambiguous.
+- **Never delete a Next Step** — only remove items marked ✅ or described in past tense in a Bugs Fixed row.
+- **Strip tool-output wrapper artifacts.** A `Read` result wraps in `<content>` tags; a full-file rewrite can carry them in as a literal trailing line. After writing: `tail -c 40 <file>` to confirm the last line is real content.
+- **Preserve LLM-CONTEXT block.** Update it to match condensed content, keep all fields. The `Last updated` field states date + one-line summary of what changed — not environment status (that lives only in Quick Start).
+- **Conserve content, not form.** A table's shape is a means. Collapse columns or a table into prose if it reads better. What must survive: any Cause cell carrying greppable specifics (exception class, exact expression, `See <Class>` pointer). Renaming columns you're keeping breaks positional checks and changes nothing a reader sees.
 
-1. **Read the full doc and the whole doc SET.** The unit of condensation is the feature's documentation, not the path you were handed. `ls` the doc's directory: a `decisions/` subdir (or any sibling the doc routes to) is in scope, and is routinely bigger than the index — a split doc's `decisions/*.md` can be 2–3× the file named in the args. Condensing only the named file and reporting a byte delta is a false result. Measure and report the SET's total.
+**Execution flow:**
 
-2. **Check whether this is actually bloat first** — line count lies, since a MADR restructure grows lines while shrinking bytes. Run `git show HEAD:<path> | wc -c` vs `wc -c <path>` — valid only if the doc was CLEAN at session start; on an already-dirty doc HEAD is a prior writer's baseline, so the delta credits their work to your pass. Dirty → measure `wc -c` before your first write, or use `git show :<path>` (staged). Per `../_shared/references/two-tier-condense.md`. With no repo, or a repo whose first commit doesn't exist yet, `git show HEAD:` errors rather than returning empty and there is no baseline to recover — capture `wc -c` before your first write, and if the doc was already dirty when you arrived, say the bloat-vs-restructure test couldn't run rather than reporting a delta measured against nothing (`../_shared/references/verifying-a-write-landed.md`).
+1. **Read the full doc SET.** The unit is the feature's documentation, not the path you were handed. `ls` the directory: a `decisions/` subdir is in scope and often bigger than the index — a split doc's `decisions/*.md` can be 2–3× the named file. Measure and report the SET's total, not just the index.
 
-   **Bytes flat or lower:** Restructure, not bloat. Stop and report both deltas.
+2. **Check bytes first to decide approach.** Line count lies (a MADR restructure grows lines while shrinking bytes). Run `git show HEAD:<path> | wc -c` vs `wc -c <path>` — valid only if the doc was CLEAN at session start. Dirty → capture `wc -c` before your first write, or use `git show :<path>` (staged). (📖 `../_shared/references/two-tier-condense.md`).
+   - **Bytes flat or lower:** Restructure, not bloat. Report both deltas and stop.
+   - **Bytes grew from new ADRs, >300 lines:** Split instead of condense. Index keeps Quick Start, cross-cutting operational tables, and routing. Theme detail moves to `decisions/*.md`. (📖 `task-summary/references/templates.md`'s "Splitting a whole-doc MADR further".)
+   - **Already split, INDEX still oversized:** Measure per section: `awk '/^## /{if(s)print c, s; s=$0; c=0; next} {c++} END{if(s)print c, s}' <file>`. Route each row to its owning theme file (its own "see ADR-N" column usually names it). Rows belonging to no theme (env, fixtures) get a descriptively named sibling, not `bugs.md`/`misc.md`.
+   - **Bytes grew from accumulated cruft:** Condense and continue.
 
-   **Bytes grew from genuinely new ADRs, still >300 lines:** Not condensable — split by default instead. Index keeps three things: Quick Start, doc-wide operational tables (Task Status / Bugs Fixed / Critical Gotchas scoped to cross-cutting, plus `## Next Steps` kept whole — see the already-split branch below), and the routing table. Only theme DETAIL moves down. After splitting, `grep '^## '` the index and confirm those sections survived. Per `task-summary/references/templates.md`'s "Splitting a whole-doc MADR further" section.
+3. **Find what to delete:** Identify `## Investigation` or narrative-only sections (primary bloat sources). Scan for duplication across the whole set with `grep -rl` on 2–3 critical phrases — a per-file pass is blind to cross-file cases. Within a file: phrases in >2 sections, or Bugs Fixed rows whose bug ID also appears in Critical Gotchas. Across files: Bugs Fixed rows explained fully in the index *and* fully in their owning `decisions/*.md` — collapse the index side to a pointer.
 
-   **Already split, and the INDEX is still oversized:** Measure per section before deciding — `awk '/^## /{if(s)print c, s; s=$0; c=0; next} {c++} END{if(s)print c, s}' <file>` prints a line count per heading, which tells you which section is actually driving the overage. Bug/gotcha/ops tables gain a row per session and lose none, so a compression pass buys one update's headroom. Route each ROW to its owning theme file (its own "see ADR-N" column usually names it), leave a routing table plus still-open items in the index. Rows belonging to no theme (env, fixtures, deploy) get a descriptively named sibling — avoid generic `bugs.md`/`misc.md`. Per `templates.md`'s "Splitting a whole-doc MADR further" section.
+4. **Row-existence pass:** For every row in Critical Gotchas and Key Technical Decisions, apply the keep-test ("would losing this cause incorrect action?") and **delete** (not shorten) rows that fail it. On a doc with 20+ rows, expect to delete some. This is separate from sentence compression and must happen first. If no rows delete, the pass was likely skipped.
 
-   `## Next Steps` is not among the routable tables — open actionables stay in the index (`task-summary` §4 step 3), so "still-open items" above means them, not a remainder left behind after routing. That makes an index whose bulk is live backlog legitimately over 300 lines: judge the result on `awk '/^## /{inns = ($0 ~ /^## Next Steps/)} !inns{n++} END{print n}' <file>` rather than `wc -l`, and where that number is at budget, report the pass as complete with the backlog's size noted rather than as a miss. Routing actionables out to buy lines trades a reachable number for the one question the index exists to answer.
+5. **Execute and measure:** Most condensing is an `Edit` job (section rewrites, row deletions). Count BOTH lines and bytes before and after (`wc -lc`) for every file in the SET. Report per-file deltas plus the set total. Also report row count: gotcha/decision rows before, after, and how many were deliberately deleted. A pass skipping step 4 produces the same tidy byte delta as one that ran it, so row arithmetic is the signal; a set of deletions that doesn't reconcile against the byte delta indicates the row-existence pass got skipped. (📖 `../_shared/references/two-tier-condense.md` for write-mode choice and diff-baseline rules.)
 
-   **Multi-domain case:** If the ADRs cluster into separate FEATURES (each promotable to its own `tasks/<domain>/<feature>/current.md`, with no single file left as parent index) — see `templates.md`'s "Multi-domain fan-out" subsection. Doc-wide content that belongs to no single sibling must be folded into the most relevant one or flagged to the user, never silently dropped.
+6. **After all writes land, run the duplication check again** (`grep -rl` from step 3). Section-by-section editing can reintroduce the same fact across files. The per-file diff is blind by construction to that case; only a set-wide grep catches it. Confirm each file's last line is real content (`tail -c 40 <file>`).
 
-   **Bytes grew from accumulated cruft:** Condense and continue.
+7. **Target: ≤300 lines** for an indexed doc with full bug history, measured on a split index with `## Next Steps` subtracted. A doc over budget by live backlog alone has passed; report it with the backlog's size. Being under budget doesn't mean skipping step 4. Check sentence length directly: `awk '{print length, NR}' <file> | sort -rn | head -15`. Tighten paragraphs running 500+ characters of stacked parentheticals. Bytes-per-line >120–150, or sections >4KB each (Files, Task Status, Bugs Fixed), signal a second pass.
+   - **Still >300 lines after condensing, excess is MADR blocks:** Split Key Technical Decisions into `decisions/<theme>.md` (📖 `task-summary/references/templates.md`). Report both the condensed delta and the split.
 
-3. **Read `task-summary/references/templates.md`** — note the canonical section headings, table column names, and field order for every section present in the doc.
-
-4. **Identify `## Investigation` or narrative-only sections** — these are the primary source of bloat. Plan to collapse them into Bugs Fixed rows.
-
-5. **Scan for fact duplication across the whole set, not per file** — `grep -rl` the 2–3 most critical phrases over every file at once. A per-file pass is structurally blind to the cross-file case. Two patterns dominate:
-   - **Within a file:** A phrase in >2 sections; every Bugs Fixed row whose bug ID/symptom also appears in Critical Gotchas
-   - **Across the set:** A Bugs Fixed row explained fully in the index *and* fully in its owning `decisions/*.md` — collapse the index side to `→ decisions/<file>.md ADR-N`
-
-   Before trusting any new pointer, grep the TARGET for the fact you just deleted — a pointer to missing content is worse than duplication.
-
-6. **Row-existence pass** — for every row in Critical Gotchas and Key Technical Decisions, apply the keep-test and **delete** (not shorten) any row that fails it. On a doc with 20+ rows, expect to delete some. This is a separate operation from sentence compression and must happen first. If no row deletes, the pass was likely skipped rather than finding genuinely nothing.
-
-7. **Draft and verify:** Execution model, write-mode choice, and diff-baseline rules are in `../_shared/references/two-tier-condense.md` — which also covers when to hand the draft to a `haiku` agent and what the parent session owes afterward. Use steps 1–6's findings (row-deletion list, duplication map, section plan) to estimate write mode before writing. A doc set that already went through a condense, or `decisions/*.md` MADR blocks near their ~20-line floor, is nearly always an `Edit` job.
-
-8. **Count BOTH lines and bytes before and after** (`wc -lc`) for every file in the set. Report per-file deltas plus the set total. A big cut on the index while `decisions/*.md` sat untouched is not a condensed doc set.
-
-   Report the **row count** alongside the byte delta — gotcha/decision rows before, after, and how many were deliberately deleted (`grep -c '^| ' <file>`, `grep -hc '^### D' decisions/*.md`). A pass that skipped step 6's row-existence check produces the same tidy byte delta as one that ran it, so bytes alone cannot distinguish them; the row arithmetic can, and a set of intended deletions that doesn't reconcile against the delta is the signal to look. Same family as D50/D54 — a surface metric passing is not proof the defect is gone.
-
-9. **Target: ≤300 lines** for a task doc with a full bug history, and a real cut — measured on a split index with `## Next Steps` subtracted, per step 2's already-split branch. A doc left over the line by live backlog alone has passed; say so with the backlog's size rather than recording a miss the next session will try to fix by routing items out. Being already under budget doesn't mean skipping step 6. A doc can meet the line target while individual sentences remain bloated — check sentence length directly. `awk '{print length, NR}' <file> | sort -rn | head -15` after a row-existence pass; tighten paragraphs running 500+ characters of stacked parentheticals and measurements (collapse evidence to its conclusion, split run-on facts into separate lines). Bytes-per-line above ~120–150, or individual sections (Files, Task Status, Bugs Fixed) still >4KB each, signal a second pass on those sections.
-
-   **Still >300 lines after condensing, and the excess is MADR blocks** (each near its ~20-line floor, not compressible): This is step 2's split trigger firing late. Split Key Technical Decisions into `decisions/<theme>.md` per `templates.md`'s "Splitting a whole-doc MADR further" section — no user ask required. Report both the condensed delta and the split.
-
-10. **Verification: Run step 5's cross-file grep again after all writes land, and confirm each rewritten file's last line is real content** rather than a `</content>` tag carried in from a `Read` (`tail -c 40 <file>` per file — see Hard Rules). Section-by-section editing is the most common way duplication is introduced *during* the pass. The per-file diff-verify in step 7 is blind by construction to the same fact surviving twice across files. Only a set-wide grep after the last write catches that.
-
-11. **Execution choice:** Most condensing is an `Edit` job (section rewrites, row deletions); a full `Write` rewrite landing under ~15% byte delta signals a wrong mode choice on an already-tight doc. Name the mode when reporting rather than presenting a small delta as a finished result.
+8. **Read `task-summary/references/templates.md`** for canonical section headings, table column names, and field order.
 
 ---
 
@@ -104,13 +77,7 @@ Do not keep implementation detail that's obvious from reading the code, or root 
 
 ---
 
-## Hard Rules
+## Additional Guidance
 
-- **A restructure fork goes through `AskUserQuestion`, not inline prose** — condensing needs no permission, but choosing between preserving-vs-deleting, or between competing target structures, changes what the doc BECOMES. Ask it as options at the point it arises. An answer that names a constraint governs the whole run.
-- **Strip tool-output wrapper artifacts before writing** — a `Read` result wraps file content in `<content>` tags, so a full-file rewrite that echoes it back (directly, or via a drafting agent that saw the same `Read`) can carry the wrapper into the `Write` payload as a literal trailing line. Confirm after writing that the last line is real content: `tail -c 40 <file>`. The tag is invisible until someone reads the doc later, so nothing else catches it.
-- **Never invent content** — only restructure what exists. If a fact is ambiguous, compress rather than rewrite its meaning.
-- **Never delete a Next Step** — only remove items marked ✅ or described in past tense in a Bugs Fixed row.
-- **Preserve LLM-CONTEXT block** — update it to match the condensed content, but keep all fields (Status, Domain, Gotchas, Related, Last updated). The `Last updated` field states the date + a one-line summary of what changed — it does NOT restate deploy/environment status prose ("LIVE in production", "deployed to staging"); that belongs solely in Quick Start's state line. If duplicated in both places, collapse it to Quick Start and point `Last updated` there.
-- **Conserve content, not form** — a table's shape is a means. Collapsing columns, or a table into prose, is a legitimate rewrite when the result reads better; `task-summary/references/templates.md` names the sections a doc needs, not a shape each must keep forever. What has to survive the collapse is whatever the dropped cell carried — a Cause cell is where the greppable specifics sit (the exception class a stack trace shows, the exact expression that fixes it, the `See <Class>` pointer), and a row merged without them reads complete, so the loss surfaces nowhere. Renaming columns you're *keeping* is the one move with no upside: it breaks the positional `awk -F'|'` checks and changes nothing a reader sees.
-- **Report line count before and after.**
-- Content-loss verification is step 7's job (`../_shared/references/two-tier-condense.md`) — it also covers sections step 4/6 never explicitly named.
+- **A restructure fork goes through `AskUserQuestion`, not inline prose** — condensing needs no permission, but choosing between preserving-vs-deleting or between competing structures changes what the doc BECOMES. Ask it as options at the point it arises. An answer naming a constraint governs the whole run.
+- **Report row count and byte deltas, not just line count.** Bytes flat or lower = restructure, not bloat. A pass skipping step 4 (row-existence check) produces the same tidy byte delta as one that ran it, so row arithmetic reconciles what happened.
