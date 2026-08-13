@@ -24,6 +24,18 @@ When in doubt which mode, it's Capture — that's the one `/done` depends on, an
 
 What controls density is what gets admitted to this plugin and whether it's hot-path (inline) or cold-path (`references/`), not restyling prose that already reads fine. A wholesale clarity pass measurably regressed two skills to denser than their starting point (`tasks/plugin-maintenance/external-guidance/current.md` D55/D59). Leave a rule's wording alone unless it fails the capture filter or its position is wrong. This governs every mode, Capture included.
 
+## The Three Routing Gates (every entry answers these)
+
+Every signal has to pass three gates before routing:
+
+1. **Is it derivable?** Can the reader reconstruct it with `ls`, `grep`, reading source, running `--help`, or looking at the manifest? If yes, cut it — the tool or codebase says it already.
+2. **Is it safety-critical or routine?** Does the rule need to fire before the reader acts (resident in CLAUDE.md), or only when something breaks (lazy-load into a skill/companion)?
+3. **What scope owns it?** Is it global, project-wide, layer-specific (app/resources/js/tests), or subdir-specific?
+
+Pass all three and the fact routes to CLAUDE.md. Fail the first and cut. Fail the second and move to a skill or companion. The order matters: derivability is the cheapest gate (fastest to check), so always run it first.
+
+📖 `references/pointer-discipline.md` — read when a `> 📖` line is in play: following a pointer, a companion left stale because grep "found" it, a pointer's own `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
+
 ---
 
 # CAPTURE MODE (default)
@@ -32,33 +44,21 @@ Extract reusable patterns from this session into CLAUDE.md files.
 
 A caller-supplied arg is additive context, not a scope limiter — scan the whole conversation for every signal in the Step-1 table below, since the arg usually hints at only one of them (an arg naming a code fact still needs a separate pass for corrections/wrong-sources).
 
-**When the conversation has no scannable session** (invoked right after `/clear`, or on a topic never touched this session) but the user still names a subject ("make CLAUDE.md aware of X"), Step 1's table doesn't apply — there's nothing to scan. Read the actual source for that subject instead (the relevant directory/files) and diff it against what CLAUDE.md currently claims; a stale worker count, an undocumented code path, or a description that no longer matches the source is the same "New" or "Violation" signal Step 1 would have produced from a conversation. Say so explicitly ("no session content — reading the codebase directly") rather than silently switching modes.
-
-📖 **`references/pointer-discipline.md`** — read when a `> 📖` line is in play: following a pointer, a companion left stale because grep "found" it, a pointer's own `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
+**When the conversation has no scannable session** (invoked right after `/clear`, or on a topic never touched this session) but the user still names a subject ("make CLAUDE.md aware of X"), the Signal scan doesn't apply — there's nothing to scan. Read the actual source for that subject instead (the relevant directory/files) and diff it against what CLAUDE.md currently claims; a stale worker count, an undocumented code path, or a description that no longer matches the source is the same "Undocumented" or "Violation" signal a scan would have produced. Say so explicitly ("no session content — reading the codebase directly") rather than silently switching modes.
 
 ## 1. Scan — What happened?
 
-Look for these signals in the conversation:
+Scan the conversation for three classes of signals:
 
-| Signal | Category |
-|--------|----------|
-| User correction ("not X, it's Y") | Gotcha or Convention |
-| Claude struggled / repeated attempts | Gotcha |
-| Claude ignored existing rule (including a rule this skill itself is applying, e.g. skipped its own one-off test before writing) | **Violation** — see refinement steps below |
-| Claude concluded wrong for a reason no existing rule already covered | **Behavioral rule** |
-| Same pattern used 2+ times | Pattern |
-| Environment surprise | Gotcha |
-| Convention preference | Convention |
-| Debugging root cause discovered | Gotcha |
-| User states a durable preference for HOW Claude should communicate/behave (e.g. pastes a preferred summary format saying "give it like this instead") | Working-style rule → global `~/.claude/CLAUDE.md` |
-| The arg asserts a standard the CODEBASE should meet ("X is not needed to be long", "we always do Y") | Codebase standard → measure violation before writing |
-| Personal/per-machine context (this engineer's local setup, not a fact every teammate needs) | Env pattern → `CLAUDE.local.md` |
-| Credentials/tokens/API headers used from config files | Env pattern → `CLAUDE.local.md` |
-| CLI pattern reused 3+ times (curl, scp, remote) | Env pattern → `CLAUDE.local.md` |
-| External API auth that required trial-and-error | Env pattern → `CLAUDE.local.md` |
-| A domain/layer file read this session is all Gotchas with **no `## Architecture {#architecture}` section**, and the domain has non-trivial structure (3+ sibling classes, multiple adapters/contracts) | Structural gap → add Architecture section per `references/structure.md` §3/§5 |
+- **Undocumented facts** the session revealed: a gotcha, an environment surprise, a debugging discovery, a non-standard convention the code doesn't teach. Anything code can't explain.
+- **Violated rules**: a moment when Claude ignored an existing CLAUDE.md rule, or this skill itself skipped a step it's supposed to follow. Classify as "Violation" (see refinement steps below).
+- **Repeating patterns**: the same approach used 2+ times in one session, or the same mistake corrected twice. Separate from one-off gotchas.
+
+Also scan for working-style preferences stated by the user (e.g., "communicate like this instead"), personal machine context, credentials/tokens, and CLI patterns reused 3+ times — these route to `CLAUDE.local.md` instead.
 
 A signal is a candidate, not a verdict. Most sessions produce several and most of those shouldn't become entries — the file's health depends on what arrives, not on how well each arrival is worded, and a table of thirteen signals with no rejecting row will otherwise turn every session into net growth. Before grepping, ask what the reader gains: a fact they couldn't derive is worth a line, and a restatement of something the surrounding rules already imply costs a line and dilutes them. Prefer sharpening or replacing an existing rule to adding a neighbour, and where a session produced many signals, take the one or two that would actually change a future decision. Writing nothing is a legitimate outcome, and saying "no capture: the corrections this session were applications of rules already stated" is a real report rather than a skipped step.
+
+**Special case: Structural gaps** (a domain/layer file with no `## Architecture {#architecture}` section, but 3+ sibling classes or multiple adapters/contracts) route to `references/structure.md` §3/§5 for addition, not to the session capture flow.
 
 For each signal that clears that, extract 2-3 keywords and grep all CLAUDE.md files:
 
@@ -80,30 +80,26 @@ A change to a globally-installed tool (a CLI on PATH, a shared script, a plugin 
 
 ### 2a. Derivability gate — Should it even be in CLAUDE.md?
 
-Before routing a signal to CLAUDE.md, ask whether it's derivable from the codebase itself. If a session's signal is reconstructible with a few tool calls — `ls`, `grep`, reading the manifest, running `--help` — it's dead weight every session pays for. These get cut outright:
+Ask: Can the reader reconstruct this with `ls`, `grep`, reading source code, running `--help`, or checking a manifest?
 
-| Derivable | Example | Action |
-|-----------|---------|--------|
-| **Directory and file layouts** | "project structure is app/, config/, tests/" | Cut — `find` and `ls` already show it |
-| **Tech stack and dependency lists** | "we use Laravel, React, Node" | Cut — `cat composer.json`, `package.json` already say it |
-| **Build/test commands (standard invocation)** | "`npm test` runs tests", "`composer install` installs deps" | Cut — the tool's defaults and the manifest scripts already document this |
-| **API signatures, types, schemas copied from source** | "function foo(x, y) returns bool" | Cut — source code is the canonical definition |
-| **Architecture tours (reads like README)** | "here's a walkthrough of the codebase" | Cut — codebase is self-describing to someone who reads it |
-| **Generic best practices** | "write clean code, handle errors, add tests" | Cut — the model already follows these |
-| **Rules enforced by hooks, lint, or CI** | "runs prettier on commit" | Cut — the hook/lint config is the canonical truth, not CLAUDE.md |
+**If yes, cut outright:**
+- Directory/file layouts (`ls`, `find` show structure)
+- Tech stack and dependency lists (`composer.json`, `package.json` declare them)
+- Standard build/test commands (`npm test` means tests, tool defaults are documented)
+- API signatures and types (source code is canonical)
+- Architecture tours that read like a README (codebase is self-describing)
+- Generic best practices (the model already follows them)
+- Rules enforced by hooks/lint/CI (the config is canonical, not this file)
 
-Keep facts that **are NOT derivable**:
-
-| Non-derivable | Example | Keep |
-|---------------|---------|------|
-| **Gotchas and failure contracts** | "X looks safe but does Y; Z triggers when you don't expect it" | Yes — code can't explain "gotcha" |
-| **Design rationale and "why it's this way"** | "we chose React because of real-time needs, not Redux because..." | Yes — the source doesn't explain intent |
-| **Non-standard conventions** (differ from language/tool defaults) | "use kebab-case not camelCase for API routes" (if non-standard) | Yes — code doesn't teach exceptions to defaults |
-| **Agent directives and safety-critical prohibitions** | "never push to main", "never edit generated files" | **ALWAYS** — safety rules must be resident |
-| **Repo etiquette and workflow** | "branch naming: feature/..., pr titles: imperative", "commit via `/commit`" | Yes — conventions aren't in the code |
-| **Domain glossaries** | "a 'transaction' here means X, not Y" | Yes — terminology needs explicit definition |
-| **Non-guessable build/test commands** | "run `npm run integration` (not just `npm test`)", "flags needed for CI" | Yes — non-standard patterns can't be discovered |
-| **Pointers to context elsewhere** | "`@path/to/import` for this type", "skill guidance at `skills/agent-bootstrap/SKILL.md`" | Yes — routing information |
+**If no, keep it:**
+- **Gotchas** — code can't explain what makes it dangerous
+- **Design rationale** — source doesn't say *why* it's this way
+- **Non-standard conventions** — exceptions to language/tool defaults need naming
+- **Agent directives and safety prohibitions** — must be resident, never lazy-load
+- **Workflow etiquette** — branch naming, PR titles, commit process aren't in the code
+- **Domain glossaries** — terminology meanings need explicit definition
+- **Non-guessable commands** — "run `npm run integration`, not `npm test`" can't be discovered
+- **Routing information** — "`@path/to/import` for this type", "guidance at X"
 
 ### 2b. Residency gate — Does it belong inline or in lazy-load?
 
@@ -155,14 +151,12 @@ These belong in `CLAUDE.local.md` because they carry env-specific context (serve
 
 ### Entry style (every entry you write)
 
-Five base writing-style rules govern every entry. Three — **capture filter**, **prose-vs-value**, **mechanism-not-trip-wire** — are judgement calls to make before you start writing, not edits to apply on the way past: 📖 `../_shared/references/writing-style.md`. The other two — no filler words, one idea per sentence — apply as you write.
+Before writing, absorb the three judgment-shaped rules from 📖 `../_shared/references/writing-style.md` (capture filter, prose-vs-value, mechanism-not-trip-wire — these decide what shape an entry should take before you write it). Then apply these as you draft:
 
-| Rule | Detail |
-|------|--------|
-| **Rows ≤2 sentences** | State the constraint + the single reason it exists. ≤1 parenthetical per sentence. |
-| **No session storytelling** | Never write how the mistake happened ("this happened twice", "a reviewer caught it", "#1/#2/#3 trigger" lists). The rule states the constraint, not its history. |
-| **One concrete example max** | One symptom string or code snippet. Multiple examples of the same failure add length, not signal. |
-| A correction is costlier when mistaken | An entry asserting a doc, an agent, or a prior session got something wrong lands in a team-visible or global file and is read as settled by future sessions. Verify it before writing: if a single command settles it (a count, a version, a flag, a path), run the command first; if no command can, write the observation, not a verdict. |
+- **Rows ≤2 sentences**: State the constraint + the single reason it exists. ≤1 parenthetical per sentence.
+- **No session storytelling**: Never state how the mistake happened or how many times. The rule is the constraint, not its history.
+- **One concrete example max**: One symptom string or code snippet — multiple instances of the same failure add length, not clarity.
+- **Corrections need verification**: An entry asserting a doc, an agent, or a prior session got something wrong lands in a team-visible file and is read as settled forever. Verify before writing: if a single command settles it (run it); if not, state the observation, not a verdict.
 
 ### New signals → Add entry
 
@@ -225,43 +219,36 @@ Background-prune only files that are finished being edited this session. The pru
 ## 5. Validate
 
 After writing each entry (in Step 3):
-1. Re-grep the keyword to confirm no duplicate was created. This grep also proves a write landed when the target is `CLAUDE.local.md` (which is gitignored, so `git diff` can't show it).
-2. Count `|` separators — must match the table header.
-3. Ask: "Would removing this let Claude repeat the mistake?" If no, delete the entry. Then ask the same question of the section it landed in: if a reader absorbed the whole section, what would they now default to? A row can pass on its own and still be the twentieth mechanical row beside one line of judgement, which is how a section ends up training the opposite of what it says.
-4. Scan for narrative markers ("happened", "repeatedly", "caught", "twice", numbered lists) — rewrite to state the constraint, not its history.
-5. Any "Fix" column must name a specific, verifiable action — a file, method, config, or exact guard to add. Not a vague verb like "investigate" or "handle better."
-6. If the file is now over budget, flag it in your output (the Step-4 pruner handles the shrink). Default budget is 350 lines; check `../_shared/references/declared-budget.md` if the file states its own figure.
-7. Re-read the entry against the "New signals → Add entry" shape rule: does your prose violate the shape it's supposed to follow? An entry that landed as `**Never X**` instead of reasoning prose may pass the checks above and still be the wrong shape.
+1. Re-grep the keyword to confirm no duplicate was created. (This grep also proves a write landed when the target is `CLAUDE.local.md`, which is gitignored.)
+2. Ask: "Would removing this let Claude repeat the mistake?" If no, delete. Then ask the same of the section: if a reader absorbed the whole section, what would they default to? A row passing on its own can still be the twentieth mechanical row beside one line of judgment, training the opposite of what it says.
+3. Scan for narrative markers ("happened", "repeatedly", "caught", "twice") — rewrite to state the constraint, not its history.
+4. Check "Fix" columns — must name a specific, verifiable action (file, method, config, exact guard). Not vague ("investigate", "handle better").
+5. If the file is now over budget, flag it (Step 4's pruner handles the shrink). Default: 350 lines; check `../_shared/references/declared-budget.md` if the file states its own figure.
+6. Re-read the entry against the "New signals → Add entry" shape rule: does prose violate its intended form? An entry landing as `**Never X**` instead of reasoning prose may pass the checks above and still be the wrong shape.
 
-**Task docs ≠ CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only patterns that apply broadly go in CLAUDE.md.
+**Task docs vs. CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only broadly-applicable patterns go in CLAUDE.md.
 
 ## 6. Agent Sync
 
-**Default: do nothing.** Agents read CLAUDE.md dynamically, so a normal gotcha/convention/pattern added in Steps 1–3 needs NO agent change — the Bootstrap pattern picks it up next run. Re-deriving agent tables from CLAUDE.md would re-introduce the duplication the architecture exists to avoid.
+**Default: skip this section.** Agents read CLAUDE.md dynamically via Bootstrap, so most additions need no agent changes. Re-deriving agent tables from CLAUDE.md re-introduces the duplication the architecture exists to avoid.
 
-**Exception — some signals are agent-specific and CLAUDE.md alone won't fix them.** A reviewer needs a false-positive inline to *not* flag it (zero-latency); a simplifier needs a preserve-rule inline to *not* collapse it. For these, route to the agent file directly. Check the signal against this table:
+**Apply this section only if one of these signals fired in this session:**
 
-| Session signal | Route to | Where in the agent |
-|----------------|----------|--------------------|
-| Reviewer flagged something that was actually **intentional/correct** (recurring false positive) | `code-reviewer.md` | "Known False Positives" table (add row: pattern + why correct) |
-| Simplifier **collapsed an intentional guard/workaround** (or would have) | `code-simplifier.md` | "Don't Simplify (Preserve These)" table |
-| A **new high-frequency mistake** class that the agent's inline table should catch at zero-latency (not just any gotcha — one worth the top-~15 slot) | reviewer and/or simplifier | "High-Frequency Mistakes" / "High-Impact Simplifications" table |
-| Agent itself **misbehaved** — audited whole codebase vs session scope, checked wrong source first, wrong confidence call, ignored a Bootstrap step | the offending agent | Process / Constraints section (behavioral fix) |
-| A **sibling repo** entered the session (driven from this working dir, its own agents don't fire) | both agents | Add `⚠️ Two-repo session` banner + second Bootstrap table + tagged sibling rules |
+| Signal | Action |
+|--------|--------|
+| Reviewer flagged something you verified as intentional/correct (recurring false positive) | Add one row to `code-reviewer.md` → "Known False Positives" (pattern + why correct) |
+| Simplifier collapsed a guard/workaround you want preserved | Add one row to `code-simplifier.md` → "Don't Simplify (Preserve These)" |
+| A new high-frequency mistake class emerged that belongs in an agent's zero-latency table (not just any gotcha, but top-~15 rank) | Add row to reviewer/simplifier → "High-Frequency Mistakes" / "High-Impact Simplifications" |
+| Agent misbehaved (audited wrong scope, checked wrong source, ignored a Bootstrap step) | Fix the agent's Process/Constraints section (behavioral correction) |
+| A sibling repo entered the session | Add `⚠️ Two-repo session` banner + second Bootstrap table to both agents + tag sibling rules |
 
-**How to apply** (only when a row above matches):
-- Edit the agent file directly with the `Edit` tool — these are small, surgical additions (one table row, one banner). Do NOT rewrite whole tables.
-- Group per repo in multi-repo sessions (Autorentic rows vs sibling rows).
-- Inline a row even if you also added the underlying fact to CLAUDE.md — the agent table and CLAUDE.md serve different latencies (the table is "don't even consider flagging this"; CLAUDE.md is the full explanation).
-- For a **structural** change (new section, new repo's full rule set, changed agent responsibilities/tools), don't hand-edit — run `syafiqkit:agent-setup`, which owns the template + verification checklist.
-
-If no row matches, leave the agents alone and note "Agents: no sync needed (gotcha read dynamically via Bootstrap)" in the output.
+For any match: use `Edit` tool for surgical additions (one row, one banner) — never rewrite whole tables. Inline the row even if CLAUDE.md also has the fact (agent table = zero-latency guard; CLAUDE.md = full explanation). Structural changes (new section, new repo ruleset) require `syafiqkit:agent-setup`, not hand-edits.
 
 ---
 
 # CREATE / REWRITE / CONDENSE MODES
 
-Cold-path — read `references/other-modes.md` for the full process, and `references/structure.md` for the hierarchy rules, section taxonomy, formatting conventions and 200-line budget these three modes all depend on. One-line summary of each:
+Cold-path. Create and Rewrite have a process worth reading before starting: `references/other-modes.md`. Condense has none here because it delegates outright. All three depend on `references/structure.md` for the hierarchy rules, section taxonomy, formatting conventions and 200-line budget. One-line summary of each:
 
 - **Create**: scaffold a new CLAUDE.md from codebase analysis, house style, target <200 lines.
 - **Rewrite**: restructure an existing file to canonical section order + formatting, inventory-then-diff to guarantee zero rules dropped.

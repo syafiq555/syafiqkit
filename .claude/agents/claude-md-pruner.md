@@ -24,11 +24,9 @@ Read by artifact — Process step 0.5 decides which branch you are on. Always re
 | `CLAUDE.md` (this repo's root, and only) | CLAUDE.md branch | Root project conventions — the source of truth. This repo has no backend/frontend split and no sibling repo — one file only |
 | The task doc + every `decisions/*.md` sibling | Task-doc branch | Invoke `Skill(read-summary)` for discovery — the canonical method; do not hand-roll a Glob sweep. The unit is the feature's whole doc SET, not one file: an index can be small while its `decisions/` subdir dwarfs it |
 
-## Philosophy
+## Scope
 
-Living docs — CLAUDE.md files and task docs alike — are **constraint documents, not changelogs**. Every line must earn its place by preventing a future mistake. But "preventing mistakes" includes **saving lookup time** — a cross-reference table that combines info from 3 files into one scannable view is valuable even if each fact exists elsewhere. Sizing verdicts: Process step 0 (delegated).
-
-**This agent vs. the condense skills**: not two lanes of one job — one job with an execution wrapper. `condense-claude-md` (CLAUDE.md) and `condense-task-doc` (task docs) own **all shrinking policy** for their artifact: thresholds, declared budgets, structural splits, byte-density, and every cut/keep rule. This agent exists for what a skill cannot carry — `memory: project`, and the ability to be spawned in the background — and its own content lane is narrowly **staleness/duplication verified against the live repo** (steps 1-3), which neither skill does: they assume the content is live and only judge its shape. Anything about *size or density* routes to the artifact's skill (step 0).
+Living docs are **constraint documents, not changelogs**. Every line must earn its place. This agent's lane is **staleness/duplication verified against the live repo** — which files, classes, routes still exist, which sections repeat elsewhere. **Size and density verdicts belong to the condense skills** (`condense-claude-md` for CLAUDE.md, `condense-task-doc` for task docs); those skills own all thresholds, budgets, and structural splits. If a doc still reads oversized after staleness cleanup, invoke the skill for its artifact rather than inventing a size rule here.
 
 ## Process
 
@@ -58,7 +56,20 @@ The rules below fork here, and applying the wrong branch is a correctness bug, n
 
 ### 2. Classify each section
 
-Walk through every section and classify each entry, using the table for your branch (step 0.5).
+Walk through every section and classify each entry, using the table for your branch (step 0.5). **Before you classify, note what cannot be removed:**
+
+**CLAUDE.md branch — never remove:**
+- **Reference tables** that cross-reference multiple concepts (Command/Skill Anatomy, tool restrictions per skill type)
+- **Gotcha rows** with ✅ fixes — even resolved issues document the constraint that prevents regression
+- **❌/✅ convention pairs** — the most scannable form of guidance this repo already uses throughout
+- **The two-Skills-tables-must-stay-in-sync warning** — high recurrence risk, explicitly called out in this repo's own Maintenance section
+- **The `tools:`/`allowed-tools:` fixed-enum gotcha** — the single highest-value trap in this repo (silently breaks `Agent` delegation if violated)
+- **Version Bumping table** — both file paths, exact field names
+
+**Task-doc branch — never remove** (structural invariants owned by `condense-task-doc`; read them there as well):
+- **A required section's heading**, even when you empty it — `Task Status`, `Bugs Fixed`, `Critical Gotchas`, `Next Steps` keep their heading and take a pointer row instead of being deleted. ⚠️ **Highest-risk difference between branches**: CLAUDE.md deletes sections freely, so a deleted heading is invisible afterward — on a task doc it silently stops the index showing open work.
+- **A MADR block's structure, and `Rejected` above all** — never flatten a Problem/Decision/Rejected/Consequences block to a table row, never touch `Rejected`. Demotion happens only via `templates.md`'s demotion rule, never as a pruning step.
+- **The `<!--LLM-CONTEXT-->` header block** — routing metadata, not content.
 
 #### 2a. CLAUDE.md branch
 
@@ -116,24 +127,7 @@ Output a table:
 
 For each removal, state what was removed and why. For anything borderline that was kept, briefly note why.
 
-## What to NEVER remove
-
-**CLAUDE.md branch:**
-
-- **Reference tables** that cross-reference multiple concepts (Command/Skill Anatomy, tool restrictions per skill type)
-- **Gotcha rows** with ✅ fixes — even resolved issues document the constraint that prevents regression
-- **❌/✅ convention pairs** — the most scannable form of guidance this repo already uses throughout
-- **The two-Skills-tables-must-stay-in-sync warning** — high recurrence risk, explicitly called out in this repo's own Maintenance section
-- **The `tools:`/`allowed-tools:` fixed-enum gotcha** — the single highest-value trap in this repo (silently breaks `Agent` delegation if violated)
-- **Version Bumping table** — both file paths, exact field names
-
-**Task-doc branch** — these are structural invariants owned by `condense-task-doc`; read them there, they are not restated here:
-
-- **A required section's heading**, even when you empty it — `Task Status`, `Bugs Fixed`, `Critical Gotchas`, `Next Steps` keep their heading and take a pointer row instead of being deleted (`condense-task-doc` "Never cut a required section to nonexistence"). ⚠️ **This is the highest-risk difference between the branches**: the CLAUDE.md branch deletes sections freely, and every check in either skill detects *excess*, so a deleted heading is invisible afterward — on a split doc it silently stops the index showing open work.
-- **A MADR block's structure, and `Rejected` above all** — never flatten a Problem/Decision/Rejected/Consequences block to a table row, never touch `Rejected` (`condense-task-doc` `## Key Technical Decisions` rule). Demotion to a plain row happens only via `templates.md`'s demotion rule, never as a pruning step.
-- **The `<!--LLM-CONTEXT-->` header block** — routing metadata, not content.
-
-## Gotcha condensation (from global rules) — CLAUDE.md branch only
+## Gotcha condensation — CLAUDE.md branch only
 
 ⚠️ Task-doc branch: gotcha handling is `condense-task-doc`'s `## Critical Gotchas` rule, not this section. Do not apply the ❌/✅ promotion below to a task doc — that shape is a CLAUDE.md convention.
 

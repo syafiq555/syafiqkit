@@ -8,33 +8,38 @@ The canonical structure + best-practice rules for creating, rewriting, or auditi
 2. The capture filter (what belongs in CLAUDE.md at all)
 3. Section taxonomy (what sections, in what order)
 4. Formatting conventions (the house style)
-5. Template family (global / root-router / domain-or-layer / subdir)
-6. The 200-line budget
+5. Template family (structure by file type)
+6. Routing over-budget content (three structural levers)
 
 ---
 
-## 1. The hierarchy — which file loads when
+## 1. The hierarchy — which file loads when {#hierarchy}
 
-CLAUDE.md files are **concatenated additively**, filesystem-root → cwd. For *conflicts*, most-specific wins. Subdir files load **lazily** — only when Claude reads a file in that subdir — so a rule pushed down a level is scoped, not hidden. This is the single most important fact for routing a rule: put it at the narrowest layer where it's still always loaded when needed.
+CLAUDE.md files are **concatenated additively**, filesystem-root → cwd. For *conflicts*, most-specific wins. Subdir files load **lazily** — only when Claude reads a file in that subdir — so a rule pushed down a level is scoped, not hidden.
 
-| Scope | Path | Who writes | Loads |
-|-------|------|-----------|-------|
-| Managed policy | `/Library/…/ClaudeCode/CLAUDE.md` (macOS) | Org admin | Always, can't exclude |
-| **User (global)** | `~/.claude/CLAUDE.md` | You | Every session, ALL projects |
-| **Project root** | `./CLAUDE.md` | Team (git) | Every session in project — survives `/compact` |
-| **Layer** | `./app/CLAUDE.md`, `./react/CLAUDE.md` | Team (git) | Lazily, when Claude touches a file under it |
-| **Subdir / domain** | `./app/Domain/X/CLAUDE.md`, `./resources/js/routes/CLAUDE.md` | Team (git) | Lazily, when Claude touches a file under it |
-| **Local** | `./CLAUDE.local.md` | You | Every session, gitignored — secrets/env/test-accounts only |
+| Scope | Path | Loads | Persist after `/compact`? |
+|-------|------|-------|---------------------------|
+| Managed policy | `/Library/…/ClaudeCode/CLAUDE.md` (macOS) | Always, can't exclude | N/A |
+| **User (global)** | `~/.claude/CLAUDE.md` | Every session, ALL projects | Always |
+| **Project root** | `./CLAUDE.md` | Every session in project | ✅ YES |
+| **Layer** | `./app/CLAUDE.md`, `./react/CLAUDE.md` | Lazily, when touching file under it | ❌ NO (reloads) |
+| **Subdir / domain** | `./app/Domain/X/CLAUDE.md` | Lazily, when touching file under it | ❌ NO (reloads) |
+| **Local** | `./CLAUDE.local.md` | Every session, gitignored | Always |
+| **Companion** | `./.claude-companions/<shared\|local>/CLAUDE-*.md` | Never (manual pointer only) | Always, but hidden |
 
-Two consequences the routing step depends on:
-- **Nested files do NOT survive `/compact`** — only project-root re-injects. A rule that must always be present belongs at root or global, not in a subdir.
-- **A rule pushed into one subdir is invisible to sibling subdirs.** A cross-cutting token/util/type used across siblings stays at the layer level; only a rule that is both needed there AND useless elsewhere (the seam-test) goes down a level.
+**Routing principle**: Put a rule at the narrowest layer where it's ALWAYS LOADED when needed. Test with: "Must this rule load automatically for code to run correctly?"
 
-A `.claude-companions/<shared|local>/CLAUDE-*.md` sits outside this table on purpose — it never auto-loads, by design (that's what distinguishes it from every row above). But once it exists it's still a CLAUDE.md for capture/routing/density purposes: a new fact CAN belong in an existing companion (not just get routed there when a section splits), and a stale or bloated companion is this skill's concern the same as any row above it, not a file that sits outside review because it isn't in the hierarchy table.
+- **Cross-cutting** (used in siblings under same layer) → stays at the **layer** level
+- **Subdir-only** (seam-test: this symbol/term used 10+ times here, 0-3 elsewhere) → down to **subdir**
+- **Feature-specific, large block** (debuggable gotchas, not startup rules) → `.claude-companions/` file + pointer in parent
 
-⚠️ **Run the seam-test against EVERY real sibling subdirectory, not just the intuitively-obvious one.** A section titled "Multi-Agency" reads as `Domain/*`-owned — but `Domain/*` can be a red herring if the CONTENT is actually authorization/request-scoping code, which concentrates in `Http/Controllers`, `Http/Requests`, `Http/Middleware`, `Policies` instead. Don't eyeball which subdirectory "sounds right" — `grep -rl "<the 3-5 core symbols/terms from the section>" <candidate-dir> | wc -l` against EVERY plausible candidate (not just the one the section name suggests), and let the counts decide. A term used 20× in one subdirectory and 0-3× everywhere else has found its real seam even if that subdirectory wasn't the first guess; a term spread evenly with no directory dominating genuinely has none. This is a live-usage check, not a naming-convention guess — a section can fail the seam-test against the obvious candidate and still pass it against one nobody thought to check.
+**Auto-load survivors**: Only project-root re-persists after `/compact` — rules in layers/subdirs reload. A must-survive rule lives at root or global, never in a subdir.
 
-## 2. The capture filter — does this belong in CLAUDE.md at all?
+**The seam-test** (verify subdir placement): Extract the section's 3-5 core terms and `grep -rl` them across EVERY plausible candidate directory. The directory where they appear 10+ times (others 0-3) is the seam — not which dir "sounds right." A term spread evenly across siblings has no seam and stays at the layer level.
+
+Example: A section titled "Multi-Agency" might feel domain-owned, but authorization code clusters in `Http/Controllers` + `Middleware` + `Policies`, not in `Domain/*`. Let grep decide, not the title.
+
+## 2. The capture filter — does this belong in CLAUDE.md at all? {#capture-filter}
 
 The one test, from Anthropic's own docs: **"Would removing this line cause Claude to make a mistake? If not, cut it."** Bloated files cause Claude to ignore the rules that matter — every dead line dilutes the live ones.
 
@@ -49,43 +54,47 @@ The one test, from Anthropic's own docs: **"Would removing this line cause Claud
 | | Feature-specific patterns → *`tasks/**/current.md`, not CLAUDE.md* |
 | | Secrets/tokens/passwords → *`CLAUDE.local.md`, key NAMES only, never values* |
 
-## 3. Section taxonomy — what sections, in what order
+## 3. Section taxonomy — what sections, in what order {#taxonomy}
 
-Ordered by how load-bearing each is at the top of a session. Commands and boundaries first because they're what a cold-start agent needs before touching anything; deep reference last. Not every file needs every section — a domain file may be just Critical Rules + a schema table.
+Ordered by urgency: commands and boundaries first (a cold-start needs them immediately), gotchas last (debugging-time reads). Not every file needs every section — a domain file may be just Critical Rules + a schema table.
 
-| # | Section | Purpose | Skip when |
-|---|---------|---------|-----------|
-| 1 | `<!--LLM-CONTEXT-->` header | Stack + domain + key-file pointers in a comment block | Never (cheap, high-signal) |
-| 2 | `## Commands {#commands}` | Exact commands Claude can't guess — highest-ROI lines | No non-obvious commands |
-| 3 | `## Architecture {#architecture}` | 3-5 key dirs w/ ✅/⚠️ markers — a code block, not prose | Trivial/flat structure |
-| 4 | `## Critical Rules {#critical}` | Prose by default, `❌ NEVER / ✅ INSTEAD` for value-only — the mistakes that actually recur | No hard constraints yet |
-| 5 | Domain sections (`## Auth`, `## Audit`, …) | Per-subsystem rules + schema tables | — |
-| 6 | `## Gotchas {#gotchas}` | Prose by default, `Symptom | Cause | Fix` for value-only — searchable by error string | No debugged surprises |
-| 7 | Cross-refs (`> 📖 See parent …`) | Point to the layer that owns a shared concept | Standalone file |
+| Section | Purpose | Include by default? |
+|---------|---------|---------------------|
+| `<!--LLM-CONTEXT-->` header | Stack + domain + key-file pointers in comment | Always |
+| `## Commands {#commands}` | Exact commands Claude can't guess (highest-ROI) | ✅ If any non-obvious commands exist |
+| `## Architecture {#architecture}` | 3-5 key dirs w/ ✅/⚠️ markers in a code block | ✅ If the tree is non-trivial |
+| `## Critical Rules {#critical}` | Mistakes that recur: prose reasoning + consequence | ✅ Every file |
+| Domain sections (e.g. `## Auth`, `## Billing`) | Per-subsystem rules + schema tables | Per domain |
+| `## Gotchas {#gotchas}` | Debugging-time reference: Symptom \| Cause \| Fix rows or prose + pointer | ✅ After a gotcha is confirmed (don't invent) |
+| Cross-refs (`> 📖 See parent …`) | Pointer to layer that owns a shared concept | Only where a pointer saves repeating prose |
 
-## 4. Formatting conventions — the house style
+## 4. Formatting conventions — the house style {#conventions}
 
-These are what make the existing files scannable; a created/rewritten file must match them.
+| Convention | Usage |
+|-----------|-------|
+| **Prose** | For a constraint requiring judgment ("reason through it, it depends"). State the mechanism + cost, stop, and let readers recognize their symptom. |
+| **`❌ NEVER / ✅ INSTEAD` tables** | For a bare do/don't with no reasoning. Pair prohibition with alternative. |
+| **`Symptom \| Cause \| Fix` tables** | For a gotcha whose FIX is a lookup (exact error string, command, id). Lead with the error string for greppability. |
+| **Prose + `📖 pointer` combo** | Gotcha mixing judgment + lookup: explain the mechanism in prose, pointer to companion for exact values. |
+| **`{#anchor}` on every `##` heading** | Mandatory. Enables cross-references. Every section heading gets one. |
+| **File path + symbol** | `Invoice.php scopeOverdue()`, never line numbers (they drift). |
+| **Emphasis** | `⚠️` + `IMPORTANT` only for facts whose miss-cost is HIGH, and only while rare. Imperative restating prior reasoning flattens signal; state the consequence instead. |
+| **Code block for structure** | Directory trees and exact commands go in ` ``` ` blocks, not tables or prose. |
+| **`@path/import`** | Loads a file at launch (path relative to importer). Use only for genuinely-always-needed content; no token savings, just DRY. |
+| **No war stories** | State the rule, never its history ("this bit us twice"). The constraint is the deliverable. |
 
-| Convention | Rule |
-|-----------|------|
-| Prose | The form for a judgement-shaped constraint or gotcha ("it depends, reason about it"). State the mechanism and what it costs, then stop — a reader who has the mechanism recognises the symptom on their own. |
-| `❌ NEVER / ✅ INSTEAD` tables | For a bare do/don't constraint with no reasoning worth stating. Pair every prohibition with its alternative. |
-| `Symptom \| Cause \| Fix` tables | For a gotcha whose fix is purely a lookup value (an exact error string, command, id) — lead with the literal error string so it's greppable. A judgement-shaped gotcha mixing both: prose ending in a `📖 <companion> {#anchor}` pointer, exact value at that anchor. |
-| `{#anchor}` on every `##` | Enables `#{anchor}` cross-references between layers. Every section heading gets one. |
-| File path + symbol, never line numbers | `Invoice.php scopeOverdue()`, never `Invoice.php:112` — line numbers drift on every edit above them. |
-| Emphasis sparingly | `⚠️` and `IMPORTANT` mark a fact whose cost of being missed is real, and they work only while they stay rare. An imperative that restates reasoning the reader would reach anyway flattens signal rather than raising it — state the consequence instead. |
-| Code block for structure/commands | Directory trees and command lists go in ``` blocks, not tables or prose. |
-| `@path/import` for launch-time includes | `@README` pulls a file in at launch; path is relative to the importing file. Loads in full every session like inline content — no token savings, only a DRY/reuse win. Use for genuinely-always-needed external content only. |
-| No session storytelling | State the constraint, never its history ("this bit us twice", "a reviewer caught it"). The rule is the deliverable, not the war story. |
+**Gotcha decision tree**: 
+- Fix is a lookup value (error string, command, exact id) → `Symptom | Cause | Fix` table
+- Fix is judgment (reasoning, context-dependent) → prose only
+- Mix of both → prose explaining mechanism, `📖 pointer` to companion for exact values
 
-## 5. Template family
+## 5. Template family {#templates}
 
-Pick by which file you're creating. All share the LLM-CONTEXT header + anchors + ❌/✅ style; they differ in which sections carry weight.
+All share LLM-CONTEXT header + `{#anchor}` on sections + ❌/✅ formatting. They differ in structure and weight.
 
-### Root-router (a multi-repo/monorepo project root)
+### Root-router (multi-repo project root)
 
-Its job is to **route**, not to hold every rule — it points at the layer/domain files and holds only cross-cutting facts (shared data model, roles, money, deploy).
+**Job**: Route to sub-repos, hold only cross-cutting facts (shared data model, roles, deployment).
 
 ```markdown
 # CLAUDE.md
@@ -93,21 +102,18 @@ Its job is to **route**, not to hold every rule — it points at the layer/domai
 ## Repos {#repos}
 | Repo | Purpose | Read When |
 |------|---------|-----------|
-| `api/` | … | … |
+| `api/` | [what it does] | [when to read] |
 
 ## Critical Rules {#critical}
-[judgement-shaped rules as prose stating mechanism and consequence; `❌ NEVER | ✅ INSTEAD` rows only for a bare do/don't with no reasoning to state — see "New signals → Add entry" for the test]
+[Shared constraints: payment rules, roles, deploy chain]
 
-## Data Model {#data-model}
-[shared hierarchy + key tables — the facts every sub-repo needs]
-
-## <cross-cutting sections: roles, deployment, plans…>
-> Sub-project-specific rules live in each sub-repo's CLAUDE.md
+## <Sections: Data Model, Roles, Deployment, Billing>
+> Sub-project-specific rules live in each repo's own CLAUDE.md
 ```
 
 ### Domain-or-layer (a sub-repo, `app/`, or `react/`)
 
-The workhorse file. LLM-CONTEXT (stack + entry points) → Commands → Architecture → Critical Rules → per-subsystem sections → Gotchas. Cross-reference the root for shared concepts (`> Schema: parent CLAUDE.md #{plans}`).
+The workhorse file. Order: LLM-CONTEXT → Commands → Architecture → Critical Rules → per-subsystem sections → Gotchas. Cross-reference the root for shared concepts via `> See parent CLAUDE.md #{anchor}`.
 
 ```markdown
 # CLAUDE.md
@@ -129,53 +135,67 @@ Key files: [3-5 entry points]
 ​```
 
 ## Critical Rules {#critical}
-[judgement-shaped rules as prose stating mechanism and consequence; `❌ NEVER | ✅ INSTEAD` rows only for a bare do/don't with no reasoning to state — see "New signals → Add entry" for the test]
+[Prose: state mechanism + consequence. `❌ NEVER | ✅ INSTEAD` tables only for bare do/don't (no reasoning).]
 
 ## <Domain sections> {#anchor}
-[per-subsystem rules + schema tables]
+[Per-subsystem rules + schema tables]
 
 ## Gotchas {#gotchas}
-[a gotcha whose fix is a judgement call: prose, 2-4 sentences, stating the mechanism and what it costs. A gotcha whose fix is a specific value with no reasoning: `Symptom | Cause | Fix` row — this is a value lookup, prose adds nothing. A gotcha mixing both: prose ending in a `📖 <companion> {#anchor}` pointer, exact value at that anchor]
+[Use the decision tree from §4 — prose for judgment, Symptom|Cause|Fix table for lookups, prose + pointer for mixed.]
 ```
 
-### Subdir (a section split down a level)
+### Subdir (`./app/Domain/X/CLAUDE.md`)
 
-Only the sections that are BOTH needed in this subdir AND useless to its siblings (seam-test). No LLM-CONTEXT header — it inherits the layer's. Usually just one focused table.
+Only the sections that BOTH are needed here AND fail the seam-test elsewhere. No LLM-CONTEXT header (inherits from layer). Usually one focused table or a short schema.
 
 ### Global (`~/.claude/CLAUDE.md`)
 
-Cross-project rules only — environment, tool usage, working style, personal conventions. **Never** project-specific facts. Self-contained: a plugin or another project must not depend on a line here.
+Cross-project rules only: environment, tools, working style, personal conventions. **Never** project-specific facts. Self-contained — no plugin or other project depends on a line here.
 
-## 6. The 200-line budget
+## 6. Routing over-budget content — the three structural levers {#budget}
 
-Official guidance targets **under ~200 lines** per file — adherence measurably drops past it because live rules get lost among dead ones. Treat 200 as the soft cap, 350 as the hard "must act now" line.
+A file exceeding its budget (200 soft, 350 hard) needs **structural fix, not deletion**. Three levers exist; apply in order.
 
-⚠️ **These are the DEFAULTS, not the authority — a file may declare its own budget, which then governs** (detection: `../../_shared/references/declared-budget.md`). A CLAUDE.md whose header records "line budget ~460 (user decision), splitting evaluated and declined" is held to 460 and is not offered the split again. Measure and report either way; only the threshold and the settled decision defer.
+**Prerequisite**: Check whether the file declares its own budget (grep the header for `line budget ~NNN`). A declared budget overrides the default and is the authority — measure against it.
 
-When a create/rewrite would land a file over budget, the fix is **structural, not deletion**: push a coherent block down to a subdir/domain file (Section 1's seam-test), route it to a task-doc index+pointer (below, when the seam-test fails but the content is feature-specific), split a cross-cutting block to a manual companion file (third lever, below), or hand the whole file to `condense-claude-md` for a density pass. Do NOT cram — a file over budget that "needs everything" is a file whose rules want to live at different layers.
+### Lever 1: Push to subdir (if seam-test passes)
 
-⚠️ **"Split by category" names a SHAPE, not a location.** All three levers above exist to fix an over-budget file — check the actual line count against its budget (§6) first. Under budget → in-place `### ` subsection headers, every row stays inline, no new file. Only reach for the third lever when the block is ALSO genuinely low-frequency content, not merely large.
+**Gate**: Do the core terms from this block appear 10+ times in ONE real subdirectory, 0-3 everywhere else?
 
-### Second structural lever: task-doc index + pointer (when the seam-test fails)
+→ YES: Create/extend `<subdir>/CLAUDE.md`, move block, update pointer in parent.
 
-A block that's too big to inline but doesn't map to any single real subdirectory (used across `Domain/Invoice` + `Domain/Tenant` + `Http/Controllers`, say — a horizontal-layer tree's gotchas usually look like this) has no subdirectory to push down to. If the block is about a **documented feature or flow** — not a cross-cutting layer convention — move it to that feature's task doc (`tasks/<domain>/<feature>/current.md`) `## Gotchas` table instead, leaving a one-line `📖 See <file>` pointer row behind. This is confirmed working end-to-end (live-tested, not theoretical): `Explore`/`Plan` run `/read-summary` discovery **unconditionally** on every call (see `agent-setup` D18) — feature-named requests reliably find the task doc, follow its pointer rows, and read the target file's real content.
+→ NO: Go to Lever 2.
 
-| Use this lever when | Don't use it when |
-|---|---|
-| The block is scoped to one feature/flow that has (or plausibly should have) its own `tasks/<domain>/<feature>/current.md` | The block is a general layer/framework convention with no single feature owner (e.g. "Eloquent cast gotchas" — applies to every model, not one feature) |
-| The content is debugging/investigation-shaped (`Symptom \| Cause \| Fix`) — exactly what a task doc's `## Gotchas` table already holds | The content is a write-time convention ("always do X") a fresh session needs BEFORE it starts editing, not while debugging — those still belong inline or in a subdir CLAUDE.md, since `code-reviewer`/`code-simplifier` don't run `/read-summary` on every trivial edit the way `Explore`/`Plan` now do |
-| A real task doc for that feature already exists — extending an existing doc's Gotchas table is safer than inventing a new file for one row | No task doc exists and creating one only to hold this block would be an orphaned, single-purpose doc — in that case a plain standalone reference file plus a pointer still works, but prefer an existing doc when one's available |
+**Example**: Authorization logic concentrated in `Http/Controllers` + `Http/Middleware` + `Http/Policies` (not `Domain/*`). Move block to `app/Http/CLAUDE.md`.
 
-Contrast with §5's "Subdir" template: that lever needs a REAL directory both sides of the split can point at. This lever needs a REAL feature identity — don't invent a task doc slug just to relocate a section; confirm one exists or genuinely should via the same content-based discovery `/read-summary` itself uses (`Glob tasks/**/*.md` + `Grep` the block's vocabulary), never by guessing a folder name.
+### Lever 2: Point to task doc (if the block is feature-scoped)
 
-### Third structural lever: manual companion file (when the block is cross-cutting — no subdir AND no feature owner)
+**Gate**: Is this block about a DOCUMENTED feature/flow with its own `tasks/<domain>/<feature>/current.md`?
 
-The case both levers above reject: a big block (a 100+-row gotchas table) that is a general layer convention — no subdirectory passes the seam-test, no single feature owns it. This is NOT a dead end where the block must stay inline. Split it into `.claude-companions/<shared|local>/CLAUDE-<topic>.md` — one folder at the nearest git-repo root (never a same-directory file), `shared/` (tracked) for a companion supporting a checked-in file, `local/` (gitignored) for one supporting `CLAUDE.local.md` or similar — keeping only the highest-frequency rows inline. For the global `~/.claude/CLAUDE.md`, check whether `~/.claude` is a git repo (`git -C ~/.claude rev-parse --show-toplevel`) rather than assuming — when it's a tracked dotfiles/settings repo, the companion goes **nested** at `~/.claude/.claude-companions/`, since that's the only backed-up path and a sibling `~/.claude-companions/` is unbacked-up. Use the sibling only when `~/.claude` genuinely isn't a repo. ⚠️ A companion does NOT auto-load like a subdir CLAUDE.md — so the `📖` pointer replacing the moved block must earn the open:
+→ YES: Move block to task doc's `## Gotchas` section, leave one-line pointer `📖 See tasks/domain/feature/current.md #{anchor}` in parent.
 
-- Name **concrete trigger symptoms**, never a bare "see `CLAUDE-<topic>.md`" (the "silently unfollowed pointer" failure).
-- If the moved block had **multiple sub-categories**, the pointer must be a **per-category symptom index** — one line per category listing its distinctive symptoms — so a reader matches their bug against the index without opening the file.
-- Existing cross-references to a moved anchor (`OldFile.md #{anchor}`) don't need repointing if the parent's redirect line already indexes that anchor by name — the reader reaches the companion via the parent in one extra hop. Only repoint when the anchor ISN'T named in the redirect index — `grep -rn "<oldfile>. #<subanchor>"` across `tasks/**` + sibling CLAUDE.md to find those.
-- Maintenance rule for the user: when a companion row is later added, add its symptom to the matching index bullet in the main file.
-- First `local/` write in a repo: check `.gitignore` for `.claude-companions/local/`, add if missing.
+→ NO: Go to Lever 3.
 
-`condense-claude-md` Restructuring #7 owns the full procedure — this lever is its write-time twin. Reach for it before concluding a cross-cutting section "just has to stay inline."
+**Why it works**: `Explore`/`Plan` agents run `/read-summary` unconditionally — feature-named requests reliably find the task doc and its pointers.
+
+### Lever 3: Move to companion file (if cross-cutting)
+
+**Gate**: Block is large (100+ rows), cross-layer (no subdir seam), and non-urgent (debugging-time reference, not startup rule).
+
+→ YES: Create `.claude-companions/<shared|local>/CLAUDE-<topic>.md`, move block, replace with **indexed pointer** (not bare `see file`).
+
+**Pointer anatomy** (example):
+```markdown
+📖 See `.claude-companions/shared/CLAUDE-gotcha-index.md` for detailed reference:
+- `error 1054: column not found` → SQL queries
+- `timeout: resource limit` → N+1 queries, bulk insert rows
+- `empty result set` → soft deletes, nullable FK reads
+```
+
+Each line is a **symptom** (greppable, not the file name). Reader matches their bug to a line, opens the file.
+
+**Companion location**: Nearest git-repo root, `shared/` (tracked) or `local/` (gitignored). For global `~/.claude/CLAUDE.md`, confirm `~/.claude` is a repo; if yes, nest at `~/.claude/.claude-companions/shared/` (backed-up); if no, use sibling. ⚠️ Never assume — `git -C ~/.claude rev-parse --show-toplevel` tells you.
+
+**When to add rows later**: If a new row fits the indexed categories, add its symptom to the matching index line in the parent. If it's a new category, add a new index line + create the section in the companion.
+
+**Detection**: All three levers exist to avoid over-budget creep — reach for them BEFORE deciding a block "just has to stay inline."
