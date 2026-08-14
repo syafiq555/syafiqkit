@@ -81,6 +81,14 @@ Inserting a new warning/callout between existing table rows splits one Markdown 
 
 Inserting a step into a numbered list with markers like `6b.` is invalid GFM and renders as a paragraph, terminating the list so following items restart at 1. Renumber the tail instead, then re-check any cross-references at or below insertion.
 
+### Writing a Shell Snippet Into a Skill Body
+
+Invoking a skill with an argument (`/syafiqkit:foo some/path`) makes the harness replace every bare dollar-zero token in that skill's body with the argument text, before the agent reads it. Fenced blocks and inline code spans get no protection, and it reaches a sentence *describing* the token as readily as a command using it. Only dollar-zero is affected; `$1`, `$2`, `$9` and friends pass through intact (verified 2026-08-14 against issue #22, which hit it in `condense-task-doc`).
+
+It fails silently: an `awk` whole-line capture becomes `awk '{s=some/path}'`, which awk accepts as a bare regex, so a size or line-count verdict comes back plausible and wrong rather than erroring. Capture a whole line through a shell variable instead — `grep -n` for line numbers, then `sed -n "${var}p"` to read the text back.
+
+Audit with `grep -rn '[$][0]' skills/ commands/` before landing a new snippet; it should stay at zero hits (that bracketed form matches the same thing without putting a literal token in this file). `references/` files are read on demand rather than rendered as a skill body, so they aren't exposed, but write them the same way anyway.
+
 ### Adding an ADR
 
 New decisions get a topic slug (`D-<kebab-slug>`), not the next chronological integer. See `skills/task-summary/references/templates.md`'s MADR section for the convention and collision-check. Existing `D-N` blocks stay as-is; don't renumber retroactively.

@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.152.0
+
+`/read-summary` rewritten as judgement prose, with four stale facts about the doc conventions corrected. Nothing to regenerate.
+
+- **The skill was describing conventions that no longer hold.** It told you to check a `tasks/shared/` directory that doesn't exist, treated flat `tasks/<domain>/<feature>.md` files as a live shape when none remain, and named a `## Decisions Index` heading no template produces, so a reader would grep for it and find nothing. All four corrected against the skills that actually own those conventions.
+- **Following a `Merged into` stub is still right, and the first pass removed it.** New merges delete the source outright rather than leaving a stub, which made the old wording misleading. But legacy stubs still exist and `merge-task-docs` says to watch for them, so a reader landing on one needs to know to follow it. Restored with the distinction made explicit.
+- **`references/claude-md-tree-walk.md` is retired**, its content folded into the read order where it applies. At 1.2KB the pointer cost more than the content, and this was the second time a rewrite severed the citation and left the file stranded.
+- **`/unhobble-instructions` now checks what its own inlining broke.** Pulling a fact up out of a reference takes the pointer with it, so the file it pointed at ends up cited by nobody while every surviving pointer still resolves — nothing 404s and no diff looks wrong. The quieter version is a citation dropped while the rule's prose stays, leaving a reader told what to do and never routed to the machinery saying how. Both happened to `read-summary` in one pass.
+
+## 1.151.0
+
+`/done`'s infra-only mode now recognises ops scripts as infra, and calls in the simplifier when the infra is a script rather than config.
+
+- **The mode was defined by a list of config formats, so the scripts that operate an environment fell outside it.** CI workflows, compose files, Dockerfiles and nginx config were named; `scripts/deploy-ish.sh`, a promote/rollback script and a safety-gate check were not, even though they fail the same silent way. Read literally, the list routed those sessions to full mode, which spawns a product reviewer against ops tooling that has no user journey and dilutes the one review that matters. The trigger is now the mechanism the list was standing in for — code whose failures are silent and whose blast radius is an environment, with the tell being that nothing in the test suite would fail if the file were wrong. The named formats stay as examples rather than as the boundary.
+- **Skipping the simplifier is now conditional on the infra being declarative.** It remains right for compose and nginx, where there is no logic to DRY. It was wrong for shell: a promote/rollback pair whose two key lists must stay in step is exactly the duplication a simplifier catches, and in the session behind this change those lists had already drifted — 16 keys enabled against 10 disabled, leaving live credentials on a box that reported itself dormant. The reviewer caught it only because it had been prompted about that specific risk.
+
+## 1.150.2
+
+Fixes a silently wrong size verdict in `/condense-task-doc`. Nothing to regenerate, but if a recent condense run told you a doc was over or under budget, the number may have been wrong.
+
+- **Passing an argument to a skill rewrites part of its own instructions.** Invoking any skill as `/skill some/path` makes the harness replace every bare `$`-zero in that skill's body with the path text before the agent reads it. Code fences do not protect it. `/condense-task-doc` measured section sizes with an `awk` that used exactly that token, so the command it ran was not the command on disk, and `awk` accepted the mangled version as a valid pattern rather than erroring. The verdict came back plausible and wrong. Thanks to @munajaf for the report (issue #22), including the diagnosis that the shipped file was fine and the corruption happened on delivery.
+- **The budget check had a second bug that predates the first.** The rule is that a doc's ≤300-line target is measured with `## Next Steps` set aside, since open actionables belong in the index and shouldn't count against it. The old check subtracted everything below that heading instead of the section itself, so any doc with sections after Next Steps was undercounted, one real doc read 66 lines instead of 105. Docs where Next Steps is the last section were measured correctly, so those are the ones you can skip re-checking. Both checks are rewritten and verified against a live doc.
+- **Only `$`-zero is affected.** `$1`, `$2` and the rest survive intact, so `awk -F'|' '{print $2}'` and similar are safe. The mechanic is now written down in the skill-editing reference so it doesn't come back.
+- **`/skill-creator` now tells you to run `/reload-skills` before testing a new skill's trigger.** Skills are registered at session start, so invoking one you just wrote returns `Unknown skill` however correct the file is. The error names the skill rather than the registry, which reads as a bad `name:` field and sends you editing a file that was already fine.
+
+## 1.150.1
+
+Names the mechanically correct way to wait for a subagent, in `explore-delegation.md` and `/done`'s citing line.
+
+- **"Never poll" said what not to do without saying what to do instead, and the obvious wrong answer is blocked by the harness.** A session following `/done`'s "waiting costs nothing" reached for `sleep 45` in Bash and got `Blocked: sleep 45 ... use Monitor with an until-loop`; neither `sleep`, `Monitor` nor `until-loop` appeared anywhere in `done/SKILL.md`. Waiting is not a call you make — you end the turn and the completion notification re-invokes you — and `Monitor` is for external state the harness can't track (a CI run, a remote queue), never for an agent it is already tracking.
+- **`/done`'s pointer to that reference read as a finished instruction**, so a reader who felt complete had no question left to send them to the file that answers it. The citing line now ends on the open half (waiting means ending the turn, a `sleep` is blocked) rather than on "work on something disjoint, or don't work".
+
 ## 1.150.0
 
 Nothing to regenerate. Changes how `/agent-setup` verifies agent files, and fixes two agent templates.

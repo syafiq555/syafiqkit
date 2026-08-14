@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: Reference (ongoing) — 40 committed decisions across 4 themed decision files
+Status: Reference (ongoing) — 42 committed decisions across 4 themed decision files
 Domain: plugin-maintenance/doc-condensation
 Gotchas (critical — full list in ## Critical Gotchas below):
   - Confirming a passage is gone ≠ it should be gone; apply target skill's fact-vs-constraint bar
@@ -8,7 +8,7 @@ Related:
   - ../agent-architecture/current.md (generated agents inherit conventions + sibling skill invocation)
   - ../madr-structure/current.md (the MADR format itself)
   - ../external-guidance/current.md (grading outside guidance against plugin measurements)
-Last updated: 2026-08-12
+Last updated: 2026-08-14 — arrival-rate ratio measured at 1.33:1 (down from 2.6:1); infra-only marker trimmed to 2
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
@@ -18,9 +18,9 @@ Last updated: 2026-08-12
 **Where we are**: The plugin's "one fact, one home" doctrine implemented across task docs, CLAUDE.md, and skills. Two levers: **density** (byte-count bloat, `condense-claude-md`/`condense-task-doc`) and **overconstraint** (rigid rules, `unhobble-instructions`). Both shipped; each real run found verifier defects.
 
 **Blockers (open)**:
-1. Automated version-file drift gate (plugin.json/marketplace.json) — 5th recurrence
+1. Automated version-file drift gate (plugin.json/marketplace.json) — 8th recurrence, twice on 2026-08-14 alone
 2. Automated ADR-id uniqueness gate — 1 real collision caught 2026-08-02
-3. Watch arrival-rate gate impact (add/remove ratio, target 1:1 vs current 2.6:1)
+3. Watch arrival-rate gate impact — first measurement 1.33:1, down from the 2.6:1 it was built to move
 
 **Next actions**: See Task Status 4-9 and Next Steps.
 
@@ -42,12 +42,14 @@ Decisions about fighting duplication and bloat across task docs, CLAUDE.md files
 | 2b | Skill-file density (D23, D50, D54) — D23's hand-condense regressed; D50 replaced it with extraction + an arrival-rate gate; D54 closed the gate's open half (Gate B) and scoped `references/*.md` out of it | ✅ (watch the ratio) |
 | 2c | Overconstraint as a distinct axis from density — `skills/unhobble-instructions/SKILL.md`, applied across `update-plugin`, `done`, `read-summary`, `update-claude-docs`, `task-summary`, `condense-task-doc`, `merge-task-docs`, `sweep-doc-overlaps` (2026-08-01) and CLAUDE.md itself (2026-08-09, 33.4KB→17.6KB + `_shared/references/editing-skills-checklist.md`) | ✅ shipped — each real run has found a defect in the skill or its verifier: D64 (softened a deliberately absolutist rule), D-limitation-reads-as-hedging (deleted stated limitations as hedging), D-dropped-is-not-the-same-as-correctly-dropped (the verifier ratified a real drop as correct trimming) |
 | 3 | Duplication detection + leak-guard integrity (D37, D40, D12) | ✅ |
-| 4 | Version-drift automated gate (plugin.json/marketplace.json) | ⏳ Pending — 6th recurrence |
+| 4 | Version-drift automated gate (plugin.json/marketplace.json) | ⏳ Pending — 8th recurrence |
 | 5 | Companion file scope gap — `condense-claude-md`/`update-claude-docs` never treated a pre-existing companion as a condense target itself (D65) | ✅ |
 | 6 | Sentence-length blind spot — `condense-task-doc`'s aggregate line/byte target passed with individual sentences still 500+ chars (D67) | ✅ |
 | 7 | The condense rule had no enforcer — `/done` Step 4 now measures the doc set it just wrote (issue #19, D-done-owes-the-condense); `condense-task-doc`'s ownership guard scoped to uncommitted state (D-guard-scoped-to-what-it-can-see); the doc-set measurement fixed to survive an unsplit doc (D-unmatched-glob-measures-zero) | ✅ |
 | 8 | Verification against a moving target + a revert argued from grep/byte-delta alone — 4th consecutive real run to find a defect in the verification tooling itself (D-dropped-is-not-the-same-as-correctly-dropped extended, D-torn-page-verification) | ✅ |
 | 9 | Routing/seam-test asking WHERE a fact was found instead of WHAT it's about — buried two Playwright API facts in one repo's CLAUDE.md (D-route-by-subject-not-discovery); paired with a new `Invalidated` classification for a rule a session's own work disproved | ✅ |
+| 10 | A skill's argument rewrites bare dollar-zero inside its own shell snippets, so `condense-task-doc`'s size verdict came from a command it never contained (consumer issue #22, D-skill-args-eat-dollar-zero) | ✅ |
+| 11 | Inlining a reference severs the citation graph at both ends — an orphaned file and a dropped pointer to shared machinery, neither visible to a resolve-check, a diff, or a self-report (D-inlining-breaks-the-citation-graph) | ✅ |
 
 ---
 
@@ -57,9 +59,9 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 | File | Read if you're asking |
 |------|------------------------|
-| [decisions/bloat-generator-fixes.md](decisions/bloat-generator-fixes.md) | *Where does the plugin fix doc bloat — at the generator (task-summary rules) or by hand-trimming? What structural levers exist for over-budget CLAUDE.md? What if the file declares its own budget, or is far UNDER it? How does the `/commit` staleness gate avoid lexical false positives? Can an aggregate line/byte target pass while individual sentences stay bloated? Who enforces the condense once a doc is over budget, when does an ownership guard block work it was never meant to, and why does a doc-set measurement read 0?* (D3, D6, D17, D18, D19, D20, D44, D51, D57, D67, D-done-owes-the-condense, D-guard-scoped-to-what-it-can-see, D-unmatched-glob-measures-zero) |
+| [decisions/bloat-generator-fixes.md](decisions/bloat-generator-fixes.md) | *Where does the plugin fix doc bloat — at the generator (task-summary rules) or by hand-trimming? What structural levers exist for over-budget CLAUDE.md? What if the file declares its own budget, or is far UNDER it? How does the `/commit` staleness gate avoid lexical false positives? Can an aggregate line/byte target pass while individual sentences stay bloated? Who enforces the condense once a doc is over budget, when does an ownership guard block work it was never meant to, why does a doc-set measurement read 0, and why can a shell snippet in a skill body not be trusted to run as written?* (D3, D6, D17, D18, D19, D20, D44, D51, D57, D67, D-done-owes-the-condense, D-guard-scoped-to-what-it-can-see, D-unmatched-glob-measures-zero, D-skill-args-eat-dollar-zero) |
 | [decisions/structural-mechanics.md](decisions/structural-mechanics.md) | *When does a doc/CLAUDE.md/skill need a structural split (byte thresholds, companion files, plan-doc typing) instead of denser prose? Why does re-condensing the same skill keep failing? What checkpoint catches a rule that arrives with no defect, what size policy applies to `references/*.md`, and why does a stale pointer pass the same grep a missing rule fails? What stays in a split index versus routing down to `decisions/`?* (D22, D23, D26, D27, D33, D45, D46, D50, D54, D62, D69) |
-| [decisions/verification-rigor.md](decisions/verification-rigor.md) | *When should a CLAUDE.md entry be prose vs. a table row, once a companion file exists is it ever a condense target itself, may condensation drafting be delegated to an agent, which kind of fact does an unhobbling pass mistake for hedging, how does a verifier decide whether a confirmed drop was correct, what happens when two skills mandate opposite shapes for the same doc, when is a file too unstable to verify, and does a fact route by where it was found or what it's about?* (D63, D64, D65, D66, D68, D-haiku-condense-delegation, D-mandate-vs-judgement, D-limitation-reads-as-hedging, D-dropped-is-not-the-same-as-correctly-dropped, D-torn-page-verification, D-route-by-subject-not-discovery) |
+| [decisions/verification-rigor.md](decisions/verification-rigor.md) | *When should a CLAUDE.md entry be prose vs. a table row, once a companion file exists is it ever a condense target itself, may condensation drafting be delegated to an agent, which kind of fact does an unhobbling pass mistake for hedging, how does a verifier decide whether a confirmed drop was correct, what happens when two skills mandate opposite shapes for the same doc, when is a file too unstable to verify, does a fact route by where it was found or what it's about, and what breaks when a pass inlines a reference into its citing file?* (D63, D64, D65, D66, D68, D-haiku-condense-delegation, D-mandate-vs-judgement, D-limitation-reads-as-hedging, D-dropped-is-not-the-same-as-correctly-dropped, D-torn-page-verification, D-route-by-subject-not-discovery, D-inlining-breaks-the-citation-graph) |
 | [decisions/duplication-and-integrity.md](decisions/duplication-and-integrity.md) | *How does the plugin catch duplicated facts (within/across docs) and verify a fix actually landed everywhere?* (D37, D40, D12, demoted D2/D5/D7/D11) |
 
 ---
@@ -67,7 +69,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 ## Next Steps
 
 **Automated gates**
-- [ ] `plugin.json`/`marketplace.json` version drift — 6th occurrence (D26 2026-07-15, then 2026-07-17, 2026-07-22, 2026-08-01, 2026-08-11, 2026-08-12). The 2026-08-12 instance was found by a session reading both files for an unrelated reason, not by any gate or agent — the two prior catches moved earlier each time but nothing yet catches it by construction. A bump to one file without the other passes silently; a pre-commit check or single-source-of-truth version file is the open fix.
+- [ ] `plugin.json`/`marketplace.json` version drift — 8th occurrence (D26 2026-07-15, then 2026-07-17, 2026-07-22, 2026-08-01, 2026-08-11, 2026-08-12, and twice on 2026-08-14). The 2026-08-14 pair is the strongest argument yet for a gate: the second was caused by a concurrent session bumping `plugin.json` while `marketplace.json` sat at the prior number, so the drift is a function of two sessions overlapping rather than one session forgetting, and no amount of remembering closes it. The last three were all found by a session reading the files for an unrelated reason, not by any gate or agent — the earlier catches moved earlier each time but nothing yet catches it by construction. A bump to one file without the other passes silently; a pre-commit check or single-source-of-truth version file is the open fix.
 - [ ] ADR-id uniqueness has no post-write gate — the same "silently passes" shape as the row above. **2026-08-02: this collided for real** — two unrelated decisions both minted `### D66` (fixed this session, renumbered to D67), the exact failure this item predicted before the gate existed. Mechanism + fix owned by [../agent-architecture/current.md](../agent-architecture/current.md) Next Steps.
 
 **Extraction candidate (flagged 2026-08-11, deferral re-confirmed 2026-08-12 — growing)**
@@ -77,11 +79,18 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 - [x] That decision's **Rejected** section contradicted its own **Consequences** on whether rewording a closed pointer works. Execution settled it — six citations reworded open, one 8-line reference retired — and the Rejected bullet is now narrowed rather than deleted: the original objection holds for a reword that leaves the line terminating, and inline-or-cut is the lever only when the reference is too small to justify the pointer at all. ✅
 - [ ] The unreachability audit was run against *pointer lines*, never against whether a fact reached the **moment** a skill acts on it. Two rounds of review caught the same defect at finer grain: the inlined leaked-tag check reached 1 of 5 files, then reached all 5 files but sat in "Hard rules" while three skills walk a separate numbered verify step. Both fixed. Worth a sweep asking the same question of the other 14 references — a fact present in a file it can't fire in is the same defect as a pointer nobody opens.
 
+**Size-measurement drift across skills (D-skill-args-eat-dollar-zero, 2026-08-14)**
+- [ ] `task-summary/SKILL.md`'s "Size budget" section measures `current.md` by bytes (`wc -c`, "not line count"), while `condense-task-doc` step 7 — the file this repo designates as sole owner of size policy — measures lines with the `## Next Steps` section subtracted. `claude-md-pruner` measures the set with `wc -lc` and names no exemption. Three gates, three units, only discoverable by reading all three. The owning skill should hold the formula and the others point at it; left as-is this session because the fix touches files outside the issue #22 scope.
+
+**Marker arrival in `done/SKILL.md` (observed 2026-08-14, actioned same day)**
+- [x] The 1.151.0 infra-only change took `**Tell:**` markers from 1 to 3; the marginal one is cut, leaving 2. Kept: "nothing in the test suite would fail if the file were wrong" — the operative test the mode rests on once its format enumeration was replaced by a mechanism, so cutting it would leave the mode undefined. Cut: "the diff contains a loop, a branch, or two lists that mirror each other" — its own bolded lead already says *imperative rather than declarative* and the sentence body already names the promote/rollback pair, so the marker restated a case the prose had made and turned judgement into a checklist. Judged by the session that wrote it, which is the right owner; the observing session correctly left it rather than trimming another session's uncommitted work. The bar `haiku`/`unhobble-instructions` state holds: a marker earns its place by naming a checkable fact the prose does NOT already carry — restatement is the disqualifier, not the marker itself, since a previous session wrongly trimmed one that was doing real work.
+
 **Reciprocal note (D65)**
 - [ ] `unhobble-instructions/SKILL.md` line 53's unhobble-vs-condense boundary is real but generic — it doesn't name the specific trap that caused D65 (sweeping every file under `.claude-companions/` for overconstraint feels exhaustive enough to skip condense's own pass, which is a different check). Add a line naming this specific companion-plurality shape so the same reasoning error doesn't recur in this direction next time.
 
 **Arrival-rate gate — watch, now that both halves are closed (D54)**
-- [ ] Re-measure the add/remove ratio after a few sessions run under Gate B — `git log --since=... --numstat -- 'skills/**/*.md'`. The gate's purpose is moving 2.6:1 toward 1:1; a one-time byte drop is not the success criterion. If the ratio has not moved, the remaining leak is sessions that never run `/done` at all — an accepted limit to state here rather than re-engineer.
+- [x] **Measured 2026-08-14: 1.33:1** (`+1637 / -1229` since Gate B landed on 2026-08-12), down from 2.6:1. The gate is working — sessions are now retiring roughly three lines for every four added, against one for every two-and-a-half before. Re-measure with `git log --since=<gate-date> --numstat -- 'skills/**/*.md'` after another stretch; a one-time byte drop is still not the success criterion, so the thing to watch is whether the ratio holds rather than whether any single session shrank the corpus.
+- [ ] The remaining leak is the one this measurement cannot see: sessions that never run `/done` at all, whose additions land with no gate. Stated here as an accepted limit rather than re-engineered — a gate that only fires inside one skill cannot cover work that skips it.
 - [ ] `condense-claude-md/references/structural-splits.md` is 6,515 bytes against the new ~6KB prose-reference ceiling — prose, not a catalog (6 table rows across 3 prose sections). First live edge case of that rule. Check it on the next density pass through `condense-claude-md`; do not split a 53-line file, which would make it harder to use.
 
 **Agent templates vs the Bootstrap pattern (deferred from v1.131.0's plan, Phase 4)**
@@ -112,7 +121,7 @@ Defensive traps organized by mechanism. Full context: open the cited decision fi
 | Plan docs are NOT `decisions/` candidates | Pre-existing schemas/specs are siblings, not ADRs; a MADR block needs its own condensation rule shipped with it | D27 (structural-mechanics.md) |
 | One companion per topic, never a grab-bag | Splitting "Miscellaneous" relocates ten unrelated items, recreating bloat under a new path | D45 (structural-mechanics.md) |
 | A rule stated in N files drifts in the ones that paraphrase it | Fixing a cross-file contradiction by grepping its phrase misses every site expressing the same idea in other words; and a site that agrees textually can still sit where the session never reads it | D69 (structural-mechanics.md) |
-| Version drift recurs and passes silently | `plugin.json` vs `marketplace.json` diverge; 5th recurrence (see Next Steps) | D26 |
+| Version drift recurs and passes silently | `plugin.json` vs `marketplace.json` diverge; 8th recurrence, and concurrent sessions cause it as readily as forgetful ones (see Next Steps) | D26 |
 | ADR ids collide across sibling task docs | One sequence shared across all three `*/decisions/*.md` DOMAINS; test with `uniq -d` AFTER writing | — (agent-architecture) |
 | Zero-result grep needs a must-hit control | A false-0 on a true fact is as bad as a false-positive on a false one | — (agent-architecture) |
 | Format test per signal type | Prose for "it depends"; table row for exact value; prose+pointer for mixed — applies to Create-mode templates too | D63 (verification-rigor.md) |
@@ -120,7 +129,13 @@ Defensive traps organized by mechanism. Full context: open the cited decision fi
 
 ---
 
-## Last Session (2026-08-12)
+## Last Session (2026-08-14)
+
+- **The arrival-rate gate has data for the first time: 1.33:1**, down from the 2.6:1 it was built to move. Measured off `git log --numstat` since Gate B landed two days earlier. Recorded under Next Steps rather than left as a pending question, since the session that could answer it was the one asking.
+- Trimmed the marginal `**Tell:**` marker the prior session flagged in `done/SKILL.md`, closing that item. Worth noting the hand-off worked as intended: the observing session declined to edit another session's uncommitted file and left the judgement to its owner, who agreed and cut it.
+- The 1.151.0 infra-only change that prompted that flag came from a live case — an infra diff whose files (two ops shell scripts, a PHP guard) the mode's format enumeration did not name. The enumeration was replaced with the mechanism it stood for, and "skip the simplifier" became conditional on the infra being declarative, after a promote/rollback pair in that same session had already drifted 16 keys against 10.
+
+## Prior Session (2026-08-12)
 
 - `/done` review of commit dd51665 (routing heuristic ported into `update-claude-docs` §2a/§2b + `unhobble-instructions`): fixed 2 stale line-number cross-references (`unhobble-instructions/SKILL.md` — self-citing "line 28" when the target bullet is at line 30) and one garbled table cell (`update-claude-docs/SKILL.md` mismatched quotes).
 - Captured a new CLAUDE.md authoring rule: cite named headings/bullets internally, never raw line numbers (drift-prone).

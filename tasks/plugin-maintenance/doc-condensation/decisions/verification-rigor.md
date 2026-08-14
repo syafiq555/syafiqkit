@@ -221,3 +221,18 @@ Chosen: both files gained a check that runs BEFORE the existing routing/seam-tes
 - `update-claude-docs`'s "Match, but this session's work made the rule FALSE" classification (Invalidated row, same 1.140.12 change) is a sibling fix to the same Step-1/Step-2 classification table — New/Violation/Misplaced all assumed an existing matched rule was still correct; a rule a session's own work just disproved had nowhere to go and read as already-covered.
 
 **Status**: committed · **Reversible**: yes
+
+### D-inlining-breaks-the-citation-graph — Absorbing a Reference Severs Both Ends and Nothing Checks Either — committed — 2026-08-14
+
+**Problem**
+An unhobbling pass on `read-summary` inlined `references/claude-md-tree-walk.md` into the read order and dropped its pointer, leaving the file cited by nothing — the second time that same citation had been severed by a rewrite (first restored under 0116e70). Separately the same pass dropped the `decision-first-output.md` citation while keeping the rule's prose, so a reader is told to state the decision and never routed to the file holding the one-versus-several shapes and the test for what counts as a decision at all. Neither is visible to any existing check: every surviving pointer still resolves, no heading 404s, the diff shows a plausible rewrite, and the inlined prose reads finished — which is `D-pointer-needs-a-trigger` inverted, since the closed-reading line has no pointer left to follow.
+
+**Decision**
+After any pass that inlines content, ask which files this one no longer cites and which absorbed facts had machinery behind them. A reference that ends up cited by nothing is either content to fold in and delete, or a pointer to restore; leaving it is what produced the same severed citation twice. Captured in the plugin's `CLAUDE.md` Authoring Checklist rather than in `unhobble-instructions`, since it applies to any inlining pass — `condense-claude-md` and hand edits included.
+
+**Consequences**
+- `claude-md-tree-walk.md` retired, its content folded into Read Order step 3 where the `rg -r`/`--replace` trap and the sibling-repo caveat now sit at the point a reader runs the search.
+- Four other non-derivable facts had to be patched back into the same file by hand (the `ListAgents` guard, `grep -rn` over `rg`, and the two above). A structural pass optimises for preservation of what it keeps and is explicitly not a correctness review, so pairing it with a fact-check of the file's claims about sibling skills is what caught the four stale conventions it would otherwise have preserved faithfully.
+- Found by the product reviewer alone. Code review verified pointers resolve (true — none pointed at the orphan) and the simplifier only reads its own slice, so an uncited file and a missing citation are both structurally invisible to them.
+
+**Status**: committed · **Reversible**: yes

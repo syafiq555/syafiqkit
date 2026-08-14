@@ -268,3 +268,18 @@ Use `find <doc-dir> -name '*.md' | xargs cat | wc -lc` (works split and unsplit;
 - The defect was in the gate written to close D-done-owes-the-condense — same permissive-default shape, one layer down.
 
 **Status**: committed · **Reversible**: yes
+
+### D-skill-args-eat-dollar-zero — A Skill's Own Snippets Are Rewritten by Its Argument — committed — 2026-08-14
+
+**Problem**
+Invoking a skill with an argument makes the harness replace every bare dollar-zero in that skill's body with the argument text before the agent reads it, code fences included. `condense-task-doc`'s per-section measure used exactly that token, so `awk` received a bare regex and returned a plausible wrong count instead of erroring. Reported by a consumer as issue #22; reproduced here with a throwaway skill, which also established that `$1`/`$2`/`$9` survive intact, so only dollar-zero is exposed.
+
+**Decision**
+Read a line back through a shell variable (`grep -n` for the number, `sed -n "${var}p"` for the text) rather than an awk whole-line field. The mechanic is stated in `editing-skills-checklist.md` and restated inline in `condense-task-doc`'s Core Facts, since a reference nothing routes through at the moment of writing would not have been read.
+
+**Consequences**
+- The budget check this replaced had been silently lost by an earlier unhobbling rewrite, leaving prose with no command behind it. Restoring it exposed a second defect: the original excluded everything below the `## Next Steps` heading rather than the section, so any doc with sections after it was undercounted — this doc's own index read 66 instead of 105.
+- A snippet restored faithfully from a bug report or an older commit carries whatever bug it already had. The report proves the command ran, never that it was right; run it against a real doc and check the output against a manual read.
+- `task-summary/SKILL.md`'s size gate still states bytes (`wc -c`) where step 7 now measures lines with a section subtracted. Left as-is, tracked in Next Steps.
+
+**Status**: committed · **Reversible**: yes

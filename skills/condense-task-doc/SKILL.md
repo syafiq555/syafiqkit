@@ -45,6 +45,7 @@ The distinction is whether the material survives the underlying test. Apply the 
 - **Strip tool-output wrapper artifacts.** A `Read` result wraps in `<content>` tags; a full-file rewrite can carry them in as a literal trailing line. After writing: `tail -c 40 <file>` to confirm the last line is real content.
 - **Preserve LLM-CONTEXT block.** Update it to match condensed content, keep all fields. The `Last updated` field states date + one-line summary of what changed — not environment status (that lives only in Quick Start).
 - **Conserve content, not form.** A table's shape is a means. Collapse columns or a table into prose if it reads better. What must survive: any Cause cell carrying greppable specifics (exception class, exact expression, `See <Class>` pointer). Renaming columns you're keeping breaks positional checks and changes nothing a reader sees.
+- **Editing a shell snippet below? A bare dollar-zero cannot survive here.** This skill is invoked with a path argument, and the harness replaces that token anywhere in this file with the path text before you read it — code fences included — so an `awk` whole-line capture silently becomes a bare regex and the size verdict comes back plausible and wrong. Read a line back through a shell variable (`grep -n` for the number, `sed -n "${var}p"` for the text) instead. `$1`, `$2` and friends are unaffected. 📖 `../_shared/references/editing-skills-checklist.md`'s "Writing a Shell Snippet Into a Skill Body" for the audit command and how it applies to other skills.
 
 **Execution flow:**
 
@@ -53,7 +54,16 @@ The distinction is whether the material survives the underlying test. Apply the 
 2. **Check bytes first to decide approach.** Line count lies (a MADR restructure grows lines while shrinking bytes). Run `git show HEAD:<path> | wc -c` vs `wc -c <path>` — valid only if the doc was CLEAN at session start. Dirty → capture `wc -c` before your first write, or use `git show :<path>` (staged). (📖 `../_shared/references/two-tier-condense.md`).
    - **Bytes flat or lower:** Restructure, not bloat. Report both deltas and stop.
    - **Bytes grew from new ADRs, >300 lines:** Split instead of condense. Index keeps Quick Start, cross-cutting operational tables, and routing. Theme detail moves to `decisions/*.md`. (📖 `task-summary/references/decision-splits.md`'s "Splitting a whole-doc MADR further".)
-   - **Already split, INDEX still oversized:** Measure per section: `awk '/^## /{if(s)print c, s; s=$0; c=0; next} {c++} END{if(s)print c, s}' <file>`. Route each row to its owning theme file (its own "see ADR-N" column usually names it). Rows belonging to no theme (env, fixtures) get a descriptively named sibling, not `bugs.md`/`misc.md`.
+   - **Already split, INDEX still oversized:** Measure per section, longest first, to see which one drives the overage:
+
+     ```bash
+     grep -n '^## ' <file> | cut -d: -f1 | { total=$(wc -l < <file>); prev=""; while read -r ln; do
+       [ -n "$prev" ] && echo "$((ln - prev - 1)) $(sed -n "${prev}p" <file>)"
+       prev=$ln
+     done; [ -n "$prev" ] && echo "$((total - prev)) $(sed -n "${prev}p" <file>)"; }
+     ```
+
+     Route each row to its owning theme file (its own "see ADR-N" column usually names it). Rows belonging to no theme (env, fixtures) get a descriptively named sibling, not `bugs.md`/`misc.md`. A `##`-prefixed line inside a fenced block counts as a heading here, so a doc full of shell examples reads slightly long.
    - **Bytes grew from accumulated cruft:** Condense and continue.
 
 3. **Find what to delete:** Identify `## Investigation` or narrative-only sections (primary bloat sources). Scan for duplication across the whole set with `grep -rl` on 2–3 critical phrases — a per-file pass is blind to cross-file cases. Within a file: phrases in >2 sections, or Bugs Fixed rows whose bug ID also appears in Critical Gotchas. Across files: Bugs Fixed rows explained fully in the index *and* fully in their owning `decisions/*.md` — collapse the index side to a pointer.
@@ -64,7 +74,19 @@ The distinction is whether the material survives the underlying test. Apply the 
 
 6. **After all writes land, run the duplication check again** (`grep -rl` from step 3). Section-by-section editing can reintroduce the same fact across files. The per-file diff is blind by construction to that case; only a set-wide grep catches it. Confirm each file's last line is real content (`tail -c 40 <file>`).
 
-7. **Target: ≤300 lines** for an indexed doc with full bug history, measured on a split index with `## Next Steps` subtracted. A doc over budget by live backlog alone has passed; report it with the backlog's size. Being under budget doesn't mean skipping step 4. Check sentence length directly: `awk '{print length, NR}' <file> | sort -rn | head -15`. Tighten paragraphs running 500+ characters of stacked parentheticals. Bytes-per-line >120–150, or sections >4KB each (Files, Task Status, Bugs Fixed), signal a second pass.
+7. **Target: ≤300 lines** for an indexed doc with full bug history, measured on a split index with the `## Next Steps` section subtracted — open actionables stay in the index and don't count against its budget:
+
+   ```bash
+   total=$(wc -l < <file>)
+   ns=$(grep -n '^## Next Steps' <file> | head -1 | cut -d: -f1)
+   [ -z "$ns" ] && echo "$total" || {
+     nxt=$(grep -n '^## ' <file> | cut -d: -f1 | while read -r n; do [ "$n" -gt "$ns" ] && { echo "$n"; break; }; done)
+     [ -z "$nxt" ] && nxt=$((total + 1))
+     echo $(( total - (nxt - ns) ))
+   }
+   ```
+
+   This subtracts the span of that one section, so sections after it still count — Next Steps is often mid-file, not last. A doc over budget by live backlog alone has passed; report it with the backlog's size rather than routing actionables out to buy lines. Being under budget doesn't mean skipping step 4. Check sentence length directly: `awk '{print length, NR}' <file> | sort -rn | head -15`. Tighten paragraphs running 500+ characters of stacked parentheticals. Bytes-per-line >120–150, or sections >4KB each (Files, Task Status, Bugs Fixed), signal a second pass.
    - **Still >300 lines after condensing, excess is MADR blocks:** Split Key Technical Decisions into `decisions/<theme>.md` (📖 `task-summary/references/templates.md`). Report both the condensed delta and the split.
 
 8. **Read `task-summary/references/templates.md`** for canonical section headings, table column names, and field order.

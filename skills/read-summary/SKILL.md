@@ -5,23 +5,19 @@ description: Read task summary context and project instructions before answering
 
 # Read Summary
 
-Task docs at `tasks/<domain>/<feature>/current.md` carry decisions and gotchas that aren't derivable from the code alone. Reading them before investigating or implementing prevents confident-but-wrong answers grounded in incomplete information.
+Task docs carry decisions and gotchas that aren't derivable from the code alone. Reading them before investigating or implementing prevents confident-but-wrong answers grounded in incomplete information.
 
 When scope changes — a new domain enters mid-conversation, a second repo touches the question, or work spans multiple files — reread the docs relevant to that new scope before proceeding. The docs you loaded at session start are scoped to their domain; a domain shift needs its own discovery.
 
-Before writing to a doc, check for concurrent sessions via `ListAgents` — another session may be editing the same `current.md`, and discovering that costs little. `../_shared/references/cross-session-messaging.md` covers what a session's presence does and doesn't mean.
-
-**Path Convention**: `tasks/<domain>/<feature>/current.md` (examples: `tasks/payment/gateway/current.md`, `tasks/tenant/rebate/current.md`)
+Before writing to a doc, one `ListAgents` call shows whether another session is live and possibly editing the same `current.md` — though presence alone doesn't say which checkout they're in. `../_shared/references/cross-session-messaging.md` covers what a peer's presence does and doesn't tell you.
 
 ---
 
 ## Finding the Right Doc {#finding-docs}
 
-Folder names are domain-scoped and rarely match how a user phrases a request — `payout` might own "refund" work, `upload-redesign` might own "QC delete child question." Discover by content, using the Explore agent to search doc bodies and headers (including synonyms) across `tasks/`, `_archive/`, and flat `tasks/<domain>/<feature>.md` files.
+Folder names are domain-scoped and rarely match how a user phrases a request — `payout` might own "refund" work, `upload-redesign` might own "QC delete child question." Discover by content using the Explore agent to search doc bodies and headers across `tasks/`. The agent's report delivers raw hits only — file paths and matched lines — never a ranked judgment. Your job is the judgment: skim the top hits until you're confident you've found the right topic, then read the full doc.
 
-Once that agent is dispatched, don't re-read or re-grep the same files inline while it runs — that pays for the same facts twice and the agent's own report lands later and longer anyway. The pull to re-read feels like making progress; it isn't, and the tell is that your calls cover the scope you just assigned rather than that they feel redundant. Wait for the completion notification, then verify the report's claims against the source — that check is what shadowing destroys, since a fact you derived in parallel reads as corroboration when the report restates it while confirming nothing.
-
-Skim the top hits (header + title + overview) until you're confident you've found the right doc — surface-level similarity often masks unrelated subsystems. Follow redirects (`Merged into`, `Supersedes`, `> 📖` pointers) to the live doc, and treat hub docs (roadmap, `shared/`, `*-architecture`) as routers, not endpoints.
+The mechanical parts of discovery — grep setup, search retries, recursion — run in the agent's context and stay there. This split (gathering vs. judgment) is what makes delegating safe, and it only works if both halves stay separate; see the Agents section below for what to do while it runs.
 
 Once a doc lands, restate the user's claim and confirm the doc actually addresses that symptom, not a nearby topic mentioned in passing. An empty search result is usually a search error (bad flag, typo, gitignored dir), not a missing doc — run a control query like `grep -rl "current.md" tasks/ | head -1` to verify the search mechanism works before concluding there's no doc.
 
@@ -31,71 +27,74 @@ When a claim shifts mid-conversation, start a fresh discovery pass rather than p
 
 ## Read Order {#read-order}
 
-**1. Resolve and read the current.md**
+**1. The task doc**
 
-Start with the task doc, following any `Merged into`/`Supersedes` redirects to the live version.
+Start with the `current.md` file for the domain at hand. If a doc is explicitly marked as redirecting to another — `Merged into`, `Supersedes`, or a `📖` pointer at the top — follow it to the live doc. A `Merged into` stub is a legacy artifact (new merges delete the source outright rather than leaving one), so following it and mentioning it wants cleanup are both right.
 
 **2. Decisions and related docs**
 
-A `## Decisions Index` section is a routing table, not content — read the specific `decisions/<theme>.md` file(s) matching your question. Decision trees nest multiple levels; when you land on a file with only a Quick Start + `## Sub-Files` table, descend further to find actual ADR content.
+A task doc often includes a routing section pointing to decision files (usually under `decisions/`). When you land on a file that's pure routing — headers, quick-start, and pointers to sub-files — follow those pointers to the actual decisions. Read the decision files matching your question.
 
-Any `📖 <file>` pointer points to external facts — read those. Companion files don't appear in recursive grepping, so verify with `ls`.
+Any `📖 <file>` pointer in the doc points to external content — read those. Companion files don't auto-appear in grepped results, so verify their paths with `ls`.
 
-Read every doc in `Related:` — audience-split docs describe the same subsystem from different angles and fill gaps one angle alone misses. Check `tasks/shared/*.md` too, even if `Related:` doesn't name it.
+Read docs named in a `Related:` section — they describe the same subsystem from different angles and fill gaps one angle alone misses.
 
 **3. CLAUDE.md files**
 
-Read CLAUDE.md files on the path to the files you're working with: root → layer → domain → subdir. 📖 **`references/claude-md-tree-walk.md`** lists which levels exist and the discovery command. Scope to directories in play (your blast radius), not repo-wide. Follow companion pointers by path and verify with `ls`, not grep.
+CLAUDE.md files auto-load additively by directory: root `CLAUDE.md`, then layer (`app/CLAUDE.md`), then domain (`app/Domain/<Domain>/CLAUDE.md`, capitalized), then subdir — a section that split down a level leaves one there, so don't assume the layer file is the deepest. Read the ones on the path to the files you're working with, found with `grep -rl --include='CLAUDE.md' "" <dirs>` scoped to the directories in play. Never `rg` for this: its `-r` means `--replace`, so the command runs and returns the wrong thing rather than failing.
+
+Scope to your actual blast radius rather than the repo, but that economy is within-repo only — it doesn't license skipping step 4, where a second checkout holds facts this walk can't reach. When you encounter a `📖` pointer to a companion file (`.claude-companions/<shared|local>/CLAUDE-<topic>.md`), follow the path and verify with `ls`; companions don't auto-load and don't surface in a recursive grep.
 
 **4. Sibling repos**
 
-If the question involves a second repo, read its `CLAUDE.md` + `CLAUDE.local.md` (per-environment state lives in `.local`). Follow their companion pointers next. The risk of skipping this: a plausible answer grounded in one repo while real facts live in another (prod state vs staging config, for example).
+If the question involves a second repo, read its `CLAUDE.md` and `CLAUDE.local.md` — per-environment state lives in `.local`. Follow their companion pointers next. A plausible answer grounded in one repo while real facts live in another (prod state vs staging config, for example) is the risk of skipping this.
 
 **5. Private journal**
 
-When the answer hinges on a judgment call — assessing an opportunity, pricing, resuming a thread whose history is a conversation not a commit — the journal at `~/.claude/notes/` might hold the reasoning behind a prior decision. Task docs record what was built; the journal records the why. Grep `~/.claude/notes/` for vocabulary if the answer depends on interpersonal or commercial context that doesn't appear in code or task docs.
+When the answer hinges on a judgment call — assessing an opportunity, pricing, resuming a thread whose history is conversation rather than code — the journal at `~/.claude/notes/` might hold the reasoning behind a prior decision. Task docs record what was built; the journal records the why. Grep `~/.claude/notes/` for vocabulary if the answer depends on interpersonal or commercial context that doesn't appear in code or task docs.
 
 **What Task Docs Are and Aren't**
 
 Task docs are authoritative for **decisions and gotchas** — why the code works this way, what will bite you, rejected alternatives. They are **not** live-state oracles; anything about a running system (prod's DB, a flag, whether an "open" bug is still open) decays the moment anyone touches a server. If the answer depends on current state, go measure it — and where doc and live system disagree, the live system wins.
 
-Reading a doc is also auditing it. Sweep the fields written once and checked least — `Quick Start`, `Status:`, `Immediate next actions` — since those carry the costliest staleness, and route what you find in the same turn to `task-summary` (project facts) or `update-plugin` (skill defects). An offer parked on the user's reply isn't routing: they act on your answer, often never respond, and the finding dies with the conversation.
+Reading a doc is also auditing it. Sweep the fields written once and checked least — `Quick Start`, `Status:`, `Immediate next actions` — since those carry the costliest staleness, and route what you find in the same turn to the `task-summary` skill (project facts) or `update-plugin` (skill defects). An offer parked on the user's reply isn't routing: they act on your answer, often never respond, and the finding dies with the conversation.
 
-📖 **`references/doc-authority.md`** — the full authoritative-for/not table, the mirror trap, open-bug diagnoses as hypotheses, resolving a doc's shorthand ID (`D8`, `R2`) before quoting it back, and the three live-state cases. Open it when a doc's claim about a running system or an open bug is load-bearing for your answer.
+When a doc's claim about a running system or an open bug is load-bearing for your answer, open `📖 references/doc-authority.md` — it covers the full authoritative-for/not table, the mirror trap (re-deriving a settled decision from the doc reads as not having read it), and how to handle live-state contradictions.
 
 ---
 
-## What Comes Next {#what-comes-next}
+## After Reading Docs {#what-comes-next}
 
-After reading the docs, three patterns determine what happens:
+Once the docs are read, three patterns determine what happens next:
 
-- **Doc path only** — the user supplied a path to a `current.md` or named a domain/feature without an action → read using the Read Order, then wait. A path with an action ("here's the doc, now do X") is different; the doc is context for the work, not the endpoint. If X involves a tool the doc merely researched, read that tool's actual docs before running it.
+- **Doc path only** — user supplied a path to a doc or named a domain without an action → you've read the docs; stop here. If they ask you to "now do X", the doc is context for work, not the endpoint. If X involves a tool the doc merely researched, read that tool's own source before running it.
 
-- **Investigation** — a question about current state → read the relevant docs first, then investigate. Multi-image requests carry multiple claims; enumerate what each image is evidence *of* before answering. That question treats an image as evidence for a bug, which is a different act from reading it as a rendered interface — when a screenshot shows UI, `uiux` owns the visual read and catches what the evidence framing steps past. Before sending a conclusion, verify you answered the question the user asked, not an adjacent one. A finished investigation that found defects: report the finding and blast radius, then stop. Deciding which findings matter, when to fix, and where to record them is the user's call — present it as `AskUserQuestion`, not a yes/no, ahead of the write-up (`{#decision-first}` below).
+- **Investigation** — a question about current state → read docs first, then investigate. When a user shows you screenshots or images as evidence of a problem, identify what each one is evidence *of* before answering. Before you send your conclusion, verify you answered the question the user asked, not an adjacent one. A finished investigation that found defects: report the finding and blast radius, then stop. Deciding which findings matter and when to fix them is the user's call.
 
-- **Task description** — a bug report, feature request, or work description (not a path) → read the relevant docs (infer domain from keywords), then proceed to implement.
+- **Task description** — a bug report, feature request, or work description → read the relevant docs (infer domain from keywords), then proceed to implement.
 
-### Every turn after this one {#decision-first}
+### Decision-first on every turn after {#decision-first}
 
-This skill runs at the start of most sessions, so the rule it leaves behind governs every turn, not only a wrap-up: any turn that ends on a question — a build with nothing reaching it yet, a next step needing a call you don't own, two paths open with one theirs to pick — asks it first, then reports what was built.
+This skill runs at the start of most sessions, establishing a rule that carries forward into every turn: any turn that ends on a question (a build incomplete, a next step you don't own, two paths open with one for the user to pick) states the decision needed before the report. This isn't a separate wrapper — it's part of your answer shape. The decision tells them what's actually unresolved; the report shows them what you've built.
 
-`../_shared/references/decision-first-output.md` owns the shape and the placement rationale. `done`, `quick-done` and `ship` apply the same rule to their own wrap-ups.
+The same rule applies to the wrap-up skills (`done`, `quick-done`, `ship`) on their final turns — don't end on pending questions without naming them.
+
+How a decision gets shaped depends on how many are open — one takes a different form from several, and not every question mark is a real decision. `../_shared/references/decision-first-output.md` owns both tests.
 
 ---
 
 ## Agents
 
-For doc discovery, use the `Explore` agent to search task docs by content (shadowing rule: see "Finding the Right Doc" above). For implementing the work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline — this skill only prescribes the agent for its own discovery step.
+For doc discovery, dispatch the `Explore` agent to search task docs by content. The agent returns raw hits; your judgment ranks them and picks the right doc. While the agent runs, do other work or think — don't re-read or re-grep the same files yourself. That duplication costs context for a fact you'll see again in the agent's report, and the check that makes delegation safe is verification *after* the report, not before.
 
-📖 **`../_shared/references/explore-delegation.md`** — the two non-negotiable prompt clauses (batching, `grep -rn` not `rg`), what counts as delegable gathering vs. inline judgment, and the full shadowing mechanics.
+Two clauses belong in the prompt itself, since neither is derivable from the agent's side: tell it to search with `grep -rn` rather than `rg`, which isn't installed here and fails as an empty result rather than an error, and to batch its searches into few calls instead of one per pattern. `../_shared/references/explore-delegation.md` has the rest of the mechanics, including what separates delegable gathering from judgment you keep.
+
+For implementing work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline. This skill prescribes only the agent for its own discovery step.
 
 ---
 
-## Plan Mode vs Normal Mode {#plan-mode}
+## Plan Mode {#plan-mode}
 
-After reading docs, the path forward depends on the working mode:
+After reading docs, if the next step is clear (answer a question, investigate, implement), proceed. If the approach isn't yet clear — you need to know where a surface lives in the codebase or how to design a solution — delegate that search before proposing. Use `Explore` for "where does X live" and `Plan` for "how should I build this."
 
-- **Normal mode**: the docs are read, the next step is clear (answer a question, investigate a symptom, implement a task) → proceed directly.
-- **Plan Mode**: docs are read, but the approach isn't clear → delegate a code search to `Explore` (for "where does X live") or `Plan` (for "how should I build this") before drafting a proposal. A doc's silence about a surface doesn't mean it's incomplete; it means nobody's hit that path yet.
-
-Timing: delegate *before* proposing, not after. A redundant call costs one agent; an unexplored proposal costs a rewrite.
+A doc's silence about something doesn't mean it's incomplete; it means nobody's needed that path yet. The absence of a doc entry isn't a blocker for design — it means you're in genuinely new territory, which is fine. Delegate only when exploration answers a question your design depends on.

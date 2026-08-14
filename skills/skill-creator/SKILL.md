@@ -37,6 +37,8 @@ A plugin skill isn't done when the file exists. Update `CLAUDE.md` and `README.m
 
 ## Verifying the trigger
 
+The session that wrote the file can't invoke it yet. Skills are registered when the session starts, so a `Skill` call on one you just created returns `Unknown skill` no matter how correct the file is — run `/reload-skills` first, and read the "N skills available (M added)" line to confirm yours is among them. Worth knowing because the error names the skill rather than the registry, which reads as a bad `name:` field or a misplaced file and sends you editing something that was already right.
+
 Don't skip this; a skill that never fires fails silently. 📖 `references/trigger-testing.md` — how to test whether this description actually wins, how to catch overlap with existing skills (where two describe incompatible workflows for one request), and what a baseline eval looks like.
 
 ## After

@@ -1,0 +1,12 @@
+---
+name: unhobble-drops-standing-rule-pointer
+description: unhobble-instructions inlining a section that cites a _shared/references/ file can drop the citation itself, leaving prose that reads complete but has no route to the actual mechanism it describes
+metadata:
+  type: project
+---
+
+**On the 2026-08-14 unhobble pass over `skills/read-summary/SKILL.md`'s `{#decision-first}` section**, the rewrite replaced a closing pointer — `` `../_shared/references/decision-first-output.md` owns the shape and the placement rationale`` — with self-contained prose ("states the decision needed before the report... This isn't a separate wrapper — it's part of your answer shape") that never names `AskUserQuestion`, the `## Decisions` block, keycap numerals, or the count-based branch test. The pointer wasn't reworded open or closed — it was deleted outright.
+
+**Why this matters**: `decision-first-output.md` opens by naming `read-summary`'s `{#decision-first}` section as *the* reach point for this rule into ordinary (non-wrap-up) turns — "the furthest a skill file reaches without a hook." `done`, `quick-done`, `ship`, `update-plugin` each cite the shared file directly themselves, so those four callers are unaffected — but a plain investigative/implementation turn that isn't one of those four wrap-up skills now has a rule that says "state the decision" with zero mechanism to comply with. This is the `{#pointer-needs-a-trigger}` failure inverted: not a dead pointer nobody follows, but a **missing pointer** whose absence is invisible because the inlined prose reads as a finished, complete instruction — exactly the shape the repo's own test says nobody double-checks.
+
+**How to apply**: When reviewing an unhobble pass on any section that cited a `_shared/references/*.md` file, diff for whether the citation survived — not just whether the paraphrase reads well. Grep the post-rewrite file for the reference's filename; a hit that disappeared entirely (not reworded, not moved) is a 🔴 if the reference file's own text names this section as its primary or sole host, and check every OTHER citer of that same shared file to determine true blast radius (a shared file cited by 4+ skills may still be reachable through the other citers, narrowing this from "the rule is dead" to "one host stopped relaying it"). See [[unhobble-vs-settled-decisions]] for the sibling failure mode (reopening a rejected alternative rather than dropping a pointer).
