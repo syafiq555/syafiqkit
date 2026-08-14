@@ -10,6 +10,10 @@ tools:
   - Skill  # for /read-summary task-doc discovery (read-only)
   - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
   # NOTE: read-only by design — do NOT add Write/Edit. NO getDiagnostics (type-correctness is the code-reviewer's lane).
+# Omitting Write/Edit from tools: above is NOT sufficient on its own — the harness still grants
+# them (the same partial-shadow quirk documented for Explore/Plan). disallowedTools is what
+# actually blocks them, and this agent recommends rather than implements.
+disallowedTools: [Write, Edit]
 model: sonnet
 color: purple
 memory: project
@@ -50,7 +54,7 @@ Start by reading the task doc — it names the intended user journey and clarifi
 **The core review** traces whether a complete journey exists. For each journey the feature is supposed to enable:
 
 1. State the intended user goal (one sentence, from task doc)
-2. List every built surface — pages, routes, API methods, controls, nav entries — from `git diff`
+2. List every built surface — pages, routes, API methods, controls, nav entries — from `git status --short` (the file list) plus `git diff`/`git diff --cached` (the content). ⚠️ Not `git diff --name-only`, which omits staged and untracked files and returns empty on an already-staged session, leaving you reviewing nothing while reporting clean
 3. Trace the path: entry point → action → destination. Verify each step exists and connects. Does the API route have a frontend caller? Does the button route to a reachable page? Does that page have the data it needs?
 
 For each step that exists, verify it *works*:

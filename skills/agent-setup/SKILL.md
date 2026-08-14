@@ -109,7 +109,7 @@ Write agents from the templates in `templates/`, tailoring only the project-spec
    - Fixed colors per agent name (all projects): `Explore` green, `Plan` blue, `task-builder` pink, `code-reviewer` red, `code-simplifier` cyan, `claude-md-pruner` yellow, `product-reviewer` purple, `browser-verifier` orange.
    - `mcp__ide__getDiagnostics` for `code-reviewer`/`code-simplifier` only (not `product-reviewer` — it judges completeness, not correctness).
    - `task-builder` omits `tools:` entirely (grants full set including `Agent`; adding a `tools:` list would silently revoke `Agent`).
-   - `product-reviewer` and `browser-verifier` are read-only (no `Write`/`Edit`); `browser-verifier` also sets `disallowedTools: [Write, Edit]` to prevent accidental fixes.
+   - `product-reviewer` and `browser-verifier` are read-only: both omit `Write`/`Edit` from `tools:` AND set `disallowedTools: [Write, Edit]`. The omission alone does NOT block them — the harness still grants a tool left off the `tools:` line (the same partial-shadow quirk noted for Explore/Plan), so `disallowedTools` is the only thing that actually enforces read-only.
 
 2. **Bootstrap section** — reads project CLAUDE.md files and task docs
    - Table of CLAUDE.md files with what each contains (one row per file or layer).
@@ -153,9 +153,11 @@ Verification clusters into four concerns. Read the relevant section below, then 
 
 📖 `references/agent-setup-verification.md` — detailed checklist for each concern, with grep/diff commands to run and how to interpret results. Read it before verification; don't replace this summary with grep-only spot-checks.
 
-**1. Content Validity**
-- No duplicated CLAUDE.md content (only critical, runtime-crash rules inline; everything else discovered at runtime).
-- Bootstrap section references correct CLAUDE.md paths and their layout (single root, root + layers, root + sub-projects, or multi-repo).
+**1. Content Validity** — the one concern greps cannot settle, so budget a read for it.
+- Every cited path resolves on disk. A consolidation commit that merges or deletes layer files leaves agents pointing at paths that no longer exist, and a prefix-stripped `CLAUDE.md` still resolves to a real file — the wrong one. Both read as ordinary rows and no presence check flags either.
+- Each numbered step's command is the one the file's own banners demand. A banner mandating `git status --short` above a step running `git diff --name-only` is a contradiction in which the step wins; both tokens are present, so presence and absence checks both pass on it.
+- Nothing a step depends on is stated below the step that needs it — a never-remove list positioned after "apply changes" is present and unreachable.
+- Commands are right in their arguments, not just their names: an unmatched glob makes zsh abort and report `0`, which reads as a healthy measurement rather than a failed one.
 - Inline rules table holds only facts that prevent repeated crashes or corruption — not derivable, not one-time setup, not symptom-indexed gotchas (those stay in CLAUDE.md).
 
 **2. Frontmatter Invariants**
@@ -167,7 +169,7 @@ Verification clusters into four concerns. Read the relevant section below, then 
 **3. Agent-Specific Behavior**
 - `code-reviewer`: Has Known False Positives table. Uses LSP `hover`/`documentSymbol`, not `goToDefinition`/`findReferences`.
 - `code-simplifier`: Has Don't Simplify (Preserve These) table. Uses LSP `hover`/`documentSymbol`.
-- `product-reviewer`: Is read-only (no Write/Edit), has Don't Flag These table, uses 3-tier severity (blocking/expected-missing/polish), names audiences.
+- `product-reviewer`: Is read-only — omits Write/Edit from `tools:` AND sets `disallowedTools: [Write, Edit]` (the omission alone leaves them granted). Has Don't Flag These table, uses 3-tier severity (blocking/expected-missing/polish), names audiences.
 - `browser-verifier`: Is read-only with `disallowedTools: [Write, Edit]`. Carries assert-the-effect table, never-fabricate-user-approval constraint, USER-TRIGGERED ONLY clause in description. Mobile recipe gates on `matchMedia(...).matches === true`. Target slot table filled (no `<...>` placeholders).
 - `Explore`/`Plan`: Shadow built-in agents (name: Explore/Plan). Body text restricts writes (Explore → scratchpad, Plan → `~/.claude/plans/`). Both run `/read-summary` on every call (⚠️ MANDATORY).
 - `claude-md-pruner`: Delegates size policy to `condense-claude-md`, not owning a threshold. Has NEVER-remove lists customized for the project.

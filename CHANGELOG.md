@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.150.0
+
+Nothing to regenerate. Changes how `/agent-setup` verifies agent files, and fixes two agent templates.
+
+- **Agent verification was a pile of greps, and the defects that matter are shape-correct — the right words in the wrong place.** A presence check answers "does this file contain X", never "does X sit where the agent acts on it" or "does X contradict the banner three lines up". Measured this session: a full sweep across eight agents returned clean while `code-simplifier` mandated `git status --short` in its banner and ran `git diff --name-only` at step 1, a pruner's never-remove guard sat below the step that applies deletions, and a pruner measured task-doc size with a glob that makes zsh abort and report `0` — a failed measurement that reads as a healthy doc. Every check passed on all three, because a contradiction has both tokens present and a misordered rule is present too.
+- **Content Validity is now stated as a read, not a grep**, in both the SKILL.md summary and the checklist, with the three surviving shapes named (contradiction, misordering, wrong argument inside a right command) and a path-resolution check added — a consolidation commit that merges layer files leaves agents citing dead paths, and a prefix-stripped `CLAUDE.md` still resolves to a real file, just the wrong one.
+- **`code-reviewer` and `product-reviewer` templates now take the file list from `git status --short`.** Both described gathering changes without naming the command, which is what let a generated copy substitute `git diff --name-only` — that omits staged and untracked files, so on an already-staged session the agent reviews nothing and reports clean.
+- **`product-reviewer` is now actually read-only.** Leaving `Write`/`Edit` off the `tools:` line does not block them — the harness still grants a tool that's merely omitted (the same partial-shadow quirk already documented for Explore/Plan), so the agent could edit code it was only meant to recommend on. It now sets `disallowedTools: [Write, Edit]`, which is what enforces it, and both places in the setup docs that described the omission as sufficient have been corrected.
+
 ## 1.149.1
 
 Nothing to regenerate. Affects what `/agent-setup` and `/update-plugin` do when a generated agent and its template disagree.

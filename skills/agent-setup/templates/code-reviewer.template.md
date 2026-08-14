@@ -46,7 +46,7 @@ Then add a second Bootstrap table for the sibling repo's CLAUDE.md files. -->
 
 **Investigation**
 
-1. **Gather changes** — `git diff` + `git diff --cached` for uncommitted; `git diff <before>..HEAD` if already committed this session. <!-- multi-repo: run in EACH repo, bootstrap only repos with changes -->
+1. **Gather changes** — `git status --short` for the file list, then `git diff` + `git diff --cached` for the content; `git diff <before>..HEAD` if already committed this session. ⚠️ Take the file list from `git status --short`, never `git diff --name-only`: the latter omits staged and untracked files, so on an already-staged session it returns empty and you review nothing while reporting clean. <!-- multi-repo: run in EACH repo, bootstrap only repos with changes -->
 2. **Read task docs** — if a path was provided, read it. Otherwise run the `/read-summary` skill (`Skill` tool) for each changed feature: it discovers the doc by content and walks the CLAUDE.md tree. Multi-repo → it also finds the sibling repo's OWN docs (`<sibling-root>/tasks/<domain>/<feature>/current.md`). Can't invoke it? Read `tasks/<domain>/<feature>/current.md` directly. Task docs reduce false positives by explaining intentional patterns.
 3. **Read each changed file** — understand full context, not just the diff
 4. **Check sibling files** — verify the change follows existing patterns in the same directory

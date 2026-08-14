@@ -2,10 +2,22 @@
 
 **Read this file when verifying agent files against the four concerns in Step 5.** Each concern lists the specific checks to run and how to interpret results. A comprehensive verification requires checking all four.
 
+⚠️ **Every check below is a token-presence test, and an agent file's worst defects are shape-correct — the right words in the wrong place.** A grep answers "does this file contain X", never "does X sit where the agent will act on it" or "does X contradict Y three lines up", so the checks pass cleanly on a genuinely broken file and the clean result is what stops you reading further. The three shapes that survive every check here: a **contradiction**, where a banner mandates the correct command and the numbered step executes the wrong one (both tokens present, so presence and absence checks both pass); **misordering**, where a guard against destructive edits sits after the step that applies them (present, never reached); and a **wrong argument inside a right command**, where the command name greps fine and its glob silently returns 0. So treat the checks as a first pass that narrows where to look, then **read each agent's Process section top-to-bottom as the agent would execute it**, asking at each numbered step whether the command is the one the file's own warnings demand and whether anything it depends on is stated later than the step that needs it. Budget for that read; it is where the findings are, and no combination of greps substitutes for it.
+
 ---
 
 ## 1. Content Validity
 
+**This concern is a READ, not a grep.** The checks below narrow where to look; they cannot settle it. Open each agent and walk its Process as the agent would execute it:
+
+- [ ] **Every path the file cites resolves on disk.** Extract them and test each — a consolidation commit that deletes or merges layer files leaves agents citing paths that no longer exist, and a bare `CLAUDE.md` with no directory prefix still resolves to *a* real file, just the wrong one. Both read as ordinary rows.
+  ```bash
+  grep -ho '`[a-zA-Z0-9_./-]*CLAUDE\(\.local\)\?\.md`' .claude/agents/*.md | tr -d '`' \
+    | grep -v '^\$\|^~/' | sort -u | while read p; do [ -f "$p" ] || echo "DEAD $p"; done
+  ```
+- [ ] **Each numbered step's command matches what the file's own banners demand.** Where a banner and a step disagree, the step is what runs — fix the step. Both tokens are present, so no presence or absence check detects this.
+- [ ] **Nothing a step depends on is stated after the step that needs it.** A never-remove list, a scope guard, a precondition: each is inert below the step that deletes or writes. Check position, not presence.
+- [ ] **Commands are correct in their arguments, not just their names.** A glob that matches nothing, a flag that means something else — the command name greps clean while the command reports 0 and the 0 reads as a healthy result.
 - [ ] No duplicated CLAUDE.md content — grep the inline rules table to confirm it holds only facts that prevent crashes/corruption at runtime, not derivable facts, one-time setup, or symptom-indexed gotchas (those belong in CLAUDE.md, discovered at runtime).
   ```bash
   grep -A 30 "High-Frequency\|Mistakes\|Simplifications" .claude/agents/*.md | grep -i "docker\|env\|install\|token" | head -5
@@ -86,8 +98,9 @@ grep "goToDefinition\|findReferences" .claude/agents/code-*.md
 
 **product-reviewer:**
 ```bash
-grep -A 1 "^  tools:" .claude/agents/product-reviewer.md
-# Should NOT contain Write or Edit
+grep -c "disallowedTools:.*Write, Edit" .claude/agents/product-reviewer.md
+# Must be 1. Absence is a REAL gap even though tools: omits Write/Edit — the harness
+# grants a tool left off the tools: line, so omission alone does not enforce read-only.
 grep "3-tier\|blocking\|expected-missing\|polish\|Don't Flag" .claude/agents/product-reviewer.md
 # All of these should be present
 ```
