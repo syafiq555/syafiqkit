@@ -13,6 +13,15 @@ git reset --hard origin/feature  # ← if feature is ahead of origin, its commit
 
 The commits become unreachable, `git status` reads clean, and the loss isn't visible.
 
+## The Tell That It Happened
+
+If you just ran `git reset --hard`, watch for:
+- `git status` reads unexpectedly clean right after editing files
+- `grep` for content you just wrote returns zero
+- No reflog entry you recognize
+
+These symptoms mean the commits are orphaned and recovery is possible (object still exists).
+
 ## Recovery (while the object still exists)
 
 Recovery is possible immediately after orphaning, before the git garbage collector runs (usually ~30 days):
@@ -48,9 +57,3 @@ If it isn't empty, don't reset. Instead, merge directly:
 ```bash
 git checkout <target> && git merge <current-branch> --no-edit
 ```
-
-## The Tell That It's Too Late
-
-- `git status` reads unexpectedly clean right after editing files
-- `grep` for content you just wrote returns zero
-- No reflog entry you recognize

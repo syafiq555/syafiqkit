@@ -20,7 +20,7 @@ If you are **resuming** this skill mid-chain (a compaction landed between two st
 
 Execute all steps in sequence, except Step 4's CI/deploy check — background that one (see its note) and don't let it block Step 5. Stop on errors and report to the user.
 
-**Key principle: a ship is complete when the user-visible change is live at the deployment destination.** This is different from the source being pushed. A successful CI run proves the *pipeline* worked; a new container in a registry means code exists somewhere; HEAD on the remote is updated — none of these prove the change is in front of users. The runtime consumes separately-built artifacts (bundled frontend, container image, compiled asset), and source being pushed never touches them. Every deployment step has a distinct artifact: code goes to git, containers go to a registry, files go to a server. Verify each in place rather than inferring from the tool's exit code.
+**Key principle: a ship is complete when the user-visible change is live at the deployment destination, not when source is pushed or CI goes green.** A successful CI run proves the *pipeline* worked, but not that the change reached users. A new container in a registry means code exists somewhere; HEAD on the remote is updated; a webhook fires — none of these prove the artifact is live. The runtime consumes separately-built artifacts (bundled frontend, container image, compiled asset), and source being pushed never touches them. Every deployment step has a distinct artifact living in its own place: code in git, containers in a registry, files on a server, schema in the DB. Verify each in place rather than inferring from the tool's exit code or the pipeline's reported success.
 
 ### Step 1: Detect Repos
 
@@ -35,15 +35,15 @@ Skip repos with nothing to commit. If ALL repos are clean, check for unpushed co
 
 ### Step 2: Commit Each Repo
 
-**Run `/commit` — it owns this step.** Staging, the changelog gate, the task-doc staleness gate + cross-doc mirror sweep, type/scope selection, commit format and anti-patterns all live in `skills/commit/SKILL.md`; don't restate or re-derive them here. Commit order: sub-repos first, then root (changelog, task docs).
+**Run `/commit` — it owns this step.** The staging, changelog gate, task-doc staleness validation, type/scope selection, commit format, and anti-pattern checks all live in `skills/commit/SKILL.md`, and stay there: restating one here gives it two homes that drift apart, and the copy a reader hits first is the one they act on. Commit order: sub-repos first, then root (changelog, task docs).
 
-Two rules apply ON TOP of `/commit`, and only under `/ship`:
+Apply two rules ON TOP of `/commit`, specific to the ship context:
 
 1. **Version-bump gate (plugin/package repos)** — if the repo has version files, bump **EVERY** file carrying the version before staging. `grep -rn '"version"' <manifest-dir>` finds them all (secondary fields like `plugins[0].version` drift silently when only the primary is bumped). See the repo's `CLAUDE.md#version-bumping`.
 
-2. **Deploy-state override on the staleness gate** — `/commit`'s gate rejects "pending / not yet pushed" language. Under `/ship` the deploy is imminent, so writing transient states ("not yet deployed", "🚢 in flight") is wrong the moment it's written — Step 4 writes the real outcome once verified. Leave deploy-state lines alone; fix only genuinely-stale non-deploy content. If you catch a false "deployed" claim, correct it to the real outcome (what's actually live now), not to a midpoint state.
+2. **Deploy-state override on the staleness gate** — `/commit`'s gate rejects "pending / not yet pushed" language. Under `/ship` the deploy is imminent, so writing transient states ("not yet deployed", "🚢 in flight") becomes wrong the moment it's written — Step 4 writes the verified outcome once it's observed. Leave task-doc deploy-state lines alone; fix only genuinely-stale non-deploy content. If you catch a false "deployed" claim, correct it to the real current state (what's actually live now), not to a midpoint state.
 
-**When `/commit` returns, go straight to Step 3 in this same turn.** This is where the chain breaks: a sub-skill signs off with a summary shaped exactly like the end of a turn, so completing the *sub-skill* reads as completing the *work* — and the code is now committed but unpushed, which is the worst place to stop. Naming the next step is not performing it; if your reply says "next is the push", that sentence is the stop. Call it instead.
+**When `/commit` returns, call Step 3 immediately in this same turn.** A sub-skill's closing summary reads exactly like the end of a turn, so completing the sub-skill feels like completing the work — but code is now committed and unpushed, the worst stopping point. If your reply says "next is the push," that sentence is the stop, not the call. Proceed directly.
 
 ### Step 3: Push
 
@@ -51,7 +51,7 @@ Before pushing anything, understand the deploy chain: **which branch deploys to 
 
 Read the project's `CLAUDE.md`/`CLAUDE.local.md` for the deploy chain. If the current branch isn't the deploy branch, the ship is a forward-merge (`git merge <current> --no-edit` onto the target), not a push.
 
-**Discover what's riding along:** `git diff --name-only <deploy-branch>..HEAD` shows files, not subjects. A `chore:` or `docs:` commit can carry live behavior hidden from the commit message (feature flags, payout schedules, cron jobs, migrations). Scan the diff for files with a runtime surface (`config/`, migrations, `.env.example`, `Kernel.php`) and read those hunks — anything moving money, mail, or user-visible state belongs in the user's decision, not a silent side effect. If uncertain, ask before merging.
+**Surface what's riding along:** A commit message says *why* the change exists, not *what* changed. A `chore:` or `docs:` message can hide live behavior (feature flags, payout schedules, cron jobs, migrations, currency multipliers). Run `git diff --name-only <deploy-branch>..HEAD` and scan those files for a runtime surface (`config/`, `Kernel.php`, migrations, `.env.example`). Read the hunks themselves: anything that moves money, mail, or user-visible state belongs in the user's decision, not a silent side effect of a message that says the change is routine. If uncertain, ask before merging.
 
 **Check for backlog:** `git push` sends the whole branch, not just today's commit. If the deploy branch is missing prior commits (`git log origin/<deploy-branch>..HEAD`), say so plainly in the Ship Summary so the user knows those are going out too.
 
@@ -76,9 +76,9 @@ Before polling, discover task docs that reference the shipped commits — differ
 - **Sequencing constraints** (prose under headings like "Go-Live Sequencing"). These rarely appear in the checklist and often aren't obvious — grep for keywords like `BEFORE`, `LAST step`, `must be`, `sequenc` alongside any flag/env/backfill name from the diff. Missing an ordering constraint is irreversible, while missing a follow-up is fixable later, so surface constraints to the user *before* the deploy. (A routine follow-up like "tick this checkbox in staging" surfaces in the summary, not as a decision.)
 - **Unfinished work** (items in Next Steps still marked pending) — surface in the Ship Summary.
 
-Once the CI/deploy resolves, verify production:
+Once the CI/deploy resolves, verify in place. The principle is the same whether you're checking code, schema, or config: touch the artifact at its destination, don't infer from the tool's report.
 
-**1. Verify destination state, not tool output.** A green CI run, a successful push, a green webhook — none prove the user-facing change is live. Derive the artifact list from the diff's file types (bundled frontend lives in a registry or a server dir, container image in a registry, schema in the DB) and verify each in place. For a CI-deployed system:
+**Derive the artifact list from the diff's file types:** bundled frontend lives in a registry or server directory, container images in a registry, schema in the DB, config in env or `.env` on the server. For code:
 
 ```bash
 remote <prod-server> "cd <deploy-path>/<repo> && git log --oneline -1"
@@ -86,9 +86,9 @@ remote <prod-server> "cd <deploy-path>/<repo> && git log --oneline -1"
 
 Skip if `remote` CLI isn't configured or no prod server is documented. The destination may not be a git repo (rsync/CI-sync land plain files), so verify the behavior instead of the commit: grep the changed file on the server for what you added, or confirm the config applied through the app's own bootstrap.
 
-**2. If the diff includes migrations, verify they ran.** CI green and a passing health probe don't prove the schema changed — the pipeline that ships code and the pipeline that runs migrations are often different systems (container entrypoint, release phase, separate job, or manual). Ask the DB directly: `artisan migrate:status` (show new migrations as `Ran`), `\d <table>` (check columns exist), or an equivalent query. Code expecting a column that doesn't exist usually breaks on first use, not at boot, so missing migrations surface as production errors hours after the deploy reads green.
+**If the diff includes migrations, verify the schema changed.** CI green and a passing health probe don't prove the migrations ran — the pipeline that ships code and the pipeline that runs migrations are often different systems (container entrypoint, release phase, separate job, or manual). Ask the DB directly: `artisan migrate:status` (show new migrations as `Ran`), `\d <table>` (check columns exist), or an equivalent query. Code expecting a column that doesn't exist usually breaks on first use, not at boot, so missing migrations surface as production errors hours after the deploy reads green.
 
-**3. Update the task doc** with the verified outcome: flip `Status:` to live (or whatever the real state is), tick the deploy checkbox, and record what you actually observed (command output, not "deployed ✅"). Then grep the doc for every mention of the old state — it often survives in the LLM-CONTEXT header, Quick Start, Task Status table, and Last Session sections. Fix all of them in one pass, using a positive grep control.
+**Update the task doc with the verified outcome:** flip `Status:` to live (or whatever the real state is), tick the deploy checkbox, and record what you actually observed (command output, not "deployed ✅"). Then grep the doc for every mention of the old state — it often survives in the LLM-CONTEXT header, Quick Start, Task Status table, and Last Session sections. Fix all of them in one pass, using a positive grep control.
 
 If CI failed: report the error and suggest `gh run rerun <id> --failed`. If prod HEAD doesn't match or behavior is wrong: report the mismatch.
 
