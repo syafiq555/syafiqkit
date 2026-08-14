@@ -150,7 +150,7 @@ For significant features (use the subscription doc as the gold standard). Use Me
 <!--LLM-CONTEXT
 Status: 🔨 In Progress
 Domain: [domain]
-Gotchas (critical — full list in ## Gotchas below):
+Gotchas (critical — full list in ## Critical Gotchas below):
   - [Most critical gotcha]
   - [Second most critical]
 Related: [Related docs or None]

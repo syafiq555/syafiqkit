@@ -52,7 +52,7 @@ The distinction is whether the material survives the underlying test. Apply the 
 
 2. **Check bytes first to decide approach.** Line count lies (a MADR restructure grows lines while shrinking bytes). Run `git show HEAD:<path> | wc -c` vs `wc -c <path>` — valid only if the doc was CLEAN at session start. Dirty → capture `wc -c` before your first write, or use `git show :<path>` (staged). (📖 `../_shared/references/two-tier-condense.md`).
    - **Bytes flat or lower:** Restructure, not bloat. Report both deltas and stop.
-   - **Bytes grew from new ADRs, >300 lines:** Split instead of condense. Index keeps Quick Start, cross-cutting operational tables, and routing. Theme detail moves to `decisions/*.md`. (📖 `task-summary/references/templates.md`'s "Splitting a whole-doc MADR further".)
+   - **Bytes grew from new ADRs, >300 lines:** Split instead of condense. Index keeps Quick Start, cross-cutting operational tables, and routing. Theme detail moves to `decisions/*.md`. (📖 `task-summary/references/decision-splits.md`'s "Splitting a whole-doc MADR further".)
    - **Already split, INDEX still oversized:** Measure per section: `awk '/^## /{if(s)print c, s; s=$0; c=0; next} {c++} END{if(s)print c, s}' <file>`. Route each row to its owning theme file (its own "see ADR-N" column usually names it). Rows belonging to no theme (env, fixtures) get a descriptively named sibling, not `bugs.md`/`misc.md`.
    - **Bytes grew from accumulated cruft:** Condense and continue.
 
@@ -80,4 +80,3 @@ The distinction is whether the material survives the underlying test. Apply the 
 ## Additional Guidance
 
 - **A restructure fork goes through `AskUserQuestion`, not inline prose** — condensing needs no permission, but choosing between preserving-vs-deleting or between competing structures changes what the doc BECOMES. Ask it as options at the point it arises. An answer naming a constraint governs the whole run.
-- **Report row count and byte deltas, not just line count.** Bytes flat or lower = restructure, not bloat. A pass skipping step 4 (row-existence check) produces the same tidy byte delta as one that ran it, so row arithmetic reconciles what happened.

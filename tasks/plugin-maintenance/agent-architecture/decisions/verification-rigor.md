@@ -120,6 +120,27 @@ Chosen: added a distinct **Missing-agent check** (Step 1 row + new Step 5 checkl
 
 ---
 
+### D-parity-drift-is-bidirectional — Both Sides of a Template/Agent Pair Can Be Ahead at Once, So "Patch the Template" Names the Wrong Repair — committed (v1.149.0) — 2026-08-14
+
+**Problem**
+A product review flagged `claude-md-pruner`'s generated agent as edited without its template, citing the standing rule that editing `.claude/agents/<name>.md` requires patching `skills/agent-setup/templates/<name>.template.md` in the same change. Reading the diff inverted the finding: the **template** carried the newer unhobbled prose ("Edit surgically rather than rewriting whole files…", 152 lines) while the **generated agent** still held old rigid bullet lists ("Use `Edit` tool (not `Write`)", 142 lines) — but the agent held the better guard placement, with the never-remove list moved into classification instead of trailing the file after deleting had begun. Each side was ahead on a different axis because different passes edit them: an `unhobble-instructions` sweep rewrites the template's prose, while a session fixing live agent behaviour edits the generated copy. D38 and the root CLAUDE.md rule both assume exactly one file is stale, so following either literally discards whichever improvement the other side carried; copying toward the template additionally ships repo-specific text ("this repo has no backend/frontend split") upstream into a file meant to stay generic.
+
+**Decision**
+Chosen: read the diff and decide **per hunk** which side is right, rather than picking a direction. The signal that both were edited independently is a `diff <template> <agent>` whose changes cluster into distinct topics instead of one contiguous block. Applied here by moving only the guard placement into the template and leaving its prose alone. Root `CLAUDE.md`'s Agent Definition Parity section now states this alongside D38's "parity proves agreement, never correctness".
+
+**Rejected**
+- Treating the generated file as canonical whenever it is newer by mtime. Why not: mtime records which pass ran last, not which content is better, and the two passes here were editing different axes — the older file was right about prose.
+- Regenerating the agent from the template to force agreement. Why not: that is the wholesale copy under a different name, and it silently discards the guard-placement fix the generated file was carrying.
+
+**Consequences**
+- A parity check that returns "these differ" is the start of a read, not a verdict on which file to overwrite.
+- Two sessions independently made this same guard-placement fix and collided in the working tree; the peer's structure (its own numbered step) was kept and this session's inline copy dropped. Their renumbering left duplicate step numbers and a dead `step 0.5` back-reference, both fixed here — a renumbering defect neither writer could see alone.
+- Plugin version bumped to 1.149.0.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
 ### D39 — Raised `/done`'s Agent-Count File Thresholds, Removed Light Mode — committed — 2026-07-20
 
 **Problem**

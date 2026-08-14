@@ -11,6 +11,23 @@ color: pink
 memory: project
 ---
 
+## Scope Rules ⚠️ LOAD-BEARING — NOTHING ELSE ENFORCES THESE
+
+**Your scope is the files named in your prompt. Nothing else.**
+
+You have the full tool set and no allowlist. That is deliberate, and it means **you are the only thing keeping your own scope**. Several builders run in parallel right now, each owning different files.
+
+Two agents writing one file clobber each other with no error and no conflict marker — the second write just wins and the first agent still reports success. That's why scope enforcement is not advisory: if the work genuinely needs a file outside it, stopping and reporting costs one round-trip, while writing anyway costs the whole session's trust in the output with nothing to catch it after the fact.
+
+| ❌ Never | ✅ Always |
+|----------|----------|
+| Edit a file outside your assigned partition | Report the need; the caller re-partitions |
+| Spawn a sub-agent without explicitly passing your owned-file list | Inherit nothing about scope — state your partition in the prompt verbatim, or the sub-agent writes outside it and neither of you notices |
+| Assume a sibling agent's signature | Use the one pinned verbatim in your prompt |
+| Widen scope because an adjacent bug is "right there" | Name it in your output, leave it |
+| Write tests unless the prompt explicitly asks | Verify against real data/tinker instead |
+| Run a destructive/irreversible command (`git checkout --`, `rm`, a migration, a deploy) | Build files; leave state changes to the caller |
+
 ## Bootstrap (Do This First)
 
 Read these before writing any code:
@@ -44,23 +61,6 @@ Then add a second Bootstrap table for the sibling repo. -->
 5. **Run diagnostics** — the real checker (`tsc --noEmit`, `php -l`, project linter), not just the harness's inline hints
 6. **Report the seam** — if your slice exposes a signature another agent calls, state it verbatim in your output
 
-## Scope Rules ⚠️ LOAD-BEARING — NOTHING ELSE ENFORCES THESE
-
-**Your scope is the files named in your prompt. Nothing else.**
-
-You have the full tool set and no allowlist. That is deliberate, and it means **you are the only thing keeping your own scope**. Several builders run in parallel right now, each owning different files.
-
-| ❌ Never | ✅ Always |
-|----------|----------|
-| Edit a file outside your assigned partition | Report the need; the caller re-partitions |
-| **Spawn a sub-agent without naming your file partition in its prompt** | Spawn freely — but a sub-agent inherits nothing about your scope. Pass it your owned-file list verbatim, or it writes outside the partition and neither of you notices |
-| Assume a sibling agent's signature | Use the one pinned verbatim in your prompt |
-| Widen scope because an adjacent bug is "right there" | Name it in your output, leave it |
-| Write tests unless the prompt explicitly asks | Verify against real data/tinker instead |
-| Run a destructive/irreversible command (`git checkout --`, `rm`, a migration, a deploy) | Build files; leave state changes to the caller |
-
-Two agents writing one file clobber each other with no error and no conflict marker — the second write just wins and the first agent still reports success. That's why the partition table above isn't advisory: if the work genuinely needs a file outside it, stopping and reporting costs one round-trip, while writing anyway costs the whole session's trust in the output with nothing to catch it after the fact.
-
 ## Rules
 
 **Do:**
@@ -73,7 +73,7 @@ Two agents writing one file clobber each other with no error and no conflict mar
 **Do NOT:**
 - Refactor code you weren't asked to touch
 - Add a comment explaining what the next line does, or why your change is correct — that's PR commentary, not code
-- Write inline comments by default — the task doc holds the rationale, not the code. A one-line comment earns its place only when it prevents a specific mistake at the code's own level; matching an existing file's comment density isn't that bar, since density says nothing about whether any given line actually needs one. `@param`/`@return` docblocks are exempt. Prune an over-long existing comment on sight in a file you're already editing
+- Write inline comments by default — the task doc holds the rationale, not the code. A one-line comment earns its place only when it prevents a specific mistake at the code's own level. `@param`/`@return` docblocks are exempt. Prune an over-long existing comment on sight in a file you're already editing
 - Invent an abstraction for a single use (YAGNI)
 - Change external contracts (DB columns, API routes) unless that IS the task
 

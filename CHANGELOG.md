@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.149.0
+
+Nothing to regenerate. The workflow skills you use daily read differently now; behaviour is the same except where noted below.
+
+- **`/done`, `/ship`, `/commit`, `/task-summary`, `/update-claude-docs` and the condense skills were rewritten from rules into judgement.** These files had accumulated years of "never do X" imperatives and mechanical thresholds, each added for a real reason and each firing on cases it was never meant to catch. They now explain what to weigh and let you weigh it. Every concrete fact — exact commands, exception names, paths — was kept; only the enforcement scaffolding around them went.
+- **`/ship` lost its "copy to clipboard" step during that rewrite and has it back.** If you shipped in the last few days and wondered why the release note wasn't on your clipboard, that was why.
+- **Two `📖` pointers led nowhere.** `condense-task-doc` and `merge-task-docs` both pointed at a MADR-splitting section that had moved to another file, so a doc that grew past 300 lines gave you a dead link at the exact moment you needed the split guidance. Both now resolve.
+- **`split-decision-tree.md` said companion files "are not gitignored."** That's true of `shared/` and wrong for `local/`, which exists precisely to hold machine-specific notes that must never be committed. Corrected, and it now points at the file owning the rest of the execution detail.
+- **The `claude-md-pruner` agent's never-remove guards fired after deletion had already started** in the template that regenerates it. Moved to guard classification instead. Re-run `/agent-setup` to pick this up.
+
+## 1.148.0
+
+Nothing to regenerate. Affects the interval between spawning agents in `/done` (or `plan-worklist`) and their reports arriving.
+
+- **The shadowing rule existed but never reached the skill that most needs it.** `_shared/references/explore-delegation.md` has stated it for a while, and its own header says a skill that spawns an agent and then continues must carry the constraint in its own prose rather than leave it to a pointer. `/done` Step 1 spawns up to seven agents and then walks into a detailed "verify what they could not see" agenda — and mentioned shadowing zero times. A live session dispatched three reviewers, then re-derived two facts the reviewer was already tracing; the user caught it, not the skill. The pull is specific to this shape: having the verification agenda in hand while agents run makes starting it early read as getting ahead rather than as duplicating.
+- **`/done` and `plan-worklist` now state it where they dispatch**, with the tell that distinguishes it from ordinary progress — your calls mapping onto a scope you just assigned, or describing an agent as having "confirmed" something you'd already looked up. Both cite the shared reference rather than restating it, matching how `merge-task-docs` already handles the same seam.
+- **Gate B's mtime test was one-sided.** It said "files predating the session drop out," which only filters work finished before you started. The case that actually came up was the opposite: a peer editing the shared plugin checkout stamped three files *hours ahead* of the reading session, so nothing "predated" and the literal test found nothing to drop. Now reads as outside the window in either direction. (The paragraph below it already mandated the diff read that settles ownership, so the mechanism held — the wording was the lossy part.)
+
+## 1.147.2
+
+Nothing to regenerate. Affects how you read a `haiku` report after an `unhobble-instructions` (or similar structural) dispatch.
+
+- **A row moved intact into a companion file can still be wrong — preservation isn't correctness.** `haiku`'s verification section checked whether a rewrite distorted content during the move, but not whether the content was already stale before the move started. A CLAUDE.md gotcha row saying blog-automation code "lives on branch `feat/blog-automation`, not master" got carried verbatim into a new companion file by an `unhobble-instructions` pass — faithfully, word for word, passing every existing check — months after that code had actually merged to master. `unhobble-instructions` says outright it isn't a correctness review, so nothing in the dispatch chain was checking this.
+- **`haiku` now flags time-sensitive content for a second, independent read:** does this specific claim hold right now, separate from whether it matches the pre-rewrite wording. Scoped to what actually looks dated (branch names, "not yet merged," counts, dates) — not a full fact-check of every preserved row.
+
 ## 1.147.1
 
 Nothing to regenerate. If a condense pass recently told you a split task doc was still over budget, it may have been wrong.

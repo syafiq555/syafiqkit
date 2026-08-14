@@ -19,33 +19,25 @@ Say so plainly if one of those fits better. Talking someone out of a skill is a 
 
 ## Where it goes
 
-Three homes, and the request usually settles which: `~/.claude/plugins/syafiqkit/skills/` (shared everywhere, git-backed, needs the registration below), `<project>/.claude/skills/` (when the commands, paths, or vocabulary don't generalize past one repo), or `~/.claude/skills/` (personal, unversioned). The plugin is where all the existing ones live, so it's the assumption worth defaulting to when nothing in the request points elsewhere. Ask only when it's genuinely ambiguous — moving a skill later means fixing every cross-reference to it, which is what makes the fork worth a question when you can't tell.
+The plugin (`~/.claude/plugins/syafiqkit/skills/`) is the default — it's git-backed, shared across all projects, and where the existing skills live. Use it unless the request points to a narrower home: `<project>/.claude/skills/` for workflows that don't generalize past one repo (project-specific commands, paths, or vocabulary), or `~/.claude/skills/` for personal unversioned experiments. Moving a skill later means rewriting every cross-reference, so ask early if the scope is genuinely ambiguous.
 
 ## Writing it
 
-**The frontmatter `description` is the whole trigger.** It's matched against what the user actually says, so it should carry the words they'd use — including the imprecise ones. Name the artifacts involved, the phrasings that should summon it, and at least one nearby thing it should *not* handle, pointing at whichever skill owns that instead. A description that only describes the skill's function, without the vocabulary of a request, is the single most common reason a good skill never fires.
+**The frontmatter `description` is the whole trigger.** It's matched against what the user actually says, so it must carry the words they'd use — vague phrasings, artifact names, and at least one nearby thing it should *not* handle (pointing at the skill that owns it instead). A description that only restates the skill's function, without the vocabulary of a request, is the most common reason a good skill never fires.
 
-**The body is read by an agent already in the moment of doing the task.** Write the reasoning and let it apply judgement to what it just read, rather than pre-empting each way it could go wrong with its own trip-wire — `unhobble-instructions` exists because that accumulates. A `⚠️` or a bolded imperative is earned when the cost of missing something is genuinely silent or irreversible, the case where a careful reader still walks past the problem; it stops meaning that if every rule carries one.
+**The body is reasoning, not checklist.** An agent reads it already in the moment of doing the task; write principle and let it apply judgment, rather than pre-empting each failure mode with its own trip-wire. A `⚠️` or bolded imperative is earned only when missing it costs silence or irreversibility — a careful read that still walks past the problem. State facts the reader can't derive (exact commands, binaries with silent costs, structural details) flatly. What accumulates instead is the rule that restates what careful reading already concludes.
 
-State facts the reader can't derive — an exact command, a real binary with a silent cost, a structural detail of this setup — flatly and keep them. What accumulates instead is the rule that mostly restates what a competent read of the surrounding prose already concludes.
-
-Keep it short enough to read in the moment. The leanest skills here run under 100 lines; if a first draft is much longer, the usual cause is a rare branch inlined beside the common path, which can move to `references/` with a pointer left behind.
+Keep it short. If a first draft is much longer, the usual cause is a rare branch inlined beside the common path — move it to `references/` with a pointer left behind.
 
 ## Registering it
 
-A plugin skill isn't done when the file exists: `CLAUDE.md` and `README.md` both carry hand-maintained skill tables, and the plugin's own convention wants a version bump in both `.claude-plugin/*.json` plus a CHANGELOG entry. Match whatever shape the neighbouring rows already use rather than inventing one.
+A plugin skill isn't done when the file exists. Update `CLAUDE.md` and `README.md` (hand-maintained skill tables), version-bump `.claude-plugin/*.json`, and add a CHANGELOG entry — match the neighbouring rows' shape.
 
-The one thing that isn't derivable from reading those files: check versions with `git show HEAD:<path>`, not the working copy. A prior session's uncommitted bump makes the two JSONs disagree, and comparing working copies reports drift that the committed state doesn't have — then names the wrong file as stale.
+⚠️ **Check versions with `git show HEAD:<path>`, not the working copy.** A prior session's uncommitted bump makes the JSONs disagree, and comparing working copies reports drift that the committed state doesn't have — then blames the wrong file as stale.
 
 ## Verifying the trigger
 
-The part worth not skipping, because a skill that never fires fails silently and looks fine. Take three or four phrasings you'd plausibly use months from now — including a vague one, and one that names the artifact but not the action — and check honestly whether this description would win against the other skills' descriptions. Where it wouldn't, the fix is usually vocabulary in the description, not more explanation in the body.
-
-Also test the near-miss in the other direction: name something adjacent that should route elsewhere, and confirm the description's exclusions actually send it there. A skill that fires too eagerly costs more than one that fires too rarely, because it displaces the right skill silently.
-
-Both of those tests read your own description and ask what it wins. The failure they can't see is a sibling whose description already claims your subject in words you'd never grep for, because you're searching your feature's vocabulary and it names the category — a skill about redesigning pages doesn't grep "UI/UX work". So open the descriptions of every skill in adjacent territory and read what they claim, rather than inferring it from their names or the registry table's one-line summary. What makes this worth the minutes is that overlap isn't symmetric in cost: where two skills prescribe *incompatible* workflows for one request — one gating all implementation behind an approval dialogue, the other building small changes directly — whichever fires decides the collaboration model, and the user experiences a spacing fix turning into an interrogation. When you find real overlap, a clause in each description naming the boundary is the fix, and it belongs in both files: the new skill deferring upward is only half of it, since the incumbent goes on claiming the same ground. Nothing checks this automatically, and a new skill's trigger is a claim about every existing trigger.
-
-If a baseline eval is wanted (does the skill beat no-skill on a real task), move the skill directory out before running the without-skill arm — an installed skill gets discovered and used anyway, which contaminates the comparison.
+Don't skip this; a skill that never fires fails silently. 📖 `references/trigger-testing.md` — how to test whether this description actually wins, how to catch overlap with existing skills (where two describe incompatible workflows for one request), and what a baseline eval looks like.
 
 ## After
 

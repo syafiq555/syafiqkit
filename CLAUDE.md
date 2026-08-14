@@ -125,6 +125,8 @@ Generated `.claude/agents/<name>.md` files must stay in sync with their source `
 
 A safety-relevant grant is worth stating twice — once in frontmatter, once in the body prose that scopes it — because a density or `unhobble-instructions` pass reads a YAML guard as prohibition-shaped machinery and can strip it along with the sentence explaining it. Where only body text scopes a grant, say so at the point the checklist verifies it, so the sentence is a checked artifact rather than incidental prose.
 
+**Drift is not always one file being behind.** Each side gets edited by different passes — an unhobbling run rewrites the template's prose while a session fixing live agent behaviour moves a guard in the generated file — so both can be ahead of each other on different axes at once. "Patch its template in the same change" then produces the wrong repair, because a wholesale copy in either direction discards whichever improvement the other side was carrying, and the copy *toward* the template also ships repo-specific text ("this repo has no backend/frontend split") upstream into a file meant to be generic. Read the diff and decide per hunk which side is right before moving anything: a `diff <template> <agent>` where the changes cluster into distinct topics rather than one contiguous block is the signal that both were edited independently.
+
 ## Authoring Skills and Commands
 
 ### Conventions

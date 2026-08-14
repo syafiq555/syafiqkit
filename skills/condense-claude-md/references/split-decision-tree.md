@@ -26,7 +26,9 @@ For genuinely cross-cutting sections (no subdir owner, failed seam-test, or high
 
 A row mixing judgment with exact values (IP, command, id) can split within itself instead of moving wholesale — extract the reference values to a companion, keep the mechanism inline. 📖 `prose-vs-value-split.md` for patterns.
 
-**After moving content:** Create a pointer in the parent file named exactly as the reader will search for it. Pointer format: `📖 See .claude-companions/shared/CLAUDE-<topic>.md`. Track companion files in git — they are not gitignored, and their discovery depends on being indexed by parent pointers.
+**After moving content:** Create a pointer in the parent file named exactly as the reader will search for it. Pointer format: `📖 See .claude-companions/shared/CLAUDE-<topic>.md`. `shared/` is tracked in git — a companion supporting a checked-in file belongs there, and its discovery depends on being indexed by parent pointers. `local/` is gitignored and is the right home for a companion supporting a local-only file (`CLAUDE.local.md`, `.env`-adjacent notes); never commit those regardless of what the parent's tracking state is.
+
+📖 `structural-splits.md` owns the execution detail this tree doesn't carry: where the `.claude-companions/` folder goes when the parent is the global `~/.claude/CLAUDE.md` or a multi-repo checkout, the `.gitignore` check on a repo's first `local/` write, the machine-specific-path sweep that a move into `shared/` requires, and the per-category symptom-index requirement that decides whether a multi-topic pointer actually gets followed. Read it before executing a companion split, not just before choosing one.
 
 ## Lever #3: Task Doc
 

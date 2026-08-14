@@ -20,6 +20,8 @@ A pointer usually carries a `Covers: …` list. That list is a claim about the c
 
 **Grep doesn't reach scattered files.** Companions live outside the tree recursive grep walks (`.claude/`, gitignored paths), so a grep for a companion's fact returns either nothing (if you didn't know the file existed) or only the pointer line itself (if the companion is stale). Don't use grep to decide whether a companion covers a topic — `ls <path>` to check existence, then Read it.
 
-**Tell: your only grep hit for a topic is the line that names the file where the topic is documented.** That's evidence the fact is stale in the companion, not present in the main files.
+The two directions fail differently and neither announces itself. **Zero hits reads as "no one has written this down," so the fact gets added fresh — into a file that already covers it, one companion away.** The duplicate is invisible afterward because both copies are correct; they only drift later. **Tell: you concluded a topic was New from a grep alone, without an `ls` on the companion that would own it.**
+
+The other direction: **your only grep hit for a topic is the line that names the file where the topic is documented.** That's evidence the fact is stale in the companion, not present in the main files.
 
 A control that merely hits (`README.md`) proves recursion works; it doesn't prove your target is in scope. Settle a companion's existence with `ls <path>`, never `grep -rl`.

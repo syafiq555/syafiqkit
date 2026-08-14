@@ -13,8 +13,10 @@ A consumer can't patch, but they can **file** — and a GitHub issue notifies th
    gh issue create --repo syafiq555/syafiqkit --label skill-feedback \
      --title "<skill>: <one-line defect>" --body "<the report>"
    ```
+   ⚠️ `gh label list --search` **lies** (returns empty for a label that exists). Verify a label only with `gh api repos/OWNER/REPO/labels/<name>` — never conclude "missing" from the search result.
+   
    Return the issue URL — the maintainer is notified by GitHub.
-4. On **no**, or if `gh` is unauthenticated/absent → render the report in its own fenced block, labelled ("copy everything inside the fence below, nothing outside it"). ⚠️ **The fence is the LAST element of the reply — nothing follows it.** The pointer to `github.com/syafiq555/syafiqkit/issues` goes **above** the label, never after the closing fence — trailing text is invisible as a boundary once the report's own last line could read as more report.
-
-⚠️ `gh label list --search` **lies** (returns empty for a label that exists). If you must verify a label, read `gh api repos/OWNER/REPO/labels/<name>` — never conclude "missing" from the search.
+4. On **no**, or if `gh` is unauthenticated/absent → render the report in its own fenced block, labelled ("copy everything inside the fence below, nothing outside it"). 
+   
+   ⚠️ **The fence is the LAST element of your reply — nothing follows it.** The pointer to `github.com/syafiq555/syafiqkit/issues` goes **above** the label, never after the closing fence — trailing text is invisible as a boundary once the report's own last line could read as more report.
 

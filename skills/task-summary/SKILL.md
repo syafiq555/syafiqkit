@@ -177,7 +177,7 @@ Re-read the whole doc. Does every section still say something true, complete, an
 
 **Additional checks** (run these if they apply to your write):
 - **Back-references reconciled (§6)** — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated.
-- **MADR compliance** — every row in `## Key Technical Decisions` is either an MADR block or legitimately escaped it (no real alternative existed). If whole-doc MADR exceeds 300 bytes, split into index + `decisions/<theme>.md`.
+- **MADR compliance** — every row in `## Key Technical Decisions` is either an MADR block or legitimately escaped it (no real alternative existed). If whole-doc MADR exceeds 300 lines, split into index + `decisions/<theme>.md`.
 - **Next Steps structure** — grouped by kind of work, not by when items were found. No stale completed items. In split docs, every actionable belongs in the index's list, not distributed across `decisions/*.md`.
 - **No wrapper artifacts** — last line is real content, not a `</content>` tag from a Read result. Run `tail -c 40 <file>` or check the final `+` line of `git diff HEAD -- <file>`.
 - **Doc-stated counts are re-derived** — if the doc names a count ("N decisions", "5 critical gotchas"), run the command that produces it, never adjust a number by hand. A doc carrying both the count and the command is drifting silently on every increment.

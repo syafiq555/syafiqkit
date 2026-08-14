@@ -40,7 +40,7 @@ Route feature-scoped or decision-grade rules to task docs via `update-claude-doc
 
 📖 `../_shared/references/two-tier-condense.md` — execution model and write-mode choice (if byte delta <~15%, use `Edit` not `Write`).
 
-**6. Verify no loss.** Extract first column of old/new (`awk -F'|' '{print $2}'`), `comm -23` them, confirm each against diff. Confirm the last line is real content (not a `</content>` tag — see Hard rules #1). If still >250 lines after compressing, offer to split before asking what to cut. When growth is the diagnosis, report headroom in days, not bytes: "6KB left, ~4 days at observed rate" not "37KB" (check history: `git log --format='%h %ad %s' --date=short -N -- <file>`).
+**6. Verify no loss.** Extract first column of old/new (`awk -F'|' '{print $2}'`), `comm -23` them, confirm each against diff. Confirm the last line is real content (not a `</content>` tag — see Hard rules #1). Report `wc -lc` before and after — both counts, every run, since a line drop with bytes flat means content moved rather than went, and the two numbers disagreeing is the cheapest signal that something needs a second look. If still >250 lines after compressing, offer to split before asking what to cut. When growth is the diagnosis, report headroom in days, not bytes: "6KB left, ~4 days at observed rate" not "37KB" (check history: `git log --format='%h %ad %s' --date=short -N -- <file>`).
 
 ## Hard rules
 
