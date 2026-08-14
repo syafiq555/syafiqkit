@@ -23,17 +23,14 @@ Invoke `syafiqkit:task-summary` bare. An explicit path skips its multi-domain sc
 
 ## Step 3: Plugin gate — only if it fires
 
-```bash
-git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
-```
+The checkout is shared across every project, so it may carry another session's concurrent work. Any file you don't remember editing must be read before assuming it's yours — a foreign edit is recognisable on sight, and shipping one under your version bump is the failure this gate exists to prevent.
 
-Run it from the plugin checkout as CWD, not `git -C <path>` — that walks up to an enclosing repo and answers about the wrong tree.
+**Check ownership:**
+1. Run `git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'` from the plugin checkout as CWD, not `git -C <path>` — that walks up to an enclosing repo and answers about the wrong tree. An empty list means the gate didn't fire; skip silently and omit the row.
 
-The checkout is shared across every project, so it may carry another session's work. Settle ownership by mtime against session start (`stat -f '%Sm' -t '%m-%d %H:%M' <file>` on macOS); files predating the session drop out. An empty list means the gate didn't fire; skip silently and omit the row.
-
-Mtime only separates work finished *before* you started — a session editing this checkout *concurrently* stamps its files inside your window too, so a clean pass is not ownership. Read `git diff HEAD -- <file>` on anything you don't remember editing; a foreign edit is recognisable on sight, and shipping one under your version bump is the failure this gate exists to prevent. A bare `git diff` misses the staged plane and reports your own work as foreign (`../_shared/references/diff-ownership.md`). Ask before treating an unrecognised file as yours.
-
-`ListAgents` can confirm a peer session is live, but not which checkout it's in, so the diff read stays the only check (`../_shared/references/cross-session-messaging.md`).
+2. For each file, verify you edited it this session:
+   - **Mtime check:** `stat -f '%Sm' -t '%m-%d %H:%M' <file>` on macOS. Files predating your session start were edited by another. 
+   - **Diff check on unknowns:** Read `git diff HEAD -- <file>` on anything you don't remember editing. A bare `git diff` misses the staged plane (`📖 ../_shared/references/diff-ownership.md`). Ask before treating an unrecognised file as yours. `ListAgents` can confirm a peer session is live (`📖 ../_shared/references/cross-session-messaging.md`), but the diff read is the only durable check.
 
 What survives both checks was hand-edited this session — invoke `syafiqkit:update-plugin`, which owns everything downstream.
 
@@ -70,4 +67,4 @@ Each Output row claims a step ran. Both doc steps write files, so substantiate t
 Skipped by design: code review, simplify, product review, cleanup scan. The code was not read for defects.
 ```
 
-No product reviewer runs here, so a build-or-skip gap is rare — but `task-summary` can still surface something the user has to decide (a stub worth creating, a doc stale enough to act on).
+No product reviewer runs here, so a build-or-skip gap is rare — but `task-summary` can surface its own Decisions output if something the user must decide emerges (a stub worth creating, a doc stale enough to act on). If it does, that appears in task-summary's own report, independent of this skill's Decisions section above.
