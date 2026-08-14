@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.149.1
+
+Nothing to regenerate. Affects what `/agent-setup` and `/update-plugin` do when a generated agent and its template disagree.
+
+- **"The template is the true source" was too strong, and it produced the wrong repair.** Both files get edited, just by different passes — a prose or unhobbling sweep rewrites the template, a session fixing live agent behaviour edits the generated copy under `.claude/agents/`. So they can each be ahead of the other on a different axis at once, and restoring wholesale in either direction throws away a real fix. Copying toward the template has a second cost: a generated file legitimately carries project-specific text that shouldn't go upstream.
+- **All three places that decide this now say to read the diff and choose per hunk**, with the reasoning stated once in the shared checklist and cited from the other two. The tell that both sides were edited independently is a diff whose changes cluster into separate topics instead of one contiguous block.
+
 ## 1.149.0
 
 Nothing to regenerate. The workflow skills you use daily read differently now; behaviour is the same except where noted below.
