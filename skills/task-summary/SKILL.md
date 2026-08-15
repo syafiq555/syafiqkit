@@ -167,6 +167,8 @@ Never include API keys, merchant keys, passwords, or secrets in task docs. Refer
 
 Re-read the whole doc. Does every section still say something true, complete, and stated exactly once?
 
+**"True" covers the sections you didn't touch.** The checks below mostly ask whether this write broke something, which quietly scopes validation to the diff — and staleness is precisely what lives outside it. A doc goes stale because the session that falsified a fact and the session that could notice are different sessions: you rename a thing and update the doc about the rename, while the sibling paragraph mentioning the old name isn't in your diff, isn't in the §1 scan (which maps *code* changes to docs, not doc changes to sibling docs), and so is never read. It stays wrong until someone opens that file for an unrelated reason. You are that someone now, holding the file open with edit intent — which makes this the cheapest moment the staleness will ever have. Sweep the fields written once and checked least (`Quick Start`, `Status:`, `Immediate next actions`, and any prose in a file's opening lines describing what the system currently is), and in a split doc set read the `decisions/*.md` headers too, since the index gets the attention and the siblings inherit the drift. Fix what you can settle, and where the doc contradicts what this session observed, verify before flipping — a doc claim is as often right as it is stale, and an unverified "correction" discredits a source that was correct.
+
 **Three essential checks:**
 
 1. **LLM-CONTEXT** has Status, Domain, Related, Last updated, and the date is today. Every section's structure matches the template — correct table columns, correct field names, no free-form bullets where a table is specified.

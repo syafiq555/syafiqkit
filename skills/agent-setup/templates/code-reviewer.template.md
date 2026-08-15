@@ -17,6 +17,8 @@ memory: project
 
 ## Bootstrap (Do This First)
 
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `code-reviewer`, and never hand a child your own assignment — the correctness judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
+
 ⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/code-reviewer/*.md` (via `MEMORY.md`'s index) before reading CLAUDE.md files. These are prior-session findings scoped to this agent (false-positive patterns, sync traps between two call sites, non-obvious return shapes) — cheaper than rediscovering them via grep, and some directly prevent a repeat false positive.
 
 Read these files before reviewing any code:

@@ -48,11 +48,12 @@ A caller-supplied arg is additive context, not a scope limiter — scan the whol
 
 ## 1. Scan — What happened?
 
-Scan the conversation for three classes of signals:
+Scan the conversation for four classes of signals — the first three ask what the session added, the fourth what it broke:
 
 - **Undocumented facts** the session revealed: a gotcha, an environment surprise, a debugging discovery, a non-standard convention the code doesn't teach. Anything code can't explain.
 - **Violated rules**: a moment when Claude ignored an existing CLAUDE.md rule, or this skill itself skipped a step it's supposed to follow. Classify as "Violation" (see refinement steps below).
 - **Repeating patterns**: the same approach used 2+ times in one session, or the same mistake corrected twice. Separate from one-off gotchas.
+- **Rules the session made FALSE**: work that changes something the docs describe leaves rules about it stale without anyone editing them. The other three classes cannot find these, because all three grep for what you're *adding* — and a rule describing the old state is written in the old state's vocabulary, so every search keyed on the new one misses it. Ask what the docs previously said about whatever you just changed, then search using the words that were true before, not after. This is the class most likely to be skipped: nothing about building the new thing prompts you to go looking for what it broke, and the miss is invisible because the docs still read as coherent. A stale instruction costs more than a missing one, since it reads as settled and sends the next reader confidently at the wrong target.
 
 Also scan for working-style preferences stated by the user (e.g., "communicate like this instead"), personal machine context, credentials/tokens, and CLI patterns reused 3+ times — these route to `CLAUDE.local.md` instead.
 

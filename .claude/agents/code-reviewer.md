@@ -17,6 +17,8 @@ memory: project
 
 ## Bootstrap (Do This First)
 
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `code-reviewer`, and never hand a child your own assignment — the correctness judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+
 Read these files before reviewing any change:
 
 | File | Contains |

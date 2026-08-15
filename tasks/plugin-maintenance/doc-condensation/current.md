@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: Reference (ongoing) — 42 committed decisions across 4 themed decision files
+Status: Reference (ongoing) — 43 committed decisions across 4 themed decision files
 Domain: plugin-maintenance/doc-condensation
 Gotchas (critical — full list in ## Critical Gotchas below):
   - Confirming a passage is gone ≠ it should be gone; apply target skill's fact-vs-constraint bar
@@ -8,7 +8,7 @@ Related:
   - ../agent-architecture/current.md (generated agents inherit conventions + sibling skill invocation)
   - ../madr-structure/current.md (the MADR format itself)
   - ../external-guidance/current.md (grading outside guidance against plugin measurements)
-Last updated: 2026-08-14 — arrival-rate ratio measured at 1.33:1 (down from 2.6:1); infra-only marker trimmed to 2
+Last updated: 2026-08-15 (v1.156.0) — `task-summary`'s §5 validated only the write that just happened, so staleness outside the diff passed every check; user-reported as docs going stale "almost every time" (D-validation-scoped-to-the-diff). Earlier: arrival-rate ratio measured at 1.33:1 (down from 2.6:1); infra-only marker trimmed to 2
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
@@ -59,7 +59,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 | File | Read if you're asking |
 |------|------------------------|
-| [decisions/bloat-generator-fixes.md](decisions/bloat-generator-fixes.md) | *Where does the plugin fix doc bloat — at the generator (task-summary rules) or by hand-trimming? What structural levers exist for over-budget CLAUDE.md? What if the file declares its own budget, or is far UNDER it? How does the `/commit` staleness gate avoid lexical false positives? Can an aggregate line/byte target pass while individual sentences stay bloated? Who enforces the condense once a doc is over budget, when does an ownership guard block work it was never meant to, why does a doc-set measurement read 0, and why can a shell snippet in a skill body not be trusted to run as written?* (D3, D6, D17, D18, D19, D20, D44, D51, D57, D67, D-done-owes-the-condense, D-guard-scoped-to-what-it-can-see, D-unmatched-glob-measures-zero, D-skill-args-eat-dollar-zero) |
+| [decisions/bloat-generator-fixes.md](decisions/bloat-generator-fixes.md) | *Where does the plugin fix doc bloat — at the generator (task-summary rules) or by hand-trimming? What structural levers exist for over-budget CLAUDE.md? What if the file declares its own budget, or is far UNDER it? How does the `/commit` staleness gate avoid lexical false positives? Can an aggregate line/byte target pass while individual sentences stay bloated? Who enforces the condense once a doc is over budget, when does an ownership guard block work it was never meant to, why does a doc-set measurement read 0, why can a shell snippet in a skill body not be trusted to run as written, and why do docs keep going stale when the skill that writes them validates every time?* (D3, D6, D17, D18, D19, D20, D44, D51, D57, D67, D-done-owes-the-condense, D-guard-scoped-to-what-it-can-see, D-unmatched-glob-measures-zero, D-skill-args-eat-dollar-zero, D-validation-scoped-to-the-diff) |
 | [decisions/structural-mechanics.md](decisions/structural-mechanics.md) | *When does a doc/CLAUDE.md/skill need a structural split (byte thresholds, companion files, plan-doc typing) instead of denser prose? Why does re-condensing the same skill keep failing? What checkpoint catches a rule that arrives with no defect, what size policy applies to `references/*.md`, and why does a stale pointer pass the same grep a missing rule fails? What stays in a split index versus routing down to `decisions/`?* (D22, D23, D26, D27, D33, D45, D46, D50, D54, D62, D69) |
 | [decisions/verification-rigor.md](decisions/verification-rigor.md) | *When should a CLAUDE.md entry be prose vs. a table row, once a companion file exists is it ever a condense target itself, may condensation drafting be delegated to an agent, which kind of fact does an unhobbling pass mistake for hedging, how does a verifier decide whether a confirmed drop was correct, what happens when two skills mandate opposite shapes for the same doc, when is a file too unstable to verify, does a fact route by where it was found or what it's about, and what breaks when a pass inlines a reference into its citing file?* (D63, D64, D65, D66, D68, D-haiku-condense-delegation, D-mandate-vs-judgement, D-limitation-reads-as-hedging, D-dropped-is-not-the-same-as-correctly-dropped, D-torn-page-verification, D-route-by-subject-not-discovery, D-inlining-breaks-the-citation-graph) |
 | [decisions/duplication-and-integrity.md](decisions/duplication-and-integrity.md) | *How does the plugin catch duplicated facts (within/across docs) and verify a fix actually landed everywhere?* (D37, D40, D12, demoted D2/D5/D7/D11) |

@@ -283,3 +283,25 @@ Read a line back through a shell variable (`grep -n` for the number, `sed -n "${
 - `task-summary/SKILL.md`'s size gate still states bytes (`wc -c`) where step 7 now measures lines with a section subtracted. Left as-is, tracked in Next Steps.
 
 **Status**: committed · **Reversible**: yes
+
+### D-validation-scoped-to-the-diff — `task-summary` Validated Its Own Write and Called That a Valid Doc — committed (v1.156.0) — 2026-08-15
+
+**Problem**
+A user reported task docs going stale "almost every time" and asked whether `task-summary` actually updates them under `/done`, `/quick-done` or direct invocation. It does — the defect was that §5's checks are all scoped to the write that just happened. The three essential ones ask whether this edit dropped a row, broke a structure, or introduced a duplicate; the additional ones are prefixed *"run these if they apply to your write."* Staleness is by definition what lives outside the diff, so a doc passes validation cleanly while carrying a paragraph that went false three sessions ago.
+
+The reason it recurs rather than being an occasional slip: the session that falsifies a fact and the session that could notice are structurally different sessions. Rename a set of containers and you update the doc *about* the rename, thoroughly. The sibling `decisions/*.md` mentioning the old name in passing is not in the diff, not in §1's scan (which maps *code* changes to docs, never doc changes to sibling docs), and not in §5's scope — three independent misses, none of which look like a miss from inside the session. Observed live in the AR repo: a decisions file opened for unrelated work still claimed production "runs under the historical `ar_standby_*` container names," falsified by a rename the previous session had itself performed and documented in the index.
+
+**Decision**
+One paragraph at the head of §5, above the three checks rather than appended as a fourth, reframing what "true" covers. It names the mechanism (why the two session types diverge), the fields that decay most, and the split-doc case where the index gets the attention and siblings inherit the drift. Placement is the point — a check landing after the numbered list gets walked past by a session executing the list as a procedure, the failure `update-plugin`'s Step 3 names for a rule that is present in the file and still never fires because it sits outside the step where it applies.
+
+**Rejected**
+- *Also patch `/done` and `/quick-done`'s exit gates.* Both invoke `task-summary`, so the rule fires through them already; a gate row asserting it separately is the same fact in three files, drifting apart — the failure `doc-condensation` exists to fight.
+- *A mechanical sweep list (grep these N fields every run).* Staleness has no fixed lexical shape, unlike the commit-state gate D57 carves out. An enumeration would fire on the fields it names and train readers past everything else.
+- *Leave it to `read-summary`.* It already carries "reading a doc is also auditing it," and that is where the rule was — but that skill's job ends before anyone holds the file open with edit intent, which is the cheapest moment the staleness will ever have.
+
+**Consequences**
+The sweep is bounded by what the session can settle, not by the doc's full surface — an unbounded audit would make every doc write a review of the whole set. Where the doc contradicts what the session observed, the rule says verify before flipping: a doc claim is as often right as it is stale, and an unverified "correction" discredits a source that was correct while reading as settled to whoever comes next. That clause deliberately softens the sweep, on the judgment that the reverse error is worse.
+
+Same shape as D3 (fix bloat at the generator, not by hand-trimming) one layer over: the generator was writing correctly and validating incompletely, so the fix belongs in the validation step rather than in a downstream gate.
+
+**Status**: committed · **Reversible**: yes

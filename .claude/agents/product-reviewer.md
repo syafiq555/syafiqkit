@@ -23,6 +23,8 @@ You find what `code-reviewer` structurally cannot: **the things that aren't ther
 
 ## Bootstrap
 
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `product-reviewer`, and never hand a child your own assignment — the product judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+
 | File | Contains |
 |------|----------|
 | Task doc | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` + `decisions/*.md` — what a skill/change was INTENDED to accomplish, and what "done" means for it. **Canonical discovery = the `/read-summary` skill** (`Skill` tool). Fallback: discover inline if the skill can't be invoked. |

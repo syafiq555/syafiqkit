@@ -16,6 +16,8 @@ memory: project
 
 ## Bootstrap
 
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `claude-md-pruner`, and never hand a child your own assignment — the staleness judgment in this brief is yours to perform, not to relay, and a child editing docs in parallel with you is how two passes overwrite each other. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
+
 ⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/claude-md-pruner/*.md` (via `MEMORY.md`'s index, if any files exist) before anything else. Prior-session findings scoped to this agent's pruning history — cheaper than rediscovering them.
 
 Read by artifact — Process step 1 decides which branch you are on. Always read the first row; add the row for your branch.

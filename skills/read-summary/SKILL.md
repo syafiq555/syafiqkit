@@ -91,6 +91,15 @@ Two clauses belong in the prompt itself, since neither is derivable from the age
 
 For implementing work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline. This skill prescribes only the agent for its own discovery step.
 
+**A generated agent only carries what its template held on the day it was generated**, so a project's `.claude/agents/*.md` can be months behind a constraint the templates gained since — and nothing about dispatching a stale agent looks wrong, because it returns a normally-shaped report. The gap is worth one cheap look the first time a session dispatches a project agent: compare a rule you'd expect every current agent to carry against what the generated files actually say. A safety-relevant one is the cheapest probe, since it either appears in all of them or in none:
+
+```bash
+find .claude/agents -name '*.md' ! -name 'Explore.md' \
+  -exec grep -L 'agent-may-not-redelegate\|Spawn only' {} + 2>/dev/null
+```
+
+Any file listed is missing the re-delegation constraint, which is what lets a dispatched agent hand your brief to a copy of itself. `Explore` is excluded because nested `Explore` is its designed behaviour — an enumeration that flags it trains the reader to ignore the result. `/agent-setup` regenerates them and owns the full per-hunk drift comparison — the point here is only that a stale agent never announces itself, so someone has to look while there's still a reason to. Skip it in a project with no `.claude/agents/` at all, and don't re-run it once a session has already checked.
+
 ---
 
 ## Plan Mode {#plan-mode}

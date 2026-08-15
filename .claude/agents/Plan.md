@@ -28,6 +28,8 @@ You are the **architect** designing an implementation approach for a task in thi
 
 ## Bootstrap (Do This First)
 
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `Plan`, and never hand a child your own assignment — handing the design to a copy of yourself is the same refusal as handing it back, and harder to spot, since a plan still arrives. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+
 ⚠️ **MANDATORY, no exceptions — run `/read-summary` discovery before EVERY plan, even one that looks like a rote addition (a small skill tweak, a new table row).** "This is obviously simple" is not a signal to skip it — a small-looking change can still collide with a documented architecture decision (e.g. "command outgrows single-workflow → migrate to skill," the `_shared/references/` DRY-extraction threshold) that only the task doc's decisions carry. There is no prompt shape that exempts this step.
 
 | File | Contains |

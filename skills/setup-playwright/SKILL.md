@@ -1,6 +1,6 @@
 ---
 name: setup-playwright
-description: Set up or harden a Playwright E2E suite in any project — first-time scaffolding (config, auth storageState, first spec) or fixing an existing suite that is flaky, races between spec files, depends on hand-made local DB rows, or has no CI story. Use when the user says "set up playwright", "add e2e tests", "set up e2e", "set up browser tests", "scaffold browser tests", "we need integration tests for the frontend", "our e2e tests are flaky", "the test suite is flaky", "specs pass alone but fail together", "e2e breaks after a db reset", "tests only pass on my machine", "make the e2e suite parallel-safe", or names Playwright while describing a suite that isn't trustworthy. Covers per-worker fixture partitioning, login-throttle-safe auth, and the seeder that makes a suite survive `migrate:fresh`. NOT for writing one more spec in a suite that already works (just write it), NOT for backend/unit test setup, and NOT for diagnosing a CI runner that can't reach a server (that's ci-ssh-deploy-timeout).
+description: Set up or harden a Playwright E2E suite in any project — first-time scaffolding (config, auth storageState, first spec) or fixing an existing suite that is flaky, races between spec files, depends on hand-made local DB rows, or has no CI story. Use when the user says "set up playwright", "add e2e tests", "set up e2e", "set up browser tests", "scaffold browser tests", "we need integration tests for the frontend", "our e2e tests are flaky", "the test suite is flaky", "specs pass alone but fail together", "e2e breaks after a db reset", "tests only pass on my machine", "make the e2e suite parallel-safe", or names Playwright while describing a suite that isn't trustworthy. Covers per-worker fixture partitioning, login-throttle-safe auth, the seeder that makes a suite survive `migrate:fresh`, and recording the suite as video ("record the e2e run", "video of the tests", "watch the flows") so the flows can be reviewed by eye. NOT for writing one more spec in a suite that already works (just write it), NOT for backend/unit test setup, and NOT for diagnosing a CI runner that can't reach a server (that's ci-ssh-deploy-timeout).
 ---
 
 # Set Up / Harden a Playwright E2E Suite
@@ -87,6 +87,19 @@ Cap the setup project's parallelism (`fullyParallel: false` on that project — 
 The signature: "works on my machine," with no data race, no missing fixture, and no throttle — the three checks above all come back clean.
 
 Confirm the installed browser binary matches what's failing elsewhere: `npx playwright install --with-deps` pins the exact Chromium/WebKit/Firefox build the test was written against, so a machine that ran `playwright install` at a different time can silently diverge from CI or a teammate's machine. Also check timezone/locale (date and currency assertions), and installed system fonts (layout-sensitive screenshot/pixel assertions) — both differ by machine and neither shows up as a Playwright error, just a wrong value or a failed visual diff.
+
+### Recording the run as video
+
+Worth wiring even when nothing is failing. A recorded pass is the cheapest way to *see* the product — a reviewer watches the flows and catches spacing, truncation, clipped modals and copy problems that no assertion encodes, because a spec asserts what someone thought to assert. Offer it once a suite covers real user journeys; the flows are already written, so the marginal cost is a flag.
+
+Video is a **context-creation** option, which is the whole difficulty. `use.video` reaches only the contexts the runner builds for its own `page` fixture, and files them under the per-test output dir. Specs that build contexts by hand — any multi-party flow holding two sessions open at once — need the context-level `recordVideo` option instead. Set one and half the suite silently records nothing while the config reads as done; set both and the halves land in two directories, so gather them afterwards or the missing half reads as "that spec didn't record."
+
+Two things make the difference between a useful recording and a confusing one:
+
+- **Encoding stops the moment a context closes**, and a spec ends on its last assertion — so a fast test records its loading state and nothing else. Hold each context open briefly before closing, behind the same flag that turns recording on, so a normal run pays nothing. Without this the run is green while the video looks broken, and the disagreement reads as a product defect rather than a capture artifact. When a capture contradicts a passing assertion, believe the assertion and suspect the capture.
+- **Name the file after the test.** A hand-built context's video lands under a content hash the runner reports nowhere, so the obvious fallback is numbering by creation time — which makes every video anonymous exactly when someone is trying to review twenty of them. The mapping is recoverable, but only from inside the test while the page is still open, where the video handle resolves to its path; record it there, keyed to the test title, and rename during collection. Route every context through one close helper so this and the tail wait have a single home — a context closing by itself skips both, and the missing name is the visible symptom of a truncated recording.
+
+A recording is a viewport, not the page: content below the fold is absent, and a modal taller than the viewport looks cropped. Read a cut-off edge as the frame boundary before treating it as a layout bug.
 
 ### Assertion and locator conventions
 

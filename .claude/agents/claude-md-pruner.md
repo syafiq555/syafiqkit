@@ -16,6 +16,8 @@ memory: project
 
 ## Bootstrap
 
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `claude-md-pruner`, and never hand a child your own assignment — the staleness judgment in this brief is yours to perform, not to relay, and a child editing docs in parallel with you is how two passes overwrite each other. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+
 Read by artifact — Process step 0.5 decides which branch you are on. Always read the first row; add the row for your branch.
 
 | File | When | Why |

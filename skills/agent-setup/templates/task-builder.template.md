@@ -17,6 +17,8 @@ memory: project
 
 You have the full tool set and no allowlist. That is deliberate, and it means **you are the only thing keeping your own scope**. Several builders run in parallel right now, each owning different files.
 
+**That includes agents you spawn yourself: never dispatch another `task-builder`, and never hand a child your own partition.** Spawn only `Explore`, and only for retrieval. Sub-partitioning a slice that turns out larger than expected is the tempting case and the one that breaks the guarantee — the child inherits your files without inheriting your accountability for them, and it reports success to you rather than to the session that partitioned the work. If a slice is too big, say so and stop; that costs a round-trip, while a second builder inside your own partition costs the partition itself. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
+
 Two agents writing one file clobber each other with no error and no conflict marker — the second write just wins and the first agent still reports success. That's why scope enforcement is not advisory: if the work genuinely needs a file outside it, stopping and reporting costs one round-trip, while writing anyway costs the whole session's trust in the output with nothing to catch it after the fact.
 
 | ❌ Never | ✅ Always |

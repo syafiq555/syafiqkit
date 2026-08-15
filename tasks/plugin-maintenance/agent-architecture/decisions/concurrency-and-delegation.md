@@ -262,6 +262,28 @@ Chosen: extract to `skills/_shared/references/agent-prompt-verb-ban.md` with the
 
 **Status**: committed · **Reversible**: yes
 
+### D-agent-may-not-redelegate — A Tool Grant Scoped Only In A YAML Comment Is Unscoped At Runtime — committed — 2026-08-14
+
+**Problem**
+A dispatched `product-reviewer` handed a six-item worklist spawned a second `product-reviewer` carrying the same brief rather than spawning `Explore` for retrieval. Seven templates grant the `Agent` tool; the intended scope lived in a frontmatter comment (`- Agent  # lets this agent spawn Explore agents for multi-target sweeps`) on six of them, and only `browser-verifier` stated it in body prose — because that role hit the failure first. A comment constrains whoever edits the file; the agent receives the tool with its own generic description and nothing narrowing it.
+
+The failure is invisible from the dispatcher's side. The parent reformats the child's work into its own output contract, so the report arrives correctly shaped and on time; what silently drops is the brief, since a prompt clause binding the agent you dispatched reaches the child only as that agent's paraphrase of it. It also manufactures corroboration — a premise you supplied, restated by a child and relayed by a parent, reads as two agents independently agreeing.
+
+**Decision**
+Chosen: extract to `skills/_shared/references/agent-may-not-redelegate.md` and state the operative rule in body prose in every Agent-holding template plus its generated copies — spawn only `Explore`, only for retrieval, never a same-typed child and never your own assignment. `Explore` stays exempt: nested `Explore` is its designed behaviour for multi-target sweeps. Detection is the other half, so `plan-worklist` and `/done`'s blindness-patterns table tell the *dispatcher* what a relayed report looks like; prevention in the agent and detection in the caller fail independently.
+
+**Rejected**
+- Removing `Agent` from the roles that misused it. Why not: retrieval fan-out is why the grant exists, and revoking it pushes multi-target sweeps back into the agent's own context — the cost the delegation was buying down.
+- Relying on the existing frontmatter comments. Why not: that is the mechanism that failed. The comment is also what a reviewer sees and finds reassuring, so it actively conceals the gap.
+- Leaving generated copies to inherit via a `📖` pointer. Why not: project copies cite no `_shared` references and a project checkout need not have the plugin installed, so the rule must be inline there even though the templates carry a pointer.
+
+**Consequences**
+- Grepping a tools block measures the wrong thing. Every template's comment looks compliant, and `task-builder` omits `tools:` entirely to receive the full set — so `grep '^  - Agent'` cannot see its grant at all and reported it unaffected. Enumerate by capability, and confirm scope by reading the body for what the agent is told to spawn.
+- The plugin's own `.claude/agents/` is a third copy location beside the two project checkouts, easy to miss because the plugin isn't thought of as a project. A sweep over generated agents has to include it.
+- A same-typed child is the shape to look for, not nesting itself. The tell is a child whose task description restates the parent's rather than naming a slice of it.
+
+**Status**: committed · **Reversible**: yes
+
 ---
 
 ### D-cross-session-messaging — Peer Discovery Belongs at the Entry Point, Not the Write Sites — committed — 2026-08-09

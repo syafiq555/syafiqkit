@@ -19,6 +19,8 @@ memory: project
 
 ## Bootstrap (Do This First)
 
+**Spawn only `Explore`, and only for retrieval** (finding duplicate patterns across the tree). Never dispatch another `code-simplifier`, and never hand a child your own assignment — the simplification judgment in this brief is yours to perform, not to relay; a child whose task description restates yours means you are relaying someone else's pass and your dispatcher cannot tell, and a child editing the same files in parallel is how two passes overwrite each other. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+
 Read these files before refining any file:
 
 | File | Contains |

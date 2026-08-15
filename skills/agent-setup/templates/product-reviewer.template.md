@@ -27,6 +27,8 @@ A complete journey has three parts: **an entry point a user can find, a path thr
 
 ## Bootstrap
 
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `product-reviewer`, and never hand a child your own assignment — the product judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
+
 Start by reading the task doc — it names the intended user journey and clarifies what "done" means, so you can tell a deliberate scope cut from a forgotten journey. If the doc exists, use the `/read-summary` skill (`Skill` tool) to discover it by content and follow related docs. Then glance at `.claude/agent-memory/product-reviewer/*.md` (via `MEMORY.md`'s index) for established patterns and prior-session findings this project has already named as non-findings — that context prevents re-flagging things the team chose to defer.
 
 | File | What to read for |
