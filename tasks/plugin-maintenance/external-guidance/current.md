@@ -6,6 +6,7 @@ Related:
   - ../doc-condensation/current.md (owns D54 and every skill-density decision this evaluation fed, plus D63 — the later-found scope boundary on the judgment-over-prescription claim)
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
+  - ../output-style-hook/current.md (sibling feature — source #6, ayghri/i-have-adhd: findings adopted, structure rejected)
 Last updated: 2026-08-11 — source #5, the first that was a working artifact rather than advice: the official `frontend-design` plugin, graded per-capability into depend/adapt/build (D-fork-the-gap-not-the-source)
 -->
 

@@ -1,0 +1,19 @@
+{
+  "description": "Injects syafiqkit's output-style ruleset at session start.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md"],
+            "timeout": 5,
+            "statusMessage": "Loading syafiqkit output style..."
+          }
+        ]
+      }
+    ]
+  }
+}

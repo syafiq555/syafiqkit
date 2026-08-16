@@ -5,6 +5,7 @@ Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is 
 Related:
   - ../doc-condensation/current.md (sibling feature — fighting duplication/bloat across docs, CLAUDE.md, skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
+  - ../output-style-hook/current.md (sibling feature — the SessionStart hook; shares the verify-the-agent's-report problem)
 Last updated: 2026-08-15 (v1.157.0) — a tool grant scoped only in a YAML comment is unscoped at runtime: six of seven Agent-holding templates carried the restriction as a comment, and a dispatched `product-reviewer` spawned a copy of itself carrying the same brief (D-agent-may-not-redelegate). Enumerate Agent-holders by capability, not by `grep '^  - Agent'` — `task-builder` omits `tools:` to get the full set. A reviewing agent's verdict that template/agent pairs match is not the diff: "word-for-word identical" was wrong on two of five. Session-by-session history lives in `## Last Session` and the ADRs it cites — not here.
 -->
 

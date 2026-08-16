@@ -17,6 +17,10 @@ claude plugin marketplace add https://github.com/syafiq555/syafiqkit
 claude plugin install syafiqkit@syafiqkit
 ```
 
+## Output style
+
+Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hook injects an ADHD-oriented ruleset when a session starts, resumes, is cleared, or compacts — responses lead with the thing to do, multi-step work arrives numbered, estimates use real units, and stock openers and closers are dropped. It applies whether or not you invoke a syafiqkit skill (a *forked* session is the one exception — it gets no ruleset), and **there is no setting to turn it off** — the only way off it today is `claude plugin uninstall syafiqkit@syafiqkit`, which takes the skills with it. If the style gets in your way, say so and it can be made optional. The ruleset is `hooks/RULESET.md` if you want to read what it asks for. On Windows without Git Bash the hook silently does nothing and every skill still works.
+
 ## Commands
 
 | Command | Description |

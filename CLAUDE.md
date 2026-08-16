@@ -117,6 +117,20 @@ memory: project                         # Persistent memory scoped to project
 ---
 ```
 
+### The SessionStart Hook
+
+`hooks/hooks.json` `cat`s `hooks/RULESET.md` into a session at startup, on matchers `startup|resume|clear|compact`. It is auto-discovered by well-known path — neither manifest declares a `hooks` field, and adding one is not required.
+
+**`fork` is the fifth documented matcher and is deliberately absent**, so a session forked via `--fork-session`, `/fork` or `/branch` gets no ruleset. Its behaviour was never verified, and shipping an unverified matcher was the worse trade against a bounded, nameable gap. Adding it is a one-token change once someone confirms what a forked session does with hook output — at which point the "every session" wording in `README.md` and the changelog can lose its carve-out.
+
+**There is no script, deliberately.** A hook's contract is that stdout becomes context, which `cat` satisfies alone. An intermediate script would reintroduce two problems that don't otherwise exist: `${CLAUDE_PLUGIN_ROOT}` expands in `hooks.json` but not inside a script body, so the script would have to resolve the ruleset from `$0`; and a ruleset with frontmatter would need strip logic, whose edge cases (a closing `---` with trailing whitespace, an unterminated fence) are the bugs the upstream reference implementation's test suite exists to catch. No script, no frontmatter, neither problem.
+
+**`cat` rather than `node`, because Claude Code no longer guarantees Node.** The CLI ships as a native binary, so installing it brings no Node, and a version-managed `node` (nvm, Herd) is present only via the shell profile — which an exec-form hook never sources. Verify with `env -i PATH="/usr/bin:/bin" sh -c 'command -v node'` before assuming any interpreter is reachable; `/bin/cat` passes that check and is a POSIX guarantee on macOS and Linux. The consequence is that bare Windows without Git Bash gets a silent no-op.
+
+**A missing ruleset is expected to degrade rather than block, but that has not been observed end-to-end.** `cat` exits 1 on ENOENT (verified), and the hook docs say only exit 2 blocks a session while leaving ENOENT handling itself undocumented — so the conclusion rests on a documented table rather than a session started with the file absent. The no-guard design leans on this, so anyone who moves `RULESET.md` behind a wrapper, or sees a session fail to start, should treat it as the first suspect and run the real test: rename the file, start a fresh session, see whether it comes up.
+
+**There is no off-switch, and that was a decision rather than an oversight.** `cat` cannot read an env var, and adding a guard means adding a script back. Any future request to make it optional is a request to reopen the shape, not a small patch.
+
 ### Agent Definition Parity
 
 Generated `.claude/agents/<name>.md` files must stay in sync with their source `skills/agent-setup/templates/<name>.template.md`. Editing an agent file requires patching its template in the same change; otherwise the next `/agent-setup` run regenerates the old behavior. When fixing an agent, grep both locations and update every hit. Drift is silent — a spawn failure with `effort 'xhigh'/'max' not supported` is worth diffing against the template before treating it as an environment fault.
@@ -176,7 +190,7 @@ Before editing, re-read both files — working copies may disagree from an uncom
 
 ### Release Notes
 
-Release notes state the reader's action — consumers install without repo access. Include: (1) the CLI command to update, (2) what prior output becomes invalid (regenerate? re-run?), (3) edge cases the reader would wonder about. Skill-only changes need no regeneration; only mention it if agents or templates changed.
+Release notes state the reader's action — consumers install without repo access. Include: (1) the CLI command to update, (2) what prior output becomes invalid (regenerate? re-run?), (3) edge cases the reader would wonder about. Skill- or hook-only changes need no regeneration; only mention it if agents or templates changed.
 
 ### Testing Changes
 

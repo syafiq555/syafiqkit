@@ -117,6 +117,10 @@ A fact that passed the derivability gate still faces a second choice: **resident
 
 If a rule doesn't fire unless the reader already knew to look for it, move it to a skill (invoked by name) or a companion (invoked by symptom) — the resident cost is too high for content that only helps a reader mid-failure. Root CLAUDE.md after trimming should feel like "the things you need to know before you act," not "everything about everything."
 
+**Which files are private is a `.gitignore` fact, not a filename convention — read it before routing anything personal.** The ladder below names `CLAUDE.local.md` as the private rung because that is the usual arrangement, but a repo decides its own: a companions tree commonly splits `shared/` (tracked) from `local/` (ignored), and a global `~/.claude` may itself be a repo with a remote. Inferring from the filename puts a machine-specific fact — a container name, a server alias, a personal tool's behaviour — into a file the whole team pulls, and nothing about the write looks wrong afterward because the content is accurate; only its audience is. Settle it with `git check-ignore -q <path> && echo IGNORED || echo tracked` against each candidate, and note that `git ls-files` answers a different question (whether a file is *currently* tracked, which reports "untracked" for a brand-new file that is not ignored at all).
+
+A fact whose value only holds on this machine belongs on the ignored rung even when its subject is the shared system: the topology both teammates share is team knowledge, while the container names and aliases used to reach it are yours. **Tell: the entry names something only you could type and have it work.**
+
 Find the **most specific** CLAUDE.md for what's left (`Glob: **/CLAUDE.md` + check `CLAUDE.local.md`). This ladder is the same hierarchy `references/structure.md` §1 documents in full — read it if a routing call is unclear:
 
 1. Personal, per-machine context (never team-wide facts) → `./CLAUDE.local.md` (project root)
@@ -143,6 +147,7 @@ These belong in `CLAUDE.local.md` because they carry env-specific context (serve
 - **CLI one-liners** used 3+ times (curl templates, scp with password, remote + mysql combos)
 - **External service URLs** discovered during the session (settings pages, portal URLs, API endpoints)
 - **Account mappings** (which token → which account → which subdomain)
+- **Names and handles for reaching infrastructure** — container names, server aliases, hostnames, the behaviour of a tool only you have installed. These read as team facts because their subject is the shared system, and they are the category most often misrouted: the architecture is the team's, while the strings you type to reach it are yours.
 
 | ❌ NEVER | ✅ ALWAYS |
 |----------|----------|
