@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: Shipped (v1.163.0) — one open verification
+Status: Shipped (v1.163.0, pushed 2c3239d) — injection verified, adherence still open
 Domain: plugin-maintenance/output-style-hook
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
@@ -13,10 +13,10 @@ Last updated: 2026-08-17
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: syafiqkit ships a `SessionStart` hook that `cat`s an output-style ruleset into every session. Built and loaded — `/reload-plugins` reports `1 hook`. One thing remains unverified: whether output actually changes shape, which needs a session started after the hook existed.
+**Where we are**: syafiqkit ships a `SessionStart` hook that `cat`s an output-style ruleset into every session. Pushed to `master` as `2c3239d`; installed copy confirmed at 1.163.0. Injection is verified — a `SessionStart:clear` in a later session delivered the full `RULESET.md` body into context. Whether output actually *follows* the ruleset is still open, and can't be settled by the session reading it.
 
 **Immediate next actions (in order)**:
-1. Start a fresh session, ask something ordinary, and check whether the answer leads with the action. A ruleset present in context but ignored looks identical to one that's working.
+1. Judge the shape from outside: read back answers from a session that had the hook, rather than asking that session to grade itself. A ruleset present in context but ignored looks identical to one that's working, and self-assessment can't tell them apart.
 2. If a session ever fails to start, rename `hooks/RULESET.md` and retry — the no-guard design assumes a missing file degrades rather than blocks, and that has not been observed end-to-end.
 
 **Gotchas that will trip you**:
@@ -87,7 +87,8 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 ## Next Steps
 
 **Verification**
-- Confirm output shape actually changes in a session started after the hook loaded — the ruleset being in context proves nothing about whether it's followed
+- ✅ Injection confirmed 2026-08-17 — a `SessionStart:clear` in a subsequent session delivered `RULESET.md` in full as hook output
+- Confirm the ruleset is actually *followed*, judged from outside the session that read it — a session grading its own output shape is not evidence
 - Observe missing-file behaviour end-to-end (rename `RULESET.md`, start a session) rather than inferring it from `cat` exiting 1 plus a documented exit-code table
 
 **Deferred by decision**
