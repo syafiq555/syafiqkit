@@ -13,6 +13,10 @@ Target: ≤200 lines, ≤40KB bytes for root CLAUDE.md (non-root layers have mor
 
 ## Process
 
+**Prerequisites:** Before starting, check ownership. This skill rewrites whole files in place. Judge by diff *content* (📖 `../_shared/references/diff-ownership.md`); a dirty file is a baseline, not a measurement problem, and "another session committed this" describes git history rather than a reason to defer — rewriting committed content is what this skill does. What stops the rewrite is a peer's **uncommitted** work in the target, which a whole-file pass destroys unrecoverably. A live peer can be known before bytes reach disk (📖 `../_shared/references/cross-session-messaging.md`).
+
+Check it here rather than trusting a caller, since this skill is reached several ways — a direct invocation, a background `haiku` agent, and `claude-md-pruner`'s handoff once staleness cleanup leaves a file still oversized. A caller that checked ownership before its own edits has not checked it for yours, and the gap between the two is exactly where a peer starts writing.
+
 **1. Read** the target CLAUDE.md fully.
 
 **2. Score each section** as keep-as-is, compress, cut, or split. Before drafting, apply the seam-test gate: a row about a framework, test runner, or the harness is *true in every project using them*, yet may pass locally on a handful of file hits. Ask: would this hold if this codebase didn't exist? If yes, it belongs at global level (`~/.claude/`) or a shared companion. This test measures where a fact is *used*, not where it's *true* — don't confuse the two.

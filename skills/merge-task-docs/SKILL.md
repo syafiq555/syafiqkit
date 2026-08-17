@@ -86,6 +86,8 @@ For each merge group:
 
 Before deleting, confirm every file in the folder was accounted for in Step 3's `ls` sweep (carried forward or absorbed) — `git status` after deleting is your safety net, not your first check.
 
+Then re-check ownership here, at the delete, rather than inheriting Step 4's finding. That check asked a narrower question — whose `## Last Session` bullets these are — and a source folder can be contested by work that never touched that section, or by a peer who started editing since. `rm -rf` takes uncommitted content with it and no reflog holds it, so this is the most destructive step in the skill and the one with the least margin for a stale premise. Run the diff-content check (`../_shared/references/diff-ownership.md`) against each source folder: where one comes back contested, skip its delete, leave the merged doc in place alongside it, and record the delete as owed in the merged doc's next-steps section (the reference file covers why a report-only note isn't enough). Merging without deleting is a recoverable half-state; deleting a peer's uncommitted work is not.
+
 ```bash
 rm -rf tasks/<domain>/<source-feature>/
 ```

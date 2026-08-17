@@ -106,11 +106,12 @@ Walk through every section and classify each entry, using the table for your bra
 
 ### 3. Verify before deleting
 
-Before removing ANY entry — this liveness check is the agent's distinctive value, and neither condense skill does it:
+This liveness check is the agent's distinctive value, and neither condense skill does it. Items 1–3 run per entry, before removing it; item 4 runs once per file, before the first edit:
 
 1. **Grep the repo for the entry's key terms** — confirm the referenced thing still exists or has been resolved. Branch the targets: **CLAUDE.md** → `skills/`, `commands/`. **Task doc** → the files, classes, routes, columns and config keys its rows name; a row is stale only once its referent is *demonstrably* gone, never because it reads old.
 2. **Ask the litmus question** — CLAUDE.md: "Would removing this cause Claude to write an incorrect skill/command OR spend extra time looking up multiple files?" Task doc: "Would removing this cause a future session to act incorrectly or redo settled work?" If yes → **keep it**
 3. **Check for cross-references** — a `tasks/**/current.md`, a `decisions/*.md`, or a `SKILL.md` may point at this exact section or anchor. On the task-doc branch also check the doc's own `Related:` list and any `📖` pointer aimed at the row you're cutting
+4. **Confirm the file isn't contested, before the first Edit rather than per entry.** Run `git diff HEAD -- <file>`. A non-empty result is not the answer on its own — your dispatcher usually edited this file moments ago and left those writes uncommitted, so the expected case is a diff full of the caller's own work. What makes a file contested is content belonging to neither of you: hunks on sections outside the caller's stated brief, or in a file the brief never named. Where the diff holds only what you were told was just written, prune it; where it holds anything else, treat the file as contested — pruning that destroys work no reflog can recover. A contested file gets no edits from this agent at all — report what you would have removed and stop. 📖 `skills/_shared/references/diff-ownership.md`
 
 ### 4. Apply changes
 

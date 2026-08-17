@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.173.0
+
+**Doc cleanup could delete a colleague's in-progress work.** If you had an edit sitting uncommitted in a CLAUDE.md or task doc while someone else ran `/update-claude-docs` or `/merge-task-docs` on the same project, the pruning/merge step could sweep it up as if it were stale content, with no sign afterward that anything but ordinary cleanup happened. Those skills now check for exactly that before touching a file, and skip it if found — reporting what they would have done instead of doing it. `/condense-claude-md` gained the same check: it rewrites whole files in place and is reachable directly rather than only through another skill, so a guard on the callers left it exposed.
+
+If your project already generated a `claude-md-pruner` agent, run `/agent-setup` to pick up the matching fix on that side too; regenerating is the only way it reaches you.
+
+## 1.172.0
+
+**`/done` told you to hand each review agent a file slice and a focus area, which reliably buys a clean-looking pass.** A session dispatched the standard trio on a 5-file fix; the generic parts of every prompt came back clean, and all three real findings came from questions the caller had added by hand — the judgement call they were unsure about (where their answer conflicted with a project rule), what they had already verified, and what they explicitly had NOT checked. The last found a fourth command carrying the identical bug verbatim with 8 live production candidates, in a file nothing in the diff pointed at, which is exactly what a slice-scoped prompt cannot surface because the answer lives outside the slice. Step 1's "Prompt for each" now says so, plus the corollary for work that already carries a verification story: ask what that story would miss rather than whether it holds, since a mutation-tested fix is precisely where an untested branch hides.
+
+## 1.171.0
+
+**`uiux` told you to read the app's design language and gave you no way to find out you'd misread it.** A session asked to "polish the uiux" on a table, read the project's frontend conventions doc, and still shipped an invented status treatment (a dot-plus-text row) beside an existing shared badge component, plus hand-rolled button colours where the app had a row-action convention. Every gate stayed green — the diff was clean, types passed, the screenshot rendered — because an invention and a convention are equally working code, and the doc it read named tokens rather than the component that already did this job. The step now ends in a grep for the mechanism you're about to write: one hit that is your own file means you invented it, several elsewhere mean the app already decided. The trigger description was checked and left alone; it already names "polish", "uiux" and the screenshot case, so it did not fail — it was walked past, which is a different defect and not one more trigger keywords would fix.
+
 ## 1.170.0
 
 **`/done` told you to treat "declared but not used" as a half-done refactor, without saying to wait for the agent to finish first.** Editor diagnostics fire on every intermediate save, so a simplifier mid-write surfaces syntax errors and unused locals that are just the midpoint of an edit it is still making — indistinguishable from the real half-done refactor the rule was written for. Measured this run: a `';' expected` and an unused local appeared in a file a simplifier was editing, both gone by the time the agent reported, and the file typechecked clean. The rule now carries its missing precondition: read the file after the completion notification, and let that reading decide. Replaced in place rather than added beside, since the old sentence was correct and merely incomplete.

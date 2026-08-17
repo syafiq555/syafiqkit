@@ -100,7 +100,16 @@ find .claude/agents -name '*.md' ! -name 'Explore.md' \
   -exec grep -L 'agent-may-not-redelegate\|Spawn only' {} + 2>/dev/null
 ```
 
-Any file listed is missing the re-delegation constraint, which is what lets a dispatched agent hand your brief to a copy of itself. `Explore` is excluded because nested `Explore` is its designed behaviour — an enumeration that flags it trains the reader to ignore the result. `/agent-setup` regenerates them and owns the full per-hunk drift comparison — the point here is only that a stale agent never announces itself, so someone has to look while there's still a reason to. Skip it in a project with no `.claude/agents/` at all, and don't re-run it once a session has already checked.
+Any file listed is missing the re-delegation constraint, which is what lets a dispatched agent hand your brief to a copy of itself.
+
+An agent that *edits* carries a second constraint worth the same look, and it needs its own command rather than another alternate in the one above — `grep -L` lists files matching **none** of its patterns, so widening the alternation makes that probe flag fewer files, not more, and an agent carrying one constraint while missing the other passes silently:
+
+```bash
+grep -LE "isn't contested|check ownership" \
+  .claude/agents/claude-md-pruner.md 2>/dev/null
+```
+
+A listed path means the pruner predates the contested-file check and will edit a file another session has uncommitted work in — the destructive half of staleness, where the re-delegation gap merely wastes a dispatch. The same question is worth asking of any skill that rewrites a whole file in place rather than appending to it, since those reach their destructive step by direct invocation and never appear in a dispatch-site sweep. `Explore` is excluded because nested `Explore` is its designed behaviour — an enumeration that flags it trains the reader to ignore the result. `/agent-setup` regenerates them and owns the full per-hunk drift comparison — the point here is only that a stale agent never announces itself, so someone has to look while there's still a reason to. Skip it in a project with no `.claude/agents/` at all, and don't re-run it once a session has already checked.
 
 ---
 
