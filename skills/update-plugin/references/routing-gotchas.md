@@ -6,7 +6,7 @@ Consulted during Step 2 (routing), these are structural traps that surface when 
 
 A file may have uncommitted changes from another session already in-flight. Patching through it risks silent conflicts or duplicated work. Detect this via diff CONTENT, not git status — and check `git diff HEAD -- <file>`, since auto-staging makes unrelated edits look identical to the diff you need to verify.
 
-📖 **`../_shared/references/contested-doc-sections.md`** — detection method and the routing rules once a doc is contested (additive-only edits, don't overwrite Last Session, etc.).
+📖 **`../../_shared/references/contested-doc-sections.md`** — detection method and the routing rules once a doc is contested (additive-only edits, don't overwrite Last Session, etc.).
 
 ## Agent files are generated copies
 

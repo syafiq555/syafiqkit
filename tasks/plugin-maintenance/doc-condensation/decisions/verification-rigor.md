@@ -236,3 +236,18 @@ After any pass that inlines content, ask which files this one no longer cites an
 - Found by the product reviewer alone. Code review verified pointers resolve (true — none pointed at the orphan) and the simplifier only reads its own slice, so an uncited file and a missing citation are both structurally invisible to them.
 
 **Status**: committed · **Reversible**: yes
+
+### D-pointer-depth-reads-as-correct — A Pointer Can Be Right in Wording and Wrong in Depth — committed — 2026-08-17
+
+**Problem**
+An unhobbling pass extracted `haiku`'s verification gotchas to a new `skills/haiku/references/verifying.md` and cited `../_shared/references/two-tier-condense.md` from inside it. That prefix is correct in a `SKILL.md` and wrong one directory down, where `../` reaches the skill's own folder rather than `skills/` — it resolves to a `skills/haiku/_shared/` that does not exist. A sweep for the pattern found a second instance predating the session in `update-plugin/references/routing-gotchas.md`, so the shape recurs rather than being one slip. This is D-inlining's inverse: nothing is severed, no file is orphaned, the citing prose is complete and the target file genuinely exists — every citation-graph question returns clean, and the pointer is still dead. Reading it cannot catch it, because a correct and an incorrect pointer are the same string in different files.
+
+**Decision**
+Resolve a pointer as a path rather than by eye — `ls` its target from the citing file's own directory, which is the only check that fails when the depth is wrong. The rule naming the two depths was already in `CLAUDE.md`'s Authoring Checklist and was walked past twice, so the escalation was to the verification method, not the rule: "verify a new pointer resolves before landing it" states an intention with no mechanism, which reads as satisfied by having considered it.
+
+**Consequences**
+- Both instances fixed. The pre-existing one is the argument for sweeping the pattern rather than fixing the one in the diff — the defect is silent and permanent once landed, so instances accumulate at whatever rate passes create them.
+- Escalating the method rather than the rule follows `update-claude-docs`'s position-and-sharpness branch: the existing rule was correctly worded and correctly placed, and a second warning beside it would have added length without adding a check.
+- Found by a resolve-sweep run as `/done`'s docs-only referential-integrity step, not by any agent — all three read the pointer as prose and none resolved it, which is the same blindness that made the second instance survive since 2026-08-09.
+
+**Status**: committed · **Reversible**: yes

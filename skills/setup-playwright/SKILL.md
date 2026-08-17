@@ -1,6 +1,6 @@
 ---
 name: setup-playwright
-description: Set up or harden a Playwright E2E suite in any project — first-time scaffolding (config, auth storageState, first spec) or fixing an existing suite that is flaky, races between spec files, depends on hand-made local DB rows, or has no CI story. Use when the user says "set up playwright", "add e2e tests", "set up e2e", "set up browser tests", "scaffold browser tests", "we need integration tests for the frontend", "our e2e tests are flaky", "the test suite is flaky", "specs pass alone but fail together", "e2e breaks after a db reset", "tests only pass on my machine", "make the e2e suite parallel-safe", or names Playwright while describing a suite that isn't trustworthy. Covers per-worker fixture partitioning, login-throttle-safe auth, the seeder that makes a suite survive `migrate:fresh`, and recording the suite as video ("record the e2e run", "video of the tests", "watch the flows") so the flows can be reviewed by eye. NOT for writing one more spec in a suite that already works (just write it), NOT for backend/unit test setup, and NOT for diagnosing a CI runner that can't reach a server (that's ci-ssh-deploy-timeout).
+description: Set up or harden a Playwright E2E suite in any project — first-time scaffolding (config, auth storageState, first spec) or fixing an existing suite that is flaky, races between spec files, depends on hand-made local DB rows, or has no CI story. Use when the user says "set up playwright", "add e2e tests", "set up e2e", "set up browser tests", "scaffold browser tests", "we need integration tests for the frontend", "our e2e tests are flaky", "the test suite is flaky", "specs pass alone but fail together", "e2e breaks after a db reset", "tests only pass on my machine", "make the e2e suite parallel-safe", or names Playwright while describing a suite that isn't trustworthy. Covers per-worker fixture partitioning, login-throttle-safe auth, the seeder that makes a suite survive `migrate:fresh`, adding a mobile/small-viewport project to a suite that only ever runs desktop ("the e2e never tests mobile", "add a mobile viewport project", "our tests only run at desktop width"), and recording the suite as video ("record the e2e run", "video of the tests", "watch the flows") so the flows can be reviewed by eye. NOT for writing one more spec in a suite that already works (just write it), NOT for backend/unit test setup, and NOT for diagnosing a CI runner that can't reach a server (that's ci-ssh-deploy-timeout).
 ---
 
 # Set Up / Harden a Playwright E2E Suite
@@ -33,6 +33,21 @@ Keep local `retries` at 0. A retry re-runs a whole `describe.serial` block from 
 Write the first spec against a flow the user actually cares about, and follow the assertion rules below from the start — they're much cheaper to adopt now than to retrofit.
 
 ## Hardening an existing suite
+
+### One browser project covers one viewport
+
+A suite with a single desktop project silently has no coverage of any layout that changes below a breakpoint — a tab strip that replaces a two-column grid, a card list that replaces a table, a drawer that replaces a sidebar. The suite goes green because it never renders that branch, so a mobile-only break ships looking tested, and the gap doesn't announce itself: nothing fails, and the spec names give no hint that they only ever ran wide.
+
+Add a second project with a device descriptor when the app has responsive layout swaps, and tag the specs that assert them rather than re-running everything at a second viewport — most specs assert data, not layout, and doubling the suite to re-check them buys nothing.
+
+The half that's easy to miss is that **the tag needs both a `grep` and a `grepInvert`**. Restricting the mobile project alone leaves the desktop project still matching those files, so it runs them at desktop width where the mobile-only markup doesn't exist and they fail correctly for the wrong reason — a red suite that looks like the new specs are broken:
+
+```ts
+{ name: 'chromium', use: { ...devices['Desktop Chrome'] }, grepInvert: /@mobile/, dependencies: ['setup'] },
+{ name: 'mobile',   use: { ...devices['Pixel 7'] },        grep:       /@mobile/, dependencies: ['setup'] },
+```
+
+Verify by running each project separately and checking the counts differ — a tag typo yields a mobile project that silently matches nothing, which reports as a pass.
 
 ### The cross-file race
 

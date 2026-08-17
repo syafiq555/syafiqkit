@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.168.0
+
+**Two dead `📖` pointers fixed, and a check added so the next one gets caught.** A pointer's relative depth differs by where the citing file sits — `../_shared/…` is right in a `SKILL.md` and wrong one directory down in `references/*.md`, where it resolves to a folder that doesn't exist. The two forms are the same string, so reading a pointer can't tell them apart, and a wrong-depth one passes every other check: the target file exists, the prose around it is complete, nothing is orphaned. It just silently goes nowhere. Both instances found are fixed (`haiku/references/verifying.md`, `update-plugin/references/routing-gotchas.md` — the latter had been dead since 2026-08-09). `_shared/references/editing-skills-checklist.md` now says to resolve a pointer by `ls`-ing its target from the citing file's own directory rather than by eye, and to sweep the pattern rather than fix one instance.
+
+Also in this release: `setup-playwright`'s new mobile-viewport section moved from *Scaffolding a new suite* to *Hardening an existing suite*, since its trigger phrases ("our e2e never tests mobile") describe a suite you already have. If you asked about mobile coverage and got routed past it, that's why.
+
+## 1.167.0
+
+**`unhobble-instructions` and `haiku` were unhobbled, the former by running it on its own SKILL.md.** Both had accumulated the shape they exist to remove: `haiku`'s Verification section had grown one appended paragraph per session, each naming a distinct way a delegated report misleads, and `unhobble`'s own six-question read had drifted into a wall no reader would carry. `unhobble/SKILL.md` 26.7KB → 20.2KB, `haiku/SKILL.md` 16.9KB → 9KB resident with the symptom-indexed gotchas moved to a new `haiku/references/verifying.md`.
+
+- **Running the skill on itself cost two live pointers.** The pass dropped `📖 references/target-types.md` — leaving a 25-line reference file with no path to it from anywhere — and the Anthropic six-shifts source the whole skill implements, including the note that two of the six are the ones a structural pass silently skips. Both patched back rather than reverting an otherwise sound 31% cut. This is the extraction-pointing-at-nothing failure the skill warns about, produced by the skill on itself, which is the argument for verifying a self-applied pass against a snapshot rather than against its own report.
+- **The previous version's fix had introduced a duplicate.** 1.166.0 added the deletion-disguised-as-routing mechanism to both `unhobble/references/verifying.md` and `haiku/SKILL.md` in near-identical words. The two files' agents were told about the pair and asked to rule rather than edit across the boundary; `verifying.md` now owns it as a named principle and `haiku` carries the check without restating the mechanism.
+
+## 1.166.0
+
+**`unhobble-instructions` never said where a companion goes, so three parallel agents wrote theirs into the home directory.** The skill's move rule requires the destination to exist before content is cut, but "exists" is a claim about a path and the skill stated no path — a `~/.claude-companions/…` write while editing a project file lands outside the repo, where nothing will load it, and the source file reads as a clean extraction either way. The location rule already existed in `condense-claude-md/references/structural-splits.md`, two pointer-hops from the sentence a session is reading when it writes.
+
+- **The fix went next to the write, not into another pointer.** A correct rule sitting behind a `📖` two hops away is a rule that doesn't fire; the path, the pointer-shape check (`ls` the path the pointer *states*, not the one you meant) and the global-`~/.claude` exception that makes the wrong path look plausible now sit in the move rule itself.
+- **A companion that already exists is the more dangerous deletion.** Separately, one agent dropped ten domain sections citing companions the source already pointed at — no new file, pointer resolves, report says every anchor is fine. Topic-matching is why it looked safe: the companion carried the domain's general vocabulary and not the specific mechanism the deleted prose existed to state. Landed in `unhobble-instructions/references/verifying.md` and in `haiku`'s verification section, which already covered the never-written and dead-path cases but not the one that passes an existence check.
+
+## 1.165.0
+
+**A harness that asks you to narrate will walk you into `/done`'s no-prose rule.** Step 1 requires every review agent to go out in one message with no text before the calls, because narration ends the message and abandons the rest of the batch. That rule reads as though silence were the natural default — and for a background job or any status-tracked session it isn't: those system prompts ask for a line of approach *before* acting, so a session doing exactly what its harness told it lands on the violation. Hit in a real `/done` run whose batch happened to survive; it usually doesn't.
+
+- **The fix is where the narration gets spent, not how the rule is worded.** The existing wording was already about as sharp as a rule gets (`non-negotiable`, mechanism spelled out), so escalating it further would have added length and changed nothing. Pay the convention on the message where the partition is settled, then let the next message carry only calls.
+- **Landed in `_shared/references/explore-delegation.md`, not just `done`.** That reference owns the one-message batching rule and several skills restate it, so every skill that fans out agents inherits the collision note rather than only the one where it surfaced.
+
+## 1.164.0
+
+**`setup-playwright` now scaffolds mobile viewport coverage instead of desktop-only.** A suite built from this skill got a single Desktop Chrome project, which meant any layout that swaps below a breakpoint — a tab strip replacing a two-column grid, cards replacing a table — had no regression coverage at all. Nothing failed, so the gap was invisible: the suite reported green while never rendering the branch, and a mobile-only break would have shipped looking tested. Found by a user asking why a mobile layout was being verified by screenshot rather than by the suite.
+
+- **The `grepInvert` half is the part that costs a red run to learn.** Tagging specs `@mobile` and adding `grep: /@mobile/` to a new mobile project looks complete and isn't — the desktop project still matches those same files and runs them at desktop width, where the mobile-only markup doesn't exist. They fail correctly, for the wrong reason, in the wrong project, and it reads as the new specs being broken. Both projects need the tag: `grep` on one, `grepInvert` on the other.
+- **Opt-in tagging rather than a second full pass.** Most specs assert data, not layout; re-running all of them at a second viewport doubles the suite to re-check things that can't differ.
+- **Verify by comparing per-project counts.** A tag typo produces a mobile project matching zero specs, which reports as a pass — the failure mode of the fix is the same silent green it was added to remove.
+
 ## 1.163.0
 
 **Your answers will look different after this update.** syafiqkit now ships a session-start hook that shapes how every response is written: the thing to do comes first, multi-step work is numbered, time estimates use real units, and openers like "Great question" and closers like "Let me know if you need anything else" are gone. Update with `claude plugin update syafiqkit@syafiqkit`. It applies automatically when a session starts, resumes, is cleared or compacts, including sessions where you never invoke a syafiqkit skill; a session you *fork* is the one case it skips. **There is no setting to turn it off** — the only way off it today is `claude plugin uninstall syafiqkit@syafiqkit`, which removes the skills too. If it gets in your way, say so and it can be reworked or made optional in a follow-up.

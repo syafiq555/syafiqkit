@@ -64,6 +64,8 @@ Once the partition is decided, move to Emission shape below and emit every agent
 
 All applicable agents go in ONE assistant message. No prose before the `Agent` calls — no count, no plan, no "spawning N agents now". Open with the first call and emit the rest back-to-back. Narration ends the message early; without it, there's nothing to stop after the first call. A serialized batch still completes, but an abandoned one does not.
 
+Where the harness itself asks for a line of approach before acting — background jobs and status-tracked sessions commonly do — spend it on the message where you settle the partition above, never on the one carrying the calls. 📖 `../_shared/references/explore-delegation.md` for why an otherwise-careful session walks into this one.
+
 ### Agents to run
 
 **Check for project agents first:**
