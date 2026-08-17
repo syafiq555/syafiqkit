@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.170.0
+
+**`/done` told you to treat "declared but not used" as a half-done refactor, without saying to wait for the agent to finish first.** Editor diagnostics fire on every intermediate save, so a simplifier mid-write surfaces syntax errors and unused locals that are just the midpoint of an edit it is still making — indistinguishable from the real half-done refactor the rule was written for. Measured this run: a `';' expected` and an unused local appeared in a file a simplifier was editing, both gone by the time the agent reported, and the file typechecked clean. The rule now carries its missing precondition: read the file after the completion notification, and let that reading decide. Replaced in place rather than added beside, since the old sentence was correct and merely incomplete.
+
 ## 1.169.0
 
 **`/ship` reported a clean deploy while a breached go-live obligation sat in production, and following the step exactly is what produced that answer.** Step 4's task-doc discovery builds its search from the files in the current diff, so it can only ever surface obligations the current ship created. The one that mattered belonged to a domain with zero files in the diff: a seeder wired into neither the app's seed entry point nor either deploy workflow, whose table had shipped empty on an *earlier* deploy. Structurally invisible to a keyword search derived from this diff, and a spot-check of live records showed everything healthy because every existing record predated the feature and rendered through a legacy path. The next record created would have generated with the seeded content missing entirely. Step 4 now sweeps `tasks/**/current.md` for manual-action vocabulary independent of the diff, on the reasoning that the deploy exposing a standing obligation is rarely the deploy that created it.
