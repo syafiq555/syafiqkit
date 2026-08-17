@@ -9,7 +9,7 @@ Related:
   - ../agent-architecture/current.md (generated agents inherit conventions + sibling skill invocation)
   - ../madr-structure/current.md (the MADR format itself)
   - ../external-guidance/current.md (grading outside guidance against plugin measurements)
-Last updated: 2026-08-17 (v1.167.0) — `unhobble-instructions` + `haiku` unhobbled (26.7KB→20.2KB, 16.9KB→9KB); a pointer's relative DEPTH can be wrong while its wording reads correct, dead in `references/*.md` and clean to every citation-graph check (D-pointer-depth-reads-as-correct, 2 instances). Earlier: §5 validated only the write that just happened (D-validation-scoped-to-the-diff); arrival-rate ratio 1.33:1
+Last updated: 2026-08-17 (v1.168.0, shipped ceca39a) — `unhobble-instructions` + `haiku` unhobbled (26.7KB→20.2KB, 16.9KB→9KB); a pointer's relative DEPTH can be wrong while its wording reads correct, dead in `references/*.md` and clean to every citation-graph check (D-pointer-depth-reads-as-correct, 2 instances). Earlier: §5 validated only the write that just happened (D-validation-scoped-to-the-diff); arrival-rate ratio 1.33:1
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
