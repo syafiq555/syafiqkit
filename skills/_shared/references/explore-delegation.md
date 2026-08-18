@@ -60,6 +60,8 @@ A previous agent having failed on the same target tempts over-specification. Re-
 
 Before acting on an absence the agent asserted — *no test covers this, no doc exists, only N of these* — run a one-liner count yourself (`ls`, `grep -c`, `find`). It costs a command and it's the claim most likely to be wrong in the direction that wastes a session. For a zero-candidate result specifically, re-run the search with a control query that MUST hit: an empty result is as often a broken search (bad flag, typo, gitignored dir) as a true absence, and the control is what tells them apart.
 
+**The control applies to your OWN searches too, and that's the case it gets skipped on.** Checking an agent's claim feels like the verification step, so the grep doing the checking inherits the trust the agent lost — but a pattern you wrote a moment ago is exactly as capable of matching nothing for mechanical reasons (`\|` read as a literal pipe under `-E`, metacharacters in a `-F` pattern, a term the work legitimately reworded). Reporting a fact as deleted when your search was broken is the expensive direction, because it reads as diligence and sends the next step at correct work. Run the pattern against a copy where the thing is known to exist before concluding it's gone anywhere.
+
 For non-empty results: verify the agent's count is exhaustive before treating it as fact. Same method, same principle — don't conclude the absence from a successful search.
 
 ### Fallback (No Agent Context)

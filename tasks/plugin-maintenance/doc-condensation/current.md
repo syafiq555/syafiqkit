@@ -1,15 +1,16 @@
 <!--LLM-CONTEXT
-Status: Reference (ongoing) — 44 committed decisions across 4 themed decision files
+Status: Reference (ongoing) — 45 committed decisions across 4 themed decision files
 Domain: plugin-maintenance/doc-condensation
 Gotchas (critical — full list in ## Critical Gotchas below):
   - Confirming a passage is gone ≠ it should be gone; apply target skill's fact-vs-constraint bar
   - A file mid-write is unstable to verify; wait for completion notification before judging edits
   - A pointer can read correct and be dead: `../_shared/…` is right in a SKILL.md, broken in references/*.md — resolve by ls, not by eye
+  - A pointer defers a rule rather than delivering it; nothing forces a reference to load, so the fact that a problem EXISTS stays inline and only the fix procedure goes behind the `📖`
 Related:
   - ../agent-architecture/current.md (generated agents inherit conventions + sibling skill invocation)
   - ../madr-structure/current.md (the MADR format itself)
   - ../external-guidance/current.md (grading outside guidance against plugin measurements)
-Last updated: 2026-08-17 (v1.168.0, shipped ceca39a) — `unhobble-instructions` + `haiku` unhobbled (26.7KB→20.2KB, 16.9KB→9KB); a pointer's relative DEPTH can be wrong while its wording reads correct, dead in `references/*.md` and clean to every citation-graph check (D-pointer-depth-reads-as-correct, 2 instances). Earlier: §5 validated only the write that just happened (D-validation-scoped-to-the-diff); arrival-rate ratio 1.33:1
+Last updated: 2026-08-18 (v1.175.0, unshipped) — a `📖` pointer defers a rule rather than delivering it: nothing forces a reference to load, so the trigger stays inline and only mechanics defer (D-deferral-is-not-delivery). Issue #25's relocation check landed as `_shared/references/verifying-a-relocation.md`, cited from 4 skills; two of those citers first landed as unreachable two-hop chains. 5 more depth instances of D-pointer-depth-reads-as-correct fixed. Earlier: `unhobble-instructions` + `haiku` unhobbled (26.7KB→20.2KB, 16.9KB→9KB); §5 validated only the write that just happened (D-validation-scoped-to-the-diff); arrival-rate ratio 1.33:1
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
@@ -43,7 +44,7 @@ Decisions about fighting duplication and bloat across task docs, CLAUDE.md files
 | 2b | Skill-file density (D23, D50, D54) — D23's hand-condense regressed; D50 replaced it with extraction + an arrival-rate gate; D54 closed the gate's open half (Gate B) and scoped `references/*.md` out of it | ✅ (watch the ratio) |
 | 2c | Overconstraint as a distinct axis from density — `skills/unhobble-instructions/SKILL.md`, applied across `update-plugin`, `done`, `read-summary`, `update-claude-docs`, `task-summary`, `condense-task-doc`, `merge-task-docs`, `sweep-doc-overlaps` (2026-08-01) and CLAUDE.md itself (2026-08-09, 33.4KB→17.6KB + `_shared/references/editing-skills-checklist.md`) | ✅ shipped — each real run has found a defect in the skill or its verifier: D64 (softened a deliberately absolutist rule), D-limitation-reads-as-hedging (deleted stated limitations as hedging), D-dropped-is-not-the-same-as-correctly-dropped (the verifier ratified a real drop as correct trimming) |
 | 3 | Duplication detection + leak-guard integrity (D37, D40, D12) | ✅ |
-| 4 | Version-drift automated gate (plugin.json/marketplace.json) | ⏳ Pending — 9th recurrence |
+| 4 | Version-drift automated gate (plugin.json/marketplace.json) | ⏳ Pending — 10th recurrence; v1.175.0 found the two manifests one release apart (1.174.0 vs 1.173.0), a half-applied bump surviving a full `/done` because nothing compares the two files |
 | 5 | Companion file scope gap — `condense-claude-md`/`update-claude-docs` never treated a pre-existing companion as a condense target itself (D65) | ✅ |
 | 6 | Sentence-length blind spot — `condense-task-doc`'s aggregate line/byte target passed with individual sentences still 500+ chars (D67) | ✅ |
 | 7 | The condense rule had no enforcer — `/done` Step 4 now measures the doc set it just wrote (issue #19, D-done-owes-the-condense); `condense-task-doc`'s ownership guard scoped to uncommitted state (D-guard-scoped-to-what-it-can-see); the doc-set measurement fixed to survive an unsplit doc (D-unmatched-glob-measures-zero) | ✅ |

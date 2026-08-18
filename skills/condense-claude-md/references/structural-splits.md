@@ -8,7 +8,7 @@ Cold path for `condense-claude-md` Restructuring #6/#7. Reached only when a file
 |-------|-----------|--------|
 | In-place subsections | File under budget, section reads as a wall | `### ` headers, zero new files |
 | #6 Subdir `CLAUDE.md` | Section is subdir-local (passes seam-test) | Auto-loads additively; parent keeps a `> 📖` pointer |
-| Task doc | Section is feature-scoped, no subdir owns it | Routes via `update-claude-docs/references/structure.md` §6 |
+| Task doc | Section is feature-scoped, no subdir owns it | Routes via `../../update-claude-docs/references/structure.md` §6 |
 | #7 Companion file | Cross-cutting: no subdir AND no feature owner | Manual pointer; does NOT auto-load |
 
 Run these in order. A failed seam-test is the *trigger* for the next lever, not a dead end.
@@ -53,3 +53,5 @@ A companion does NOT auto-load, so it helps ONLY if the pointer makes a reader o
 - Existing cross-references to a moved anchor don't need repointing if the parent's redirect line indexes that anchor by name — the reader lands on the parent and follows it in one hop. Repoint only when the anchor ISN'T named in the index (renamed/merged during the move): `grep -rn "<oldfile>. #<subanchor>"` across `tasks/**` + sibling CLAUDE.md.
 - Hand the user the maintenance rule: a later companion row must also add its symptom to the matching index bullet in the main file.
 - First write to `.claude-companions/local/` in a repo: check `.gitignore` for it and add if missing — don't assume a prior split did.
+
+Once the split has landed, read 📖 `../../_shared/references/verifying-a-relocation.md` and run its two checks. A split moves its own defects outside the files you just wrote: links whose `../` depth no longer resolves now that both halves changed level, and any documented glob or `grep` instruction keyed to the old filenames — that one keeps returning matches after it stops covering, so it reads as working while finding a fraction of what it did.

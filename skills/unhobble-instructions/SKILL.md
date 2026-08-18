@@ -72,6 +72,8 @@ If content passes all four tests and can be relocated, keep it resident. If it f
 
 **A SKILL.md that accumulates multiple routing tiers** (resident rules + lazy-loaded content) is a signal to split. Each tier has a distinct reader audience (absorbed on every session vs. invoked on-demand), and they fight for brevity differently.
 
+**The shape that split reaches for is a symptom index over per-category files.** What stays resident is one row per symptom, each pointing at an anchor; every mechanism and fix body moves out into a file behind those anchors. The reader matches their own symptom in the index, follows one anchor, and opens one small file — so the resident half stays a routing surface and never re-accumulates the bodies. Applied to a 74.7 KB `CLAUDE.md` it left 17 KB resident, and a 184 KB companion became a 31 KB hub over six files, no anchor lost. Reach for this before inventing a structure: a split that clusters by existing heading instead of by symptom rebuilds the same wall one file over. When you are ready to execute one, read 📖 `../condense-claude-md/references/structural-splits.md` for the clustering method, the per-category index requirement, the maintenance rule, and the rows that have no symptom and therefore cannot be evicted at any frequency.
+
 ## Rewriting
 
 List the genuine facts first, marking which are stated absolutely — that list is what verification checks against later.

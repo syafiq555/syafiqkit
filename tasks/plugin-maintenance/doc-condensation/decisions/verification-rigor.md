@@ -251,3 +251,23 @@ Resolve a pointer as a path rather than by eye — `ls` its target from the citi
 - Found by a resolve-sweep run as `/done`'s docs-only referential-integrity step, not by any agent — all three read the pointer as prose and none resolved it, which is the same blindness that made the second instance survive since 2026-08-09.
 
 **Status**: committed · **Reversible**: yes
+
+### D-deferral-is-not-delivery — A Pointer Defers a Rule Rather Than Delivering It — committed — 2026-08-18
+
+**Problem**
+The corpus routes content behind `📖` pointers on the strength of D55's "adopt progressive disclosure" verdict, which graded the argument for deferral and never measured whether deferred content is read. A consumer reported the shape from the other side: `unhobble-instructions` and `condense-*` produce relocations whose defects sit outside the rewritten file, and the check for them would naturally live in a reference — reachable only if the pointer fires. 143 pointers across 43 files, 71% written mid-sentence in the weak `X for <topic>` shape.
+
+**Decision**
+Chosen: treat a pointer as deferral, not delivery, and split content on that basis — the sentence a reader needs to know they *have* a problem stays inline at the decision point, and only the procedure for fixing it goes behind the pointer. Nothing forces a reference to load: `allowed-tools` governs permissions rather than loading, SKILL.md has no `@import`, so every hop past the skill body is the reading model's judgement. Conditional framing at the citing site (*when a pass moves content out of a file, read X, because both phases above are blind to what a move breaks*) is what raises follow-through; stating a penalty for skipping does not, and a pointer trailing at a section's end does worse than one at the decision.
+
+**Rejected**
+- Citing the existing owner and stopping. Why not: the four citers of `verifying-a-relocation.md` are themselves reference files in three cases, so reaching it took two chained pointers — a shape that compounds an already-low rate to near-unreachable. Two of the four sites landed that way on first pass and were caught only by the product reviewer.
+- Inlining the whole mechanism. Why not: it re-grows the resident file the routing tests exist to keep small, and `condense-claude-md/references/structural-splits.md` already owns the split mechanics correctly. The fix is where the trigger sits, not how much text moves.
+- Reading this as contradicting D55. Why not: D55's verdict on progressive disclosure stands. What it never established is a delivery rate, so this refines its boundary the way D63 refined judgment-over-prescription — an adopted claim whose scope was narrower than the adoption implied.
+
+**Consequences**
+- Every relocation-producing skill now names the trigger inline at the point its own split lands, with only mechanics deferred. `unhobble-instructions` gained the symptom-index target shape at the split *decision* (its two existing citations both sat in `## Rewriting`, i.e. execution).
+- The repo's own routing test (`Does it need to arrive before action, or only during failure?`) already reasoned to this conclusion for resident rules — the gap was that nothing applied it to the pointer's own wording, so a correctly-routed rule could still be introduced by a phrase nobody acts on.
+- A reference file citing another reference file is now the shape to check: it is the two-hop case, and it reads as clean citation hygiene.
+
+**Status**: committed · **Reversible**: yes

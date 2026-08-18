@@ -53,7 +53,7 @@ The distinction is whether the material survives the underlying test. Apply the 
 
 2. **Check bytes first to decide approach.** Line count lies (a MADR restructure grows lines while shrinking bytes). Run `git show HEAD:<path> | wc -c` vs `wc -c <path>` — valid only if the doc was CLEAN at session start. Dirty → capture `wc -c` before your first write, or use `git show :<path>` (staged). (📖 `../_shared/references/two-tier-condense.md`).
    - **Bytes flat or lower:** Restructure, not bloat. Report both deltas and stop.
-   - **Bytes grew from new ADRs, >300 lines:** Split instead of condense. Index keeps Quick Start, cross-cutting operational tables, and routing. Theme detail moves to `decisions/*.md`. (📖 `task-summary/references/decision-splits.md`'s "Splitting a whole-doc MADR further".)
+   - **Bytes grew from new ADRs, >300 lines:** Split instead of condense. Index keeps Quick Start, cross-cutting operational tables, and routing. Theme detail moves to `decisions/*.md`. Before splitting, read 📖 `../task-summary/references/decision-splits.md`'s "Splitting a whole-doc MADR further".
    - **Already split, INDEX still oversized:** Measure per section, longest first, to see which one drives the overage:
 
      ```bash
@@ -87,9 +87,9 @@ The distinction is whether the material survives the underlying test. Apply the 
    ```
 
    This subtracts the span of that one section, so sections after it still count — Next Steps is often mid-file, not last. A doc over budget by live backlog alone has passed; report it with the backlog's size rather than routing actionables out to buy lines. Being under budget doesn't mean skipping step 4. Check sentence length directly: `awk '{print length, NR}' <file> | sort -rn | head -15`. Tighten paragraphs running 500+ characters of stacked parentheticals. Bytes-per-line >120–150, or sections >4KB each (Files, Task Status, Bugs Fixed), signal a second pass.
-   - **Still >300 lines after condensing, excess is MADR blocks:** Split Key Technical Decisions into `decisions/<theme>.md` (📖 `task-summary/references/templates.md`). Report both the condensed delta and the split.
+   - **Still >300 lines after condensing, excess is MADR blocks:** Split Key Technical Decisions into `decisions/<theme>.md` — read 📖 `../task-summary/references/templates.md` for the shape each theme file takes. Once it has landed, read 📖 `../_shared/references/verifying-a-relocation.md` and run its two checks — a split breaks the routes into the content it moved, and those defects sit outside every file you just wrote. Report both the condensed delta and the split.
 
-8. **Read `task-summary/references/templates.md`** for canonical section headings, table column names, and field order.
+8. **Read `../task-summary/references/templates.md`** for canonical section headings, table column names, and field order.
 
 ---
 

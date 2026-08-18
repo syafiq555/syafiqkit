@@ -249,7 +249,7 @@ Upgrade to a full ADR block the moment you're uncertain whether Rejected would c
 
 Check the whole `decisions/` directory for a slug collision before writing a new one — namespace is per-domain, so a collision means two decisions independently named `D-refund-window` in sibling files. If the exact topic is taken, sharpen the slug with a distinguishing detail (`D-gateway-fee-cap-fpx` vs `D-gateway-fee-cap-ewallet`) rather than appending a counter.
 
-**When a doc has grown into multiple decisions**, it naturally becomes a decision log — one ADR per major choice. This isn't a format upgrade, it's just the honest shape: architectural choices ARE the story, so the decision records are the structure. Move gotchas/bugs into each ADR's Consequences section (eliminating the cross-section duplication), and keep `## Key Technical Decisions` as the section header. For guidance on splitting when a single `current.md` reaches several hundred lines with many decisions, see 📖 `references/decision-splits.md`.
+**When a doc has grown into multiple decisions**, it naturally becomes a decision log — one ADR per major choice. This isn't a format upgrade, it's just the honest shape: architectural choices ARE the story, so the decision records are the structure. Move gotchas/bugs into each ADR's Consequences section (eliminating the cross-section duplication), and keep `## Key Technical Decisions` as the section header. When a single `current.md` reaches several hundred lines with many decisions, read 📖 `decision-splits.md` before splitting it.
 
 ---
 
