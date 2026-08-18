@@ -10,7 +10,7 @@ Related:
   - ../agent-architecture/current.md (generated agents inherit conventions + sibling skill invocation)
   - ../madr-structure/current.md (the MADR format itself)
   - ../external-guidance/current.md (grading outside guidance against plugin measurements)
-Last updated: 2026-08-18 (v1.175.0, unshipped) — a `📖` pointer defers a rule rather than delivering it: nothing forces a reference to load, so the trigger stays inline and only mechanics defer (D-deferral-is-not-delivery). Issue #25's relocation check landed as `_shared/references/verifying-a-relocation.md`, cited from 4 skills; two of those citers first landed as unreachable two-hop chains. 5 more depth instances of D-pointer-depth-reads-as-correct fixed. Earlier: `unhobble-instructions` + `haiku` unhobbled (26.7KB→20.2KB, 16.9KB→9KB); §5 validated only the write that just happened (D-validation-scoped-to-the-diff); arrival-rate ratio 1.33:1
+Last updated: 2026-08-18 (v1.175.0, shipped 8970293) — a `📖` pointer defers a rule rather than delivering it: nothing forces a reference to load, so the trigger stays inline and only mechanics defer (D-deferral-is-not-delivery). Issue #25's relocation check landed as `_shared/references/verifying-a-relocation.md`, cited from 4 skills; two of those citers first landed as unreachable two-hop chains. 5 more depth instances of D-pointer-depth-reads-as-correct fixed. Earlier: `unhobble-instructions` + `haiku` unhobbled (26.7KB→20.2KB, 16.9KB→9KB); §5 validated only the write that just happened (D-validation-scoped-to-the-diff); arrival-rate ratio 1.33:1
 -->
 
 # Plugin Maintenance — Doc & CLAUDE.md Condensation
