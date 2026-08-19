@@ -102,12 +102,12 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 
 ## Key Technical Decisions
 
-The six decisions this feature has produced live in two theme files, split by whether they govern *reaching* a verdict or *acting* on one:
+The decisions this feature has produced live in two theme files, split by whether they govern *reaching* a verdict or *acting* on one:
 
 | File | Owns |
 |------|------|
 | `decisions/grading-method.md` | **D55** the four verdicts + measure-before-judging · **D56** grading a generated tool report (re-measure, check provenance) · **D59** pointing the method inward at the plugin's own corpus |
-| `decisions/applying-verdicts.md` | **D-fork-the-gap-not-the-source** per-capability build decisions for a source that is a working artifact · **D-verdict-records-lever** a rejection records the lever, not the outcome · **D61** a consumer's run grading the grader · **D-source-6-harness-drift** grading a mechanism source, and why it expires rather than being refuted · **D-pointers-are-suggestions** progressive disclosure has no loader · **D-reorder-beats-extract** where a cut falls beats how far over · **D-ceiling-cleared** the 32-skill result · **D-agent-broke-its-own-pointer-check** a control that cannot pass |
+| `decisions/applying-verdicts.md` | **D-fork-the-gap-not-the-source** per-capability build decisions for a source that is a working artifact · **D-verdict-records-lever** a rejection records the lever, not the outcome · **D61** a consumer's run grading the grader · **D-source-6-harness-drift** grading a mechanism source, and why it expires rather than being refuted · **D-pointers-are-suggestions** progressive disclosure has no loader · **D-reorder-beats-extract** where a cut falls beats how far over · **D-ceiling-cleared** the 32-skill result · **D-agent-broke-its-own-pointer-check** a control that cannot pass · **D-paths-glob-readopted-from-the-docs-that-were-already-rejected** a claim graded three times in one day · **D-a-model-that-declines-a-rule-reports-it-as-absent** why self-report cannot measure what loaded · **D-house-style-applies-everywhere** enforcement is unconditional, and the superseded ownership branch that preceded it |
 
 Read `grading-method.md` before grading a new source; read `applying-verdicts.md` before writing a verdict into any skill, because that is where a compressed restatement inverts it.
 
