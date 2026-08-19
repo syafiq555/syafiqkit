@@ -82,6 +82,8 @@ A freshly generated agent has every heading, every table, and no project content
 
 So the question for every fill-in table is whether it names something that exists in **this** project. A browser-verifier whose target slots still read `<app-url>` cannot run at all. A code-reviewer whose false-positive table holds only the template's examples is carrying a section that will never fire.
 
+**The inverse case reads as the strongest finding you will get, and is usually correct content.** A section the template has and the agent lacks is exactly the missing-capability shape this file tells you to hunt — but `self-organize-agent-memory` deliberately moves an agent's big standing tables into `.claude/agent-memory/<agent>/`, so a mature fleet's largest tables are absent from the definitions BY DESIGN. A code-reviewer with no `Known False Positives` heading has either lost it or migrated it, and diff cannot tell you which; the verdict arrives already shaped like a defect because you went looking for one. Reconstructing it re-creates content the agent was already reading, and nothing later contradicts you. Before treating an absent section as a gap, glob that agent's memory directory and read its `MEMORY.md` index — a one-line pointer near where the section used to sit is the tell, and its absence is what turns this into a real finding. The genuine defect is the reverse pair: a memory file that no line in the agent ever reads back, which is the same silent failure as a missing `memory: project` read-back above.
+
 ---
 
 ## Missing agents, and which side is stale

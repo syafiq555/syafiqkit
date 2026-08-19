@@ -70,7 +70,7 @@ A **journey** is: user enters → travels a path through the built surfaces → 
 For each promised user journey:
 
 1. **State the goal** (from task doc, one sentence — what should a user be able to do end-to-end?)
-2. **List every built surface** (pages, routes, API methods, buttons, nav entries) from `git diff` + `git status --short`. ⚠️ Use `git diff` not `git diff --name-only` (the latter omits untracked files and returns empty on already-staged sessions)
+2. **List every built surface** (pages, routes, API methods, buttons, nav entries) from `git diff` + `git status --short`, plus `git diff <before>..HEAD` for anything the session already committed (committed work is clean in the tree, so `git status` shows it as nothing). ⚠️ Use `git diff` not `git diff --name-only` (the latter omits untracked files and returns empty on already-staged sessions). Build the surface list from the file list, not from the diffs alone — an untracked file has no diff, so `Read` it and take its surfaces from the source, or a whole new page silently never enters the journey you walk
 3. **Trace entry → path → destination:** Does the user have an entry point they'd find? Does it lead somewhere? Does the destination exist and work?
 
 **For each surface that exists, verify it works:**

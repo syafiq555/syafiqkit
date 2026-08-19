@@ -30,7 +30,7 @@ memory: project
 
 ## Process
 
-1. **Find changed files** — `git status --short` (this is your scope) <!-- multi-repo: run in EACH repo -->. ⚠️ Not `git diff --name-only`: it hides staged AND untracked files, so it returns **empty** if the work was already staged — you'd then refine nothing and report clean. A nothing result for work that clearly happened = the blind spot, not a clean tree.
+1. **Find changed files** — `git status --short` (this is your scope) <!-- multi-repo: run in EACH repo -->. ⚠️ Not `git diff --name-only`: it hides staged AND untracked files, so it returns **empty** if the work was already staged — you'd then refine nothing and report clean. A nothing result for work that clearly happened = the blind spot, not a clean tree. Committing has the same effect for a different reason: committed work is clean in the working tree and shows here as nothing, so add `git diff --name-only <before>..HEAD` for anything the session already landed.
 2. **Read task docs** — run the `/read-summary` skill (`Skill` tool) for each changed feature to load architectural constraints and deliberate decisions. Multi-repo → it also finds sibling repo docs. Can't invoke it? Read `tasks/<domain>/<feature>/current.md` directly.
 3. **Read each changed file** — understand its intent before making changes.
 4. **Check callers/callees** — Before extracting or moving logic, `Grep` for the symbol name to see all callers. This catches unintended side effects from deduplication. Skip for leaf functions that have no callers outside the file.
