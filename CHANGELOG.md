@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.186.0
+
+**Correction to 1.185.0: `.claude/rules/` with `paths:` globs does not scope what loads.** Last release recommended it as the way to handle a growing CLAUDE.md, on the strength of Anthropic's current documentation. Tested here against 2.1.235: the file loads in full every session regardless of the glob — the harness prints `Loaded <path>` and the content is in context. What the glob influences is whether Claude *acts* on the rule, not whether it costs you tokens. So if you moved rules into `.claude/rules/` after reading the last note expecting a context saving, you didn't get one. If you already moved something, recreate it as a subdirectory `CLAUDE.md` and delete the `.claude/rules/` copy — that one does scope, loading only when you touch a file beneath it. Nothing else about your setup changes, and leaving it where it is costs you context rather than breaking anything. Corrected in `update-claude-docs` and `read-summary`.
+
+A related note if you ever test this kind of thing yourself: **you can't measure what loaded by asking Claude what it knows.** A session that judges a planted test file irrelevant answers "no such rule" identically to one that never received it, and making the test content more plausible just produces a more reasoned dismissal. Read the harness's own load report or `/context` instead.
+
+**`/update-claude-docs` no longer applies this plugin's house style to a CLAUDE.md it doesn't own — and no longer defers to a wrong shape in one it does.** Rewrite mode used to adopt any convention it found, provided the file applied it consistently. That protects a file your team maintains deliberately, and it also protects a mistake: a wrong shape applied uniformly is exactly what one bad pass produces, so consistency proves a pass was uniform, never that it was right. The skill now decides by which repo the file is in. In your project, your file's convention wins. The same branch was added to the entry-writing step (the one that runs on nearly every `/done`) and to `condense-claude-md`, whose shrink pass quietly reshaped formatting too.
+
 ## 1.185.0
 
 **The skills that write CLAUDE.md files, skills and agents were working from a stale picture of how those three things load — this release re-grounds them against the current documentation.** Ten claims were wrong or missing; two were already right. Every fact below was checked against a live doc page rather than recalled.

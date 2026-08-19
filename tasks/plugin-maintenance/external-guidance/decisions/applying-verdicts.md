@@ -103,7 +103,7 @@ Graded against the live pages, the corpus was wrong or silent on:
 | `disallowedTools` camelCase | **already adopted** | correct for agents — but skills spell it `disallowed-tools`. Two surfaces, two spellings. |
 | auto memory is forbidden (D55) | **reject** | memory.md — on by default; `MEMORY.md` first 200 lines/25KB every session. The standing decision was made when the premise was true. |
 | `@path` imports are a size lever | **reject** | memory.md — "imported files still load and enter the context window at launch". Max depth 4 hops. |
-| (silent) `.claude/rules/` with `paths:` globs | **adopt** | memory.md — the *recommended* fix for a large CLAUDE.md, loading only on matching files |
+| (silent) `.claude/rules/` with `paths:` globs | **reject — graded `adopt` in error, reversed 2026-08-20** | memory.md calls it the recommended fix for a large CLAUDE.md, loading only on matching files. **D17 had already disproved this on a live canary and the grading pass missed it.** The glob does not gate loading; it gates whether the model acts. See the reversal note below. |
 | CLAUDE.md target ~200 lines | **already adopted** | `structure.md:157` had 200 soft / 350 hard before this pass |
 | nested CLAUDE.md doesn't survive `/compact` | **already adopted** | `structure.md` §1 was already correct |
 
@@ -307,5 +307,77 @@ Structural repair is bounded by section inventory, not by reading: list every `^
 - **`.index()` on a phrase that recurs is the scripted-write trap in its quiet form.** It doesn't no-op and it doesn't error; it edits the wrong place and leaves output that reads correct section by section.
 - **A duplicated section is invisible to every content check.** Fact-survival greps came back healthy — the facts were all present, some of them twice. Only heading inventory and the line count showed it.
 - Confirms the plugin's own `{#shell-finds-tools-write}` rule from the failure side: the shell is for finding, `Edit` for changing.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D-paths-glob-readopted-from-the-docs-that-were-already-rejected — A Verdict Table Graded a Claim `adopt` That a Canary Test Here Had Disproved — committed — 2026-08-20
+
+**Problem**
+Source #6's grading pass recorded `.claude/rules/` with `paths:` globs as **adopt**, sourced from `memory.md` calling it the recommended fix for a growing CLAUDE.md. D17 (2026-07-12, `doc-condensation/decisions/bloat-generator-fixes.md`) had already tested that exact claim with a canary — a secret string in a path-scoped rule, probed from a session touching nothing matching — and found the file loads in full regardless. The glob changes whether the model *acts* on the rule, not whether the rule is in context.
+
+The wrong verdict shipped into three files and a release note: `structure.md` (as the recommendation, sitting seven lines above the surviving correction that contradicted it), `read-summary/SKILL.md:52` (stated as fact, in the skill that runs at the start of most sessions), and the v1.185.0 release note sent to colleagues. `condense-claude-md` was the only consumer that still had it right, because D17 had fixed it there.
+
+**Decision**
+Chosen: reverse the verdict in place rather than delete it, and record the re-adoption as the finding. Route file-type-scoped rules to a real subdirectory `CLAUDE.md` (D17-verified to genuinely scope); reach for `.claude/rules/` only where loading every session is acceptable, its value being organisation rather than savings — the same standing as an `@path` import.
+
+**Rejected**
+- Deleting the row. Why not: a claim graded `adopt` and silently removed looks unexamined to the next pass, which is what invites the third adoption. The reversal has to be legible as a reversal.
+- Re-running the canary before reversing. Why not: D17's test is on record with its method stated, and nothing about the mechanism has changed. Re-deriving it would cost a session to reach the same answer.
+
+**Consequences**
+- **A tool's own docs are the failure case the outside-guidance rule reads past.** The rule says grep `tasks/**/decisions/` before adopting outside guidance; it named "vendor articles and tool reports," which reads as third-party commentary. Official documentation for the tool you are running does not feel like a claim, so the grep feels unnecessary exactly when it matters. Sharpened in the global CLAUDE.md as `{#official-docs-are-still-a-claim}`.
+- **Re-deriving a rejected claim leaves no trace that it was ever settled.** The second adoption looked like new research, and the contradiction it created inside `structure.md` survived a full review pass — the correction and the recommendation sat seven lines apart, and a reader hits the table first.
+- **Docs describe intended behaviour; a decision record here describes observed behaviour on this install.** Where they disagree on a fast-moving CLI, the local measurement wins until re-measured.
+- **D17's finding was re-confirmed on 2.1.235 and stands** — see `D-a-model-that-declines-a-rule-reports-it-as-absent` below for the re-test, and for why the four probes run before it produced the opposite answer.
+
+**Status**: committed · **Reversible**: yes (re-test the canary if Anthropic ships a fix)
+
+---
+
+### D-a-model-that-declines-a-rule-reports-it-as-absent — Four Probes Concluded a File Never Loaded While the Harness Was Printing "Loaded" — committed — 2026-08-20
+
+**Problem**
+Asked whether D17's five-week-old finding had since been fixed upstream, this session re-tested it and concluded the mechanism had changed for the worse: a `paths:`-scoped rule appeared to load *never*, even when a matching file was read in the same turn. Four headless (`claude -p`) probes agreed, each with a positive control showing a frontmatter-less rule loading normally. The conclusion was wrong, and it was about to be written into three skill files and a changelog correction sent to colleagues.
+
+An interactive run settled it in one shot: the session UI printed `Loaded .claude/rules/_probe-convention.md`, and the reply quoted the rule's contents back by full path — then answered "NONE STATED" anyway, having judged the planted file a probe rather than a genuine project convention ("isn't referenced by CHANGELOG.md, CLAUDE.md, or any skill, and this repo is a markdown plugin that emits no logs at all"). The rule had loaded every time. What varied was whether the model *acted* on it.
+
+**Decision**
+Chosen: keep D17's finding — a `paths:` glob does not keep the file out of context — and record the measurement trap as the more durable result. Read load-state from the harness (the `Loaded <path>` line, `/context`) rather than from the model's answer.
+
+**Rejected**
+- Trusting the headless probes because they carried a positive control. Why not: the control proved the payload *could* load, not that a negative answer meant it hadn't. Both arms share the confound — a model that dismisses the content answers identically to one that never received it.
+- Rewriting the payload to be more credible and re-probing. Why not: this was already the second payload. The first (a planted passphrase) drew an explicit prompt-injection refusal; the neutral rewrite (a fake log-timestamp convention) drew a reasoned dismissal instead. Making the bait better produces a better refusal, not a cleaner measurement.
+
+**Consequences**
+- **Self-report cannot measure context membership.** "The model didn't mention it" is evidence about the model's judgement, not about what was in its window — and the two are indistinguishable from outside. Any absence-based finding about loading needs an out-of-band witness.
+- **A planted canary invites the exact judgement that breaks the test.** Content designed to be distinguishable is content that looks planted, and a model that notices reports it as absent. This is the flaw in D17's own method too, though its conclusion survived.
+- **Headless and interactive differ in what they let you see, not only in what they do.** The UI's load report existed the whole time and no headless probe could reach it.
+- Confirms `{#absence-needs-a-live-writer}` on a surface it wasn't written for: the witness whose health went unestablished here was the model's willingness to answer.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D-rewrite-skills-branch-on-file-ownership — House Style Is Enforced On Our Files and Never Imposed On a Consumer's — committed — 2026-08-20
+
+**Problem**
+A gate added earlier the same day told `update-claude-docs` Rewrite mode to adopt any *consistent* convention it found in a target CLAUDE.md, on the reasoning that consistency is evidence a person decided it. That is right for a consumer's repo and wrong for this one: inside syafiqkit, a uniformly-applied wrong shape is what a single bad pass produces, so the gate preserved drift and reported it as respect for authorial intent. The user's report — *"theirs one could be wrong or following outdated one the previous session do it wrong"* — is that failure from the owner's side.
+
+**Decision**
+Chosen: branch on **where the file sits**, which is checkable, rather than on how deliberate its shape reads, which is not. Plugin-owned → `references/structure.md` is authoritative and the skill normalizes. Consumer-owned → the file's own convention wins. Applied to Rewrite's gate, Capture's write step (the mode `/done` runs on nearly every session, and the one the original complaint most likely came through), and `condense-claude-md`'s compress-in-place conversions, which reshape convention despite being framed as a shrink.
+
+Task docs are carved out explicitly: `tasks/**` never ships, so there is no consumer side and no branch to take.
+
+**Rejected**
+- Collapsing back to adopt-always. Why not: it is the defect the user reported.
+- Collapsing to enforce-always. Why not: it reintroduces the defect the morning's gate was added to fix — reshaping a consumer's maintained file under cover of a tidy-up.
+- Leaving Capture alone as "additive, so out of scope." Why not: Capture is the highest-traffic path, and an entry written in the wrong shape is how a file's convention drifts one entry at a time. Scoped instead to the entry being added, never a licence to restructure around it.
+
+**Consequences**
+- **Consistency proves a pass was uniform, never that it was right.** This is the sentence the whole branch rests on, and it is why a clean-looking convention in a file we own is drift rather than intent.
+- **The deciding fact has to be checkable or the gate is decoration.** "Where the file sits" needs asking from the target file's own directory — a probe anchored to the plugin's directory walks up to whatever encloses it and fails silently toward claiming a consumer's file as plugin-owned.
+- **A same-day reversal is a shape to expect, not an anomaly.** Both gates were correct about the case in front of them and wrong as universals; the repair was a branch, not picking a winner.
 
 **Status**: committed · **Reversible**: yes

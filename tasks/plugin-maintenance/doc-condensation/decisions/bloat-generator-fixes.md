@@ -71,6 +71,10 @@ Chosen: empirically test the claim with a canary (a secret string in a path-scop
 
 **Status**: committed · **Reversible**: yes (revisit if Anthropic ships a fix)
 
+⚠️ **Re-adopted in error on 2026-08-20, reversed, and then re-confirmed by interactive re-test — this finding stands on CLI 2.1.235.** A source-grading pass read `memory.md`'s recommendation and graded it **adopt** without checking this record, shipping the disproved claim into `structure.md`, `read-summary/SKILL.md` and a release note. The re-test that followed nearly overturned it in the other direction: four headless probes concluded the file now loads *never*, until an interactive run showed the harness printing `Loaded <path>` while the model declined to act on the planted rule and thereby reported it as absent.
+
+Two things for whoever revisits this. The docs still say the opposite, so the next pass that reads them will be pulled the same way — this record is load-bearing against a live vendor recommendation, not settled history. And **do not re-test it by asking a session what it knows**: a planted canary invites the model to dismiss it as planted, which is indistinguishable from a rule that never loaded. Read the harness's own load report instead. See `../../external-guidance/decisions/applying-verdicts.md` → `D-paths-glob-readopted-from-the-docs-that-were-already-rejected` and `D-a-model-that-declines-a-rule-reports-it-as-absent`.
+
 ---
 
 ### D18 — `/read-summary` Discovery in `Explore`/`Plan` Made Unconditional, Reversing D17's "Gate Is Correct Design" Call — committed — 2026-07-12
