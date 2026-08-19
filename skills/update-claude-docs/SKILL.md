@@ -113,6 +113,8 @@ Two shape rules carry most of the weight. Keep an entry to the rule plus its sin
 
 Replace old text rather than appending a second warning. 📖 `${CLAUDE_SKILL_DIR}/references/violations-refinement.md` — escalation checklist.
 
+**Shape the entry to match the file you're writing into.** Inside the syafiqkit repo, that means `references/structure.md` §4 — the house style is authoritative here and a differing shape in a plugin-owned file is drift, not a decision. In any other repo, match the shape the target file already uses for entries of that kind, whatever it is. Capture is additive, so this is about the entry you add, never a licence to restructure what's around it; a file whose whole convention looks wrong is a Rewrite-mode job with its own ownership gate, not something to fix one entry at a time.
+
 ### Constraints
 
 - No duplicates across CLAUDE.md files
@@ -147,3 +149,5 @@ Cold-path modes. All three read `references/structure.md` (hierarchy, taxonomy, 
 - **Create**: scaffold from codebase, <200 lines.
 - **Rewrite**: restructure to canonical order, inventory-then-diff for zero rules dropped.
 - **Condense**: delegate to `syafiqkit:condense-claude-md`.
+
+**Rewrite settles ownership before the first structural edit** (Create always writes house style — there's no existing convention to weigh). A CLAUDE.md inside the syafiqkit repo is plugin-owned: the house style in `references/structure.md` is authoritative, a differing shape is drift rather than a decision, and this skill enforces it. A CLAUDE.md in any other repo belongs to whoever maintains it — there the file's own consistent convention wins and the house style is not yours to impose. Decide by where the file sits, not by how deliberate its shape reads; consistency proves a single pass was uniform, never that it was right. Establish which repo actually contains the target by asking from the target file's own directory rather than from wherever you happen to be invoked — a probe anchored to the plugin's directory walks up to whatever encloses it and will answer about the wrong repo, which fails silently in the direction of claiming a consumer's file as plugin-owned. State which reading you took in one line before writing. 📖 `../_shared/references/adopt-vs-impose.md` — the full judgement, worked examples, and the three always-fix repairs.
