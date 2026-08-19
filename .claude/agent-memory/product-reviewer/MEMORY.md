@@ -5,3 +5,4 @@
 - [Checklist rule cited siblings as compliant without grepping](checklist-rule-worked-example-unverified.md) — a new rule's "Model: X/Y/Z already do this" is a testable claim, verify before accepting
 - [Unhobble can drop a pointer to shared machinery, not just reword it](unhobble-drops-standing-rule-pointer.md) — grep post-rewrite file for the `_shared/references/*.md` filename; a vanished citation reads as complete prose and hides the gap
 - [New trigger phrase can point at the wrong entry-point section](multi-entry-point-trigger-placement.md) — for scaffold/harden-style skills, check the trigger's own wording implies which section, not just that content exists somewhere
+- [Unhobble can drop the terminal repair instruction, not just the citation](unhobble-verify-section-drops-repair-step.md) — grep pre-rewrite Verify sections for "update/fix by/regenerate," confirm an equivalent survives; judgment prose reads complete even when it's diagnosis-only

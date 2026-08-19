@@ -12,11 +12,7 @@ Applies to any command measured in minutes that MUTATES shared state: a test sui
 
 ## Waiting correctly
 
-Don't poll a long command with repeated `pgrep` calls. Block on it once:
-
-```bash
-while kill -0 <PID> 2>/dev/null; do sleep 5; done; cat <output-file>
-```
+Don't poll a long command with repeated status checks. Block on the process once, waiting until it no longer exists, then read its output file.
 
 A `0.0%` CPU reading is not proof of a hang — it can be a lock wait that clears. Check twice, seconds apart, before calling anything stuck.
 

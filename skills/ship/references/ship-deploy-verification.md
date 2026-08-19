@@ -39,14 +39,7 @@ The deployed checkout may not be a git repo (rsync deploys land plain files), so
 
 Migrations are often run by a system separate from the deploy pipeline (container entrypoint, release phase, separate job, or manual trigger). A green CI run doesn't prove migrations ran.
 
-```bash
-# Laravel
-php artisan migrate:status
-
-# General SQL
-SHOW MIGRATIONS;  # or equivalent for your DB
-\d <table>        # for PostgreSQL; DESCRIBE <table> for MySQL
-```
+Ask the destination's database directly, in whatever way that stack allows: its migration tool's own status output, or a description of the table whose shape should have changed. What you are looking for is the new migration reported as run, or the new column present on the table — not a green pipeline.
 
 Confirm the specific migrations from this push appear as "Ran". Code expecting a column that doesn't exist usually breaks on first use, not at boot, so missing migrations surface as production errors hours after deploy.
 

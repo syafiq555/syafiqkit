@@ -9,9 +9,11 @@ The cheap sibling of `/done`, for a session the user has already judged small.
 
 If the session turns out bigger than it looked — several unrelated changes, a new user-facing journey, more than one domain — say `/done` fits better rather than absorbing the extra scope here. Growing this skill to cover a large session is how it stops being the cheap option.
 
+Every signal in that sentence sizes a session by its diff, which inverts on the session that changed no code and instead acted on a live system: mutated production data, moved money, ran an irreversible command, altered infrastructure. `git status` is near-empty, so each escape clause above reads as satisfied and the session looks smaller than any typo fix — while what it actually produced is the reasoning behind an irreversible act, which exists only in the conversation and disappears at `/clear`. The size judgement that routed you here was measuring the wrong thing, so re-make it against what the session *did* rather than what it wrote. Weigh a doc set spanning more than one domain the same way: the incident sits in one, its cause usually in another. If the session turns out to have that shape, `/done` fits better.
+
 ## Step 1: CLAUDE.md capture
 
-Run `git status --short` in every repo in play first — the changed-file list is what tells you which CLAUDE.md files are even in scope.
+Run `git status --short` in every repo in play first — it tells you which repos are in play, not what the wrap-up covers. Both doc steps are scoped to the session, and a session that changed no files still produced findings, decisions and open state; reading the changed-file list as the scope is how a wrap-up ends up documenting only the parts that happened to leave a diff.
 
 Invoke `syafiqkit:update-claude-docs`. It owns the capture decision, including deciding there's nothing worth capturing; a small session often surfaces no reusable pattern, and an empty pass is a real outcome, not a failed step.
 
@@ -29,21 +31,23 @@ The checkout is shared across every project, so it may carry another session's c
 1. Run `git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'` from the plugin checkout as CWD, not `git -C <path>` — that walks up to an enclosing repo and answers about the wrong tree. An empty list means the gate didn't fire; skip silently and omit the row.
 
 2. For each file, verify you edited it this session:
-   - **Mtime check:** `stat -f '%Sm' -t '%m-%d %H:%M' <file>` on macOS. Files predating your session start were edited by another. 
+   - **Mtime check:** read each file's modification time. Files predating your session start were edited by another. 
    - **Diff check on unknowns:** Read `git diff HEAD -- <file>` on anything you don't remember editing. A bare `git diff` misses the staged plane (`📖 ../_shared/references/diff-ownership.md`). Ask before treating an unrecognised file as yours. `ListAgents` can confirm a peer session is live (`📖 ../_shared/references/cross-session-messaging.md`), but the diff read is the only durable check.
 
 What survives both checks was hand-edited this session — invoke `syafiqkit:update-plugin`, which owns everything downstream.
 
 ## Exit gate
 
-Each Output row claims a step ran. Both doc steps write files, so substantiate them the same way — `git diff HEAD --stat -- <path>` — since invoking a skill is not the same as it having changed anything. The one asymmetry: `update-claude-docs` legitimately writes nothing when the session surfaced no reusable pattern, so an empty diff there is a real result to report as such, while an empty diff from `task-summary` means the step still needs running. A row you can't substantiate is a step to go run, not a row to write.
+Each Output row claims a step ran. Both doc steps write files, so substantiate them the same way — `git diff HEAD --stat -- <path>` — since invoking a skill is not the same as it having changed anything. A diff you did not write does not substantiate your step either: in a shared checkout a peer session may already have run these same skills against these same findings, leaving accurate, corroborating content on the exact paths you were about to touch, and reading it confirms only that it is right — never that your step ran. 📖 `../_shared/references/verifying-a-write-landed.md` for that trap and the empty-diff ones. The one asymmetry: `update-claude-docs` legitimately writes nothing when the session surfaced no reusable pattern, so an empty diff there is a real result to report as such, while an empty diff from `task-summary` means the step still needs running. A row you can't substantiate is a step to go run, not a row to write.
+
+A landed diff proves bytes moved, never that the right fact moved — a doc step can pass this gate having written the session's technical findings and none of its open state. So before the Output, ask what a reader would need that only exists in this conversation: anything still unresolved, waiting on someone, or deliberately parked. If the answer isn't in a doc, `task-summary` isn't finished, and a `/clear` is what makes that permanent.
 
 ## What this deliberately doesn't do
 
 - **No code review.** Nothing in this skill reads the diff for bugs, security holes, or convention violations — the steps are both documentation writes. A session wrapped here has unreviewed code, which matters most on the way to `/ship`: run `/done`, or a review of your own, before shipping anything wrapped this way.
-- **No simplifier, no product reviewer.** A new user-facing flow, or any doubt the feature is complete end-to-end, wants `/done`'s product lens.
+- **No simplifier or product reviewer.** A new user-facing flow, or any doubt the feature is complete end-to-end, belongs in `/done`'s product lens and simplification pass.
 - **No temp-artifact cleanup scan.**
-- **No Gate A** — `/done` also captures a skill that misfired or a step that was wrong. Nothing here prompts for that, so if something felt off about a skill this session, say so and let `/update-plugin` judge it.
+- **No skill-health check.** `/done` also surfaces a skill that misfired or a step that was wrong. If something felt off about a skill this session, flag it and let `/update-plugin` judge it.
 - **No mode selection.** A session varied enough to need one is a session for `/done`.
 
 ## Output

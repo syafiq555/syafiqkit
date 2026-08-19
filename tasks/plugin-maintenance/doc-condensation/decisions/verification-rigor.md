@@ -271,3 +271,54 @@ Chosen: treat a pointer as deferral, not delivery, and split content on that bas
 - A reference file citing another reference file is now the shape to check: it is the two-hop case, and it reads as clean citation hygiene.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-prescribed-commands-are-environment-assumptions — Instruction Files State What to Establish, Not Which Command Establishes It — committed — 2026-08-18
+
+**Problem**
+The corpus prescribed commands for routine checks: `stat -f '%Sm'` for mtime, `wc -c` for doc size, a `sed`/`comm` pipeline for registry sync, `docker exec` for a table count, four `ci-ssh` diagnostics. Each bakes in an environment — `stat -f` is BSD syntax that fails on Linux, `docker exec` assumes Docker, `artisan migrate:status` assumes Laravel — and this plugin ships to colleagues on their own machines. Enumerating variants is the same defect multiplied: a four-way Laravel/PostgreSQL/MySQL/generic block is four things to maintain and still silent about Windows.
+
+What made it worth a sweep rather than a preference is that the failures are quiet. A flag meaning something else on BSD, an unmatched glob reporting `0`, a search keyed to wording that has since changed — each returns a clean-looking result that stops the reader looking further. The registry-sync check was the proof: a `sed` range hardcoded to two CLAUDE.md heading names, so renaming either made it report zero missing rows on a registry that had genuinely rotted, with three sentences underneath explaining the trap and noting it had already fired once.
+
+**Decision**
+Chosen: state the property; let the reader pick the command. Five parallel audits covered every skill, both CLAUDE.md files, the hook ruleset and the generated agents. The line is routine versus special-case — a check that runs on every invocation states its property in prose, while a literal invocation stays where the *exact invocation is the knowledge*: a `mysqldump` flag set that took debugging to find, an SSH retry loop scoped to exit code 255, a Playwright guard keyed to `parallelIndex` rather than `workerIndex`. Facts about how a tool *behaves* also stay, being what a reader cannot derive.
+
+**Rejected**
+- Keeping platform variants side by side. Why not: multiplies the maintenance and still omits whoever runs this somewhere unlisted.
+- Restoring a mechanical registry check in portable form. Why not: any extraction keyed to the file's own structure repeats the failure, since that structure is precisely what drifts. Prose plus a sanity floor ("confirm the extraction found roughly the number of skills this plugin has") degrades to a real question rather than a false green.
+
+**Consequences**
+- **The same instruction over-applied deleted 400 identifiers across 55 files in other repos.** Twenty agents were told `php artisan` "assumes Laravel" and `docker exec` "assumes Docker" — true of the tool, false of the project — so they stripped custom command names, deploy hostnames, container names, DOM selectors, a `--embeddings` flag whose absence silently destroys work, and in one file a www-data/root permission model. Four files lost every identifier they had. Every agent reported success, because each deletion matched the reason it was given. Left as-is by the user's call; the corrected rule is now in the global `CLAUDE.md`, stated as a positive boundary rather than as what to remove.
+- **A summary cannot distinguish the correct pass from the destructive one** — both describe themselves as "converted commands to prose". What separated them was counting identifiers before against after, which took one command and found what nineteen confident reports had missed.
+- **The global set came through clean** under the same instruction, keeping LibreSSL, `subjectAltName`, the `127.0.0.1`-vs-localhost rule and the base64 transfer recipe while dropping `stat -f` and `export PATH`. Same rule, opposite outcome — which is what makes it a prompt-wording failure rather than a bad idea.
+- Snapshot before any fan-out over files outside a git checkout. The 129 snapshots taken here are what made the damage measurable and would have made it reversible.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D-a-floor-is-not-a-ceiling — A size threshold guards one direction and reads as guarding both
+
+**Problem**
+A consumer dispatched `condense-task-doc` against a 4-file, 1243-line doc set. It deleted 63.1% of lines and 64.3% of bytes — taking ~40 Critical Gotchas rows, one written minutes earlier in the same session — and returned "CONDENSING COMPLETE ✅" carrying those exact figures without flagging them. The dispatch prompt had stated that a drop past ~35% means deletion; the agent reported the number and never applied the bar. A second dispatch was killed after deleting 328 lines, its plan opening "Delete the `## Last Session` section" (issue #26).
+
+Every size threshold in these skills was a floor to reach. `condense-task-doc`'s ≤300 lines is a target to get *under*; its one reconciliation guard catches the row pass being *skipped*; `two-tier-condense.md`'s "ratio should drop or hold flat, never rise" guards against failing to shrink. Nothing asked whether a pass shrank too much, so the numbers a run produces read as achievement in whichever direction they went — and the session that produced them is the last one positioned to notice.
+
+The guard that did exist was in the wrong file. `task-summary` has carried the right check throughout ("a doc set each shedding a third of its bytes is deletion wearing a rewrite's face"), but `done` Step 4, `haiku`, `task-summary`'s own delegate line and a bare invocation all hand control *to* `condense-task-doc`. A caller-side check cannot protect a delegated run.
+
+**Decision**
+Chosen: the ceiling goes inline in `condense-task-doc` (new step 7) and `condense-claude-md` (step 6), because that is the file every dispatch path opens — completing an ownership `condense-task-doc` already claims for size policy. The discriminator is not a percentage but **which file grew to receive the content**: a legitimate split drops the index while its `decisions/*.md` siblings grow, so the SET total holds flat or rises. The incident's four files all shrank, leaving no destination. Bound to the set total, never the index alone. Numbers (~10% restructure, ~35% itemized condense, flat-or-rising split) are anchors for that reasoning rather than trip-wires, so an `unhobble-instructions` pass reads them as load-bearing.
+
+**Rejected**
+- A bare percentage cap. Why not: a legitimate split drops the index as hard as the incident did (measured: -68% against the incident's -64%), so a threshold alone flags correct work and trains sessions to ignore the guard.
+- Putting the ceiling only in `two-tier-condense.md`. Why not: nothing forces a `📖` to load, and `condense-task-doc` already cites it three times without any of those citations delivering a ceiling — the same reachability gap repeating.
+- Dropping `condense-task-doc` from `haiku`'s delegation list (the issue's fourth suggestion). Why not: delegation was never the defect, since drafting delegates safely while verification stays with the orchestrator. The callee having no ceiling to violate was.
+
+**Consequences**
+- **A fourth legitimate shape needed naming after review**: cross-file dedup, which the skill's own step 3 licenses, collapses a fact stated in two files to one copy plus a pointer. The survivor already held the fact, so nothing grows and the diagnostic returns "none" — the same answer real deletion gives. Separated by naming the pre-existing survivor and grepping it, rather than looking for growth that was never going to happen.
+- **The verifying half needed its own fix.** Step 7 puts the accounting duty on the executor; a caller was still told to *read* the report. Since the skill now requires a destination claim before reporting success, every run produces one, and "the siblings absorbed it" is as cheap to write when nothing moved. `done` and `haiku/references/verifying.md` now say to re-run `wc -c` on whichever file the report names.
+- **`task-summary`'s copy stays deliberately.** Two differently-worded statements of one safety fact is what stops a single density pass stripping both.
+- A `~10%` grep returned zero hits during investigation and read as the guard having been deleted; it had been reworded to "roughly a tenth" by an in-flight pass. Restoring a live guard was averted by re-running the search where the fact was known to live.
+
+**Status**: committed · **Reversible**: yes

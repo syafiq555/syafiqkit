@@ -4,7 +4,7 @@ Referenced by skills whose passes MOVE content out of a file rather than only re
 
 **A relocation's correctness is a property of its pointers, not its prose.** Every check that reads the rewritten file — did bytes move, did meaning survive, do the facts still appear — is answering a question about the inside of a file whose defects are now outside it. The pass moved content; what broke is whatever used to reach that content. A file can read perfectly as one document, preserve every fact, and still have severed every route into itself.
 
-Two shapes, both of which survive a full read of the resulting file.
+Three shapes, all of which survive a full read of the resulting file.
 
 ## Inbound links resolve from the citing file, not from where you are reading
 
@@ -17,5 +17,22 @@ Resolve every inbound link by walking its `../` count from the **citing file's o
 The costlier shape, because it never returns empty. A `CLAUDE.md` documenting `grep .claude/companions/*-gotchas.md` still matches after a split produces `fe-gotchas-api-build.md`, `fe-gotchas-forms.md` and six siblings — it matched 2 of 8 files and reported nonzero, so the instruction kept looking correct while missing ~85% of the content it existed to find. The instruction was the safeguard; the split disabled it and nothing announced that.
 
 Re-run every documented glob, path pattern or `grep` instruction the moved content is subject to, and compare the **match count** before and after — a nonzero result is not evidence of the same result. Patterns live in prose in other files, so they don't appear in the pass's diff: grep for the moved files' old and new naming stems across `CLAUDE.md`, companions and skill bodies to find which instructions were keyed to the old shape.
+
+## A destination nothing ever pointed at
+
+The two shapes above are routes a pass BROKE, so a before/after comparison finds them. This one is a route the pass never created — the file was written, the content is correct, and no parent ever cited it. There is no regression to detect: it reads as a finished split from inside, and the only symptom is silence.
+
+It survives because both halves of the usual check pass. The content is present (a `grep -c` for the moved rows succeeds), and every pointer that exists resolves (nothing dangles, because nothing points). What's missing can only be found by asking the inverse question — not "does each pointer have a file" but **"does each file have a pointer"** — and that question is never prompted by anything in the diff.
+
+Enumerate the destination directory and check each file for at least one inbound citation from outside itself, rather than walking the pointers you wrote and confirming their targets. The check is cheap:
+
+```bash
+for f in <dest-dir>/*.md; do
+  n=$(grep -rl "$(basename "$f")" . --include="*.md" | grep -v "^$f$" | wc -l)
+  [ "$n" -eq 0 ] && echo "ORPHAN: $f"
+done
+```
+
+Run it across the whole destination directory, not just the files this pass wrote. An orphan is usually **an earlier split that half-landed** — someone extracted the content and never wired the pointer, and it has been invisible ever since precisely because an unreferenced file is also an unread one. Finding a stranger's orphan beside your own new files is the common case, and adopting it into the index you're building is nearly free at that moment and expensive to notice later.
 
 This is distinct from a corrupted pattern matching a substring (`{{#anchor}}` satisfying a search for `{#anchor}`), which `../../unhobble-instructions/references/verifying.md` covers under "Corrupted delimiters hide in substring matches." Here the pattern is intact and still correct as written — the filenames moved out from under it. It is also distinct from that file's "Deletion disguised as routing", where a pointer resolves to a destination that doesn't hold the claimed facts: there the link works and the content is missing; here the content is present and the route to it is gone.

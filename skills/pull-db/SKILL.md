@@ -25,10 +25,10 @@ These defaults match the common setup but can be overridden by user context or C
 Determine from context or ask the user:
 
 1. **Source server** — which remote alias or SSH host (check `~/.config/remote-cli/servers.json` or `~/.ssh/config`)
-2. **Database name** — check with `ssh <host> "mysql -u USER -pPASS -e 'SHOW DATABASES'"` (or your own SSH wrapper) or infer from server config
+2. **Database name** — list the databases on the remote server, or infer it from server config
 3. **Credentials** — from CLAUDE.local.md, server config, or ask user
 4. **Local database name** — from project `.env` (`DB_DATABASE=`)
-5. **Local MySQL access** — Docker container name (`docker ps --format '{{.Names}}' | grep -i mysql'`) or native
+5. **Local MySQL access** — the name of the running MySQL container, or a native install
 
 ### Step 2: Dump on Server, Transfer via scp
 
@@ -59,11 +59,7 @@ docker exec -i <container> mysql -u root -e "DROP DATABASE IF EXISTS <dbname>; C
 gunzip -c /tmp/db_dump.sql.gz | sed '/<problematic_fk_name>/d' | (echo "SET FOREIGN_KEY_CHECKS=0;" && cat) | docker exec -i <container> mysql -u root <dbname> --default-character-set=utf8mb4 --force
 ```
 
-If error 6125 names a different FK than the one already stripped, add that name to the sed filter and repeat (recreate the database first — a partial `--force` import can leave stale rows behind). Verify the table count landed:
-
-```bash
-docker exec -i <container> mysql -u root <dbname> -e "SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema='<dbname>';"
-```
+If error 6125 names a different FK than the one already stripped, add that name to the sed filter and repeat (recreate the database first — a partial `--force` import can leave stale rows behind). Then count the tables in the imported database and confirm the number is what the source had; `--force` finishes and reports success on an import that dropped tables along the way.
 
 ### Step 4: Post-Import Safety
 

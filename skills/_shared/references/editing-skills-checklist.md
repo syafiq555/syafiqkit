@@ -62,15 +62,9 @@ Agent template/generated file parity is non-negotiable: editing `.claude/agents/
 
 ### Touching Any Skill: Registry Sync
 
-The skill registry lives in two hand-maintained places: `CLAUDE.md`'s Skills table(s) and `README.md`'s. Adding to one without the other is the common miss, and the worse failure is silent rot in tables nobody edited — three skills were absent from CLAUDE.md's table for months while present in README. Never trust them by eye; diff against disk, which is the only source of truth:
+The skill registry lives in two hand-maintained places: `CLAUDE.md`'s Skills table(s) and `README.md`'s. Adding to one without the other is the common miss, and the worse failure is silent rot in tables nobody edited — three skills were absent from CLAUDE.md's table for months while present in README. Never trust them by eye. The directories under `skills/` are the only source of truth, so build the list from disk and check each name appears in both tables, ignoring `_shared` which is a reference folder rather than a skill.
 
-```bash
-sed -n '/^## Skills by Invocation Pattern/,/^## Typical Workflow Sequences/p' CLAUDE.md | grep -oE '^\| `[a-z-]+`' | tr -d '|` ' | sort > /tmp/c.txt
-ls -d skills/*/ | grep -v _shared | sed 's|skills/||;s|/||' | sort > /tmp/d.txt
-comm -13 /tmp/c.txt /tmp/d.txt   # any output = rows missing from CLAUDE.md
-```
-
-The `sed` range is hardcoded to CLAUDE.md's current section headers, so a session that restructures CLAUDE.md's skill tables (splitting one table into several, renaming a header) silently breaks this command — the range matches nothing, `comm` compares empty against disk, and it reports zero rows missing even when rows genuinely are. This already happened once. Before trusting a clean result, confirm `/tmp/c.txt` actually has entries in it (`wc -l /tmp/c.txt` — near-zero on a ~30-skill plugin means the range broke, not that the registry is clean), and if CLAUDE.md's headers changed this session, update the range in the same edit.
+Whatever way you extract the registered names, **confirm the extraction found roughly the number of skills this plugin has** before believing a clean result. Any approach that keys on CLAUDE.md's section headings or table shape stops matching the moment someone splits a table or renames a heading, and what it then reports is zero rows missing — indistinguishable from a healthy registry. That has already happened here once. A near-empty extraction on a thirty-skill plugin means the extraction broke, not that the registry is clean.
 
 ### Naming Plugin-Internal Paths
 

@@ -1,6 +1,6 @@
 ---
 name: agent-setup
-description: This skill should be used when the user asks to "setup project agents", "create code reviewer", "update agent prompts", or when starting a new project — AND whenever a project's `.claude/agents/*.md` files are missing, out of date against `templates/*.template.md`, or the user reports an agent misfiring/under-triggering (wrong dispatch behavior traces back to a stale or absent agent file, not the calling skill). Also trigger when a NEW agent template is added upstream and an existing project's agents need to pick it up. Creates project-specific agents with the Bootstrap pattern. Do NOT use for a one-off tweak to a single agent's wording (edit that agent file directly) or for fixing a SKILL.md's own trigger description (that's update-plugin).
+description: This skill should be used when the user asks to "setup project agents", "create code reviewer", "update agent prompts", or when starting a new project — AND whenever a project's `.claude/agents/*.md` files are missing, have fallen behind what `templates/*.template.md` can now do — a step, a tool grant, a guard or a whole subject the template covers and the agent has no counterpart for, which is different from the two files merely wording the same rule differently — or the user reports an agent misfiring/under-triggering (wrong dispatch behavior traces back to a stale or absent agent file, not the calling skill). Also trigger when a NEW agent template is added upstream and an existing project's agents need to pick it up. Creates project-specific agents with the Bootstrap pattern. Do NOT use for a one-off tweak to a single agent's wording (edit that agent file directly) or for fixing a SKILL.md's own trigger description (that's update-plugin).
 ---
 
 # Project Agent Setup
@@ -67,14 +67,11 @@ Project/
 
 ### Step 1: Check Project Structure
 
-```
-Glob: .claude/agents/*.md
-Glob: **/CLAUDE.md
-```
+Find what already exists: the agent files under `.claude/agents/`, and every `CLAUDE.md` in the project at any depth.
 
 If no agents exist, create `.claude/agents/` and generate all eight from templates. If no CLAUDE.md exists, generate with the base template only (no project-specific inline rules to extract yet).
 
-If agents already exist, run Step 5 in full against every one of them regardless of how established they look, and diff each against its `templates/<name>.template.md` — a structurally sound agent can still be missing a feature the template gained since it was generated. Also enumerate `basename templates/*.template.md` against `.claude/agents/*.md`: any template with no matching generated agent is a missing agent, not drift, and gets created in the same pass. Update whatever any check flags.
+If agents already exist, run Step 5 in full against every one of them regardless of how established they look, and read each against its `templates/<name>.template.md` asking what the template's agent can do that this one can't — a structurally sound agent can still lack a capability the template gained since it was generated. Read for that gap rather than diffing for difference: the two files word the same rules differently on purpose, so a textual comparison buries the one real finding under a wall of correct tailoring. Also enumerate the template names against the generated ones: a template with no counterpart is a missing agent rather than drift, and gets created in the same pass. What a check flags is a finding to judge, not a defect to fix — decide which side is right before changing either.
 
 ### Step 2: Identify CLAUDE.md Hierarchy
 
@@ -101,7 +98,7 @@ Read CLAUDE.md files and extract the roughly 15 rules that cause the most freque
 
 ### Step 4: Write Agent Files
 
-Write agents from the templates in `templates/`, tailoring only the project-specific sections (Bootstrap paths, inline critical rules, domain-specific guidance). Use facts and reasoning — state why a rule matters, not trip-wires for each failure mode. Frontmatter and the stated role (who each agent is) don't soften — those define what the agent *is*.
+Write agents from the templates in `templates/`, carrying every rule the template teaches into the project's own voice. The rules survive; the vocabulary is replaced — a template example about eager-loading columns becomes an example about whatever this project actually has, and an agent already expressing a rule in its own words needs no edit to match the template's phrasing. What must be tailored rather than restated: Bootstrap paths, the inline critical rules, and domain-specific guidance, all of which name things that exist here. Use facts and reasoning — state why a rule matters, not trip-wires for each failure mode. Frontmatter and the stated role (who each agent is) don't soften — those define what the agent *is*.
 
 **Each agent file contains:**
 
@@ -145,42 +142,24 @@ Write agents from the templates in `templates/`, tailoring only the project-spec
 
 - Extract only rules that cause repeated mistakes at runtime (bad column names, polymorphic gotchas, dual-write requirements, framework version API changes). Everything else is discovered from CLAUDE.md.
 - No `<!-- INJECTED -->` markers — that pattern is deprecated.
+- **The re-delegation rule ships as inline prose; its `📖` pointer does not.** Every `Agent`-holding template states the operative rule in its body — spawn only `Explore`, only for retrieval, never a same-typed child and never your own assignment — and follows it with `📖 ../../_shared/references/agent-may-not-redelegate.md`. Carry that principle into the generated agent in its own voice, naming the retrieval agent this project actually has, and drop the pointer: that relative path resolves only from inside the templates tree, and a project checkout need not have the plugin installed at all, so a copied pointer is dead on arrival. Rewriting it as a plugin-absolute path fails the same way and adds a machine-specific path to a committed file. `Explore` is the exception the rule is written around — nested `Explore` is its designed behaviour, so it carries no ban. Two subagents on one run independently reported the reference file missing when it exists; if a generated copy's pointer looks broken, that is the expected state and not a defect to repair.
 - Task-doc discovery: every task-doc-consuming agent (`Explore`, `Plan`, `task-builder`, `code-reviewer`, `code-simplifier`, `product-reviewer`, `claude-md-pruner`) calls `/read-summary`, not reimplementing its logic.
 
 ### Step 5: Verify
 
-Verification clusters into four concerns. Read the relevant section below, then run the checks listed. A comprehensive verification requires checking all four.
+📖 `references/agent-setup-verification.md` — read it before verifying. It is the owner of what follows; this summary only says what kind of thing you are checking.
 
-📖 `references/agent-setup-verification.md` — detailed checklist for each concern, with grep/diff commands to run and how to interpret results. Read it before verification; don't replace this summary with grep-only spot-checks.
+Three questions, and knowing which one you are asking matters more than the order you ask them in.
 
-**1. Content Validity** — the one concern greps cannot settle, so budget a read for it.
-- Every cited path resolves on disk. A consolidation commit that merges or deletes layer files leaves agents pointing at paths that no longer exist, and a prefix-stripped `CLAUDE.md` still resolves to a real file — the wrong one. Both read as ordinary rows and no presence check flags either.
-- Each numbered step's command is the one the file's own banners demand. A banner mandating `git status --short` above a step running `git diff --name-only` is a contradiction in which the step wins; both tokens are present, so presence and absence checks both pass on it.
-- Nothing a step depends on is stated below the step that needs it — a never-remove list positioned after "apply changes" is present and unreachable.
-- Commands are right in their arguments, not just their names: an unmatched glob makes zsh abort and report `0`, which reads as a healthy measurement rather than a failed one.
-- Inline rules table holds only facts that prevent repeated crashes or corruption — not derivable, not one-time setup, not symptom-indexed gotchas (those stay in CLAUDE.md).
+**Can this agent still do its job here?** This is a read, not a search. Walk each agent's process as the agent would execute it, watching for a step whose command contradicts the warning above it, for anything stated below the step that depends on it, and for cited paths that no longer resolve. These are the findings, and they are shape-correct — the right words in the wrong place — so nothing that measures presence will ever see them.
 
-**2. Frontmatter Invariants**
-- All agents have `memory: project` in frontmatter AND read it back (⚠️ `Read your own memory first` line in Bootstrap, pointing to `.claude/agent-memory/<agent-name>/*.md`).
-- All agents have `color:` matching their fixed per-agent-name value (Explore green, Plan blue, etc.).
-- Model tiers correct for role: `Explore` haiku, all others sonnet.
-- Tools grants match role: `code-reviewer`/`code-simplifier` have `getDiagnostics`, `product-reviewer`/`browser-verifier` are read-only, `task-builder` omits `tools:` entirely (full set).
+**Are the fixed values right?** Colour per agent name, model tier per role, `memory: project` with a line that actually reads it back, diagnostics only on the two agents that judge correctness, `task-builder` with no `tools:` line at all, and `disallowedTools: [Write, Edit]` on the two read-only agents — that line *is* the enforcement, since the harness grants a tool merely left off `tools:`. These genuinely are exact values; check them however you like.
 
-**3. Agent-Specific Behavior**
-- `code-reviewer`: Has Known False Positives table. Uses LSP `hover`/`documentSymbol`, not `goToDefinition`/`findReferences`.
-- `code-simplifier`: Has Don't Simplify (Preserve These) table. Uses LSP `hover`/`documentSymbol`.
-- `product-reviewer`: Is read-only — omits Write/Edit from `tools:` AND sets `disallowedTools: [Write, Edit]` (the omission alone leaves them granted). Has Don't Flag These table, uses 3-tier severity (blocking/expected-missing/polish), names audiences.
-- `browser-verifier`: Is read-only with `disallowedTools: [Write, Edit]`. Carries assert-the-effect table, never-fabricate-user-approval constraint, USER-TRIGGERED ONLY clause in description. Mobile recipe gates on `matchMedia(...).matches === true`. Target slot table filled (no `<...>` placeholders).
-- `Explore`/`Plan`: Shadow built-in agents (name: Explore/Plan). Body text restricts writes (Explore → scratchpad, Plan → `~/.claude/plans/`). Both run `/read-summary` on every call (⚠️ MANDATORY).
-- `claude-md-pruner`: Delegates size policy to `condense-claude-md`, not owning a threshold. Has NEVER-remove lists customized for the project.
-- Task-doc-consuming agents: Have `Skill` in tools, call `/read-summary` as canonical discovery (prevent per-agent reimplementation drift).
-- Multi-repo agents: Name both repos' task-doc roots, no hardcoded absolute paths (use `$SIBLING` placeholder).
+**Does each agent carry its own project's content?** A generated agent restates every rule in this project's vocabulary, so what you are looking for is whether its tables name things that exist here — not whether they match the template's wording. The failure this catches is a correct heading over the template's own `<!-- e.g. ... -->` examples, which every phrase-match passes and which means the section will never fire.
 
-**4. Drift Detection**
-- Template drift: Each generated `.claude/agents/<name>.md` tracks its `templates/<name>.template.md`. Diff the whole frontmatter and every table's row labels (not just headings). **Which side is stale is a finding, not an assumption** — the two are edited by different passes (a prose/density sweep rewrites the template; a session fixing live agent behaviour edits the generated copy), so both can be ahead of each other on different axes at once, and "restore from the template" then discards a real fix. Decide per hunk rather than per file; changes clustering into distinct topics rather than one contiguous block is the signal that both were edited independently. Copying toward the template also needs a portability read, since a generated file legitimately carries project-specific text that must not go upstream.
-- Missing agents: Enumerate `basename templates/*.template.md` vs `.claude/agents/*.md` — any template without a generated copy is missing, not drift.
-- Pruner migrations: Projects with pre-task-doc pruners or hardcoded size thresholds need backporting from the current template — detect and fix.
-- Model overrides: Only preserve in-file model overrides if justified by a comment; unjustified deviations from the template are drift. The mirror image is invisible to every drift check above, because it happens at dispatch rather than in a file — passing `model:` to a registered `subagent_type` silently overrides the tier that agent's frontmatter sets, with no error. A registered agent's tier is a property of the agent, so supply `model:` only for `general-purpose`, or when the user asked for a tier explicitly; then say which tier is being overridden, since an agent inheriting the session model may make the "override" change nothing.
+Which side is stale is a finding rather than an assumption, and a difference in wording is not staleness. What counts is a missing capability: a step, a grant, a guard or a subject the template's agent has and this one lacks.
+
+**A confirmed gap gets written back before you leave this step** — verification that ends in a verdict has diagnosed the problem and fixed nothing. Repair it the way Step 4 would have written it the first time: carry the missing capability into this agent's own voice, naming what exists in this project, rather than copying the template's wording across. Where the generated side turned out to be the right one, the template is what gets patched, minus anything project-specific that must not travel upstream. A missing agent is created outright. Then say per agent what changed, since "verified" and "verified and repaired" are different reports.
 
 ## Output
 

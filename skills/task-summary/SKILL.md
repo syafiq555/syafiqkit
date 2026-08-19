@@ -25,16 +25,14 @@ Doc already over budget (see below)? Delegate to `condense-task-doc` rather than
 
 Each fact lives in exactly one section — everywhere else points to it rather than restating it. This applies within a doc (LLM-CONTEXT and Quick Start are pointer indexes into canonical sections, not copies of them) and across files (a `decisions/<theme>.md` and the index both re-explaining the same item is the same violation crossing a file boundary). A fact is either a Decision (why) or a Gotcha (what breaks) — never both.
 
-Two facts are often mistaken for doc content when they're actually derivable:
+Two sources of false content to recognize:
 
-- **Git-tracked state doesn't belong.** "Committed" / "pushed" is answered by `git log`/`git status` — a doc's copy goes stale the instant someone commits. Delete these words on sight.
-- **Deploy/environment status is real.** "Which environment ran this code" isn't git-tracked (staging has real S3, local has different media behavior). Its one home is Quick Start's state line; elsewhere point there.
-
-An external tracker ID (ClickUp/Jira) in prose explaining a status needs its durable home too — add it to `Related:` in the same write, not a mention in `Last Session` that disappears next overwrite.
+- **Derivable state.** Git tracks "committed" / "pushed"; environment configuration tracks "which environment"; a doc's copy of either goes stale silently. Delete git-state words on sight. Route environment status to Quick Start's state line and point to it elsewhere.
+- **Durable references.** External tracker IDs (ClickUp/Jira) in prose explaining a status belong in `Related:` when you add them, not as a mention in `Last Session` that disappears next overwrite.
 
 ### Judgment shapes rules; trip-wires paralyze them.
 
-A rule stating "mechanism" lets a reader handle cases the doc never anticipated. A trip-wire naming one specific mistake trains a reader to reach for a checklist instead of reasoning. For task docs, this means: rows teach "what to know and do", decision blocks record "why we chose this", gotchas explain "what mechanism breaks" — not "these 17 ways to have failed." Collapse enumerations into principles; where a rule is truly underivable (a harness quirk, a binary with silent failure), state it plainly rather than as a trip-wire. 📖 `../_shared/references/writing-style.md` covers the full tension; for task docs the capture filter, prose-vs-value, and mechanism-not-trip-wire are the three that need deciding.
+A rule stating "mechanism" lets a reader handle cases the doc never anticipated. A trip-wire naming one specific mistake trains a reader to reach for a checklist instead of reasoning. For task docs: rows teach "what to know and do", decision blocks record "why we chose this", gotchas explain "what mechanism breaks" — not "these 17 ways to have failed." Collapse enumerations into principles; where a rule is truly underivable (a harness quirk, a binary with silent failure), state it plainly rather than as a trip-wire. 📖 `../_shared/references/writing-style.md` covers the full tension; for task docs the three key moves are capture filter, prose-vs-value, and mechanism-not-trip-wire.
 
 Base sentence style: rows hold one rule plus the single strongest reason, in two sentences or fewer. Rejected-alternative essays and verification narratives belong to git history, not the doc. Commit hashes live only in Last Session; elsewhere, verification is one word.
 
@@ -42,27 +40,17 @@ Base sentence style: rows hold one rule plus the single strongest reason, in two
 
 Every section — including `## Key Technical Decisions` and its MADR/ADR blocks — is written as judgment not enumeration. A Consequence that reads "1. Never X, 2. Always Y, 3. Don't Z" is the same trip-wire trap in MADR form. Rewrite as: "Because X silently fails in condition C and Y requires Z, we chose this approach to handle both." Each decision block teaches; it doesn't prescribe. This applies equally to the index doc and any `decisions/*.md` companion — the shape rule holds across the whole doc set.
 
-### Size budget
+### Doc maintenance: size thresholds and scope
 
-`current.md` should stay under 300 lines, measured by byte size (`wc -c`), not line count — a whole-doc MADR rewrite can grow lines while shrinking bytes (dense table cells become short ADR bullets). Compare `wc -c` against your starting point; if that file was already dirty, use `git show :<path>` (staged copy) rather than HEAD. Capture the baseline before your first write. 📖 `../_shared/references/two-tier-condense.md` for the full mechanics.
+Docs should stay focused — roughly under 300 lines, judged by byte size rather than line count — so readers can hold the whole domain in mind. Once over, delegate to `condense-task-doc`; its row-existence pass (deleting gotchas/decisions discoverable from code) is the step most likely skipped, and prose-tightening alone won't move a 40+-row doc. 📖 `../_shared/references/two-tier-condense.md` for measurement mechanics and split strategy.
 
-Once over budget, delegate to `condense-task-doc` — its row-existence pass (deleting gotchas/decisions discoverable from code) is the step most likely skipped under time pressure, and sentence-tightening alone won't move a 40+-row doc.
-
-Budget the **set**, not just the index: once split, `decisions/*.md` often outweighs `current.md` several times. Run `find <doc-dir> -name '*.md' | xargs wc -lc` for the real number — `find`, not a glob, because an unsplit doc has no such directory and zsh aborts the command, reporting 0.
-
-**Before finishing any write** that touched commit/deploy state, run two doc-wide greps:
-- `committed`/`uncommitted`/`pushed` (case-insensitive — delete any outside an MADR `**Status**: committed` lifecycle field)
-- `deployed`/`staging`/`prod` (multiple sections = collapse extras into Quick Start's state line)
-
-Both leak into Task Status, Last Session, and companion Status lines in ways that section-by-section editing misses. Only a full-doc grep catches it.
+**In a split doc set, the budget covers every file together**, since `decisions/*.md` often outweighs `current.md` several times over after a split — an index measured alone reads healthy while the domain's docs are the real problem. Whatever way you total them, satisfy yourself the count actually covered the sibling files: a doc that was never split has no `decisions/` directory, and the ways of counting that assume one tend to report zero rather than an error, which reads as a doc comfortably inside budget.
 
 ## 1. Resolve Path
 
-Before writing — scan or explicit path alike — settle whether you own these docs. Judge by diff *content*, never by status plane (`../_shared/references/diff-ownership.md`): auto-staging makes your own writes indistinguishable from another writer's staged work at a glance. The real question is whether this session's own content traces this diff. A background `Agent` still running, `git status` showing `tasks/` files you never touched, uncommitted doc edits predating this session, two sessions having edited the same doc so the content itself is a mix — these all read as "the doc is contested for the rest of this run" once noticed, and a case resembling none of them still needs the same question asked. Check this when the session starts, not when it finishes.
+**Check ownership before proceeding.** If another session is editing these docs (background agent running, `git status` showing `tasks/` files you didn't touch, uncommitted edits predating this session, or a mixed-content doc both of you edited), the doc is contested. When contested: skip the multi-domain scan; on an explicit path, verify read-only instead of overwriting; scope to what you actually own, or send a heads-up via `../_shared/references/cross-session-messaging.md` before a major rewrite.
 
-Contested → don't run the multi-domain scan, and on an explicit path take §4's guard-fired branches instead of its overwrite mandates; verify read-only instead (report gaps for the owner to fix) or scope to the doc you actually own.
-
-That test reads the peer off disk, so it sees nothing until their bytes land. When a live peer is already known (`../_shared/references/cross-session-messaging.md`), a one-line heads-up naming the doc before a Quick Start rewrite is worth sending — it doesn't gate the write, and no reply changes what the guard above decides.
+Judge by diff *content*, not status plane (`../_shared/references/diff-ownership.md`) — auto-staging makes your writes indistinguishable from another writer's staged work at a glance. The real question is whether this session's own content traces this diff. Do this check when the session starts, not when it finishes.
 
 | Input | Action |
 |-------|--------|
@@ -72,28 +60,24 @@ That test reads the peer off disk, so it sees nothing until their bytes land. Wh
 
 ### Multi-Domain Scan (when no explicit path given)
 
-Don't assume one domain per session — scan the full conversation for every domain that needs a task doc:
+Don't assume one domain per session — scan the full conversation for every domain that needs a task doc. Sources: code changes (what files changed and what domains do they belong to), external inputs (messages, emails, screenshots, ClickUp pastes naming issues), verbal requests ("also note X", "don't forget Y"), and outcomes that left no diff (decisions deferred, declined, blocked, or ruled out).
 
-1. **Code changes**: `git status --short` (every repo the session touched — see the sibling-repo note below) → infer domains from file paths. Use `git status`, not `git diff --name-only` — the latter hides staged and untracked files, so it goes empty the moment you've staged, reading as "nothing changed" for work you just did. If it's empty because the session's work is already committed, that's the same blind spot with a different cause: count from the session's base commit instead, `git diff --name-only <base>..HEAD` where `<base>` is HEAD at session start (or the merge-base with trunk). In a non-git project the command errors instead of going empty — infer domains from an mtime listing off session start (`../_shared/references/verifying-a-write-landed.md`).
-2. **External inputs**: WhatsApp messages, emails, Slack, screenshots, ClickUp pastes — extract every distinct issue/feature/bug mentioned.
-3. **Verbal requests**: "also note X", "don't forget Y", "the other issues" — those are domains too.
+**Code domains:** Use `git status --short` to infer domains from file paths. If the output is empty because work is already committed, use `git diff --name-only <base>..HEAD` where `<base>` is the session's starting HEAD. In a non-git project, infer domains from mtime listing off session start (`../_shared/references/verifying-a-write-landed.md`). A sibling repo has its own `tasks/` tree this scan doesn't reach on its own — whenever the session touched a second repo, re-run the scan from its root and update its own `tasks/**/current.md` in the same pass; otherwise one side gets documented exhaustively while the other is never opened.
 
-A sibling repo has its own `tasks/` tree that this scan doesn't reach on its own — two independent checkouts in sibling directories aren't the nested-sub-repo shape the commit/ship skills describe, so no `git -C <subdir>` walk finds them and the harness only walks from the working dir. Whenever the session's work touched a second repo at all, re-run the scan from that repo's root and update its own `tasks/**/current.md` in the same pass (mirrors `read-summary`'s sibling-repo step) — otherwise the feature's originating side gets documented exhaustively while the other side is never opened, and nothing about the doc you did write looks incomplete.
+**Decision domains:** A session whose product is a decision rather than code change still needs routing. What does this session know that only exists in the conversation? A scope call carries its reason with it (defer, decline, block-on-X) — the item is unactionable next session without why. Work parked pending someone else's answer is the most often lost and most expensive to lose: it looks finished from inside the session and abandoned from outside.
 
-Map each domain to its existing doc by content, not by folder name — a changed file path or feature name rarely matches the doc's folder (code `src/modules/qc-review/` → doc `setup/upload-redesign/`; folders are engineer-domain-named, not feature-named). Delegate raw candidate-gathering to the `Explore` agent, one call per domain/feature or one batched prompt covering all: `Glob tasks/**/*.md` (incl. `_archive/` and flat `tasks/<domain>/<feature>.md`) plus `Grep` for the concept's vocabulary and synonyms across doc body and header. The mapping judgment — which candidate is the actual match — stays inline against the returned raw data. Once dispatched, don't re-Glob/re-grep the same tree inline while it runs — wait for the completion notification instead; delegation mechanics are in `../_shared/references/explore-delegation.md`. Follow any surviving `Merged into`/`Supersedes` redirect to the live doc (older repos may have legacy stubs; new merges no longer create them — see §2a). This is what prevents creating a duplicate doc when one already exists under a different folder name.
+**Map existing docs:** Match by content, not folder name — a file path `src/modules/qc-review/` doesn't match doc folder `setup/upload-redesign/` on the name. Delegate candidate-gathering to the `Explore` agent: `Glob tasks/**/*.md` plus `Grep` for the concept's vocabulary and synonyms. The mapping judgment stays inline against the returned data. Once dispatched, don't re-Glob or re-grep the same tree inline while it runs — wait for the completion notification; mechanics are in `../_shared/references/explore-delegation.md`. Follow any `Merged into`/`Supersedes` redirect to the live doc (prevents duplicate doc creation).
 
-Build a table of all domains before writing anything:
+Build a table of all domains before writing:
 
 ```
-| # | Domain/Feature | Source | Task Doc | Action |
-|---|---------------|--------|----------|--------|
-| 1 | webhook phone fix | code changes | tasks/notifications/webhook/current.md | Update |
-| 2 | freemium tab | WhatsApp msg | tasks/student/freemium/current.md | Create |
+| Domain/Feature | Source | Task Doc | Action |
+|---|----------|--------|--------|
+| webhook phone fix | code changes | tasks/notifications/webhook/current.md | Update |
+| freemium tab | WhatsApp msg | tasks/student/freemium/current.md | Create |
 ```
 
-Then create/update each task doc. Every issue mentioned in the session gets one — even if it's just a 📋 Planning stub. A captured issue is better than a forgotten one.
-
-If a session had to reverse-map a whole module because no task doc existed for it (several Explore agents, reading the full flow), that mapping work is itself the argument for creating the doc now, not a note to leave in a related doc's Last Session for later. Filing "no task doc exists for X" without creating it just guarantees the next session repeats the same full-module study — turn the mapping you already did into `tasks/<its-domain>/<feature>/current.md` and cross-reference it from wherever you would have left the note.
+Then create/update each task doc. Every issue mentioned gets one — even if just a 📋 Planning stub. If a session reverse-mapped a whole module because no task doc existed, that mapping work is the argument for creating it now; don't file "no task doc exists for X" without creating it, as that guarantees the next session repeats the same study.
 
 ## 2. Create or Update?
 
@@ -117,22 +101,20 @@ Strip tool-output wrapper artifacts before writing, whether creating fresh or re
 
 ## 4. When Updating
 
-**Edit in place.** The doc should always read as one coherent current-state document, never sessions appended to each other. Everything else updates in place: a fact that changed gets edited to its existing row rather than added beside it; a finished work stream collapses to one summary row ("Phase 2 built + reviewed + committed ✅") rather than staying itemized. Don't wait for every row to tick ✅ first. 
+Docs describe current state, not session history. A fact that changed gets edited into its existing row rather than added beside it; a finished work stream collapses to one summary row ("Phase 2 built + reviewed + committed ✅") rather than staying itemized. Don't wait for every row to tick ✅ first — summarize as you go.
 
-**Two sections are rewritten wholesale rather than appended:** Quick Start (describes the present, not a history of presents) and Last Session (holds one session only, because it disappears next run). Both invert when §1's ownership guard fires: additive only, facts routed to typed sections instead. 📖 `../_shared/references/contested-doc-sections.md`.
+Two sections break this rule when §1's ownership guard fires (contested doc): **Quick Start and Last Session rewrite wholly** rather than append, and both become additive-only, facts routed to typed sections instead. 📖 `../_shared/references/contested-doc-sections.md`.
 
-**Rewriting those two is a two-step operation, and the second step is the one that gets skipped: route before you overwrite.** Read what's there and ask of each fact whether it describes the session or the system — a pending action nobody has done yet, a behaviour that shipped, a route or flag a reader would need — and move those into whichever typed section owns them (Next Steps, the architecture or widget table, Gotchas). Only then rewrite. Skipping the routing feels correct in the moment precisely because the collapse itself is mandated, so the deletion reads as compliance and the loss surfaces sessions later as a fact nobody can find; the older the entries, the more likely they are shipped behavior rather than session narration, which is the opposite of how stale they look. Confirm by grepping the doc for each fact after the rewrite rather than by trusting that you moved it — a fact already covered elsewhere needs no home, and finding zero hits is how you learn which one did.
+When rewriting Quick Start or Last Session on a normal (uncontested) update, **route facts before overwriting**. Read what's there and ask whether each fact describes the session (a thing that happened this turn) or the system (a behaviour that shipped, a state a reader needs, an action pending). Move system facts into their owning typed sections (Next Steps, architecture table, Gotchas); discard session narration. Only then rewrite. Skipping the routing feels correct because the rewrite is mandated, so the deletion reads as compliance — the loss surfaces sessions later as a fact nobody can find. Confirm by grepping after rewriting; a fact already covered elsewhere needs no home.
 
-Start with a gap-check and structure-check against the template — this is what "check for template drift" means:
+Start with a gap-check and structure-check against the template:
 1. List the doc's `## ` headers; add any missing from the template's required set.
-2. Verify each existing section's internal structure matches the template — table columns, field names, order — and fix non-conformant structure in place. What counts as drift is a section going missing, not a shape that differs — a split axis fitting the domain (Hosting/Build-Pipeline) or columns carrying actual gotchas are correct as-is. Reshape only when the current shape loses something: free-form bullets where a table would let a reader scan, or a gotcha table whose rows have no separating axis at all.
-3. `## Next Steps` is grouped by kind of work, not by when items were found — regroup an ungrouped or date-grouped list whenever you touch the doc. Vocabulary: `references/templates.md`. In a SPLIT doc set, every open actionable belongs in the index's `## Next Steps`, not scattered across `decisions/*.md` files — splitting is about where explanation lives, not where work lives. Each index item is one line (what to do + pointer to detail); decisions files point back. Exception: a checklist meant to be ticked while doing something belongs beside the procedure, with the index carrying a single line pointing to it.
+2. Verify each existing section's internal structure matches the template — table columns, field names, order — and fix non-conformant structure in place. What counts as drift is a section going missing, not a shape that differs — a split axis fitting the domain (Hosting/Build-Pipeline) or columns carrying actual gotchas are correct as-is. Reshape only when the current shape loses something.
+3. `## Next Steps` is grouped by kind of work, not by when items were found — regroup an ungrouped or date-grouped list whenever you touch the doc. In a SPLIT doc set, every open actionable belongs in the index's `## Next Steps`, not scattered across `decisions/*.md` files — splitting is about where explanation lives, not where work lives. Each index item is one line (what to do + pointer to detail); decisions files point back. Exception: a checklist meant to be ticked while doing something belongs beside the procedure, with the index carrying a single line pointing to it.
 
-New rows in Bugs Fixed and Critical Gotchas get composed already-condensed: paraphrase root cause and fix directly, rather than transcribing session detail (timestamps, assertion counts) and trimming after. A Critical Gotchas row instructs a reader rather than recording a decision, so it applies the mechanism-not-trip-wire rule — explain what breaks and why, not "never do X".
+New rows in Bugs Fixed and Critical Gotchas get composed already-condensed: paraphrase root cause and fix directly, rather than transcribing session detail (timestamps, assertion counts) and trimming after. A Critical Gotchas row instructs a reader rather than recording a decision, so it applies the mechanism-not-trip-wire rule.
 
-Three sections grow without bound unless pruned: `## Bugs Fixed` past 10 rows keeps the last 5 and summarizes the rest; `## Files` stays a living map of ~15 key files (per-phase subsections collapse into it); `## Next Steps` deletes done items rather than checking them off. A `## Completed (date)` section shouldn't exist — merge its content into the sections that own it.
-
-A user's scope call on a Next Steps item (defer, decline, deprioritize, block-on-X) is worth capturing with its reason, since a chat-only acknowledgement is lost next session. The item's markers should agree — a priority marker on something just deferred contradicts itself.
+**Maintenance:** Three sections require regular pruning to stay clear. `## Bugs Fixed` past 10 rows keeps the last 5 and summarizes the rest; `## Files` stays a living map of ~15 key files (per-phase subsections collapse into it); `## Next Steps` deletes done items rather than checking them off. A `## Completed (date)` section shouldn't exist — merge its content into the sections that own it.
 
 ### MADR Blocks — Edit-in-Place vs Append
 
@@ -167,25 +149,26 @@ Never include API keys, merchant keys, passwords, or secrets in task docs. Refer
 
 ## 5. Validate
 
-Re-read the whole doc. Does every section still say something true, complete, and stated exactly once?
+Re-read the whole doc end-to-end. Does every section still say something true, complete, and stated exactly once?
 
-**"True" covers the sections you didn't touch.** The checks below mostly ask whether this write broke something, which quietly scopes validation to the diff — and staleness is precisely what lives outside it. A doc goes stale because the session that falsified a fact and the session that could notice are different sessions: you rename a thing and update the doc about the rename, while the sibling paragraph mentioning the old name isn't in your diff, isn't in the §1 scan (which maps *code* changes to docs, not doc changes to sibling docs), and so is never read. It stays wrong until someone opens that file for an unrelated reason. You are that someone now, holding the file open with edit intent — which makes this the cheapest moment the staleness will ever have. Sweep the fields written once and checked least (`Quick Start`, `Status:`, `Immediate next actions`, and any prose in a file's opening lines describing what the system currently is), and in a split doc set read the `decisions/*.md` headers too, since the index gets the attention and the siblings inherit the drift. Fix what you can settle, and where the doc contradicts what this session observed, verify before flipping — a doc claim is as often right as it is stale, and an unverified "correction" discredits a source that was correct.
+A write's validation scope usually ends at the diff — which is where staleness lives. A doc goes stale because the session that broke a fact and the session that could fix it are different. You rename a thing and update the doc about the rename, while a sibling paragraph mentioning the old name isn't in your diff and so never gets read. It stays wrong until someone opens the file for a different reason. You are that someone now, holding the file open with edit intent — which makes this the cheapest moment to catch the staleness. Sweep the fields written once and read least (`Quick Start`, `Status:`, `Immediate next actions`, and opening prose describing what the system is), and in a split doc set read the `decisions/*.md` headers too — the index gets attention while siblings inherit drift. Fix what you can verify; where the doc contradicts what you observed this session, check before flipping — a doc claim is as often right as it is stale, and an unverified "correction" leaves a source that was correct now discredited.
 
-**Three essential checks:**
+**Fact checks** — these verify structure and the integrity of edits:
 
-1. **LLM-CONTEXT** has Status, Domain, Related, Last updated, and the date is today. Every section's structure matches the template — correct table columns, correct field names, no free-form bullets where a table is specified.
+1. **LLM-CONTEXT.** Has Status, Domain, Related, Last updated, with today's date. Every section matches the template — correct table columns, correct field names, no free-form bullets where the template specifies a table.
 
-2. **No accidental losses.** Deliberate pruning is expected; what this catches is a row dropped while reflowing a section. A rewrite touching large blocks wants `../_shared/references/two-tier-condense.md`'s diff pass — re-reading confirms the result reads plausibly, but that doesn't prove rows didn't fall out. Capture counts BEFORE rewriting: `grep -c '^|'`, `grep -c '⚠️'`, a byte count. A large byte drop on a restructured-only doc is the tell — restructuring moves text, it doesn't remove it, so anything past ~10% means content went. A doc set each shedding a third of bytes is deletion wearing a rewrite's face.
+2. **No accidental row loss.** Deliberate pruning is expected. Count the table rows, the warning markers and the bytes BEFORE rewriting, so you have something to compare against afterwards — the comparison is worthless if you take it after the fact. A restructured-only doc that drops more than roughly a tenth of its bytes lost content, since restructuring moves text rather than removing it. A doc set each shedding a third of its bytes is deletion wearing a rewrite's face.
 
-3. **Cross-section duplication** — grep the doc for its 2–3 most critical phrases. A phrase in more than two sections or the same fact across two bullets (two Next Steps both saying "then deploy via CI") means collapsing to one. A doc-wide grep after all edits lands; section-by-section re-reading misses duplicates introduced within one section.
+3. **Derivable state.** If your write touched git state or environment status, run these doc-wide greps: `committed`/`uncommitted`/`pushed` (delete any outside an MADR `**Status**: committed` lifecycle field) and `deployed`/`staging`/`prod` (collapse multiple sections into Quick Start's state line). Both leak into Task Status and Last Session in ways section-by-section editing misses.
 
-**Additional checks** (run these if they apply to your write):
-- **Back-references reconciled (§6)** — no roadmap/index/`Related:` doc still mirrors an out-of-date status for the feature you just updated.
-- **MADR compliance** — every row in `## Key Technical Decisions` is either an MADR block or legitimately escaped it (no real alternative existed). If whole-doc MADR exceeds 300 lines, split into index + `decisions/<theme>.md`.
-- **Next Steps structure** — grouped by kind of work, not by when items were found. No stale completed items. In split docs, every actionable belongs in the index's list, not distributed across `decisions/*.md`.
-- **No wrapper artifacts** — last line is real content, not a `</content>` tag from a Read result. Run `tail -c 40 <file>` or check the final `+` line of `git diff HEAD -- <file>`.
-- **Doc-stated counts are re-derived** — if the doc names a count ("N decisions", "5 critical gotchas"), run the command that produces it, never adjust a number by hand. A doc carrying both the count and the command is drifting silently on every increment.
-- **Commit/deploy state** — if your write touched commit/deploy state, run these doc-wide greps even if everything feels clean: `committed`/`uncommitted`/`pushed` (delete any outside an MADR `**Status**: committed` lifecycle field) and `deployed`/`staging`/`prod` (collapse multiple sections into Quick Start's state line). Both leak into Task Status and Last Session in ways section-by-section editing misses — only a full-doc grep catches it.
+4. **No wrapper artifacts.** Last line is real content, not a `</content>` tag from a Read result. Run `tail -c 40 <file>` to check.
+
+**Judgment checks** — these catch logical completeness:
+
+- **Cross-section duplication.** Grep the doc for 2–3 critical phrases. A phrase in more than two sections or the same fact across two bullets means collapsing to one. A doc-wide grep after all edits lands; section-by-section reading misses duplicates introduced within one section.
+- **Back-references reconciled (§6).** No roadmap/index/`Related:` doc still mirrors an outdated status for the feature you updated.
+- **MADR compliance.** Every row in `## Key Technical Decisions` is either an MADR block or legitimately escaped it (no real alternative existed). If whole-doc MADR exceeds 300 lines, split into index + `decisions/<theme>.md`.
+- **Doc-stated counts.** If the doc names a count ("N decisions", "5 critical gotchas"), re-derive it by running the command that produces it, never adjust by hand. A doc carrying both the count and the command drifts silently on every increment.
 
 ## 6. Cross-References
 

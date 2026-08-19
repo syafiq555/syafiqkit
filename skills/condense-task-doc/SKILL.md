@@ -54,27 +54,34 @@ The distinction is whether the material survives the underlying test. Apply the 
 2. **Check bytes first to decide approach.** Line count lies (a MADR restructure grows lines while shrinking bytes). Run `git show HEAD:<path> | wc -c` vs `wc -c <path>` — valid only if the doc was CLEAN at session start. Dirty → capture `wc -c` before your first write, or use `git show :<path>` (staged). (📖 `../_shared/references/two-tier-condense.md`).
    - **Bytes flat or lower:** Restructure, not bloat. Report both deltas and stop.
    - **Bytes grew from new ADRs, >300 lines:** Split instead of condense. Index keeps Quick Start, cross-cutting operational tables, and routing. Theme detail moves to `decisions/*.md`. Before splitting, read 📖 `../task-summary/references/decision-splits.md`'s "Splitting a whole-doc MADR further".
-   - **Already split, INDEX still oversized:** Measure per section, longest first, to see which one drives the overage:
+   - **Already split, INDEX still oversized:** Work out how long each `## ` section is and start with the longest — one section usually drives the whole overage, and condensing the rest first wastes the pass. However you measure, a `##`-prefixed line inside a fenced block looks like a heading, so a doc full of shell examples will read slightly long.
 
-     ```bash
-     grep -n '^## ' <file> | cut -d: -f1 | { total=$(wc -l < <file>); prev=""; while read -r ln; do
-       [ -n "$prev" ] && echo "$((ln - prev - 1)) $(sed -n "${prev}p" <file>)"
-       prev=$ln
-     done; [ -n "$prev" ] && echo "$((total - prev)) $(sed -n "${prev}p" <file>)"; }
-     ```
-
-     Route each row to its owning theme file (its own "see ADR-N" column usually names it). Rows belonging to no theme (env, fixtures) get a descriptively named sibling, not `bugs.md`/`misc.md`. A `##`-prefixed line inside a fenced block counts as a heading here, so a doc full of shell examples reads slightly long.
+     Route each row to its owning theme file (its own "see ADR-N" column usually names it). Rows belonging to no theme (env, fixtures) get a descriptively named sibling, not `bugs.md`/`misc.md`.
    - **Bytes grew from accumulated cruft:** Condense and continue.
 
 3. **Find what to delete:** Identify `## Investigation` or narrative-only sections (primary bloat sources). Scan for duplication across the whole set with `grep -rl` on 2–3 critical phrases — a per-file pass is blind to cross-file cases. Within a file: phrases in >2 sections, or Bugs Fixed rows whose bug ID also appears in Critical Gotchas. Across files: Bugs Fixed rows explained fully in the index *and* fully in their owning `decisions/*.md` — collapse the index side to a pointer.
 
 4. **Row-existence pass:** For every row in Critical Gotchas and Key Technical Decisions, apply the keep-test ("would losing this cause incorrect action?") and **delete** (not shorten) rows that fail it. On a doc with 20+ rows, expect to delete some. This is separate from sentence compression and must happen first. If no rows delete, the pass was likely skipped.
 
+   The test reads a row's content and has no sense of when it arrived, so a fact written into the doc minutes ago is weighed exactly like one that has sat there for months — and the fresh one is the more likely casualty, since a session's newest gotcha is often its least polished. Rows this session wrote (`git diff HEAD` on the doc distinguishes them) carry a reversed burden: deleting one means saying why the reason for writing it no longer holds, not merely that it reads as derivable now. This isn't a ban — a row genuinely redundant with something else added in the same session is a fair cut — but a fact somebody judged worth recording an hour ago being deleted silently by a size pass is the shape to catch.
+
 5. **Execute and measure:** Most condensing is an `Edit` job (section rewrites, row deletions). Count BOTH lines and bytes before and after (`wc -lc`) for every file in the SET. Report per-file deltas plus the set total. Also report row count: gotcha/decision rows before, after, and how many were deliberately deleted. A pass skipping step 4 produces the same tidy byte delta as one that ran it, so row arithmetic is the signal; a set of deletions that doesn't reconcile against the byte delta indicates the row-existence pass got skipped. (📖 `../_shared/references/two-tier-condense.md` for write-mode choice and diff-baseline rules.)
 
 6. **After all writes land, run the duplication check again** (`grep -rl` from step 3). Section-by-section editing can reintroduce the same fact across files. The per-file diff is blind by construction to that case; only a set-wide grep catches it. Confirm each file's last line is real content (`tail -c 40 <file>`).
 
-7. **Target: ≤300 lines** for an indexed doc with full bug history, measured on a split index with the `## Next Steps` section subtracted — open actionables stay in the index and don't count against its budget:
+7. **Account for where the bytes went, before reporting anything.** Every threshold above is a floor to reach; this is the one ceiling, and it exists because the numbers step 5 produces read as an achievement no matter which direction they went. A pass that deleted two thirds of a doc set reports the same tidy per-file deltas as one that condensed it well, and reports them in a tone of success, so the magnitude never gets read as a symptom by the session that produced it.
+
+   The question that separates the two is not how far the set fell but **which file grew to receive what left**. Bytes leaving an index during a split land in the `decisions/*.md` siblings, so those siblings grow — a correct redistribution shows a large drop in one file and a rising or flat SET total. When every member of a set shrinks together, nothing absorbed the content and there is no destination to name; the drop is deletion whatever the pass called itself. Check this against the set total from step 5, never the index alone: a per-file view makes a correct split look like mass deletion and makes real deletion look like several ordinary trims.
+
+   What each shape predicts, as anchors for that reasoning rather than trip-wires to compute:
+   - **Restructure only** (no rows deliberately deleted) — the set total should sit roughly flat. Restructuring moves text rather than removing it, so a drop past about a tenth means content went, and the pass is mislabeled: reclassify it as a condense and justify it as one.
+   - **Condense** (the row-existence pass ran and rows genuinely went) — a bounded drop is the point, so no cap applies. What changes past roughly a third is the reporting bar: name the specific facts judged non-essential and why the keep-test failed for each, rather than an aggregate row count. An aggregate is what a skipped judgement and a careful one look identical in.
+   - **Split** — no ceiling applies to the index's own fall, since most of its bytes are supposed to leave. The set total is what must hold flat or rise; a set contracting in aggregate during a split has lost the content it claimed to relocate.
+   - **Cross-file dedup** — the one shape where a large drop is correct and *nothing* grew. Collapsing a fact stated fully in two files down to one copy plus a pointer (step 3's across-files pass, and the Duplicated facts rule above) leaves the survivor exactly as it was, because it already held the fact before this pass began. Asking which file grew returns "none" here, same as real deletion. What separates them is the survivor: name the file that already carried each collapsed fact and confirm by grep that it still does, rather than looking for growth that was never going to happen. The itemization bar under Condense covers the reporting; what this case must not do is push a pass toward inventing a destination to satisfy the question.
+
+   Where the drop has no receiving file and no itemized justification, say so as the outcome rather than reporting the deltas and leaving the reader to notice. A caller who delegated this run sees only what you report.
+
+8. **Target: ≤300 lines** for an indexed doc with full bug history, measured on a split index with the `## Next Steps` section subtracted — open actionables stay in the index and don't count against its budget:
 
    ```bash
    total=$(wc -l < <file>)
@@ -87,9 +94,9 @@ The distinction is whether the material survives the underlying test. Apply the 
    ```
 
    This subtracts the span of that one section, so sections after it still count — Next Steps is often mid-file, not last. A doc over budget by live backlog alone has passed; report it with the backlog's size rather than routing actionables out to buy lines. Being under budget doesn't mean skipping step 4. Check sentence length directly: `awk '{print length, NR}' <file> | sort -rn | head -15`. Tighten paragraphs running 500+ characters of stacked parentheticals. Bytes-per-line >120–150, or sections >4KB each (Files, Task Status, Bugs Fixed), signal a second pass.
-   - **Still >300 lines after condensing, excess is MADR blocks:** Split Key Technical Decisions into `decisions/<theme>.md` — read 📖 `../task-summary/references/templates.md` for the shape each theme file takes. Once it has landed, read 📖 `../_shared/references/verifying-a-relocation.md` and run its two checks — a split breaks the routes into the content it moved, and those defects sit outside every file you just wrote. Report both the condensed delta and the split.
+   - **Still >300 lines after condensing, excess is MADR blocks:** Split Key Technical Decisions into `decisions/<theme>.md` — read 📖 `../task-summary/references/templates.md` for the shape each theme file takes. Once it has landed, read 📖 `../_shared/references/verifying-a-relocation.md` and run its three checks — a split breaks the routes into the content it moved, and those defects sit outside every file you just wrote. Report both the condensed delta and the split.
 
-8. **Read `../task-summary/references/templates.md`** for canonical section headings, table column names, and field order.
+9. **Read `../task-summary/references/templates.md`** for canonical section headings, table column names, and field order.
 
 ---
 

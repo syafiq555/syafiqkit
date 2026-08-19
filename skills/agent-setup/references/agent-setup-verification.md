@@ -1,223 +1,113 @@
-# Agent Setup Verification Checklist
+# Verifying Agent Files
 
-**Read this file when verifying agent files against the four concerns in Step 5.** Each concern lists the specific checks to run and how to interpret results. A comprehensive verification requires checking all four.
+**Read this when checking agent files, whether you just generated them or are auditing a project someone set up months ago.**
 
-⚠️ **Every check below is a token-presence test, and an agent file's worst defects are shape-correct — the right words in the wrong place.** A grep answers "does this file contain X", never "does X sit where the agent will act on it" or "does X contradict Y three lines up", so the checks pass cleanly on a genuinely broken file and the clean result is what stops you reading further. The three shapes that survive every check here: a **contradiction**, where a banner mandates the correct command and the numbered step executes the wrong one (both tokens present, so presence and absence checks both pass); **misordering**, where a guard against destructive edits sits after the step that applies them (present, never reached); and a **wrong argument inside a right command**, where the command name greps fine and its glob silently returns 0. So treat the checks as a first pass that narrows where to look, then **read each agent's Process section top-to-bottom as the agent would execute it**, asking at each numbered step whether the command is the one the file's own warnings demand and whether anything it depends on is stated later than the step that needs it. Budget for that read; it is where the findings are, and no combination of greps substitutes for it.
+The thing to understand before anything else: **a generated agent and its template are not supposed to match.** Templates are written as judgement prose, and generation restates each rule in the project's own vocabulary — one project's `Explore` talks about backend/frontend and DDD, another's about SKILL.md and command markdown. Textual difference is the designed outcome. So a comparison that measures wording answers a question nobody asked, and answers it wrongly in both directions: it flags every healthy agent as drifted, and it passes an agent that kept the heading and lost the content.
 
----
+What you are actually establishing is that each agent **can still do its job in this project**. That is a property you judge by reading, not a string you match. Where a fact below is genuinely a fixed value — a colour, a model tier, a line whose presence is itself the enforcement — say so and check it however you like; the point is the fact, not the command.
 
-## 1. Content Validity
-
-**This concern is a READ, not a grep.** The checks below narrow where to look; they cannot settle it. Open each agent and walk its Process as the agent would execute it:
-
-- [ ] **Every path the file cites resolves on disk.** Extract them and test each — a consolidation commit that deletes or merges layer files leaves agents citing paths that no longer exist, and a bare `CLAUDE.md` with no directory prefix still resolves to *a* real file, just the wrong one. Both read as ordinary rows.
-  ```bash
-  grep -ho '`[a-zA-Z0-9_./-]*CLAUDE\(\.local\)\?\.md`' .claude/agents/*.md | tr -d '`' \
-    | grep -v '^\$\|^~/' | sort -u | while read p; do [ -f "$p" ] || echo "DEAD $p"; done
-  ```
-- [ ] **Each numbered step's command matches what the file's own banners demand.** Where a banner and a step disagree, the step is what runs — fix the step. Both tokens are present, so no presence or absence check detects this.
-- [ ] **Nothing a step depends on is stated after the step that needs it.** A never-remove list, a scope guard, a precondition: each is inert below the step that deletes or writes. Check position, not presence.
-- [ ] **Commands are correct in their arguments, not just their names.** A glob that matches nothing, a flag that means something else — the command name greps clean while the command reports 0 and the 0 reads as a healthy result.
-- [ ] No duplicated CLAUDE.md content — grep the inline rules table to confirm it holds only facts that prevent crashes/corruption at runtime, not derivable facts, one-time setup, or symptom-indexed gotchas (those belong in CLAUDE.md, discovered at runtime).
-  ```bash
-  grep -A 30 "High-Frequency\|Mistakes\|Simplifications" .claude/agents/*.md | grep -i "docker\|env\|install\|token" | head -5
-  # Should return few/zero hits on setup/config facts
-  ```
-
-- [ ] Bootstrap section references correct CLAUDE.md paths — spot-check one agent's Bootstrap table against the actual files.
-  ```bash
-  head -1 CLAUDE.md  # confirm root exists
-  ls app/CLAUDE.md resources/js/CLAUDE.md tests/CLAUDE.md 2>/dev/null | wc -l  # how many layer files exist
-  ```
-
-- [ ] Path layout matches Bootstrap description (single root, root + layers, root + sub-projects, or multi-repo).
+However you choose to check something, **make sure it can fail in the direction you care about**, and satisfy yourself of that against a file you already know is broken. A clean result is the one nobody re-examines, which is exactly why a check that cannot report a defect survives for years. This file previously carried a frontmatter comparison that reported every agent healthy for its entire existence, because what it actually compared was the same literal `---` extracted from both files; the sweep was clean because it was blind. Elsewhere a flag that silently cancelled another one inverted a whole coverage sweep, and it still passed, because a file that matches neither side of the question is missing from both answers. Automating any of this is fine — the failure isn't automation, it's trusting a green result you never made go red.
 
 ---
 
-## 2. Frontmatter Invariants
+## Read the agent as the agent will execute it
 
-- [ ] All agents have `memory: project` in frontmatter AND read it back (critical — the grant is useless without the read).
-  ```bash
-  for agent in .claude/agents/*.md; do
-    grep -q "memory: project" "$agent" || echo "Missing memory grant: $agent"
-    grep -q "agent-memory" "$agent" || echo "Missing memory read: $agent"
-  done
-  ```
-  Expected exception: `task-builder` is by design the only agent that doesn't read memory (it doesn't inherit prior session context).
+This is where the findings are, and nothing substitutes for it. Open each file and walk its process in order, as the agent would.
 
-- [ ] Run the same check against `templates/*.template.md` — a template that ships without the memory-read line bakes the gap into every project regenerated from it.
-  ```bash
-  for tmpl in templates/*.template.md; do
-    grep -q "agent-memory" "$tmpl" || echo "Template gap: $tmpl"
-  done
-  ```
+**Run `diff` against the template before this read, not instead of it.** A prose read-through, done carefully, still misses missing capability — a redelegation ban stated as a standalone sentence in the template can be absent from the generated file while a nearby, softer sentence reads close enough that a careful pass calls it present. One verification session read all eight agents this way, judged four clean, and only found real gaps in three of those four after running `diff` on each — the same missing-redelegation-rule shape recurred across five of the eight files and a careful read had passed every one of them. `diff` surfaces every line that differs; the reading skill from here on is triaging that output into "reworded, ignore" versus "capability absent, real finding" — but do the diff first, because the reworded lines are exactly what a read-through anchors on and stops looking past.
 
-- [ ] All agents have `color:` in frontmatter, matching fixed per-agent-name values:
-  ```bash
-  grep "^name:\|^  color:" .claude/agents/*.md | paste - - | sed 's/.*name: //' | sed 's/.*color: /  → /'
-  # Verify: Explore→green, Plan→blue, task-builder→pink, code-reviewer→red, code-simplifier→cyan, claude-md-pruner→yellow, product-reviewer→purple, browser-verifier→orange
-  ```
+**Does every step's command match what the file's own warnings demand?** A banner mandating one command above a step that runs a different one is a contradiction in which the step wins. Both are present, so no presence check and no absence check will ever see it.
 
-- [ ] Model tiers correct for role:
-  ```bash
-  grep "^name:\|^  model:" .claude/agents/*.md | paste - - | grep -v "Explore.*haiku\|Plan.*sonnet\|task-builder.*sonnet\|code-reviewer.*sonnet\|code-simplifier.*sonnet"
-  # Should return nothing for violations; exceptions only if justified by inline comment
-  ```
+**Is anything a step depends on stated after the step that needs it?** A never-remove list below the step that deletes, a scope guard below the step that writes — present, and unreachable. Position, not presence.
 
-- [ ] Tools grants match role:
-  ```bash
-  grep "code-reviewer\|code-simplifier" .claude/agents/*.md -l | xargs grep "mcp__ide__getDiagnostics"
-  # Must hit both code-reviewer and code-simplifier; absence is a gap
-  
-  grep "product-reviewer\|browser-verifier" .claude/agents/*.md -l | xargs grep -L "mcp__ide__getDiagnostics"
-  # Must return both; presence is a gap
-  
-  grep "^name: task-builder" .claude/agents/*.md -A 3 | grep "^  tools:"
-  # Should return nothing (task-builder has NO tools: line, intentionally granting all)
-  ```
+**Are commands right in their arguments, not just their names?** The command name reads fine while its glob matches nothing and the zero reads as a clean result.
+
+**Does every path the file cites actually resolve?** A consolidation commit that merges or deletes layer files leaves agents pointing at paths that no longer exist. The subtle case: a bare `CLAUDE.md` with its directory prefix stripped still resolves to a real file — the wrong one. Both read as ordinary rows.
+
+**Do the inline rules earn their place?** They should be the facts that cause crashes or corruption at runtime if missed — a column name that differs from its accessor, a base class that must be extended. Anything derivable, any one-time setup, any symptom-indexed gotcha belongs in CLAUDE.md, which the agent reads at runtime anyway.
 
 ---
 
-## 3. Agent-Specific Behavior
+## Fixed values
 
-Run these checks for the agents mentioned:
+These are the things that genuinely are exact strings, where a difference is always a defect. Nothing about the prose rewrite touches them.
 
-**code-reviewer & code-simplifier:**
-```bash
-grep "Known False Positives\|Don't Simplify" .claude/agents/code-*.md
-# Each should have its own table; presence confirms section exists
-```
+**Colour, per agent name, the same in every project:** Explore green, Plan blue, task-builder pink, code-reviewer red, code-simplifier cyan, claude-md-pruner yellow, product-reviewer purple, browser-verifier orange.
 
-**Both (LSP usage):**
-```bash
-grep "hover\|documentSymbol" .claude/agents/code-*.md | wc -l
-# Should be ≥ 4 (mentions in both agents); absence suggests revert to goToDefinition (broken)
-grep "goToDefinition\|findReferences" .claude/agents/code-*.md
-# Should return nothing (known to be broken); any hit is regression
-```
+**Model tier:** Explore runs haiku; every other agent runs sonnet. An in-file override survives only if a comment justifies it — an unjustified deviation is drift. The mirror image is invisible to any file check, because it happens at dispatch: passing `model:` to a registered `subagent_type` silently overrides that agent's own tier with no error, so supply it only for `general-purpose` or when the tier was asked for explicitly.
 
-**product-reviewer:**
-```bash
-grep -c "disallowedTools:.*Write, Edit" .claude/agents/product-reviewer.md
-# Must be 1. Absence is a REAL gap even though tools: omits Write/Edit — the harness
-# grants a tool left off the tools: line, so omission alone does not enforce read-only.
-grep "3-tier\|blocking\|expected-missing\|polish\|Don't Flag" .claude/agents/product-reviewer.md
-# All of these should be present
-```
+**`name:` on Explore and Plan** must be exactly that — capitalised, no hyphen. It is what shadows the built-in agents, so a typo silently un-shadows them.
 
-**browser-verifier:**
-```bash
-grep "disallowedTools:" .claude/agents/browser-verifier.md | grep -c "Write, Edit"
-# Must be 1; absence means reads can "fix" bugs instead of reporting them
-grep "assert-the-effect\|never-fabricate\|USER-TRIGGERED" .claude/agents/browser-verifier.md
-# All three load-bearing rules must be present
-grep "matchMedia" .claude/agents/browser-verifier.md
-# Mobile recipe should gate on matchMedia(...).matches, not width alone
-grep -n "<[a-z][a-z_]*>" .claude/agents/browser-verifier.md
-# Should return nothing; any hit is an unfilled slot
-```
+**`memory: project`, plus a line that actually reads it back.** The grant does nothing on its own; an agent that never globs `.claude/agent-memory/<name>/` accumulates notes no session will ever see. All eight agents need both halves. Check the templates for the same thing — a template shipping without the read-back bakes the gap into every project generated from it afterwards.
 
-**Explore & Plan (shadowing, writes scoping):**
-```bash
-grep "^name:" .claude/agents/Explore.md .claude/agents/Plan.md
-# Must be exactly "Explore" and "Plan" (capitalized, no hyphens)
-grep "scratchpad\|~temp\|findings" .claude/agents/Explore.md
-# Should mention that Explore's findings ARE its text output, scratchpad never touches caller's plan
-grep "~/.claude/plans/" .claude/agents/Plan.md
-# Should restrict Write to plans directory
-```
+**Diagnostics:** `code-reviewer` and `code-simplifier` hold `mcp__ide__getDiagnostics`; `product-reviewer` and `browser-verifier` must not, since they judge completeness and behaviour rather than correctness.
 
-**claude-md-pruner:**
-```bash
-grep "Size policy\|Target length\|outer ceiling\|condense-claude-md" .claude/agents/claude-md-pruner.md
-# Should delegate sizing to condense-claude-md, not own a threshold; any hardcoded number is drift
-grep "0.5 Detect the artifact" .claude/agents/claude-md-pruner.md
-# Presence confirms artifact-branch migration is done (CLAUDE.md + task-doc handling)
-```
+**`task-builder` has no `tools:` line at all.** That is deliberate and load-bearing: the enum cannot be appended to, so omitting it is the only way to grant `Agent` alongside everything else, and adding a list back silently revokes it. This also means any sweep that enumerates tool grants by looking for a `tools:` block cannot see task-builder's at all and will report it unaffected.
 
-**Task-doc-consuming agents** (Explore, Plan, task-builder, code-reviewer, code-simplifier, product-reviewer, claude-md-pruner):
-```bash
-for agent in Explore Plan task-builder code-reviewer code-simplifier product-reviewer claude-md-pruner; do
-  grep -q "^  Skill" .claude/agents/${agent}.md || echo "Missing Skill: $agent"
-  grep -q "/read-summary" .claude/agents/${agent}.md || echo "Missing /read-summary: $agent"
-done
-# All should have both
-```
+**`disallowedTools: [Write, Edit]` on `product-reviewer` and `browser-verifier`.** This line *is* the read-only enforcement. Leaving Write and Edit off the `tools:` list does not block them — the harness grants a tool omitted from that line, the same partial-shadow quirk that affects Explore and Plan. This repo's own `product-reviewer` shipped without it, guarded only by a `# NOTE: read-only by design` comment that reaches whoever edits the file and reaches the agent as nothing. Verify a read-only agent by whether the enforcing line exists, never by whether its frontmatter matches a template.
 
-**Multi-repo agents** (if applicable):
-```bash
-grep "⚠️ Two-repo session" .claude/agents/*.md | wc -l
-# Should be 8 (all agents); absence = multi-repo session not recognized
-grep -E "~/[A-Za-z]|/home/|/Users/" .claude/agents/*.md
-# Should return only generic harness paths (e.g., ~/.claude/plans/); any repo-specific path is hardcoded (wrong)
-grep "\$SIBLING" .claude/agents/*.md
-# Multi-repo sessions should use placeholder variables, not literal paths
-```
+**Known-broken API names must appear nowhere:** `goToDefinition` and `findReferences` are broken in this harness, so any agent recommending them has regressed to something that will not work.
+
+**No machine-specific absolute path in any committed agent file.** A literal `/Users/<someone>/...` collides for every colleague on a different setup. Multi-repo agents resolve the sibling at runtime through a placeholder instead.
+
+**The `📖 ../../_shared/references/agent-may-not-redelegate.md` pointer must NOT survive into a generated agent.** That relative path resolves only inside the templates tree, and a project checkout need not have the plugin installed at all. Its absence is correct, not a defect to repair — the rule it points at travels as prose instead.
 
 ---
 
-## 4. Drift Detection
+## What each agent must still be able to do
 
-**Template drift** — compare each generated agent against its template. Drift includes:
-- Missing tool grants
-- Missing process steps or sections
-- Missing or truncated tables (especially table row labels)
-- Model tier changes without justification comment
+Each of these replaces a phrase-match. Ask the question, read for the answer, and accept whatever words the project used.
 
-**Check frontmatter entirely** (don't grep individual fields):
-```bash
-for agent in .claude/agents/*.md; do
-  name=$(grep "^name:" "$agent" | head -1 | sed 's/.*: //')
-  tmpl="templates/${name}.template.md"
-  if [ -f "$tmpl" ]; then
-    awk 'NR==1,/^---$/{print}' "$agent" | tail -1 > /tmp/fm-agent.txt
-    awk 'NR==1,/^---$/{print}' "$tmpl" | tail -1 > /tmp/fm-tmpl.txt
-    diff /tmp/fm-agent.txt /tmp/fm-tmpl.txt && echo "OK: $name" || echo "DRIFT: $name frontmatter"
-  fi
-done
-```
+**code-reviewer** — does it carry patterns *from this project* that look like defects but are deliberate, each with the reason it stays? An empty table under a correct heading is the failure this catches; the heading was never the point.
 
-**Check table rows** (the most-missed drift type):
-```bash
-for agent in .claude/agents/*.md; do
-  name=$(grep "^name:" "$agent" | head -1 | sed 's/.*: //')
-  tmpl="templates/${name}.template.md"
-  if [ -f "$tmpl" ]; then
-    comm -23 \
-      <(grep "^| " "$tmpl" | sed 's/|.*//' | sed 's/^ *//;s/ *$//' | sort) \
-      <(grep "^| " "$agent" | sed 's/|.*//' | sed 's/^ *//;s/ *$//' | sort) \
-    | while read row; do [ -n "$row" ] && echo "Missing row in $name: $row"; done
-  fi
-done
-```
+**code-simplifier** — does it name code in this project that looks redundant or single-use and must survive anyway, with why? Same shape: the rows are the content, the heading is packaging.
 
-**Missing agents** — check for templates with no generated copy:
-```bash
-comm -23 \
-  <(basename -a templates/*.template.md | sed 's/\.template//' | sort) \
-  <(basename -a .claude/agents/*.md | sort) \
-| while read missing; do
-  echo "Missing agent: $missing"
-done
-```
+**product-reviewer** — does it sort findings by whether a user is actually blocked, distinguishing must-fix-now from known-and-accepted from optional polish, so a reader can tell which class any finding lands in? And does it name who this software is actually for? The tier *names* are project vocabulary; the three-way distinction is the property.
 
-**Run these yourself rather than delegating them.** A delegated "diff all N files" summary reports whole missing sections and silently drops everything finer, which is the opposite of what these checks are for — table rows are the most-missed drift and the first thing a summary loses. A clean report is the one most likely to go unchecked, precisely because nothing in it looks worth double-checking: a real session reported a full 8-file sweep clean on three parallel agents' word, and only found two genuinely missing rows after being asked "are you sure?" and re-reading the highest-risk pair by hand. Treat a delegated pass as a first draft to spot-check — at minimum re-open the file carrying the least redundancy (the shortest generated copy relative to its template) before repeating its conclusion as your own.
+**browser-verifier** — three separate questions, none of which a single search answers. Does it require an observed effect rather than a tool's success report? Does it refuse to treat approval as given unless the user gave it? Will it decline to run unless the user explicitly asked? Its mobile recipe also has to gate on the media query actually matching rather than on window width, since resizing a window is not the same as being a phone.
 
-**Pruner migrations** (pre-task-doc pruners or hardcoded size thresholds):
-```bash
-grep -n "Target length\|outer ceiling" .claude/agents/claude-md-pruner.md && echo "MIGRATE: pruner has hardcoded size threshold (drift)"
-grep -c "0.5 Detect the artifact" .claude/agents/claude-md-pruner.md | grep -q "^0$" && echo "MIGRATE: pruner lacks artifact-branch detection (drift)"
-```
+**claude-md-pruner** — does it contain no size threshold of its own, handing that decision to `condense-claude-md` or `condense-task-doc` instead? The absence of a hardcoded number is the property; naming the delegate is evidence for it, not a substitute. And does it branch on which artifact it is pruning — a CLAUDE.md and a task doc have different never-remove content — before it starts deleting?
+
+**Explore and Plan** — is Explore's answer its reply text rather than a file the caller has to open, and does anything it writes go somewhere that cannot disturb the caller's work? Is Plan's writing confined to its plan file, never application source or task docs? Both agents' write scoping is instructional rather than harness-enforced, which is exactly why the body text has to say it.
+
+**Every task-doc-consuming agent** — does it discover the task doc through the shared discovery skill rather than describing its own search procedure, and does it hold the tool grant that lets it? Reimplementing discovery per agent is how eight copies drift apart.
+
+**Any Agent-holding agent** — does its body say, in its own words, that it may spawn only retrieval-shaped children, never one of its own kind, and never hand off its own assignment? A YAML comment beside the grant does not do this. Explore is the deliberate exception: nested Explore is its designed behaviour.
 
 ---
 
-## Interpretation
+## Placeholders and real content
 
-**Content Validity**: If checks fail, the agent won't fire correctly or will duplicate CLAUDE.md. Fix by re-reading CLAUDE.md and extracting only runtime-critical rules.
+A freshly generated agent has every heading, every table, and no project content — the rows are still the template's `<!-- e.g. ... -->` examples. Almost any phrase-match passes on that file, because the strings being matched are template boilerplate. Frontmatter passes best of all, since it is the part legitimately copied verbatim.
 
-**Frontmatter Invariants**: Violations here silently degrade agent capability — missing memory reads accumulate notes nobody ever sees, wrong models send agents to the wrong reasoning tier, missing tools block the agent silently.
+So the question for every fill-in table is whether it names something that exists in **this** project. A browser-verifier whose target slots still read `<app-url>` cannot run at all. A code-reviewer whose false-positive table holds only the template's examples is carrying a section that will never fire.
 
-**Agent-Specific Behavior**: Each agent has 1-3 load-bearing constraints (reviewer's false-positive table, browser-verifier's read-only + disallowedTools combo, Explore/Plan's shadowing + scoped writes). Absence = the agent will misbehave or bypass its own guards.
+---
 
-**Drift Detection**: Template features added *after* this project's agents were generated never get backported unless caught by explicit diff. A generated file can pass every behavioral check while still being stale (new tool grant, new section). Row-level diffs catch this better than heading-level checks.
+## Missing agents, and which side is stale
 
+**A template with no generated counterpart is a missing agent, not drift** — enumerate both sides by name and create what's absent in the same pass. This is the one comparison that survives any rewrite, because names are names.
+
+For agents that do exist, **which side is stale is a finding, not an assumption.** The two files are edited by different passes: a prose or density sweep rewrites the template, while a session fixing live agent behaviour edits the generated copy. Both can be ahead of each other on different axes at once, so "restore from the template" discards whatever real fix the generated side was carrying. Decide per topic rather than per file. Differences clustering into distinct subjects, rather than one contiguous block, is the signal that both were edited independently.
+
+Copying toward the template needs its own read, because a generated file legitimately holds project-specific text — "this repo is markdown-only, no code symbols to navigate" is correct locally and wrong upstream in a file meant to be generic.
+
+What you are hunting is a **missing capability**: a step, a grant, a guard, or a table subject that the template's agent has and this one lacks. That is what "out of date" means now. Reworded prose is not it.
+
+---
+
+## Do this yourself
+
+A delegated "check all these files" summary reports whole missing sections and silently drops everything finer — which is the opposite of what this is for, since the finest details are where the drift is. A clean report is the one most likely to go unchecked, precisely because nothing in it looks worth a second look: a real session accepted a clean eight-file sweep from three parallel agents, and found two genuine gaps only after being asked "are you sure?" and re-reading one pair by hand.
+
+Treat any delegated pass as a first draft to spot-check. At minimum, re-open the agent carrying the least redundancy — the shortest generated file relative to its template — before repeating someone else's conclusion as your own.
+
+---
+
+## What a failure means
+
+A **fixed value** that's wrong degrades the agent silently: a missing memory read-back accumulates notes nobody sees, a wrong model sends the agent to the wrong reasoning tier, a missing `disallowedTools` line lets a read-only reviewer edit the code it was meant to report on.
+
+A **missing capability** means the agent will misbehave in exactly the situation the capability existed for, which is rare enough that nobody notices until it matters.
+
+A **placeholder left unfilled** means the section is inert. The agent carries it, reads it, and learns nothing, and every check that looks for the heading says it is fine.

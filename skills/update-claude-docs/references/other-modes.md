@@ -6,7 +6,7 @@ Cold-path modes for `update-claude-docs` — Capture is the hot path and stays i
 
 Both modes depend on the same foundational gates:
 
-- **The capture filter** — exclude content that is derivable from the codebase (run `ls`, `grep`, read the manifest, `--help`), enforceable by a linter (Pint, ESLint, `tsc`), or feature-specific enough to belong in that feature's task doc instead. Only load-bearing rules that can't be reconstructed from the code stay resident.
+- **The capture filter** — exclude content that is derivable from the codebase (listing a directory, searching the tree, reading the manifest, asking a tool for its own help), enforceable by whatever linter the project runs, or feature-specific enough to belong in that feature's task doc instead. Only load-bearing rules that can't be reconstructed from the code stay resident.
 - **structure.md, read in full** — it holds the hierarchy, template shapes, section taxonomy (§3), capture filter rationale, formatting conventions, and the structural-split guidance. Not optional for either mode.
 - **Anchors on every heading** — `{#anchor}` syntax is structural, not optional. Missing anchors break interior `📖 See file#anchor` pointers and the companion-file index.
 
@@ -20,9 +20,9 @@ Scaffold a new CLAUDE.md for a repo, layer, or subdir that has none. The goal is
    - **Architecture**: the 3-5 dirs a newcomer must know, with ✅/⚠️ markers for canonical-vs-legacy. Not the whole tree.
    - **Stack + entry points** for the LLM-CONTEXT header (framework versions from lockfiles; entry files).
    - **Critical rules / gotchas**: only ones you can actually justify from the code (a broken legacy model, a schema quirk, a route-placement constraint). If you can't justify a rule from the code, leave it out — an empty section is better than a guessed one.
-3. **Write in house style** — LLM-CONTEXT header, `❌ NEVER / ✅ INSTEAD` and `Symptom | Cause | Fix` tables, file+symbol references (never line numbers), sections in taxonomy order (structure.md §3). Cross-reference the parent layer for shared concepts (`> Schema: parent CLAUDE.md #{plans}`). ⚠️ Strip tool-output wrapper artifacts — a `Read` result can include trailing `</content>` tags in the `Write` payload. Check via `tail -c 40 <file>` or `git diff HEAD -- <file>` and delete any markup.
+3. **Write in house style** — LLM-CONTEXT header, `❌ NEVER / ✅ INSTEAD` and `Symptom | Cause | Fix` tables, file+symbol references (never line numbers), sections in taxonomy order (structure.md §3). Cross-reference the parent layer for shared concepts (`> Schema: parent CLAUDE.md #{plans}`). ⚠️ Verify the file's actual contents before saving — tool output can include trailing markup tags that should not be persisted in the real file.
 4. **Stay under budget** — target <200 lines. A fresh scaffold already near the cap means you're including too much; keep the highest-signal rules. Before dropping the rest, check whether a block is feature-specific enough to route to that feature's task doc instead (structure.md "second structural lever") — only truly cross-cutting content should stay.
-5. **Validate**: anchors present + unique, tables well-formed, no invented rules, no secrets (those go to `CLAUDE.local.md` by name only), cross-refs resolve, and the file's last line is real content (not a leaked `</content>` tag).
+5. **Validate**: anchors present + unique, tables well-formed, no invented rules, no secrets (those go to `CLAUDE.local.md` by name only), cross-refs resolve, and the file contains only real content (inspect the last few lines to verify no tool-output markup was accidentally persisted).
 
 ## REWRITE MODE
 
@@ -34,5 +34,5 @@ Restructure an existing CLAUDE.md to the canonical layout + formatting without l
 4. **Normalize formatting to house style** — free-form bullets → `❌/✅` rows; debugging notes → `Symptom | Cause | Fix` rows; add missing `{#anchor}`s; strip line numbers down to file+symbol; delete session storytelling.
 5. **Apply the capture filter** (Prerequisites, above) as you go: a rule that's discoverable-from-code, linter-enforced, or feature-specific gets *removed* (feature-specific → note in a task doc instead), not reformatted. This is the one place Rewrite deletes.
 6. **Route mis-placed rules:** a rule that belongs one layer down goes to (or creates) the subdir/domain file. A cross-cutting rule wrongly buried in a subdir moves up to the layer. If a block is feature-specific but has no layer, route to that feature's task doc instead — leave a bare `📖 See <file>` pointer, no inline duplication.
-7. **Validate**: diff your rule-inventory (step 1) against the rewritten file — every load-bearing rule still present (possibly relocated), zero dropped. Confirm the file's last line is real content, not a `</content>` tag (`tail -c 40 <file>` or `git diff HEAD -- <file>`). Re-run the prose-vs-table check (step 3) on every section you touched, as a final pass across the whole file — easy to miss in one section while focused on another.
+7. **Validate**: diff your rule-inventory (step 1) against the rewritten file — every load-bearing rule still present (possibly relocated), zero dropped. Verify the file contains only real content by inspecting its end (tool-output markup must not be persisted). Re-run the prose-vs-table check (step 3) on every section you touched, as a final pass across the whole file — easy to miss in one section while focused on another.
 

@@ -17,7 +17,7 @@ Cold-path for `task-summary` — read only when the user requests `merge A into 
 - `Related:` fields AND inline `tasks/**/current.md` mentions in OTHER task docs
 - Domain `CLAUDE.md` `> 📖` pointers (e.g. `app/Domain/Invoice/CLAUDE.md`) — code docs cite task docs too
 - Roadmap/hub rows that mirror the doc by name
-- ⚠️ `rg` stdout can corrupt long paths — write matches to a file and Read it (don't trust truncated terminal output)
+- ⚠️ Search output can truncate or corrupt long paths in the terminal — write matches to a file and Read it rather than trusting what scrolled past
 
 | ❌ Never | ✅ Always |
 |---------|---------|

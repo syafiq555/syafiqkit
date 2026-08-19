@@ -28,7 +28,7 @@ What controls density is what gets admitted to this plugin and whether it's hot-
 
 Every signal has to pass three gates before routing:
 
-1. **Is it derivable?** Can the reader reconstruct it with `ls`, `grep`, reading source, running `--help`, or looking at the manifest? If yes, cut it — the tool or codebase says it already.
+1. **Is it derivable?** Can the reader reconstruct it by listing a directory, searching the tree, reading source, asking the tool for its own help, or looking at the manifest? If yes, cut it — the tool or codebase says it already.
 2. **Is it safety-critical or routine?** Does the rule need to fire before the reader acts (resident in CLAUDE.md), or only when something breaks (lazy-load into a skill/companion)?
 3. **What scope owns it?** Is it global, project-wide, layer-specific (app/resources/js/tests), or subdir-specific?
 
@@ -61,32 +61,32 @@ A signal is a candidate, not a verdict. Most sessions produce several and most o
 
 **Special case: Structural gaps** (a domain/layer file with no `## Architecture {#architecture}` section, but 3+ sibling classes or multiple adapters/contracts) route to `references/structure.md` §3/§5 for addition, not to the session capture flow.
 
-For each signal that clears that, extract 2-3 keywords and grep all CLAUDE.md files:
+For each signal that clears that, look for whether the rule already exists in CLAUDE.md files:
 
-| Grep result | Classification |
+| What you find | Classification |
 |-------------|---------------|
-| No match | **New** — add entry, but first check whether it belongs in a companion file |
-| Match only inside a `> 📖` pointer line | **Not a match.** Read the pointed-to file and re-classify against its text, since the pointer itself isn't the rule |
-| Match in correct file | **Violation** — refinement steps below. Read the matched rule before treating it as inadequate; it may have been correct and simply outweighed by its surroundings |
-| Match in wrong file | **Misplaced** — move to correct scope |
-| Match, but this session's work made the rule FALSE | **Invalidated** — rewrite it to what now holds, or delete it. A stale convention reads as settled and sends the next reader down the path you just fixed, so it costs more than no rule at all. |
+| Rule doesn't exist | **New** — add entry, but first check whether it belongs in a companion file |
+| Rule only mentioned in a `> 📖` pointer line | **Not a match.** Read the pointed-to file and re-classify against its actual text, since the pointer itself isn't stating the rule |
+| Rule exists in the correct scope/file | **Violation** — refinement steps below. Read the matched rule before treating it as inadequate; it may have been correct and simply outweighed by its surroundings |
+| Rule exists but in the wrong scope/file | **Misplaced** — move to correct scope |
+| Rule exists, but this session's work made it FALSE | **Invalidated** — rewrite it to what now holds, or delete it. A stale convention reads as settled and sends the next reader down the path you just fixed, so it costs more than no rule at all. |
 
-When a grep matches a pointer line rather than the companion's own text, descend into the companion before classifying. A rule you're adding may belong in a companion, not the index. See `references/pointer-discipline.md` §1-2 for when a match inside a pointer line counts as no match.
+When a rule is only mentioned in a pointer line rather than stated in the companion's own text, read the companion to classify against its actual content. A rule you're adding may belong in a companion, not the index. See `references/pointer-discipline.md` §1-2 for when a match inside a pointer line counts as no match.
 
 A change to a globally-installed tool (a CLI on PATH, a shared script, a plugin skill) invalidates docs outside the repo you edited, because every project that uses it carries the now-stale instructions in the global corpus. Scope the routing pass to the tool's blast radius — the projects that actually invoke it — not just the checkout you edited.
 
 ## 2. Route — Where does it go?
 
-**Ask what the fact is ABOUT before asking where it was found.** A fact about this codebase — its schema, its helpers, its own conventions — routes down the ladder below. A fact about a tool, framework or the harness is true in every project that uses them, so it belongs at the level it holds at, which is usually global: the ladder will otherwise bury it in whichever project happened to surface it, and the next project rediscovers it from scratch. Subject matter tells you where a fact came from, never where it is true. **Tell: the fact would still be true if this codebase didn't exist.**
+**Ask what the fact is ABOUT before asking where it was found.** A fact about this codebase — its schema, its helpers, its own conventions — routes down the ladder below. A fact about a tool, framework or the harness is true in every project that uses them, so it belongs at the level it holds at, which is usually global: the ladder will otherwise bury it in whichever project happened to surface it, and the next project rediscovers it from scratch. Subject matter tells you where a fact came from, never where it is true. A fact that would still hold if this codebase didn't exist belongs above it.
 
 ### 2a. Derivability gate — Should it even be in CLAUDE.md?
 
-Ask: Can the reader reconstruct this with `ls`, `grep`, reading source code, running `--help`, or checking a manifest?
+Ask: Can the reader reconstruct this by inspecting the codebase (reading directory structure, checking manifests and configs, running `--help`, reading source code)?
 
 **If yes, cut outright:**
-- Directory/file layouts (`ls`, `find` show structure)
-- Tech stack and dependency lists (`composer.json`, `package.json` declare them)
-- Standard build/test commands (`npm test` means tests, tool defaults are documented)
+- Directory/file layouts (structure is discoverable)
+- Tech stack and dependency lists (declared in manifests)
+- Standard build/test commands (tool defaults are documented)
 - API signatures and types (source code is canonical)
 - Architecture tours that read like a README (codebase is self-describing)
 - Generic best practices (the model already follows them)
@@ -99,7 +99,7 @@ Ask: Can the reader reconstruct this with `ls`, `grep`, reading source code, run
 - **Agent directives and safety prohibitions** — must be resident, never lazy-load
 - **Workflow etiquette** — branch naming, PR titles, commit process aren't in the code
 - **Domain glossaries** — terminology meanings need explicit definition
-- **Non-guessable commands** — "run `npm run integration`, not `npm test`" can't be discovered
+- **Non-guessable invocations** — where the exact form IS the knowledge and no amount of reasoning recovers it: a project's test script that isn't the tool's default name, a flag set that took debugging to find, a retry scoped to one exit code. The bar is that a reader who knows the tool would still get it wrong, not that you happened to type it this session
 - **Routing information** — "`@path/to/import` for this type", "guidance at X"
 
 ### 2b. Residency gate — Does it belong inline or in lazy-load?
@@ -117,24 +117,24 @@ A fact that passed the derivability gate still faces a second choice: **resident
 
 If a rule doesn't fire unless the reader already knew to look for it, move it to a skill (invoked by name) or a companion (invoked by symptom) — the resident cost is too high for content that only helps a reader mid-failure. Root CLAUDE.md after trimming should feel like "the things you need to know before you act," not "everything about everything."
 
-**Which files are private is a `.gitignore` fact, not a filename convention — read it before routing anything personal.** The ladder below names `CLAUDE.local.md` as the private rung because that is the usual arrangement, but a repo decides its own: a companions tree commonly splits `shared/` (tracked) from `local/` (ignored), and a global `~/.claude` may itself be a repo with a remote. Inferring from the filename puts a machine-specific fact — a container name, a server alias, a personal tool's behaviour — into a file the whole team pulls, and nothing about the write looks wrong afterward because the content is accurate; only its audience is. Settle it with `git check-ignore -q <path> && echo IGNORED || echo tracked` against each candidate, and note that `git ls-files` answers a different question (whether a file is *currently* tracked, which reports "untracked" for a brand-new file that is not ignored at all).
+**Which files are private is a `.gitignore` fact, not a filename convention — read it before routing anything personal.** The ladder below names `CLAUDE.local.md` as the private rung because that is the usual arrangement, but a repo decides its own: a companions tree commonly splits `shared/` (tracked) from `local/` (ignored), and a global `~/.claude` may itself be a repo with a remote. Inferring from the filename puts a machine-specific fact — a container name, a server alias, a personal tool's behaviour — into a file the whole team pulls, and nothing about the write looks wrong afterward because the content is accurate; only its audience is. Ask the VCS whether it would ignore each candidate path, rather than whether it currently tracks it — those are different questions, and the tracking one reports "untracked" for a brand-new file that is not ignored at all, which reads as private when it is about to be committed.
 
-A fact whose value only holds on this machine belongs on the ignored rung even when its subject is the shared system: the topology both teammates share is team knowledge, while the container names and aliases used to reach it are yours. **Tell: the entry names something only you could type and have it work.**
+A fact whose value only holds on this machine belongs on the ignored rung even when its subject is the shared system: the topology both teammates share is team knowledge, while the container names and aliases used to reach it are yours — an entry naming something only you could type and have it work is on the second side of that line.
 
-Find the **most specific** CLAUDE.md for what's left (`Glob: **/CLAUDE.md` + check `CLAUDE.local.md`). This ladder is the same hierarchy `references/structure.md` §1 documents in full — read it if a routing call is unclear:
+Find the **most specific** CLAUDE.md for what's left. This ladder is the same hierarchy `references/structure.md` §1 documents in full — read it if a routing call is unclear:
 
 1. Personal, per-machine context (never team-wide facts) → `./CLAUDE.local.md` (project root)
 2. Same domain as modified files → that domain's CLAUDE.md
-3. **Subdir-level** (`resources/js/routes/CLAUDE.md`, `app/Domain/X/CLAUDE.md`) — when a rule only matters inside one subdirectory
-4. Layer-level (`app/CLAUDE.md`, `resources/js/CLAUDE.md`)
+3. **Subdir-level** — when a rule only matters inside one subdirectory
+4. Layer-level — when a rule applies across multiple subdirectories in one layer
 5. Project root `CLAUDE.md`
 6. Global `~/.claude/CLAUDE.md`
 
-A subdir `CLAUDE.md` auto-loads *additively* on top of its parents (editing `resources/js/routes/X` loads root + `resources/js/` + `routes/`), so routing a rule down a level doesn't hide it — it scopes it. Prefer the subdir file when the rule is both needed in that subdir AND useless elsewhere (seam-test); if it's cross-cutting (a shared token/util/type used across sibling dirs), keep it at the layer level instead — pushing a cross-cutting rule into one subdir means the sibling dirs never load it. Creating the subdir `CLAUDE.md` if it doesn't exist yet is fine; that's the `app/Domain/*` pattern.
+A subdir `CLAUDE.md` auto-loads *additively* on top of its parents, so routing a rule down a level doesn't hide it — it scopes it. Prefer the subdir file when the rule is both needed in that subdir AND useless elsewhere (the seam test); if it's cross-cutting (terminology, shared utilities, contracts used across sibling directories), keep it at the layer level instead — pushing a cross-cutting rule into one subdir means the sibling dirs never load it. Creating the subdir `CLAUDE.md` if it doesn't exist yet is fine.
 
-Run the seam-test against every real sibling subdirectory, not just the one the rule's subject matter suggests — `grep -rl` the rule's core symbols against each candidate and let usage counts decide (`references/structure.md` §1).
+**The seam test**: A rule belongs at subdir level only if the concepts it uses are heavily concentrated in that one directory and appear rarely (or not at all) in siblings. State the test as: "Do the core terms from this rule appear frequently in THIS subdirectory and infrequently across its siblings?" If yes, it owns the rule. If no, the rule stays at the layer level because it applies across multiple subdirs. The test is how you decide; which tool you use to measure it is your choice. See `references/structure.md` §1 for more detail on this concept.
 
-**Settling the scope leaves a second choice: the auto-loading file at that scope, or a `.claude-companions/` companion hanging off it.** These are not two places for the same rule. A companion is demand-loaded and indexed by symptom, so it's read by someone who already has a failure in hand and a phrase to search; the auto-loading file is read every session by someone about to act. Route on **when the rule needs to arrive**, not on what it's about — a rule that governs a routine choice (which tool to reach for, how to shape a command) has to be in the auto-loading file or it never fires, because nobody consults a symptom index before doing something that hasn't broken yet. The companion earns rules whose trigger is a specific observed failure the reader can name. **Tell: you picked the companion because its topic matched the rule's subject** — subject matter is how the fact got filed, never how the reader will come looking for it.
+**Settling the scope leaves a second choice: the auto-loading file at that scope, or a `.claude-companions/` companion hanging off it.** These are not two places for the same rule. A companion is demand-loaded and indexed by symptom, so it's read by someone who already has a failure in hand and a phrase to search; the auto-loading file is read every session by someone about to act. Route on **when the rule needs to arrive**, not on what it's about — a rule that governs a routine choice (which tool to reach for, how to shape a command) has to be in the auto-loading file or it never fires, because nobody consults a symptom index before doing something that hasn't broken yet. The companion earns rules whose trigger is a specific observed failure the reader can name. Picking it because its topic matched the rule's subject is the misroute: subject matter is how the fact got filed, never how the reader will come looking for it.
 
 **Read target first** — check structure, existing entries, where new entry fits.
 
@@ -166,7 +166,9 @@ Before writing, absorb the three judgment-shaped rules from 📖 `../_shared/ref
 
 ### New signals → Add entry
 
-A new entry's shape follows from the kind of answer it's recording. If the answer is "it depends, reason about it," write that reasoning as prose — 2-4 sentences stating the mechanism so the reader recognises their own situation. If the answer is a specific string (command, IP, id, credential), use a table row instead; prose would just pad around a lookup value. A signal mixing both (judgement plus one value) gets prose ending in a `📖 <companion> {#anchor}` pointer, with the value at that anchor (`condense-claude-md/references/prose-vs-value-split.md`).
+A new entry's shape follows from the kind of answer it's recording. If the answer is "it depends, reason about it," write that reasoning as prose — 2-4 sentences stating the mechanism so the reader recognises their own situation. If the answer is a specific string the reader could not otherwise produce (an IP, an id, a credential key, an invocation meeting the non-guessable bar above), use a table row instead; prose would just pad around a lookup value. A signal mixing both (judgement plus one value) gets prose ending in a `📖 <companion> {#anchor}` pointer, with the value at that anchor (`condense-claude-md/references/prose-vs-value-split.md`).
+
+**Naming the routine command is the failure mode this shape invites.** A rule saying what to *establish* holds on every machine; the same rule pinned to one invocation holds on yours and quietly misleads everywhere else — a flag that means something different on another platform, a shell that parses the line differently, a search keyed to wording that has since changed. Each returns a clean-looking result that stops the reader looking further, which is worse than no answer, and enumerating the variants multiplies the defect rather than fixing it. A reader not told the command can work one out; they cannot recover from a confident wrong one. So state the thing to find out — "read the file's modification time", "ask the VCS whether it would ignore this path" — and leave the invocation to whoever is standing in the environment.
 
 On first capture, default to plain statement-of-fact prose — no `⚠️` callout, no trigger phrases, no prescribed sequences. Reserve the imperative shape (`**Never X**`) for the "Violations → Escalate" path, after a rule has already been violated. An entry that came out as `**Never X**` plus a parenthetical carve-out is the imperative shape reasserting itself where prose was cleaner; that shape signals a repeat violation, not a first discovery.
 
@@ -200,13 +202,9 @@ When refining a violated rule, consider:
 
 ## 4. Prune — Delegate to project agent
 
-After Steps 1–3, check for a project-level pruning agent and delegate:
+After Steps 1–3, check whether the project has a `claude-md-pruner` agent of its own and delegate to it if so.
 
-```
-Glob: .claude/agents/claude-md-pruner.md
-```
-
-Measure the pruning floor before consulting the table, since the gate's decision depends on data only you can compute at this step: the file's current line count (`wc -l <target>`) and this session's net delta to it (`git diff --stat HEAD -- <target>`, or `--stat <base>..HEAD` if already committed; in a non-git project that errors — the line count still measures, and the delta comes from what you wrote this session, see `../_shared/references/verifying-a-write-landed.md`). If you defer this to Step 5, a floor you never measured defaults to "not under the floor," and the gate spawns the pruner on a stale premise.
+Measure the pruning floor before consulting the table, since the gate's decision depends on data only you can compute at this step: the file's current line count and this session's net delta to it. (See `../_shared/references/verifying-a-write-landed.md` for how to measure both — the reference owns the procedure since it varies by VCS and project setup.) If you defer this to Step 5, a floor you never measured defaults to "not under the floor," and the gate spawns the pruner on a stale premise.
 
 Ownership needs the same treatment at the same moment. The preamble's check ran once, at write-time in Steps 1–3, and a finding computed three steps upstream is not state this table consults — nor is it necessarily still true, since a peer can start editing mid-run. Re-run the diff-content check (`../_shared/references/diff-ownership.md`) against the file you are about to hand the pruner.
 
@@ -234,6 +232,7 @@ After writing each entry (in Step 3):
 4. Check "Fix" columns — must name a specific, verifiable action (file, method, config, exact guard). Not vague ("investigate", "handle better").
 5. If the file is now over budget, flag it (Step 4's pruner handles the shrink). Default: 350 lines; check `../_shared/references/declared-budget.md` if the file states its own figure.
 6. Re-read the entry against the "New signals → Add entry" shape rule: does prose violate its intended form? An entry landing as `**Never X**` instead of reasoning prose may pass the checks above and still be the wrong shape.
+7. If the entry names a command, does it clear the non-guessable bar, or is it a routine act you happened to perform this way? Rewrite the second kind to the thing to establish. This check is worth running last because a session writes the command it just ran without noticing — the entry reads as helpfully concrete right up until someone runs it on a different platform.
 
 **Task docs vs. CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only broadly-applicable patterns go in CLAUDE.md.
 

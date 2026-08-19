@@ -62,20 +62,12 @@ project has one configured (`~/.config/remote-cli/servers.json` lists aliases);
 fall back to plain `ssh <user>@<host>` when there's no alias. The goal is to
 *disprove* the firewall theory with evidence, not to act on a hunch.
 
-```bash
-# 1. Is the port reachable from YOUR machine right now? (transient ≈ open here)
-nc -z -w 5 <host> 22 && echo "port 22 OPEN from here" || echo "BLOCKED from here"
+Four questions, each of which rules a cause in or out:
 
-# 2. Host firewall active? (inactive ufw ⇒ firewall is NOT the cause)
-remote <alias> "sudo ufw status verbose 2>/dev/null || echo 'ufw inactive/absent'"
-#   no alias:  ssh <user>@<host> "sudo ufw status verbose"
-
-# 3. fail2ban banning the runner? (not installed ⇒ not the cause)
-remote <alias> "which fail2ban-client >/dev/null 2>&1 && sudo fail2ban-client status sshd || echo 'fail2ban not installed'"
-
-# 4. sshd connection throttling? (defaults 10:30:100 are generous)
-remote <alias> "grep -iE 'maxstartups|maxsessions|logingracetime' /etc/ssh/sshd_config | grep -v '^#' || echo 'defaults'"
-```
+1. **Is port 22 reachable from your own machine right now?** Open here while CI fails points at something transient rather than a rule.
+2. **Is a host firewall active at all?** An inactive or absent one rules the firewall out entirely, which is the theory you are trying to disprove.
+3. **Is fail2ban banning the runner?** Not installed means not the cause; installed means read its sshd jail for the runner's address.
+4. **Is sshd throttling connections?** Read `MaxStartups`, `MaxSessions` and `LoginGraceTime` out of `sshd_config`, ignoring commented lines. The defaults — `10:30:100` for `MaxStartups` — are generous enough that a non-default value is itself the finding.
 
 **Interpretation:**
 - Port open from your machine **+** ufw inactive **+** no fail2ban **+** default

@@ -4,13 +4,13 @@ Referenced by skills whose steps branch on file ownership (done, task-summary, r
 
 **Rule:** classify by diff **content**, never by status plane. The harness auto-stages edits, so your own writes land staged (`M `) exactly like another writer's pre-existing staged work — the plane carries no ownership signal at all.
 
-```bash
-git diff HEAD -- <file> | grep -q '<a string this session introduced>' && echo MINE || echo OTHER
-```
+Read the file's diff against `HEAD` and look for a string this session introduced; finding one makes it yours, and finding none makes it someone else's.
 
-`HEAD` is load-bearing: a bare `git diff` reads only the unstaged plane and `--cached` only the staged one, so either alone returns empty on a file living in the other plane and reports OTHER for work you just did. The harness auto-stages, which puts most of your own edits where a bare `git diff` cannot see them — a real run classified 8 of its own 11 files as foreign this way, each with exit 0 and no error.
+**Diffing against `HEAD` is the load-bearing part.** A bare `git diff` reads only the unstaged plane and `--cached` only the staged one, so either alone comes back empty on a file living in the other plane and reports the work as foreign. Since the harness auto-stages, most of your own edits sit exactly where a bare `git diff` cannot see them — a real run classified 8 of its own 11 files as another writer's this way, every one exiting 0 with no error to notice.
 
 The same split misleads in the other direction, when you're checking that an edit of your own landed rather than whose it is. `git diff HEAD --stat` compares HEAD to the working tree, so it goes empty the moment the working copy is right — while the staged copy can still hold the value you just undid. `git status` then shows `MM` and a peer reading the tree sees the old state, correctly. Reverting a version bump is where this bites: content on disk says one number, the index says another, and a check that consults one plane calls it done. `git status --short` distinguishes them at a glance; `git show :<path>` reads what's actually staged.
+
+**Mtime is not the cheap version of this check.** A file's timestamp separates two sessions only when they wrote at genuinely different times, and concurrent sessions in one checkout are by definition working the same window — a measured case had a peer's writes at 17:48–17:49 against this session's at 17:50–17:51, minutes apart and interleaved with each other. Nothing about that reading looks ambiguous: it returns a precise timestamp for every file, so it answers confidently and orders the files correctly while saying nothing about who wrote them. Treat a timestamp as evidence about *when*, never about *whose*, and settle ownership on content.
 
 Pick a marker only your session could have written: an identifier you added, a filename you created, a phrase from a rule you drafted. A word from the surrounding prose matches the other writer's copy too — and so does **a version number, which is the trap worth naming**, because a peer bumping in the same window writes that same string into their own changelog heading. Grepping `1.140.6` classified a file as owned whose diff was entirely someone else's release notes. A marker is safe when the peer had no reason to type it, which a shared version never satisfies.
 

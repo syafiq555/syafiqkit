@@ -343,3 +343,29 @@ Chosen: host the substitution table in `_shared/references/verifying-a-write-lan
 - Not runtime-verifiable for the no-repo half here — this repo IS a git repo, so that branch rests on reading it against the reporter's list of erroring commands. The zero-commit half WAS reproduced live in a scratch dir, which is what caught the single-probe defect.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-verify-by-definition-not-by-string — Unhobbling the Templates Made Every String-Match Check Meaningless — committed — 2026-08-18
+
+**Problem**
+A `**Do NOT:**` bullet in `task-builder.template.md` opened "Write inline comments by default", so its own text instructed the opposite of its heading. Three generated copies in other repos had independently stacked more restriction on top of it — a `⚠️`, an explicit "1 line" cap, a "no multi-line budget" clause — each edit landing *after* the clause that had already granted permission, and none of the three authors reading the opener. Compensating guardrails accumulating around a rule that reads backwards is the signal that the rule, not its enforcement, is the defect.
+
+Fixing the bullet fixed one instance. Unhobbling all eight templates fixed the shape: a constraint fires only on cases its author enumerated, while the reasoning behind it fires on cases nobody listed. An agent told *the task doc holds the rationale, so a comment repeating it is a second copy that goes stale* needs no line cap.
+
+**Decision**
+Chosen: rewrite all eight templates as judgement prose (1012 → ~940 lines), then rewrite `agent-setup`'s verification method to match. The second half is forced by the first: generation restates each rule in the project's own vocabulary, so template and generated agent are now *deliberately* dissimilar. Every check that matched wording became wrong in both directions — reporting healthy agents as drifted, and passing an agent that kept a heading and lost its content. `agent-setup-verification.md` went from 227 lines with 12 bash blocks to 111 with none, reorganised around what must be TRUE of a correct agent. `SKILL.md`'s trigger changed from "out of date against templates" (now true of every healthy agent) to a missing *capability*.
+
+**Rejected**
+- Fixing the bullet and stopping. Why not: the list shape was the generator, and the next verb-initial bullet someone adds inverts the same way.
+- Moving the lists into `❌ Never / ✅ Always` tables, which put polarity inside each row. Why not: it preserves every constraint and changes only the packaging — reorganisation wearing an unhobbling's face. The skill is explicit that meaning is conserved and form is free.
+- Keeping the fixed-value checks (colour, model tier, `disallowedTools`) as commands while converting the rest. Why not: those name exact greppable tokens and the file tells the reader to check them however they like, so a portable prose statement loses nothing; a prescribed command bakes in an environment for colleagues on other platforms.
+
+**Consequences**
+- **Three of the eight passes deleted facts and every report described the deletion as a cleanup.** `code-simplifier` dropped its "Don't Simplify" table — which `agent-setup` greps for by name when generating — so the result would have been agents shipping with no project guardrails past a verification step that still passed. `browser-verifier` dropped "never attribute a claim the user did not type", reasoning it belonged in a re-delegation reference. `product-reviewer` dropped its per-project audience table as "scaffolding". A fourth and fifth surfaced only under review: `task-builder` lost its destructive-command ban (it holds the full tool set including `Bash`, so nothing but that sentence stops it) and `code-simplifier` lost both project-pattern tables. All restored.
+- **The verification rewrite kept the diagnosis and dropped the repair**, caught by the product reviewer. Both "Update whatever any check flags" and the reference's whole `## Interpretation` section went, leaving a skill that reaches an excellent verdict and never writes it back — the doc's own "compression keeps the rule, drops the mechanism" trap, instantiated by the pass that was fixing a different instance of it.
+- **A live false pass demonstrated why the string checks had to go**: `grep "3-tier\|blocking\|expected-missing\|polish\|Don't Flag"` on `product-reviewer` returned 2 and passed — both hits from an output-format printf line. The alternation means one hit satisfies all five terms, so an agent with the printf and no severity model passes clean.
+- **This repo's own `product-reviewer` was live with Write and Edit** despite a `# NOTE: read-only by design` comment, because `disallowedTools` was absent and omitting a tool from `tools:` doesn't block it. A whole-frontmatter diff had flagged it identically to six harmless wording differences.
+- Two reviewer claims were wrong and worth the check: one said `condense-task-doc` still had a bash block (it has none), another that the registry-sync block was duplicated in `agent-setup/SKILL.md` (it isn't).
+
+**Status**: committed · **Reversible**: yes

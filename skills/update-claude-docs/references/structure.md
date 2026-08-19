@@ -35,9 +35,9 @@ CLAUDE.md files are **concatenated additively**, filesystem-root → cwd. For *c
 
 **Auto-load survivors**: Only project-root re-persists after `/compact` — rules in layers/subdirs reload. A must-survive rule lives at root or global, never in a subdir.
 
-**The seam-test** (verify subdir placement): Extract the section's 3-5 core terms and `grep -rl` them across EVERY plausible candidate directory. The directory where they appear 10+ times (others 0-3) is the seam — not which dir "sounds right." A term spread evenly across siblings has no seam and stays at the layer level.
+**The seam-test** (verify subdir placement): A rule belongs at subdir level only when its core concepts are heavily concentrated in one directory and appear rarely or not at all elsewhere. The directory where the concepts appear frequently (while others show few or no hits) is the seam — not which dir "sounds right." A concept spread evenly across siblings has no seam and stays at the layer level.
 
-Example: A section titled "Multi-Agency" might feel domain-owned, but authorization code clusters in `Http/Controllers` + `Middleware` + `Policies`, not in `Domain/*`. Let grep decide, not the title.
+Example: A section titled "Multi-Agency" might feel domain-owned, but if the code actually clusters authorization logic in `Http/Controllers` + `Middleware` + `Policies`, not in `Domain/*`, then the rule stays at the layer level because the concepts span multiple directories. Let the actual distribution decide, not the title.
 
 ## 2. The capture filter — does this belong in CLAUDE.md at all? {#capture-filter}
 
@@ -156,7 +156,7 @@ Cross-project rules only: environment, tools, working style, personal convention
 
 A file exceeding its budget (200 soft, 350 hard) needs **structural fix, not deletion**. Three levers exist; apply in order.
 
-**Prerequisite**: Check whether the file declares its own budget (grep the header for `line budget ~NNN`). A declared budget overrides the default and is the authority — measure against it.
+**Prerequisite**: Check whether the file declares its own budget in its header. A declared budget overrides the default and is the authority — measure against it.
 
 ### Lever 1: Push to subdir (if seam-test passes)
 
@@ -194,7 +194,7 @@ A file exceeding its budget (200 soft, 350 hard) needs **structural fix, not del
 
 Each line is a **symptom** (greppable, not the file name). Reader matches their bug to a line, opens the file.
 
-**Companion location**: Nearest git-repo root, `shared/` (tracked) or `local/` (gitignored). For global `~/.claude/CLAUDE.md`, confirm `~/.claude` is a repo; if yes, nest at `~/.claude/.claude-companions/shared/` (backed-up); if no, use sibling. ⚠️ Never assume — `git -C ~/.claude rev-parse --show-toplevel` tells you.
+**Companion location**: Nearest git-repo root, `shared/` (tracked) or `local/` (gitignored). For global `~/.claude/CLAUDE.md`, confirm `~/.claude` is a repo; if yes, nest at `~/.claude/.claude-companions/shared/` (backed-up); if no, use sibling. ⚠️ Never assume — ask the VCS where that directory's repo root actually is, since `~/.claude` being a repo is a per-machine arrangement rather than a given.
 
 **When to add rows later**: If a new row fits the indexed categories, add its symptom to the matching index line in the parent. If it's a new category, add a new index line + create the section in the companion.
 
