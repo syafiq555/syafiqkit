@@ -10,10 +10,15 @@ The plugin's author works in a git checkout on macOS. Most people running these 
 |---|---|
 | "The whole repo ships" | **`tasks/` does not ship.** Verify by listing an install, never by reading `marketplace.json`'s `source` field |
 | `~/.claude/plugins/<name>/` | Installs are **version-scoped**: `plugins/cache/<marketplace>/<plugin>/<version>/`. Any literal path is stale on the user's next update |
-| `${CLAUDE_PLUGIN_ROOT}` fixes it | Expands in JSON contexts (hooks, MCP config) only — **not in markdown** ([#9354](https://github.com/anthropics/claude-code/issues/9354)) |
 | `~` resolves | Not on native Windows (`%USERPROFILE%`). A `~/.claude` shared with WSL stores paths broken on the other side ([#36575](https://github.com/anthropics/claude-code/issues/36575), closed as not-planned) |
 
-**There is no portable path to the plugin's own files.** Don't hunt for one — state the step as source-checkout-only, or route the write through the skill that owns the ownership gate (`update-plugin`). A read-target degrades quietly; a **write**-target has no safe default, so the session stops and asks the user mid-skill.
+**`${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_SKILL_DIR}` now DO expand in skill markdown**, which reverses what this file said until 2026-08-20. [#9354](https://github.com/anthropics/claude-code/issues/9354) was closed as completed on 2026-08-17, and a probe skill confirmed it directly: both resolved to real absolute paths in a rendered SKILL.md body. They also expand in `allowed-tools` Bash rules, so a skill can invoke a bundled script without a permission prompt.
+
+That gives a skill a portable, unambiguous way to name **its own bundled files** — `${CLAUDE_SKILL_DIR}/references/foo.md` is correct on any machine, at any install version, and needs no guess about the working directory. Prefer it over a relative path for any pointer a reader must actually open, since a relative path silently depends on where the session happens to be.
+
+It does not reach anything that was never shipped. `tasks/` is still absent from an install, so a variable in front of that path resolves to a directory that isn't there — the failure just moves from ambiguous to definite. For non-shipped content, state the step as source-checkout-only, or route the write through the skill owning the ownership gate (`update-plugin`). A read-target degrades quietly; a **write**-target has no safe default, so the session stops and asks the user mid-skill.
+
+⚠️ Anything asserting these variables don't work in markdown is pre-2026-08-17 and wrong. The reverse belief is expensive: it argues against the one mechanism that makes a bundled pointer reliable.
 
 ## Identity: ask the plugin dir, anchored against walk-up
 

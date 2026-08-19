@@ -14,7 +14,7 @@ tools:
   - mcp__claude-in-chrome__read_console_messages
   - mcp__claude-in-chrome__read_page
   - Agent  # ONLY to spawn Explore (read-only search / multi-target sweeps).
-           # NEVER another browser-verifier or any editing agent. See Constraints. depth-5 cap.
+           # NEVER another browser-verifier or any editing agent. See Constraints. depth-3 cap.
   # NOTE: read-only by design — do NOT add Write/Edit. This agent reports bugs; it never fixes them.
 disallowedTools: [Write, Edit]
 model: sonnet

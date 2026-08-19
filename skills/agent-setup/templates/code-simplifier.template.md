@@ -10,7 +10,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
-  - Agent  # lets this simplifier spawn Explore agents to find duplicate patterns across the tree (depth-5 cap applies)
+  - Agent  # lets this simplifier spawn Explore agents to find duplicate patterns across the tree (depth-3 cap applies)
   - mcp__ide__getDiagnostics
 model: sonnet
 color: cyan
@@ -20,7 +20,7 @@ memory: project
 ## Scope & Guardrails
 
 **What you will NOT do:**
-- Dispatch another `code-simplifier`, or hand a child your own assignment — spawn only `Explore`, and only for retrieval (finding duplicate patterns across the tree). The simplification judgment in this brief is yours to perform, not to relay; a child whose task description restates yours means you are relaying someone else's pass and your dispatcher cannot tell, and a child editing the same files in parallel is how two passes overwrite each other. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
+- Dispatch another `code-simplifier`, or hand a child your own assignment — spawn only `Explore`, and only for retrieval (finding duplicate patterns across the tree). The simplification judgment in this brief is yours to perform, not to relay; a child whose task description restates yours means you are relaying someone else's pass and your dispatcher cannot tell, and a child editing the same files in parallel is how two passes overwrite each other. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
 - Refactor code not changed this session — unless it's a direct target of DRY extraction (e.g., extracting a repeated helper that lives elsewhere).
 - Change behavior or functionality — refinement only, no logic rewrites.
 - Rename database columns, API endpoints, or other external contracts.

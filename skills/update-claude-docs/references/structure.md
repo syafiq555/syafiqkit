@@ -21,11 +21,23 @@ CLAUDE.md files are **concatenated additively**, filesystem-root → cwd. For *c
 |-------|------|-------|---------------------------|
 | Managed policy | `/Library/…/ClaudeCode/CLAUDE.md` (macOS) | Always, can't exclude | N/A |
 | **User (global)** | `~/.claude/CLAUDE.md` | Every session, ALL projects | Always |
-| **Project root** | `./CLAUDE.md` | Every session in project | ✅ YES |
+| **User rules** | `~/.claude/rules/*.md` | Every session; loaded before project rules | Always |
+| **Project root** | `./CLAUDE.md` **or** `./.claude/CLAUDE.md` | Every session in project | ✅ YES |
+| **Project rules** | `./.claude/rules/*.md` (no `paths:`) | Every session, same priority as `./.claude/CLAUDE.md` | ✅ YES |
+| **Path-scoped rules** | `./.claude/rules/*.md` with `paths:` frontmatter | Only when Claude reads a file matching the glob | ❌ NO (re-matches) |
 | **Layer** | `./app/CLAUDE.md`, `./react/CLAUDE.md` | Lazily, when touching file under it | ❌ NO (reloads) |
 | **Subdir / domain** | `./app/Domain/X/CLAUDE.md` | Lazily, when touching file under it | ❌ NO (reloads) |
-| **Local** | `./CLAUDE.local.md` | Every session, gitignored | Always |
+| **Local** | `./CLAUDE.local.md` | Every session, appended *after* `CLAUDE.md` at each level | Always |
 | **Companion** | `./.claude-companions/<shared\|local>/CLAUDE-*.md` | Never (manual pointer only) | Always, but hidden |
+| **Auto memory** | `~/.claude/projects/<project>/memory/MEMORY.md` | Every session, first 200 lines / 25KB | Written by Claude, not you |
+
+**`.claude/rules/` is the mechanism to reach for when a CLAUDE.md is growing**, and it did not exist when most of this file was written. A rule file carrying `paths:` globs enters context only when Claude touches a matching file, which is the thing an `@path` import cannot do — imports are expanded at launch and cost their full size every session, so splitting a file into imports organises it without saving a single token. Rules can be symlinked to share one set across projects, and `claudeMdExcludes` skips ancestor files a monorepo drags in.
+
+Route by what the rule is *about*: a fact true whenever someone touches `src/api/**` belongs in a path-scoped rule; a fact true for the whole project belongs in the root file. The distinction between a path-scoped rule and a subdir CLAUDE.md is that the rule follows the file pattern wherever it lives, while the subdir file follows the directory.
+
+**Verify what actually loaded with `/context`** — it lists the memory files in play. Reasoning about which file *should* have loaded is how a rule ends up written into a file the session never read. The `InstructionsLoaded` hook logs the same thing for a path-scoped rule that isn't firing.
+
+⚠️ **Block-level HTML comments are stripped before the file enters context**, so an `<!--LLM-CONTEXT-->` header costs nothing at runtime and is invisible to the reader it's addressed to — it is a note for humans and for anything opening the file with `Read`, never a way to brief a session. *(Hierarchy verified against `code.claude.com/docs/en/memory.md`, 2026-08-20.)*
 
 **Routing principle**: Put a rule at the narrowest layer where it's ALWAYS LOADED when needed. Test with: "Must this rule load automatically for code to run correctly?"
 
@@ -80,7 +92,7 @@ Ordered by urgency: commands and boundaries first (a cold-start needs them immed
 | **File path + symbol** | `Invoice.php scopeOverdue()`, never line numbers (they drift). |
 | **Emphasis** | `⚠️` + `IMPORTANT` only for facts whose miss-cost is HIGH, and only while rare. Imperative restating prior reasoning flattens signal; state the consequence instead. |
 | **Code block for structure** | Directory trees and exact commands go in ` ``` ` blocks, not tables or prose. |
-| **`@path/import`** | Loads a file at launch (path relative to importer). Use only for genuinely-always-needed content; no token savings, just DRY. |
+| **`@path/import`** | Loads a file at launch (path relative to the importer, not the cwd). Use only for genuinely-always-needed content; no token savings, just DRY. Imports nest to a maximum of **four hops**. Wrap a path in backticks to mention it without importing it. An import resolving outside the project prompts for approval once. |
 | **No war stories** | State the rule, never its history ("this bit us twice"). The constraint is the deliverable. |
 
 **Gotcha decision tree**: 

@@ -10,7 +10,7 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery
   - mcp__ide__getDiagnostics
-  - Agent  # lets this simplifier spawn Explore agents to find duplicate patterns across the tree (depth-5 cap applies)
+  - Agent  # lets this simplifier spawn Explore agents to find duplicate patterns across the tree (depth-3 cap applies)
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 model: sonnet
 color: cyan
@@ -19,7 +19,7 @@ memory: project
 
 ## Bootstrap (Do This First)
 
-**Spawn only `Explore`, and only for retrieval** (finding duplicate patterns across the tree). Never dispatch another `code-simplifier`, and never hand a child your own assignment — the simplification judgment in this brief is yours to perform, not to relay; a child whose task description restates yours means you are relaying someone else's pass and your dispatcher cannot tell, and a child editing the same files in parallel is how two passes overwrite each other. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+**Spawn only `Explore`, and only for retrieval** (finding duplicate patterns across the tree). Never dispatch another `code-simplifier`, and never hand a child your own assignment — the simplification judgment in this brief is yours to perform, not to relay; a child whose task description restates yours means you are relaying someone else's pass and your dispatcher cannot tell, and a child editing the same files in parallel is how two passes overwrite each other. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
 
 Read these files before refining any file:
 
@@ -77,7 +77,8 @@ Single root `CLAUDE.md` — read it in full.
 
 | Pattern | Why |
 |---------|-----|
-| A skill's `tools:`/`allowed-tools:` frontmatter line entirely omitted | Deliberate — CLAUDE.md documents this as the only way to grant `Agent` mid-workflow (the enum can't be appended to); "simplifying" by adding a tools list back in silently revokes `Agent` |
+| An agent's `tools:` line entirely omitted | Deliberate — an absent `tools:` inherits every tool including `Agent`, so "simplifying" by adding a list back narrows the agent to exactly that list and silently revokes the rest |
+| A skill's `allowed-tools:` line entirely omitted | Costless and deliberate — that field only pre-approves tools to skip a permission prompt; every tool stays callable whether listed or not, so omitting it restricts nothing |
 | A rule stated once in a skill body with no CLAUDE.md-level cross-reference | Not every rule needs extraction — only 3+ genuine cross-skill owners trigger the `_shared/` threshold |
 | Skills with `disable-model-invocation` absent | This is the wanted default (proactive invocation) — don't add it as a "cleanup" |
 

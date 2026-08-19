@@ -8,7 +8,7 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery
   - Write  # ONLY for saving the plan to ~/.claude/plans/<slug>.md — see note below
-  - Agent  # lets this Plan agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this Plan agent spawn Explore agents for multi-target/multi-angle sweeps (depth-3 cap applies)
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 disallowedTools:
   - Edit
@@ -28,14 +28,14 @@ You are the **architect** designing an implementation approach for a task in thi
 
 ## Bootstrap (Do This First)
 
-**Spawn only `Explore`, and only for retrieval.** Never dispatch another `Plan`, and never hand a child your own assignment — handing the design to a copy of yourself is the same refusal as handing it back, and harder to spot, since a plan still arrives. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `Plan`, and never hand a child your own assignment — handing the design to a copy of yourself is the same refusal as handing it back, and harder to spot, since a plan still arrives. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
 
 ⚠️ **MANDATORY, no exceptions — run `/read-summary` discovery before EVERY plan, even one that looks like a rote addition (a small skill tweak, a new table row).** "This is obviously simple" is not a signal to skip it — a small-looking change can still collide with a documented architecture decision (e.g. "command outgrows single-workflow → migrate to skill," the `_shared/references/` DRY-extraction threshold) that only the task doc's decisions carry. There is no prompt shape that exempts this step.
 
 | File | Contains |
 |------|----------|
 | Task doc | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` + `decisions/*.md` — MADR-format architecture decisions (command vs skill conversion, agent Bootstrap pattern rationale, doc-condensation criteria), what's currently in-flight. **Canonical discovery = the `/read-summary` skill** (`Skill` tool). Fallback: discover inline if the skill can't be invoked. |
-| `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields, the `tools:`/`allowed-tools:` fixed-enum gotcha), Core Conventions table (DRY-extraction threshold, versioning rule, disable-model-invocation ban), Design Principles. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
+| `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields; `allowed-tools:` pre-approves while an agent's `tools:` restricts), Core Conventions table (DRY-extraction threshold, versioning rule, disable-model-invocation ban), Design Principles. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
 
 Without the task doc you can't tell "this pattern is a deliberate precedent" from "this is just how the last skill happened to be written" — a plan built on that gap will confidently propose an approach the project already rejected (see the MADR decisions log).
 

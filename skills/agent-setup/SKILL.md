@@ -40,12 +40,9 @@ Eight agents with distinct responsibilities:
 | **browser-verifier** | Drives running app in real browser — clicks real flows, asserts DB changed, catches layout/console breakage a diff misses. | None (read-only; reports bugs, never fixes) | Make changes; fabricate user approval; run without explicit user trigger | sonnet |
 | **claude-md-pruner** | Prunes CLAUDE.md + `tasks/**` task docs for staleness. Preserves reference tables, mappings, required headings, MADR blocks. Delegates sizing decisions to `condense-claude-md`/`condense-task-doc`. | CLAUDE.md + task docs only | Size-policy decisions; deletion of documented rows; removal of NEVER-remove content | sonnet |
 
-**Why eight**: The design partitions agents by the question each answers and when they're read:
-- **Before code exists**: `Explore` finds what's there, `Plan` designs the approach — both read CLAUDE.md/task docs to get context.
-- **Writes feature code**: `task-builder` only. `code-simplifier` refines, `Plan` designs without building, rest are read-only.
-- **After code exists**: `code-reviewer` asks "correct?", `code-simplifier` asks "clean?" — both read the diff. `product-reviewer` asks "complete?" (catches missing journeys no diff shows). `browser-verifier` asks "works?" on the running system (catches UI breakage static analysis can't). Both report evidence; the user decides on fixes. `claude-md-pruner` prunes living docs without applying a size policy — sizing decisions belong to `condense-claude-md`/`condense-task-doc`.
+**Why eight**: each answers a different question, and the split is by *when* it can be asked. Before code exists, `Explore` asks what's there and `Plan` asks how to build it. `task-builder` is the only one that writes feature code. Afterwards, `code-reviewer` asks "correct?", `code-simplifier` asks "clean?", `product-reviewer` asks "complete?" against intent no diff shows, and `browser-verifier` asks "works?" against the running system. The last four report evidence and the user decides — a reviewer that fixes what it found has destroyed its own witness.
 
-**Explore and Plan shadow the built-in agents** via `name:` frontmatter (capitalized, no hyphen) → `subagent_type`, so they override the built-in project-wide. This partial shadow means tools in the frontmatter's `tools:` line grant access, but `tools: []` doesn't block a tool entirely — the harness still grants it (a quirk of partial shadowing). To truly block a tool, use `disallowedTools: [X]`. Both agents are granted `Write` (Explore uses it for scratchpad temp files, Plan for `~/.claude/plans/<slug>.md`), and their body text is the only guard restricting where writes go. This scoping is instructional, not enforced — the agent reads the constraint and respects it; it's not a harness rule.
+**Explore and Plan shadow the built-in agents** via `name:` frontmatter (capitalized, no hyphen) → `subagent_type`, so they override the built-in project-wide. Blocking a tool takes `disallowedTools: [X]`, and the reason is the order the two fields resolve in rather than anything about shadowing: `disallowedTools` is applied first, then `tools` is narrowed against whatever survives. An empty or absent `tools:` line therefore inherits the full set rather than granting nothing, so a tool left off that line is still callable — the omission reads like a restriction and isn't one. Both agents are granted `Write` (Explore for scratchpad temp files, Plan for `~/.claude/plans/<slug>.md`), and where those writes may land is scoped by body prose alone — instructional, not enforced by the harness.
 
 ```
 Project/
@@ -73,6 +70,18 @@ If no agents exist, create `.claude/agents/` and generate all eight from templat
 
 If agents already exist, run Step 5 in full against every one of them regardless of how established they look, and read each against its `templates/<name>.template.md` asking what the template's agent can do that this one can't — a structurally sound agent can still lack a capability the template gained since it was generated. Read for that gap rather than diffing for difference: the two files word the same rules differently on purpose, so a textual comparison buries the one real finding under a wall of correct tailoring. Also enumerate the template names against the generated ones: a template with no counterpart is a missing agent rather than drift, and gets created in the same pass. What a check flags is a finding to judge, not a defect to fix — decide which side is right before changing either.
 
+**Sort the existing agents into three cases before doing any of that, because two of them are not drift.** Pair each file with `templates/<name>.template.md` and ask which side of the pairing is missing:
+
+| What you find | What it is | What to do |
+|---|---|---|
+| Agent + matching template | Drift, possibly in either direction | The capability read above |
+| Template, no agent | A missing agent | Generate it this pass |
+| **Agent, no template** | **Someone else's agent** | Judge it in place; never generate over it |
+
+The third case is the one that gets mishandled, because every check in this skill is phrased against a template and this agent has none — so it reads as unaffected while actually being unexamined. It arrives from a hand-written definition, another plugin, or a project that predates this skill, and the shape it's in is somebody's decision rather than a lapse. Ask only whether it can still do its job here: do its cited paths resolve, does its `description` still describe when it should fire, do its tool grants match what it claims to be. Those questions need no template. What does not apply is anything that would reshape it — do not re-section it, do not restate its rules in this plugin's voice, and do not generate a same-named agent on top of it. A project running agents you didn't write is the normal case outside this repo, and the value you add there is telling the owner what is broken, not converting their fleet.
+
+If one genuinely needs to become a managed agent, that is the owner's call to make explicitly, and it means writing a template first so the pair has something to drift against.
+
 ### Step 2: Identify CLAUDE.md Hierarchy
 
 Map the project's CLAUDE.md files to determine what the Bootstrap section should reference:
@@ -84,13 +93,9 @@ Map the project's CLAUDE.md files to determine what the Bootstrap section should
 | Root + layer files (`app/`, `resources/js/`) | Root + conditional reads per layer |
 | **Sibling repo driven from same session** | Add a `⚠️ Two-repo session` note + a SECOND Bootstrap table for the sibling's CLAUDE.md files, and have the agent `git diff` BOTH repos (see below) |
 
-**Multi-repo (sibling) sessions**: when the user drives two repos from one working dir (e.g. an integration where both sides are edited together), the *sibling* repo's own agents do not fire — only the active repo's agent runs. So the active agent must cover both:
-- Add a `⚠️ Two-repo session` banner stating the sibling's agent is not used here — refer to the active repo as "this repo" (no path needed, agents already run with cwd inside it).
-- Process step 1 (gather changes) runs `git status --short` in EACH repo, not `git diff --name-only` — that hides staged and untracked files and returns empty once work is staged. Bootstrap each repo only if it has changes.
-- Add a second Bootstrap table for the sibling repo (note any layout quirks, e.g. Laravel root in `backend/`).
-- Tag sibling-only inline rules so they're applied only to that repo's files (e.g. a separate "Sibling" rules table).
+**Multi-repo (sibling) sessions**: when two repos are driven from one working dir, only the active repo's agents fire — the sibling's never do. So the active agent has to cover both, which means a `⚠️ Two-repo session` banner, a second Bootstrap table for the sibling's CLAUDE.md files, sibling-only rules tagged so they apply to that repo's files alone, and `git status --short` run in *each* repo (never `git diff --name-only`, which hides staged and untracked files and reads empty once work is staged).
 
-Never hardcode the sibling repo's absolute path — `.claude/agents/*.md` is normally committed and shared across machines/OSes, so a literal path baked in during setup collides for anyone else. Have each agent's banner check `../<sibling-name>` relative to this repo's parent first; if absent, glob likely siblings or ask the user; reference the result via a placeholder variable (e.g. `$SIBLING`), never a literal path.
+Never hardcode the sibling's absolute path. These agent files are committed and shared across machines, so a literal path baked in at setup collides for everyone else — have the banner resolve `../<sibling-name>` at runtime and carry the result in a placeholder like `$SIBLING`.
 
 ### Step 3: Extract Critical-Only Rules
 
@@ -102,11 +107,7 @@ Write agents from the templates in `templates/`, carrying every rule the templat
 
 **Each agent file contains:**
 
-1. **Frontmatter** — name, description, tools, model, color, `memory: project`
-   - Fixed colors per agent name (all projects): `Explore` green, `Plan` blue, `task-builder` pink, `code-reviewer` red, `code-simplifier` cyan, `claude-md-pruner` yellow, `product-reviewer` purple, `browser-verifier` orange.
-   - `mcp__ide__getDiagnostics` for `code-reviewer`/`code-simplifier` only (not `product-reviewer` — it judges completeness, not correctness).
-   - `task-builder` omits `tools:` entirely (grants full set including `Agent`; adding a `tools:` list would silently revoke `Agent`).
-   - `product-reviewer` and `browser-verifier` are read-only: both omit `Write`/`Edit` from `tools:` AND set `disallowedTools: [Write, Edit]`. The omission alone does NOT block them — the harness still grants a tool left off the `tools:` line (the same partial-shadow quirk noted for Explore/Plan), so `disallowedTools` is the only thing that actually enforces read-only.
+1. **Frontmatter** — name, description, tools, model, color, `memory: project`. These are fixed values rather than judgement calls, and three of them fail silently when wrong: a read-only agent needs `disallowedTools: [Write, Edit]` because omitting a tool from `tools:` does not block it (camelCase here — a skill spells the same idea `disallowed-tools`, and the wrong spelling is inert rather than invalid, so it fails as a silently-granted write), `task-builder` needs no `tools:` line at all because any list revokes its `Agent` grant, and `memory: project` does nothing unless something in the body reads it back. Copy them from `${CLAUDE_SKILL_DIR}/references/agent-setup-verification.md`, which lists every one per agent — guessing produces a file that looks right and is missing an enforcement line.
 
 2. **Bootstrap section** — reads project CLAUDE.md files and task docs
    - Table of CLAUDE.md files with what each contains (one row per file or layer).
@@ -124,15 +125,9 @@ Write agents from the templates in `templates/`, carrying every rule the templat
    - Facts the agent must know to avoid crashes or data corruption. Derivable facts, one-time setup, and symptom-indexed gotchas stay in CLAUDE.md (read at runtime).
    - Multi-repo sessions: tag sibling-only rules so they apply only to that repo's files.
 
-6. **Agent-specific tables** (reviewer / simplifier / product-reviewer / browser-verifier):
-   - `code-reviewer`: Known False Positives table (patterns that look wrong but are intentional).
-   - `code-simplifier`: Don't Simplify (Preserve These) table (code that looks repetitive but should stay).
-   - `product-reviewer`: Don't Flag These table (expected gaps, polish items, business trade-offs); 3-tier severity model (blocking / expected-missing / polish); product-context table naming audiences.
-   - `browser-verifier`: 
-     - `## Target` slot table (app URL, auth accounts, mobile breakpoint, never-run commands, off-limits envs) — fill all `<...>` placeholders from `CLAUDE.md`/`CLAUDE.local.md`. Empty slots block the agent. Use pointers (not plaintext secrets) if the file is committed.
-     - Assert-the-Effect table (names tools that report success while doing nothing).
-     - Never-Fabricate-User-Approval constraint (the agent cannot invent approval; it must be explicitly triggered by the user).
-     - Mobile viewport recipe (gates on `matchMedia(...).matches === true`, not width alone).
+6. **Agent-specific tables.** Each judging agent carries a table of what NOT to act on — `code-reviewer`'s known false positives, `code-simplifier`'s preserve-these, `product-reviewer`'s expected gaps plus its severity tiers. These are what stop a reviewer reporting deliberate design as a defect, so they get filled with this project's real cases rather than copied placeholders. Take the shape from each agent's own template.
+
+   `browser-verifier` is the exception worth naming: its `## Target` table (app URL, auth accounts, breakpoint, never-run commands, off-limits environments) has placeholders that **block the agent until filled** from `CLAUDE.md`/`CLAUDE.local.md`, and a committed file takes a pointer rather than a plaintext secret.
 
 7. **Output Format section** — markdown template for findings/changes (reviewers/simplifier/product-reviewer).
 
@@ -159,18 +154,12 @@ Three questions, and knowing which one you are asking matters more than the orde
 
 Which side is stale is a finding rather than an assumption, and a difference in wording is not staleness. What counts is a missing capability: a step, a grant, a guard or a subject the template's agent has and this one lacks.
 
+For an agent with **no template** (Step 1's third case), only the first question above applies — can it still do its job here. The second and third are comparisons with nothing to compare against, and running them anyway turns "this isn't one of ours" into a list of false findings. Report what's broken and leave the shape alone.
+
 **A confirmed gap gets written back before you leave this step** — verification that ends in a verdict has diagnosed the problem and fixed nothing. Repair it the way Step 4 would have written it the first time: carry the missing capability into this agent's own voice, naming what exists in this project, rather than copying the template's wording across. Where the generated side turned out to be the right one, the template is what gets patched, minus anything project-specific that must not travel upstream. A missing agent is created outright. Then say per agent what changed, since "verified" and "verified and repaired" are different reports.
 
 ## Output
 
-The skill generates or updates `.claude/agents/*.md` files for each agent. Each file contains:
-- Frontmatter (role, tools, model, color, memory settings)
-- Bootstrap section (reads CLAUDE.md + task docs at runtime)
-- Process steps (numbered workflow for the agent's job)
-- Domain-specific sections (project-tailored guidance)
-- ~15 critical inline rules (facts the agent must know to avoid crashes)
-- Agent-specific tables (false positives, preservation rules, severity models, etc.)
+Report per agent what happened to it — created, updated, verified unchanged, or verified and repaired — since those are different claims and a bare "verified" hides which. Name what changed for each repair, and say which CLAUDE.md files the fleet now bootstraps from.
 
-Changes are reported per agent: which were created, which updated, what critical rules were added/modified. A full report names which CLAUDE.md files are now bootstrapped and whether task docs are included in the agent's discovery process.
-
-No manual syncing needed — agents read CLAUDE.md at runtime, so updating the docs automatically updates agent knowledge on the next run.
+The generated file's own shape is whatever the templates produce; read one rather than a description of one. Agents re-read CLAUDE.md at runtime, so a docs change needs no agent edit to reach them — that is the point of the Bootstrap pattern, and re-deriving agent tables from CLAUDE.md rebuilds the duplication it exists to avoid.

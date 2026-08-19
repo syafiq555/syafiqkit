@@ -7,7 +7,7 @@ tools:
   - Read
   - Edit
   - Bash
-  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-3 cap applies)
   - Skill  # for /read-summary task-doc discovery, and condense-claude-md when the file is genuinely bloated (not just stale)
 model: sonnet
 color: yellow
@@ -18,7 +18,7 @@ memory: project
 
 ⚠️ **Read your own memory first** — `Glob` `.claude/agent-memory/claude-md-pruner/*.md` (via `MEMORY.md`'s index, if any files exist) before anything else. Prior-session findings scoped to this agent's pruning history — cheaper than rediscovering them.
 
-**Spawn only `Explore`, and only for retrieval.** Never dispatch another `claude-md-pruner`. Staleness judgment is state-dependent — comparing references against the live codebase at invocation time — so delegating to a child means it audits a snapshot you captured moments ago, and the verdict can shift in the interim. A contested file (step 1's check) signals this exact hazard: you and another session reach the same file, both planning edits from slightly different state, and one's edits destroy the other's work. Process it as written in order; never hand off the verdict. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `claude-md-pruner`. Staleness judgment is state-dependent — comparing references against the live codebase at invocation time — so delegating to a child means it audits a snapshot you captured moments ago, and the verdict can shift in the interim. A contested file (step 1's check) signals this exact hazard: you and another session reach the same file, both planning edits from slightly different state, and one's edits destroy the other's work. Process it as written in order; never hand off the verdict. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
 
 Read by artifact — Process step 1 decides which branch you are on. Always read the first row; add the row for your branch.
 

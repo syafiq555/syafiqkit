@@ -19,9 +19,7 @@ Cold-path for `task-summary` — read only when the user requests `merge A into 
 - Roadmap/hub rows that mirror the doc by name
 - ⚠️ Search output can truncate or corrupt long paths in the terminal — write matches to a file and Read it rather than trusting what scrolled past
 
-| ❌ Never | ✅ Always |
-|---------|---------|
-| Plain `mv` a renamed folder | `git mv` — keeps history |
+Rename a folder with `git mv` rather than plain `mv`, which keeps the file's history attached — after a plain `mv` the doc's past reads as a deletion plus an unrelated new file, and the reasoning behind every prior decision becomes unfindable by `git log`.
 
 For merge-specific ❌/✅ rules (stub handling, reconcile-before-delete, `Related:` sweep scope, subsystem-vs-keyword, size budget), see `syafiqkit:merge-task-docs`'s Rules table — don't duplicate them here.
 

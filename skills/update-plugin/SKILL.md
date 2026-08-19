@@ -94,6 +94,24 @@ When a SKILL.md is genuinely dense already, adding a new rule is a good moment t
 
 If tightening lands, bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention. The invocation might ask to skip one; treat "skip the changelog" as covering the version bump too — they're one convention.
 
+### How a skill is actually read
+
+Four facts about the harness decide whether a patch you write ever reaches a session. None is derivable from the file, and each has a silent failure.
+
+**The body enters context once and is never re-read.** Invoking a skill drops its rendered text in as a single message that stays for the session; Claude Code does not open the file again on later turns. So a rule meant to hold for a whole task has to read as a standing instruction rather than a step — "check X before each write" works, "now check X" fires once and is gone. This is also why sharpening the wording of a rule that already exists is worth more than adding a neighbour: there is no second pass where the reader catches what they skimmed.
+
+**After a compaction, only the first 5,000 tokens of each skill are re-attached.** Past that boundary the content silently stops existing while the skill still reports as invoked, so a long skill's tail is missing exactly when a session has run long enough to need it. Measure against the ceiling rather than eyeballing length; roughly, bytes ÷ 4.
+
+Two things follow. **Position matters as much as size** — where the cut lands decides which half survives, so guards, mode selection and the verify step belong above it and reference tables below. A file 60% over with its guards early is in better shape than one slightly over whose exit gate sits last.
+
+And **an oversized skill costs its neighbours, not just itself**: re-attached skills share a 25,000-token budget filled most-recently-invoked first, so older ones are dropped *entirely* once it runs out. A session that invokes several skills has room for about five at the full ceiling. Trimming a bloated skill buys context back for every other skill in the session, which is the argument for doing it even when that skill's own tail seems expendable.
+
+**`allowed-tools` pre-approves and never restricts.** Every tool stays callable whether listed or not; the field only waives the permission prompt, for one turn. `disallowed-tools` is what removes a tool. An unlisted tool looks blocked and isn't.
+
+**The description is the whole trigger surface**, capped at 1,536 characters including `when_to_use`. It is matched against what a user actually says, so it carries their vocabulary; the reasoning behind a boundary belongs in the body, which is not read until after the skill has already fired.
+
+**Match the constraint to the task's fragility rather than defaulting either way.** Where several approaches are legitimate and the right one depends on context, prose stating the mechanism lets a reader handle the case you didn't foresee. Where an operation is fragile or has to come out identical every time, an exact command or literal value is the deliverable and dissolving it into prose destroys it — a paragraph has nowhere to put a port number without becoming a table again. The failure runs in both directions, and the second one is harder to see because the prose still reads complete.
+
 ## Step 4 — Before calling it done
 
 Re-read what changed. Does the new text actually address what was missed this session? Does it duplicate something already there? Is it a pattern likely to recur, or a one-off not worth a permanent rule? For a file that was already dense, did the change replace or relocate something, or is it pure addition with no reason given? A good check: read your own new prose against the same judgment this skill applies to the plugin — does the fix embody the instinct it's trying to teach, or does it contradict itself mid-sentence?

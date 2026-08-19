@@ -94,28 +94,51 @@ argument-hint: "[optional hint]"        # Shows in autocomplete
 **Skills** (`skills/<name>/SKILL.md`) are prompted executions:
 ```yaml
 ---
-name: skill-name
+name: skill-name                        # Optional — defaults to the directory name
 description: Description for matching and invocation
-allowed-tools: Bash(git:*), Read, Grep  # Tool restrictions
+when_to_use: extra trigger phrases      # Appended to description; the two share a 1,536-char cap
+allowed-tools: Bash(git:*), Read, Grep  # Pre-approves these for one turn — see below
+disallowed-tools: WebFetch              # Removes tools while the skill is active
 user-invocable: false                   # Default is true; set false to hide from /menu
+disable-model-invocation: true          # Only the user may invoke; never add without a request
 context: fork                           # Optional: run in isolated subagent
+agent: Explore                          # Which subagent type, when context: fork
+background: false                       # With context: fork, wait for the result in this turn
 model: sonnet                           # Optional: override model
+effort: high                            # low | medium | high | xhigh | max
+paths: ["src/**/*.ts"]                  # Auto-activate only when touching matching files
 ---
 ```
 
-⚠️ **Tool permission trap**: The `allowed-tools:` field is a fixed enum, not appendable. Adding `Agent` to the list silently fails. Skills that spawn agents omit the `allowed-tools:` line entirely — see `done`, `ship`, `agent-setup`.
+The full set is 20 fields (also `arguments`, `argument-hint`, `hooks`, `shell`, `metadata`, `license`, `compatibility`). Only `description` is meaningfully required. Two facts about how a skill is *read*, neither derivable from the file:
+
+- **The body enters context once and is never re-read.** Guidance meant to hold for a whole task has to be written as a standing instruction, because there is no later turn where the file gets consulted again.
+- **After a compaction, only the first 5,000 tokens of each skill are re-attached** (25,000 shared across skills, most-recently-invoked first). Everything past that boundary silently stops existing, and the skill still reports as invoked. Measure a SKILL.md against that ceiling rather than against how long it looks.
+
+⚠️ **`allowed-tools:` pre-approves; it never restricts.** Every tool stays callable whether or not it is listed — the field only waives the permission prompt for what it names, and the grant expires when the user sends their next message. So a skill that spawns agents needs no `Agent` entry, and omitting the line costs that skill nothing (`done`, `ship`, `agent-setup` omit it). The field that actually removes a tool is `disallowed-tools:`, which is a different field with a different job. Reading the grant as a whitelist is the trap: it makes an unlisted tool look blocked when it isn't, so a skill can appear sandboxed while holding the full set. Note the spelling differs by surface — skills use hyphenated `disallowed-tools:`, subagents use camelCase `disallowedTools:`, and each is inert in the other's file. *(Verified against `code.claude.com/docs/en/skills.md`, 2026-08-20.)*
 
 **Agent templates** (`skills/agent-setup/templates/*.template.md`) define project-local agents that read CLAUDE.md at runtime:
 ```yaml
 ---
 name: agent-name
 description: When to invoke
-tools: Read, Grep, Glob, Edit
+tools: Read, Grep, Glob, Edit           # An allowlist. Omit the line to inherit every tool
+disallowedTools: [Write, Edit]          # camelCase here; resolved BEFORE tools
 model: sonnet
 color: red
-memory: project                         # Persistent memory scoped to project
+memory: project                         # user | project | local — its own MEMORY.md, not the session's
+skills: [api-conventions]               # Preloads the skill's FULL text at spawn
+permissionMode: default                 # Ignored for plugin subagents
+maxTurns: 20
+isolation: worktree                     # Run in a throwaway git worktree
 ---
 ```
+
+Agent frontmatter is a **different namespace from skill frontmatter**, and the overlap is where mistakes live. `disallowedTools:` is camelCase for an agent and hyphenated `disallowed-tools:` for a skill; each is inert in the other's file, and a misspelling fails silently rather than erroring — which is why a read-only agent is verified by whether the enforcing line exists, never by whether the file "looks read-only". When both fields are set, `disallowedTools` resolves first and `tools` is then narrowed against what remains.
+
+A subagent inherits the whole CLAUDE.md hierarchy and a git-status snapshot, but never the parent's conversation, output style, or auto memory — a `fork` is the one exception that inherits everything. Built-in `Explore` and `Plan` skip the CLAUDE.md inheritance entirely, which is why the Bootstrap pattern has them read it at runtime.
+
+Subagents **can** spawn subagents, up to three layers deep. The plugin's no-redelegation rule is therefore a policy choice rather than a capability limit, and the only mechanical enforcement is omitting `Agent` from `tools:`. *(Verified against `code.claude.com/docs/en/sub-agents.md`, 2026-08-20.)*
 
 ### The SessionStart Hook
 
@@ -173,6 +196,8 @@ When modifying or creating skills and commands:
 - **Internal cross-references**: Cite a named heading or bullet ("the every-invocation-vs-twice-a-year test"), never a raw line number ("line 28's trigger") — an edit above the citation shifts every number below it silently, and nothing re-checks the reference after that edit lands.
 - **A rewrite that absorbs a reference inline breaks the citation graph at both ends, and no ordinary check looks at either.** Pull a fact up into the skill and the pointer usually goes with it, which strands the file it pointed at: nothing 404s, every surviving pointer still resolves, and the orphan sits there collecting the next author's edits. Drop a citation to shared machinery and the loss is quieter still, because the inlined prose reads complete — a reader told to "state the decision" but never routed to the file holding the one-versus-several shapes will improvise and feel finished. Neither shows up in a resolve-check, a diff, or a self-report; what finds them is asking, after any inlining, which files this one no longer cites and which of the absorbed facts had machinery behind them. A reference that ends up cited by nothing is either content to fold in and delete or a pointer to restore — leaving it is how the same severed citation gets restored twice by two different sessions.
 - **A shell snippet in a SKILL.md is executable code that no test suite covers, so run it before landing it.** Nothing in this repo executes these commands until a live session does, and the failure mode is a wrong number rather than an error — a miscounted section or a budget verdict reads as authoritative either way. Run any snippet you write or change against a real doc and check the output against a manual read, especially when restoring one from a bug report or an older commit: a faithfully-transcribed command carries whatever bug it already had, and the report that sent you looking is evidence the snippet ran, never evidence it was right. A control has to be able to fail in the direction you're worried about, which a presence/absence check often can't: `grep -Ll` silently means `-l` on BSD grep (the later flag wins), so a coverage sweep listed every compliant file as non-compliant, and the control passed anyway because a file matching neither pattern is missing from a match-list and from a non-match list alike. Where a flag inverts a result, the control needs a file on each side. Issue #22 restored a size check that had been correct-looking for its whole life and undercounted every doc whose `## Next Steps` wasn't the last section.
+
+  **Run the control in both directions, because a check that can never pass is as broken as one that can never fail — and it announces itself as a crisis rather than a bug.** A pointer sweep that keeps the `📖` inside the path tests a string starting with an emoji, which cannot exist, so every pointer reports broken and the run reads as a catastrophic finding about the corpus. Stripping the variable out of a `${CLAUDE_SKILL_DIR}/...` pointer does the same thing from the other end, turning a valid absolute path into a bogus relative one. Both happened here in a single day, to three separate agents and to the session reviewing them; one reported 38 of 127 pointers broken when the real number was two. The tell is a failure rate too high to be plausible — a defect that common in a maintained corpus would have surfaced long ago, so the number is evidence about the checker. Before believing any sweep, resolve one case you *know* is good and one you know is bad; if the good one comes back failing, the output is about the tool.
 - **A guard belongs at the step that acts, and the sweep for its siblings keys on the destructive act rather than on how the actor is reached.** A condition settled early in a skill is not state a later step consults: the preamble check and the step that spawns, writes or deletes sit far apart, so only the nearer one gets read at the moment of acting, and the fix is to re-derive the condition where the action happens. Sweeping for other instances is where the shape misleads — a search for `subagent_type` finds every skill that *dispatches an agent* and none that reaches the same destructive operation by a direct `Skill()` call or by telling the reader to delete a file themselves, so a clean sweep certifies coverage the search could never have measured. Ask what the dangerous operation is (a whole-file rewrite, an `rm -rf`, an `Edit` by anything) and grep for skills that perform it, then check each for the guard. A caller-side gate also does not extend to what it hands off to: the callee has its own entry points and needs its own check, since the peer who starts editing between the two writes is invisible to both. Issue #24 was one such gate, and both siblings found afterwards — an ungated folder delete and an unguarded whole-file condense — were invisible to the dispatch-shaped grep that had just reported the fix complete.
 - **A rule governing how a session behaves needs a host that's read early, not one whose topic matches.** A wrap-up skill only reaches sessions that invoke it, so a rule about how every turn should read lands nowhere if it sits in `done`. `read-summary` runs at the start of most sessions and ships to consumers, which makes it the furthest-reaching host a skill file offers; the user's own global `CLAUDE.md` reaches further still but doesn't ship, so it can't carry anything colleagues need. Nothing re-injects a standing rule mid-session — say plainly that it's best-effort where it's stated, so a later reader doesn't mistake the section heading for a gate.
 

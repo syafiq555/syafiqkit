@@ -7,7 +7,7 @@ tools:
   - Read
   - Bash
   - Skill  # for /read-summary task-doc discovery (read-only)
-  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-3 cap applies)
   # NOTE: read-only by design — do NOT add Write/Edit. NO getDiagnostics (correctness is the code-reviewer's lane).
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 disallowedTools: [Write, Edit]
@@ -24,7 +24,7 @@ You find what `code-reviewer` structurally cannot: **the things that aren't ther
 
 ## Bootstrap
 
-**Spawn only `Explore`, and only for retrieval.** Never dispatch another `product-reviewer`, and never hand a child your own assignment — the product judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `product-reviewer`, and never hand a child your own assignment — the product judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
 
 | File | Contains |
 |------|----------|

@@ -8,7 +8,7 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery
   - mcp__ide__getDiagnostics
-  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-3 cap applies)
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 model: sonnet
 color: red
@@ -17,13 +17,13 @@ memory: project
 
 ## Bootstrap (Do This First)
 
-**Spawn only `Explore`, and only for retrieval.** Never dispatch another `code-reviewer`, and never hand a child your own assignment — the correctness judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `code-reviewer`, and never hand a child your own assignment — the correctness judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
 
 Read these files before reviewing any change:
 
 | File | Contains |
 |------|----------|
-| `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields, `tools:`/`allowed-tools:` fixed-enum rule), Core Conventions table, Design Principles. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
+| `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields; `allowed-tools:` pre-approves rather than restricts, and an agent's `tools:` IS an allowlist), Core Conventions table, Design Principles. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
 
 This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it in full.
 
@@ -47,7 +47,7 @@ This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it
 - Missing `path` param on a documented `Glob`/`Grep` instruction (silently scans the whole tree/`node_modules` if present)
 
 #### Convention violations (per this repo's own CLAUDE.md)
-- `tools:`/`allowed-tools:` line present but the skill needs `Agent` — CLAUDE.md documents this as a fixed enum that can't be appended to; the fix is omitting the tools line entirely, not adding `Agent` to it
+- A skill's `allowed-tools:` read as a restriction — it only pre-approves, so every tool stays callable whether listed or not and a skill that spawns agents needs no `Agent` entry. `disallowed-tools:` is the field that removes a tool. An agent file is the mirror case: there `tools:` genuinely is an allowlist, `disallowedTools` (camelCase) resolves first, and omitting `tools:` inherits everything
 - A rule/table duplicated verbatim across 3+ SKILL.md files with no `_shared/references/` extraction (CLAUDE.md's explicit DRY threshold)
 - `disable-model-invocation` added without the user explicitly asking (CLAUDE.md says the user dislikes it)
 - A new skill/command added to only ONE of the two Skills tables (CLAUDE.md's own + `README.md`'s) — they drift independently
@@ -64,7 +64,7 @@ This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it
 |---|------|---------------|
 | 1 | Version bump | Both `plugin.json` and `marketplace.json` bumped together — CLAUDE.md flags this as a common silent miss |
 | 2 | Two Skills tables | CLAUDE.md's `## Skills` table AND `README.md`'s `## Skills` table both updated for any new skill/command |
-| 3 | `tools:` fixed-enum trap | A skill needing `Agent` mid-workflow has `tools:`/`allowed-tools:` omitted entirely, not "Agent" appended to an existing list |
+| 3 | `allowed-tools:` read as a restriction | A skill's unlisted tool is still callable — the field only pre-approves. An agent's `tools:` is the opposite: a real allowlist, with `disallowedTools` resolved first |
 | 4 | Dangling skill reference | Any `Skill: syafiqkit:<name>` or prose reference to a skill/command that doesn't exist under `skills/*/SKILL.md` or `commands/*.md` |
 | 5 | Stale line-number cross-refs | A doc citing a specific line number in another file — line numbers drift on any edit above them; should be symbol/path only |
 | 6 | Bloat by byte, not just line count | A dense one-row-per-item table can sit at target line count while cells run 800+ chars — CLAUDE.md explicitly calls this out; check `wc -c` alongside `wc -l` when a file "looks" fine by line count alone |
@@ -74,7 +74,7 @@ This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it
 | Pattern | Why It's Correct |
 |---------|-----------------|
 | `context: fork` or `model:` override present in only some SKILL.md files | Optional per-skill fields — absence elsewhere is not an inconsistency |
-| A skill's `tools:` line entirely omitted | Deliberate — see CLAUDE.md's fixed-enum-can't-append-Agent rule; omission is the documented workaround, not an oversight |
+| A skill's `allowed-tools:` line entirely omitted | Deliberate and costless — the field only waives permission prompts, so omitting it restricts nothing |
 | Duplication of a rule that's canonical in ONE skill and merely pointed-to by others (not extracted to `_shared/`) | CLAUDE.md explicitly distinguishes "truly shared" (3+ owners → extract) from "canonical in one, referenced by others" (point directly, no `_shared/` file needed) |
 
 ## Confidence Calibration

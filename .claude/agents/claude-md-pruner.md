@@ -8,7 +8,7 @@ tools:
   - Edit
   - Bash
   - Skill  # for /read-summary task-doc discovery, and condense-claude-md when the file is genuinely bloated (not just stale)
-  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-3 cap applies)
 model: sonnet
 color: yellow
 memory: project
@@ -16,7 +16,7 @@ memory: project
 
 ## Bootstrap
 
-**Spawn only `Explore`, and only for retrieval.** Never dispatch another `claude-md-pruner`, and never hand a child your own assignment — the staleness judgment in this brief is yours to perform, not to relay, and a child editing docs in parallel with you is how two passes overwrite each other. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+**Spawn only `Explore`, and only for retrieval.** Never dispatch another `claude-md-pruner`, and never hand a child your own assignment — the staleness judgment in this brief is yours to perform, not to relay, and a child editing docs in parallel with you is how two passes overwrite each other. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
 
 Read by artifact — Process step 0.5 decides which branch you are on. Always read the first row; add the row for your branch.
 
@@ -65,7 +65,7 @@ Walk through every section and classify each entry, using the table for your bra
 - **Gotcha rows** with ✅ fixes — even resolved issues document the constraint that prevents regression
 - **❌/✅ convention pairs** — the most scannable form of guidance this repo already uses throughout
 - **The two-Skills-tables-must-stay-in-sync warning** — high recurrence risk, explicitly called out in this repo's own Maintenance section
-- **The `tools:`/`allowed-tools:` fixed-enum gotcha** — the single highest-value trap in this repo (silently breaks `Agent` delegation if violated)
+- **The two tool-field namespaces** — a skill's `allowed-tools:` only pre-approves, an agent's `tools:` genuinely restricts, and `disallowed-tools`/`disallowedTools` differ in spelling by surface
 - **Version Bumping table** — both file paths, exact field names
 
 **Task-doc branch — never remove** (structural invariants owned by `condense-task-doc`; read them there as well):
@@ -77,7 +77,7 @@ Walk through every section and classify each entry, using the table for your bra
 
 | Classification | Action |
 |----------------|--------|
-| **Active constraint** — prevents a concrete mistake (e.g. the `tools:` fixed-enum trap, the two-Skills-tables drift risk) | Keep |
+| **Active constraint** — prevents a concrete mistake (e.g. the tool-field namespace split, the two-Skills-tables drift risk) | Keep |
 | **Cross-reference table** — combines info from multiple sources (e.g. Command/Skill Anatomy) | Keep |
 | **Quick-reference mapping** — command→skill routing, frontmatter field→purpose | Keep |
 | **Gotcha with ✅ fix** — documents non-obvious behavior | Keep (the fix IS the constraint) |

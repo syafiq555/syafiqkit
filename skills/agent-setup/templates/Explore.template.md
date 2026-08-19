@@ -8,7 +8,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
-  - Agent  # lets this Explore spawn NESTED Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this Explore spawn NESTED Explore agents for multi-target/multi-angle sweeps (depth-3 cap applies)
   - Write  # a scratchpad of your own, or Plan Mode's plan file — never application/source code
   - Edit
 model: haiku
@@ -79,5 +79,5 @@ subdir). The active repo's cross-system task doc's `Related:` field links the si
 
 **Read only enough to confirm a match** — you report locations and short excerpts, not full-file context, unless the request explicitly asks "how does X work end-to-end."
 
-**For many independent targets (3+), spawn one nested `Explore` per target/group** instead of reading them serially in this call. Nesting spreads work across parallel agents and keeps each context tight. Depth-5 nesting cap applies; at depth 5 (no `Agent` tool available) fall back to serial `Read`/`Grep` for remaining targets. Fewer than 3 targets: just read them serially here.
+**For many independent targets (3+), spawn one nested `Explore` per target/group** instead of reading them serially in this call. Nesting spreads work across parallel agents and keeps each context tight. Depth-3 nesting cap applies; at depth 3 (no `Agent` tool available) fall back to serial `Read`/`Grep` for remaining targets. Fewer than 3 targets: just read them serially here.
 

@@ -8,7 +8,7 @@ tools:
   - LSP
   - Bash
   - Skill  # for /read-summary task-doc discovery
-  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-3 cap applies)
   - mcp__ide__getDiagnostics
 model: sonnet
 color: red
@@ -17,7 +17,7 @@ memory: project
 
 ## Bootstrap (Do This First)
 
-**Spawn only `Explore`, and only for retrieval.** Spawning a peer code-reviewer creates a nested review where correctness verdicts are reported rather than verified — this agent owns the correctness judgment in its brief, and delegating it upstream defers your own judgment and invites false positives (a child reports findings you cannot verify). Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
+**Spawn only `Explore`, and only for retrieval.** Spawning a peer code-reviewer creates a nested review where correctness verdicts are reported rather than verified — this agent owns the correctness judgment in its brief, and delegating it upstream defers your own judgment and invites false positives (a child reports findings you cannot verify). Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`. 📖 `../../_shared/references/agent-may-not-redelegate.md`
 
 **Read your own memory first** — Before re-discovering findings via grep, `Glob` `.claude/agent-memory/code-reviewer/*.md` (via `MEMORY.md`'s index) before reading CLAUDE.md files. These are prior-session findings scoped to this agent (false-positive patterns, sync traps between two call sites, non-obvious return shapes) — cheaper than rediscovering them, and some directly prevent a repeat false positive.
 

@@ -21,6 +21,8 @@ The mechanical parts of discovery — grep setup, search retries, recursion — 
 
 Once a doc lands, restate the user's claim and confirm the doc actually addresses that symptom, not a nearby topic mentioned in passing. An empty search result is usually a search error (bad flag, typo, gitignored dir), not a missing doc — before concluding no doc exists, search for something you know is there and confirm you find it.
 
+⚠️ **A matched line that answers your question is the strongest reason to open its file, and it reads as the reason you no longer need to.** A hit arrives already shaped like a finding — it names the entity you asked about and states something true — so the search feels concluded rather than started, and the file goes unopened while its own conclusion is that you read it. What the surrounding page holds is the part that changes your reading: the prior occurrence that makes this the second one, the procedure someone already worked out, the instruction to check the whole platform rather than the one case you asked about. Each of those is invisible from the matched line and each reframes it. The tell is a grep whose output you then reasoned from — treat every file the search named as unread until you have opened it, and note that this fires hardest on a hit you were not looking for, since an unexpected match gets classified as a coincidence and dismissed rather than followed.
+
 When a claim shifts mid-conversation, start a fresh discovery pass rather than pivoting within prior findings — a regression investigation in particular starts fresh, since the doc that explained the original behaviour rarely owns the reason it broke.
 
 ---
@@ -45,7 +47,11 @@ Read docs named in a `Related:` section — they describe the same subsystem fro
 
 **3. CLAUDE.md files**
 
-CLAUDE.md files auto-load additively by directory: root `CLAUDE.md`, then layer (`app/CLAUDE.md`), then domain (`app/Domain/<Domain>/CLAUDE.md`, capitalized), then subdir — a section that split down a level leaves one there, so don't assume the layer file is the deepest. Read the ones on the path to the files you're working with, searching only the directories actually in play rather than the whole repo.
+CLAUDE.md files auto-load additively by directory: root `CLAUDE.md` (or `.claude/CLAUDE.md`), then layer (`app/CLAUDE.md`), then domain (`app/Domain/<Domain>/CLAUDE.md`, capitalized), then subdir — a section that split down a level leaves one there, so don't assume the layer file is the deepest. Read the ones on the path to the files you're working with, searching only the directories actually in play rather than the whole repo. At each level a `CLAUDE.local.md` is appended after its `CLAUDE.md`, so personal overrides are the last thing read there.
+
+Two things load that this walk won't find. A project may keep rules in `.claude/rules/*.md`, and any of those carrying a `paths:` glob enters context only when a matching file is touched — so a rule governing the code you're about to change may not be loaded yet, and grepping for `CLAUDE.md` will never surface it. Auto memory is the other: `~/.claude/projects/<project>/memory/MEMORY.md` loads its first 200 lines every session, written by Claude rather than by anyone on the team.
+
+**`/context` lists what actually loaded.** Reach for it rather than reasoning about what should have — a nested `CLAUDE.md` that hasn't been triggered yet and one that doesn't exist are indistinguishable from the file tree, and only the deepest files survive a `/compact` unread, since nested files and path-scoped rules are not re-injected afterwards while the project root is.
 
 Scope to your actual blast radius rather than the repo, but that economy is within-repo only — it doesn't license skipping step 4, where a second checkout holds facts this walk can't reach.
 

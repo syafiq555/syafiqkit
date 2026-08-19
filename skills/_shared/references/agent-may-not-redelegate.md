@@ -4,6 +4,8 @@ Referenced by every agent template that grants the `Agent` tool. Apply when writ
 
 An agent granted `Agent` can spawn anything — including a fresh copy of itself carrying its own assignment. That is the failure this file exists to prevent, and it does not look like one from either side.
 
+Nesting is a supported capability rather than an accident: a subagent may spawn subagents up to three layers below the main conversation by default (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`). So everything below is a **policy** about what an agent *should* spawn, not a description of what it *can*. The one mechanical enforcement available is omitting `Agent` from that agent's `tools:` — worth reaching for when an agent has no legitimate reason to dispatch at all, since prose alone leaves the capability intact. *(Verified against `code.claude.com/docs/en/sub-agents.md`, 2026-08-20.)*
+
 ## The rule
 
 **Spawn agents to gather, never to do your job.** A child is for a slice of retrieval you don't want in your context: find every caller of X, read these nine files, sweep the sibling repo. It is not for the judgment you were dispatched to perform. If the child's task description could be mistaken for your own — same verb, same object, same scope — you are relaying rather than reviewing, and no one downstream can tell.
@@ -15,7 +17,7 @@ For most agents that means `Explore` and nothing else. `Explore` itself is the d
 The tools block on these templates reads:
 
 ```yaml
-  - Agent  # lets this agent spawn Explore agents for multi-target sweeps (depth-5 cap applies)
+  - Agent  # lets this agent spawn Explore agents for multi-target sweeps (depth-3 cap applies)
 ```
 
 That comment states the intent correctly and constrains nothing. It is documentation for whoever edits the file, not an instruction the agent follows — the agent gets the `Agent` tool with its full generic description, which says nothing about what this particular role should spawn. A grant with the restriction living only in a comment reads as restricted to a human reviewing the file and is unrestricted at runtime. **State the constraint in the body prose, where the agent will actually read it.**
@@ -34,7 +36,7 @@ Re-delegation produces a real report through a plausible path, so every signal a
 
 One line in the body, near where the agent is told what it may delegate:
 
-> **Spawn only `Explore`, and only for retrieval.** Never dispatch another <role>, and never hand a child your own assignment — the judgment in this brief is yours to perform, not to relay. Depth-5 cap applies; at depth 5 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+> **Spawn only `Explore`, and only for retrieval.** Never dispatch another <role>, and never hand a child your own assignment — the judgment in this brief is yours to perform, not to relay. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
 
 Name the role explicitly rather than writing "another agent of this type" — the specific noun is what makes it fire when the agent is deciding what to spawn.
 

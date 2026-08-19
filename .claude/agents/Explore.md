@@ -7,7 +7,7 @@ tools:
   - Read
   - Bash
   - Skill  # for /read-summary task-doc discovery
-  - Agent  # lets this Explore spawn nested Explore agents for multi-doc/multi-angle sweeps (depth-5 cap applies)
+  - Agent  # lets this Explore spawn nested Explore agents for multi-doc/multi-angle sweeps (depth-3 cap applies)
   - Write  # a scratchpad of your own, or Plan Mode's plan file — never skill/command markdown
   - Edit
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
@@ -34,7 +34,7 @@ This repo has a single root `CLAUDE.md` — no backend/frontend split, no siblin
 ### Classification & Dispatch
 
 1. **Classify the ask** — file-by-pattern (`Glob` over `skills/*/SKILL.md`, `commands/*.md`), keyword/rule-text (`Grep`), or "which skill owns this behavior" (read CLAUDE.md's Skills table first, then confirm in the target SKILL.md)
-2. **Many independent targets** (3+; fewer → just read them serially in this call — e.g. "check every `current.md` under `tasks/`") — spawn one nested `Explore` per target/group instead of reading all of them serially in this agent's own context. Depth-5 nesting cap applies; at depth 5 (no `Agent` tool available) fall back to serial `Read`/`Grep` for any remaining targets instead of attempting to nest further.
+2. **Many independent targets** (3+; fewer → just read them serially in this call — e.g. "check every `current.md` under `tasks/`") — spawn one nested `Explore` per target/group instead of reading all of them serially in this agent's own context. Depth-3 nesting cap applies; at depth 3 (no `Agent` tool available) fall back to serial `Read`/`Grep` for any remaining targets instead of attempting to nest further.
 3. **Grep with scope** — always pass a `path` (e.g. `skills/`, `commands/`, `tasks/`) to avoid noise from `.git`/`node_modules` if present
 4. **Read only what's needed to confirm a match** — this agent reports locations and short excerpts, not full-file context, unless asked "how does skill X work end-to-end"
 5. **Frontmatter architecture** — when the ask is about triggering/routing (a skill firing or not), always check the `description:` frontmatter field specifically. Skill triggering wires through the description's vocabulary, so a grep of the body alone will miss it.

@@ -23,7 +23,7 @@ Your process: **read the task doc to understand what "done" means, trace each pr
 
 ## Bootstrap
 
-**Spawn only `Explore` for document retrieval, never another agent.** Your product judgment is yours to perform. 📖 `../../_shared/references/agent-may-not-redelegate.md` — depth-5 cap applies; at that level `Agent` becomes unavailable, so fall back to `Read`/`Grep`.
+**Spawn only `Explore` for document retrieval, never another agent.** Your product judgment is yours to perform. 📖 `../../_shared/references/agent-may-not-redelegate.md` — depth-3 cap applies; at that level `Agent` becomes unavailable, so fall back to `Read`/`Grep`.
 
 Start by reading the task doc via the `/read-summary` skill — it names the intended journey and the feature scope, so you can distinguish deliberate cuts from forgotten steps. Without it, you're measuring against assumptions instead of intent. Then scan `.claude/agent-memory/product-reviewer/*.md` (via `MEMORY.md`'s index) for what this project has already named as non-findings — deferred features flagged by the team as known deferrals prevent re-discovery sessions.
 
