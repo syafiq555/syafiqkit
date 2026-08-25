@@ -9,7 +9,7 @@ Task docs carry decisions and gotchas that aren't derivable from the code alone.
 
 When scope changes — a new domain enters mid-conversation, a second repo touches the question, or work spans multiple files — reread the docs relevant to that new scope before proceeding. The docs you loaded at session start are scoped to their domain; a domain shift needs its own discovery.
 
-Before writing to a doc, one `ListAgents` call shows whether another session is live and possibly editing the same `current.md` — though presence alone doesn't say which checkout they're in. `../_shared/references/cross-session-messaging.md` covers what a peer's presence does and doesn't tell you.
+Before writing to a doc, one `ListAgents` call shows whether another session is live and might be editing the same `current.md`. Presence alone doesn't say which checkout they're in, so it narrows the question rather than settling it — 📖 `../_shared/references/cross-session-messaging.md` covers what a peer's presence does and doesn't tell you.
 
 ---
 
@@ -27,57 +27,41 @@ When a claim shifts mid-conversation, start a fresh discovery pass rather than p
 
 ---
 
-## Read Order {#read-order}
+## Reading Order & Authority {#read-order}
+
+Follow every pointer you encounter in sequence. Each layer — task docs, decisions, CLAUDE.md files, sibling repos, journal — holds facts the previous one didn't reach, so skipping or reordering has a cost.
+
+**Pointer chain (in sequence):**
+
+- Task doc (`current.md`) — if explicitly redirected (Merged into, Supersedes, top-level pointer), follow to the live doc.
+- Decisions and related files — follow `📖` pointers to external files and `Related:` sections.
+- CLAUDE.md files — auto-load additively by directory: root, layer, domain, subdir; also check for `.claude/rules/*.md` (loaded every session, not discovered by walk). Check `/context` to see what actually loaded rather than reasoning about what should have.
+- Sibling repos — if the question spans repos, read their `CLAUDE.md` and `CLAUDE.local.md`.
+- Private journal — grep `~/.claude/notes/` when the answer hinges on interpersonal or commercial context not in code or docs.
 
 ⚠️ **Companion files are discovered by following pointers, not by search.** Grep results omit `📖` references and external files — when you encounter a pointer to `.claude-companions/` or a reference folder, verify the path with `ls` before trusting it. The resolved file is authoritative; a broken pointer or typo reads silently as a missing fact.
 
 ⚠️ **A doc header or tech mention in shorthand is not the same as its architecture.** "React" in a header might mean the library, an SDK, or one layer of a larger stack — the *surface* of the technology the project actually uses. Stopping at the shorthand leaves you wrong about the layer. When a doc's architecture matters to your next step, read past the tables to the prose, and confirm against something on disk — an installed package, a config file, a type definition — before building on it.
 
-**1. The task doc**
+---
 
-Start with the `current.md` file for the domain at hand. If a doc is explicitly marked as redirecting to another — `Merged into`, `Supersedes`, or a `📖` pointer at the top — follow it to the live doc. A `Merged into` stub is a legacy artifact (new merges delete the source outright rather than leaving one), so following it and mentioning it wants cleanup are both right.
-
-**2. Decisions and related docs**
-
-A task doc often includes a routing section pointing to decision files (usually under `decisions/`). When you land on a file that's pure routing — headers, quick-start, and pointers to sub-files — follow those pointers to the actual decisions. Read the decision files matching your question.
-
-Follow any `📖 <file>` pointer in the doc to read external content.
-
-Read docs named in a `Related:` section — they describe the same subsystem from different angles and fill gaps one angle alone misses.
-
-**3. CLAUDE.md files**
-
-CLAUDE.md files auto-load additively by directory: root `CLAUDE.md` (or `.claude/CLAUDE.md`), then layer (`app/CLAUDE.md`), then domain (`app/Domain/<Domain>/CLAUDE.md`, capitalized), then subdir — a section that split down a level leaves one there, so don't assume the layer file is the deepest. Read the ones on the path to the files you're working with, searching only the directories actually in play rather than the whole repo. At each level a `CLAUDE.local.md` is appended after its `CLAUDE.md`, so personal overrides are the last thing read there.
-
-Two things load that this walk won't find. A project may keep rules in `.claude/rules/*.md`, and grepping for `CLAUDE.md` will never surface them — these load every session in full, including the ones carrying a `paths:` glob. The glob is documented as gating the load and was measured here not to: the file arrives in context either way, and what it influences is whether the rule gets *acted on*. So a `paths:`-scoped rule governing code you aren't touching is still loaded and still yours to reckon with — and one you dismissed as irrelevant may be a real constraint someone wrote deliberately. Auto memory is the other: `~/.claude/projects/<project>/memory/MEMORY.md` loads its first 200 lines every session, written by Claude rather than by anyone on the team.
-
-**`/context` lists what actually loaded.** Reach for it rather than reasoning about what should have — a nested `CLAUDE.md` that hasn't been triggered yet and one that doesn't exist are indistinguishable from the file tree, and a nested file that hasn't been triggered doesn't survive a `/compact` unread. Path-scoped rules aren't in that boat despite the lazy-sounding name: they load in full every session same as the project root, so they survive `/compact` the same way.
-
-Scope to your actual blast radius rather than the repo, but that economy is within-repo only — it doesn't license skipping step 4, where a second checkout holds facts this walk can't reach.
-
-**4. Sibling repos**
-
-If the question involves a second repo, read its `CLAUDE.md` and `CLAUDE.local.md` — per-environment state lives in `.local`. Follow their companion pointers next. A plausible answer grounded in one repo while real facts live in another (prod state vs staging config, for example) is the risk of skipping this.
-
-**5. Private journal**
-
-When the answer hinges on a judgment call — assessing an opportunity, pricing, resuming a thread whose history is conversation rather than code — the journal at `~/.claude/notes/` might hold the reasoning behind a prior decision. Task docs record what was built; the journal records the why. Grep `~/.claude/notes/` for vocabulary if the answer depends on interpersonal or commercial context that doesn't appear in code or task docs.
-
-**What Task Docs Are and Aren't**
+## What Task Docs Are and Aren't {#doc-authority}
 
 Task docs are authoritative for **decisions and gotchas** — why the code works this way, what will bite you, rejected alternatives. They are **not** live-state oracles; anything about a running system (prod's DB, a flag, whether an "open" bug is still open) decays the moment anyone touches a server. If the answer depends on current state, go measure it — and where doc and live system disagree, the live system wins.
 
-The exception: **schema vocabulary doesn't decay.** Column names, enum values, table shapes, and header names stay stable between sessions and live in docs' authoritative half. Before querying a table, read its column names from the docs — a guessed column either errors or returns an empty set that reads as "no rows" while the correct name sat in the reference companion. Rediscovering names one error at a time is not measurement; it's the reference read done slowly.
+**Three authority boundaries matter:**
 
-The counter-case: **a doc's claim about a third-party API's behaviour is neither of these, and it reads like the authoritative half.** "The vendor requires X" is a claim about someone else's system, written from what a past session observed or inferred, and nothing updates it when the vendor changes or when the original reading was simply wrong. It doesn't decay visibly the way a prod flag does, so it never triggers the go-measure instinct — and its cost is distinctive: a false constraint doesn't produce a wrong answer you'd notice, it makes the correct fix look unavailable, so you spend the session working around a wall that isn't there. Measured once: a doc claimed a vendor's structured-output schema required a complete field list, four rounds of work went into avoiding that change, and one request proved the vendor accepted a partial list fine. When a doc's claim about an external API is what rules out an approach, spend the one call to check it before believing it, and correct the doc in the same turn.
+- **Schema vocabulary doesn't decay** — column names, enum values, table shapes, and header names stay stable. Before querying a table, read its column names from the docs.
 
-The second counter-case sits inside the authoritative half rather than beside it: **a doc that records what someone ASKED FOR and, further down, what a past session CONCLUDED about it.** Both are decisions, so both read as authoritative — but a conclusion that resolved one premise routinely gets written as though it settled the whole request, and it is the later, narrower sentence a reader scopes from because it names an approach while the ask names an outcome. Nothing marks the narrowing; the doc is internally consistent either way, and work built on the conclusion reviews clean against the doc that caused the error. The title is the same trap in miniature — it names the shape someone had in mind on the day it was written, not the goal.
+- **Claims about external APIs are neither decided fact nor live-state.** "The vendor requires X" is a claim about someone else's system. Nothing updates it when the vendor changes, and its cost is distinctive: a false constraint makes the correct fix look unavailable. When an external API claim rules out an approach, spend the one call to check it before believing it, and correct the doc afterwards.
 
-So when a doc contains both, scope from the ask and treat the conclusion as one input to re-check, particularly where the conclusion's stated reason resolved a *premise* (a cost, a constraint, a feasibility question) rather than the request itself. Measured once: a doc opened with "a complete accounting ecosystem inside our system", concluded two paragraphs later that "the work is therefore automating that creation", and two consecutive builds scoped from the second sentence delivered one of nine requested activities before anyone noticed. **Tell: the sentence you are scoping from begins "the work is therefore".**
+- **Claims about your own code that are blocking-shaped matter most.** "This is impossible", "this must come first", or "we have no way to do this" reorder work and produce no failure to notice — only a plan bent around them. Read the code a blocker rests on before planning around it. Where a blocker is true for one case and false for another, say which — a blocker narrowed is more useful than one deleted.
+
+**A doc that records both what someone ASKED FOR and what a session CONCLUDED can misdirect.** Both are decisions, so both read as authoritative — but a conclusion that resolved one premise is often written as though it settled the whole request, and it is the later, narrower sentence a reader scopes from. So when a doc contains both, scope from the ask and treat the conclusion as one input to re-check, particularly where the conclusion's stated reason resolved a *premise* (a cost, a constraint, a feasibility question) rather than the request itself. **Tell: the sentence you are scoping from begins "the work is therefore".**
 
 Reading a doc is also auditing it. Sweep the fields written once and checked least — `Quick Start`, `Status:`, `Immediate next actions` — since those carry the costliest staleness, and route what you find in the same turn to the `task-summary` skill (project facts) or `update-plugin` (skill defects). An offer parked on the user's reply isn't routing: they act on your answer, often never respond, and the finding dies with the conversation.
 
-When a doc's claim about running state is load-bearing for your answer, open `📖 references/doc-authority.md` — it covers the full authoritative-for/not table, the mirror trap (re-deriving a settled decision from the doc reads as not having read it), and how to handle live-state contradictions.
+📖 `../read-summary/references/doc-authority.md` — edge cases and troubleshooting when a doc's claim contradicts live state, when external-system claims go stale, and how to handle blockers that are true for some paths and false for others.
 
 ---
 
@@ -91,26 +75,6 @@ Once the docs are read, three patterns determine what happens next:
 
 - **Task description** — a bug report, feature request, or work description → read the relevant docs (infer domain from keywords), then proceed to implement.
 
-### Decision-first on every turn after {#decision-first}
-
-This skill runs at the start of most sessions, establishing a rule that carries forward into every turn: **any turn that ends on a question states the decision needed before the report.** A build incomplete, a next step you don't own, two paths open with one for the user to pick — all need a decision frame. This isn't a separate wrapper; it's part of your answer shape. The decision tells them what's actually unresolved; the report shows them what you've built.
-
-The same rule applies to the wrap-up skills (`done`, `quick-done`, `ship`) on their final turns — don't end on pending questions without naming them.
-
-How a decision gets shaped depends on how many are open: one takes a different form from several, and not every question mark is a real decision point. `../_shared/references/decision-first-output.md` owns the full test logic.
-
----
-
-## Agents
-
-For doc discovery, dispatch the `Explore` agent to search task docs by content. The agent returns raw hits; your judgment ranks them and picks the right doc. While the agent runs, do other work or think — don't re-read or re-grep the same files yourself. That duplication costs context for a fact you'll see again in the agent's report, and the check that makes delegation safe is verification *after* the report, not before.
-
-One clause belongs in the prompt itself, since it isn't derivable from the agent's side: tell it to batch its searches into few calls instead of one per pattern. `../_shared/references/explore-delegation.md` has the rest of the mechanics, including what separates delegable gathering from judgment you keep.
-
-For implementing work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline. This skill prescribes only the agent for its own discovery step.
-
-**Generated agents can drift from their templates.** An agent's `.md` file holds only what its template had on generation day — if the template gained a safety constraint or a tool permission since then, the agent won't have it. Dispatching a stale agent looks normal (returns a report just fine) but may violate a safety rule or skip a check. The first time a session dispatches a project agent, validate the safety-critical constraints. 📖 `references/validating-generated-agents.md` has the checks.
-
 ---
 
 ## Plan Mode {#plan-mode}
@@ -118,3 +82,30 @@ For implementing work after docs are read, the project's CLAUDE.md determines wh
 After reading docs, if the next step is clear (answer a question, investigate, implement), proceed. If the approach isn't yet clear — you need to know where a surface lives in the codebase or how to design a solution — delegate that search before proposing. Use `Explore` for "where does X live" and `Plan` for "how should I build this."
 
 A doc's silence about something doesn't mean it's incomplete; it means nobody's needed that path yet. The absence of a doc entry isn't a blocker for design — it means you're in genuinely new territory, which is fine. Delegate only when exploration answers a question your design depends on.
+
+---
+
+## Decision-First on Every Turn After {#decision-first}
+
+This skill runs at the start of most sessions, establishing a rule that carries forward into every turn: **any turn that ends on a question states the decision needed before the report.** A build incomplete, a next step you don't own, two paths open with one for the user to pick — all need a decision frame. This isn't a separate wrapper; it's part of your answer shape. The decision tells them what's actually unresolved; the report shows them what you've built.
+
+The same rule applies to the wrap-up skills (`done`, `quick-done`, `ship`) on their final turns — don't end on pending questions without naming them.
+
+**Decision shapes** — not every question mark is a real decision point. When multiple paths are open:
+- **One path** — name it, and explain why it's the one. "We should X because Y" is a complete decision.
+- **Several paths** — list them with a trade-off ("X costs time, Y costs money, Z is reversible"), then either pick the best-fit (if the trade-off points one way) or state which dimension the user should decide on.
+- **A missing fact** — if the decision hinges on something unmeasured, say what to measure and how it would change the decision.
+
+📖 `../_shared/references/decision-first-output.md` — the full test logic for when a question-mark ending does or doesn't require a decision frame.
+
+---
+
+## Agents
+
+For doc discovery, dispatch the `Explore` agent to search task docs by content. The agent returns raw hits; your judgment ranks them and picks the right doc. While the agent runs, do other work or think — don't re-read or re-grep the same files yourself. That duplication costs context for a fact you'll see again in the agent's report, and the check that makes delegation safe is verification *after* the report, not before.
+
+One clause belongs in the prompt itself, since it isn't derivable from the agent's side: tell it to batch its searches into few calls instead of one per pattern. 📖 `../_shared/references/explore-delegation.md` has the rest of the mechanics, including what separates delegable gathering from judgment you keep.
+
+For implementing work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline. This skill prescribes only the agent for its own discovery step.
+
+**Generated agents can drift from their templates.** An agent's `.md` file holds only what its template had on generation day — if the template gained a safety constraint or a tool permission since then, the agent won't have it. Dispatching a stale agent looks normal (returns a report just fine) but may violate a safety rule or skip a check. The first time a session dispatches a project agent, validate the safety-critical constraints. 📖 `references/validating-generated-agents.md` has the checks.

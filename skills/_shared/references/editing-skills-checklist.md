@@ -46,7 +46,7 @@ When modifying a skill, before landing the change, verify:
 
 ### Skill Feels Bloated
 
-Run `update-plugin`'s Step 3a density checklist before a from-scratch audit. Look for stacked warnings, worked anecdotes, cold-path extraction. If a skill was condensed before, check whether this is an arrival-rate problem rather than raw density — re-condensing has regressed both times it was tried. Extract cold paths to `references/` and apply Step 3a's replace-or-route gate; a B/L ratio barely moving after extraction means rules are irreducible, not under-cut.
+Run `update-plugin`'s Step 4 density checklist before a from-scratch audit. Look for stacked warnings, worked anecdotes, cold-path extraction. If a skill was condensed before, check whether this is an arrival-rate problem rather than raw density — re-condensing has regressed both times it was tried. Extract cold paths to `references/` and apply Step 3a's replace-or-route gate; a B/L ratio barely moving after extraction means rules are irreducible, not under-cut.
 
 ### Adding a New Skill with Routing
 

@@ -32,15 +32,17 @@ Settle who owns the target file before writing it — this applies in every mode
 
 ## The Three Routing Gates {#routing-gates}
 
-Every signal that survives the scan passes three gates before routing:
+Every signal routes by asking three questions in order:
 
-1. **Is it derivable?** Can the reader reconstruct it by listing a directory, searching the tree, reading source, asking the tool for its own help, or looking at the manifest? If yes, cut it — the tool or codebase says it already.
-2. **Is it safety-critical or routine?** Does the rule need to fire before the reader acts (resident in CLAUDE.md), or only when something breaks (lazy-load into a skill/companion)?
-3. **What scope owns it?** Is it global, project-wide, layer-specific (app/resources/js/tests), or subdir-specific?
+1. **Derivable?** Can the reader reconstruct it by listing a directory, searching the tree, reading source, or looking at the manifest? If yes, cut it.
+2. **Safety-critical?** Must the rule fire before action, or only during failure? (Prohibitions always resident; details of-use-only stay lazy-load.)
+3. **Scope?** Is it global, project-wide, layer-specific (app/resources/js/tests), or subdir-specific?
 
-Pass all three and the fact routes to CLAUDE.md. Fail the first and cut. Fail the second and move to a skill or companion. The order matters: derivability is the cheapest gate (fastest to check), so always run it first.
+All three → CLAUDE.md. Fail derivability → cut. Fail safety → move to a skill or companion. Check derivability first (fastest); it's the gating question. When a call is close, 📖 `${CLAUDE_SKILL_DIR}/references/derivability-examples.md` lists what to cut and what survives the gate despite looking derivable.
 
-📖 `${CLAUDE_SKILL_DIR}/references/pointer-discipline.md` — read when a `> 📖` line is in play: following a pointer, a companion left stale because grep "found" it, a pointer's own `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
+A `> 📖` pointer in a CLAUDE.md is a load-bearing instruction rather than a citation, and writing one against a folder name lands the reader somewhere plausible and wrong — find the target by content first. 📖 `${CLAUDE_SKILL_DIR}/references/pointer-discipline.md`
+
+📖 `${CLAUDE_SKILL_DIR}/references/routing-scope.md` — hierarchy ladder, seam test, file privacy check.
 
 ---
 
@@ -57,13 +59,13 @@ Scan for four signal classes:
 - **Undocumented facts** — gotchas, environment surprises, discoveries code can't explain.
 - **Violated rules** — moments when this session ignored an existing CLAUDE.md rule.
 - **Repeating patterns** — same approach 2+ times, or same mistake corrected twice.
-- **Rules made FALSE** — work that stales existing instructions. *This class is easiest to miss.* Ask what the docs previously said before the change, then search using those old terms.
+- **Rules made FALSE** — work that stales existing instructions. Ask what the docs previously said before the change, then search using those old terms.
 
-Also scan for user prefs (e.g., "communicate like this"), machine context, credentials, and 3+ reuse of a CLI pattern — these route to `CLAUDE.local.md`.
+Also capture machine-local context: credentials, CLI patterns (3+ reuse), infrastructure handles. These route to `CLAUDE.local.md`, not CLAUDE.md. Capture machine context by asking **what did I have to know to reach a system this session, that a fresh session would not know?** Walk the session's actual commands — every host connected to, database queried, container entered, token or path read. A recipe that worked first time leaves no narrative trace and reads as common knowledge; that silence is the signal. 📖 `${CLAUDE_SKILL_DIR}/references/local-md-checklist.md` for the item-by-item list and the extraction patterns worth saving verbatim.
 
-When a signal arrives from outside the session (article, vendor guide, audit report), search the project's decision records first — a team that met it before will have graded it.
+When a signal arrives from outside the session (article, vendor guide), search the project's decision records first — a team that met it before will have graded it.
 
-A signal is a candidate, not a verdict. Most shouldn't become entries. Before grepping, ask what the reader gains: a fact they couldn't derive is worth a line; restating what surrounding rules imply dilutes them. Prefer sharpening an existing rule to adding a neighbor. Writing nothing is a legitimate outcome.
+Most signals shouldn't become entries. Before grepping, ask what the reader gains: a fact they couldn't derive is worth a line; restating what surrounding rules imply dilutes them. Prefer sharpening an existing rule to adding a neighbor. Writing nothing is a legitimate outcome.
 
 **Special case: Structural gaps** route to `references/structure.md` §3/§5, not the session capture flow.
 
@@ -81,62 +83,31 @@ For each signal that clears that, classify whether the rule exists:
 
 Ask what the fact is ABOUT, not where it was found. A codebase fact routes down the hierarchy; a tool/framework fact belongs at the level it's true everywhere.
 
-For **Derivability gate**: Can the reader reconstruct this by inspecting the codebase? 📖 `${CLAUDE_SKILL_DIR}/references/derivability-examples.md`.
+The three gates are the same ones above. The order stays: derivability (fastest, gates everything), then safety-critical (resident vs. lazy-load), then scope (hierarchy). Before writing, read the target file to check structure, existing entries, and where new content fits.
 
-For **Residency gate** (gate 2):
+## 3. Write — Match Form to Content
 
-| Resident | Lazy-load |
-|----------|-----------|
-| **Every decision** (e.g., "never push to main") | **Task-specific** (e.g., "agent bootstrapping") |
-| **Code style** (used constantly) | **On-demand** (diagnosed when broken) |
-| **Safety-critical** (must fire always) | **Reference tables** (indexed by symptom) |
+Keep an entry to the rule plus its single strongest reason — session storytelling belongs in git history. Let the answer pick the form: a mechanism becomes prose; an exact string (command, error, id) stays a table row. 📖 `${CLAUDE_SKILL_DIR}/references/entry-style.md`.
 
-**Rule: "I read this before acting"** → resident. **"I read this because something broke"** → lazy-load.
+When replacing an existing rule, replace old text rather than appending — a second warning dilutes what came first. 📖 `${CLAUDE_SKILL_DIR}/references/violations-refinement.md` for escalation guidance.
 
-For **Scope** (gate 3): 📖 `${CLAUDE_SKILL_DIR}/references/routing-scope.md` — hierarchy ladder, seam test, file privacy check.
+Write in house style (`references/structure.md` §4). A gotcha whose fix is a lookup becomes a `Symptom | Cause | Fix` row; a bare do/don't becomes `❌/✅`; a rule needing reasoning becomes prose. Capture is additive — add new entries without restructuring what surrounds them; a file whose whole shape is off is a Rewrite-mode job.
 
-Before writing, read the target file to check structure, existing entries, and where new content fits.
-
-### CLAUDE.local.md Routing
-
-Credentials, tokens, CLI patterns, and infrastructure handles route here. 📖 `${CLAUDE_SKILL_DIR}/references/local-md-checklist.md`.
-
-## 3. Write — Hard Rules
-
-Two shape rules carry most of the weight. Keep an entry to the rule plus its single strongest reason — session storytelling belongs in git history, not the file. And let the answer pick the form: a constraint the reader reasons through becomes prose stating the mechanism, while an answer that is one exact string (a command, an error, an id) stays a table row, because prose has nowhere to put a literal value without becoming a table again.
-
-📖 `${CLAUDE_SKILL_DIR}/references/entry-style.md` — the non-guessable-command bar, the one-row-table trap, and how each signal type shapes its entry.
-
-### Violations → Escalate by position, not length
-
-Replace old text rather than appending a second warning. 📖 `${CLAUDE_SKILL_DIR}/references/violations-refinement.md` — escalation checklist.
-
-**Write the entry in house style** — `references/structure.md` §4, in whatever repo you're in. A gotcha whose fix is a lookup becomes a `Symptom | Cause | Fix` row, a bare do/don't becomes an `❌/✅` pair, a rule needing reasoning becomes prose, and the heading it lands under gets an `{#anchor}`. Capture is additive, so this shapes the entry you add rather than licensing a restructure of what surrounds it; a file whose whole shape is off is a Rewrite-mode job, not something to fix one entry at a time.
-
-### Constraints
-
-- No duplicates across CLAUDE.md files — and the search that settles it runs **before** the write, not at Step 5. A concept already covered in other words returns nothing to a grep of your own phrasing, so the sole evidence you have is a search whose vocabulary you did not pick: the mechanism's terms, the symptom's, the neighbouring section's. What this catches is rarely a verbatim copy — it is a general rule already stated elsewhere that your entry re-derives while adding one genuinely new instance. That entry should shrink to the instance and point at the section owning the mechanism, which is a decision about what to write and therefore has to happen before writing it
-- Route to narrowest scope
-- One refinement round per signal, then move on
-- Write with `Edit` — not `Write`, and not a `sed`/`python` rewrite. Both alternatives replace an anchor check with your own care: `Edit` refuses an anchor that is absent *or* non-unique, which is what stops an edit landing on the wrong occurrence of a repeated heading
+**Before writing:** Check for duplicates across CLAUDE.md files using vocabulary from the mechanism, symptom, and neighbouring section—not your own phrasing. A concept already covered elsewhere should shrink to just the new instance and point at the existing rule. Use `Edit` for the write, never `Write` — `Edit` guards against absent or non-unique anchors.
 
 ## 4. Prune — Delegate to project agent
 
-Check whether the project has a `claude-md-pruner` agent. Before spawning: **measure the file's line count and net delta** (floor premise), and **re-check ownership** (peer edits may have started). Skip if contested, already decided, or under floor. 📖 `${CLAUDE_SKILL_DIR}/references/prune-delegation.md`.
+Check whether the project has a `claude-md-pruner` agent. Before spawning: measure the file's line count and net delta (floor premise), and re-check ownership (peer edits may have started). Skip if contested, already decided, or under floor. 📖 `${CLAUDE_SKILL_DIR}/references/prune-delegation.md`.
 
 ## 5. Validate
 
-Two checks are worth running even if you read nothing else. **Ask whether removing the entry would let Claude repeat the mistake** — if not, delete it. And **re-read it against the section you wrote into, not just against your own keyword**: a grep tests your phrasing, so an existing rule worded differently comes back empty and reads as clearance to add a second copy.
+Ask whether removing the entry would let Claude repeat the mistake — if not, delete it. Re-read it against the section you wrote into, not just your own keyword search: a grep tests your phrasing, so an existing rule worded differently appears empty and reads as clearance to add a second copy. 📖 `${CLAUDE_SKILL_DIR}/references/validation-checks.md` for the other five checks.
 
-📖 `${CLAUDE_SKILL_DIR}/references/validation-checks.md` — the other five, including the narrative-marker scan and the Fix-column specificity test.
-
-**Task docs vs. CLAUDE.md**: Feature-specific patterns stay in `tasks/**/current.md`. Only broadly-applicable patterns go in CLAUDE.md.
+Feature-specific patterns stay in `tasks/**/current.md`; only broadly-applicable patterns go in CLAUDE.md.
 
 ## 6. Agent Sync
 
-**Default: skip.** Agents read CLAUDE.md at runtime via Bootstrap.
-
-Only five signals require an agent edit: false-positive, guard repeatedly collapsed, zero-latency mistake class, agent misbehavior, or sibling repo entry. 📖 `${CLAUDE_SKILL_DIR}/references/agent-sync.md`.
+Default: skip. Agents read CLAUDE.md at runtime via Bootstrap. Only edit an agent when a false-positive repeats, a guard collapses repeatedly, a mistake happens at zero latency, the agent misbehaves, or a sibling repo entry applies. 📖 `${CLAUDE_SKILL_DIR}/references/agent-sync.md`.
 
 ---
 
@@ -148,12 +119,10 @@ Cold-path modes. All three read `references/structure.md` (hierarchy, taxonomy, 
 - **Rewrite**: restructure to canonical order, inventory-then-diff for zero rules dropped.
 - **Condense**: delegate to `syafiqkit:condense-claude-md`.
 
-**House style is the standard in every repo, and this skill enforces it.** The canonical shape in `references/structure.md` applies to any CLAUDE.md this skill touches, whether it sits in this plugin or in a consumer's project — someone invoking a restructure asked for one, and a pass that defers to whatever it found delivers nothing. An existing file's consistency is not evidence to weigh: a shape applied uniformly is what one pass produces, so uniformity says a pass was uniform and nothing about whether it was right.
-
-What that does *not* license is losing content. Inventory every rule before touching anything and diff it against the result; rules only disappear via the capture filter (derivable, linter-enforced, feature-specific), never because they didn't fit the shape you were converting into. Say in one line what you restructured. 📖 `../_shared/references/adopt-vs-impose.md`
+House style in `references/structure.md` applies to any CLAUDE.md this skill touches — a restructure asked for one, and a pass that defers delivers nothing. An existing file's uniformity is not evidence: it's what one pass produces. Rules only disappear via the capture filter (derivable, linter-enforced, feature-specific), never because they didn't fit the shape. Inventory before touching and diff after; say in one line what you restructured. 📖 `../_shared/references/adopt-vs-impose.md`
 
 ## Rewrite mode: Delegation safety
 
-⚠️ **When a Rewrite is DELEGATED, the inventory claim in its report is the one claim its self-assessment cannot be trusted for.** A delegated pass returning "zero rules deleted" is describing its intent; the same run can drop a rule with a documented incident behind it and report it clean, because the correct pass and a lossy one read identically in summary form. The dispatching session must take its own `cp` of the file BEFORE dispatch and diff against that afterwards — an inventory existing only inside the agent's context is unfalsifiable the moment the agent returns.
+When a Rewrite is delegated, the inventory claim is the only claim its self-assessment cannot be trusted for. A delegated pass returning "zero rules deleted" describes intent, not outcome; it can drop a rule with a documented incident and report it clean, because correct and lossy passes read identically in summary form. Take your own `cp` BEFORE dispatch and diff after — an inventory existing only inside the agent's context is unfalsifiable once the agent returns.
 
-Two failure modes recur in opposite directions, so name which one you are guarding against. A rewrite legitimately rewords, so a rule can survive carrying none of its original tokens — a keyword miss is a place to open and read, never a loss to report. But `package.json`, a config file or the codebase "already having" a value is not the capture filter: those hold the value while the rule holds why it bites (a script exists, but not that it silently skips untracked files and still reports clean). **Tell: your justification for a deletion is that something else in the repo already contains the string.**
+A rewrite legitimately rewords, so a rule can survive carrying none of its original tokens. A keyword miss is not a loss. But the codebase "already having" a value is not the capture filter: the codebase holds the value, the rule holds why it matters (a script exists; the fact that it silently skips untracked files and still reports clean is the bite). Before deleting, ask: is my justification that something else in the repo already contains the string? If yes, stop.

@@ -7,11 +7,11 @@ description: Post-task cleanup - simplify code, review changes, update docs, cap
 
 Execute all steps in sequence. The skill is designed to run steps in a single turn without pausing — if you find yourself naming a remaining step rather than invoking it, that's a pause.
 
-**`run_in_background: false` is not a guarantee the call blocks** — [subagents run in the background by default since v2.1.198](https://code.claude.com/docs/en/sub-agents), and [#69691](https://github.com/anthropics/claude-code/issues/69691) reports `false` is ignored in top-level sessions. Pass it anyway to express intent, but expect results as `<task-notification>`s regardless — see Step 1 for what that means in practice.
+Subagents run in the background by default, so what arrives is a `<task-notification>` — check Step 1 for what that means in practice. A notification says an agent finished; it does not carry what the agent found. An agent spawned with `name:` is an addressable teammate whose plain-text output never reaches you, so its prompt must tell it to report via `SendMessage` or the findings are silently absent while every agent shows complete.
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
 
-**The contract, stated here because the rest of this file may not survive.** A long session usually compacts before reaching `/done`, and only a skill's opening survives that — so read this now rather than expecting the steps below to still be here.
+**The contract.** A long session usually compacts before reaching `/done`, and only a skill's opening survives that — so read this now rather than expecting the steps below to still be here.
 
 You owe six rows: Simplify · Review · Product · Knowledge · Task docs · Plugin. **Every row is a claim that a step actually ran** — an agent you dispatched with the right kind of prompt, or a skill you invoked *and then confirmed changed something on disk*. Invoking is not updating. A row you cannot substantiate is a step you skipped, so go run it rather than writing `✅`. Then check that anything the user must decide is the first thing they read, not buried under a report.
 
@@ -19,25 +19,18 @@ If you reach the end of this file and the exit gate is missing from your context
 
 ## Mode selection (decide first)
 
-Choose a mode that reflects what the session changed, then apply its step cascade below. Mode selection cascades consequences across all downstream steps.
+**Know your session's scope before choosing agents.** Read `git status --short` and recent commits, then match the session to a mode. Mode selection cascades consequences across all downstream steps — different agents run, different rows fill the Output, and different verification checks apply.
 
-**Docs-only mode** when the diff is entirely documentation — task docs, CLAUDE.md, README, `skills/*/SKILL.md`, `commands/*.md`, `.claude/agents/*.md`, `references/`, and nothing else (`git status --short` shows no `.php`/`.ts`/`.tsx`/etc.). This mode is **additive, not subtractive** — it runs the full agent trio like full mode AND adds a docs-specific check; the agents are not skipped for prose. A doc can still hide a defect the agents catch: instruction markdown a future session *executes* has logic (a gate whose inputs no step computes, a threshold ambiguous against two numbers, an ordering defect *between* steps), and even a plain README can describe a workflow wrong — a referential check alone misses both.
-- Step 1: **run all three agents (full-mode counts + partition)** AND run a **referential-integrity check** yourself: no broken `tasks/**/current.md` or `CLAUDE.md` links, renamed/deleted paths fully reconciled (0 stale refs), anchors unique, `> 📖` pointers resolve, and no edited table has a row/callout wedged mid-table (a blank line or prose between `|`-rows splits one GFM table into two).
-- Steps 2-5 as normal (temp-artifact scan rarely applies to docs; knowledge capture + task-doc reconciliation still run). **Step 5's Gate B runs in every mode** — a docs-only diff is exactly where a hand-edited skill file hides.
-- Output: fill Simplify/Review/Product from the agent runs as in full mode; ALSO report the referential-integrity result (append it to the Review row).
-- **The partition must cover the whole SESSION's work, not just the uncommitted diff.** Code you already committed this session was never agent-reviewed, and the working tree may show only `.md` changes — so count files from `git show --stat <this-session's commit>` + the uncommitted diff and partition all of them. The tell: a commit you authored this session in `git log`, but `git status --short` lists only docs.
+| Mode | When | Step 1 runs | Verification |
+|------|------|------------|--------------|
+| **Full** (default) | Multi-file features, multi-domain work, or anything with external inputs | Three agents + partition | Agent reports |
+| **Docs-only** | Diff is entirely markdown (task docs, CLAUDE.md, SKILL.md, commands/, agents/, references/) | Three agents + referential-integrity check | Agent reports + pointer resolution, anchor uniqueness, link validity, no wedged table rows |
+| **Infra-only** | Entirely configuration code (CI, Dockerfile, nginx/env config, provisioning scripts); no application code | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
+| **Ops-only** | System changes applied out-of-band (deploy, backfill, config flip); no repo diff, no commit | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 
-**Infra-only mode** when the diff is **entirely code that configures or operates an environment**, with no application code — CI workflows, compose/Dockerfile, build and nginx/env config, plus the provisioning, promotion and guard scripts beside them. The boundary is a mechanism, not a file-type list: infra is code whose failures are SILENT and whose blast radius is an environment rather than a user journey, so nothing in the test suite would fail if the file were wrong. ⚠️ A config change that FLIPS A FEATURE FLAG on is NOT infra-only — it exposes a user-facing capability, so the product reviewer runs.
+**Docs-only partition rule:** Count changed files from `git show --stat <this-session's commit>` PLUS the uncommitted diff — agent review covers both, since code committed earlier this session was never reviewed. 
 
-**Ops-only mode** when the session changed a **running system rather than the repo** — provisioning, a backfill, a deploy or config flip applied out-of-band — and produced **no repo diff and no session commit** in any repo. Verification is a read-back from the live system, not an agent.
-
-📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` for either one's step cascade and Output rows — read it once you've matched the session to one of them, since which agents run differs from full mode in both.
-
-**Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
-
-**An empty `git status --short` doesn't by itself select a no-code mode.** It means: work already committed (full mode, use git variants), another writer's tree, or genuinely no repo changes (ops-only). Name which before treating "nothing to review" as the answer.
-
-When git errors (`not a git repository` or no first commit), don't assume ops-only — an unversioned project still has code. Run **full mode** with substitutes per 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/verifying-a-write-landed.md` (mtime for changed-file list, re-read/grep for verification).
+**Ambiguous signal?** Empty `git status --short` means: work already committed (full mode + git variants to list it), another writer's tree, or no changes at all. Name which. When git errors (no repo, no first commit), run **full mode** with substitutes per 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/verifying-a-write-landed.md`.
 
 
 ## Step 1: Simplify + Review + Product Review (parallel)
@@ -55,40 +48,36 @@ Establish which files belong to this session before spawning agents — judge by
 
 **Give at most ONE agent write authority over any given file.** Simplifier and reviewer both carry `Edit`, so handing both the same list races them on one file — and a diff small enough that neither role splits is exactly where that looks correct. Overlapping READS are fine; overlapping writes produce transient diagnostics indistinguishable from real defects, and the post-fan-out `HEAD`/`status` re-read does not detect it.
 
+**When the session spans more than one repo, the partition axis is the repo before it is the file, and every count is per-repo.** A second checkout is easy to under-serve because the whole skill reads in the singular: `git status --short` answers for whichever directory you happen to be in, so a file count taken once silently describes one repo and the other's work goes unreviewed. Run the counting variants in each repo (📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`) and sum for agent scaling. Then state the *other* repo's path in each agent's prompt as out of bounds — the verb ban above stops destructive commands but says nothing about an agent helpfully editing a sibling checkout it can see, and a partition listing only paths reads as advisory once an agent notices a related file next door. Where the repos differ in language or toolchain, that split is usually also the natural role split (one repo's diff to the reviewer, the other's to the simplifier), which gets one-writer-per-file for free.
+
 Read 📖 `${CLAUDE_SKILL_DIR}/references/owner-and-partition.md` for the ownership decision process and how to handle contested files.
 
-Once you've settled ownership, emit all applicable agents in **ONE message** with no prose before the `Agent` calls — no count, no plan, no "spawning N agents now". The Emission rule is non-negotiable: open with the first call, emit the rest back-to-back. Narration ends the message early.
-
-⚠️ **The cost is serialisation, and it is invisible because every agent still runs.** A sentence before the first `Agent` call closes the message, so the remaining calls go out in later messages: the agents then start minutes apart instead of together, and each one's report lands while you are still writing the next dispatch — which is exactly the mid-flight reading the "work on something disjoint" rule below exists to prevent. Nothing errors, the reports all arrive, and the run reads as normal. **Tell: you are about to write a sentence introducing the dispatch.** The introduction is what you write *after* the last call, not before the first — and if you catch yourself having already sent one, send the remaining calls immediately rather than adding a second explanation.
-
-⚠️ **A harness or output style that asks you to announce your tool calls is the live exception, and obeying it here is how this rule keeps getting broken.** The instruction is real and arrives with system authority, so the announcing sentence reads as required rather than as the thing being warned about — and a sentence *naming the emission rule* ("dispatching all three in one message") is the most convincing form it takes, because describing compliance feels like compliance. Spend that line on the earlier message where you settle the partition, then open this one with the first `Agent` call. Recorded three times now, each by a session that had read the rule minutes before; the recurrence is about which instruction wins at the moment of acting, not about how firmly this one is worded.
+Once you've settled ownership, emit all applicable agents in **ONE message**, opening with the first `Agent` call and emitting the rest back-to-back. No prose before the first call; open with it. Narration before the dispatch closes the message early, serializing the agent starts and making their reports land while you're writing the next dispatch — exactly the opposite of what parallelism gains. Write any introduction *after* the last call.
 
 ### Agents to run
 
-**Check for project agents first:**
+**Check for project agents first** by globbing:
 ```
 Glob: .claude/agents/code-simplifier.md
 Glob: .claude/agents/code-reviewer.md
 Glob: .claude/agents/product-reviewer.md
 ```
 
-| Agent | Project agent found? | Fallback subagent_type |
-|-------|---------------------|------------------------|
-| Simplifier | `subagent_type: "code-simplifier"` | `"code-simplifier:code-simplifier"` |
-| Reviewer | `subagent_type: "code-reviewer"` | `"feature-dev:code-reviewer"` |
-| Product reviewer (full mode only) | `subagent_type: "product-reviewer"` | *(none — skip if the project file is absent)* |
+| Agent | When found | Type to dispatch |
+|-------|-----------|------------------|
+| Simplifier | Project file exists | `"code-simplifier"` or fallback `"code-simplifier:code-simplifier"` |
+| Reviewer | Project file exists | `"code-reviewer"` or fallback `"feature-dev:code-reviewer"` |
+| Product reviewer (full mode only) | Project file exists | `"product-reviewer"` or skip if absent |
 
-Run the Glob first every time — don't assume.
+**Project agents written this session won't register in time.** Read 📖 `${CLAUDE_SKILL_DIR}/references/project-agent-dispatch.md` for the timing gap, the dispatch workaround, and how to note it in the Output.
 
-⚠️ **A Glob hit is not proof the agent is dispatchable.** Project agents register when the session starts, so one written *this* session exists on disk and is absent from the harness's registry — `Agent(subagent_type: "code-reviewer")` then fails with *"Agent type not found"*, and the fallback types in the table above are usually missing too, since a project that just generated its own agents has no plugin-supplied ones either. `/reload-plugins` does not help; project agents aren't plugins. Rather than skip the step, dispatch `general-purpose` and hand it the agent file as its brief — "read `.claude/agents/<name>.md` and adopt it as your brief, then …" — which preserves the role's own process and false-positive tables. Note in the Output which agents ran this way.
-
-**`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** Spawn it **only when the user asked in words** — "the diff touches UI so they'd want runtime proof" is an inference. A UI diff is a reason to offer, never a reason to spawn. See `references/browser-verification.md`.
+**`browser-verifier` is opt-in only.** Spawn it only when the user asked for it in words — "the diff touches UI so they'd want runtime proof" is an inference and not a reason to spawn. A UI diff is a reason to offer, never to spawn. 📖 `${CLAUDE_SKILL_DIR}/references/browser-verification.md`
 
 ### Agent Count & Prompting
 
 Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`, then read 📖 `${CLAUDE_SKILL_DIR}/references/emission-and-agent-counts.md` for the scaling table, partitioning rules, and what each agent prompt needs. The guide covers all role-specific prompting and how to supply high-value details (unsure judgement calls, what you've already verified, what you didn't check).
 
-**While they run:** Work on something disjoint. The verification agenda below is rich and already in your head; starting it early duplicates the agents and destroys the check that makes delegating safe. Waiting costs nothing and polling costs the delegation. 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/explore-delegation.md`
+**While they run:** Start the verification agenda below — reading agent blind spots, preparing your re-reads of git state, deciding output structure. Don't duplicate the agents' work by previewing changes in parallel; that destroys the check that makes delegation safe. 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/explore-delegation.md`
 
 **After all agents complete:**
 
@@ -130,6 +119,10 @@ Two gates, and **Gate B is the one that gets missed**: it fires whenever this se
 
 Read 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` for the ownership settlement and what "replaced/routed/grew" means for each file.
 
+**Gate B keys on paths, so it re-fires on work a previous run already routed.** Once those files land in a session commit they stay in `git show --stat` for every later `/done`, and a second run sees the same hit with nothing new behind it — which reads as an unrouted edit rather than a finished one. Ask what changed since the last `update-plugin` run, the way Step 4 already does for `task-summary`: nothing new means the gate is satisfied, and saying so in the Output is the honest row. A genuinely new signal means invoking scoped to that signal, since passing the whole session re-derives conclusions already shipped and the version bump it produces looks like new work.
+
+⚠️ **A peer session can own the plugin tree while you decide this.** `update-plugin` is exactly what a fork gets dispatched to run, so the checkout may already carry a version bump and edits that are not yours. Read `git -C <plugin-dir> status --short` and the CHANGELOG head before writing — your signal may be captured there already, in better form, and two sessions bumping the same version in one afternoon is the collision this avoids.
+
 Invoke `syafiqkit:update-plugin` once you've settled ownership — it owns everything downstream (patch skill files + version + CHANGELOG for owner, or draft GitHub issue for consumer).
 
 ## Exit Gate — Verify Steps Ran Before Writing Output
@@ -149,6 +142,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 - Omit rows that have nothing; don't fill with "N/A".
 - One change = one `### [Change]` + `### Session`; don't invent structure.
 - A change with only ✅ across every row still gets its heading (it tells the reader "here's everything about X").
+- Multi-repo: name the repo and branch per change, since the reader's next act is committing and the two repos rarely share a branch name or a push consequence. Say plainly where work in one repo is inert without the other — a queue whose consumer lives in the sibling checkout ships as a no-op if only one side lands.
 
 **Output template:**
 

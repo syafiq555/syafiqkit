@@ -12,7 +12,7 @@ A task doc's job is to be readable cold — a stranger to the work reads it once
 ## Workflow at a glance
 
 1. **Resolve path** — turn the input (full path / `domain/feature` / empty) into `tasks/<domain>/<feature>/current.md`. No explicit path → run the multi-domain scan first (§1).
-2. **Read `references/templates.md`** — then pick Full (multi-session feature) or Minimal (single bug fix or short session). Section headings, table columns and field names come from it verbatim. Read it on an **update** too, even though there's no template to pick then — skipping it is how an existing doc's own drift gets mistaken for the spec (§2 covers why).
+2. **Read `references/templates.md`** — then pick Full (multi-session feature) or Minimal (single bug fix or short session). Section headings, table columns and field names come from it verbatim.
 3. **Create or update** — missing doc → Full template; existing doc → edit in place, gap-checking for missing sections.
 4. **Validate** — re-read the whole doc; does every section still say something true and complete? (§5 lists the checks.)
 5. **Reconcile back-references** — sync any roadmap/hub/`Related:` doc that mirrors the status you changed. Nothing in a git diff points at these, so the scan in step 1 never reaches them and a roadmap row can still read "uncommitted" weeks after ship. Go looking for them deliberately; §6 has the method.
@@ -30,6 +30,8 @@ Two sources of false content to recognize:
 - **Derivable state.** Git tracks "committed" / "pushed"; environment configuration tracks "which environment"; a doc's copy of either goes stale silently. Delete git-state words on sight. Route environment status to Quick Start's state line and point to it elsewhere.
 - **Durable references.** External tracker IDs (ClickUp/Jira) in prose explaining a status belong in `Related:` when you add them, not as a mention in `Last Session` that disappears next overwrite.
 
+**Ephemeral input** (pasted messages, screenshots, figures quoted once) must be captured into the doc at the moment of creation or it is lost forever. See the multi-domain scan's capture guidance in §1 for fidelity rules — a paraphrased decision, recorded figures, or captured constraint become durable facts; a missing basis becomes unverifiable reasoning.
+
 ### Judgment shapes rules; trip-wires paralyze them.
 
 A rule stating "mechanism" lets a reader handle cases the doc never anticipated. A trip-wire naming one specific mistake trains a reader to reach for a checklist instead of reasoning. For task docs: rows teach "what to know and do", decision blocks record "why we chose this", gotchas explain "what mechanism breaks" — not "these 17 ways to have failed." Collapse enumerations into principles; where a rule is truly underivable (a harness quirk, a binary with silent failure), state it plainly rather than as a trip-wire. 📖 `../_shared/references/writing-style.md` covers the full tension; for task docs the three key moves are capture filter, prose-vs-value, and mechanism-not-trip-wire.
@@ -42,15 +44,11 @@ Every section — including `## Key Technical Decisions` and its MADR/ADR blocks
 
 ### Doc maintenance: size thresholds and scope
 
-Docs should stay focused — roughly under 300 lines, judged by byte size rather than line count — so readers can hold the whole domain in mind. Once over, delegate to `condense-task-doc`; its row-existence pass (deleting gotchas/decisions discoverable from code) is the step most likely skipped, and prose-tightening alone won't move a 40+-row doc. 📖 `../_shared/references/two-tier-condense.md` for measurement mechanics and split strategy.
-
-**In a split doc set, the budget covers every file together**, since `decisions/*.md` often outweighs `current.md` several times over after a split — an index measured alone reads healthy while the domain's docs are the real problem. Whatever way you total them, satisfy yourself the count actually covered the sibling files: a doc that was never split has no `decisions/` directory, and the ways of counting that assume one tend to report zero rather than an error, which reads as a doc comfortably inside budget.
+Keep docs focused — roughly under 300 lines by byte size — so readers can hold the whole domain in mind. Once over, delegate to `condense-task-doc` rather than hand-rolling cuts; its row-existence pass (deleting gotchas/decisions discoverable from code) is the step most often skipped. In a split doc set, the budget covers every file together (decisions/*.md often outweighs current.md), so total the siblings — an index measuring healthy alone while decisions/ carries the problem is a missed split. 📖 `../_shared/references/two-tier-condense.md` for measurement and split strategy.
 
 ## 1. Resolve Path
 
-**Check ownership before proceeding.** If another session is editing these docs (background agent running, `git status` showing `tasks/` files you didn't touch, uncommitted edits predating this session, or a mixed-content doc both of you edited), the doc is contested. When contested: skip the multi-domain scan; on an explicit path, verify read-only instead of overwriting; scope to what you actually own, or send a heads-up via `../_shared/references/cross-session-messaging.md` before a major rewrite.
-
-Judge by diff *content*, not status plane (`../_shared/references/diff-ownership.md`) — auto-staging makes your writes indistinguishable from another writer's staged work at a glance. The real question is whether this session's own content traces this diff. Do this check when the session starts, not when it finishes.
+**Check ownership before proceeding.** Docs are contested when another session is actively editing them. Signals include a background agent running, `git status` showing `tasks/` files you didn't stage, uncommitted edits predating this session, or mixed-content edits from both of you. Judge by diff *content* not status plane (`../_shared/references/diff-ownership.md`) — auto-staging makes your writes indistinguishable from another writer's staged work at a glance; what matters is whether this session's own content traces the diff. When contested: skip the multi-domain scan, verify read-only instead of overwriting, scope to what you own, or message ahead via `../_shared/references/cross-session-messaging.md` before a major rewrite. Do this check when the session starts.
 
 | Input | Action |
 |-------|--------|
@@ -60,15 +58,15 @@ Judge by diff *content*, not status plane (`../_shared/references/diff-ownership
 
 ### Multi-Domain Scan (when no explicit path given)
 
-Don't assume one domain per session — scan the full conversation for every domain that needs a task doc. Build a table of all domains before writing, then create/update each one. 📖 `${CLAUDE_SKILL_DIR}/references/resolving-path.md` for candidate-gathering, the domain table structure, and when to split a sibling repo's `tasks/` tree in the same pass.
+Scan the full conversation for every domain that needs a task doc. Build a table of all domains before writing, then create/update each one. 📖 `${CLAUDE_SKILL_DIR}/references/resolving-path.md` for candidate-gathering, the domain table structure, and when to split a sibling repo's `tasks/` tree in the same pass.
+
+**On the same pass, capture what the session was given that isn't on disk.** Pasted messages, documents in a personal folder, screenshots, figures quoted aloud, constraints stated once — each is either captured into a doc now or lost at the next `/clear`. The loss is invisible: conclusions survive while their basis vanishes. Fidelity depends on the decision: paraphrase what a stakeholder asked and who asked; record figures a spreadsheet supplied; capture the constraint a screenshot showed. Where material is large enough to deserve its own home and will be read more than once, keep it as a separate doc and point at that — the test is whether a session starting cold, with the source unavailable, can still act correctly. Personal-machine paths are sources, never homes. Do this capture even on explicit-path invocations; the material is just as ephemeral. 📖 `../_shared/references/writing-style.md` for capture-filter mechanics.
 
 ## 2. Create or Update?
 
 Read both the resolved path and `references/templates.md` first — the template holds the canonical section structure for either path. Missing doc → **Create** using the Full Template. Existing doc → **Update** in place.
 
-**The template says which sections exist; the doc's subject says what goes in them.** That division is what makes a neighbouring doc useless as a shape source — it can show you how someone else filled a section, never which sections you have. So a doc whose headings differ from `references/templates.md` is drift to fix when you touch it rather than a convention to match, and updating an off-template doc means bringing it back toward the template instead of preserving what it drifted into. A template improvement reaches old docs only through that, since nothing else revisits them.
-
-A template that fits badly is the case worth thinking through, because it's the one that makes copying a neighbour feel reasonable. `Architecture` and `Files` have nothing to say for a proposal that tracks no code — but that is the subject having no content for a section, which is answered by dropping it (`references/templates.md` emits only sections that have content, under either template). Reaching for another doc's headings answers a different question, one that wasn't asked: it treats an empty section as a missing *section set*. Watch for the word *house style* arriving as justification here — it belongs to the CLAUDE.md skills, where it means the plugin's shape overrides whatever a file already has, so borrowing it to defer to a neighbour's shape inverts the thing it names.
+**The template says which sections exist; the doc's subject says what goes in them.** A doc whose headings differ from `references/templates.md` is drift to fix when you touch it, not a convention to match. Template shape follows subject, not borrowed examples — a proposal with no code has no `Architecture` section, which `references/templates.md` emits as empty anyway. Updating an off-template doc means aligning it toward the template rather than preserving what it drifted into, because a template improvement reaches old docs only through edits like this.
 
 ## 2a. When Merging, Renaming, or Reorganizing
 
@@ -82,11 +80,11 @@ Use the Full Template from `references/templates.md` as the gold standard; scale
 
 Docs describe current state, not session history. Edit in place; don't append. When rewriting Quick Start or Last Session on a normal (uncontested) update, route facts first: read what's there and ask whether each fact describes the session (this turn) or the system (behaviour that shipped). Move system facts to their owning typed sections (Next Steps, Gotchas); discard narration. 📖 `${CLAUDE_SKILL_DIR}/references/creating-and-updating.md` for gap-checking, maintenance thresholds, and MADR rules.
 
-### Quick Start Section
+### Quick Start Section (for steps 3 and 4)
 
-Place immediately after the `# Title` and before `## Overview`. A cold-start agent reads only this section — if it can't act from Quick Start alone, the section is insufficient. 📖 `${CLAUDE_SKILL_DIR}/references/quick-start-rules.md` for the five questions, litmus test, and environment resource rules.
+Place immediately after the `# Title` and before `## Overview`. A cold-start agent reads only this section — if it can't act from Quick Start alone, it's insufficient. State what's happening now (status), what's unblocked (what can start next turn), and what's blocked (waiting on whom/what). Never mention prior work or narrate the session that led here. 📖 `${CLAUDE_SKILL_DIR}/references/quick-start-rules.md` for the five questions and environment resource rules.
 
-### Credentials
+### Credentials (for steps 3 and 4)
 
 Never include API keys, merchant keys, passwords, or secrets in task docs. Reference `.env` keys by name only.
 

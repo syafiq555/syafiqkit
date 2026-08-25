@@ -79,7 +79,7 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 | File | Role |
 |------|------|
 | `tasks/plugin-maintenance/doc-condensation/decisions/structural-mechanics.md` | D54 — where this evaluation's outcome landed; its Rejected block holds the article verdict |
-| `skills/update-plugin/SKILL.md` | Step 3a — owns the B/L gate and the `references/` scope rule the evaluation settled |
+| `skills/update-plugin/SKILL.md` | Step 4 (was Step 3a before the 1.211.0 renumber) — owns the B/L gate and the `references/` scope rule the evaluation settled |
 | `skills/done/SKILL.md` | Step 5 — Gate B, the arrival-rate checkpoint the evaluation motivated |
 | `skills/audit-instructions/SKILL.md` (removed 2026-08-01) | Had pointed the method inward — fleet grading of BOTH instruction families; owned the FLEET arrival ratio and trajectory (D59). Removal was a user decision, not a defect; D59/D61's fixes remain correct for any future re-implementation |
 | `CHANGELOG.md` | v1.131.0 — the per-claim verdicts as shipped, both sources (D55's 9 article claims, D56's report flags) |

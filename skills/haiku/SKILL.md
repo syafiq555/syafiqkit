@@ -26,37 +26,41 @@ A read-only task needs no snapshot.
 
 ## Writing the prompt
 
-**Keep it minimal: skill name (if any), target path, and only facts the agent cannot derive.**
+**Keep it minimal: skill name (if any), target path, only facts the agent cannot derive.**
 
-Start with what you're outsourcing. If it's a named skill, cite it in the prompt and name its spec if it has one (the skill's own published shape). The agent then judges whether to follow the spec or invoke the skill — both legitimate calls depending on task scope. Avoid pre-writing structure conclusions. A tier that judges well fails when given outlines to follow instead; name constraints rather than designs — *don't edit these three files*, not *must not create new files* — since the second bans what a skill may require for its normal operation.
+Cite what you're outsourcing. For a named skill, include its spec if it has one — the agent judges whether to follow it or invoke the skill directly. Don't pre-write structure; name constraints not designs — *don't edit these three files*, not *must not create new files*, since the second bans what a skill may need.
 
-A skill like `unhobble-instructions` has published criteria (rule shape, fact vs. constraint, reference routing). Cite those so verification can check against them rather than against what you guessed the skill should do.
+For a skill like `unhobble-instructions` with published criteria, cite them so verification checks against the spec rather than guesswork.
 
-**For general-purpose agents: state "Do the work yourself; do not re-dispatch another agent."** The agent carries full tool access and can re-dispatch, which undoes your dispatch while returning a success-shaped report. That clause is a non-derivable fact about the current session. 📖 `../_shared/references/agent-may-not-redelegate.md`
+**For general-purpose agents:** add "Do the work yourself; do not re-dispatch another agent." 📖 `../_shared/references/agent-may-not-redelegate.md`
 
-**Measure conventions in the actual target before stating them.** A style read off two files becomes "this format" in the next sentence; a wrong convention steers the agent into breaking files. Loop through the target set first or say so and let the skill judge each.
+**For research:** Ask for a real URL against every claim. Explicitly name "COULD NOT RETRIEVE: `<url>` — what happened" when a page blocks or fails. Label anything known only from training data as such. Say plainly that "not found" is valid. This exists because an agent with no place to file a failed retrieval invents one, producing uniformly complete prose that is partly fabricated.
+
+**For multi-file targets:** measure the actual conventions before stating them, so the agent doesn't break files based on wrong guesses. Loop through the target set first or say so.
 
 ## Partition for concurrency
 
-Fan out when work is genuinely disjoint: independent files, separate unrelated questions, a survey across separate areas. Partition so no two agents touch the same file. Give each agent a single task — one skill against one target — rather than chains within a prompt.
+Dispatch independently when work is genuinely disjoint — separate files, separate questions, separate areas. Partition so no two agents touch the same file. Each agent gets one task (one skill, one target), not chains within a prompt.
 
-Two skills in one prompt overwrite each other's accounts; dispatch them as two separate agents running in parallel. The same applies to one skill across two files — it becomes four calls total (two agents, two files, two targets per agent), costs nothing extra, and gains a checkable before/after pair for each.
+Two skills in one prompt overwrite each other's accounts — dispatch as separate parallel agents instead. Same for one skill across two files: four calls total (two agents × two files) costs nothing extra and gains a checkable before/after pair.
 
-Agents whose targets don't overlap can go out together in one message (spawn them all at once, no prose before the calls). Anything waiting on another agent's file has to serialize — say which agents run parallel and why.
+Agents with non-overlapping targets go out together in one message (all at once, no prose before the calls). Anything waiting on another agent's output has to serialize — state which run parallel and why.
 
-📖 `../_shared/references/explore-delegation.md` → "Spawning multiple agents" for the mechanics of one-message batching.
+📖 `../_shared/references/explore-delegation.md` → "Spawning multiple agents" for batching mechanics.
 
 ## After dispatch: wait for the completion notification
 
-**Never poll or shadow the agent.** The temptation while waiting is to read the delegated files yourself — it feels like progress and costs the delegation twice. You pay for the same facts inline, and the agent's result lands later. There is no waiting call to make; end the turn and the harness re-invokes you with the result.
+Don't poll or shadow the agent — reading the delegated files yourself feels like progress but costs the delegation twice while the agent's work is still in flight. End the turn; the harness re-invokes you with the result.
 
-If you need to read something right now, the delegation was scoped too wide — spawn fewer agents instead. 📖 `../_shared/references/explore-delegation.md` → "The Waiting Game" for why shadowing destroys verification.
+If you need immediate reading, scope was too wide — dispatch fewer agents instead. 📖 `../_shared/references/explore-delegation.md` → "The Waiting Game" for why shadowing breaks verification.
 
-**A new requirement that arrives mid-flight needs a fresh dispatch, not a message to the running agent.** A `SendMessage` can land after the agent has already concluded, and its report will then be a truthful account of the original brief with no sign the new target existed. Re-dispatch as a separate task, opening with what the work is — a re-assignment reads as the task the agent believes it finished.
+**A new requirement arriving mid-flight needs a fresh dispatch, not a message to the running agent.** A SendMessage landing after the agent concludes produces a truthful account of the original brief with no trace the new target existed. Re-dispatch as a separate task.
 
 ## Verification
 
-**The agent's report is a claim, not evidence.** Run these checks in order:
+**The agent's report is a claim, not evidence.** Take the raw before/after counts as your first act, before reading the report's framing. A stated delta anchors you; a wrong one reframes what you then go looking for.
+
+⚠️ **For research dispatches:** Checks 1–4 (below) all no-op since there's no artifact to diff. Verify the CLAIMS instead by opening sources yourself. A fabricated finding and a real one both read as prose; the fabrication runs toward *more* convincing because inventing a source costs nothing while retrieving one can fail. Spot-check before relaying by opening two or three cited URLs — especially any claim that decides something — and confirm which host or environment actually answered. Ask the report to separate what was retrieved from what was not, since an agent that must file "COULD NOT RETRIEVE" has somewhere to put a gap other than a guess.
 
 ### 1. Did the file change at all?
 
@@ -64,9 +68,11 @@ Did bytes actually move? `git diff HEAD` against your baseline. A file reading a
 
 ### 2. Does meaning survive?
 
-Read the current file whole, as its reader meets it — not the diff, not the passages the report highlights. A term-survival sweep (grepping for words) measures that words survived, never that their sentences mean the same thing. A rewrite inverting a formula while keeping every label passes completely until you read the sentence and derive the claim.
+Read the current file whole, as its reader meets it — not the diff, not the passages the report highlights. A rewrite inverting a formula while keeping every label passes completely until you read the sentence and derive the claim.
 
-**For a skill's own work, check against its spec, not against what you guessed it should do.** A rewrite skill has published criteria; verify against those. If the prompt cited a reference like `../unhobble-instructions/references/verifying.md`, consult it before reporting results — that reference answers what shape a clean pass has for THIS skill's own work.
+Each absent fact costs you three things before it can enter the report: the section you expected it in, the lines you read there, and why the prose you found doesn't cover it. Produce those and a search corrects itself — either the fact is there reworded, or it's genuinely absent. 📖 `references/verifying.md` for the failure modes.
+
+For a skill's own work, check against its spec. A rewrite skill has published criteria; verify against those — consult the reference the prompt cited if one exists.
 
 ### 3. For relocated content: check pointers and destinations
 
@@ -76,29 +82,24 @@ When a pass moves content to a companion (a `condense-*` split or `unhobble-inst
 
 ### 4. Re-measure the agent's own numbers
 
-A report claiming contradictory things (lines cut but bytes up, anchors fixed when new ones added) has done arithmetic it never took. Re-count.
+A report claiming contradictory things (lines cut but bytes up, anchors fixed when new ones added) has done arithmetic it never took. Re-count. Where a rewrite skill requires the agent to reconcile its own delta, that check ran inside the agent's context and reached you as a claim — so run it yourself: if bytes left the target, confirm by reading whichever file the report says gained them. A drop with no destination is deletion whatever the pass called it.
 
 ### 5. When to revert vs. patch
 
 A contained gap (one passage, one dead pointer, facts you can name) gets patched from the snapshot — restoring the fact in the new file's shape, not pasting bytes verbatim. A systemic failure (whole sections gone, contradicting numbers, untrustworthy report) gets reverted and re-dispatched.
 
-**Ask what you would put in a re-dispatch prompt.** A specific fact list is the patch instructions already; reverting throws away the good structure to earn it again. Weigh what the revert discards against what the pass got wrong.
+Ask what would go in a re-dispatch prompt. A specific fact list is the patch instructions already; reverting throws away the good structure to earn it again. Weigh what the revert discards against what the pass got wrong. If you can list every fact that needs naming in a re-dispatch, you are holding the patch instructions — patch. 📖 `references/verifying.md` for the enumeration test and snapshot strategy.
 
-⚠️ **Before discarding or reverting, open 📖 `references/verifying.md` — that reference covers when a count is not a verdict and when a whole-file read is required before proposing an irreversible act.** The rule you've already seen four times is the one most often violated at this moment. **Tell: you are about to overwrite an agent's output and your last tool call was a `grep`, `wc`, or `comm`, not a `Read`.**
+### Reporting what you found
 
-**Snapshot the agent's OUTPUT before reverting** — the pre-dispatch copy preserves what the file was, but the rewrite is what you're judging. Without it, the verdict becomes unfalsifiable.
+Name which rules moved rather than how far the file shrank. A byte count is the instrument that found the problem and rarely is the problem, so opening on it reframes a content question as a size one — state which rules no longer survive and which are recoverable elsewhere, then give magnitude as support. Where a named skill did the work, open with its name and its job in one line ("ran via `unhobble-instructions`, which converts rules into judgement prose") before the results, since two skills are in play and the verdict belongs to whichever one's criteria govern it.
 
-### Reporting verification
-
-**Name which rules moved, not how much the file shrank.** A byte count is the instrument you used to find problems; it rarely IS the problem and opening on it reframes a content question as a size one. State which rules no longer survive and which are recoverable elsewhere, then give magnitude as support.
-
-For a named skill, open with its name and its job in one line ("ran via `unhobble-instructions`, which converts rules into judgement prose"), then report results. Two skills are in play (this one dispatches; the named skill decides structure), and the verdict belongs to whichever skill's criteria govern it.
 
 ---
 
 ## For syafiqkit plugin maintainers
 
-When the target is a syafiqkit file, additional conventions apply: ownership check before patching (is this a consumer-side install?), shared-mechanism grep before assuming a fix is single-file, and version bump + CHANGELOG entry post-dispatch. 📖 `syafiqkit:update-plugin` covers them. For third-party files, they don't apply.
+When dispatching on a syafiqkit file, additional conventions apply: ownership check before patching, shared-mechanism grep before assuming single-file scope, and version bump + CHANGELOG entry after dispatch. 📖 `syafiqkit:update-plugin` covers them.
 
 ## References
 

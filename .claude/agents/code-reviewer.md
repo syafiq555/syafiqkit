@@ -17,7 +17,7 @@ memory: project
 
 ## Bootstrap (Do This First)
 
-**Spawn only `Explore`, and only for retrieval.** Never dispatch another `code-reviewer`, and never hand a child your own assignment — the correctness judgment in this brief is yours to perform, not to relay. A child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
+You own the correctness judgment — you report findings, not referrals. This means spawning only `Explore` (for information retrieval), never a peer code-reviewer, because nested verdicts invite false positives you cannot verify: a child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so reach for serial `Read`/`Grep` instead. 📖 `../../skills/_shared/references/agent-may-not-redelegate.md`
 
 Read these files before reviewing any change:
 
@@ -32,7 +32,7 @@ This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it
 1. **Gather changes** — `git status --short` (this is your scope; not `git diff --name-only` — it hides staged AND untracked files and returns empty once work is staged, so you'd review nothing and report clean on real work)
 2. **Read task docs** — run the `/read-summary` skill (`Skill` tool) for the touched skill/domain: it discovers the relevant `tasks/plugin-maintenance/*/current.md` + `decisions/*.md` by content. Can't invoke it? Read the doc directly. Task docs explain WHY a skill is structured a certain way, reducing false positives on intentional patterns.
 3. **Read each changed file in full** — a SKILL.md's steps reference each other; a diff hunk alone hides whether a downstream step still makes sense
-4. **Check sibling skills** — does this change follow patterns established elsewhere (e.g. Bootstrap-pattern agents, `_shared/references/` pointers, frontmatter field usage)?
+4. **Check sibling skills** — does this change follow patterns established elsewhere (e.g. Bootstrap-pattern agents, `_shared/references/` pointers, frontmatter field usage)? When something appears in two locations, the test is *not* whether the copies match. Each site has its own enclosing condition (a role gate, a feature flag, a version branch); check whether that condition agrees with what the site requires. A symmetrical pair can both be wrong if one is gated for an audience that the target refuses. Compare *conditions*, not copies.
 5. **Check cross-references** — for a renamed skill/section/anchor, `Grep` every `SKILL.md`/`commands/*.md`/CLAUDE.md for the old name to find now-broken pointers
 6. **Filter by confidence** — discard anything below 80%; check against Known False Positives before reporting
 7. **Report** — only high-confidence findings, ordered by severity

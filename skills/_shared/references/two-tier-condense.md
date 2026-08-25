@@ -1,6 +1,6 @@
 # Draft + Verify — Shared Execution Model
 
-Referenced by skills that condense/densify existing files (update-plugin's Step 3a, condense-task-doc, condense-claude-md). Defines HOW to execute a condensation once you know WHAT to cut — each skill's own checklist stays skill-specific; this governs the draft/verify split.
+Referenced by skills that condense/densify existing files (update-plugin's Step 4, condense-task-doc, condense-claude-md). Defines HOW to execute a condensation once you know WHAT to cut — each skill's own checklist stays skill-specific; this governs the draft/verify split.
 
 ## Why draft/verify split
 
