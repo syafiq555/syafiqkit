@@ -1,7 +1,7 @@
 ---
 name: update-plugin
 description: >
-  Scan the session for learnings about the syafiqkit plugin itself, then patch the affected skill files — trigger descriptions, workflow steps, gotcha and rule tables. Use it when a skill misfired (triggered wrongly, stayed silent when it should have fired, a step turned out wrong mid-execution, or you worked around its instructions instead of following them), when a session hand-edited a skill/command/agent file even with no defect, and as a near-session-end sweep. Cue phrases: "update the plugin", "capture this for the skill", "improve the skill based on this session", "fix the skill trigger". It patches skills that already exist — creating a new one is `skill-creator`, a project gotcha or a general communication preference is `update-claude-docs`.
+  Scan the session for learnings about the syafiqkit plugin itself, then patch the affected skill files — trigger descriptions, workflow steps, gotcha and rule tables. Use it when a skill misfired (triggered wrongly, stayed silent when it should have fired, a step turned out wrong mid-execution, or you worked around its instructions), when a session hand-edited a skill/command/agent file even with no defect, and as a near-session-end sweep. Cue phrases: "update the plugin", "capture this for the skill", "improve the skill based on this session", "fix the skill trigger". It patches skills that already exist — creating a new one is `skill-creator`, a project gotcha or a general communication preference is `update-claude-docs`.
 ---
 
 # Update Plugin — Capture Session Learnings into Skill Files
@@ -39,6 +39,7 @@ Signals worth capturing:
 | A skill triggered when it shouldn't (or didn't when it should) | Fix the `description:` frontmatter |
 | User corrected a workflow step mid-execution | Fix the step |
 | A rule was missing and caused a mistake | Add it to the relevant skill's rules/gotchas |
+| A rule was PRESENT and the session broke it anyway | Diagnose why before writing — see Step 1a below. Adding or re-wording is usually the wrong fix |
 | A new skill was created this session | Update `plugin-maintenance/current.md` + `CLAUDE.md`'s skill table |
 | An existing skill changed meaningfully | Update its `Last updated` note; update `plugin-maintenance/current.md` if the architecture shifted |
 | A merge/refactor decision about the plugin itself | Add to `plugin-maintenance/current.md`'s Architecture Decisions |
@@ -47,6 +48,20 @@ Signals worth capturing:
 | The correction was to update-plugin's own logic, not a skill it was patching | This file is a valid target too — fix the step that misfired here |
 
 Skip anything project-specific or a general communication preference with no skill-trigger implication — those belong in `update-claude-docs` (a project gotcha → project CLAUDE.md, a style preference → global `~/.claude/CLAUDE.md`).
+
+### Step 1a — When the rule was already there
+
+When you find a rule present in the codebase and the session still broke it, the rule failed at one of four distinct points in the execution path. Each has a different fix, so diagnose first: grep the rule, confirm it exists, then ask which point it failed at.
+
+**It was never reached.** The rule sits in a `references/` file behind a pointer the session had no reason to open, or below the 5,000-token re-attach boundary, or in a skill that never invoked on the path that failed. Fix the route: make the pointer imperative at the moment the act happens, or move the check into the step that performs it. Adding a duplicate copy of an unreached rule creates two unread copies.
+
+**It was reached and read as satisfied.** The rule says "don't act on a count without reading" and the session had just run four counts — the work already done *feels* like compliance. Wording is already maximal (bolded, `⚠️`, with a tell), so strengthening it further does nothing. What helps is a gate at the irreversible act rather than a statement of principle earlier.
+
+**It was contradicted by another skill.** Two files give opposite instructions and the session followed the other one. Neither is "missing"; re-wording either leaves the conflict unresolved. Find the frame each is right in and scope them, or the next session picks the wrong one just as reasonably.
+
+**The remedy was mandated but unfalsifiable.** The rule required a check performed inside a delegated agent's context, leaving the orchestrator with a claim rather than evidence. Move the check to whoever can still verify it after the agent returns.
+
+⚠️ **Test your diagnosis before writing.** A plausible story about why a rule didn't fire is the same failure the session is reporting — count-without-reading in disguise. If the story says the rule was unreachable, measure the file's size and position; if it says another skill contradicted it, open the sibling. **Tell: you can state why the rule didn't fire but have not opened the file to confirm it.**
 
 ## Step 2 — Route: Which file needs patching?
 
@@ -59,29 +74,29 @@ Skip anything project-specific or a general communication preference with no ski
 | `CHANGELOG.md` | A skill changed meaningfully |
 | `skills/agent-setup/templates/<agent>.template.md` + every generated copy | A behavioral fix to an agent that has a template |
 
-Read the target before writing, and check whether the fix already exists — if a rule is present but got ignored, strengthen the wording rather than duplicate it.
+Read the target before writing, and check whether the fix already exists — the diagnosis in Step 1a decides the remedy, and re-wording is rarely the answer.
 
-The right target is whichever file actually owns the kind of fact the signal is — not necessarily the skill the session happened to be using when the gap showed up. The skill in front of you revealed the problem; it isn't automatically where the fix belongs.
+The right target is whichever file actually owns the fact, not the skill where the session happened to discover the gap — that skill revealed the problem but isn't automatically where the fix belongs. **Grep the other skills for the mechanism before writing** — 📖 **`references/grep-for-sharing.md`** covers search strategy, blind spots, and when to route a fix to `_shared/references/` instead of one skill.
 
-**Grep the other skills for the mechanism before writing.** Whether a mechanism is shared is what the grep tells you, so treating the sweep as conditional on already knowing means it never runs. 📖 **`references/grep-for-sharing.md`** — how to search, the blind spot that survives a correctly-run grep, and when to route a fix to `_shared/references/` instead of one skill.
+📖 **`references/routing-gotchas.md`** — contested file detection and when an agent file is a generated copy (fix the template first).
 
-**Structural gotchas during routing:** 📖 **`references/routing-gotchas.md`** — contested file detection (via diff content, not git status) and when an agent file is a generated copy (fix the template first).
+## Step 3 — Harness Constraints
 
-## Step 3 — Write: Patch the skill files
+Before writing any patch, know four facts about how the harness actually loads and re-attaches skills — they decide whether your fix ever reaches a session and each has a silent failure. 📖 **`references/harness-constraints.md`** — token ceilings, re-attachment windows, allowed-tools semantics, and the constraint shape required for operations that have to come out identical.
+
+## Step 4 — Write: Patch the skill files
 
 Apply the most targeted edit for the kind of change:
 
-- **Trigger description** — the frontmatter is matched by keyword against what users actually say, so it should name the words they use, the artifacts they mention, and whatever edge case caused the miss this session. It carries routing vocabulary, not enforcement: a boundary belongs there as the one clause that sends a near-miss to the right skill, while the reasoning behind it lives in the body. A description that accumulates multiple `Do NOT use` clauses has usually stopped triggering better and started just getting longer — the restraint from the body already says everything those clauses are trying to enforce.
-- **Workflow rule** — goes into the most relevant existing section; don't spin up a new section for one rule. State the general principle the incident revealed, not a retelling of the incident itself — a rule that names this session's specific artifact or exact wording only fires again on an identical recurrence. The concrete story belongs in the CHANGELOG entry; the skill body carries the abstracted rule.
+- **Trigger description** — the frontmatter is matched by keyword against what users actually say, so it should name the words they use, the artifacts they mention, and whatever edge case caused the miss this session. It carries routing vocabulary, not enforcement: a boundary belongs there as the one clause that sends a near-miss to the right skill, while the reasoning behind it lives in the body. A description that accumulates multiple `Do NOT use` clauses has usually stopped triggering better and started just getting longer.
+- **Workflow rule** — goes into the most relevant existing section; don't spin up a new section for one rule. State the general principle the incident revealed, not a retelling of the incident itself. Write it with enough reasoning that a reader can apply it to cases the session didn't encounter. A marker (`⚠️`, bold, `**Tell:**`) belongs only when missing it would be silent or irreversible — the marker stops careful readers who would otherwise walk past. A fact the reader can't derive (a harness quirk, an exact command, a real binary) is worth stating plainly.
 
-  Write it with enough reasoning that a future reader can apply it to cases the session didn't encounter. A marker (`⚠️`, bold, `**Tell:**`) belongs on a rule only when the cost of missing it is silent or irreversible — the marker is to stop a careful reader who would otherwise walk past the problem. A fact the reader can't derive (a harness quirk, an exact command, a real binary) is worth stating plainly; a rule that mostly restates what the surrounding prose already covers accumulates without firing better.
-
-  These files ship publicly, so an example naming a command, path or tool is one a stranger has to be able to run. Generalise it to the layer the mechanism actually lives at before writing it — 📖 **`../_shared/references/consumer-portability.md`** names which layer that is for each case, plus what a step may assume about paths, identity probes and the consumer's shell.
+  These files ship publicly, so examples naming commands, paths or tools must be ones a stranger can run. Generalise to the layer the mechanism actually lives in — 📖 **`../_shared/references/consumer-portability.md`** for which layer per case.
 - **A rule moved out of a reference and inlined** — placing it in the file is half the job; it also has to sit where that skill acts. A skill with both a "Hard rules" list and its own numbered verify step will have sessions walk the numbered steps and never re-read the list as a checklist, so a check landing in the list is present and still never fires. Ask which step a session is executing when the rule needs to apply, and put it there — if it's genuinely a standing constraint rather than a step, the list is right. Verify by reading the skill's own procedure top-to-bottom as a session would, not by grepping the file for the fact.
 - **Architecture decision** — append to the relevant `decisions/*.md` theme file as `Decision | Rationale`, and make the rationale actually explain why.
 - **New skill in the registries** — both `CLAUDE.md`'s skill table and `README.md`'s need the entry; they're hand-maintained and easy to update one without the other.
 
-### Step 3a — Density
+### Step 4a — Density
 
 Whether a file needs tightening is a read, not a formula — if a SKILL.md feels like it's accumulated more constraint than it's earning, that's the signal, not a computed ratio against a fixed number. `references/*.md` files are a different case: they're cold-path lookups meant to be dense, so the same instinct doesn't apply there — what matters for a reference is staying on one topic and being reachable from a pointer that names the actual symptom, not its byte count (a catalog like `task-summary/references/templates.md`, read one section at a time, is expected to grow with what it catalogs).
 
@@ -94,31 +109,13 @@ When a SKILL.md is genuinely dense already, adding a new rule is a good moment t
 
 If tightening lands, bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention. The invocation might ask to skip one; treat "skip the changelog" as covering the version bump too — they're one convention.
 
-### How a skill is actually read
-
-Four facts about the harness decide whether a patch you write ever reaches a session. None is derivable from the file, and each has a silent failure.
-
-**The body enters context once and is never re-read.** Invoking a skill drops its rendered text in as a single message that stays for the session; Claude Code does not open the file again on later turns. So a rule meant to hold for a whole task has to read as a standing instruction rather than a step — "check X before each write" works, "now check X" fires once and is gone. This is also why sharpening the wording of a rule that already exists is worth more than adding a neighbour: there is no second pass where the reader catches what they skimmed.
-
-**After a compaction, only the first 5,000 tokens of each skill are re-attached.** Past that boundary the content silently stops existing while the skill still reports as invoked, so a long skill's tail is missing exactly when a session has run long enough to need it. Measure against the ceiling rather than eyeballing length; roughly, bytes ÷ 4.
-
-Two things follow. **Position matters as much as size** — where the cut lands decides which half survives, so guards, mode selection and the verify step belong above it and reference tables below. A file 60% over with its guards early is in better shape than one slightly over whose exit gate sits last.
-
-And **an oversized skill costs its neighbours, not just itself**: re-attached skills share a 25,000-token budget filled most-recently-invoked first, so older ones are dropped *entirely* once it runs out. A session that invokes several skills has room for about five at the full ceiling. Trimming a bloated skill buys context back for every other skill in the session, which is the argument for doing it even when that skill's own tail seems expendable.
-
-**`allowed-tools` pre-approves and never restricts.** Every tool stays callable whether listed or not; the field only waives the permission prompt, for one turn. `disallowed-tools` is what removes a tool. An unlisted tool looks blocked and isn't.
-
-**The description is the whole trigger surface**, capped at 1,536 characters including `when_to_use`. It is matched against what a user actually says, so it carries their vocabulary; the reasoning behind a boundary belongs in the body, which is not read until after the skill has already fired.
-
-**Match the constraint to the task's fragility rather than defaulting either way.** Where several approaches are legitimate and the right one depends on context, prose stating the mechanism lets a reader handle the case you didn't foresee. Where an operation is fragile or has to come out identical every time, an exact command or literal value is the deliverable and dissolving it into prose destroys it — a paragraph has nowhere to put a port number without becoming a table again. The failure runs in both directions, and the second one is harder to see because the prose still reads complete.
-
-## Step 4 — Before calling it done
+## Step 5 — Before calling it done
 
 Re-read what changed. Does the new text actually address what was missed this session? Does it duplicate something already there? Is it a pattern likely to recur, or a one-off not worth a permanent rule? For a file that was already dense, did the change replace or relocate something, or is it pure addition with no reason given? A good check: read your own new prose against the same judgment this skill applies to the plugin — does the fix embody the instinct it's trying to teach, or does it contradict itself mid-sentence?
 
 ## What NOT to capture here
 
-Project-specific gotchas belong in `update-claude-docs`, not here. Vague observations with no actionable pattern are worth skipping. Before adding a rule, check whether it's already there but just forgotten — if so, strengthen the existing wording rather than duplicating the row.
+Project-specific gotchas belong in `update-claude-docs`, not here. Vague observations with no actionable pattern are worth skipping. Before adding a rule, check whether it's already there but just forgotten — if so, diagnose why it didn't fire (Step 1) rather than duplicating the row.
 
 ## Output
 

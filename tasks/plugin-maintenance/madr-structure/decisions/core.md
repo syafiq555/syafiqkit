@@ -111,3 +111,31 @@ Chosen: ship the block format AND every skill that edits/compresses that section
 A structured multi-field block is a genuinely different content shape than a table row; any skill that adds one must teach every skill that edits/compresses that section how to handle the new shape, not just the skill that creates it. This doc's own MADR conversion (D8) is downstream of this fix existing.
 
 **Status**: committed · **Reversible**: no (retroactive — the fix must ship atomically with any future new block-shape)
+
+---
+
+### D-template-is-sole-shape-source — The Template Owns a Task Doc's Section Set; Siblings Never Do — committed — 2026-08-23
+
+**Problem**
+A session writing a new task doc for an unawarded client bid read one neighbouring bid doc, adopted its section set, called it "the house shape for a bid doc", and set the Full Template aside on the reasoning that "the Full template assumes code". Nothing it did broke a stated rule. `creating-and-updating.md` said drift was "a section going missing, not a shape that differs" and that "a task doc's shape follows its domain" — written to protect a gotcha table's split axis, phrased at the level of *shape*, so it read as blanket permission to leave any structural difference alone. `adopt-vs-impose.md` repeated it. Neither file said where a shape may legitimately come from, so the general "one match is invention, several are convention" heuristic filled the vacuum, despite governing code patterns rather than doc structure.
+
+**Decision**
+Chosen: split the question into two levels that were previously conflated under the word "shape".
+
+- The **section set and headings** come from `templates.md` and are not domain-variable, on create and update alike. A missing, renamed or sibling-borrowed section is drift the gap-check fixes, so touching an off-template doc brings it toward the template — that is the mechanism by which a template change reaches docs written before it.
+- The **axes within a section** — a gotcha table's split axis, its column choice — stay domain-chosen and need a reason beyond non-conformance to reshape.
+
+Stated at `SKILL.md` §2 "Create or Update?", which both the create and update branches pass through, because the requirement was explicitly that it bind on updates too.
+
+**Rejected**
+- A third template for proposals/bids. Why not: the user declined it directly — the ask was that non-code docs follow the existing template, not that they get their own. It also multiplies the maintenance surface the two-level rule already covers.
+- Rewording `creating-and-updating.md`'s sentence in place. Why not: the axis was the error, not the wording. A sentence pitched at "shape" cannot be made to mean "axes but not headings" by softening it.
+
+**Consequences**
+Poor template fit is no longer a reason to look elsewhere for a shape: a section whose subject the doc lacks is dropped, which required widening "emit only sections that have content" at its source — it had lived inside the Minimal Template's fenced block, under `## Next Steps`, and was cited as if template-wide. That citation was wrong when written and is the reusable lesson: a pointer that resolves says nothing about the *scope* of what it points at.
+
+What this does not solve is a positive shape for a non-code doc. A session writing the next proposal knows what to avoid and knows to drop meaningless sections, but has no worked example of what a legitimately-thinned Full Template looks like for a bid. Left open deliberately rather than closed with a template.
+
+Nothing detects an off-template doc proactively either — the rule fires reactively, when a session opens that doc. A bid nobody revisits stays off-template indefinitely, which is accepted: no data is lost, only consistency.
+
+**Status**: committed · **Reversible**: yes

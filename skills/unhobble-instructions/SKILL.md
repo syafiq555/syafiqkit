@@ -30,24 +30,20 @@ Not the default when a rewrite feels large — the pass you run when a file has 
 
 ## Reading the File as a Document
 
-Read it end to end **before opening a single rule**, and form a view on six things. A source the pass leans on gets the same treatment — an article summarised from memory yields a reading that is plausible, specific and wrong in the details that decide the rewrite.
+Read it end to end **before opening a single rule**, and form a view on six things:
 
-When the pass is motivated by an outside source — an article, a vendor's guidance, a tool's audit report — search the project's own decision records for that source before adopting anything from it, because a team that has met it before will have graded it, and the grading is what stops a rejected claim returning in new words. The failure this prevents is specific and has happened: a session worked for hours from an article whose verdict already sat in the repo, then wrote a compressed restatement into a skill that *inverted* what the verdict said. A prior verdict also records which **lever** was rejected rather than which outcome — "we rejected cutting 80% of the rules" usually means the cut alone doesn't hold, not that a large cut is wrong.
-
-- **What does this make a reader do, in order?** Where the physical order disagrees with the execution order, a reader meets rules before there's anything to apply them to and mostly won't carry them that far.
-- **Where does each rule sit relative to the moment it's needed?** A correct rule in the wrong place fails as reliably as a wrong one — commonly a warning stacked above the branch it governs, or a mandate in a path most invocations skip.
-- **What does it say more than once, and do the copies still agree?** A rule in three homes is three sessions patching the same miss without retiring the previous patch, and collapsing them beats sharpening any one. Copies drift as well as duplicate: two statements of the same fact hundreds of lines apart can contradict outright.
-- **What would a reader who absorbed all of it default to?** Not what any row says — what the balance trains. Twenty mechanical rows beside one judgement sentence produce a reader who reaches for the instrument every time, because the instrumental options carry concrete shape and the judgement is a line they scroll past.
-- **Which enumerations are standing in for one principle?** Twenty rows each naming a way to have erred usually encode two or three mechanisms, and the mechanisms cover cases the list never anticipated. An enumeration is raw material, not a finding.
-- **What does a reader need every invocation, and what twice a year?** A rule governing a routine choice has to be resident and absorbed before it applies; a fact someone reaches for while already holding the failure (an error string, a command, an ID) can move behind a pointer. The first kind deferred is a rule that only fires after someone has violated it.
+- **What does this make a reader do, in order?**
+- **Where does each rule sit relative to the moment it's needed?**
+- **What does it say more than once, and do the copies still agree?**
+- **What would a reader who absorbed all of it default to?** — not what any row says, what the balance trains.
+- **Which enumerations are standing in for one principle?**
+- **What does a reader need every invocation, and what twice a year?**
 
 The first four questions are about shape and the last two about content, and that split is why a pass can go wrong while looking thorough: reordering sections, merging duplicate homes and regrouping a table all answer the shape questions completely, and a file can come out of that better organised with every rule it started with. That is reorganisation, not this pass. If nothing became a principle and nothing left the hot path, the two content questions went unanswered whatever the structural work looked like.
 
-### Sampling Bias
+A verdict built on a sample is a claim about that sample, so "well-shaped, no edit needed" after skimming a few tables is not a reading of the file — and a marker count locates candidates rather than settling anything.
 
-A verdict built on a sample is a claim about that sample. "Well-shaped, no edit needed" after skimming several tables says nothing about the sections never opened, and a large target is exactly where this substitution happens — a file announcing its own recent restructure reads as already done, and the question quietly drifts from *are these rules judgement dressed as mandate* (this pass) to *is this file big* (`condense-claude-md`).
-
-A marker count locates candidates and nothing more; the densest file is often the healthiest and the one with no markers can be the badly shaped one. Only reading settles it. On a large file, open at least one table and actually attempt a conversion before concluding there are no clusters — a failed attempt is evidence, an unattempted one is a guess.
+📖 `${CLAUDE_SKILL_DIR}/references/reading-as-a-document.md` — what each of the six questions means against a real file, the sampling-bias trap in full, and how to grade an outside source against the project's own decision records before adopting anything from it (a session once worked for hours from an article whose verdict already sat in the repo, and wrote in a restatement that *inverted* it). Read it when the target is large, or when an outside source motivated the pass.
 
 ## Per-Rule Assessment
 
@@ -82,6 +78,10 @@ As constraints become reasoning and enumerations collapse into mechanisms, ask w
 
 ⚠️ **Relocating is not delivering.** Nothing loads a reference file — no import, no frontmatter field — so a pointer is a suggestion the reading model may decline, and measured follow-through is poor. That makes extraction a trade rather than a free win: keep the sentence that tells a reader they HAVE a problem inline, and move only the procedure for fixing it. Two things raise the odds and cost nothing — name the trigger where the pointer sits ("when X, read Y because Z"), and write the path as `${CLAUDE_SKILL_DIR}/references/<file>.md`, which expands to an absolute path rather than one the reader must resolve against an unstated working directory.
 
+⚠️ **Before cutting a rule as derivable, check where else it actually lives — "a reader could look this up" and "a reader can look this up" are different claims.** Question 1 is about derivability in principle; this is about the file's remaining copies in practice, and a rule stating an obligation the codebase cannot show you (a mirror in another repo that no CI reaches, a manual step deliberately kept out of a deploy path) usually has exactly one home. A grep across the repo's other docs and source settles it in seconds. Where the target is the sole home, the rule stays resident whatever its shape, because the cheapest correct version of it is still the only version.
+
+The corollary binds the write order: **a destination has to exist before the content is cut from the source.** A pass that trims first and intends to write the companion afterwards ships a `📖` pointing at nothing, which reads as thorough routing until someone follows it and is worse than the inline text it replaced — grep "finds" the pointer and reports the topic covered. Write the destination, confirm the path resolves, then cut.
+
 When something does need to leave, read `${CLAUDE_SKILL_DIR}/references/routing-content.md` — it maps each failure mode to a destination, and holds the symptom-index shape a multi-tier file should split into.
 
 ## Rewriting
@@ -96,7 +96,7 @@ A move means the destination file exists and holds the content when you finish. 
 
 ⚠️ **Resolve a new pointer as a path, never by eye.** A companion belongs at the nearest git-repo root of the file you're editing, and the depth prefix differs by where the citing file sits — `../_shared/…` from a SKILL.md is correct and the same string one directory down is not. Copy the shape from an existing pointer in the target, then `ls` the file from the citing file's own directory. This is the defect that reads as correct at both ends and has recurred repeatedly here.
 
-Where the move is a split into on-demand companions, `${CLAUDE_SKILL_DIR}/references/routing-content.md` holds the shape, and `../condense-claude-md/references/structural-splits.md` (§Location) covers the clustering method and the global-`~/.claude` path exception.
+⚠️ **A companion clustered by the source's own headings has rebuilt the same wall one file over** — and nothing in the result shows it, since the move completes, every pointer resolves and the resident file really is smaller. Decide the destination's clustering deliberately instead of inheriting it, before writing the destination: retrofitting means moving every body a second time. **Tell: your new companion's headings are recognisable as the source's section names.** `${CLAUDE_SKILL_DIR}/references/routing-content.md` holds the symptom-index shape and why a reader needs it; `../condense-claude-md/references/structural-splits.md` (§Location) covers the clustering method and the global-`~/.claude` path exception.
 
 **Don't propose; execute.** There is no approval step: the file is version-controlled, a bad rewrite is one `git checkout` away from gone, and asking costs more than reverting would.
 
@@ -120,4 +120,4 @@ Authoring under this lens differs only in what verification measures against: th
 
 ## Syafiqkit Conventions
 
-For a syafiqkit target, this runs alongside the plugin's authorship conventions: version bump + CHANGELOG entry, the ownership check before patching (never edit a consumer-side install), and a shared-mechanism grep before assuming a fix is single-file. For a third-party file, none of that applies.
+When the target is a syafiqkit file, the plugin's own authorship conventions apply on top of this pass — 📖 `syafiqkit:update-plugin`, which owns them: the ownership check before patching (never edit a consumer-side install), the shared-mechanism grep before assuming a fix is single-file, and the version bump + CHANGELOG entry. For a third-party file, none of it applies.

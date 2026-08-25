@@ -2,7 +2,7 @@
 
 After writing each entry (in Step 3):
 
-1. Re-grep the keyword to confirm no duplicate was created. (This grep also proves a write landed when the target is `CLAUDE.local.md`, which is gitignored.) ⚠️ That grep tests your own phrasing, not the file — an existing rule saying the same thing in other words returns zero hits and reads as clearance to add a second copy. Where you have not read the whole target file, the grep is the only thing standing between you and a duplicate, and it is measuring the wrong thing; read the section you are writing into end to end, or search the concept from a second angle whose vocabulary you did not choose.
+1. Re-grep the keyword to confirm the write landed — this is the only proof available when the target is `CLAUDE.local.md` or a companion, both gitignored. ⚠️ This is a landed-check, not the duplicate-check: the real search against duplication belongs before the write (Step 3's Constraints), because its outcome decides what you write rather than whether you keep it. Arriving here having skipped it, run it now anyway and be willing to shrink or delete what you just wrote — a duplicate caught late is still cheaper than one that ships.
 
 2. Ask: "Would removing this let Claude repeat the mistake?" If no, delete. Then ask the same of the section: if a reader absorbed the whole section, what would they default to? A row passing on its own can still be the twentieth mechanical row beside one line of judgment, training the opposite of what it says.
 

@@ -27,6 +27,8 @@ When the target is an existing invoice-tracking doc with prior dated `## INV-YYY
 
 ⚠️ Always check the existing invoice doc's most recent entry's date range BEFORE assuming a new invoice number is wanted — the doc's own convention (one invoice can span 2+ days, e.g. "17–18/07/2026") is the strongest signal of what "the previous invoice" refers to.
 
+⚠️ **A shared date is not a shared invoice — check whose commits the existing entry bills before appending to it.** On a repo with several contributors, an entry covering today can belong to someone else's workstream entirely, and the date test alone routes straight into merging two people's billing under one total. Settle it by commits, not dates: list the SHAs the existing entry names and check whether any of the ones you are about to bill appear there. No overlap means a separate entry on the same date, however strongly the dates suggest a continuation. When two same-date entries do end up side by side, say in each that the other exists and why they are distinct — that pairing is exactly what gets read as an accidental duplicate later and quietly reconciled away.
+
 ## Hour Estimation
 
 | Type | Base Hours | Notes |

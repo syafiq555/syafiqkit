@@ -27,18 +27,11 @@ Choose a mode that reflects what the session changed, then apply its step cascad
 - Output: fill Simplify/Review/Product from the agent runs as in full mode; ALSO report the referential-integrity result (append it to the Review row).
 - **The partition must cover the whole SESSION's work, not just the uncommitted diff.** Code you already committed this session was never agent-reviewed, and the working tree may show only `.md` changes — so count files from `git show --stat <this-session's commit>` + the uncommitted diff and partition all of them. The tell: a commit you authored this session in `git log`, but `git status --short` lists only docs.
 
-**Infra-only mode** when the diff is **entirely code that configures or operates an environment**, with no application code. CI workflows, `docker-compose*.yml`/`Dockerfile`, build config and nginx/env config are the common shapes, but the boundary is a mechanism rather than that list: infra is code whose failures are SILENT and whose blast radius is an environment rather than a user journey — nothing in the test suite would fail if the file were wrong. That test also admits the provisioning, promotion and guard scripts that sit beside the config — an ops script or a safety-gate check is infra by this reasoning even though no enumeration of config formats would name it, and those files are where the reviewer earns its place, since they carry real logic that nothing else exercises.
-- Step 1: **reviewer ONLY**, in the usual case. Skip the product reviewer (no user journey). Size-independent — the trigger is file KIND, not count. Prompt the reviewer adversarially: give it the change's PURPOSE, what it must not break, ask for empirical verification. Two call sites of the same command can need opposite treatments.
-- **Add the simplifier when the infra is imperative rather than declarative.** Skipping it is right for compose/nginx/YAML, where there is no logic to DRY. A shell or ops script is different: a promote/rollback pair, a setup/teardown pair, any two lists that must stay in step are exactly the duplication a simplifier catches, and a reviewer only finds that drift if you happened to prompt it about that risk.
-- Steps 2-5 as normal. Output: mark Product as ➖ "infra-only", and Simplify the same way unless the imperative-infra case above brought it in.
-- **Exception — a compose/env change that FLIPS A FEATURE FLAG on is NOT infra-only**; it exposes a user-facing capability → run the product reviewer.
+**Infra-only mode** when the diff is **entirely code that configures or operates an environment**, with no application code — CI workflows, compose/Dockerfile, build and nginx/env config, plus the provisioning, promotion and guard scripts beside them. The boundary is a mechanism, not a file-type list: infra is code whose failures are SILENT and whose blast radius is an environment rather than a user journey, so nothing in the test suite would fail if the file were wrong. ⚠️ A config change that FLIPS A FEATURE FLAG on is NOT infra-only — it exposes a user-facing capability, so the product reviewer runs.
 
-**Ops-only mode** when the session changed a **running system rather than the repo** — provisioning/seeding an environment, a data migration or backfill, a deploy or config flip applied out-of-band — and produced **no repo diff and no session commit** in any repo.
+**Ops-only mode** when the session changed a **running system rather than the repo** — provisioning, a backfill, a deploy or config flip applied out-of-band — and produced **no repo diff and no session commit** in any repo. Verification is a read-back from the live system, not an agent.
 
-- Step 1: **skip all three code agents** — there is no repo code to review. Do NOT substitute the docs-only integrity check either; nothing was edited yet at that point.
-- **The state you changed is the deliverable, so verification is a READ-BACK, not an agent.** Query the live system for each value the session claimed to set and report what it returned — an action's own return value is not evidence. This replaces Step 1's Output row.
-- Steps 2-5 as normal, and **Step 4 is the whole point**: a live-system change leaves no trace in `git log`, so the task doc is the only place it exists. Record what changed, in which environment, and anything synthetic/temporary that a later reader must not mistake for real.
-- Output: mark Simplify/Review/Product as ➖ "ops-only, no repo diff"; report the read-back on the Review row.
+📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` for either one's step cascade and Output rows — read it once you've matched the session to one of them, since which agents run differs from full mode in both.
 
 **Full mode** (default) for everything else — multi-file features, multi-domain sessions, anything with external inputs (WhatsApp/ClickUp pastes) that may need new doc stubs. When in doubt, full.
 
@@ -60,9 +53,15 @@ Establish which files belong to this session before spawning agents — judge by
 
 **Ban these verbs in every agent prompt you write: `stash`, `checkout -- .`, `reset`, `clean`, `restore`, `commit`, `push`.** A file partition scopes what an agent *reads*, never what a `git` command it runs *touches* — so one agent reaching for a clean baseline can collide with your uncommitted work or a peer's. Naming the verbs is the guard; a prompt gesturing at "nothing destructive" reads as followed right up to the collision.
 
+**Give at most ONE agent write authority over any given file.** Simplifier and reviewer both carry `Edit`, so handing both the same list races them on one file — and a diff small enough that neither role splits is exactly where that looks correct. Overlapping READS are fine; overlapping writes produce transient diagnostics indistinguishable from real defects, and the post-fan-out `HEAD`/`status` re-read does not detect it.
+
 Read 📖 `${CLAUDE_SKILL_DIR}/references/owner-and-partition.md` for the ownership decision process and how to handle contested files.
 
 Once you've settled ownership, emit all applicable agents in **ONE message** with no prose before the `Agent` calls — no count, no plan, no "spawning N agents now". The Emission rule is non-negotiable: open with the first call, emit the rest back-to-back. Narration ends the message early.
+
+⚠️ **The cost is serialisation, and it is invisible because every agent still runs.** A sentence before the first `Agent` call closes the message, so the remaining calls go out in later messages: the agents then start minutes apart instead of together, and each one's report lands while you are still writing the next dispatch — which is exactly the mid-flight reading the "work on something disjoint" rule below exists to prevent. Nothing errors, the reports all arrive, and the run reads as normal. **Tell: you are about to write a sentence introducing the dispatch.** The introduction is what you write *after* the last call, not before the first — and if you catch yourself having already sent one, send the remaining calls immediately rather than adding a second explanation.
+
+⚠️ **A harness or output style that asks you to announce your tool calls is the live exception, and obeying it here is how this rule keeps getting broken.** The instruction is real and arrives with system authority, so the announcing sentence reads as required rather than as the thing being warned about — and a sentence *naming the emission rule* ("dispatching all three in one message") is the most convincing form it takes, because describing compliance feels like compliance. Spend that line on the earlier message where you settle the partition, then open this one with the first `Agent` call. Recorded three times now, each by a session that had read the rule minutes before; the recurrence is about which instruction wins at the moment of acting, not about how firmly this one is worded.
 
 ### Agents to run
 
@@ -80,6 +79,8 @@ Glob: .claude/agents/product-reviewer.md
 | Product reviewer (full mode only) | `subagent_type: "product-reviewer"` | *(none — skip if the project file is absent)* |
 
 Run the Glob first every time — don't assume.
+
+⚠️ **A Glob hit is not proof the agent is dispatchable.** Project agents register when the session starts, so one written *this* session exists on disk and is absent from the harness's registry — `Agent(subagent_type: "code-reviewer")` then fails with *"Agent type not found"*, and the fallback types in the table above are usually missing too, since a project that just generated its own agents has no plugin-supplied ones either. `/reload-plugins` does not help; project agents aren't plugins. Rather than skip the step, dispatch `general-purpose` and hand it the agent file as its brief — "read `.claude/agents/<name>.md` and adopt it as your brief, then …" — which preserves the role's own process and false-positive tables. Note in the Output which agents ran this way.
 
 **`browser-verifier` is NOT part of this step — it is opt-in, never auto-spawned.** Spawn it **only when the user asked in words** — "the diff touches UI so they'd want runtime proof" is an inference. A UI diff is a reason to offer, never a reason to spawn. See `references/browser-verification.md`.
 

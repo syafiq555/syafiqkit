@@ -18,9 +18,13 @@ Auto-scale by changed-file count; user arg overrides. Count changed files first 
 
 The count is **PER ROLE**, and **ALL agents go in ONE tool-call block**. N reviewers means N reviewers AND N simplifiers, plus one product reviewer (never partitioned — it judges the whole feature).
 
-## Partitioning Same-Role Agents
+## Partitioning by Write Authority
 
 When count >1 per role, partition the file list across same-role agents by domain/directory — each agent gets a disjoint slice. Never hand every same-role agent the full list (duplicated review + conflicting edits on the same file).
+
+⚠️ **The thing being partitioned is WRITE authority, not role membership, so a small diff needs the same care as a large one.** Simplifier and reviewer both carry `Edit`, so handing both the identical list races them on the same file — and a diff small enough to need only one of each is exactly where that reads as correct, since there is nothing to split by count. Reading is safe to overlap and usually desirable; writing is not. Give at most one agent write authority over any given file per fan-out: split the files between the two roles, or tell one role to report findings without editing.
+
+A concurrent write is hard to diagnose after the fact, which is what makes it worth preventing rather than detecting. It surfaces as editor diagnostics against a half-written file — an undefined method, imports flagged unused — that are indistinguishable from real defects and gone by the time you look. It also breaks the obvious verification: a hash taken to check whether an agent's reported edit landed says nothing unless you know it predates that edit, and a report claiming a change while the file looks untouched invites exactly the wrong conclusion. The `git rev-parse HEAD` / `git status -sb` re-read after the fan-out does not catch this — both agents' work is in the tree and the status is clean. If you must overlap, record each file's hash BEFORE emitting and compare after all agents report, and treat any mid-run diagnostic on a shared file as noise until then.
 
 ## Prompting Each Agent
 

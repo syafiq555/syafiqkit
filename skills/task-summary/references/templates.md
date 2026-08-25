@@ -144,7 +144,9 @@ Rename a heading to fit the domain (`Blocking the deploy`, `Blocking go-live`, `
 
 ## Full Template
 
-For significant features (use the subscription doc as the gold standard). Use Mermaid diagrams freely in any section where a visual helps — not limited to architecture:
+For significant features (use the subscription doc as the gold standard). Use Mermaid diagrams freely in any section where a visual helps — not limited to architecture.
+
+**Emit only sections that have content here too** (same rule as Minimal, above). So the headings below are the set to work from rather than a checklist to satisfy — `Architecture` and `Files` on a proposal that tracks no code, or `Bugs Fixed` before anything has broken, are omitted rather than padded out or swapped for a heading borrowed from a doc that had something to put there. What separates omitting from losing is whether the subject had anything to say, and the gap-check on the next update is what re-asks that.
 
 ```markdown
 <!--LLM-CONTEXT

@@ -322,3 +322,26 @@ Chosen: the ceiling goes inline in `condense-task-doc` (new step 7) and `condens
 - A `~10%` grep returned zero hits during investigation and read as the guard having been deleted; it had been reworded to "roughly a tenth" by an in-flight pass. Restoring a live guard was averted by re-running the search where the fact was known to live.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-controls-validate-the-predicate-not-the-extractor — Both Controls Passing Says Nothing About A Hand-Rolled Sweep — committed — 2026-08-25
+
+**Problem**
+`CLAUDE.md` already required resolving a known-good and a known-bad case before believing any sweep, written after three agents in one day shipped pointer sweeps that reported most of the corpus broken. A session following that rule exactly still produced two false findings in one `/done` run: a pointer sweep reporting 9 broken pointers (all 9 sound), and a table-integrity sweep reporting 40 split tables (all 40 sound, being ordinary `## heading` lines after a table).
+
+Both runs had passed the two-direction control. The control cannot fail there, because a known-good and a known-bad case route through the *same* extractor — the regex pulling paths out of prose, the `awk` deciding what a table boundary is. When the bug is in extraction rather than in the predicate, the good case and the bad case are both mis-extracted and the pair still agrees.
+
+**Decision**
+Sharpen the existing `CLAUDE.md` rule in place rather than add a neighbour: print the extracted values and read a few against the source, because an extractor is falsified by looking at what it produced and never by the pass/fail column it produced them into. The diagnostic that actually worked both times was the one already written down — a failure rate too high to be plausible in a maintained corpus is evidence about the checker — so the addition names *why the control didn't catch it* rather than restating the tell.
+
+**Rejected**
+- A new bullet beside the existing one. Why not: the file's health depends on what arrives, not on how well each arrival is worded, and a second rule about sweeps would be read as a different rule rather than the same one qualified.
+- Banning hand-rolled sweeps in favour of a checked-in script. Why not: the sweeps are one-off and shaped to the question being asked; a maintained script is a different cost and would rot between the sessions that need it.
+
+**Consequences**
+The two failures were caught by unrelated means — nine "broken" pointers inspected individually because the count was implausible, and forty "split tables" disbelieved for the same reason — so the corpus was never at risk, but both cost a full verification detour. Generalises past pointers: any sweep whose first stage is parsing (identifiers out of backticks, paths out of `📖` lines, sections out of headings) has an extractor that the controls do not test.
+
+⚠️ Read alongside `D-deferral-is-not-delivery`: this pass also found the inverse failure, where `[ -e ]` confirmed a pointer target existed while the target sat untracked and would have been dropped by `git commit -am`. Existing on disk and being in the commit are different claims, and the check that exists cannot see the difference.
+
+**Status**: committed · **Reversible**: yes

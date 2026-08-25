@@ -48,5 +48,19 @@ Say in one line what you restructured before the rewrite lands — *4 tables to 
 4. **Normalize formatting to house style** — free-form bullets → `❌/✅` rows; debugging notes → `Symptom | Cause | Fix` rows; add missing `{#anchor}`s; strip line numbers down to file+symbol; delete session storytelling.
 5. **Apply the capture filter** (Prerequisites, above) as you go: a rule that's discoverable-from-code, linter-enforced, or feature-specific gets *removed* (feature-specific → note in a task doc instead), not reformatted. This is the one place Rewrite deletes.
 6. **Route mis-placed rules:** a rule that belongs one layer down goes to (or creates) the subdir/domain file. A cross-cutting rule wrongly buried in a subdir moves up to the layer. If a block is feature-specific but has no layer, route to that feature's task doc instead — leave a bare `📖 See <file>` pointer, no inline duplication.
-7. **Validate**: diff your rule-inventory (step 1) against the rewritten file — every load-bearing rule still present (possibly relocated), zero dropped. Verify the file contains only real content by inspecting its end (tool-output markup must not be persisted). Re-run the prose-vs-table check (step 3) on every section you touched, as a final pass across the whole file — easy to miss in one section while focused on another.
+7. **Validate**: diff your rule-inventory (step 1) against the rewritten file — every load-bearing rule still present (possibly relocated), zero dropped.
+
+   ⚠️ **Your inventory is a memory of what you meant to keep, so checking the rewrite against it confirms your intent and cannot detect what you never noticed dropping.** A pass that cut a third of the file has reported "zero rules dropped" in good faith on exactly this basis. Take one mechanical count that doesn't depend on recall — unique backticked identifiers is the cheapest, since a rewrite conserves meaning while identifiers are literal strings a reformatting cannot invent:
+
+   ```bash
+   comm -23 <(grep -o '`[^`]*`' "$ORIG" | sort -u) <(grep -o '`[^`]*`' "$NEW" | sort -u)
+   ```
+
+   Every name it prints is a candidate, not a finding: most will be legitimately reworded or relocated, and the count alone never settles which. For each, ask whether the *rule* survives in some wording, and whether the fact is recoverable from the codebase or a task doc — a fixture roster derivable from its seeder is a correct cut, while an obligation whose only home was this file is a real loss. Read the affected sections whole before concluding either way.
+
+   Then confirm every `📖` pointer you wrote resolves to a file that exists (`[ -e ]` per path). A pointer written toward a companion you intended to create but didn't is the failure this catches, and it reads as thorough routing right up until a reader follows it.
+
+   ⚠️ **Existing on disk and being in the commit are different claims, and `[ -e ]` cannot tell them apart.** A companion you just wrote is untracked while the file pointing at it is already tracked, so a `git commit -am` ships the live pointer and leaves the target behind — the same broken pointer as the never-written case, arriving by the opposite route and passing the check above. Ask git rather than the filesystem for anything you created this session (`git ls-files --error-unmatch <path>`, or read the status plane for a `??`), since a docs-only session is exactly where a new reference gets written and never staged.
+
+   Verify the file contains only real content by inspecting its end (tool-output markup must not be persisted). Re-run the prose-vs-table check (step 3) on every section you touched, as a final pass across the whole file — easy to miss in one section while focused on another.
 

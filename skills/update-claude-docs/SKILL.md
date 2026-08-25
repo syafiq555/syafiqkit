@@ -7,16 +7,6 @@ description: Create, rewrite, condense, or capture-into CLAUDE.md files followin
 
 The single manager for CLAUDE.md files — the analog of `task-summary` for `current.md`. Four modes; pick the one matching how it was invoked.
 
-Route everything this skill produces to CLAUDE.md — not to `~/.claude/projects/*/memory/`. The reason is audience, not mechanism: auto memory is machine-local and unshared, so a rule landing there reaches one person on one machine while every teammate and every fresh checkout carries on without it. That holds even though auto memory is enabled by default and genuinely loads each session, which is what makes it a tempting destination. The exception is if a memory file was already touched this session; leave it alone.
-
-The two are complements rather than rivals — Claude writes auto memory from its own corrections, you write CLAUDE.md for what the team must share — so finding a fact already in auto memory is a reason to promote it here, not a reason to skip it.
-
-Settle who owns the target file before writing it — this applies in every mode. A CLAUDE.md can carry another session's uncommitted work, and `/done` invokes this skill one step before `task-summary`, so two concurrent sessions meet here first. Judge by diff *content*, not by `git status` plane (the harness auto-stages your own writes into the same shape as a peer's). For contested files, stick to additive, scoped edits; don't delete or restructure sections whose lines you didn't write. In Rewrite or Condense mode, say so and stop rather than restructuring around a peer's in-flight changes. See `../_shared/references/diff-ownership.md` and `../_shared/references/cross-session-messaging.md` for the mechanics of a multi-session file.
-
-**The shape of a Capture run, stated here because the later steps may not survive.** This skill is long enough that a compacted session keeps roughly its first half, so the six steps are named once, up front: **scan** the session for signals, **route** each through the three gates, **write** the survivors, **prune** if the project has an agent for it, **validate** what you wrote, and **sync agents** only if one of five specific signals fired. Steps 3 onward carry their own rules and you should read them; if they aren't in your context when you get there, that's the compaction, so re-read this skill rather than improvising the back half.
-
-Two things hold across every step and are the ones worth carrying if nothing else does. **Writing nothing is a legitimate outcome** — most sessions produce signals that shouldn't become entries, and "no capture: the corrections were applications of rules already stated" is a real report. And **a rule you'd add is usually a rule to sharpen**: prefer replacing or tightening an existing line over adding a neighbour, because the file's health depends on what arrives, not on how well each arrival is worded.
-
 ## Mode selection (decide first)
 
 | Invocation | Mode | What it does |
@@ -30,9 +20,19 @@ When in doubt which mode, it's Capture — that's the one `/done` depends on. It
 
 What controls density is what gets admitted to a file and whether it's hot-path (inline) or cold-path (`references/`), not restyling prose that already reads fine. This was measured rather than assumed: two skills hand-condensed for clarity came out *denser* than they started two weeks later, because the pass squeezed wording while the arrival of new rules went unchanged. Leave a rule's wording alone unless it fails the capture filter or its position is wrong. This governs every mode, Capture included.
 
-## The Three Routing Gates (every entry answers these)
+## Policy: CLAUDE.md vs Auto Memory and File Ownership
 
-Every signal has to pass three gates before routing:
+Route everything this skill produces to CLAUDE.md — not to `~/.claude/projects/*/memory/`. The reason is audience, not mechanism: auto memory is machine-local and unshared, so a rule landing there reaches one person on one machine while every teammate and every fresh checkout carries on without it. That holds even though auto memory is enabled by default and genuinely loads each session, which is what makes it a tempting destination. The exception is if a memory file was already touched this session; leave it alone.
+
+The two are complements rather than rivals — Claude writes auto memory from its own corrections, you write CLAUDE.md for what the team must share — so finding a fact already in auto memory is a reason to promote it here, not a reason to skip it.
+
+Settle who owns the target file before writing it — this applies in every mode. A CLAUDE.md can carry another session's uncommitted work, and `/done` invokes this skill one step before `task-summary`, so two concurrent sessions meet here first. Judge by diff *content*, not by `git status` plane (the harness auto-stages your own writes into the same shape as a peer's). For contested files, stick to additive, scoped edits; don't delete or restructure sections whose lines you didn't write. In Rewrite or Condense mode, say so and stop rather than restructuring around a peer's in-flight changes. See `../_shared/references/diff-ownership.md` and `../_shared/references/cross-session-messaging.md` for the mechanics of a multi-session file.
+
+**Note on compaction:** This skill is long; a compacted session keeps roughly its first half. The six Capture steps (scan, route, write, prune, validate, sync) are named once, up front, so if they aren't in your context when you reach Step 3, re-read this skill rather than improvising. Two things carry through compaction: **writing nothing is a legitimate outcome** — most signals shouldn't become entries, and "no capture: corrections were applications of existing rules" is a real report. And **a rule you'd add is usually a rule to sharpen**: prefer tightening an existing line over adding a neighbour, because the file's health depends on what arrives, not on how well each arrival is worded.
+
+## The Three Routing Gates {#routing-gates}
+
+Every signal that survives the scan passes three gates before routing:
 
 1. **Is it derivable?** Can the reader reconstruct it by listing a directory, searching the tree, reading source, asking the tool for its own help, or looking at the manifest? If yes, cut it — the tool or codebase says it already.
 2. **Is it safety-critical or routine?** Does the rule need to fire before the reader acts (resident in CLAUDE.md), or only when something breaks (lazy-load into a skill/companion)?
@@ -40,15 +40,13 @@ Every signal has to pass three gates before routing:
 
 Pass all three and the fact routes to CLAUDE.md. Fail the first and cut. Fail the second and move to a skill or companion. The order matters: derivability is the cheapest gate (fastest to check), so always run it first.
 
-📖 `references/pointer-discipline.md` — read when a `> 📖` line is in play: following a pointer, a companion left stale because grep "found" it, a pointer's own `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
+📖 `${CLAUDE_SKILL_DIR}/references/pointer-discipline.md` — read when a `> 📖` line is in play: following a pointer, a companion left stale because grep "found" it, a pointer's own `Covers:` summary going stale, writing a bare pointer with no inlined facts, or picking a target by folder name.
 
 ---
 
 # CAPTURE MODE (default)
 
-Extract reusable patterns from this session into CLAUDE.md files.
-
-A caller-supplied arg is additive context, not a scope limiter — scan the whole conversation for every signal in the Step-1 table below, since the arg usually hints at only one of them (an arg naming a code fact still needs a separate pass for corrections/wrong-sources).
+Extract reusable patterns from this session into CLAUDE.md files. A caller-supplied arg is additive context, not a scope limiter — scan the whole conversation for every signal in the table below, since the arg usually hints at only one of them (an arg naming a code fact still needs a separate pass for corrections/wrong-sources).
 
 **When the conversation has no scannable session** (invoked right after `/clear`, or on a topic never touched this session) but the user still names a subject ("make CLAUDE.md aware of X"), the Signal scan doesn't apply — there's nothing to scan. Read the actual source for that subject instead (the relevant directory/files) and diff it against what CLAUDE.md currently claims; a stale worker count, an undocumented code path, or a description that no longer matches the source is the same "Undocumented" or "Violation" signal a scan would have produced. Say so explicitly ("no session content — reading the codebase directly") rather than silently switching modes.
 
@@ -79,13 +77,13 @@ For each signal that clears that, classify whether the rule exists:
 | Exists, wrong scope/file | **Misplaced** — move to correct scope |
 | Exists, now FALSE | **Invalidated** — rewrite or delete; stale is worse than absent |
 
-## 2. Route — Where does it go?
+## 2. Route — Apply the three gates
 
 Ask what the fact is ABOUT, not where it was found. A codebase fact routes down the hierarchy; a tool/framework fact belongs at the level it's true everywhere.
 
-**2a. Derivability gate** — Can the reader reconstruct this by inspecting the codebase? 📖 `${CLAUDE_SKILL_DIR}/references/derivability-examples.md`.
+For **Derivability gate**: Can the reader reconstruct this by inspecting the codebase? 📖 `${CLAUDE_SKILL_DIR}/references/derivability-examples.md`.
 
-**2b. Residency gate** (HOT PATH)
+For **Residency gate** (gate 2):
 
 | Resident | Lazy-load |
 |----------|-----------|
@@ -95,13 +93,13 @@ Ask what the fact is ABOUT, not where it was found. A codebase fact routes down 
 
 **Rule: "I read this before acting"** → resident. **"I read this because something broke"** → lazy-load.
 
-📖 `${CLAUDE_SKILL_DIR}/references/routing-scope.md` — hierarchy ladder, seam test, file privacy check.
+For **Scope** (gate 3): 📖 `${CLAUDE_SKILL_DIR}/references/routing-scope.md` — hierarchy ladder, seam test, file privacy check.
 
-**Read target file first** — check structure, existing entries, where new entry fits.
+Before writing, read the target file to check structure, existing entries, and where new content fits.
 
 ### CLAUDE.local.md Routing
 
-📖 `${CLAUDE_SKILL_DIR}/references/local-md-checklist.md` — credentials, tokens, CLI patterns, infrastructure handles.
+Credentials, tokens, CLI patterns, and infrastructure handles route here. 📖 `${CLAUDE_SKILL_DIR}/references/local-md-checklist.md`.
 
 ## 3. Write — Hard Rules
 
@@ -117,7 +115,7 @@ Replace old text rather than appending a second warning. 📖 `${CLAUDE_SKILL_DI
 
 ### Constraints
 
-- No duplicates across CLAUDE.md files
+- No duplicates across CLAUDE.md files — and the search that settles it runs **before** the write, not at Step 5. A concept already covered in other words returns nothing to a grep of your own phrasing, so the sole evidence you have is a search whose vocabulary you did not pick: the mechanism's terms, the symptom's, the neighbouring section's. What this catches is rarely a verbatim copy — it is a general rule already stated elsewhere that your entry re-derives while adding one genuinely new instance. That entry should shrink to the instance and point at the section owning the mechanism, which is a decision about what to write and therefore has to happen before writing it
 - Route to narrowest scope
 - One refinement round per signal, then move on
 - Write with `Edit` — not `Write`, and not a `sed`/`python` rewrite. Both alternatives replace an anchor check with your own care: `Edit` refuses an anchor that is absent *or* non-unique, which is what stops an edit landing on the wrong occurrence of a repeated heading
@@ -153,3 +151,9 @@ Cold-path modes. All three read `references/structure.md` (hierarchy, taxonomy, 
 **House style is the standard in every repo, and this skill enforces it.** The canonical shape in `references/structure.md` applies to any CLAUDE.md this skill touches, whether it sits in this plugin or in a consumer's project — someone invoking a restructure asked for one, and a pass that defers to whatever it found delivers nothing. An existing file's consistency is not evidence to weigh: a shape applied uniformly is what one pass produces, so uniformity says a pass was uniform and nothing about whether it was right.
 
 What that does *not* license is losing content. Inventory every rule before touching anything and diff it against the result; rules only disappear via the capture filter (derivable, linter-enforced, feature-specific), never because they didn't fit the shape you were converting into. Say in one line what you restructured. 📖 `../_shared/references/adopt-vs-impose.md`
+
+## Rewrite mode: Delegation safety
+
+⚠️ **When a Rewrite is DELEGATED, the inventory claim in its report is the one claim its self-assessment cannot be trusted for.** A delegated pass returning "zero rules deleted" is describing its intent; the same run can drop a rule with a documented incident behind it and report it clean, because the correct pass and a lossy one read identically in summary form. The dispatching session must take its own `cp` of the file BEFORE dispatch and diff against that afterwards — an inventory existing only inside the agent's context is unfalsifiable the moment the agent returns.
+
+Two failure modes recur in opposite directions, so name which one you are guarding against. A rewrite legitimately rewords, so a rule can survive carrying none of its original tokens — a keyword miss is a place to open and read, never a loss to report. But `package.json`, a config file or the codebase "already having" a value is not the capture filter: those hold the value while the rule holds why it bites (a script exists, but not that it silently skips untracked files and still reports clean). **Tell: your justification for a deletion is that something else in the repo already contains the string.**

@@ -236,3 +236,26 @@ Open actionables stay in the index at any size, and `## Next Steps` is excluded 
 - The reporter's own diagnosis stopped at two files because that's what their reproducer exercised. A consumer bug report scopes to the path they walked; check the neighbours before accepting the boundary.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-selection-stays-inline — Relocating For The Token Ceiling Keeps The Criteria That Decide Whether To Open The File — committed — 2026-08-24
+
+**Problem**
+`done/SKILL.md` reached 4,948 of the 5,000-token re-attach ceiling, putting its own exit gate at the cut line — a session long enough to compact is exactly the one that then loses the step telling it to verify its rows. Relieving that means moving content to `references/`, and the obvious candidates are whichever blocks are longest. `done` carries four mode blocks of which one applies per session, so the two rare ones (infra-only, ops-only) looked like free bytes.
+
+**Decision**
+Move the rare branches' *step cascades*; keep every mode's *selection criteria* inline. A reader must be able to tell which mode applies without opening anything, because the pointer can only be summoned by someone who has already matched their session to a mode — relocating the matching criteria makes the pointer unreachable in exactly the way D-pointer-needs-a-trigger describes, and does it to the reader who most needs it.
+
+Two rules from the moved blocks were deliberately duplicated into both files rather than moved cleanly: the feature-flag exception (a config change that flips a flag on is NOT infra-only) and the ops-only read-back. Both fail silently — a skipped product review on a newly-exposed capability, or an action's return value accepted as evidence of state — so the cost of a reader never opening the reference is higher than the cost of stating them twice.
+
+**Rejected**
+- Moving docs-only mode too, which is longer than either rare mode. Why not: it fires often. Relocation buys nothing when the common path pays the round-trip on most sessions, and the ceiling problem is about what survives a compaction, not about the file being long in the abstract.
+- Trimming prose across the whole file to claw back the same bytes. Why not: measured elsewhere in this doc set — squeezing wording while arrival of new rules continues unchanged regrows the file, and it costs reasoning the rules need. Relocation moves a whole branch out; tightening moves nothing out.
+
+**Consequences**
+4,948 → 4,493 tokens net of a rule added the same session, so the gate moved meaningfully clear of the cut. The general form: when a skill nears the ceiling, look for a branch only some sessions take, and split it at the seam between *deciding you are in this case* (inline) and *what to do about it* (relocatable). A mode selector, a platform fork and an error-recovery path all have that seam; a linear procedure does not, which is why the fix is not available to every oversized file.
+
+⚠️ Position is the other half and is cheaper than relocation: the cut lands at a fixed offset, so a guard or verify step sitting late is at risk regardless of total size. Check what sits at the boundary (`head -c 20000 <file> | tail -c 1200`) before assuming the file needs to shrink at all.
+
+**Status**: committed · **Reversible**: yes

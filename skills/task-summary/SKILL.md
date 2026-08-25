@@ -12,7 +12,7 @@ A task doc's job is to be readable cold — a stranger to the work reads it once
 ## Workflow at a glance
 
 1. **Resolve path** — turn the input (full path / `domain/feature` / empty) into `tasks/<domain>/<feature>/current.md`. No explicit path → run the multi-domain scan first (§1).
-2. **Pick template** — Full (multi-session feature) or Minimal (single bug fix or short session). Section headings, table columns, field names all come from `references/templates.md` verbatim.
+2. **Read `references/templates.md`** — then pick Full (multi-session feature) or Minimal (single bug fix or short session). Section headings, table columns and field names come from it verbatim. Read it on an **update** too, even though there's no template to pick then — skipping it is how an existing doc's own drift gets mistaken for the spec (§2 covers why).
 3. **Create or update** — missing doc → Full template; existing doc → edit in place, gap-checking for missing sections.
 4. **Validate** — re-read the whole doc; does every section still say something true and complete? (§5 lists the checks.)
 5. **Reconcile back-references** — sync any roadmap/hub/`Related:` doc that mirrors the status you changed. Nothing in a git diff points at these, so the scan in step 1 never reaches them and a roadmap row can still read "uncommitted" weeks after ship. Go looking for them deliberately; §6 has the method.
@@ -65,6 +65,10 @@ Don't assume one domain per session — scan the full conversation for every dom
 ## 2. Create or Update?
 
 Read both the resolved path and `references/templates.md` first — the template holds the canonical section structure for either path. Missing doc → **Create** using the Full Template. Existing doc → **Update** in place.
+
+**The template says which sections exist; the doc's subject says what goes in them.** That division is what makes a neighbouring doc useless as a shape source — it can show you how someone else filled a section, never which sections you have. So a doc whose headings differ from `references/templates.md` is drift to fix when you touch it rather than a convention to match, and updating an off-template doc means bringing it back toward the template instead of preserving what it drifted into. A template improvement reaches old docs only through that, since nothing else revisits them.
+
+A template that fits badly is the case worth thinking through, because it's the one that makes copying a neighbour feel reasonable. `Architecture` and `Files` have nothing to say for a proposal that tracks no code — but that is the subject having no content for a section, which is answered by dropping it (`references/templates.md` emits only sections that have content, under either template). Reaching for another doc's headings answers a different question, one that wasn't asked: it treats an empty section as a missing *section set*. Watch for the word *house style* arriving as justification here — it belongs to the CLAUDE.md skills, where it means the plugin's shape overrides whatever a file already has, so borrowing it to defer to a neighbour's shape inverts the thing it names.
 
 ## 2a. When Merging, Renaming, or Reorganizing
 

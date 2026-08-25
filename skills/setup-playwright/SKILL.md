@@ -116,6 +116,10 @@ Two things make the difference between a useful recording and a confusing one:
 
 A recording is a viewport, not the page: content below the fold is absent, and a modal taller than the viewport looks cropped. Read a cut-off edge as the frame boundary before treating it as a layout bug.
 
+**An assertion doesn't need the thing on screen, so a green run routinely films the wrong half of the page.** Locators resolve below the fold and text assertions match anywhere in the DOM, which means the subject of a spec — the table, the grid, the row it exists to prove — can stay off camera for the whole recording while every check passes. A reviewer then watches filters and headers and concludes the feature was never built, and unlike a truncated tail this looks like perfectly good footage, so nothing prompts a second look. Scroll the subject into shot before the hold, behind the same recording flag, and make it a no-op otherwise: a spec whose assertions depend on scroll position passes and fails differently under recording than in CI. Where the subject only populates after an interaction the spec skips — a grid that stays empty until a date is picked — filming an honest green run still shows an empty element, so the recording path has to perform that step too, guarded the same way.
+
+**Verify a recording by looking at a frame, not by the run being green.** Every failure above is invisible from the test result, so extracting a frame near the end (`ffmpeg -sseof -0.6 -i video.webm -frames:v 1 out.png`) and actually viewing it is the only check that catches them — including the ones introduced by the recording-only code itself, which no assertion covers.
+
 ### Assertion and locator conventions
 
 Worth adopting early; retrofitting is tedious.
@@ -127,7 +131,9 @@ Two that repeatedly catch real bugs:
 - Assert absence with `toHaveCount(0)`, not `not.toBeVisible()` — something rendered off-screen or inside a collapsed section passes a visibility check while still being in the DOM.
 - Before any absence assertion, assert something that *must* be present. A blank or errored page satisfies every `toHaveCount(0)` in the file, so an absence-only spec passes hardest exactly when the app is most broken.
 
-**A spec that asserts state it never establishes is the highest-value thing to check for, because it passes.** Prove a spec is not vacuous by inverting its fixture in the database and re-running: it must fail. If it still passes, it isn't testing what it claims. This is also how you check a gate is live — remove the guard and confirm something goes red.
+**A spec that asserts state it never establishes is the highest-value thing to check for, because it passes.** Prove a spec is not vacuous by inverting its fixture in the database and re-running: it must fail. This is also how you check a gate is live — remove the guard and confirm something goes red.
+
+⚠️ **A probe that still passes has two explanations, and the flattering one is the wrong one to reach for first.** Either the spec is vacuous, or *the mutation never landed* — a `sed`/`perl` substitution whose escaping was off exits 0 having changed nothing, an edit hits a cached view, a fixture write targets a different row than the assertion reads. Both produce a green run, and only one is a finding about the spec. Confirm the mutation is real before concluding anything about the test: re-grep the file and require the count to move, or diff it. Prefer an anchored edit over a scripted substitution for the mutation itself, since a tool that refuses an unmatched anchor cannot fail silently. **Tell: you are about to call a test vacuous on the strength of a probe you did not verify.**
 
 ## CI
 
