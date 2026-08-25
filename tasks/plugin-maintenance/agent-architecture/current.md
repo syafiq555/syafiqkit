@@ -113,7 +113,7 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 
 ---
 
-## Last Session (2026-08-26)
+## Last Session (2026-08-26) — shipped v1.211.0 (`4a8a76f`)
 
 - **GitHub issue #27 (reported by a colleague against v1.205.0): passing `name:` to `Agent` silently changes where the report goes.** A named subagent is an addressable teammate, so its plain-text final output never returns to the caller — the completion notification carries that it finished and none of what it found. Five of six agents in the reporter's `/done` fan-out went idle with their reviews unretrieved. Confirmed on disk (`grep -rn SendMessage skills/done/` returned nothing) and fixed at two layers: the trigger sentence at `done/SKILL.md`'s opening, inside the compaction-survival window, and the procedure in `references/emission-and-agent-counts.md` where the dispatch prompt is assembled. Also captured to `CLAUDE.md`'s subagent-mechanics section, since it is a harness fact rather than a `done` fact.
 - **The non-determinism is the reason it needs a standing clause rather than a noticed-once fix.** Six identically-spawned agents split one-reporting against five-not, so a run whose reports did arrive is no evidence the clause is unnecessary — the failure is invisible from a successful run, which is what let it survive three prior releases of agent-dispatch hardening.
