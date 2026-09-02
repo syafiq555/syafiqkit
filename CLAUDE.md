@@ -27,11 +27,13 @@ These skills accept explicit user command:
 | `brainstorming` | Design exploration before creative or architectural work |
 | `commit-invoice-generator` | Generate invoice line items from git commits |
 | `md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
+| `user-manual` | Write/extend an END-USER manual — scope from what users do, Diátaxis shape, screenshots from a dedicated E2E capture spec, `.docx`/`.pdf` editions. Distinct from `md-to-pdf`, which only converts a document whose content is already settled |
 | `gchat-format` | Convert Markdown to Google Chat message format |
 | `pull-db` | Transfer MySQL/MariaDB database from remote server to local dev |
 | `notes-summary` | Create/update/read a personal session journal outside the repo (`~/.claude/notes/`) for boss/team/career/strategy conversations — powers the `read-notes`/`update-notes` commands |
 | `skill-creator` | Create a new skill — judges whether it should be one, drafts SKILL.md, registers it |
 | `update-plugin` | Capture plugin learnings and patch SKILL.md files after authoring work |
+| `setup-project-docs` | Establish a project's core doc set — PRD, ARCHITECTURE.md, ARCHITECTURE-ESSENTIALS.md, CLAUDE.md/AGENTS.md — greenfield by derivation, or by archaeology when adopting an existing codebase |
 | `update-claude-docs` | Create, rewrite, or condense CLAUDE.md files |
 | `condense-task-doc` | Aggressively condense a bloated task doc; splits >300 lines into index + decisions |
 | `condense-claude-md` | Aggressively condense a bloated CLAUDE.md (removes excess — not the analog that adds content) |

@@ -11,6 +11,8 @@ Find the **most specific** CLAUDE.md for what's left. This ladder is the same hi
 5. Project root `CLAUDE.md`
 6. Global `~/.claude/CLAUDE.md`
 
+**Where the project has a `docs/ARCHITECTURE-ESSENTIALS.md`, one class of rule outranks this whole ladder: the kind that can be violated in a single line, silently.** That file exists to be read *whole* before any change, which is a guarantee no CLAUDE.md offers — CLAUDE.md is scanned for the section that matches what you are doing, so a rule you would only find by already suspecting it is a rule that fires too late. Route by that test rather than by subject: a constraint whose violation compiles, passes tests, and is wrong in production belongs in essentials, while the fuller reference explaining the surrounding area stays in the CLAUDE.md the ladder picks. The two are complements — essentials carries the rule and points at CLAUDE.md for the detail. ⚠️ Admission is a real cost: the file's value is that it stays short enough to read entire, so a rule that merely makes code nicer must not go there, and adding one is a moment to ask whether an existing line has stopped earning its place.
+
 A subdir `CLAUDE.md` auto-loads *additively* on top of its parents, so routing a rule down a level doesn't hide it — it scopes it. Prefer the subdir file when the rule is both needed in that subdir AND useless elsewhere (the seam test); if it's cross-cutting (terminology, shared utilities, contracts used across sibling directories), keep it at the layer level instead — pushing a cross-cutting rule into one subdir means the sibling dirs never load it. Creating the subdir `CLAUDE.md` if it doesn't exist yet is fine.
 
 ## The Seam Test

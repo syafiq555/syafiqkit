@@ -36,7 +36,7 @@ Every signal routes by asking three questions in order:
 
 1. **Derivable?** Can the reader reconstruct it by listing a directory, searching the tree, reading source, or looking at the manifest? If yes, cut it.
 2. **Safety-critical?** Must the rule fire before action, or only during failure? (Prohibitions always resident; details of-use-only stay lazy-load.)
-3. **Scope?** Is it global, project-wide, layer-specific (app/resources/js/tests), or subdir-specific?
+3. **Scope?** Is it global, project-wide, layer-specific (app/resources/js/tests), or subdir-specific? Settle *which repo* owns it before *where in a repo* it goes — content describing something installed per-machine rather than per-project (a user-scope MCP server, a CLI, a shared credential store) belongs beside the global `CLAUDE.md`, cited by absolute path from each repo. Writing it into the repo you happen to be in reads as correct and leaves the sibling repo's session to write a second copy. **Tell: you can name another repo whose sessions would need this.**
 
 All three → CLAUDE.md. Fail derivability → cut. Fail safety → move to a skill or companion. Check derivability first (fastest); it's the gating question. When a call is close, 📖 `${CLAUDE_SKILL_DIR}/references/derivability-examples.md` lists what to cut and what survives the gate despite looking derivable.
 

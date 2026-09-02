@@ -38,7 +38,7 @@ These are the things that genuinely are exact strings, where a difference is alw
 
 **`name:` on Explore and Plan** must be exactly that — capitalised, no hyphen. It is what shadows the built-in agents, so a typo silently un-shadows them.
 
-**`memory: project`, plus a line that actually reads it back.** The grant does nothing on its own; an agent that never globs `.claude/agent-memory/<name>/` accumulates notes no session will ever see. All eight agents need both halves. Check the templates for the same thing — a template shipping without the read-back bakes the gap into every project generated from it afterwards.
+**`memory: project`, plus a line that actually reads it back.** The grant does nothing on its own; an agent that never globs `.claude/agent-memory/<name>/` accumulates notes no session will ever see. All eight agents need both halves. Check the templates for the same thing — a template shipping without the read-back bakes the gap into every project generated from it afterwards. The fastest read on a whole fleet is one grep for `agent-memory` across the definitions, and the confirming tell sits on disk: an agent-memory directory that exists and is **empty** while its siblings are populated is one nothing ever read, because nothing wrote there either. Measured 2026-09-01 — a `task-builder` carried the grant and an empty directory while its template had the read-back line all along.
 
 **Diagnostics:** `code-reviewer` and `code-simplifier` hold `mcp__ide__getDiagnostics`; `product-reviewer` and `browser-verifier` must not, since they judge completeness and behaviour rather than correctness.
 

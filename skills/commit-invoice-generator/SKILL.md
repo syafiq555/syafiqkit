@@ -31,6 +31,21 @@ When the target is an existing invoice-tracking doc with prior dated `## INV-YYY
 
 ## Hour Estimation
 
+### Step 1: Start with the Clock
+
+**Extract working windows from commit timestamps.** `git log --format='%ad %h %s' --date=format:'%H:%M' --reverse` gives actual elapsed time — cluster the commits (a gap over ~90 minutes starts a new session) and sum the clusters. This is direct evidence of the work; the estimation table below is a guess, so it should fill gaps only (thinking time, review, unfixed work) rather than produce the figure on its own.
+
+However, the clock has two failure modes:
+
+- **Degenerate clock (commits all land at once):** If commits cluster in a few minutes at the end of a session, the clock span is near zero and tells you nothing. This happens when a session lands everything at ship time. In this case, ignore the clock and move to Step 2.
+- **Wall-clock is not billable time:** The elapsed span from first message to last commit includes planning, unrelated work, and gaps — that is not the time spent on the task. Use commit-to-commit gaps, not wall time.
+
+When the clock works, use it. When it doesn't, proceed to Step 2.
+
+### Step 2: Use the Table for Gaps and Gaps Only
+
+When clock evidence is absent or degenerate, the estimation table below provides guidance:
+
 | Type | Base Hours | Notes |
 |------|------------|-------|
 | `feat` | 1.5 - 4.0 | +1h new service/model, +0.5h UI |
@@ -42,13 +57,25 @@ When the target is an existing invoice-tracking doc with prior dated `## INV-YYY
 
 **Complexity modifiers**: +0.5h (migrations, complex UI, multiple services), +1h (external API)
 
-**Agent-assisted**: Reduce estimates 40-60%
+⚠️ **The table estimates by SCOPE — files touched, features delivered — not by actual elapsed time.** This works for hand-written work where the two correlate, but agent-assisted work breaks that correlation. Labelling the entry "agent-assisted, ~50% reduction" does not salvage a scope estimate — halving a figure that was never an hours count yields a smaller falsehood. Measured 2026-08-27: a day whose commits span ~1.2h of real activity (plus a 27-minute model run the user watched) was initially drafted at 19.75h off scope alone, and settled at 9.00h once sized against the clock. The table's confidence masked that the estimate was decoupled from evidence.
+
+**Rule:** Where session commits are in the range, their elapsed time is what you know for certain — anchor there and use scope estimates only to reason about time outside the commit windows.
+
+### Step 3: Verify Against Prior Entries
+
+Open the two or three most recent existing invoice entries and read their totals and line items. State in your entry which one you sized against and why yours is above or below it. This step is mandatory because scope estimates read as confident whether or not they are calibrated.
+
+Measured 2026-09-01: an entry asserted "cross-checked on the 27/08 entry's rate" in prose without ever opening it, and billed 8.00h against that entry's 4.00h for a strictly harder day. A named comparable is what makes a scope figure credible; writing it down without doing the read is worse than omitting it.
+
+The prior entries are the strongest calibration available. They cost one `sed` to read. **Tell: you are about to write a total, or cite another entry as justification, and you have not opened that entry's line items in this session.**
 
 ## User Time Logs
 
 If provided (e.g., "2:20pm - 2:36pm"):
 - Use exact times, round to 0.25h
 - Keep their descriptions
+
+A user-supplied log is the best source, but its absence is not a reason to fall back to scope alone — the commit timestamps are a weaker version of the same evidence and they are always available. Reach for them whenever no log is given.
 
 ## Output Format
 

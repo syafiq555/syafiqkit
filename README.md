@@ -40,6 +40,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/update-summary` | Append findings to existing summary (thin pointer → `task-summary`) |
 | `/task-summary` | Create/update task summary docs with path resolution, templates, cross-refs |
 | `/done` | Post-task cleanup — simplify, review, update docs |
+| `/setup-project-docs` | Establish a project's core doc set (PRD, ARCHITECTURE, ARCHITECTURE-ESSENTIALS, CLAUDE.md/AGENTS.md) — for a greenfield project or an existing codebase adopting docs for the first time |
 | `/update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files — the CLAUDE.md analog of task-summary |
 | `/update-plugin` | Scan the session for plugin learnings and patch the affected skill files — the plugin equivalent of update-claude-docs |
 | `/ship` | End-to-end ship: commit → changelog → push → CI verify → release note |
@@ -47,6 +48,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/commit-invoice-generator` | Generate invoice line items from git commits |
 | `/gchat-format` | Convert Markdown to Google Chat syntax |
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
+| `/user-manual` | Write an end-user manual — scope, tutorials, E2E screenshots, Word/PDF editions |
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
 | `/ci-ssh-deploy-timeout` | Diagnose + fix flaky CI deploys that SSH-timeout to a server (rules out firewall, applies connect-only retry) |

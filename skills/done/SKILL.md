@@ -24,7 +24,7 @@ If you reach the end of this file and the exit gate is missing from your context
 | Mode | When | Step 1 runs | Verification |
 |------|------|------------|--------------|
 | **Full** (default) | Multi-file features, multi-domain work, or anything with external inputs | Three agents + partition | Agent reports |
-| **Docs-only** | Diff is entirely markdown (task docs, CLAUDE.md, SKILL.md, commands/, agents/, references/) | Three agents + referential-integrity check | Agent reports + pointer resolution, anchor uniqueness, link validity, no wedged table rows |
+| **Docs-only** | Diff is entirely markdown (task docs, CLAUDE.md, SKILL.md, commands/, agents/, references/, a `docs/` project set) | Three agents + referential-integrity check | Agent reports + pointer resolution, anchor uniqueness, link validity, no wedged table rows. Where the diff touches `docs/ARCHITECTURE*.md`, also open each `file:line` anchor it cites and re-derive any count it states — both are claims about the codebase that a markdown-only diff gives a reviewer no reason to doubt |
 | **Infra-only** | Entirely configuration code (CI, Dockerfile, nginx/env config, provisioning scripts); no application code | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 | **Ops-only** | System changes applied out-of-band (deploy, backfill, config flip); no repo diff, no commit | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 
@@ -45,6 +45,8 @@ The three roles see the diff through different lenses:
 Establish which files belong to this session before spawning agents — judge by diff *content*, since the harness auto-stages your own writes into the same shape a peer's take. `ListAgents` will tell you a peer session is live and is worth a heads-up before you bump a version, but it **cannot** say which checkout that peer is in, so it never substitutes for reading the diff.
 
 **Ban these verbs in every agent prompt you write: `stash`, `checkout -- .`, `reset`, `clean`, `restore`, `commit`, `push`.** A file partition scopes what an agent *reads*, never what a `git` command it runs *touches* — so one agent reaching for a clean baseline can collide with your uncommitted work or a peer's. Naming the verbs is the guard; a prompt gesturing at "nothing destructive" reads as followed right up to the collision.
+
+**A disjoint file list is not the whole partition — agents also collide on whatever their commands touch** (a shared test database, a dev server port, a seeded fixture set). Before emitting, ask what each prompt makes an agent *run*, not just what it writes; where two would run the same suite, let one run it and have the others report only. The tell that it happened is a failure naming a *different* thing outside your diff on each run, which reads as your own breakage. This applies to you as well — don't run the suite while an agent still is.
 
 **Give at most ONE agent write authority over any given file.** Simplifier and reviewer both carry `Edit`, so handing both the same list races them on one file — and a diff small enough that neither role splits is exactly where that looks correct. Overlapping READS are fine; overlapping writes produce transient diagnostics indistinguishable from real defects, and the post-fan-out `HEAD`/`status` re-read does not detect it.
 
@@ -115,13 +117,21 @@ The skill auto-detects create vs update and handles path resolution, status upda
 
 Steps 3+4 write to the *project*; this writes to the *plugin* — a global artifact shared across every project.
 
-Two gates, and **Gate B is the one that gets missed**: it fires whenever this session wrote to a `skills/**/*.md`, `commands/*.md` or `.claude/agents/*.md` file, defect or no defect — check the diff for those paths rather than deciding from memory. Gate A fires on a real skill signal (something misfired, a step was wrong, you worked around an instruction), which is the rarer case. A docs-only session is exactly where a hand-edited skill file hides, so neither gate is safe to assume unfired.
+Two gates, and **Gate B is the one that gets missed**: it fires whenever this session wrote to a `skills/**/*.md`, `commands/*.md` or `.claude/agents/*.md` file, defect or no defect. Gate A fires on a real skill signal (something misfired, a step was wrong, you worked around an instruction), which is the rarer case. A docs-only session is exactly where a hand-edited skill file hides, so neither gate is safe to assume unfired.
+
+**Run the status from the plugin checkout as CWD — the command is the check, and recalling which files you edited is not it.** Having just reasoned about your own edits is what makes the gate read as already satisfied, so the answer has to come from the tree:
+
+```bash
+cd ~/.claude/plugins/syafiqkit && git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
+```
+
+`cd`, not `git -C` — the latter walks up to an enclosing repo and answers about the wrong tree. Empty means the gate genuinely didn't fire. Any hit is a file to establish ownership for before claiming: check its mtime against your session start, since a shared checkout regularly carries another session's work and adopting it under your version bump is the collision this prevents.
 
 Read 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` for the ownership settlement and what "replaced/routed/grew" means for each file.
 
 **Gate B keys on paths, so it re-fires on work a previous run already routed.** Once those files land in a session commit they stay in `git show --stat` for every later `/done`, and a second run sees the same hit with nothing new behind it — which reads as an unrouted edit rather than a finished one. Ask what changed since the last `update-plugin` run, the way Step 4 already does for `task-summary`: nothing new means the gate is satisfied, and saying so in the Output is the honest row. A genuinely new signal means invoking scoped to that signal, since passing the whole session re-derives conclusions already shipped and the version bump it produces looks like new work.
 
-⚠️ **A peer session can own the plugin tree while you decide this.** `update-plugin` is exactly what a fork gets dispatched to run, so the checkout may already carry a version bump and edits that are not yours. Read `git -C <plugin-dir> status --short` and the CHANGELOG head before writing — your signal may be captured there already, in better form, and two sessions bumping the same version in one afternoon is the collision this avoids.
+⚠️ **A peer session can own the plugin tree while you decide this** — `update-plugin` is exactly what a fork gets dispatched to run, so read the CHANGELOG head too before writing. Your signal may be captured there already, in better form, and two sessions bumping the same version in one afternoon is the collision this avoids.
 
 Invoke `syafiqkit:update-plugin` once you've settled ownership — it owns everything downstream (patch skill files + version + CHANGELOG for owner, or draft GitHub issue for consumer).
 
@@ -131,7 +141,11 @@ Confirm the WORK is done, not just this skill's steps. Verify against the approv
 
 Every Output row is a claim that a step ran — verify each before writing. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for the fillability tests per row, verification methods for Knowledge/Task docs, and how to handle failed agents.
 
-**Then read your message from the top:** Is there anything the user has to decide, and is it the first thing they hit? Open questions that survived triage must be asked above — the Product row reads `✅` on a change with an open question only if that question sits in the Output before the Summary section.
+**Then read the session from the top, asking two things.** First, what would a reader need that exists only in this conversation — a plan you laid out in prose, a sequencing call, a rule about what to stop doing, anything parked or waiting on someone? A doc step passes every byte-level check having written the session's findings and none of its reasoning, and `/clear` is what makes that permanent. Grep the docs for the specific fact rather than trusting the diff stat: a landed diff proves bytes moved, never that the right fact moved. Missing → `task-summary` isn't finished, so go back to Step 4 rather than writing the row.
+
+Second, is anything the user has to decide the first thing they hit? Open questions that survived triage must be asked above — the Product row reads `✅` on a change with an open question only if that question sits in the Output before the Summary section.
+
+⚠️ **The heavier the wrap-up, the likelier this is skipped**, because six rows to fill reads as the definition of thorough and filling them feels like finishing. `/quick-done` carries the same rule in three steps and it fires there — measured 2026-08-28, where `/done` wrote a decision block and stopped while a whole sequencing plan stayed in the conversation, and the following `/quick-done` caught it. Structure that looks complete is not evidence a check ran.
 
 ## Output
 

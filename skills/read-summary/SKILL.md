@@ -29,10 +29,11 @@ When a claim shifts mid-conversation, start a fresh discovery pass rather than p
 
 ## Reading Order & Authority {#read-order}
 
-Follow every pointer you encounter in sequence. Each layer — task docs, decisions, CLAUDE.md files, sibling repos, journal — holds facts the previous one didn't reach, so skipping or reordering has a cost.
+Follow every pointer you encounter in sequence. Each layer — a `docs/` set, task docs, decisions, CLAUDE.md files, sibling repos, journal — holds facts the previous one didn't reach, so skipping or reordering has a cost.
 
 **Pointer chain (in sequence):**
 
+- A project doc set under `docs/`, where one exists — `ARCHITECTURE-ESSENTIALS.md` first and **whole**, then `ARCHITECTURE.md` when the work spans subsystems and `PRD.md` when scope is in question. This layer sits first rather than last because nothing points at it: an essentials file is written to be read *before* a change, so a session that only follows pointers from a task doc never arrives, and the file's whole value is that it was read early. It is deliberately short — reading it entire costs less than the one constraint it exists to stop you violating. `PRD.md` earns its read whenever you are about to report something as missing, since a "gap" is often a documented deliberate exclusion.
 - Task doc (`current.md`) — if explicitly redirected (Merged into, Supersedes, top-level pointer), follow to the live doc.
 - Decisions and related files — follow `📖` pointers to external files and `Related:` sections.
 - CLAUDE.md files — auto-load additively by directory: root, layer, domain, subdir; also check for `.claude/rules/*.md` (loaded every session, not discovered by walk). Check `/context` to see what actually loaded rather than reasoning about what should have.
@@ -41,7 +42,9 @@ Follow every pointer you encounter in sequence. Each layer — task docs, decisi
 
 ⚠️ **Companion files are discovered by following pointers, not by search.** Grep results omit `📖` references and external files — when you encounter a pointer to `.claude-companions/` or a reference folder, verify the path with `ls` before trusting it. The resolved file is authoritative; a broken pointer or typo reads silently as a missing fact.
 
-⚠️ **A doc header or tech mention in shorthand is not the same as its architecture.** "React" in a header might mean the library, an SDK, or one layer of a larger stack — the *surface* of the technology the project actually uses. Stopping at the shorthand leaves you wrong about the layer. When a doc's architecture matters to your next step, read past the tables to the prose, and confirm against something on disk — an installed package, a config file, a type definition — before building on it.
+⚠️ **A doc header or tech mention in shorthand is not the same as its architecture.** "React" in a header might mean the library, an SDK, or one layer of a larger stack — the *surface* of the technology the project actually uses. Stopping at the shorthand leaves you wrong about the layer. When a doc's architecture matters to your next step, read past the tables to the prose and confirm against something on disk before building on it.
+
+⚠️ **Confirm against what LOADS the technology, not against what declares it.** An installed package and a manifest entry are the same weak evidence: a dependency is declared once and unwired silently, because nobody removes it when they stop importing it. Measured 2026-09-01 — `vite`, `tailwindcss` and `alpinejs` were all installed and declared in a Laravel app that ships Bootstrap 5 and jQuery from static files, with no `@vite` directive in any of its 518 views, no `tailwind.config.js`, and no build output; the project's own frontend doc had recorded half of it while its scope header still named Alpine. Nothing errors in that state — a Tailwind class or an `x-data` directive simply does nothing — so there is no symptom to notice and the wrong answer propagates into whatever you write next. The load-bearing artifact is the entry point: the layout or template that emits the script tags, the DI container or service registration, the actual import sites. Read one of those.
 
 ---
 

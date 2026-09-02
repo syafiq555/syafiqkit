@@ -49,6 +49,8 @@ A migration creates the table; something else has to fill it. Where the seeder i
 
 Nothing errors. A guard testing that the table EXISTS passes on a migrated-but-empty table, so the code takes its normal path over an empty set and degrades quietly: the artifact renders with the seeded content missing rather than throwing. For a document assembled from reference rows, that is a document with no content in it.
 
+⚠️ **Worse where the reader treats a missing value as an ANSWER rather than as "not yet known."** A lookup that falls back to a registry default converts an unseeded row into a decision — an entitlement check reading an absent feature key as *denied* refuses the capability for everyone, including whoever was meant to have it, and every layer downstream then behaves consistently with that wrong answer. The tell is a fallback in the read path (`?? $default`, `default_enabled`, a null-coalescing config read) rather than a thrown error. Where one exists, query three-way — present-and-on, present-and-off, absent — because a two-way `enabled?` check reports "correctly gated" for a row that simply isn't there.
+
 ```bash
 # Count rows for the identifier the app actually uses, read from source
 grep -rn "CURRENT_.*_VERSION\|const VERSION" <app-dir>   # find the constant first
@@ -56,7 +58,9 @@ grep -rn "CURRENT_.*_VERSION\|const VERSION" <app-dir>   # find the constant fir
 SELECT COUNT(*) FROM <table> WHERE <version_col> = '<that value>';
 ```
 
-Three traps, in the order they bite:
+Four traps, in the order they bite:
+
+- **Running the seeder BEFORE the code deploy seeds the old seeder.** The container still holds the previous file, so a key added in this payload isn't in the copy that executes; the run prints its ordinary success line and writes nothing. This is worth naming because pre-seeding is the *considered* choice — it looks like the order that avoids an exposure window where new code meets missing data. It doesn't: it produces that window anyway and hides it behind a success message, so the follow-up read is what catches it and the failure otherwise reads as a broken seeder. Deploy, then seed, then read the row back.
 
 - **Guessing the identifier returns zero too**, which reads as confirmation of the bug you suspected. Read the constant from the source before querying: version strings are rarely the tidy `v1`/`v2` you would guess, and a wrong guess produces the same empty result for an entirely different reason.
 - **Existing records predate the feature** and carry a null/legacy version, so they render through the old path and look healthy. Spot-checking live data therefore shows everything fine while every FUTURE record is broken. Resolve against the current version, not against what is already stored.
