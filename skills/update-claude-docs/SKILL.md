@@ -54,14 +54,15 @@ Extract reusable patterns from this session into CLAUDE.md files. A caller-suppl
 
 ## 1. Scan — What happened?
 
-Scan for four signal classes:
+Scan for five signal classes:
 
 - **Undocumented facts** — gotchas, environment surprises, discoveries code can't explain.
 - **Violated rules** — moments when this session ignored an existing CLAUDE.md rule.
 - **Repeating patterns** — same approach 2+ times, or same mistake corrected twice.
 - **Rules made FALSE** — work that stales existing instructions. Ask what the docs previously said before the change, then search using those old terms.
+- **Machine-local context** — credentials, CLI patterns (3+ reuse), infrastructure handles, routing to `CLAUDE.local.md` rather than CLAUDE.md. Ask **what did I have to know to reach a system this session, that a fresh session would not know?** and answer it by walking the session's actual commands — every host connected to, database queried, container entered, token or path read — since a recipe that worked first time leaves no narrative trace and reads as common knowledge. 📖 `${CLAUDE_SKILL_DIR}/references/local-md-checklist.md` for the item-by-item list and the extraction patterns worth saving verbatim.
 
-Also capture machine-local context: credentials, CLI patterns (3+ reuse), infrastructure handles. These route to `CLAUDE.local.md`, not CLAUDE.md. Capture machine context by asking **what did I have to know to reach a system this session, that a fresh session would not know?** Walk the session's actual commands — every host connected to, database queried, container entered, token or path read. A recipe that worked first time leaves no narrative trace and reads as common knowledge; that silence is the signal. 📖 `${CLAUDE_SKILL_DIR}/references/local-md-checklist.md` for the item-by-item list and the extraction patterns worth saving verbatim.
+⚠️ **The four classes above all ask what went WRONG, so working them to exhaustion feels like a finished scan and the fifth never runs.** It is the odd one out by construction — a credential is something that went *right* — and it sits last, after the point where the list reads as closable, with "writing nothing is a legitimate outcome" arriving immediately below to license the omission. This has now failed twice: once by being absent, and once (2026-09-03) with the question present and answered for the code half only, on a session that had pasted a live OAuth client secret into `.env` and written three task-doc sections about the provider. The user asked twice before it was captured. So report the fifth class explicitly even when empty — "no new machine context: nothing was reached this session that a fresh one couldn't" is a real answer and an unstated one is indistinguishable from a skipped step. **Tell: you are about to report a capture pass naming only code facts, on a session where you ran a command against a live system.**
 
 When a signal arrives from outside the session (article, vendor guide), search the project's decision records first — a team that met it before will have graded it.
 

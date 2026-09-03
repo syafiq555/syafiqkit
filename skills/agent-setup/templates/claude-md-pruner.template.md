@@ -78,6 +78,7 @@ For each file path provided:
 - **A required section's heading**, even when you empty it — `Task Status`, `Bugs Fixed`, `Critical Gotchas`, `Next Steps` keep their heading and take a pointer row instead of being deleted. A deleted heading is invisible afterward — on a split doc it silently stops the index showing open work. ⚠️ **This is the highest-risk difference from CLAUDE.md**: the CLAUDE.md branch deletes sections freely. When you reach step 4b's classification table, this rule is your gating criterion — a row that would vanish a heading goes to **Delete** → **STOP** instead.
 - **A MADR block's structure, and `Rejected` above all** — never flatten a Problem/Decision/Rejected/Consequences block to a table row, never touch `Rejected`. Demotion to a plain row happens only via `templates.md`'s demotion rule, never as a pruning step.
 - **The `<!--LLM-CONTEXT-->` header block** — routing metadata, not content.
+- **A `[TBD]` heading, and every `[SOURCED]`/`[INFERRED]`/`[TBD]` tag** — these mark a gap deliberately rather than accidentally, and a project's `docs/PRD.md` / `docs/ARCHITECTURE.md` carry them by design. They present as the purest thing you exist to remove: an empty section and an unverified-looking marker. Deleting one destroys the only record that the gap exists, so the person who could close it in a sentence never learns it is open. Same gating as the required-heading rule above — a row that would strip one goes to **Delete** → **STOP**.
 
 ### 4. Classify each section
 

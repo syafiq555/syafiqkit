@@ -1,22 +1,22 @@
 # Verification Gotchas
 
-The agent's report is a claim about the work, not evidence of it. These gotchas are where confident claims fall apart — measure every one. Don't confirm a report by grepping for its nouns; that measures your pattern, not the rewrite.
+The agent's report is a claim about the work, not evidence of it. These gotchas are where confident claims fall apart. The verdict on a rewrite comes from reading it against the original section by section (`../SKILL.md` → "Does meaning survive?"); what follows is the set of failures that survive a careless read, plus the narrow places a search is the right instrument.
 
 ## Measurement tools
 
-Byte-count and term-survival checks reveal different things and neither is verification alone.
+**Byte counts** are a screen for the crude failures and nothing more. A drop contradicting a growth claim is obviously wrong; the reverse direction passes silently, since a rewrite holding `net`, `gross` and every label while inverting the arithmetic loses no bytes at all. When you dispatched a rewrite pass specifically, `../../unhobble-instructions/references/verifying.md` holds failure analysis and control forms.
 
-**Byte counts** appear to measure what they measure. A drop contradicts a growth claim — obviously wrong. In the opposite direction, a rewrite holding `net`, `gross` and every label while inverting the arithmetic passes: every term present, nothing dropped, claim inverted. When you dispatched a rewrite pass specifically, `../../unhobble-instructions/references/verifying.md` holds failure analysis and control forms.
-
-**Term survival** (grepping for vocabulary) measures that words survived, never that their sentences mean the same thing. For rules stated in the file (formulas, precedence, comparison directions, guards), re-derive the specific claim against the original. A search returning zero can mean the pattern is broken, the term was reworded, or the fact is genuinely gone — the search alone cannot distinguish them. Before reporting anything absent, run the same pattern against the ORIGINAL. A search that cannot find a known-present fact is measuring itself. The only check separating pattern failure from deletion is reading the current section whole, then asking whether the specific claim is still assertable from what's there. 📖 `../../_shared/references/two-tier-condense.md` for value-shaped content (commands, error strings) that must survive verbatim. 📖 `../../_shared/references/explore-delegation.md` → "Verifying Agent Counts" for control-query forms.
+**There is no keyword form of the verification question**, which is why the token-diff step was removed from the skill rather than qualified. Whether a rewrite kept a file's meaning is settled by reading the original's sections against the rewrite's and naming what each one lost — a search over vocabulary returns a number whose size is set by tokenisation rather than by damage, and every recorded attempt to interpret that number has produced a wrong verdict. 📖 `../../_shared/references/two-tier-condense.md` for value-shaped content (commands, error strings) that must survive verbatim, where an exact-match check before dispatch is the right instrument.
 
 ## Pointers and destinations
 
-A pointer resolving is not the same as a pointer verifying. Three patterns cause this to break:
+A pointer resolving is not the same as a pointer verifying. Four patterns cause this to break:
 
 **Destination never written.** A relative pointer resolves against the reader's cwd. Checking from repo root while the file sits a level down reports every companion missing. Either the destination was never written, or it was written where nothing resolves to (a sibling `.claude-companions/` one level up is common). Both leave the source reading as clean extraction with facts gone. Open the destination and look for the content there.
 
 **Destination holds unrelated content.** The pass deleted a section and cited a destination holding something else, so every pointer resolves — "resolves" answers "does the link work," not "does it hold the facts." Grep the deleted passage's identifiers against the destination and expect partial hits from general vocabulary while specific mechanisms are absent.
+
+**Destination was never written because the pass says it already held the content.** The other three patterns all assume the pass *wrote* somewhere, so every check above starts by opening a destination the report names as new — and this shape produces none. The report instead justifies a deletion as removing duplication: the companion "already has the full content", this was "redundant with" an existing section, the pass "only deleted the duplication". That is a real and licensed move (`condense-task-doc` calls it cross-file dedup), which is exactly why it passes review — a destination with a clean `git status` reads as *untouched because nothing needed moving*, indistinguishable from *untouched because nothing was moved*. Measured 2026-09-03: an `unhobble-instructions` pass cut a 31KB file by 44%, reporting "the companion file already held the removed material; this pass only deleted the duplication" — the companion was byte-identical to its pre-dispatch snapshot and all 17 deleted headings returned **zero** matches in it. The check is the survivor, not the diff: take each deleted section's heading or primary symbol and grep the named survivor for it, one lookup per unit. A single zero settles it, and a wall of zeros means the justification was invented rather than merely optimistic. **Tell: the report explains a deletion by saying another file already covers it, and you have not grepped that file.**
 
 **Stale content.** A structural skill preserves outdated facts because preservation is what it optimizes for. A gotcha moved verbatim into a companion, stale claim intact, passes structural checks. Spot-check time-sensitive claims (branch names, dates, counts, status) against the live codebase, not the original file alone.
 
@@ -35,6 +35,8 @@ Reports also under-claim. An agent that silently did more than it described is a
 When damage is systemic (whole sections gone, a claimed companion never written, numbers contradicting the report), reverting before re-dispatch is cheaper. When the gap is one contained passage and the rest checks out, patch from snapshot.
 
 The count of defects does not decide this — enumeration does. A run whose every defect you can name, locate and restore is contained, however many defects there are. A run you cannot characterise is systemic at one. Ask what would go into the re-dispatch prompt: if it's a specific list of facts to preserve, that list is the patch. Reverting discards the structural work the pass delivered, which a patch keeps. A rewrite that fixed section ordering and halved byte count has delivered something a patch preserves and a revert re-earns from a non-deterministic pass that can fail differently.
+
+A sectioned read hands you the enumeration directly — headings and claims, which is the unit a re-dispatch prompt names. Reverting is for a rewrite you cannot characterise at all, and that is rarer than it feels while holding a list of real losses.
 
 Snapshot the agent's OUTPUT before reverting, not just the pre-dispatch baseline. A revert overwrites what the agent made, and that copy exists nowhere else. It costs one `cp` command and is the difference between a reviewable call and one the user takes on trust.
 

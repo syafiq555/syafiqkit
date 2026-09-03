@@ -20,7 +20,7 @@ A Chat message lands in a thread with an existing power structure, and the draft
 
 The common case is a vendor or support engineer answering into a **customer's** internal thread. There, the participants are coordinating among themselves and the sender is a guest: state what the product does and what was found, then leave the decision with them, and where a fix touches their data or their tenant, offer rather than direct. Reverse the posture and it reads as the vendor running their operations.
 
-Ask who the participants are to the sender before drafting, not after a rejected draft. **Tell: the draft tells a named person on the other side what to do, or ends with a summary block closing out their conversation.**
+Ask who the participants are to the sender before drafting, not after a rejected draft. A draft that tells a named person on the other side what to do, or ends with a summary block closing out their conversation, has the standing wrong.
 
 ## Release notes: shape the content BEFORE formatting
 
@@ -35,9 +35,11 @@ When the input is a **release note / deployment announcement** (not already-fina
 
 A staging-only change is at most a one-line "on staging for testing" note — it is not a full release announcement. Lead with the outcome a non-engineer reads; delete everything explaining the underlying implementation. When unsure how terse, err shorter and offer a one-liner variant.
 
-⚠️ **Regroup by feature; never inherit the source's `Added`/`Fixed` split.** Those headings sort by what the change did to the CODE, so one feature lands in both while a headline item and a tooltip tweak sit as equals — the reader gets a flat list with no way to tell what the release IS. Restructure to: a short prose lead naming what a user can now do and what they couldn't before; the main feature's items together, whichever heading they came from; everything unrelated demoted under a catch-all. A bug that reads as "this feature now works properly" goes under the feature, not beside it. When the source gives no before-state (a changelog rarely does), ask for it or pull it from the task doc — it's the sentence that makes the rest legible. **Tell: every bullet is a peer and the note opens with a bullet instead of a sentence.**
+Regroup by feature instead of inheriting the source's `Added`/`Fixed` split. Those headings sort by what the change did to the code, so one feature lands in multiple sections while unrelated items sit as equals — the reader gets a flat list with no way to see what the release actually IS. Restructure to lead with a short prose sentence about what a user can now do and what they couldn't before, then group the main feature's items together (whichever heading they came from), then demote everything unrelated under a catch-all. A bug that reads as "this feature now works" goes under the feature, not beside it.
 
-**Completeness check before delivering**: count the distinct shipped items in the source (each `###`-level bullet under Added/Changed/Fixed, per repo if multi-repo) and count the bullets in your condensed output. If the output has fewer, that's expected only if you deliberately merged near-duplicates or cut a caveat/ops-step per the table above — if a genuine shipped item is simply missing, you condensed too aggressively and silently dropped real content. Re-scan the source once before sending.
+If the source gives no before-state (a changelog rarely does), ask for it or pull it from the task doc — that contrast is what makes the rest legible. A note that opens with a bullet instead of a sentence, with every item at the same level, signals that the regroup didn't happen.
+
+Before delivering a condensed release note, count the distinct shipped items in the source (each `###`-level bullet under Added/Changed/Fixed, per repo if multi-repo) and count the bullets in the condensed output. A lower count is expected only if items were deliberately merged as near-duplicates or cut as a caveat/ops-step per the table above — if a genuine shipped item is simply missing, the condense went too far. Re-scan the source once before sending.
 
 ## Key Rules
 
@@ -108,7 +110,7 @@ Tables are not supported in Google Chat. Convert each row to a bullet, with the 
 * *First Name*: Yes, Tenant name
 ```
 
-**Wide tables (4+ columns):** do NOT cram all column values into one comma-separated line -- it becomes unreadable. Instead, make the first column a **bold LABEL LINE with NO bullet marker**, and give each remaining column its own sub-line prefixed with a `-` dash as `column header: value`.
+**Wide tables (4+ columns):** do NOT cram all column values into one comma-separated line -- it becomes unreadable. Make the first column a **bold label line with no bullet marker**, and give each remaining column its own sub-line prefixed with a dash:
 ```
 | Agency | Platform fee | Gateway fee | Net now | Impact |
 |--------|-------------:|------------:|--------:|-------:|
@@ -122,10 +124,12 @@ Tables are not supported in Google Chat. Convert each row to a bullet, with the 
 - Net now: 673.45
 - Impact: -RM 10
 ```
-⚠️ **NEVER indent a `*` bullet to fake nesting** (`* *Acme*` parent + indented `   * Platform fee` children). Google Chat bullet-izes a `*` ONLY when it is the first character of the line — a `*` with any leading whitespace is NOT rendered as a bullet, it leaks as a **literal asterisk** on a flat line, producing ragged "• Acme / * Platform fee" output. Chat has no nested-bullet support to degrade into. The label-line + `-` sub-line shape above is the ONLY reliable multi-value row. (Same applies to grouping ANY parent-with-sub-values, e.g. a feature-comparison row with two values: bold the parent as a plain line, dash the values under it.) If the wide table has many rows, offer a trimmed version too (e.g. totals only, or top N rows).
 
-> Label columns (first column of a table row, and each sub-bullet's column header) must ALWAYS use `*bold*`, not `_italic_`.
-> Italic (`_text_`) is only for prose text that was explicitly italic in the source -- never for labels, field names, or headings.
+Google Chat renders a `*` as a bullet **only when it is the first character of the line** — any leading whitespace converts it to a literal asterisk. Do not indent bullets to create nesting (`   * Platform fee` renders as literal text, not a nested bullet). The label-line + dash-sub-line pattern above is the only reliable way to show multiple values under a parent. If the wide table has many rows, offer a trimmed version (e.g. totals only, or top N rows).
+
+This same pattern applies to any parent-with-sub-values structure, such as a feature-comparison row: bold the parent as a plain line, then dash each sub-value under it.
+
+Use `*bold*` for labels and column headers, never `_italic_`. Italic is only for prose text that was explicitly italic in the source.
 
 ### Em dashes
 ⚠️ **NEVER output an em dash (`—`) in the converted result.** This applies to both Claude-generated prose and converted source content.
@@ -147,16 +151,17 @@ After a bold label: replace with `:`. In flowing prose: use a comma, full stop, 
 - `---` horizontal rules -> remove entirely
 - HTML tags -> strip or convert to plain text
 - Nested bold-italic combinations -> use just `*bold*` or `_italic_`
+- Em dashes (`—` or `--`) -> see Em dashes section above
 
 ## Output Format
 
-- Wrap the entire output in a single ` ``` ` code block by default -- this is the default regardless of copy method (`/copy` or manual select-from-screen). A prior version of this skill defaulted to no fence reasoning that `/copy` reads raw source, but the user reverted that -- always fence unless told otherwise.
-- ⚠️ When fencing the whole output, STRIP inner inline backticks (`` `staging.dourr.com` `` -> `staging.dourr.com`) -- Chat does not nest inline code inside a code block, so they render as literal `` ` `` characters.
-- Only omit the fence if the user explicitly asks for no fence.
+Wrap the entire output in a triple-backtick code fence by default, regardless of copy method — this is the default state; only omit it if the user explicitly asks for no fence. A prior version of this skill defaulted to no fence, reasoning that `/copy` reads raw source, but the user reverted that — don't reintroduce it. The fence is your final output container — anything you want to say to the user (caveats, "I trimmed the wide table", offers to reformat) goes above it, and nothing follows the closing backticks. Text after the fence reads as part of the message to paste, because the fenced content often ends on its own `Note:` line and the boundary is invisible to the reader. Label the fence so its extent is explicit ("copy everything inside the fence below, nothing outside it").
+
+Within the fence:
+- Strip inner inline backticks (`` `staging.dourr.com` `` becomes plain text) — Chat does not nest inline code inside a code block, so backticks render as literal characters.
 - Preserve blank lines between sections
 - Keep emojis as-is
-- ⚠️ **The fence is the LAST element of your reply — nothing follows it, ever.** Anything you want to say to the user (caveats, "I trimmed the wide table", offers to reformat) goes **above** the fence. Text after the closing backticks reads as part of the message to paste, because the fenced content often ends on its own `Note:` line — the boundary is invisible from the reader's side. Label the fence so the extent is explicit ("copy everything inside the fence below, nothing outside it"), and keep commentary addressed to the user out of the fenced content entirely.
 
-## Example
+## See Also
 
-📖 `references/example-release-note.md` — a full changelog-to-Chat transformation when you need to see the regroup-by-feature restructure, the syntax conversion, and the fencing applied together on one input.
+📖 `references/example-release-note.md` — a full changelog-to-Chat transformation showing the regroup-by-feature restructure, syntax conversion, and fencing applied together.

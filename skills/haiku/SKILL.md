@@ -74,9 +74,11 @@ Did bytes actually move? `git diff HEAD` against your baseline. A file reading a
 
 Read the current file whole, as its reader meets it — not the diff, not the passages the report highlights. A rewrite inverting a formula while keeping every label passes completely until you read the sentence and derive the claim.
 
-⚠️ **Grep answers presence, never shape — so it can verify a relocation and cannot verify a condense or an unhobble.** The two questions feel like one because both follow a rewrite, which is why a token sweep gets run and then reads as the whole check: *is this fact still somewhere* is a search, while *is this file better shaped for its reader* is a read and has no keyword form. Counting imperative words is the sharpest version of the trap — `NEVER`/`ALWAYS` are vocabulary, so a rule can be rigid carrying none of them (a ❌/✅ table, an enumerated checklist, "use X, not Y") and perfectly good prose can contain several. Measured 2026-09-01: a grep of imperative tokens produced "12 across 46KB, therefore already judgement-shaped", and reading the same file found its rows were judgement prose stuffed into a three-column lookup table, one cell running ~200 words — a real shape defect the count could not see and had argued against. Use grep for the narrow presence question and to build a protected-token list before dispatch; use reading for the verdict.
+⚠️ **Do not run a token diff over the rewrite. Read the original and the rewrite, section by section, and say what each section lost.** This is not a caution about interpreting a diff carefully — it is the removal of the step. A `comm`/`grep -o` sweep of backticked spans has driven a wrong verdict on every recorded occasion (ten CHANGELOG entries; the last returned 413 "losses" that were 23 rules), because the number it produces is an artifact of tokenisation and reads as a finding. Nothing downstream can repair it: a number an order of magnitude too large makes a patchable run look systemic, and one too small makes real loss invisible. There is no correct way to interpret it, so do not generate it.
 
-Each absent fact costs you three things before it can enter the report: the section you expected it in, the lines you read there, and why the prose you found doesn't cover it. Produce those and a search corrects itself — either the fact is there reworded, or it's genuinely absent. 📖 `references/verifying.md` for the failure modes.
+What replaces it: open both files and walk the original's sections in order. For each, name what it asserted and find where the rewrite says the same thing — reworded, relocated, or merged all count. A section you cannot account for is your finding, and you will have its heading and its claim in hand, which is exactly what a patch or a re-dispatch prompt needs. This costs one read of a file you are about to make a destructive decision about.
+
+Two things a search is still right for, both *before* dispatch: building the protected-token list that goes into the agent's prompt, and confirming a named destination exists. Neither is a verdict about the rewrite. 📖 `references/verifying.md` for the failure modes.
 
 For a skill's own work, check against its spec. A rewrite skill has published criteria; verify against those — consult the reference the prompt cited if one exists.
 
@@ -94,7 +96,9 @@ A report claiming contradictory things (lines cut but bytes up, anchors fixed wh
 
 A contained gap (one passage, one dead pointer, facts you can name) gets patched from the snapshot — restoring the fact in the new file's shape, not pasting bytes verbatim. A systemic failure (whole sections gone, contradicting numbers, untrustworthy report) gets reverted and re-dispatched.
 
-Ask what would go in a re-dispatch prompt. A specific fact list is the patch instructions already; reverting throws away the good structure to earn it again. Weigh what the revert discards against what the pass got wrong. If you can list every fact that needs naming in a re-dispatch, you are holding the patch instructions — patch. 📖 `references/verifying.md` for the enumeration test and snapshot strategy.
+Ask what would go in a re-dispatch prompt. A specific fact list is the patch instructions already; reverting throws away the good structure to earn it again. Weigh what the revert discards against what the pass got wrong. If you can list every fact that needs naming in a re-dispatch, you are holding the patch instructions — patch.
+
+Because the check above is a sectioned read, what you hold at this point is already a list of named sections and claims — the enumeration test asks whether that list would go in a re-dispatch prompt, and it usually would. Reverting is for a rewrite you cannot characterise at all. 📖 `references/verifying.md` for the snapshot strategy.
 
 ### Reporting what you found
 

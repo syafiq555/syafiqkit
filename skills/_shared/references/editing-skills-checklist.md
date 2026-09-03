@@ -128,7 +128,7 @@ After rewriting a skill or command:
 
 1. **Grep for facts**: Extract every critical fact identified before editing. Grep for each one and confirm it survived somewhere in the rewrite. A survival that's unverified by re-reading is unverified.
 
-2. **Identifier sweep**: Extract every backtick-quoted identifier and bare number from the pre-edit original. Grep each one against the rewritten file (or wherever it moved in a larger restructure). Every miss is a finding to inspect.
+2. **Sectioned read, not an identifier sweep**: Read the pre-edit original's sections against the rewrite's and name what each one lost. Do not extract the original's backticked identifiers and grep them against the rewrite as a verification — that sweep returns a count set by tokenisation rather than by damage, and it has produced a wrong verdict on every recorded occasion. The extraction is still right *before* an edit is delegated, as the protected-content list in the agent's prompt. 📖 `../../haiku/references/verifying.md`
 
 3. **Verify factual claims**: Any claim the rewrite states in new words (relabeling keys, reframing a relationship) is unverified. Settle it against the source it describes. A claim you can't settle is one you should have left alone.
 
