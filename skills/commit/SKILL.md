@@ -32,7 +32,11 @@ The `gitStatus` context block at conversation start is a snapshot of the invokin
    - Determine type: `feat`, `fix`, `refactor`, `chore`, `docs`, `perf` — highest-impact type wins regardless of file count (a user-visible feature co-landing with a refactor is `feat`).
    - Determine scope from file paths (e.g., `app/Services/Workshop/*` → `workshop`).
    - Commit: `<type>(<scope>): <description>` — lowercase, no period, imperative, max 72 chars.
-   - Verify: `git status && git log -1 --oneline`.
+   - Verify: `git show --name-only --format="" HEAD`, then `git status --short`. **Read the file list against what you staged** — a pre-commit hook can widen a commit after your last look at the staged set, so the check has to run on the commit that exists rather than on the intent that produced it. `git log -1 --oneline` cannot see this: one subject line prints identically whether the commit holds your six files or the whole tree.
+
+     Hooks that reformat (lint-staged, husky + a formatter, pre-commit) stash the working tree, run their tasks, and restore — and the restore lands *inside* the commit. The tell is in their own output: `stash`, `Backing up original state`, `Applying modifications from tasks`. Seeing any of those means the staged-column reading you took a moment earlier no longer describes what was committed.
+
+     Where the commit came back wider than staged, `git reset --soft HEAD~1 && git reset` restores the exact pre-commit state, and re-committing with `--no-verify` bypasses the hook. Say so in the commit body, since skipping a repo's own hook is a decision the next reader should see rather than infer.
 
 4. **Validate**: no secrets committed, type matches changes.
 

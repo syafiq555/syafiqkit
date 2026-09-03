@@ -14,6 +14,7 @@ A clean "no" (files aren't yours) is straightforward. What's missed is "partly" 
 - A reviewer handed another session's uncommitted file will "fix" it — guard against that
 - For skills in Steps 3-4, pass a scoped read-only verification arg instead of invoking bare
 - On commit, use an explicit pathspec when the split is file-level; when the same file carries both sessions' work, stop and let the user decide
+- **Then read the commit back — `git show --name-only --format="" HEAD` — because a pre-commit hook can widen it after your last look at the staged set.** A reformatting hook (lint-staged and friends) stashes the whole tree, runs, and restores into the commit, so a correct pathspec and a clean staged column both hold right up until the commit exists. On a shared tree the file it sweeps in is the other session's half-finished work, committed under your message and looking deliberate in `git log`. `/commit` Step 3 owns the check and the recovery; what this context adds is that the cost lands on someone else's work, so the read-back matters most exactly where the tree is contested
 
 ## Protecting the Tree
 
