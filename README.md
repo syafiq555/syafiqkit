@@ -48,6 +48,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/commit-invoice-generator` | Generate invoice line items from git commits |
 | `/gchat-format` | Convert Markdown to Google Chat syntax |
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
+| `/excalidraw-board` | Draw a task doc or worklist as a black-and-white Excalidraw discussion board (gates, waiting-on, parked-with-revive-trigger, live decisions strip), pasted into the user's excalidraw.com tab |
 | `/user-manual` | Write an end-user manual — scope, tutorials, E2E screenshots, Word/PDF editions |
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
@@ -64,7 +65,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
 | `/skill-creator` | Create a new skill — place it, draft it, register it, and verify its trigger actually fires |
 | `/self-organize-agent-memory` | Dispatch a project agent onto its own bloated `.md` file to decide what stays inline vs. what moves to its own agent-memory |
-| `/uiux` | Design judgement for UI work at any scope — polish, rethink, or redesign from one element to a whole module; also fires on a UI screenshot or a "looks wrong" report that never names UI |
+| `/uiux` | Design judgement for UI work at any scope — polish, rethink, or redesign from one element to a whole module, greenfield or existing app; mobile-first by default, judges whether an existing design language or stack is dated, designs for people who scan rather than read; also fires on a UI screenshot or a "looks wrong" report that never names UI |
 | `/quick-done` | Cheap docs-only wrap-up for a small session — CLAUDE.md capture + task-doc update, and no review of any kind (no code review, simplifier, or product lens) |
 
 ## Usage

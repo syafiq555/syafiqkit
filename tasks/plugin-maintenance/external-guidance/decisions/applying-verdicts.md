@@ -406,3 +406,52 @@ The content guarantee is what carries the safety the branch was reaching for: th
 - **Task docs keep the opposite rule and now say so at both ends** — `task-summary`'s citation of the shared reference previously claimed it stated "the same judgement," which became false the moment the CLAUDE.md rule flipped.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-second-pass-on-uiux — A Survey of Community Skills Widens a Fork Already Taken, and the Retrieving Agent's Own Figures Are the Claims to Grade — committed — 2026-09-05
+
+**Problem**
+`uiux` was built (D-fork-the-gap-not-the-source) by adapting one capability of the official `frontend-design` plugin. Three weeks of use showed three gaps the source could never have filled: nothing on mobile, no way to say an existing design language or stack was dated, and a greenfield path that stalled on "read the app language" (the last already named in that decision's Consequences). The user asked for a survey of published UI/UX skills and primary design guidance, run on two haiku research agents, and for the skill to be redesigned from it — with the outdated-stack verdict reaching the framework and build tooling, the widest of three scopes offered.
+
+**Decision**
+Chosen: grade per capability again, and adopt three as inline judgement (a greenfield/brownfield branch that gives the existing language a keep / modernise-within / migrate-off verdict; mobile-first as the base layout; design for people who scan) with their checkable lists in five `references/` files, keeping the skill body under the 5,000-token re-attach ceiling. The framework-level verdict is admitted as a finding with a blast radius that is stated before designing and never executed inside a polish request — execution routes to `brainstorming` as its own task. Sources: Anthropic `frontend-design` (five stock looks, four self-tests), edenspiekermann `audit-design-system`, jezweb `design-review`, nextlevelbuilder `ui-ux-pro-max`, `awesome-copilot` premium-frontend-ui, Nielsen Norman scanning and icon studies, WCAG 2.2 target-size and contrast criteria, Atlassian and GOV.UK foundations. Every URL was fetched and returned 200 before being cited.
+
+**Rejected**
+- Splitting greenfield and design-system health into a second skill. Why not: a new trigger is a claim about every sibling trigger, and the original decision already rejected a greenfield-default skill firing on existing apps.
+- Everything inline in `SKILL.md`. Why not: roughly 8,000 tokens, so the verification and mobile sections would fall past the compaction boundary while the skill still reported as loaded.
+- Five figures the research agents delivered: "labels raise engagement 75%", "CTA 100 to 150px from the bottom", "minimalism rejected in 2026", "99% of fonts are low quality", "44px is WCAG 2.1 AA". Why not: the first two were absent from the cited page (which carried a *different* 75%, the share of touches made with one thumb); the third was one vendor blog; the fourth was marketing opinion; the fifth conflates the AAA criterion with the 24px AA floor. The mobile reference now states where the floor actually sits.
+
+**Consequences**
+- **The retrieving agent's numbers are the claims to grade, and a resolving URL does not grade them.** Both haiku agents cited real pages for every claim, so the research-fabrication check (open the URL) passed clean while two figures were inflated and one was misattributed. The failure is the identification shape the global instructions already name for entities, applied to figures: a genuine page about the subject carries a different number. Grade a figure by finding it on the page, never by finding the page.
+- **A second pass on a shipped fork is cheaper than the first and finds what use surfaced rather than what the source offered.** The first pass graded what `frontend-design` had; this one started from what `uiux` lacked in use, and every adopted capability answered a gap use had shown.
+- **Framework scope was the user's call and was offered as three sizes rather than assumed.** The widest was chosen; the boundary (proposed, never executed inside a polish) is what makes it safe to admit, and the product reviewer confirmed the polish scenario does not over-fire into a migration.
+- **The reviewers' two polish findings were both about a rule not scaling with the request** — verification widths applied unconditionally, and a migrate-off verdict with no path to outlive the conversation. Both fixed; the second is the `/done` capture convention made explicit at the point it applies.
+- Shipped as v1.240.0. This file is now over its own budget and is the next `condense-task-doc` target in this domain.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D-third-pass-on-uiux — A Catalog Source Is Graded for the Judgements Its Rows Encode, and a Figure Found on the Page Can Be the Row's Counter-Example — committed — 2026-09-07
+
+**Problem**
+The user pointed at `ui-ux-pro-max-skill.com` and asked for three haiku agents to research it and take what is good for `uiux`. The site is an unofficial, client-rendered translation of the `nextlevelbuilder/ui-ux-pro-max-skill` repo, which source #7 had already cited for two items. The repo is catalog-first: a Python search over CSVs (88 styles, 192 palettes, 74 font pairings, 119 UX guidelines, 34 landing patterns, 22 stack files) that turns a product category into a design system, persists it as `design-system/<slug>/MASTER.md` with per-page override files, and ends on a fixed checklist. `uiux` is procedure-first.
+
+**Decision**
+Chosen: grade per capability and adopt the judgements, not the rows. Six adopted — write the greenfield decisions into the conventions doc the brownfield branch reads (`frontend/CLAUDE.md` by default, created through `update-claude-docs` when absent), with deviations recorded as deviations and a deviation recorded twice treated as a scale gap (the persistence practice, without the script); an **Exclude** self-test (every style row carries a Do Not Use For); the AI-native gradient as a sixth stock look (an anti-pattern on fourteen reasoning rows); light-or-dark and spacing density as decisions keyed to the job; and a set of checkable items with a row each (`dvh`, z-index scale, 65–75ch, validate on blur, focusable error summary, pressed state without layout shift, landscape and largest text size, pause controls on auto-rotating content, WCAG 2.2 authentication and dragging, no emoji icons). One of ours softened: the motion checklist's "150 to 200ms" is now typical rather than a rule, because the source's own guideline #8 says not to present any cutoff as universal.
+
+**Rejected**
+- The catalogs and the generator. Why not: a category-to-look table is the stock-look machinery the skill exists to interrupt, and every output is a template by construction; the plugin's authoring rule is to state what to establish, not which command establishes it.
+- The 22 stack files (implementation guidance, not design), the chart data (`dataviz` owns it), the variance and motion dials (audience, subject and job already decide these), a longer unconditional width list (the rule-not-scaling defect source #7's reviewer already caught), and the search-failure and `--force` mechanics of a tool we do not ship.
+- An agent's "35–60 characters on mobile" — not found on any row read.
+
+**Consequences**
+- **A figure found on the page can still be the row's counter-example.** The research check from D-second-pass-on-uiux says find the number on the page; here the number was on the page, in the Don't column. An agent reported it as the guideline. Grading a CSV-shaped source means reading the column a figure sits in, not only the cell.
+- **A catalog source yields judgements, and each judgement needs one sentence of reason, not a row.** The row says "dark mode by default: anti-pattern for SaaS"; the skill says mode is keyed to how long people stay and what they are doing. The second is what a later session can apply to a product the catalog never listed.
+- **The docs site was never the source.** All of its content pages are client-rendered shells; the agent filed them as could-not-retrieve and graded the repo. A translation site's value is the pointer to the artifact.
+- **A practice adopted without its script has to carry the script's side effects.** The source persists by *creating* a file; the first adaptation kept "write it to the conventions doc" and dropped the create, so a greenfield session — where the doc never exists — had nowhere named to write. The product reviewer's greenfield scenario found it before shipping. When the verdict is adapt rather than depend, list what the source's mechanism does besides the rule (creates, deletes, gates) and decide each.
+- **A "do not edit any file" brief did not stop a scratch write to `/tmp`.** Harmless here; a read-only dispatch onto a repo should still be verified with `git status` afterwards.
+- Shipped as v1.242.0. This file remains over budget; the condense is still the domain's first next action.
+
+**Status**: committed · **Reversible**: yes

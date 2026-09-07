@@ -8,6 +8,8 @@ The agent's report is a claim about the work, not evidence of it. These gotchas 
 
 **There is no keyword form of the verification question**, which is why the token-diff step was removed from the skill rather than qualified. Whether a rewrite kept a file's meaning is settled by reading the original's sections against the rewrite's and naming what each one lost — a search over vocabulary returns a number whose size is set by tokenisation rather than by damage, and every recorded attempt to interpret that number has produced a wrong verdict. 📖 `../../_shared/references/two-tier-condense.md` for value-shaped content (commands, error strings) that must survive verbatim, where an exact-match check before dispatch is the right instrument.
 
+**A column or slot the rewrite added is read cell by cell, separately from the walk for loss.** The SKILL.md's "rewrite is also a research report" check names paths, status words and examples, and a reframed table carries none of those — it carries a *What Happens* or *Cause* column the original never had, which the agent had to fill for every row. Filling from priors produces mechanisms that are wrong in ways only a test exposes (a zsh glob described as silent when it aborts loudly, `git show HEAD:` called the staging area, a positive-control tell inverted), and they sit in the same register as the rows copied faithfully beside them. So when the after-file has a column the before-file lacks, read that column on its own and ask of each cell where it came from; a cell the source can't account for is `—` or a correction, and a row-walking reviewer with the original open will find the ones a grep for dropped rows cannot.
+
 ## Pointers and destinations
 
 A pointer resolving is not the same as a pointer verifying. Four patterns cause this to break:
@@ -32,9 +34,9 @@ Reports also under-claim. An agent that silently did more than it described is a
 
 ## Revert or patch
 
-When damage is systemic (whole sections gone, a claimed companion never written, numbers contradicting the report), reverting before re-dispatch is cheaper. When the gap is one contained passage and the rest checks out, patch from snapshot.
+Enumeration decides this, and it is the first question rather than a qualifier on a symptom. A run whose every defect you can name, locate and restore is contained, however many defects there are; a run you cannot characterise is systemic at one. Write the re-dispatch prompt and read it back — if it is a specific list of facts to preserve, that list is the patch. Reverting discards the structural work the pass delivered, which a patch keeps: a rewrite that fixed section ordering and halved byte count has delivered something a patch preserves and a revert re-earns from a non-deterministic pass that can fail differently.
 
-The count of defects does not decide this — enumeration does. A run whose every defect you can name, locate and restore is contained, however many defects there are. A run you cannot characterise is systemic at one. Ask what would go into the re-dispatch prompt: if it's a specific list of facts to preserve, that list is the patch. Reverting discards the structural work the pass delivered, which a patch keeps. A rewrite that fixed section ordering and halved byte count has delivered something a patch preserves and a revert re-earns from a non-deterministic pass that can fail differently.
+Symptoms — whole sections gone, a claimed companion never written, numbers contradicting the report — establish that something is wrong and never that the rest is worthless. Reaching one before the enumeration test is how a contained run gets reverted: the symptom reads as authorisation and the test that would overrule it is applied to a case already decided.
 
 A sectioned read hands you the enumeration directly — headings and claims, which is the unit a re-dispatch prompt names. Reverting is for a rewrite you cannot characterise at all, and that is rarer than it feels while holding a list of real losses.
 

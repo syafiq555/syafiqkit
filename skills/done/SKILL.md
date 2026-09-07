@@ -85,7 +85,11 @@ Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/g
 
 Re-read `git rev-parse HEAD` and `git status -sb` first — your pre-fan-out state reading is not current. An agent that committed or pushed leaves every other check silent, and the file-count you reasoned from silently stops describing the tree.
 
+Re-read this skill's remaining steps from the file at the same time, for the same reason: the body entered context before the fan-out and is not re-attached when agents return, so the steps below are being recalled rather than read. The contract's six rows and the exit gate are the parts most often satisfied from memory, which is what makes a row readable as `✅` without the step behind it having run.
+
 Once every agent has reported, reconcile them against each other and against the work. Agents have bounded visibility (one repo, one domain, one layer), so a partition that reads "clean" everywhere is not the same as a codebase that is clean. Verify what none of them could see — read 📖 `${CLAUDE_SKILL_DIR}/references/agent-blind-spots.md` for the nine blindness patterns and how to settle contradictions between reviewers.
+
+A finding from one agent that needs a change in a file another agent owns is applied HERE, after both have returned — by you, or by one fresh dispatch carrying the finding in its brief. Messaging it into the still-running owner reads to that agent as an out-of-brief instruction arriving through a tool channel, and a well-built agent refuses it (two did in one run, 2026-09-05, and the finding was nearly lost while every report read complete). The one-writer-per-file rule bounds who edits during the fan-out, not who applies the reconciliation afterwards.
 
 ## Step 2: Clean up temp code
 

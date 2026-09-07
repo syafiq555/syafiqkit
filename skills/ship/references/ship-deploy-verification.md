@@ -94,3 +94,15 @@ grep -c 'my-string' file ; echo "CONTROL"        # ← both run, both print
 ```
 
 Run unfiltered first to rule out a bad search pattern, then confirm with a control.
+
+## Reading a Destination That Is Still Reacting
+
+A measurement is a claim about one instant. When the system is mid-reaction to an event — a container start, a deploy, a retry loop, a failed credential refresh — a single read samples a transition and returns a value that is true, self-consistent, and about to stop being true. Nothing in the output marks it as provisional, which is what makes this different from a failed probe: the read succeeded, so the conclusion drawn from it inherits the confidence of a successful measurement.
+
+The discriminator is never the contents, which look plausible at every moment during the transition. It is a timestamp comparison: the artifact's mtime against when the triggering event began. An mtime *after* the event's start means the system has already written its reaction and the read is trustworthy; an mtime before it means you are looking at pre-event state that something is about to overwrite.
+
+Measured 2026-09-03: a container started at `12:38:44` and the CLI's failed token refresh blanked its credentials file at `12:41:02`. A read inside that window showed intact tokens, which was used to declare an existing incident write-up wrong and rewrite two files around the reversal. The write-up had been right. Recovering cost more than the original diagnosis, because the correction had to be un-made in docs that now read as authoritative.
+
+So before concluding from a live read, ask what the system is currently doing rather than only what the value says — and where an event is in flight, either wait for it to settle or take two reads far enough apart to disagree. A single read cannot distinguish a steady state from a transition, and the transition is exactly when someone is looking.
+
+**A path reported absent is a claim about where you looked.** `No such file or directory` answers for one filesystem or namespace, so the same probe run in the wrong container, host, or mount returns it while the artifact exists a layer away — and it reads as proof of absence rather than as a mislocated query. Same session: `docker exec <container> ls /opt/claude` returned not-found for a *host* path mounted elsewhere, and that became a user-facing claim that the docs were wrong about a file that was there all along. This is the Negative Controls rule above applied to location rather than to string matching: confirm which namespace answered before believing a negative.

@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: ✅ Method proven on 6 sources — the Claude-5 article (2 of 9 claims adopted), a `/doctor` report (0 of 3 live-state flags survived re-measurement), the plugin's own corpus (14 of 24 skills clean; 3 agent findings disproved), a consumer's run that graded the grader (D59/D61), the official `frontend-design` plugin (first source that was a usable artifact, graded per-capability into depend/adapt/build), and on 2026-08-20 Anthropic's live reference docs for CLAUDE.md, skills and subagents — the first source whose claims are MECHANISM rather than advice, so 10 of 12 local statements were wrong or silent and none could be rejected on local evidence
+Status: ✅ Method proven on 8 sources — on 2026-09-07 the `ui-ux-pro-max` repo read whole as a third pass on `uiux` (six judgements adopted, one of ours softened, the catalogs rejected; one agent finding was the inverse of its cited row), on 2026-09-05 a survey of community UI/UX skills plus primary design guidance, graded per capability into a second pass on `uiux` (three capabilities adopted, five research figures rejected as unverified), the Claude-5 article (2 of 9 claims adopted), a `/doctor` report (0 of 3 live-state flags survived re-measurement), the plugin's own corpus (14 of 24 skills clean; 3 agent findings disproved), a consumer's run that graded the grader (D59/D61), the official `frontend-design` plugin (first source that was a usable artifact, graded per-capability into depend/adapt/build), and on 2026-08-20 Anthropic's live reference docs for CLAUDE.md, skills and subagents — the first source whose claims are MECHANISM rather than advice, so 10 of 12 local statements were wrong or silent and none could be rejected on local evidence
 Domain: plugin-maintenance/external-guidance
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
@@ -7,7 +7,7 @@ Related:
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../output-style-hook/current.md (sibling feature — the ayghri/i-have-adhd source: findings adopted, structure rejected)
-Last updated: 2026-08-20 — source #6, Anthropic's live docs: a mechanism source expires silently rather than being refuted, so every fact it settles carries the page and the date it was read
+Last updated: 2026-09-07 — source #8, the `ui-ux-pro-max` repo read whole as a third pass on `uiux`: a catalog source yields judgements, not rows; an agent can read a Don't column as a Do
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
@@ -18,10 +18,15 @@ Last updated: 2026-08-20 — source #6, Anthropic's live docs: a mechanism sourc
 
 Source #6 (2026-08-20) was the first of a different kind: Anthropic's live reference docs for CLAUDE.md, skills and subagents. **A mechanism source cannot be rejected on local evidence** — when the harness changes, a correct rule becomes wrong with no edit, no diff and no failing check. 10 of 12 local statements were wrong or silent; two came back already-correct and are the control proving the pass wasn't confirmation-shaped.
 
+Source #7 (2026-09-05) was a survey rather than a single document: eight published UI/UX skills and a set of primary design references, retrieved by two haiku research agents and graded per capability into a second pass on `uiux` (D-second-pass-on-uiux). Every cited URL resolved, and five of the agents' figures were still wrong — a real page about the subject carrying a different number.
+
+Source #8 (2026-09-07) was one of source #7's eight, read whole this time: the `ui-ux-pro-max` repo (its docs site is an unofficial translation and client-rendered, so unreadable by curl). Three haiku agents split the skill body, the data files and the docs. A catalog-first source graded into a procedure-first skill yields the judgements the catalog encodes — write the system down, name who a look is wrong for, mode and density keyed to the job — and none of its rows (D-third-pass-on-uiux). One agent quoted a guideline's Don't column as its Do.
+
 **Immediate next actions (in order)**:
-1. Grade the consumer's 22 findings against local ADRs before acting; they were produced against a different machine's setup. See `## Next Steps`.
-2. Reply to the consumer on their sequencing question (companion dirs first).
-3. Re-read source #6's facts against the live pages before relying on them in a future session — each carries its page and the date it was read, because that is the only thing that ages.
+1. Condense `decisions/applying-verdicts.md` — it passed its 300-line budget with the source #7 entry and now holds twelve decisions.
+2. Grade the consumer's 22 findings against local ADRs before acting; they were produced against a different machine's setup. See `## Next Steps`.
+3. Reply to the consumer on their sequencing question (companion dirs first).
+4. Re-read source #6's facts against the live pages before relying on them in a future session — each carries its page and the date it was read, because that is the only thing that ages.
 
 **Gotchas that will trip you**:
 - **Generic advice describes a different SYSTEM, not just a different opinion** — match the advice's assumed dynamics against yours before weighing its merits, see D55
@@ -38,6 +43,9 @@ Source #6 (2026-08-20) was the first of a different kind: Anthropic's live refer
 - **The plugin's own ADRs outrank an external claim when they disagree, because they were measured here** — D23→D50 already ran the article's headline experiment, see ../doc-condensation/current.md
 - **A source that is a working artifact gets a build decision per capability, not one verdict** — depend / adapt / build can all be right for different parts of the same plugin, see D-fork-the-gap-not-the-source
 - **An official plugin's DEFAULT can be inverted for your use even when its content is good** — greenfield "invent a palette" applied to an existing app produces the inconsistency it exists to prevent; a wrapper inherits that no matter how the trigger is worded
+- **A research agent's figure is graded by finding the number on the page, never by finding the page** — every URL resolved and five figures were still wrong, two attributed to a page carrying a different number, see D-second-pass-on-uiux
+- **A figure found on the page can still be the row's counter-example** — an agent reported "150–300ms (guideline 8)" from a row whose Don't column says not to present that range as a requirement; read the column, not just the cell, see D-third-pass-on-uiux
+- **A catalog source is graded for the judgements its rows encode, never for the rows** — a category-to-look table is the stock-look machinery a judgement skill exists to interrupt, see D-third-pass-on-uiux
 - **A growth ranking counts a file created in the window as having grown by its whole length** — the top-ranked entry is then an artifact that hides the real grower, see D61
 - **An instruction naming a path under `tasks/` is unfollowable off this checkout — `tasks/` is not shipped and installs are version-scoped** — there is no absolute path that fixes it, see D61
 
@@ -49,7 +57,7 @@ Source #6 (2026-08-20) was the first of a different kind: Anthropic's live refer
 
 External guidance arrives regularly — a vendor article, a framework blog, a colleague's "you should be doing X." It is usually right *somewhere* and wrong *here*, and the failure mode is treating it as either gospel or noise. This feature holds the method for grading it claim-by-claim against local evidence, plus the record of each evaluation.
 
-Sources graded so far. On 2026-07-27: Anthropic's *"The new rules of context engineering for Claude 5 generation models"* (D55), an in-session `/doctor` health report run in a different project (D56), and the plugin's own 24-skill corpus (D59) — the first time the method was pointed inward rather than at an outside source. Then a real consumer's audit run (D61), and on 2026-08-11 the official `frontend-design` plugin (D-fork-the-gap-not-the-source) — the first source that was a working artifact you could depend on rather than advice to weigh, which is what made the verdict a build decision.
+Sources graded so far. On 2026-07-27: Anthropic's *"The new rules of context engineering for Claude 5 generation models"* (D55), an in-session `/doctor` health report run in a different project (D56), and the plugin's own 24-skill corpus (D59) — the first time the method was pointed inward rather than at an outside source. Then a real consumer's audit run (D61), and on 2026-08-11 the official `frontend-design` plugin (D-fork-the-gap-not-the-source) — the first source that was a working artifact you could depend on rather than advice to weigh, which is what made the verdict a build decision. On 2026-09-05 a survey of eight community UI/UX skills and primary design guidance became a second pass on the same skill (D-second-pass-on-uiux), starting from what use had shown `uiux` lacked rather than from what any one source offered.
 
 ---
 
@@ -82,7 +90,8 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 | `skills/update-plugin/SKILL.md` | Step 4 (was Step 3a before the 1.211.0 renumber) — owns the B/L gate and the `references/` scope rule the evaluation settled |
 | `skills/done/SKILL.md` | Step 5 — Gate B, the arrival-rate checkpoint the evaluation motivated |
 | `skills/audit-instructions/SKILL.md` (removed 2026-08-01) | Had pointed the method inward — fleet grading of BOTH instruction families; owned the FLEET arrival ratio and trajectory (D59). Removal was a user decision, not a defect; D59/D61's fixes remain correct for any future re-implementation |
-| `CHANGELOG.md` | v1.131.0 — the per-claim verdicts as shipped, both sources (D55's 9 article claims, D56's report flags) |
+| `CHANGELOG.md` | v1.131.0 — the per-claim verdicts as shipped, both sources (D55's 9 article claims, D56's report flags); v1.240.0 — source #7's adoptions as shipped; v1.242.0 — source #8's |
+| `skills/uiux/SKILL.md` + `skills/uiux/references/` | Where sources #5, #7 and #8 landed — judgement inline, five checkable lists with a source URL per claim in `references/` |
 
 ---
 
@@ -97,6 +106,8 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 | 5 | Characterise the in-session `/doctor` (was accepted as unverified) | ✅ 10-check audit, distinct from the CLI — read-only half only |
 | 6 | Point the method inward — grade the plugin's own 24-skill corpus | ✅ D59 |
 | 7 | Make the audit re-runnable instead of a one-off | ✅ shipped as `skills/audit-instructions/SKILL.md`, then removed 2026-08-01 (user decision, not a defect) |
+| 8 | Survey community UI/UX skills and primary design guidance; apply as a second pass on `uiux` | ✅ D-second-pass-on-uiux, shipped v1.240.0 |
+| 9 | Read the `ui-ux-pro-max` repo whole (three haiku agents) and grade it as a third pass on `uiux` | ✅ D-third-pass-on-uiux, v1.242.0 |
 
 ---
 
@@ -107,7 +118,7 @@ The decisions this feature has produced live in two theme files, split by whethe
 | File | Owns |
 |------|------|
 | `decisions/grading-method.md` | **D55** the four verdicts + measure-before-judging · **D56** grading a generated tool report (re-measure, check provenance) · **D59** pointing the method inward at the plugin's own corpus |
-| `decisions/applying-verdicts.md` | **D-fork-the-gap-not-the-source** per-capability build decisions for a source that is a working artifact · **D-verdict-records-lever** a rejection records the lever, not the outcome · **D61** a consumer's run grading the grader · **D-source-6-harness-drift** grading a mechanism source, and why it expires rather than being refuted · **D-pointers-are-suggestions** progressive disclosure has no loader · **D-reorder-beats-extract** where a cut falls beats how far over · **D-ceiling-cleared** the 32-skill result · **D-agent-broke-its-own-pointer-check** a control that cannot pass · **D-paths-glob-readopted-from-the-docs-that-were-already-rejected** a claim graded three times in one day · **D-a-model-that-declines-a-rule-reports-it-as-absent** why self-report cannot measure what loaded · **D-house-style-applies-everywhere** enforcement is unconditional, and the superseded ownership branch that preceded it |
+| `decisions/applying-verdicts.md` | **D-fork-the-gap-not-the-source** per-capability build decisions for a source that is a working artifact · **D-verdict-records-lever** a rejection records the lever, not the outcome · **D61** a consumer's run grading the grader · **D-source-6-harness-drift** grading a mechanism source, and why it expires rather than being refuted · **D-pointers-are-suggestions** progressive disclosure has no loader · **D-reorder-beats-extract** where a cut falls beats how far over · **D-ceiling-cleared** the 32-skill result · **D-agent-broke-its-own-pointer-check** a control that cannot pass · **D-paths-glob-readopted-from-the-docs-that-were-already-rejected** a claim graded three times in one day · **D-a-model-that-declines-a-rule-reports-it-as-absent** why self-report cannot measure what loaded · **D-house-style-applies-everywhere** enforcement is unconditional, and the superseded ownership branch that preceded it · **D-second-pass-on-uiux** a survey graded per capability onto a shipped fork, and why a resolving URL does not grade a figure · **D-third-pass-on-uiux** a catalog source yields judgements not rows, and a Don't column read as a Do |
 
 Read `grading-method.md` before grading a new source; read `applying-verdicts.md` before writing a verdict into any skill, because that is where a compressed restatement inverts it.
 
@@ -146,13 +157,20 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ---
 
-## Last Session (2026-08-20)
+## Last Session (2026-09-07)
 
-- **Source #6 — Anthropic's live reference docs, the first source whose claims are MECHANISM rather than advice.** Guidance can be rejected on local evidence; a mechanism fact cannot, because when the harness changes a correct rule becomes wrong with no edit and no failing check. 10 of 12 local statements were wrong or silent. Two came back already-correct and are the control that the pass wasn't confirmation-shaped — both from `structure.md`, the file maintained most carefully.
-- **The corrected claims were right in conclusion and false in reason**, the shape that breaks later: `allowed-tools` never restricted anything (it pre-approves), an agent's `tools:` genuinely does, and spawn depth is 3 rather than 5 — the last wrong in 26 places.
-- **A limitation this repo had built around was fixed three days earlier and nothing watched for it.** `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PLUGIN_ROOT}` do expand in skill markdown ([#9354](https://github.com/anthropics/claude-code/issues/9354) closed 2026-08-17), verified with a probe skill. Pointers went from 0 absolute paths to 14.
-- **All 32 skills brought under the 5,000-token re-attach ceiling**, five of which were over. Set totals moved between +3% and −10%, so content relocated rather than vanished. One real loss surfaced and was restored: a stated limitation about `ListAgents`, cut because text saying what a tool *cannot* do reads as hedging.
-- **Three agents and this session produced the same false pointer epidemic in one day** — 38 of 127 reported broken when two were, each testing a path that kept the `📖` or lost its `${CLAUDE_SKILL_DIR}` prefix. The reviewers still found four real defects the session missed, including a safety guard (the destructive-verb ban) left with no inline trace.
+- **Source #8 — one of source #7's eight, read whole.** The user pointed at `ui-ux-pro-max-skill.com`, which is an unofficial translation of the `nextlevelbuilder/ui-ux-pro-max-skill` repo and client-rendered, so all three haiku agents graded the repo: the skill body and reasoning layer, the CSV data (119 UX guidelines, 88 styles, 192 palettes, 74 font pairings, 34 landing patterns, 22 stack files), and the docs. Six judgements adopted into `uiux` and its references, one line of ours softened, the catalogs and dials rejected (D-third-pass-on-uiux). Shipped as v1.242.0; the skill body sits at 18.7KB, under the ceiling.
+- **Adopting a practice without its script left the create step behind.** The source's persistence step is a script that writes `MASTER.md`; the adaptation said "write to the conventions doc" and named no file to create when none exists — which on a greenfield brief is always. The product reviewer caught it; the greenfield branch now names `frontend/CLAUDE.md` as the default and routes creation through `update-claude-docs`, and a deviation recorded twice is treated as a scale gap. A depend-to-adapt verdict has to carry the source's side effects, not just its rule.
+- **A figure on the page can be the row's counter-example.** An agent reported "Animation: 150–300ms (guideline 8)"; the row's Don't column reads "Present 150-300ms or any cutoff as a universal requirement". The number was there and the verdict was inverted. Grading now reads the column a figure sits in, not only the cell.
+- **The site itself was never the source.** Every docs, blog and examples page returned an empty client-rendered shell; the agent reported them as `COULD NOT RETRIEVE` and fell back to the repo, which is the correct move — a failed fetch is evidence about the URL.
+- **One agent wrote a report to `/tmp` under a read-only brief.** Outside the repo, so harmless, but a "do not edit any file" instruction did not stop a scratch write.
+
+## Previous Session (2026-09-05)
+
+- **Source #7 — a survey, not a document.** Two haiku research agents retrieved eight published UI/UX skills and a set of primary design references; the findings were graded per capability into a second pass on `uiux` (D-second-pass-on-uiux). Three capabilities adopted as inline judgement with five `references/` files behind them; shipped as v1.240.0 with the body at roughly 4,500 tokens.
+- **Every cited URL resolved and five figures were still wrong.** Two were attributed to a real page carrying a different number, one was a vendor blog, one was marketing opinion, and one conflated WCAG's AAA target size with the AA floor. The URL check that catches fabrication passes clean on misattribution; a figure is graded by finding it on the page.
+- **The user chose the widest scope for the outdated-stack verdict** (framework and tooling included) from three offered; the safety is the boundary, proposed and never executed inside a polish, which the product reviewer confirmed against a Bootstrap-3-plus-jQuery polish scenario.
+- **Both reviewer findings were rules that did not scale with the request** — verification widths applied unconditionally, and a migrate-off verdict with no path past the conversation. Both fixed in the same pass.
 
 
 ## Next Steps
@@ -164,6 +182,7 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 **Doc health**
 - [x] ~~Split this doc before grading source #6~~ — done 2026-08-20, ahead of grading it. `current.md` is now an index (174L) over `decisions/grading-method.md` (91L) and `decisions/applying-verdicts.md` (286L); the set total rose, confirming redistribution rather than deletion. **`applying-verdicts.md` is now the file to watch** — six decisions landed in one session and it sits near the 300-line budget.
+- [ ] `applying-verdicts.md` passed the budget on 2026-09-05 (twelve decisions, over 450 lines). Run `condense-task-doc` on the set before the next source is graded; the superseded ownership-branch decision is the first candidate to collapse into its successor.
 
 **From the consumer's report (source #4)**
 - [ ] Grade their 22 adopt findings against local ADRs before acting on any — they arrive as verdicts but were produced against a different machine's setup (their global CLAUDE.md reads 305L/40.7KB vs 219L here).

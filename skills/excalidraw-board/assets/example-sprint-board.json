@@ -1,0 +1,64 @@
+{
+  "title": "Sprint worklist, 7 Sep 2026: what we do now, what waits, and why",
+  "subtitle": "Syafiq, KL, HL. #n = KL's item number. Thick border = gate that unblocks the items under it. Dashed = done.",
+  "footer": "How to run it: walk the left column and ask 'still true?'. For each gate ask 'what is the smallest step that opens it?'.\nFor each waiting item, name the person and the date we chase them. Every parked item keeps a 'what brings it back' or is struck.",
+  "columns": [
+    {"id": "now", "head": "CAN START NOW", "rows": [
+      {"id": "gEt", "gate": true, "text": "GATE: pull e-tenancy out of Dourr", "branches": ["becomes the first shared package", "#1 and #2 are built on it"]},
+      {"id": "c5", "text": "#5 Lelong listing board", "branches": ["cheap test only", "a form, a browse page, 50 rows"]},
+      {"id": "c2b", "text": "#2 Agency appointment terms", "branches": ["what is agreed, who signs", "witnesses"]},
+      {"id": "c2f", "text": "#2 Agreement API for PropNex", "branches": ["they create it in AR", "they get the signed PDF back"]},
+      {"id": "c13", "text": "#13 Letter of demand case record", "branches": ["evidence pack from AR data", "price stays configurable"]},
+      {"id": "c4", "text": "#4 Super admin sign-in stats", "branches": ["how often, how recently"]},
+      {"id": "c3", "done": true, "text": "Done: #3 Google login", "branches": ["live since 3 Sep"]}
+    ]},
+    {"id": "next", "head": "AFTER THE SHARED PARTIES MODEL", "rows": [
+      {"id": "gP", "gate": true, "text": "GATE: shared 'parties' model", "branches": ["people, companies, their roles", "comes with the second package", "the four items below wait on it"]},
+      {"id": "c1", "text": "#1 Dourr agency module"},
+      {"id": "c9", "text": "#9 Dourr analytics role", "branches": ["sits above super admin"]},
+      {"id": "c11", "text": "#11 AR landlord module", "branches": ["old plan re-done on parties"]},
+      {"id": "c6", "text": "#6 Dourr property developers", "branches": ["credit them on featured pages", "no developer login yet"]}
+    ]},
+    {"id": "wait", "head": "WAITING ON SOMEONE ELSE", "rows": [
+      {"id": "c8", "text": "#8 MyDigital ID direct integration", "branches": ["waits: our research", "waits: registering with MyDigital ID"]},
+      {"id": "c12", "text": "#12 Anti-money-laundering tooling", "branches": ["waits: lawyer. Are property managers covered?"]},
+      {"id": "c13b", "text": "#13 Letter of demand: payment and lawyer", "branches": ["waits: lawyer's price and refund terms"]},
+      {"id": "c2m", "text": "#2 Agency handling money", "branches": ["payouts, deposits, signing for landlord", "waits: 19 legal checks"]},
+      {"id": "c2x", "text": "#2 AR inside PropNex's system", "branches": ["waits: PropNex says what they expose"]}
+    ]}
+  ],
+  "arrows": [{"from": "gEtb1", "to": "gP"}],
+  "parked": {
+    "columns": [["what", 300], ["why parked", 300], ["what brings it back", 330], ["owner", 120]],
+    "rows": [
+      ["#10 AI profiling of users", "not important now", "after #9's access question is settled", "Syafiq"],
+      ["#4 sign-in method breakdown", "no data yet", "months of sign-in method data", "KL"],
+      ["daily invoice schedules (old deck)", "nobody asked for it", "a commercial rental client asks", "-"],
+      ["#7 merger", "both stay standalone and synced", "not scheduled", "-"]
+    ]
+  },
+  "strips": [
+    {"id": "dec", "head": "ALREADY DECIDED", "blank": 2, "lines": [
+      "One shared parties model, not two agency tables",
+      "Payout: agency collects; one dated arrangement per property",
+      "E-tenancy is the first shared package",
+      "Letter of demand is for every PM, not only PropNex",
+      "Old landlord plan is outdated",
+      "AR and Dourr stay standalone and synced"]},
+    {"id": "oq", "head": "OPEN QUESTIONS", "blank": 1, "lines": [
+      "Do KL and HL agree with the parties and payout calls?",
+      "Are property managers covered by anti-money-laundering law?",
+      "Does MyDigital ID's direct flow give us the IC number?",
+      "What does PropNex's system expose: API, login, embed?",
+      "HL: featured page vs project page; where inquiries go",
+      "Letter of demand price and the 50% refund terms",
+      "#8: which reading does KL mean?"]},
+    {"id": "act", "head": "ACTIONS: what, owner, date", "blank": 3, "lines": [
+      "Raise parties + payout with KL and HL. Syafiq. ____",
+      "Ask PropNex what their system exposes. ____. ____",
+      "Send the lawyer the AMLA + BOVAEP questions. ____. ____",
+      "Write up the MyDigital ID research. Syafiq. ____",
+      "Start #5 lelong test. ____. ____",
+      "Settle letter of demand terms with lawyer. ____. ____"]}
+  ]
+}

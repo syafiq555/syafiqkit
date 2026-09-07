@@ -41,5 +41,7 @@ Scale each section to its complexity — a few sentences if straightforward, up 
 
 After each section, use `AskUserQuestion` to ask if it looks right (options: "Looks good", "Needs changes"). Revise until approved.
 
+⚠️ **The design goes INSIDE the question, not in prose before it.** The question prompt is what the user sees; text written in the same turn ahead of the call can arrive detached from it, so a "does this look right?" over a design they cannot see reads as context-free — measured 2026-09-05, where two rounds came back "wdym?" and "I don't see anything you're talking about" before the same design, moved into the option's `preview`, was approved at once. Put the whole section in the "Looks good" option's `preview` (multi-line, rendered as markdown) and a one-line restatement in the question text; keep Step 3's trade-offs in the option descriptions for the same reason. Prose before the call is a working note to yourself, never the thing being approved.
+
 ### 5. Transition to implementation
 Present a concise implementation plan inline and ask the user how they want to proceed.

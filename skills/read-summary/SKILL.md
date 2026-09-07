@@ -52,6 +52,8 @@ Follow every pointer you encounter in sequence. Each layer — a `docs/` set, ta
 
 Task docs are authoritative for **decisions and gotchas** — why the code works this way, what will bite you, rejected alternatives. They are **not** live-state oracles; anything about a running system (prod's DB, a flag, whether an "open" bug is still open) decays the moment anyone touches a server. If the answer depends on current state, go measure it — and where doc and live system disagree, the live system wins.
 
+⚠️ **"The live system wins" assumes your measurement caught a settled state, and a system mid-reaction will hand you a value that is true and about to stop being true.** This is the expensive direction of the rule: a doc that disagrees with a live read looks stale by definition, so the read licenses rewriting it, and the rewrite lands in a doc that then reads as authoritative. Where something is in flight — a restart, a deploy, a retry, a refresh — check the artifact's mtime against when that event began before treating one read as ground truth, and prefer two reads far enough apart to disagree. Measured 2026-09-03: a credentials file read three minutes into a container start showed intact tokens, was used to declare an incident write-up wrong, and the write-up had been right. 📖 `../ship/references/ship-deploy-verification.md` § Reading a Destination That Is Still Reacting.
+
 **Three authority boundaries matter:**
 
 - **Schema vocabulary doesn't decay** — column names, enum values, table shapes, and header names stay stable. Before querying a table, read its column names from the docs.

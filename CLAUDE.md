@@ -27,6 +27,7 @@ These skills accept explicit user command:
 | `brainstorming` | Design exploration before creative or architectural work |
 | `commit-invoice-generator` | Generate invoice line items from git commits |
 | `md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
+| `excalidraw-board` | Turn a task doc or worklist into a black-and-white Excalidraw discussion board (now / gated on our build / waiting on others, GATE cards, PARKED table with revive triggers, decisions-questions-actions strip); generated from a spec, pasted into the user's excalidraw.com tab, verified by screenshot. Charts are `dataviz`; deciding what to build is `plan-worklist` |
 | `user-manual` | Write/extend an END-USER manual — scope from what users do, Diátaxis shape, screenshots from a dedicated E2E capture spec, `.docx`/`.pdf` editions. Distinct from `md-to-pdf`, which only converts a document whose content is already settled |
 | `gchat-format` | Convert Markdown to Google Chat message format |
 | `pull-db` | Transfer MySQL/MariaDB database from remote server to local dev |
@@ -55,7 +56,7 @@ These skills accept explicit user command:
 | `sweep-doc-overlaps` | Fleet-wide parallel scan across ALL `tasks/` domains for CROSS-domain merge candidates a single-domain `merge-task-docs` call would never see; hands confirmed groups to `merge-task-docs` for execution |
 | `ci-ssh-deploy-timeout` | On "deploy keeps timing out" or SSH intermittency in CI |
 | `setup-playwright` | On "e2e tests are flaky", "specs pass alone but fail together" |
-| `uiux` | Design judgement for UI work at any scope — polish, rethink, redesign. Also fires when a screenshot arrives or someone reports what they *saw* without naming UI |
+| `uiux` | Design judgement for UI work at any scope — polish, rethink, redesign, greenfield or existing app. Mobile-first by default; judges whether an existing design language, library or framework is dated; designs for people who scan. Also fires when a screenshot arrives or someone reports what they *saw* without naming UI |
 
 ### Sub-skills (spawned from other skills)
 
