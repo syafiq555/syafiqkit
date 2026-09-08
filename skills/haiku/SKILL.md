@@ -102,6 +102,10 @@ When a pass moves content to a companion (a `condense-*` split or `unhobble-inst
 
 A report claiming contradictory things (lines cut but bytes up, anchors fixed when new ones added) has done arithmetic it never took. Re-count. Where a rewrite skill requires the agent to reconcile its own delta, that check ran inside the agent's context and reached you as a claim — so run it yourself: if bytes left the target, confirm by reading whichever file the report says gained them. A drop with no destination is deletion whatever the pass called it.
 
+### 4b. A report that ends in a plan is a partial run
+
+An agent that stops short hands back a plan for what is left — "next session should delete lines 236–1096", "the remaining work is…" — in the same complete-looking shape as a finished report, and the numbers beside it are true of the partial state. Read the delta against what was asked before the framing: an 8% reduction on a doc briefed for 70% is the agent having run out of budget, not a judgement that the rest should stay. The plan it wrote is the re-dispatch prompt, nearly verbatim; re-measure the file first so the second agent's baseline is the real one, and hold the second agent's report to the same checks, since a fresh agent on a half-done doc is exactly where a status word gets guessed (measured 2026-09-08: the re-dispatch finished the cut and wrote a PR as merged that was under review).
+
 ### 5. When to revert vs. patch
 
 **Write the re-dispatch prompt first.** Not a decision about whether to revert — the actual prompt, listing every fact that would need naming. Then read what you wrote: a list of nameable facts *is* the patch instructions, so patch. Reverting is for the case where you cannot write that prompt at all, because you cannot characterise what went wrong.
