@@ -66,6 +66,8 @@ Scan for five signal classes:
 
 When a signal arrives from outside the session (article, vendor guide), search the project's decision records first — a team that met it before will have graded it.
 
+**A finding from your own research is an Undocumented fact too, and belongs captured, not cited.** A WebFetch, WebSearch, or research-agent result that turned out load-bearing this session — a vendor's rate limit, a library's real default, a config flag's actual behavior — gets written into CLAUDE.md as the fact itself, the same as a fact the user handed you. Writing `See <url>` or `Per the vendor docs` instead is the citation-shaped version of skipping the scan: it reads as captured because a reference sits where the fact should be, and the next session hits a paywall, a dead link, or a page that's since changed, with nothing usable underneath it. You went and found this on purpose because it mattered — that's the signal to write it down now, keeping the URL only as a pointer beside the captured fact, never in place of it.
+
 Most signals shouldn't become entries. Before grepping, ask what the reader gains: a fact they couldn't derive is worth a line; restating what surrounding rules imply dilutes them. Prefer sharpening an existing rule to adding a neighbor. Writing nothing is a legitimate outcome.
 
 **Special case: Structural gaps** route to `references/structure.md` §3/§5, not the session capture flow.

@@ -33,7 +33,7 @@ Keycap numerals (1️⃣ 2️⃣ 3️⃣) so the block cannot be mistaken for an
 
 ## What counts as a decision
 
-A real "no" has to be a coherent answer. That is the whole test.
+A real "no" has to be a coherent answer. That is the whole test — but answering it from a plausible-sounding guess is the same failure as skipping "Earning the decision" below; if you have not checked, you do not know it is coherent, you are asserting it.
 
 | Question | Real decision? |
 |---|---|
@@ -43,6 +43,28 @@ A real "no" has to be a coherent answer. That is the whole test.
 | "The migration rewrites the table on a large tenant. Run it now, or wait for a quiet window?" | Yes. Both answers are live and you can't pick for them. |
 
 The pattern: if you already know what you will do regardless of the reply, it is not a decision. Anything already decided, already fixed, or needing no input from the reader belongs in the summary instead.
+
+## Earning the decision
+
+The table above tests a question you already have. This tests whether you should have it at all — because a scoping question you cannot answer yourself is usually one you have not measured yet, and measuring it either dissolves the question or turns it into a real one.
+
+The shape is a defect or a change found mid-task, where the honest options are fix it now, fix it separately, or leave it. Asked cold ("fold this in, or track it separately?") that is a preference the reader has to answer blind, and they will answer it with whatever costs least to say. Asked after one query it becomes a decision with a stake: who is affected, and what does each option cost them.
+
+⚠️ **Measure the population your change would NEWLY affect, not the rows that already exist — the two differ, and the existing-rows number is the one that is easy to reach and reads as reassuring.** Measured 2026-09-10: a guard that had never fired was reported as "production carries 1 group, 0 affected", which was true and answered the wrong question. It counted groups already created. Fixing the guard meant *refusing* groupings that succeed today, so the number that decided the question was how many could walk into the refusal — 2 of 8 groupable tenants, both real, both a PM would hit. The first figure argued for a free fix; the second is what made it worth asking about.
+
+The tell is that you are about to describe a fix as safe using a count of what already happened. Ask instead who the change newly says no to, newly charges, or newly moves — then bring that number with the question.
+
+Two things follow from this. A question that survives measurement is worth `AskUserQuestion` even mid-task, because the answer changes what you build next. And a question that does *not* survive it — the population is zero, or the cost is trivially one-sided — should be decided and mentioned in the summary, not escalated.
+
+## The options are a hypothesis, not the decision
+
+The options you wrote encode your model of the choice, so an answer that does not fit one is information about that model rather than an imprecise selection. Two shapes recur, and both are cheapest to handle by believing the answer over the menu.
+
+**An answer from outside the list is usually attacking a premise every option shared.** Three ways to handle a bad edit — refuse it, silently correct it, warn about it — all assume the edit is a mistake; "ask the user which they meant" is outside that set because it treats the edit as a legitimate ambiguous intent, which is a different question from the one asked. So when a reply doesn't map, do not snap it to the nearest option: name the assumption the list shared and check whether it holds, because the reply is normally pointing at it. **Tell: you are deciding which of your options the user "basically meant".**
+
+**A user revising their own earlier answer is not re-litigating, and the rule against re-asking does not apply to them.** `judgement`'s "scope stays where they put it" forbids *you* from reopening a settled question; a later "actually, do it the other way" from the person who settled it is new instruction and outranks the plan built on the first answer. Rebuild from the revision rather than defending the work already shaped by the original. Their correction also frequently points at a convention the codebase already holds — the revision that lands as obviously right is often the one that stops inventing a rule and reuses an existing one, so before implementing it, look for the mechanism it is naming.
+
+Related: an option carrying a `notes:` field is answered by the selection *and* the note, and the note routinely widens scope past what the option said (a styling pick arriving with two edge-case questions and a request for a review pass). Read the note as part of the answer, not as commentary on it.
 
 ## The summary below it
 

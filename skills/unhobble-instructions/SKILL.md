@@ -66,7 +66,7 @@ For what remains after clusters convert:
 
 As constraints become reasoning and enumerations collapse into mechanisms, ask whether the resulting content belongs in an always-loaded file. Four questions run in sequence:
 
-1. **Is it derivable?** If a reader could reconstruct it with `ls`, `grep`, reading the manifest, or running `--help`, cut it outright rather than rewriting it.
+1. **Is it derivable?** If a reader could reconstruct it with `ls`, `grep`, reading the manifest, or running `--help`, cut it outright rather than rewriting it. Name the command before cutting; "a competent reader would know this" is not one, and it is the phrase under which a harness quirk (`git checkout HEAD --` because the harness auto-stages) or a version constraint leaves a file that was its only home.
 
 2. **Is it safety-critical?** Prohibitions that *must* fire even if ignored by a prior session (e.g., "never edit generated files", "never push to main") are always resident, never deferred. Their cost is fixed; their value is irreplaceable.
 

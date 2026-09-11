@@ -26,7 +26,7 @@ D=~/.claude/plugins/syafiqkit
 
 Upstreaming means filing a GitHub issue under the user's own identity, which reaches the maintainer fast. **Ask before filing; never post unprompted under the user's name.** 📖 **`references/upstream-consumer-finding.md`** — `gh auth status`, drafting the report, `gh issue create`, and the fenced fallback when `gh` isn't available or the user declines. Report the skill + version, what happened reproducibly, and the suggested fix.
 
-📖 **`../_shared/references/consumer-portability.md`** — read before writing any step that names a plugin path or shell command a consumer would run: `tasks/` not shipping with installs, `/Users/syafiqshamsuddin/.claude/plugins/syafiqkit/` not expanding in markdown, `~` on Windows/WSL.
+📖 **`../_shared/references/consumer-portability.md`** — read before writing any step that names a plugin path or shell command a consumer would run.
 
 ## Step 1 — Scan: What happened involving the plugin?
 
@@ -38,12 +38,11 @@ Capture gaps, not presence of working code. A skill that triggered wrongly, a st
 |---------|-----------|-----|
 | Trigger misfired (fired wrongly or stayed silent) | `description:` frontmatter | Keyword that captures the miss |
 | Workflow step was wrong or corrected mid-execution | Body of that step | The corrected instruction |
-| Rule was missing and caused a mistake | Relevant skill's rules section | A statement of the principle |
+| Rule was missing, or a keyword trap has no home | Relevant skill's rules section | The principle, with a concrete example |
 | Rule was PRESENT and broke anyway | Step 1a diagnosis | Usually a route or instrument change, not re-wording |
 | New skill created this session | `CLAUDE.md` and `README.md` registries | Entry with trigger and purpose |
 | Existing skill changed meaningfully | CHANGELOG + `Last updated` note | What the change enables |
 | Architecture or composition decision | `plugin-maintenance/current.md` decisions | Decision and rationale |
-| Keyword trap or nuance for future sessions | Relevant skill body | Named rule with concrete example |
 | Skill or reference reads bloated | This file (after this session) | Tightening pass — see Step 4 |
 | Correction to update-plugin's own logic | This file (update-plugin/SKILL.md) | The step that misfired |
 
@@ -76,7 +75,7 @@ Then, for a first-time failure (or if the pattern doesn't help), ask which of th
 | `skills/<name>/SKILL.md` → `description:` | Trigger was wrong or missed |
 | `skills/<name>/SKILL.md` → body | Workflow step, rule, or gotcha was wrong/missing |
 | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` | Architecture or composition decision; `external-guidance` owns verdicts on outside advice |
-| `CLAUDE.md` + `README.md` skill tables | A skill was added to the registry — both are hand-maintained, update both |
+| `CLAUDE.md` + `README.md` skill tables | A skill was added to the registry — both hand-maintained; `CLAUDE.md` splits by how a skill fires, so one that auto-fires needs its proactive row too |
 | `CHANGELOG.md` | A skill changed meaningfully |
 | `skills/agent-setup/templates/<agent>.template.md` + every generated copy | A behavioral fix to an agent that has a template |
 
@@ -92,12 +91,19 @@ The right target is whichever file actually owns the fact, not the skill where t
 
 ## Step 3 — Harness Constraints
 
-Before writing any patch, know four facts about how the harness actually loads and re-attaches skills — they decide whether your fix ever reaches a session and each has a silent failure:
+**A patch is scheduled, not just filed — pick the mechanism by WHEN the rule must fire.** Each row below loads at a different moment, and a rule in the wrong one is correct, present and inert (verified against `code.claude.com/docs`, 2026-09-10):
 
-- **Token ceilings**: After a compaction, only the first 5,000 tokens of each skill are re-attached — everything past that silently stops existing. A skill that reports as invoked but whose prose doesn't fire is often below that boundary.
-- **Re-attachment window**: A skill body enters context once and is never re-read mid-session. A standing instruction that needs to hold across multiple turns has to stay resident in the file, since there is no "re-read the SKILL.md" step between turns.
-- **Allowed-tools semantics**: `allowed-tools:` pre-approves tools; it never restricts. Every tool stays callable whether listed or not — the field only waives the permission prompt. Omitting `Agent` does not prevent spawning; it only charges a prompt each time. This is the most commonly misread field.
-- **Constraint shape for operations that must be identical**: An operation whose output must stay identical across contexts (checksums, flag combinations) needs exact specification. A heuristic loses that property and a judgement rule loses it faster. Don't convert these to principle form.
+| Must fire | Mechanism | Loads |
+|---|---|---|
+| Every turn | `UserPromptSubmit` hook stdout | Once per turn, harness-injected |
+| Every session, past compaction | `hooks/RULESET.md` (SessionStart), project-root `CLAUDE.md` | Start + re-fires on `compact` |
+| On touching matching files | `.claude/rules/*.md` with `paths:` | On read of a match |
+| When a task starts | Skill body, first **5,000 tokens** (25,000 shared, most-recent first) | On invoke |
+| Only if chosen | A `📖` reference | Never, unless opened |
+
+⚠️ **Where Step 1a's diagnosis was "read at invocation, decision came many turns later", the remedy is a different ROW, not a different paragraph.** Both positions in one file are equally unread at decision time, which is why eight prior fixes that moved or reworded a rule all recurred. A rule that must survive recall belongs on something the harness executes rather than something the model chooses to consult.
+
+Two more facts with silent failures: `allowed-tools:` **pre-approves and never restricts** — every tool stays callable whether listed or not, so omitting `Agent` only charges a permission prompt (the most commonly misread field). And an operation whose output must be identical across contexts (checksums, flag combinations) needs exact specification; a heuristic loses that property and a judgement rule loses it faster.
 
 📖 **`references/harness-constraints.md`** — the full reference for token ceilings and re-attachment windows.
 
@@ -111,7 +117,7 @@ When a SKILL.md is genuinely dense already, adding a new rule is a moment to ask
 - A worked incident embedded in the instructions themselves — the incident belongs in git history/CHANGELOG; the skill body keeps only the rule it produced.
 - A rule that's dead because its trap can't fire anymore (the tool's gone, the format changed) — delete it, don't compress it. Check the tool's actually gone before assuming so.
 
-⚠️ **Retracting a rule reaches every file that prescribed the practice, which is more than the files you edit — and the CHANGELOG entry you write will certify the wrong scope.** Adding a rule is bounded by where you put it; withdrawing one leaves every other site still instructing the reader to do the retracted thing, and those sites read as correct because they *were* correct until now. Then the entry names the files the fix touched, which a later session reads as the files that needed touching. Measured 2026-09-03: 1.225.0 removed the token-diff verification step and patched its four named files, while two more still prescribed it — one as a numbered step in a shared verification checklist — both on the delegated-rewrite path the removal was written about, and a reviewing agent sweeping the four named files reported nothing else prescribed it. So grep the corpus for the *practice* in its own vocabulary (what the step told people to do), not for the files the entry lists, and treat a surviving prescription as in scope even where it predates the retraction. **Tell: you are writing an entry that says a step was removed and then enumerates the files it was removed from.**
+⚠️ **Retracting a rule reaches every file that prescribed the practice, which is more than the files you edit — and the CHANGELOG entry you write will certify the wrong scope.** Every other site still instructs the reader to do the retracted thing, and reads as correct because it *was* correct until now. **Tell: you are writing an entry that says a step was removed and then enumerates the files it was removed from.** 📖 `references/retracting-a-rule.md` for how to grep the practice rather than the file list, and the 1.225.0 case where four files were patched and two more kept prescribing it.
 - A clear default plus a rare branch, both inlined — the rare branch can usually move to `references/` with a short pointer left behind, keeping the common path lean.
 
 If tightening lands during this session, bump the plugin version + CHANGELOG per `CLAUDE.md`'s Version Bumping convention. The invocation might ask to skip one; treat "skip the changelog" as covering the version bump too — they're one convention.
@@ -124,7 +130,7 @@ Apply the most targeted edit for the kind of change:
 - **Workflow rule** — goes into the most relevant existing section; don't spin up a new section for one rule. State the general principle the incident revealed, not a retelling of the incident itself. Write it with enough reasoning that a reader can apply it to cases the session didn't encounter. A marker (`⚠️`, bold, `**Tell:**`) belongs only when the risk is silent or irreversible — when the reader could walk past without noticing the cost. A fact the reader can't derive (a harness quirk, an exact command, a real binary) is worth stating plainly. These files ship publicly, so examples naming commands, paths or tools must be ones a stranger can run — generalise to the layer the mechanism actually lives in per 📖 **`../_shared/references/consumer-portability.md`**.
 - **A rule moved out of a reference and inlined** — place it where that skill acts, not where it explains the principle. A skill with both a "Hard rules" list and its own numbered steps will have readers walk the steps and never return to the list, so a check that lands in the list is present but still never fires. Ask which step a reader would be executing when the rule needs to apply, and put it there. If it's a standing constraint rather than a step-specific check, the list is right.
 - **Architecture decision** — append to the relevant `decisions/*.md` theme file as `Decision | Rationale`, and make the rationale actually explain why.
-- **New skill in the registries** — both `CLAUDE.md`'s skill table and `README.md`'s need the entry; they're hand-maintained and easy to update one without the other.
+- **New skill in the registries** — `README.md` and both of `CLAUDE.md`'s invocation tables (Step 2's row). A sync check only asks whether a skill appears somewhere, so a wrong-table filing reads as registered and no sweep surfaces it.
 
 ## Step 6 — Before calling it done
 

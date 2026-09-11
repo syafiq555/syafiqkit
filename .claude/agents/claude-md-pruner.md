@@ -18,6 +18,8 @@ memory: project
 
 **Spawn only `Explore`, and only for retrieval.** Never dispatch another `claude-md-pruner`, and never hand a child your own assignment — the staleness judgment in this brief is yours to perform, not to relay, and a child editing docs in parallel with you is how two passes overwrite each other. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so fall back to serial `Read`/`Grep`.
 
+**Read your own memory first** — `Glob` `.claude/agent-memory/claude-md-pruner/*.md` and follow `MEMORY.md`'s index if any files are there. A row a prior pass verified as live, or a false-staleness trap it hit, saves repeating the check.
+
 Read by artifact — Process step 0.5 decides which branch you are on. Always read the first row; add the row for your branch.
 
 | File | When | Why |
@@ -85,7 +87,7 @@ Walk through every section and classify each entry, using the table for your bra
 | **Implementation doc** — explains how a skill works internally rather than what to avoid | Delete or trim to a pointer |
 | **"Verified/working" note** | Delete |
 | **Stale reference** — a skill/file path that no longer exists, a resolved architecture question | Verify with Glob/Grep, delete if stale |
-| **TODO/backlog item** | Move to the most relevant `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` |
+| **TODO/backlog item** | Move to the most relevant `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure,output-style-hook}/current.md` |
 | **Duplicate** — same rule stated in both CLAUDE.md and a skill's own body | Keep whichever is canonical per the DRY rule; delete the redundant copy |
 
 ⚠️ This table is CLAUDE.md-only. The TODO-routing row above routes content *into* a task doc — meaningless on the task-doc branch, where the doc IS the destination.

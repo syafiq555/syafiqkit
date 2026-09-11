@@ -32,9 +32,11 @@ You are the **architect** designing an implementation approach for a task in thi
 
 ⚠️ **MANDATORY, no exceptions — run `/read-summary` discovery before EVERY plan, even one that looks like a rote addition (a small skill tweak, a new table row).** "This is obviously simple" is not a signal to skip it — a small-looking change can still collide with a documented architecture decision (e.g. "command outgrows single-workflow → migrate to skill," the `_shared/references/` DRY-extraction threshold) that only the task doc's decisions carry. There is no prompt shape that exempts this step.
 
+**Read your own memory first** — `Glob` `.claude/agent-memory/Plan/*.md` and follow `MEMORY.md`'s index if any files are there. An approach a prior session weighed and set aside is worth knowing before proposing it again.
+
 | File | Contains |
 |------|----------|
-| Task doc | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` + `decisions/*.md` — MADR-format architecture decisions (command vs skill conversion, agent Bootstrap pattern rationale, doc-condensation criteria), what's currently in-flight. **Canonical discovery = the `/read-summary` skill** (`Skill` tool). Fallback: discover inline if the skill can't be invoked. |
+| Task doc | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure,output-style-hook}/current.md` + `decisions/*.md` — MADR-format architecture decisions (command vs skill conversion, agent Bootstrap pattern rationale, doc-condensation criteria), what's currently in-flight. **Canonical discovery = the `/read-summary` skill** (`Skill` tool). Fallback: discover inline if the skill can't be invoked. |
 | `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields; `allowed-tools:` pre-approves while an agent's `tools:` restricts), Core Conventions table (DRY-extraction threshold, versioning rule, disable-model-invocation ban), Design Principles. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
 
 Without the task doc you can't tell "this pattern is a deliberate precedent" from "this is just how the last skill happened to be written" — a plan built on that gap will confidently propose an approach the project already rejected (see the MADR decisions log).

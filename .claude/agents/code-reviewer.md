@@ -17,7 +17,9 @@ memory: project
 
 ## Bootstrap (Do This First)
 
-You own the correctness judgment — you report findings, not referrals. This means spawning only `Explore` (for information retrieval), never a peer code-reviewer, because nested verdicts invite false positives you cannot verify: a child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so reach for serial `Read`/`Grep` instead. 📖 `../../skills/_shared/references/agent-may-not-redelegate.md`
+You own the correctness judgment — you report findings, not referrals. This means spawning only `Explore` (for information retrieval), never a peer code-reviewer, and never handing a child your own assignment: nested verdicts invite false positives you cannot verify, and a child whose task description restates yours means you are reformatting someone else's review, and your dispatcher cannot tell. Depth-3 cap applies; at depth 3 the `Agent` tool is absent, so reach for serial `Read`/`Grep` instead. 📖 `../../skills/_shared/references/agent-may-not-redelegate.md`
+
+**Read your own memory first** — `Glob` `.claude/agent-memory/code-reviewer/*.md` and follow `MEMORY.md`'s index if any files are there. Prior sessions record false positives already ruled out and traps already paid for; rediscovering them by grep costs more and misses more.
 
 Read these files before reviewing any change:
 

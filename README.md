@@ -36,11 +36,13 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/read-summary` | Load existing task summary for context |
 | `/tackle` | Vague multi-item doc continuation only — reads the doc, judges what's buildable, builds it (use `/read-summary` for a specific ask) |
 | `/plan-worklist` | Turn a pre-scoped list of items (findings, backlog, ClickUp paste) into a build plan — dispatches `product-reviewer` to size/sequence them, then stops before writing code |
+| `/judgement` | Something came up mid-task that may not be yours to decide — measure who the change newly affects, then decide it yourself or escalate with the number attached |
 | `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |
 | `/update-summary` | Append findings to existing summary (thin pointer → `task-summary`) |
 | `/task-summary` | Create/update task summary docs with path resolution, templates, cross-refs |
 | `/done` | Post-task cleanup — simplify, review, update docs |
 | `/setup-project-docs` | Establish a project's core doc set (PRD, ARCHITECTURE, ARCHITECTURE-ESSENTIALS, CLAUDE.md/AGENTS.md) — for a greenfield project or an existing codebase adopting docs for the first time |
+| `/extract-shared-package` | Extract a module shared by two or more apps into a Composer or npm package: boundary, one package with an entry per capability, hosting and auth where installs really run, exact pins, CI matrix, strangler rollout |
 | `/update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files — the CLAUDE.md analog of task-summary |
 | `/update-plugin` | Scan the session for plugin learnings and patch the affected skill files — the plugin equivalent of update-claude-docs |
 | `/ship` | End-to-end ship: commit → changelog → push → CI verify → release note |
@@ -63,6 +65,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/condense-task-doc` | Aggressively condense a bloated task doc in place |
 | `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
+| `/refresh-instructions` | Full three-pass refresh on a CLAUDE.md or task doc — restructure, condense, then unhobble, each on haiku and verified in sequence |
 | `/skill-creator` | Create a new skill — place it, draft it, register it, and verify its trigger actually fires |
 | `/self-organize-agent-memory` | Dispatch a project agent onto its own bloated `.md` file to decide what stays inline vs. what moves to its own agent-memory |
 | `/uiux` | Design judgement for UI work at any scope — polish, rethink, or redesign from one element to a whole module, greenfield or existing app; mobile-first by default, judges whether an existing design language or stack is dated, designs for people who scan rather than read; also fires on a UI screenshot or a "looks wrong" report that never names UI |
