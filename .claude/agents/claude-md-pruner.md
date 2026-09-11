@@ -94,7 +94,7 @@ Walk through every section and classify each entry, using the table for your bra
 
 #### 2b. Task-doc branch
 
-⚠️ **`condense-task-doc` owns the cut/keep policy — read it, don't restate it.** Its `## What to cut` / `## What to keep` / `## Section-by-section rules` are canonical. Your job is the *staleness* subset: rows whose referenced thing no longer exists. Classify against these, then verify every candidate under step 3 before deleting.
+⚠️ **`condense-task-doc` owns the cut/keep policy — read it, don't restate it.** Its `## What Gets Cut vs. What Stays` and `## Section-by-Section Rules` are canonical. Your job is the *staleness* subset: rows whose referenced thing no longer exists. Classify against these, then verify every candidate under step 3 before deleting.
 
 | Classification | Action |
 |----------------|--------|

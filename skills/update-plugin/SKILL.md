@@ -50,7 +50,7 @@ Skip anything project-specific or a general communication preference with no ski
 
 ### Step 1a — When the rule was already there
 
-When you find a rule present in the codebase and the session still broke it, the rule failed at one of distinct points. First, grep the CHANGELOG for the rule's mechanism — the pattern of prior failures tells you more than this one incident. If the rule recurred, re-wording is not the remedy; the redundancy itself has become the defect. Cut back to one statement where it actually fires, and change the *kind* of instrument rather than its wording. Then ask which of these four points applied *this* time:
+When you find a rule present in the codebase and the session still broke it, the rule failed at one of distinct points. First, grep the CHANGELOG for the rule's mechanism — the pattern of prior failures tells you more than this one incident. If the rule recurred, re-wording is not the remedy; the redundancy itself has become the defect. Cut back to one statement where it actually fires, and change the *kind* of instrument rather than its wording. Only for a first-time failure, or if the recurrence pattern doesn't settle it, ask which of these four points applied *this* time:
 
 **It was never reached.** The rule sits in a `references/` file, below the 5,000-token re-attach boundary, or in a skill never invoked on the path that failed. Fix the route: make the pointer imperative at the moment the act happens, or move the check into the step that performs it. A duplicate copy of an unreached rule creates two unread copies.
 
@@ -78,6 +78,8 @@ Verify your diagnosis by opening the file: a plausible story about why a rule di
 Read the target before writing, and check whether the fix already exists.
 
 The right target is whichever file actually owns the fact, not where the session discovered the gap. **Grep the other skills for the mechanism before writing** — a defect surfaces in whichever skill happened to run, but the same mechanism is typically *created* in one skill, *consumed* by another, and *maintained* by a third. Ask which skill writes the artifact, which reads it before acting, which maintains it, and which verifies it — then check each. Fixing the discovery site leaves the other two intact and the next session repeats the failure through a different door. One signal, four files; a first report naming one is incomplete.
+
+If the user has to nudge you toward another affected skill, treat that as evidence the sweep was too narrow, not that only the named skill was missed — the skills they didn't name are still unchecked.
 
 📖 **`references/grep-for-sharing.md`** — search strategy and when to route to `_shared/references/` instead of one skill. 📖 **`references/routing-gotchas.md`** — contested files and generated agent copies.
 

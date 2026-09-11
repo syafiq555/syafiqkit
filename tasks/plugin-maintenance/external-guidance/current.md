@@ -23,6 +23,7 @@ Source #7 (2026-09-05) was a survey rather than a single document: eight publish
 Source #8 (2026-09-07) was one of source #7's eight, read whole this time: the `ui-ux-pro-max` repo (its docs site is an unofficial translation and client-rendered, so unreadable by curl). Three haiku agents split the skill body, the data files and the docs. A catalog-first source graded into a procedure-first skill yields the judgements the catalog encodes — write the system down, name who a look is wrong for, mode and density keyed to the job — and none of its rows (D-third-pass-on-uiux). One agent quoted a guideline's Don't column as its Do.
 
 **Immediate next actions (in order)**:
+0. **The ceiling work reopened — `D-ceiling-cleared` (2026-08-20) declared all 32 skills under 5,000 tokens, and by 2026-09-11 five had drifted back over.** A 2026-09-11 pass brought four of them under again (`agent-setup` still marginally over). Treat "cleared" as a measurement with a date rather than a settled state: nothing prevents a skill re-crossing, and no check reports it. Worth deciding whether this wants a recurring measurement instead of another clearing pass.
 1. Condense `decisions/applying-verdicts.md` — it passed its 300-line budget with the source #7 entry and now holds twelve decisions.
 2. Grade the consumer's 22 findings against local ADRs before acting; they were produced against a different machine's setup. See `## Next Steps`.
 3. Reply to the consumer on their sequencing question (companion dirs first).
@@ -157,7 +158,15 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ---
 
-## Last Session (2026-09-07)
+## Last Session (2026-09-11)
+
+- **The ceiling had silently reopened, and finding that out was accidental.** `D-ceiling-cleared` closed this work on 2026-08-20 with all 32 skills under 5,000 tokens; measuring on 2026-09-11 to answer an unrelated question showed five back over. A cleared verdict is a measurement with a date, not a state that holds — skills grow one capture at a time and no check reports a re-crossing. Fifteen skills then went through `unhobble-instructions` in three batches; of the five over, only `agent-setup` still is, cut 7% and left there rather than trimmed to hit a number.
+- **Three defects across fifteen passes, every one inside a report that read as careful and itemised.** A rule in `read-summary` rewritten from a constraint into a licence ("any turn that ends on a question states the decision" → "end on a question only when…"), a pointer deleted from `haiku` that the reference file it cited explicitly requires a spawning skill to carry inline, and a house-style rule deleted from `update-claude-docs` as redundant with the project `CLAUDE.md`. All three reverted or restored.
+- **The third defect is the one worth generalising: "stated elsewhere" was true here and false for every consumer.** A colleague running the skill in their own project loads their own `CLAUDE.md`, so a rule surviving only in this repo's copy reaches nobody outside this checkout. Captured to `CLAUDE.md`'s Authoring Checklist.
+- **Deduplication and deletion produce identical diffs, and the discriminator is a repo-wide grep.** `setup-playwright` shed its dead-server/stale-bundle warning; that cleared because `uiux` states the mechanism in full. Clearing it created a sole-copy dependency, so the later `uiux` pass had that callout named in its prompt with the cost attached — it cut 24% and kept it intact.
+- **Two passes returned files slightly longer**, `ship` and `task-summary`, each promoting a buried gate into a stated one. An unhobble pass has no byte target, so that is the pass working rather than failing.
+
+## Previous Session (2026-09-07)
 
 - **Source #8 — one of source #7's eight, read whole.** The user pointed at `ui-ux-pro-max-skill.com`, which is an unofficial translation of the `nextlevelbuilder/ui-ux-pro-max-skill` repo and client-rendered, so all three haiku agents graded the repo: the skill body and reasoning layer, the CSV data (119 UX guidelines, 88 styles, 192 palettes, 74 font pairings, 34 landing patterns, 22 stack files), and the docs. Six judgements adopted into `uiux` and its references, one line of ours softened, the catalogs and dials rejected (D-third-pass-on-uiux). Shipped as v1.242.0; the skill body sits at 18.7KB, under the ceiling.
 - **Adopting a practice without its script left the create step behind.** The source's persistence step is a script that writes `MASTER.md`; the adaptation said "write to the conventions doc" and named no file to create when none exists — which on a greenfield brief is always. The product reviewer caught it; the greenfield branch now names `frontend/CLAUDE.md` as the default and routes creation through `update-claude-docs`, and a deviation recorded twice is treated as a scale gap. A depend-to-adapt verdict has to carry the source's side effects, not just its rule.
@@ -165,7 +174,7 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 - **The site itself was never the source.** Every docs, blog and examples page returned an empty client-rendered shell; the agent reported them as `COULD NOT RETRIEVE` and fell back to the repo, which is the correct move — a failed fetch is evidence about the URL.
 - **One agent wrote a report to `/tmp` under a read-only brief.** Outside the repo, so harmless, but a "do not edit any file" instruction did not stop a scratch write.
 
-## Previous Session (2026-09-05)
+## Earlier Session (2026-09-05)
 
 - **Source #7 — a survey, not a document.** Two haiku research agents retrieved eight published UI/UX skills and a set of primary design references; the findings were graded per capability into a second pass on `uiux` (D-second-pass-on-uiux). Three capabilities adopted as inline judgement with five `references/` files behind them; shipped as v1.240.0 with the body at roughly 4,500 tokens.
 - **Every cited URL resolved and five figures were still wrong.** Two were attributed to a real page carrying a different number, one was a vendor blog, one was marketing opinion, and one conflated WCAG's AAA target size with the AA floor. The URL check that catches fabrication passes clean on misattribution; a figure is graded by finding it on the page.
@@ -179,6 +188,9 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 - [x] ~~Reuse D55's four-verdict table on the next piece of guidance~~ — done 2026-08-09, and the failure mode was arriving at the source without checking whether it had already been graded. See D-verdict-records-lever.
 - [x] ~~The method has no trigger~~ — closed 2026-08-20. `update-claude-docs` Step 1 and `unhobble-instructions`' document-read both now say to search the project's decision records before adopting an outside source, phrased conditionally at the point the adoption decision is made.
 - [x] ~~Re-run the fleet audit now that Step 1 disqualifies in-window creations~~ — moot: `audit-instructions` was removed 2026-08-01 (user decision). Its fixes (the disqualify-in-window-creations guard, the CWD-not-`-C` ownership probe) stay correct and worth reusing if the fleet-audit capability is ever reimplemented.
+
+**Ceiling maintenance**
+- [ ] Decide whether the re-attach ceiling wants a recurring measurement rather than periodic clearing passes. `D-ceiling-cleared` held for three weeks before five skills drifted back over, and the re-crossing was found by accident while answering an unrelated question. The measurement is one command over `skills/*/SKILL.md`; the open question is where it should live so that it runs without someone thinking to ask.
 
 **Doc health**
 - [x] ~~Split this doc before grading source #6~~ — done 2026-08-20, ahead of grading it. `current.md` is now an index (174L) over `decisions/grading-method.md` (91L) and `decisions/applying-verdicts.md` (286L); the set total rose, confirming redistribution rather than deletion. **`applying-verdicts.md` is now the file to watch** — six decisions landed in one session and it sits near the 300-line budget.

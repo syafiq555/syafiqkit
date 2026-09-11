@@ -30,6 +30,8 @@ Read `git status --short` and recent commits, then match the session to a mode. 
 
 **Docs-only:** Count changed files from `git show --stat <this-session's commit>` PLUS the uncommitted diff — agent review covers both, since code committed earlier this session was never reviewed.
 
+⚠️ **The referential-integrity check is the one this mode adds, and a hand-rolled sweep for it reports the corpus broken when the bug is in your extractor.** A `📖` lives inside the backticks and is not part of the path; `${CLAUDE_SKILL_DIR}` must be expanded, not stripped; and the syntax is shared by relative paths, bare skill names (`syafiqkit:haiku`) and prose *about* pointers, only the first of which is testable with `[ -e ]`. So a sweep returns a pile of confident false positives, and the failure rate is the tell — a defect that common in a maintained corpus would have surfaced already. Resolve one pointer you know is good and one you know is bad before believing any run, print the extracted paths rather than only the verdicts, and classify each hit by kind before counting it. 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/editing-skills-checklist.md` owns the method.
+
 **Ambiguous signal:** Empty `git status --short` means work already committed, another writer's tree, or no changes at all. When git errors (no repo, no first commit), run **full mode** with substitutes per 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/verifying-a-write-landed.md`.
 
 
@@ -103,7 +105,7 @@ Delegate capture to the skill. Do not draft CLAUDE.md entries in `/done` — a s
 
 **Step 4 — Update Task Docs:**
 
-Invoke `syafiqkit:task-summary` bare for a multi-domain scan. An explicit path skips the scan and misses related docs. If the skill already ran THIS session, invoke scoped to only what's NEW.
+Invoke `syafiqkit:task-summary` bare for a multi-domain scan. An explicit path skips the scan and misses related docs. If the skill already ran THIS session, invoke scoped to only what's NEW — a scoped invoke still counts as running the step; skipping it does not.
 
 The skill auto-detects create vs update and handles path resolution and cross-references.
 
@@ -131,7 +133,7 @@ Invoke `syafiqkit:update-plugin` once ownership is settled — it owns everythin
 
 ## Exit Gate — Verify Steps Ran Before Writing Output
 
-Confirm the WORK is done, not just this skill's steps. Every Output row is a claim that a step ran — verify each before writing. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for fillability tests, verification methods for Knowledge/Task docs, and failed agent handling.
+Confirm the WORK is done, not just this skill's steps — verify against the approved plan that every part was built; part-done means finish the work first. Every Output row is a claim that a step ran — verify each before writing. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for fillability tests, verification methods for Knowledge/Task docs, and failed agent handling.
 
 **Read the session from the top, asking two things:** First, what would a reader need that exists only in this conversation — a plan in prose, a rule about what to stop doing, anything parked or waiting? A doc step passes every check having written findings without reasoning. Grep the docs for the specific fact: a diff proves bytes moved, never that the right fact moved. Missing → go back to Step 4.
 

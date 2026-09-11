@@ -42,7 +42,7 @@ Present a table to the user before writing:
 | payout-visibility | payout | PM listing/export is a UI layer on the same payouts table |
 ```
 
-Also list what stays standalone and why. Confirm three decisions explicitly:
+Also list what stays standalone and why. Confirm via `AskUserQuestion` as three separate forks, each raised at the point the merge plan reveals it — not bundled into one flat "does this look right?":
 
 1. **Scope** — does the proposed grouping match the user's intent? If the user requests a different grouping against the subsystem test, pause and confirm tradeoffs rather than silently complying.
 2. **Structure** — if merged docs would exceed 300 lines combined, choose between: condense aggressively (if bloat exists) or split into index + `decisions/<theme>.md` theme files (if facts are dense and neither source is verbose). Decide before writing either.
