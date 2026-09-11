@@ -1,6 +1,6 @@
 ---
 name: refresh-instructions
-description: Run a full three-pass refresh on one instruction-bearing file — a CLAUDE.md or a task doc (current.md) — by dispatching restructure, then condense, then unhobble-instructions, each on `haiku`, each verified before the next starts. Trigger on "full pass on this doc", "refresh this CLAUDE.md", "run the whole rewrite sequence", "restructure, condense, and unhobble this", or "give this doc the full treatment". Not for running just one of the three passes alone — invoke that skill directly (`update-claude-docs rewrite` / `task-summary` rewrite, `condense-claude-md` / `condense-task-doc`, `unhobble-instructions`) instead of this combo. Not for a file that isn't a CLAUDE.md or task doc — `unhobble-instructions` alone covers SKILL.md/agent/command files.
+description: Run a full three-pass refresh on one instruction-bearing markdown file — a CLAUDE.md, a task doc (current.md or decisions/*.md), a project doc set file (docs/PRD.md, ARCHITECTURE.md, ARCHITECTURE-ESSENTIALS.md), or any other living doc a reader is expected to act on (a README, a runbook, a design doc, a spec sibling like stories.md) — by dispatching restructure, then condense, then unhobble-instructions, each on `haiku`, each verified before the next starts. Trigger on "full pass on this doc", "refresh this CLAUDE.md", "refresh the PRD", "run the whole rewrite sequence", "restructure, condense, and unhobble this", or "give this doc the full treatment". Not for running just one of the three passes alone — invoke that skill directly (`update-claude-docs rewrite` / `task-summary` rewrite, `condense-claude-md` / `condense-task-doc`, `unhobble-instructions`) instead of this combo. A SKILL.md, agent definition or slash command wants `unhobble-instructions` alone rather than this sequence: no restructure or condense skill owns those, so two of the three passes would have nothing to run.
 ---
 
 # Refresh Instructions
@@ -14,7 +14,13 @@ This skill is pure sequencing. All three passes, the dispatch mechanics, and the
 | Target | Pass 1 (restructure) | Pass 2 (condense) | Pass 3 (unhobble) |
 |---|---|---|---|
 | `CLAUDE.md` | `update-claude-docs` (rewrite mode) | `condense-claude-md` | `unhobble-instructions` |
-| Task doc (`current.md`) | `task-summary` (rewrite/conform-to-template) | `condense-task-doc` | `unhobble-instructions` |
+| Task doc (`current.md`, `decisions/*.md`) | `task-summary` (rewrite/conform-to-template) | `condense-task-doc` | `unhobble-instructions` |
+| Project doc set (`docs/PRD.md`, `ARCHITECTURE.md`, `ARCHITECTURE-ESSENTIALS.md`) | `setup-project-docs` (update mode) | `condense-task-doc` | `unhobble-instructions` |
+| Any other living doc (README, runbook, design doc, spec sibling) | no owning skill — restructure in place, see below | `condense-task-doc` | `unhobble-instructions` |
+
+**`condense-task-doc` on the bottom two rows is deliberate, not a mis-edit.** Its keep-test is about facts rather than file types — *would losing this cause a future session to act incorrectly* — and its own description already claims "current.md or any markdown living-doc". Two of its rules are written for exactly these targets: the spec-sibling rule covering a `stories.md` or acceptance-scenarios file, and the provenance rule that names `PRD.md` and `ARCHITECTURE.md` as the files carrying `[TBD]`/`[SOURCED]`/`[INFERRED]` tags and says to leave them alone. What *is* task-doc-specific lives in 📖 `../condense-task-doc/references/section-rules.md`, a cold-path lookup keyed by literal section heading (`## Quick Start`, `## Bugs Fixed`) — so on a doc with none of those headings it matches nothing and yields nothing, rather than imposing a task doc's shape on a README.
+
+**Where no skill owns pass 1, restructure against the document's OWN contract** — what a reader opens it to answer — never against a template borrowed from a row above. A README reshaped into a task doc is a worse file than the one you started with, and the pass will report success either way. Where the target resembles a PRD or an architecture doc, 📖 `../setup-project-docs/references/standard-shapes.md` is the shape authority (arc42, C4, PR/FAQ, Shape Up); otherwise the ordering question is the one Pass 3 asks anyway — does each rule sit where the reader is when it applies. A file already ordered well gets "nothing to do" reported and the sequence drops to two passes, per *When not to run all three* below.
 
 ## Process
 
@@ -41,5 +47,7 @@ Every dispatch prompt must name the banned git verbs per `haiku`'s own rule (`co
 ## When not to run all three
 
 A file that's already well-structured and tight needs only `unhobble-instructions` — don't restructure or condense something that isn't bloated or misordered just because this skill exists. Check line count and skim structure first; if restructure and condense would both report "nothing to do," skip straight to unhobble and say so rather than running three passes for one pass's worth of change.
+
+This bites hardest on the bottom two rows, where a skipped pass and a performed one are hard to tell apart afterwards. A restructure with no template to conform to has no artifact proving it ran, so an agent with nothing to do and an agent that did nothing both return a clean-looking report — and the second one has usually reshuffled sections to have something to show. Decide before dispatching whether Pass 1 has real work, and where it doesn't, don't dispatch it.
 
 📖 `syafiqkit:update-plugin` for the follow-up — if a pass exposes a gap in `haiku`, `unhobble-instructions`, or either condense skill, that's where the fix belongs, not here.

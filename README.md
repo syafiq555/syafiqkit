@@ -65,7 +65,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/condense-task-doc` | Aggressively condense a bloated task doc in place |
 | `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
-| `/refresh-instructions` | Full three-pass refresh on a CLAUDE.md or task doc — restructure, condense, then unhobble, each on haiku and verified in sequence |
+| `/refresh-instructions` | Full three-pass refresh on any living doc — CLAUDE.md, task doc, `docs/` set file, README or runbook — restructure, condense, then unhobble, each on haiku and verified in sequence |
 | `/skill-creator` | Create a new skill — place it, draft it, register it, and verify its trigger actually fires |
 | `/self-organize-agent-memory` | Dispatch a project agent onto its own bloated `.md` file to decide what stays inline vs. what moves to its own agent-memory |
 | `/uiux` | Design judgement for UI work at any scope — polish, rethink, or redesign from one element to a whole module, greenfield or existing app; mobile-first by default, judges whether an existing design language or stack is dated, designs for people who scan rather than read; also fires on a UI screenshot or a "looks wrong" report that never names UI |

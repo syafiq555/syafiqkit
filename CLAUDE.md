@@ -43,7 +43,7 @@ These skills accept explicit user command:
 | `agent-setup` | Create or update project-local agents using Bootstrap pattern |
 | `haiku` | Run a task or a named skill on one or more haiku agents instead of this session, then verify the result before reporting — snapshot, identifier/number survival, and the reworded-claim check a grep can't catch |
 | `unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint (rigid imperatives, "Tell:" trip-wires, mechanical thresholds) vs. genuine fact. Narrower and stricter than a plain density pass — the lens is judgement-vs-constraint, not byte count |
-| `refresh-instructions` | Full three-pass refresh on a CLAUDE.md or task doc: restructure → condense → unhobble, each dispatched on `haiku` and verified before the next starts. For one pass alone, invoke that skill directly instead |
+| `refresh-instructions` | Full three-pass refresh on any living doc — a CLAUDE.md, a task doc, a `docs/` set file, a README or runbook: restructure → condense → unhobble, each dispatched on `haiku` and verified before the next starts. For one pass alone, invoke that skill directly instead; a SKILL.md or agent file wants `unhobble-instructions` alone |
 | `self-organize-agent-memory` | A project agent's own `.md` definition has a bloated inline reference table crowding out its procedural steps — dispatch THAT SAME agent onto its own file to decide what stays inline vs. what moves to `.claude/agent-memory/<agent>/`. Verify with an identifier sweep afterward, never trust the migration summary alone |
 
 ### Proactive invocation (model auto-fires on symptom match)
