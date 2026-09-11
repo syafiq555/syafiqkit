@@ -5,62 +5,80 @@ description: Aggressively condense and restructure a bloated CLAUDE.md file — 
 
 # Condense CLAUDE.md
 
-The goal is maximum information density: every line must earn its place. A reader should be able to scan the file in under two minutes and find every non-obvious rule.
+Maximum information density: every line must earn its place, readable in under two minutes.
 
-This skill is the single source of truth for CLAUDE.md size policy — thresholds, budgets a file declares for itself, and every split decision (subdir, task doc, companion file). No other skill or agent carries its own number. `claude-md-pruner` delegates here (its step 0) and keeps only staleness/duplication verified against the live repo; it exists for `memory: project` + background spawning, not for owning a threshold. The task-doc equivalent is `condense-task-doc` — same rule, different artifact.
+**This skill owns CLAUDE.md size policy — thresholds and split decisions.** No other skill or agent carries its own number. `claude-md-pruner` delegates here for staleness/duplication; `condense-task-doc` owns task docs by the same principle.
 
-Target: ≤200 lines, ≤40KB bytes for root CLAUDE.md (non-root layers have more slack but same logic). A file that declares its own budget (📖 `../_shared/references/declared-budget.md`) defers to that. A pre-existing `.claude-companions/<shared|local>/CLAUDE-*.md` is a condense target in its own right, not just a destination for moved content — on a bare invocation, `Glob .claude-companions/**/*.md` alongside the usual `**/CLAUDE.md` sweep.
+**Target: ≤200 lines, ≤40KB bytes** for root CLAUDE.md. Non-root layers have more slack but same logic. A file declaring its own budget (📖 `../_shared/references/declared-budget.md`) defers to that. A pre-existing `.claude-companions/<shared|local>/CLAUDE-*.md` is a condense target in its own right — on a bare invocation, `Glob .claude-companions/**/*.md` alongside `**/CLAUDE.md`.
 
-## Process
+## Before You Start {#ownership-gate}
 
-**Prerequisites:** Before starting, check ownership. This skill rewrites whole files in place. Judge by diff *content* (📖 `../_shared/references/diff-ownership.md`); a dirty file is a baseline, not a measurement problem, and "another session committed this" describes git history rather than a reason to defer — rewriting committed content is what this skill does. What stops the rewrite is a peer's **uncommitted** work in the target, which a whole-file pass destroys unrecoverably. A live peer can be known before bytes reach disk (📖 `../_shared/references/cross-session-messaging.md`).
+**Check ownership:** This rewrites whole files. Judge by diff content (📖 `../_shared/references/diff-ownership.md`); a dirty file is a baseline, not a blocker. What stops the rewrite is a **peer's uncommitted work**, which a pass destroys unrecoverably. A live peer can be identified before bytes reach disk (📖 `../_shared/references/cross-session-messaging.md`).
 
-Check it here rather than trusting a caller, since this skill is reached several ways — a direct invocation, a background `haiku` agent, and `claude-md-pruner`'s handoff once staleness cleanup leaves a file still oversized. A caller that checked ownership before its own edits has not checked it for yours, and the gap between the two is exactly where a peer starts writing.
+Check here, not in the caller — this skill is reached multiple ways (direct invocation, `haiku`, `claude-md-pruner`'s handoff), and a caller's ownership check doesn't cover yours.
 
-**1. Read** the target CLAUDE.md fully.
+## Judgment Framework {#judgment}
 
-**2. Score each section** as keep-as-is, compress, cut, or split. Before drafting, apply the seam-test gate: a row about a framework, test runner, or the harness is *true in every project using them*, yet may pass locally on a handful of file hits. Ask: would this hold if this codebase didn't exist? If yes, it belongs at global level (`~/.claude/`) or a shared companion. This test measures where a fact is *used*, not where it's *true* — don't confuse the two.
+### Scope: Global vs. Local {#seam-test}
 
-For tables where rows share no topic and restate no mechanism, skip trimming — splitting moves the needle. Sort by length (`awk -F'|' '{print length, NR}' file | sort -rn | head`) and read the 3-5 longest against the cut/compress/split guidance below before drafting.
+A row about a framework, test runner, or harness is *true in every project using them* yet may pass locally on a handful of file hits. Ask: **would this hold if this codebase didn't exist?** If yes → global `~/.claude/` or shared companion. This tests where a fact is *used*, not where it's *true*.
 
-**3. Apply cut/compress rules.** Remove content that doesn't change behavior if missed:
+### Content: Keep or Cut {#cut-criteria}
 
-- **Non-local rules** — restatements of framework/global policy: rows enforcing what code already does (e.g. "use $fillable"), sections duplicated from global `~/.claude/CLAUDE.md`, generic best practices, discoverable trees (`routes/`, `EventServiceProvider`, `ls`).
-- **Non-concrete content** — no checkable consequence if removed: changelog entries, empty sections, WHY/reason columns when the pairing alone is self-evident. "Self-evident" is decided by naming the command that reconstructs the reason — `ls`, `grep`, `--help`, the manifest — and a reason with no such command (a framework's behaviour on a PHP version, a harness that restores staged state, a rule that only exists in another repo) stays, however short the rule beside it reads. "A competent reader would know" is the sentence a pass writes just before it deletes the one fact the reader could not have known.
-- **Compress in place:** long multi-sentence rows to one tight sentence; nested sub-tables to flat; "Never X" + "Always Y" + WHY paragraph to a single ❌/✅ row; `Symptom | Cause | Fix` redundancy by stating mechanism once; incident narrative by cutting discovery archaeology and keeping only mechanism + class-name pointer.
+Remove content with no checkable consequence if missed:
 
-The compress-in-place conversions are house style, and they apply in every repo — a WHY paragraph becoming an `❌/✅` row is the shape this plugin holds correct, not a preference to weigh against whatever the file currently does. 📖 `../_shared/references/adopt-vs-impose.md`
+- **Non-local rules** — restatements of framework/global policy, sections duplicated from global `~/.claude/CLAUDE.md`, generic best practices, discoverable trees (`routes/`, `EventServiceProvider`).
+- **Non-concrete content** — changelog entries, empty sections, WHY/reason columns when the pairing is self-evident. "Self-evident" means: can you name the command that reconstructs it? (`ls`, `grep`, `--help`, the manifest?). A reason with no such command (a PHP version quirk, a harness's restore behavior, a rule existing only elsewhere) stays, however short. "A competent reader would know" is the sentence written just before deleting the fact the reader couldn't have known.
 
-Route feature-scoped or decision-grade rules to task docs via `update-claude-docs` rather than deleting them. Keep every rule that, if removed, would cause Claude to repeat a real past mistake: a concrete example where the wrong path caused a bug, counter-intuitive behavior (e.g. Shopee returns `error:""` on success), a sharp edge specific to THIS project's architecture, or a non-obvious ordering constraint.
+Route feature-scoped or decision-grade rules to task docs via `update-claude-docs` rather than deleting. Keep every rule that, if removed, would cause Claude to repeat a real past mistake: concrete examples where the wrong path caused a bug, counter-intuitive behavior (Shopee's `error:""` on success), sharp edges specific to THIS project, non-obvious ordering constraints.
 
-**4. Decide splitting.** If a table is dense after compression, ask whether distinct topics warrant seam-test/split independently. A session once created companions for a 216-line file under budget, misreading "split by category" as size — a dense file is not by itself a split candidate. If under budget and the file's name states a subject, restructure in-place with `{#anchor}` subsections grouped by reader-search axis (where they are when the symptom hits), not subsystem.
+### Compression: In-Place {#compress-in-place}
 
-⚠️ **Size is the first test, not the only one — a file can be under budget and still be the wrong file.** Ask what a reader must already know to decide this file holds their answer. A name that states a subject (`auth`, `media`, `migrations`) answers that from the pointer alone; a name that states a LAYER or an artifact type (`backend`, `frontend`, `utils`, `misc`) answers nothing, because the only thing it asserts is true of everything a reader might be doing. Such a file has no natural eviction pressure: every new gotcha plausibly belongs, so it accretes unrelated sections indefinitely and each one is individually justified. Split it by subject regardless of line count, and treat a sibling already split that way as the shape to match — a layer-named file sitting beside subject-named peers is a split someone started and didn't finish. The tell is a section list whose entries share no reader: if the file's own headings would make sensible separate filenames, they should be.
+These conversions are house style and apply everywhere:
 
-A split producing more than one companion is index-based by default: a thin router file naming which sibling answers which symptom, with the parent pointing at the router rather than listing siblings. Enumerating them in the parent is hand-maintained prose that goes stale silently — the companion a later session adds is written, correct and unreferenced.
+- Long multi-sentence rows → one tight sentence
+- Nested sub-tables → flat
+- "Never X" + "Always Y" + WHY paragraph → single ❌/✅ row
+- `Symptom | Cause | Fix` redundancy → state mechanism once
+- Incident narrative → mechanism + class-name pointer only
 
-📖 `references/split-decision-tree.md` — lever-selection table (Subdir CLAUDE.md, Companion file, Task doc), the index-file shape and what belongs in it, pointer requirements, and prose-vs-value split patterns.
+Collapsing `Symptom | Cause | Fix` to prose is legitimate when clearer. What *must* survive: Cause cells hold greppable specifics (exception class, exact expression, `See <Class>` pointer). Renaming kept columns breaks positional `awk` checks.
 
-**5. Draft + verify.** Organization rules:
-- Lead with the rule, not context — "Use `&&` not `||` for ship idempotency" not "When checking conditions, prefer…"
-- Group by domain (stock, API, queue, deploy, misc) — don't mix concerns
-- Collapse 3-column tables (❌ / ✅ / WHY) to 2-column when WHY is obvious
-- Prefer bullet lists over tables for prose rules
-- Order sections by load-bearing relevance at session start (📖 `../update-claude-docs/references/structure.md` §3)
+The house-style opinion is what this plugin holds correct (📖 `../_shared/references/adopt-vs-impose.md`). Prefer bullet lists over tables for prose rules. Lead with the rule, not context — "Use `&&` not `||` for idempotency" not "When checking conditions, prefer…".
 
-📖 `../_shared/references/two-tier-condense.md` — execution model and write-mode choice (if byte delta <~15%, use `Edit` not `Write`).
+### Splitting vs. Restructuring {#split-decision}
 
-**6. Verify no loss.** Extract first column of old/new (`awk -F'|' '{print $2}'`), `comm -23` them, confirm each against diff. Confirm the last line is real content (not a `</content>` tag — see Hard rules #1). Report `wc -lc` before and after — both counts, every run, since a line drop with bytes flat means content moved rather than went, and the two numbers disagreeing is the cheapest signal that something needs a second look. Those two counts agreeing says nothing about how far they fell, and a pass that cut most of the file reports its deltas in the same tone as one that cut well — so also account for where the bytes went. A drop past roughly a tenth on a restructure means content left rather than moved; past roughly a third, name the rules judged non-essential and why, rather than reporting a total. Where the cut was an extraction to a companion or subdir file, that destination should have grown by roughly what this file lost — a shrink on both sides means nothing received the content, whatever the pass called itself. If still >250 lines after compressing, offer to split before asking what to cut. When growth is the diagnosis, report headroom in days, not bytes: "6KB left, ~4 days at observed rate" not "37KB" (check history: `git log --format='%h %ad %s' --date=short -N -- <file>`).
+Size is the first test, not the only one. A file can be under budget yet wrong. Ask: **what must a reader already know to decide this file holds their answer?**
 
-## Hard rules
+- A subject-named file (`auth`, `media`, `migrations`) answers that from the pointer alone.
+- A layer-named file (`backend`, `frontend`, `utils`, `misc`) answers nothing — the only thing true of everything a reader might be doing. No natural eviction pressure: every gotcha plausibly belongs. Split by subject regardless of line count, and match any sibling already split that way.
 
-- **Strip tool-output wrapper artifacts.** A `Read` result wraps file content in `<content>` tags; a full-file rewrite can carry the wrapper into the `Write` payload as a literal trailing line. Confirm after writing: `tail -c 40 <file>`.
+A dense file under budget: restructure in-place with `{#anchor}` subsections grouped by reader-search axis (where they are when the symptom hits), not subsystem. If a section list's entries share no reader (headings would make sensible separate filenames), split.
+
+A split producing multiple companions is index-based by default: a thin router file naming which sibling answers which symptom. Enumerating them in the parent is hand-maintained prose that goes stale silently. 📖 `references/split-decision-tree.md` — lever selection, index-file shape, pointer requirements.
+
+## Verification {#verify}
+
+Report `wc -l` and `wc -c` before and after — both, every run. A line drop with bytes flat means content moved, not deleted. A byte drop past ~10% on restructure means content left; past ~33%, name the rules judged non-essential and why, not just the total. If an extraction went to a companion/subdir, that destination should have grown by roughly what the source lost — shrink on both sides means content went nowhere.
+
+If still >250 lines after compressing, offer to split before asking what to cut. When growth is the diagnosis, report headroom in days, not bytes: "6KB left, ~4 days at observed rate" (check history: `git log --format='%h %ad %s' --date=short -N -- <file>`).
+
+Extract first column of old/new (`awk -F'|' '{print $2}'`), `comm -23` them, confirm each against diff. Confirm the last line is real content (not a `</content>` tag — see Hard rules).
+
+## Hard Rules
+
+- **Strip tool-output wrapper artifacts.** A `Read` result wraps file content in `<content>` tags; full-file rewrite can carry the wrapper into `Write` as a literal trailing line. Confirm after writing: `tail -c 40 <file>`.
 - **Preserve all `{#anchor}` IDs** — other files link to them.
-- **Preserve the file's opening line under the H1** (`This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.`). It reads as boilerplate and is the one sentence `/init` mandates and grades a re-run against; a pass that trims it makes the next `/init` report the file as non-conforming.
-- **Preserve `[TBD]` headings and `[SOURCED]`/`[INFERRED]` tags** wherever they appear (a project's `docs/PRD.md` and `docs/ARCHITECTURE.md` carry them by design). An empty section marked `[TBD — no target recorded]` reports that nobody has decided, and the tags say whether a claim was transcribed or derived — both read exactly like the staleness this skill removes, and deleting one destroys the only record that the gap exists. Same reasoning as the anchor rule: it looks inert and something else depends on it.
+- **Preserve the opening line under H1.** It reads as boilerplate but is what `/init` mandates and grades a re-run against; trimming it makes the next `/init` report non-conforming.
+- **Preserve `[TBD]` headings and `[SOURCED]`/`[INFERRED]` tags.** They mark gaps and sourcing decisions; deleting them destroys the record that the gap exists. It looks inert and something else depends on it.
 - **Don't invent content** — only restructure. If unclear, compress rather than rewrite meaning.
-- **Table shape is a means.** Collapsing `Symptom | Cause | Fix` to prose is legitimate when it reads better. What *must* survive is cell content you drop: Cause cells hold greppable specifics (exception class, exact expression, `See <Class>` pointer). Renaming kept columns breaks positional `awk` checks.
-- ⚠️ **"Moved to a companion" is the claim most worth disbelieving, because a pass that deleted rows and a pass that relocated them produce the same shrunken source file.** The difference is only visible at the destination, and the destination is the file nobody re-opens — so a report reading "no content was deleted, everything moved to X" is an account of intent that costs one command to falsify. Measured 2026-09-01: a condense of a 46KB file reported exactly that, and the named companion contained none of the thirteen rules; the source had gone 106 rows to 37 and the rules existed nowhere in the tree. Take a distinctive token per row *before* dispatching (a symbol, a constant, a measured figure — `CATEGORY_ORDER`, `POPULAR_AREAS`, `landed_house`), then sweep that list against the whole tree afterwards, since a rule can also land in a *different* companion than the one claimed. This is the presence question, which grep answers well; whether the surviving prose still reads correctly is a separate check that needs reading.
-- **After any split, `grep -c` each moved row against both files.** A copy-without-delete leaves the main file paying for relocated content — orphans survive invisibly, pointer looks right, only byte count disagrees. Sweep pre-existing companions too. That sweep reads the two files the split produced, so it cannot see the routes *into* them that the split severed — after a split specifically (not an in-place restructure), read 📖 `../_shared/references/verifying-a-relocation.md` and run every check it lists: a link whose `../` depth stopped resolving once both halves changed level, a documented glob that keeps matching after it stops covering, and — the one no before/after can surface — a destination file nothing ever pointed at, which is how you find the earlier split that half-landed in the same directory.
-- ⚠️ **A pointer's CONDITION is content, and merging a list of `📖`s onto one line deletes every condition while keeping every path — so the validity check above passes completely.** Consolidating pointers is what shrinking a file looks like, which is why this pass is where it happens: the result reads tidy and leaves a bibliography of equally-weighted paths, and the rational response to eleven undifferentiated pointers is to open none. Nothing loads a companion for the reader, so a rule behind a `📖` is read only when someone chooses to open it, and the condition is the whole mechanism by which they choose. Measured 2026-09-11 on `frontend/CLAUDE.md`: eleven companions collapsed to a single bullet-separated line, four of them dropped outright in the same pass, and the user's objection was that agents would now never read any of them. **Keep each pointer's trigger, and where several share a section the shape that survives is a table keyed on the MOMENT** (`before you change a <title> or any JSON-LD → read the SEO companion`) with the deferral fact stated above it, so the next pass reads the shape as deliberate rather than as verbosity to squeeze.
-- **Verify pointer validity.** A changed `📖 <task-doc-path>` pointer isn't automatically a violation; if concurrent reorg left the old path dead, reverting to "preserve verbatim" re-breaks what was already broken. Verify with `git status --short` — old path `D` (deleted) + new path present = real reorg, not hallucination.
+
+## Traps {#traps}
+
+⚠️ **"Moved to a companion" is the claim most worth disbelieving.** A pass that deleted rows and one that relocated them produce the same shrunken source. The difference is only visible at the destination, which nobody re-opens — so "everything moved to X" is an intent claim that costs one command to falsify. Measured 2026-09-01: a 46KB condense claimed thirteen rules moved; the companion held zero and they existed nowhere in the tree. Take a distinctive token per row *before* dispatching (a symbol, constant, measured figure — `CATEGORY_ORDER`, `POPULAR_AREAS`, `landed_house`), then sweep that list against the whole tree afterward — a rule can also land in a *different* companion than claimed.
+
+⚠️ **After any split, `grep -c` each moved row against both files.** Copy-without-delete leaves the main file paying for relocated content — orphans survive invisibly, pointer looks right, only byte count disagrees. After a split specifically (not in-place restructure), read 📖 `../_shared/references/verifying-a-relocation.md` and run every check: a link whose `../` depth stopped resolving once both halves changed level, a documented glob still matching after it stops covering, a destination file nothing pointed at (how to find a half-landed split in the same directory).
+
+⚠️ **A pointer's CONDITION is content.** Merging a list of `📖`s onto one line deletes every condition while keeping every path — so validity checks pass completely. Consolidating pointers is what shrinking looks like, which is why it happens here: result reads tidy, leaving a bibliography of equally-weighted paths, and the rational response to eleven undifferentiated pointers is to open none. A rule behind `📖` is read only when someone chooses to open it; the condition is the whole mechanism by which they choose. Measured 2026-09-11: eleven companions collapsed to one bullet-separated line, four dropped outright, and agents would now never read any of them. **Keep each pointer's trigger.** Where several share a section, use a table keyed on the MOMENT (`before you change a <title> or any JSON-LD → read the SEO companion`) with the deferral fact stated above, so the next pass reads the shape as deliberate rather than as verbosity to squeeze.
+
+⚠️ **Verify pointer validity after reorg.** A changed `📖 <path>` isn't automatically a violation; if concurrent reorg left the old path dead, reverting to "preserve verbatim" re-breaks what was already broken. Check with `git status --short` — old path `D` (deleted) + new path present = real reorg, not hallucination.

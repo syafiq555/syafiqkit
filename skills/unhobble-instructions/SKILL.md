@@ -90,9 +90,9 @@ When something does need to leave, read `${CLAUDE_SKILL_DIR}/references/routing-
 
 ## Rewriting
 
-List the genuine facts first, marking which are stated absolutely — that list is what verification checks against later.
+List the genuine facts first, marking which are stated absolutely — that list is what verification checks against later. Then write it. Structural findings are the ones that go unexecuted most often, because moving a section feels like a bigger claim than softening a callout — but a file whose shape is wrong stays wrong when only its wording changes.
 
-Then write it. A full `Write` once more than a handful of rules are affected; targeted `Edit`s for one or two callouts. Structural findings are the ones that go unexecuted most often, because moving a section feels like a bigger claim than softening a callout — but a file whose shape is wrong stays wrong when only its wording changes.
+When the rewrite touches many rules, use a full `Write` to replace the whole file; for one or two callouts, targeted `Edit`s suffice.
 
 **When moving content to a companion:**
 
@@ -118,7 +118,7 @@ Read the rewritten file from the top, whole — the same read as the one that op
 
 Before trusting any of the above, read `${CLAUDE_SKILL_DIR}/references/verifying.md` — it names what each check can and cannot see, what delegation changes, and the markup damage that survives every content check.
 
-**Report both halves:** what moved, merged or got resequenced, and what stopped being an enumeration or left the hot path. A report that is all structure describes a reorganisation, and one that is all softened callouts describes a wording pass — either alone reads as complete while the other half never happened. Where a half genuinely had nothing to do, say that rather than omitting it. Every claim names an edit that landed; a strategy, a proposal or an estimated cut belongs to a pass that didn't run. Say where you made a bet rather than a strict improvement: trading a mechanical check for a judgement call is a real trade-off, since the mechanical one fires regardless of how a read feels.
+**Report both halves:** what moved, merged or got resequenced, and what stopped being an enumeration or left the hot path. Where a half genuinely had nothing to do, say that rather than omitting it. Every claim names an edit that landed; a strategy, a proposal or an estimated cut belongs to a pass that didn't run. Say where you made a bet rather than a strict improvement: trading a mechanical check for a judgement call is a real trade-off, since the mechanical one fires regardless of how a read feels.
 
 Finding the file well-shaped is a legitimate outcome and the one case where the report *is* the deliverable — say so plainly, since a genuine clean verdict and an unread file produce the same report.
 
