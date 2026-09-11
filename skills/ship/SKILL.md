@@ -13,8 +13,9 @@ If you are **resuming** this skill mid-chain (a compaction landed between two st
 
 ## Prerequisites
 
-- `/done` has already been run (code reviewed, simplified, task docs updated). `/quick-done` does **not** satisfy this — it is docs-only and spawns no reviewer, so a session wrapped there reaches this skill with its code unread. Say so and get a review before shipping, rather than treating the wrap-up as cover
-- Changes are staged or ready to stage
+**Code must have been reviewed.** `/done` runs a code review, simplification pass, and updates docs. `/quick-done` skips the review — it is docs-only — so a session wrapped with `/quick-done` reaches this skill with its code unread. If that's what happened, say so and get a review before proceeding rather than treating the wrap-up as sufficient cover.
+
+**Changes are staged or ready to stage.**
 
 ## Workflow
 

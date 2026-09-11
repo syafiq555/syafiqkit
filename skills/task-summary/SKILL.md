@@ -86,7 +86,7 @@ Never include API keys, merchant keys, passwords, or secrets in task docs. Refer
 
 ## 5. Validate
 
-Re-read the whole doc end-to-end. Does every section say something true, complete, and stated exactly once? Sweep fields written once and read least (`Quick Start`, `Status:`, opening prose). 📖 `${CLAUDE_SKILL_DIR}/references/validation-checklist.md` for the full fact-check and judgment-check lists.
+Re-read the whole doc end-to-end. Does every section say something true, complete, and stated exactly once? Pay closest attention to sections that change least between sessions (`Quick Start`, `Status:`, opening prose) — they are the easiest to leave stale. 📖 `${CLAUDE_SKILL_DIR}/references/validation-checklist.md` for the full fact-check and judgment-check lists.
 
 ## 6. Reconcile Cross-References
 
