@@ -19,7 +19,7 @@ If you reach the end of this file and the exit gate is missing from your context
 
 ## Mode selection (decide first)
 
-**Know your session's scope before choosing agents.** Read `git status --short` and recent commits, then match the session to a mode. Mode selection cascades consequences across all downstream steps — different agents run, different rows fill the Output, and different verification checks apply.
+Read `git status --short` and recent commits, then match the session to a mode. Different modes run different agents and apply different verification checks.
 
 | Mode | When | Step 1 runs | Verification |
 |------|------|------------|--------------|
@@ -28,9 +28,9 @@ If you reach the end of this file and the exit gate is missing from your context
 | **Infra-only** | Entirely configuration code (CI, Dockerfile, nginx/env config, provisioning scripts); no application code | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 | **Ops-only** | System changes applied out-of-band (deploy, backfill, config flip); no repo diff, no commit | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 
-**Docs-only partition rule:** Count changed files from `git show --stat <this-session's commit>` PLUS the uncommitted diff — agent review covers both, since code committed earlier this session was never reviewed. 
+**Docs-only:** Count changed files from `git show --stat <this-session's commit>` PLUS the uncommitted diff — agent review covers both, since code committed earlier this session was never reviewed.
 
-**Ambiguous signal?** Empty `git status --short` means: work already committed (full mode + git variants to list it), another writer's tree, or no changes at all. Name which. When git errors (no repo, no first commit), run **full mode** with substitutes per 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/verifying-a-write-landed.md`.
+**Ambiguous signal:** Empty `git status --short` means work already committed, another writer's tree, or no changes at all. When git errors (no repo, no first commit), run **full mode** with substitutes per 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/verifying-a-write-landed.md`.
 
 
 ## Step 1: Simplify + Review + Product Review (parallel)
@@ -42,19 +42,17 @@ The three roles see the diff through different lenses:
 
 ### Ownership & Partition
 
-Establish which files belong to this session before spawning agents — judge by diff *content*, since the harness auto-stages your own writes into the same shape a peer's take. `ListAgents` will tell you a peer session is live and is worth a heads-up before you bump a version, but it **cannot** say which checkout that peer is in, so it never substitutes for reading the diff.
+Judge file ownership by diff *content*, since the harness auto-stages your own writes identically to a peer's. Read the diff before spawning agents.
 
-**Ban these verbs in every agent prompt you write: `stash`, `checkout -- .`, `reset`, `clean`, `restore`, `commit`, `push`.** A file partition scopes what an agent *reads*, never what a `git` command it runs *touches* — so one agent reaching for a clean baseline can collide with your uncommitted work or a peer's. Naming the verbs is the guard; a prompt gesturing at "nothing destructive" reads as followed right up to the collision.
+**Ban these verbs in every agent prompt: `stash`, `checkout -- .`, `reset`, `clean`, `restore`, `commit`, `push`.** A file partition scopes reads, never git commands — one agent reaching for a clean baseline collides with your uncommitted work or a peer's. Naming the verbs is the guard.
 
-**A disjoint file list is not the whole partition — agents also collide on whatever their commands touch** (a shared test database, a dev server port, a seeded fixture set). Before emitting, ask what each prompt makes an agent *run*, not just what it writes; where two would run the same suite, let one run it and have the others report only. The tell that it happened is a failure naming a *different* thing outside your diff on each run, which reads as your own breakage. This applies to you as well — don't run the suite while an agent still is.
+**One agent per file for writes.** Simplifier and reviewer both carry `Edit`; handing both the same list races them. Overlapping reads are fine; overlapping writes produce transient diagnostics the post-fan-out re-read cannot detect.
 
-**Give at most ONE agent write authority over any given file.** Simplifier and reviewer both carry `Edit`, so handing both the same list races them on one file — and a diff small enough that neither role splits is exactly where that looks correct. Overlapping READS are fine; overlapping writes produce transient diagnostics indistinguishable from real defects, and the post-fan-out `HEAD`/`status` re-read does not detect it.
+**Multi-repo sessions:** Partition by repo first. Count changed files per repo (📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`) and sum for agent scaling. Mark the *other* repo's paths out of bounds — a partition listing paths reads as advisory once an agent notices a sibling file.
 
-**When the session spans more than one repo, the partition axis is the repo before it is the file, and every count is per-repo.** A second checkout is easy to under-serve because the whole skill reads in the singular: `git status --short` answers for whichever directory you happen to be in, so a file count taken once silently describes one repo and the other's work goes unreviewed. Run the counting variants in each repo (📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`) and sum for agent scaling. Then state the *other* repo's path in each agent's prompt as out of bounds — the verb ban above stops destructive commands but says nothing about an agent helpfully editing a sibling checkout it can see, and a partition listing only paths reads as advisory once an agent notices a related file next door. Where the repos differ in language or toolchain, that split is usually also the natural role split (one repo's diff to the reviewer, the other's to the simplifier), which gets one-writer-per-file for free.
+Read 📖 `${CLAUDE_SKILL_DIR}/references/owner-and-partition.md` for the ownership decision process and contested-file handling.
 
-Read 📖 `${CLAUDE_SKILL_DIR}/references/owner-and-partition.md` for the ownership decision process and how to handle contested files.
-
-Once you've settled ownership, emit all applicable agents in **ONE message**, opening with the first `Agent` call and emitting the rest back-to-back. No prose before the first call; open with it. Narration before the dispatch closes the message early, serializing the agent starts and making their reports land while you're writing the next dispatch — exactly the opposite of what parallelism gains. Write any introduction *after* the last call.
+Emit all agents in **ONE message**, opening with the first `Agent` call. No prose before the dispatch — narration serializes the starts and delays reports. Introduce *after* the last call.
 
 ### Agents to run
 
@@ -73,7 +71,7 @@ Glob: .claude/agents/product-reviewer.md
 
 **Project agents written this session won't register in time.** Read 📖 `${CLAUDE_SKILL_DIR}/references/project-agent-dispatch.md` for the timing gap, the dispatch workaround, and how to note it in the Output.
 
-**`browser-verifier` is opt-in only.** Spawn it only when the user asked for it in words — "the diff touches UI so they'd want runtime proof" is an inference and not a reason to spawn. A UI diff is a reason to offer, never to spawn. 📖 `${CLAUDE_SKILL_DIR}/references/browser-verification.md`
+**`browser-verifier` is opt-in only.** Spawn only on explicit user request. A UI diff is a reason to offer, never to assume. 📖 `${CLAUDE_SKILL_DIR}/references/browser-verification.md`
 
 ### Agent Count & Prompting
 
@@ -83,13 +81,11 @@ Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/g
 
 **After all agents complete:**
 
-Re-read `git rev-parse HEAD` and `git status -sb` first — your pre-fan-out state reading is not current. An agent that committed or pushed leaves every other check silent, and the file-count you reasoned from silently stops describing the tree.
+Re-read `git rev-parse HEAD` and `git status -sb` — an agent that committed or pushed shifts every check that follows. Re-read this skill's remaining steps from the file at the same time: the body entered context before the fan-out and is not re-attached when agents return, so the steps below are being recalled rather than read. The six rows and exit gate are most often satisfied from memory, which is what makes a row readable as `✅` without the step behind it having run.
 
-Re-read this skill's remaining steps from the file at the same time, for the same reason: the body entered context before the fan-out and is not re-attached when agents return, so the steps below are being recalled rather than read. The contract's six rows and the exit gate are the parts most often satisfied from memory, which is what makes a row readable as `✅` without the step behind it having run.
+Reconcile agents against each other and the work. Agents have bounded visibility (one repo, one domain, one layer), so universal "clean" verdicts don't prove the codebase is clean. Read 📖 `${CLAUDE_SKILL_DIR}/references/agent-blind-spots.md` for the nine blindness patterns and how to settle contradictions.
 
-Once every agent has reported, reconcile them against each other and against the work. Agents have bounded visibility (one repo, one domain, one layer), so a partition that reads "clean" everywhere is not the same as a codebase that is clean. Verify what none of them could see — read 📖 `${CLAUDE_SKILL_DIR}/references/agent-blind-spots.md` for the nine blindness patterns and how to settle contradictions between reviewers.
-
-A finding from one agent that needs a change in a file another agent owns is applied HERE, after both have returned — by you, or by one fresh dispatch carrying the finding in its brief. Messaging it into the still-running owner reads to that agent as an out-of-brief instruction arriving through a tool channel, and a well-built agent refuses it (two did in one run, 2026-09-05, and the finding was nearly lost while every report read complete). The one-writer-per-file rule bounds who edits during the fan-out, not who applies the reconciliation afterwards.
+Cross-agent findings (agent A's result needs a change in agent B's file) are applied *after* both return, by you or a fresh dispatch with the finding in its brief. Messaging a still-running agent reads as an out-of-brief instruction; a well-built agent refuses it (two did 2026-09-05, and the finding nearly lost while every report read complete).
 
 ## Step 2: Clean up temp code
 
@@ -101,19 +97,17 @@ Run Step 3 before Step 4. Both skills scan the same conversation for the same cl
 
 **Step 3 — Capture Session Knowledge:**
 
-Invoke `syafiqkit:update-claude-docs` bare (no arg), or if you pass an arg keep it a HINT, not a scope limiter. The skill scans the FULL conversation for conversational signals (user corrections, preferences, things Claude got wrong) AND code-level patterns (env surprises, tool misuse), then routes to the narrowest scope. Handing it a pre-written arg listing only code facts silently narrows the scan and drops early-session behavioral misses — exactly the highest-value captures.
+Invoke `syafiqkit:update-claude-docs` bare (no arg), or pass only a HINT if you must. The skill scans the FULL conversation for signals (corrections, preferences, misses) and code patterns (env surprises, tool misuse), then routes to the narrowest scope. Pre-written args listing only code facts silently drop early-session behavioral insights — the highest-value captures.
 
-Do not pre-write CLAUDE.md entries in `/done` — delegate the whole capture to the skill. A summary of CLAUDE.md writes is a complete-looking artifact; reporting it is how Step 4 gets skipped. The next thing after this skill's return is invoking the task-summary skill, not a reply describing what was written.
+Delegate capture to the skill. Do not draft CLAUDE.md entries in `/done` — a summary reads complete and makes Step 4 get skipped. The next thing after this skill returns is task-summary, not a reply about what was written.
 
 **Step 4 — Update Task Docs:**
 
-Invoke `syafiqkit:task-summary` bare, letting the skill do a multi-domain scan. Passing an explicit path skips the scan, missing updates to related docs (roadmaps, bug reports needing stubs).
+Invoke `syafiqkit:task-summary` bare for a multi-domain scan. An explicit path skips the scan and misses related docs. If the skill already ran THIS session, invoke scoped to only what's NEW.
 
-If the skill already ran THIS session (e.g., a `/commit`'s staleness gate forcing a full run): invoke it scoped, passing only what's NEW since that run. A scoped invoke still counts as running the step; skipping it does not.
+The skill auto-detects create vs update and handles path resolution and cross-references.
 
-The skill auto-detects create vs update and handles path resolution, status updates, cross-references.
-
-**Then, before leaving this step, measure what it wrote.** Read 📖 `${CLAUDE_SKILL_DIR}/references/task-doc-measurement.md` for the three core rules and the measurement command. Over budget → run `condense-task-doc` in the same turn or state in Output that it was skipped. Once measured, run the Step 5 check next.
+**Before leaving this step, measure what it wrote.** Read 📖 `${CLAUDE_SKILL_DIR}/references/task-doc-measurement.md` for the three core rules and measurement command. Over budget → run `condense-task-doc` in the same turn or state in Output that it was skipped. Once measured, proceed to Step 5 check.
 
 > Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
 
@@ -121,48 +115,40 @@ The skill auto-detects create vs update and handles path resolution, status upda
 
 Steps 3+4 write to the *project*; this writes to the *plugin* — a global artifact shared across every project.
 
-Two gates. **Gate B** fires whenever this session wrote to a `skills/**/*.md`, `commands/*.md` or `.claude/agents/*.md` file, defect or no defect. **Gate A** fires on a real skill signal — something misfired, a step was wrong, you worked around an instruction. A docs-only session is exactly where a hand-edited skill file hides, so neither gate is safe to assume unfired.
+Two gates. **Gate B** fires when this session wrote to `skills/**/*.md`, `commands/*.md` or `.claude/agents/*.md`, defect or no. **Gate A** fires on a real skill signal — something misfired, a step was wrong, you worked around an instruction.
 
-⚠️ **Gate B has a command and Gate A does not, so a clean `git status` reads as settling both — and the cleaner your session was, the more likely that is wrong.** Gate B is a *file-modification* test: it answers whether the plugin tree changed, never whether a skill misled you. Reverting a bad edit is the ordinary correct response to being misled, and it erases exactly the evidence Gate B looks for, so the better you handled the defect the more certainly the gate reports nothing. Measured 2026-09-03: a session was sent wrong by an ambiguous fixed-value rule, reverted its own edit and its template edit, saw an empty plugin `git status`, and reported "gate did not fire" — two invocations later the same signal patched five files. **Gate A is answered by recalling the session, not by running a command**, so ask it in words before reading Gate B's output: did a skill send me somewhere wrong, did I correct a step mid-execution, did I work around an instruction? A `git status` cannot answer any of those. Treat Gate A as the likelier of the two on any session where you fixed something, not the rarer one.
+**Gate B is a *file-modification* test and cannot answer whether a skill misled you — it only says the plugin tree changed.** Reverting a bad edit erases exactly the evidence Gate B looks for, so better defect handling makes the gate likelier to report nothing. Measured 2026-09-03: a session was sent wrong, reverted its own and template edits, saw empty status, reported "gate did not fire" — two invocations later the same signal patched five files. **Gate A is answered by recalling the session, not by status command.** Did a skill send you somewhere wrong? Did you correct a step mid-execution? Did you work around an instruction? A `git status` cannot answer these. On any session where you fixed something, treat Gate A as likelier.
 
-**Run the status from the plugin checkout as CWD — the command is the check, and recalling which files you edited is not it.** Having just reasoned about your own edits is what makes the gate read as already satisfied, so the answer has to come from the tree:
-
+Check the plugin tree with:
 ```bash
 cd ~/.claude/plugins/syafiqkit && git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
 ```
+Use `cd`, not `git -C` — the latter walks up to an enclosing repo. Any hit: check its mtime against session start (shared checkouts carry another session's work). Read 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` for ownership and "replaced/routed/grew" meanings.
 
-`cd`, not `git -C` — the latter walks up to an enclosing repo and answers about the wrong tree. Empty means the gate genuinely didn't fire. Any hit is a file to establish ownership for before claiming: check its mtime against your session start, since a shared checkout regularly carries another session's work and adopting it under your version bump is the collision this prevents.
+**Gate B re-fires on work already routed.** Once files land in a session commit they stay in `git show --stat` for every later `/done`. A second run sees the same hit with nothing new — which reads as unrouted. Ask what changed since the last `update-plugin` run: nothing new means the gate is satisfied. A genuinely new signal means invoking scoped to it. Also read the CHANGELOG head — your signal may already be captured there, and two version bumps in one afternoon is a collision to avoid.
 
-Read 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` for the ownership settlement and what "replaced/routed/grew" means for each file.
-
-**Gate B keys on paths, so it re-fires on work a previous run already routed.** Once those files land in a session commit they stay in `git show --stat` for every later `/done`, and a second run sees the same hit with nothing new behind it — which reads as an unrouted edit rather than a finished one. Ask what changed since the last `update-plugin` run, the way Step 4 already does for `task-summary`: nothing new means the gate is satisfied, and saying so in the Output is the honest row. A genuinely new signal means invoking scoped to that signal, since passing the whole session re-derives conclusions already shipped and the version bump it produces looks like new work.
-
-⚠️ **A peer session can own the plugin tree while you decide this** — `update-plugin` is exactly what a fork gets dispatched to run, so read the CHANGELOG head too before writing. Your signal may be captured there already, in better form, and two sessions bumping the same version in one afternoon is the collision this avoids.
-
-Invoke `syafiqkit:update-plugin` once you've settled ownership — it owns everything downstream (patch skill files + version + CHANGELOG for owner, or draft GitHub issue for consumer).
+Invoke `syafiqkit:update-plugin` once ownership is settled — it owns everything downstream (patch files + version + CHANGELOG for owner, or draft GitHub issue for consumer).
 
 ## Exit Gate — Verify Steps Ran Before Writing Output
 
-Confirm the WORK is done, not just this skill's steps. Verify against the approved plan that every part was built. Part-done → finish the work first.
+Confirm the WORK is done, not just this skill's steps. Every Output row is a claim that a step ran — verify each before writing. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for fillability tests, verification methods for Knowledge/Task docs, and failed agent handling.
 
-Every Output row is a claim that a step ran — verify each before writing. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for the fillability tests per row, verification methods for Knowledge/Task docs, and how to handle failed agents.
+**Read the session from the top, asking two things:** First, what would a reader need that exists only in this conversation — a plan in prose, a rule about what to stop doing, anything parked or waiting? A doc step passes every check having written findings without reasoning. Grep the docs for the specific fact: a diff proves bytes moved, never that the right fact moved. Missing → go back to Step 4.
 
-**Then read the session from the top, asking two things.** First, what would a reader need that exists only in this conversation — a plan you laid out in prose, a sequencing call, a rule about what to stop doing, anything parked or waiting on someone? A doc step passes every byte-level check having written the session's findings and none of its reasoning, and `/clear` is what makes that permanent. Grep the docs for the specific fact rather than trusting the diff stat: a landed diff proves bytes moved, never that the right fact moved. Missing → `task-summary` isn't finished, so go back to Step 4 rather than writing the row.
+Second, is anything the user must decide placed first in Output? Open questions must be asked above — `✅` on a change with an unresolved question only if the question sits before the Summary section.
 
-Second, is anything the user has to decide the first thing they hit? Open questions that survived triage must be asked above — the Product row reads `✅` on a change with an open question only if that question sits in the Output before the Summary section.
-
-⚠️ **The heavier the wrap-up, the likelier this is skipped**, because six rows to fill reads as the definition of thorough and filling them feels like finishing. `/quick-done` carries the same rule in three steps and it fires there — measured 2026-08-28, where `/done` wrote a decision block and stopped while a whole sequencing plan stayed in the conversation, and the following `/quick-done` caught it. Structure that looks complete is not evidence a check ran.
+**Six rows to fill reads as thorough and makes skipping this check likelier.** Measured 2026-08-28: `/done` wrote a decision block and stopped while a sequencing plan stayed in the conversation; the next `/quick-done` caught it. Structure that looks complete is not evidence a check ran.
 
 ## Output
 
 Lead with what the user has to decide; report what was built underneath it. Group by **what was built** (features/changes), not by workflow step (agents/skills). Read 📖 `${CLAUDE_SKILL_DIR}/references/output-structure-rules.md` for the full structure, ordering rules, and template.
 
 **Quick rules:**
-- One open question? Use `AskUserQuestion`. Two or more? Use `## Decisions` block.
-- Omit rows that have nothing; don't fill with "N/A".
-- One change = one `### [Change]` + `### Session`; don't invent structure.
-- A change with only ✅ across every row still gets its heading (it tells the reader "here's everything about X").
-- Multi-repo: name the repo and branch per change, since the reader's next act is committing and the two repos rarely share a branch name or a push consequence. Say plainly where work in one repo is inert without the other — a queue whose consumer lives in the sibling checkout ships as a no-op if only one side lands.
+- One open question: `AskUserQuestion`. Two or more: `## Decisions`.
+- Omit empty rows; don't fill with "N/A".
+- One change = one `### [Change]` + `### Session`.
+- A change with only ✅ still gets its heading.
+- Multi-repo: name the repo and branch per change (reader's next act is committing). Name where one repo's work is inert without the other.
 
 **Output template:**
 
