@@ -31,3 +31,13 @@ Measured 2026-09-04: a rate-validation floor read off a 2025 stories file went i
 So a protected fact that describes code, config or a route gets one `grep` against the thing it describes before it goes in the prompt. A fact that fails that grep is not a loss to prevent but a correction to instruct: tell the agent the doc is wrong and what the code says.
 
 **Tell: your must-survive list was built by reading the target rather than by reading what the target describes.**
+
+### The unfalsifiable half: protecting a category by its form
+
+Everything above assumes the entry is a claim about the world, which is what makes `grep` the remedy. The other failure needs no grep because nothing could settle it: an entry that quantifies over a pattern — *every* `**Tell:**` line, *all* `⚠️` callouts, *all* dated incidents — asserts a verdict about a class of sentence, and a verdict cannot be refuted by evidence the agent has access to. Adding the reason makes it worse rather than better: "they are the highest-value sentences in the file" leaves an agent that disagrees needing to contradict *you* rather than the file, so the disagreement goes underground.
+
+Measured 2026-09-11, dispatching `unhobble-instructions` on a frontend `CLAUDE.md` with "all `**Tell:**` sentences must survive; they are the highest-value sentences in the file". The run deleted one Tell anyway with a written justification, duplicated a rule it reported having relocated (both copies byte-identical, in a report claiming the original was removed), and dropped a dated production incident that a separate clause had protected by name. The deleted Tell then turned out, on inspection, to be the one genuinely marginal case in the file — its headline already carried the condition — so the clause had suppressed the skill's judgement on the single rule where that judgement was worth having, and the compliance elsewhere was indistinguishable from obedience.
+
+Two rules follow. **Protect instances, not patterns**: an entry belongs on the list when you can state what a reader loses without that specific thing. **Where you want a class treated carefully, say what it is for** and let the agent judge each member — "a Tell names the moment a reader is in, which is usually not what the rule's headline states; keep the ones that add a moment, cut the ones that restate it" gives the agent something to apply and something to disagree with. Cross-file contracts are the real exception: `{#anchor}`s and `📖` pointers are referenced by files outside the agent's view and are machine-checkable afterwards, so blanket protection there costs no judgement.
+
+**Tell: an entry on your must-survive list quantifies over a pattern rather than naming one thing.**
