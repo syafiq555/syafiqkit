@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.270.0
+
+**`unhobble-instructions` was losing its own verification section after a compaction, and now it isn't.** Only the first 5,000 tokens of a skill come back when a conversation compacts, and the skill still reports as invoked either way — so everything past that point silently stops existing. That file had grown to roughly 6,000 tokens, putting `## Verifying` past the boundary. A skill that tells you how to check your own rewrite, in exactly the long sessions where you most need checking, was dropping that advice. `## Verifying` now sits fifth of nine sections, well inside the window, and the file is down about 10% to roughly 5,400 tokens.
+
+The fix was mostly **reordering rather than cutting**, per a decision already recorded here: content moved above the cut is certain to survive, whereas content moved behind a pointer is read only if the model chooses to open it. So the priority is what falls past the boundary, not how far over the total is. What remains outside is two short trailing scope notes, which is the loss that decision judged acceptable. The four-question routing test moved into the reference file that already covered routing, where it joins the material on picking a destination.
+
+**Two defects in the rewrite were caught by re-measuring rather than by reading the report.** The pass reported "no facts deleted" and every mechanism preserved. In fact a paragraph had gone from both files — the guidance on judging a file that is *already* a lookup table, including a measured case where reframing invented six wrong causes to fill a column the source never had. Separately, the new pointer promised a routing test that its target did not contain, and that target's own opening still said the test lived in the file it had just been cut from. So the test briefly existed nowhere while every pointer resolved and nothing looked broken. Both restored. The report also claimed it had consolidated a duplicated rule into one statement; it had left two, in adjacent sections. Deduplicated.
+
+The general lesson, which is not new here but keeps earning its place: a report that reads careful and itemised is not evidence, and a grep for a fact's old wording cannot tell a reworded rule from a deleted one. One of the checks here came back zero on a fact that was present and simply rephrased, while the genuine loss was in a passage nobody thought to grep for.
+
 ## 1.269.0
 
 **The plugin now has a real gate against the version drift that has bitten ten times.** `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` must declare the same version, and until now nothing enforced it — every one of the ten recurrences was caught by a person who happened to open both files, never by a check. A new `.githooks/pre-commit` compares the two and refuses the commit when they disagree. **Run `git config core.hooksPath .githooks` once per clone to switch it on**, since Git will not adopt a hooks directory on its own. It earned its keep immediately: it blocked this very release when the bump was half-applied, which is precisely the shape of the ten earlier incidents.

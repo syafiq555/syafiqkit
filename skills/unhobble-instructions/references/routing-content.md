@@ -1,6 +1,20 @@
 # Routing Content Out of a File
 
-Read when the four residency questions in `SKILL.md` have told you something should leave, and you're deciding where it goes and what shape the destination takes.
+Read when something should leave a file and you're deciding where it goes and what shape the destination takes. The four residency questions are below; `SKILL.md` carries the principle and the traps, this file the full test.
+
+## The four residency questions
+
+Run them in sequence.
+
+1. **Is it derivable?** If a reader could reconstruct it with `ls`, `grep`, reading the manifest, or running `--help`, cut it outright rather than rewriting it. Name the command before cutting; "a competent reader would know this" is not one, and it is the phrase under which a harness quirk (`git checkout HEAD --` because the harness auto-stages) or a version constraint leaves a file that was its only home.
+
+2. **Is it safety-critical?** Prohibitions that *must* fire even if ignored by a prior session ("never edit generated files", "never push to main") are always resident, never deferred. Their cost is fixed; their value is irreplaceable.
+
+3. **Does it need to arrive before action, or only during failure?** A rule governing a routine choice (which tool to use, what to check before an action) needs to be resident and absorbed preemptively — deferring it behind a pointer means it only fires again after someone violates it. A consultation rule, implementation detail, or symptom-indexed gotcha is different: it's read by someone already holding a failure, so moving it behind a pointer costs nothing and gains resident clarity.
+
+4. **Is it a reference table or lookup?** A section reading like a catalog (error strings, commands, configuration paths) should usually move behind a pointer or become a lazy-load skill, even if you've just finished sharpening its prose.
+
+⚠️ **A file that is *already* a lookup table still has two levels to judge, and "rows stay rows" settles only the first.** The second is the shape a reader meets: whether related rows sit together under a heading they can jump to, whether one kind of content wears one frame (a NEVER/ALWAYS header over rows that are symptoms trains a reader to see rules), and whether two rows share a cause and belong as one. Clustering and reframing are the pass on that file, so reporting "it should stay tabular" after three row edits is a first-level answer to a second-level question. Reframing has a cost of its own: a column the source never had is a slot every row must now fill, and where the source recorded no cause the honest cell is `—`, never a mechanism supplied from what usually causes that symptom — a measured pass filled such a column with six wrong causes in the same register as the rows it copied.
 
 ## Pick the destination by why it failed
 
