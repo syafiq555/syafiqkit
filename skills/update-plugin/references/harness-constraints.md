@@ -10,7 +10,15 @@ Corollary: sharpening wording on an existing rule is worth more than adding a si
 
 ## After compaction, only the first 5,000 tokens survive
 
-Once a skill is invoked, Claude re-attaches only its first 5,000 tokens on subsequent turns in the same session — anything past that boundary silently stops existing while the skill still reports as invoked. Measure byte count against the ceiling (`bytes ÷ 4`), not eye estimation.
+Once a skill is invoked, Claude re-attaches only its first 5,000 tokens on subsequent turns in the same session — anything past that boundary silently stops existing while the skill still reports as invoked.
+
+⚠️ **Count tokens with a tokenizer; `bytes ÷ 4` is not a token count and on this corpus it manufactures breaches.** That divisor was prescribed here until 2026-09-12. This corpus averages **4.46 bytes per token** (`cl100k_base`), so the divisor over-reports by about **12%** — and more on denser files, which is the trap: `unhobble-instructions` runs 4.70 bytes/token and over-reported by 17%, so a ratio derived from one file generalises badly to the next. Measured across all 38 skills: **none exceed 5,000 real tokens**, while the estimate flags three — `haiku` at 5,566 against 4,837 real, `agent-setup` at 5,283 against 4,655, and `agent-setup` sat recorded as "marginally over" in a task doc on that basis. The error runs one way only, which is what makes it expensive: an inflated figure presents as a breach to fix rather than as a ruler to doubt, so the response is a real extraction pass against an imaginary overage, and the pass reports success either way.
+
+```
+python3 -c "import tiktoken,sys; print(len(tiktoken.get_encoding('cl100k_base').encode(open(sys.argv[1]).read())))" <file>
+```
+
+Bytes remain the right unit for prose density and for before/after deltas within one file. They are not the unit the ceiling is stated in, and converting between them is where the wrong number enters.
 
 Two consequences follow:
 

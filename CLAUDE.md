@@ -120,7 +120,9 @@ paths: ["src/**/*.ts"]                  # Auto-activate only when touching match
 The full set is 20 fields (also `arguments`, `argument-hint`, `hooks`, `shell`, `metadata`, `license`, `compatibility`). Only `description` is meaningfully required. Two facts about how a skill is *read*, neither derivable from the file:
 
 - **The body enters context once and is never re-read.** Guidance meant to hold for a whole task has to be written as a standing instruction, because there is no later turn where the file gets consulted again.
-- **After a compaction, only the first 5,000 tokens of each skill are re-attached** (25,000 shared across skills, most-recently-invoked first). Everything past that boundary silently stops existing, and the skill still reports as invoked. Measure a SKILL.md against that ceiling rather than against how long it looks.
+- **After a compaction, only the first 5,000 tokens of each skill are re-attached** (25,000 shared across skills, most-recently-invoked first). Everything past that boundary silently stops existing, and the skill still reports as invoked. Measure a SKILL.md against that ceiling rather than against how long it looks — **in tokens, with a tokenizer, never by dividing bytes.** This corpus averages 4.46 bytes per token, so `bytes ÷ 4` over-reports by ~12% and by 17% on a dense file; measured with `cl100k_base`, all 38 skills sit under the ceiling while the divisor flags three. The error runs one way only, which is what makes it costly: an inflated count presents as a breach to fix rather than as a ruler to doubt, so it buys a real extraction pass against an imaginary overage and the pass reports success either way. 📖 `skills/update-plugin/references/harness-constraints.md` holds the one-line count command and the measured figures.
+
+⚠️ **That divisor is a RECURRENCE, and the first fix is why — it corrected the figures and left the file prescribing the method.** 1.261.0 diagnosed this exact bug, quantified it ("a `bytes/4` proxy that overstates English prose by 15–20%"), and named four of six files as never having been over the ceiling. It patched those figures. `harness-constraints.md` went on prescribing `bytes ÷ 4` for another ten versions until a session re-derived the whole thing from scratch on 2026-09-12. Correcting a number never corrects the rule that produced it, and a corrected number reads as a closed case — so **after disproving a figure, find what computed it and fix that, or you have bought one clean number and left the generator running.** This is the same shape as "correcting a premise does not correct the rules citing it", pointed the other way: there, the premise moved and its dependents went stale; here, the dependents were fixed and the premise survived. **Tell: your changelog entry lists corrected values and names no method.**
 
 ### Where a rule goes, by when it must fire {#rule-placement}
 
@@ -242,6 +244,8 @@ When modifying or creating skills and commands:
 ## Publishing and Versioning
 
 ### Version Bumping
+
+**Run `git config core.hooksPath .githooks` once per checkout.** It arms `.githooks/pre-commit`, which blocks a commit where the two manifests disagree — the drift below recurred ten times and a reader caught it every time, never a gate. Git will not adopt a hooks directory on its own and the setting is local config rather than a tracked file, so a fresh clone starts unprotected with nothing to say so; an unset `core.hooksPath` and a passing hook are indistinguishable from the commit's side. `ship`'s print-every-version step is the second layer, but it only covers the ship path — a bare `/commit` on an unconfigured clone has neither defence.
 
 Version lives in two files and must match:
 

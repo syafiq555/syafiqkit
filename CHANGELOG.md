@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.271.0
+
+**The plugin was measuring the compaction ceiling with the wrong ruler, and the ruler was written down as the method.** Only the first 5,000 tokens of a skill come back after a conversation compacts, and `harness-constraints.md` told you to check that by dividing the byte count by four. On this corpus that over-reports by roughly 17%, because English markdown runs closer to 4.7 bytes per token. Measured properly with `cl100k_base`: **all 38 skills are under the ceiling.** The estimate flagged three that were never over — `haiku` at 5,566 against 4,837 real, `agent-setup` at 5,283 against 4,655.
+
+The divisor is gone, replaced by a one-line command that counts actual tokens. Worth knowing if you have used this plugin to judge your own files: any overage you recorded from the byte estimate is probably smaller than it looked, and may not exist.
+
+**What makes this expensive is that the error runs one way only.** An inflated count always presents as a breach to fix, never as a ruler to doubt — so the response is a real extraction pass against an imaginary overage, and the pass reports success either way. That is what happened here: yesterday's release described `unhobble-instructions` as roughly 1,000 tokens over the ceiling. It was 119 over, and the reorder left it at 4,566 rather than the "roughly 5,400" that entry records — both figures came from the same bad divisor, so correcting one without the other would leave a reader believing the file still sits near the limit. The reorder itself was the right change and the file is genuinely better placed, which is precisely what let the bad numbers survive being acted on.
+
+Two documents carried the inflated figures and are corrected: the note recording `agent-setup` as "marginally over" (it is not), and the claim that five skills had drifted back over the ceiling (inflated). The durable half of that note survives, because files really do grow and nothing reports a re-crossing — `unhobble-instructions` did cross, by 119 tokens. "Under the ceiling" is a measurement with a date, not a settled state; it just needs taking with a tokenizer.
+
+**The uncomfortable part: this was the second time.** Release 1.261.0 already diagnosed the same divisor, quantified it at 15–20%, and published corrected numbers naming four of six files as never having been over the ceiling. It fixed the figures and left the file that prescribed the method untouched, so the divisor went on being the documented way to measure for another ten releases until someone re-derived it from scratch. The general lesson is now written into the repo's own guidance: **correcting a number does not correct whatever produced it, and a corrected number reads as a closed case** — so after disproving a figure, go find its generator. It is the same failure this project already documents in the other direction, where a corrected premise leaves the rules citing it standing; here the citing sites were fixed and the premise survived.
+
+A ratio measured on one file also generalises badly, which is how the wrong figure spread this time: 17% was true of the single densest file in the corpus and got written into five places as the corpus-wide number. The corpus figure is 12%.
+
 ## 1.270.0
 
 **`unhobble-instructions` was losing its own verification section after a compaction, and now it isn't.** Only the first 5,000 tokens of a skill come back when a conversation compacts, and the skill still reports as invoked either way — so everything past that point silently stops existing. That file had grown to roughly 6,000 tokens, putting `## Verifying` past the boundary. A skill that tells you how to check your own rewrite, in exactly the long sessions where you most need checking, was dropping that advice. `## Verifying` now sits fifth of nine sections, well inside the window, and the file is down about 10% to roughly 5,400 tokens.
