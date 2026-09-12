@@ -1,0 +1,48 @@
+#!/bin/sh
+# Blocks a commit where the two plugin manifests declare different versions.
+#
+# Enable once per checkout:  git config core.hooksPath .githooks
+#
+# Both files carry exactly one "version" key, so head -1 is unambiguous. If a
+# future manifest gains a second one, this picks the wrong line silently --
+# the guard below fails loudly when a key is missing, but cannot tell you it
+# matched the wrong one.
+
+set -e
+
+root=$(git rev-parse --show-toplevel)
+plugin="$root/.claude-plugin/plugin.json"
+marketplace="$root/.claude-plugin/marketplace.json"
+
+read_version() {
+	sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1" | head -1
+}
+
+for f in "$plugin" "$marketplace"; do
+	if [ ! -f "$f" ]; then
+		echo "pre-commit: missing $f" >&2
+		exit 1
+	fi
+done
+
+p=$(read_version "$plugin")
+m=$(read_version "$marketplace")
+
+if [ -z "$p" ] || [ -z "$m" ]; then
+	echo "pre-commit: could not read a version from both manifests" >&2
+	echo "  plugin.json:      ${p:-<none>}" >&2
+	echo "  marketplace.json: ${m:-<none>}" >&2
+	exit 1
+fi
+
+if [ "$p" != "$m" ]; then
+	echo "pre-commit: plugin version drift -- the two manifests disagree." >&2
+	echo "  .claude-plugin/plugin.json:      $p" >&2
+	echo "  .claude-plugin/marketplace.json: $m" >&2
+	echo "" >&2
+	echo "Set both to the same value, then commit again." >&2
+	echo "Bypass with --no-verify only if you know why they differ." >&2
+	exit 1
+fi
+
+exit 0

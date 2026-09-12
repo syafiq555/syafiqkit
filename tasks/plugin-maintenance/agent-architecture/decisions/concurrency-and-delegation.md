@@ -18,6 +18,8 @@ How the plugin delegates work to cheaper/parallel agents, what `run_in_backgroun
 
 ---
 
+## Delegation & Cheap-Model Agents
+
 ### D30 — Split Mechanical Retrieval From Judgment Before Delegating to a Cheaper Agent — committed — 2026-07-15
 
 **Problem**
@@ -60,6 +62,8 @@ Chosen: verified against the official Claude Code docs (not agent paraphrase —
 
 ---
 
+## Parallelism & Async Dispatch
+
 ### D32 — Parallelism Is the Single-Message Block; `run_in_background: false` Is Not a Blocking Guarantee — committed — 2026-07-16
 
 **Problem**
@@ -83,6 +87,27 @@ Chosen: state the documented behaviour and separate the two concerns.
 **Status**: committed · **Reversible**: yes (revisit if #69691 lands a documented foreground control)
 
 ---
+
+### D42 — `done` Steps 3+4 (`update-claude-docs` + `task-summary`) Dispatch Sequentially, Not in Parallel — committed — v1.123.9
+
+**Problem**
+`done`'s Steps 3+4 ran `update-claude-docs` and `task-summary` in the same parallel block per D32's general "every `Agent`/`Skill` batch goes in one message" rule. But the two skills aren't independent tasks operating on disjoint state — both scan the *same* conversation for the *same* class of signal (durable pattern vs. feature-specific note) and each independently decides CLAUDE.md-vs-task-doc routing with zero visibility into the sibling's call. `task-summary`'s own rule ("only patterns that apply broadly go in CLAUDE.md") presupposes that judgment has already been made — it can't be, racing in parallel.
+
+**Decision**
+Chosen: `done`'s Steps 3+4 section now runs `update-claude-docs` first, `task-summary` second — sequential, not parallel. `update-claude-docs` decides what's broadly reusable and writes it; `task-summary` then routes the feature-specific remainder, aware of what already landed in CLAUDE.md.
+
+**Rejected**
+- Keep parallel dispatch and rely on each skill's own "no duplicates" check to reconcile after the fact. Why not: each skill greps for existing entries *in its own target files* — `update-claude-docs` greps CLAUDE.md, `task-summary` greps the task doc — so neither call can see a fact the sibling call is mid-write on. The dedup check is real but scoped to the wrong file to catch this race.
+
+**Consequences**
+- This is a narrow exception to D32's general parallel-batch rule, not a reversal of it — D32 still governs same-role agent batches (N simplifiers, N reviewers) where slices are genuinely disjoint. The exception applies specifically to skill pairs whose routing decisions depend on each other.
+- Any future skill pair added to `done` (or elsewhere) that both scan the same conversation for overlapping signal classes should default to sequential too — check for this shape before assuming D32's parallel-block rule applies.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+## Transcript Scanning (Removed)
 
 ### D34 — On-Disk Transcript Scan Defeats Recency Bias; Agent Sub-Spawn Must Name Its Allowed Type — committed — 2026-07-18
 
@@ -123,20 +148,86 @@ Reverses D34/D35. The on-disk transcript-scan mechanism (D34) cost an agent slot
 
 ---
 
-### D42 — `done` Steps 3+4 (`update-claude-docs` + `task-summary`) Dispatch Sequentially, Not in Parallel — committed — v1.123.9
+## Agent Tool Grants & Scope Boundaries
+
+### D-agent-verb-ban-shared — The Destructive-Verb Ban Belongs to Every Spawner, Not Just `/done` — committed — 2026-08-07
 
 **Problem**
-`done`'s Steps 3+4 ran `update-claude-docs` and `task-summary` in the same parallel block per D32's general "every `Agent`/`Skill` batch goes in one message" rule. But the two skills aren't independent tasks operating on disjoint state — both scan the *same* conversation for the *same* class of signal (durable pattern vs. feature-specific note) and each independently decides CLAUDE.md-vs-task-doc routing with zero visibility into the sibling's call. `task-summary`'s own rule ("only patterns that apply broadly go in CLAUDE.md") presupposes that judgment has already been made — it can't be, racing in parallel.
+`/done` Step 1 told its spawned agents not to run `stash`/`checkout -- .`/`reset`/`clean`/`restore`/`commit`/`push`. Writing `quick-done` reproduced the dispatch without the ban, which surfaced the real scope: six skills spawn agents and only one stated it. Measuring the frontmatter (`awk '/^tools:/…' .claude/agents/*.md`) showed every spawned agent holds `Bash` — `Explore` holds `Bash Write Edit` and `claude-md-pruner` holds `Bash Edit`, despite both reading as retrieval roles.
 
 **Decision**
-Chosen: `done`'s Steps 3+4 section now runs `update-claude-docs` first, `task-summary` second — sequential, not parallel. `update-claude-docs` decides what's broadly reusable and writes it; `task-summary` then routes the feature-specific remainder, aware of what already landed in CLAUDE.md.
+Chosen: extract to `skills/_shared/references/agent-prompt-verb-ban.md` with the verification command inline, and point `quick-done`, `update-claude-docs`, and `explore-delegation.md` (covering both `Explore` callers) at it. `explore-delegation.md`'s "read-only, cheap" description of `Explore` was corrected in the same edit — it was false against the frontmatter and was the reason the exposure stayed invisible.
 
 **Rejected**
-- Keep parallel dispatch and rely on each skill's own "no duplicates" check to reconcile after the fact. Why not: each skill greps for existing entries *in its own target files* — `update-claude-docs` greps CLAUDE.md, `task-summary` greps the task doc — so neither call can see a fact the sibling call is mid-write on. The dedup check is real but scoped to the wrong file to catch this race.
+- Merging into `diff-ownership.md`/`contested-doc-sections.md`, which carry the same verb list. Why not: those state a self-directed rule (don't run these to clear contested work); this states a delegation rule (put this in the prompt). Same vocabulary, different trigger — merging would make both harder to find.
+- Restating the list per skill. Why not: 4+ owners, past the plugin's extraction threshold.
 
 **Consequences**
-- This is a narrow exception to D32's general parallel-batch rule, not a reversal of it — D32 still governs same-role agent batches (N simplifiers, N reviewers) where slices are genuinely disjoint. The exception applies specifically to skill pairs whose routing decisions depend on each other.
-- Any future skill pair added to `done` (or elsewhere) that both scan the same conversation for overlapping signal classes should default to sequential too — check for this shape before assuming D32's parallel-block rule applies.
+- An agent's declared role is not evidence of its tool grants; read the frontmatter before calling one read-only.
+- `/done` still carries its own inline copy — it was off-limits this session. A future pass can point it at the shared file, making 5 pointers and one owner.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D-agent-may-not-redelegate — A Tool Grant Scoped Only In A YAML Comment Is Unscoped At Runtime — committed — 2026-08-14
+
+**Problem**
+A dispatched `product-reviewer` handed a six-item worklist spawned a second `product-reviewer` carrying the same brief rather than spawning `Explore` for retrieval. Seven templates grant the `Agent` tool; the intended scope lived in a frontmatter comment (`- Agent  # lets this agent spawn Explore agents for multi-target sweeps`) on six of them, and only `browser-verifier` stated it in body prose — because that role hit the failure first. A comment constrains whoever edits the file; the agent receives the tool with its own generic description and nothing narrowing it.
+
+The failure is invisible from the dispatcher's side. The parent reformats the child's work into its own output contract, so the report arrives correctly shaped and on time; what silently drops is the brief, since a prompt clause binding the agent you dispatched reaches the child only as that agent's paraphrase of it. It also manufactures corroboration — a premise you supplied, restated by a child and relayed by a parent, reads as two agents independently agreeing.
+
+**Decision**
+Chosen: extract to `skills/_shared/references/agent-may-not-redelegate.md` and state the operative rule in body prose in every Agent-holding template plus its generated copies — spawn only `Explore`, only for retrieval, never a same-typed child and never your own assignment. `Explore` stays exempt: nested `Explore` is its designed behaviour for multi-target sweeps. Detection is the other half, so `plan-worklist` and `/done`'s blindness-patterns table tell the *dispatcher* what a relayed report looks like; prevention in the agent and detection in the caller fail independently.
+
+**Rejected**
+- Removing `Agent` from the roles that misused it. Why not: retrieval fan-out is why the grant exists, and revoking it pushes multi-target sweeps back into the agent's own context — the cost the delegation was buying down.
+- Relying on the existing frontmatter comments. Why not: that is the mechanism that failed. The comment is also what a reviewer sees and finds reassuring, so it actively conceals the gap.
+- Leaving generated copies to inherit via a `📖` pointer. Why not: project copies cite no `_shared` references and a project checkout need not have the plugin installed, so the rule must be inline there even though the templates carry a pointer.
+
+**Consequences**
+- Grepping a tools block measures the wrong thing. Every template's comment looks compliant, and `task-builder` omits `tools:` entirely to receive the full set — so `grep '^  - Agent'` cannot see its grant at all and reported it unaffected. Enumerate by capability, and confirm scope by reading the body for what the agent is told to spawn.
+- The plugin's own `.claude/agents/` is a third copy location beside the two project checkouts, easy to miss because the plugin isn't thought of as a project. A sweep over generated agents has to include it.
+- A same-typed child is the shape to look for, not nesting itself. The tell is a child whose task description restates the parent's rather than naming a slice of it.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+## Contested Docs & Ownership Guards
+
+### D-mtime-cannot-see-concurrent-writers — Ownership Needs a Diff Read, Not a Timestamp — committed — 2026-08-07
+
+**Problem**
+`/done` Gate B and `/quick-done`'s plugin gate both settled shared-checkout ownership by comparing file mtime against session start. That excludes work finished *before* the session and nothing else: a second session editing this checkout concurrently stamps its files inside the same window, so every foreign file passes. Three foreign skill edits landed within 60 seconds of this session's own and read as owned.
+
+**Decision**
+Chosen: mtime stays as the cheap first filter, with a diff read on anything the session doesn't remember editing, and an ask before treating an unrecognised file as owned. A foreign edit is recognisable on sight; nothing cheaper distinguishes it.
+
+**Rejected**
+- Comparing against a session-start snapshot of `git status`. Why not: correct, but it must be captured at session start, and a gate that fails when someone forgets step zero is worse than one that reads a diff on demand.
+
+**Consequences**
+- The failure was biased toward over-claiming — the gate hands `update-plugin` *more* files than it should, which then version-bumps and ships another session's in-flight work under the wrong changelog entry.
+- Stated in both `done` and `quick-done` at the point each prescribes the test. Two copies, below `_shared/`'s 3-copy extraction threshold.
+
+**Status**: committed · **Reversible**: yes
+
+---
+
+### D-guard-the-act-not-the-dispatcher — A Guard Belongs at the Destructive Step, and Its Sibling Sweep Keys on the Act — committed — 2026-08-18
+
+**Context**: GitHub issue #24 reported `update-claude-docs` Step 4 mandating a `claude-md-pruner` spawn at a contested CLAUDE.md, which the same skill's line-12 preamble forbids. Third recurrence of D53's shape (issue #13 was the first), at two new sites.
+
+**Decision**: Re-derive an ownership condition at the step that acts, rather than inheriting a finding computed earlier in the same skill; and when sweeping for other instances of the defect, key the search on the destructive operation rather than on how its actor is reached.
+
+**Consequences**:
+- The preamble check and the acting step sit far apart, so only the nearer one is read at the moment of acting. Step 4 now re-runs the diff-content check where it decides to spawn, mirroring the floor-measurement paragraph already beside it.
+- **A dispatch-shaped sweep certifies coverage it cannot measure.** Grepping `subagent_type` found exactly one site and reported the fix complete; two siblings were invisible to it, and both were found by reviewers rather than by the search. `merge-task-docs` reached an `rm -rf` of a whole source folder gated only on a completeness sweep, with its one contested check twelve lines above asking a narrower question (whose `## Last Session` bullets these are) — strictly worse than the pruner's `Edit`, since uncommitted content has no reflog. `condense-claude-md` performs the same whole-file rewrite as its guarded sibling `condense-task-doc` and had no ownership language at all; it is reached by direct `Skill()` invocation, so no dispatch-site grep could ever have seen it.
+- **A caller-side gate does not extend to what it hands off to.** The pruner passes its check, then may invoke `condense-claude-md`, which writes on its own authority — a peer starting to edit in that gap is invisible to both. The callee needs its own check because it has its own entry points.
+- An agent's contested test cannot be "is the diff non-empty": its dispatcher usually edited the file moments earlier and left those writes uncommitted, so the expected case is a diff full of the caller's own work. Taken literally, a bare non-emptiness test makes the pruner refuse every legitimate dispatch. The caller now names the sections it wrote, and the agent judges attribution against that.
+- Deferring a destructive step leaves an action owed, which needs a durable home (the doc's own `## Next Steps`) rather than the run's transcript — the session that resolves the contest is rarely the one that found it.
+- A staleness probe for a generated agent needs its own command, not another alternate in an existing one: `grep -L` lists files matching *none* of its patterns, so widening the alternation makes the probe flag fewer files while reading like a tightening. Verified with a file on each side, per the repo's own `grep -Ll` rule.
 
 **Status**: committed · **Reversible**: yes
 
@@ -163,6 +254,8 @@ Chosen: the contested branch is stated at every mandate site, and the rule itsel
 
 ---
 
+## Session State & Staleness Checks
+
 ### D-commit-staleness-same-session-carveout — `/commit`'s Staleness Gate Gains a Same-Session Carve-Out, Mirroring `/done`'s Own Scoped-Invoke Rule — committed — v1.139.10
 
 **Problem**
@@ -180,6 +273,8 @@ Chosen: a second carve-out, same shape as D57's (mechanical condition, not judgm
 **Status**: committed · **Reversible**: yes
 
 ---
+
+## Fast Wrap-Up & Alternatives
 
 ### D-quick-done — A Cheap `/done` Sibling as a Separate Skill, Not a Mode — committed — 2026-08-07
 
@@ -225,66 +320,7 @@ Chosen: swap the reviewer for `update-claude-docs`, keeping `task-summary` and t
 
 ---
 
-### D-mtime-cannot-see-concurrent-writers — Ownership Needs a Diff Read, Not a Timestamp — committed — 2026-08-07
-
-**Problem**
-`/done` Gate B and `/quick-done`'s plugin gate both settled shared-checkout ownership by comparing file mtime against session start. That excludes work finished *before* the session and nothing else: a second session editing this checkout concurrently stamps its files inside the same window, so every foreign file passes. Three foreign skill edits landed within 60 seconds of this session's own and read as owned.
-
-**Decision**
-Chosen: mtime stays as the cheap first filter, with a diff read on anything the session doesn't remember editing, and an ask before treating an unrecognised file as owned. A foreign edit is recognisable on sight; nothing cheaper distinguishes it.
-
-**Rejected**
-- Comparing against a session-start snapshot of `git status`. Why not: correct, but it must be captured at session start, and a gate that fails when someone forgets step zero is worse than one that reads a diff on demand.
-
-**Consequences**
-- The failure was biased toward over-claiming — the gate hands `update-plugin` *more* files than it should, which then version-bumps and ships another session's in-flight work under the wrong changelog entry.
-- Stated in both `done` and `quick-done` at the point each prescribes the test. Two copies, below `_shared/`'s 3-copy extraction threshold.
-
-**Status**: committed · **Reversible**: yes
-
----
-
-### D-agent-verb-ban-shared — The Destructive-Verb Ban Belongs to Every Spawner, Not Just `/done` — committed — 2026-08-07
-
-**Problem**
-`/done` Step 1 told its spawned agents not to run `stash`/`checkout -- .`/`reset`/`clean`/`restore`/`commit`/`push`. Writing `quick-done` reproduced the dispatch without the ban, which surfaced the real scope: six skills spawn agents and only one stated it. Measuring the frontmatter (`awk '/^tools:/…' .claude/agents/*.md`) showed every spawned agent holds `Bash` — `Explore` holds `Bash Write Edit` and `claude-md-pruner` holds `Bash Edit`, despite both reading as retrieval roles.
-
-**Decision**
-Chosen: extract to `skills/_shared/references/agent-prompt-verb-ban.md` with the verification command inline, and point `quick-done`, `update-claude-docs`, and `explore-delegation.md` (covering both `Explore` callers) at it. `explore-delegation.md`'s "read-only, cheap" description of `Explore` was corrected in the same edit — it was false against the frontmatter and was the reason the exposure stayed invisible.
-
-**Rejected**
-- Merging into `diff-ownership.md`/`contested-doc-sections.md`, which carry the same verb list. Why not: those state a self-directed rule (don't run these to clear contested work); this states a delegation rule (put this in the prompt). Same vocabulary, different trigger — merging would make both harder to find.
-- Restating the list per skill. Why not: 4+ owners, past the plugin's extraction threshold.
-
-**Consequences**
-- An agent's declared role is not evidence of its tool grants; read the frontmatter before calling one read-only.
-- `/done` still carries its own inline copy — it was off-limits this session. A future pass can point it at the shared file, making 5 pointers and one owner.
-
-**Status**: committed · **Reversible**: yes
-
-### D-agent-may-not-redelegate — A Tool Grant Scoped Only In A YAML Comment Is Unscoped At Runtime — committed — 2026-08-14
-
-**Problem**
-A dispatched `product-reviewer` handed a six-item worklist spawned a second `product-reviewer` carrying the same brief rather than spawning `Explore` for retrieval. Seven templates grant the `Agent` tool; the intended scope lived in a frontmatter comment (`- Agent  # lets this agent spawn Explore agents for multi-target sweeps`) on six of them, and only `browser-verifier` stated it in body prose — because that role hit the failure first. A comment constrains whoever edits the file; the agent receives the tool with its own generic description and nothing narrowing it.
-
-The failure is invisible from the dispatcher's side. The parent reformats the child's work into its own output contract, so the report arrives correctly shaped and on time; what silently drops is the brief, since a prompt clause binding the agent you dispatched reaches the child only as that agent's paraphrase of it. It also manufactures corroboration — a premise you supplied, restated by a child and relayed by a parent, reads as two agents independently agreeing.
-
-**Decision**
-Chosen: extract to `skills/_shared/references/agent-may-not-redelegate.md` and state the operative rule in body prose in every Agent-holding template plus its generated copies — spawn only `Explore`, only for retrieval, never a same-typed child and never your own assignment. `Explore` stays exempt: nested `Explore` is its designed behaviour for multi-target sweeps. Detection is the other half, so `plan-worklist` and `/done`'s blindness-patterns table tell the *dispatcher* what a relayed report looks like; prevention in the agent and detection in the caller fail independently.
-
-**Rejected**
-- Removing `Agent` from the roles that misused it. Why not: retrieval fan-out is why the grant exists, and revoking it pushes multi-target sweeps back into the agent's own context — the cost the delegation was buying down.
-- Relying on the existing frontmatter comments. Why not: that is the mechanism that failed. The comment is also what a reviewer sees and finds reassuring, so it actively conceals the gap.
-- Leaving generated copies to inherit via a `📖` pointer. Why not: project copies cite no `_shared` references and a project checkout need not have the plugin installed, so the rule must be inline there even though the templates carry a pointer.
-
-**Consequences**
-- Grepping a tools block measures the wrong thing. Every template's comment looks compliant, and `task-builder` omits `tools:` entirely to receive the full set — so `grep '^  - Agent'` cannot see its grant at all and reported it unaffected. Enumerate by capability, and confirm scope by reading the body for what the agent is told to spawn.
-- The plugin's own `.claude/agents/` is a third copy location beside the two project checkouts, easy to miss because the plugin isn't thought of as a project. A sweep over generated agents has to include it.
-- A same-typed child is the shape to look for, not nesting itself. The tell is a child whose task description restates the parent's rather than naming a slice of it.
-
-**Status**: committed · **Reversible**: yes
-
----
+## Cross-Session Concurrency
 
 ### D-cross-session-messaging — Peer Discovery Belongs at the Entry Point, Not the Write Sites — committed — 2026-08-09
 
@@ -310,20 +346,3 @@ Found while surveying: `update-claude-docs` had no ownership handling at all, wh
 
 **Status**: committed · **Reversible**: yes
 
----
-
-### D-guard-the-act-not-the-dispatcher — A Guard Belongs at the Destructive Step, and Its Sibling Sweep Keys on the Act — committed — 2026-08-18
-
-**Context**: GitHub issue #24 reported `update-claude-docs` Step 4 mandating a `claude-md-pruner` spawn at a contested CLAUDE.md, which the same skill's line-12 preamble forbids. Third recurrence of D53's shape (issue #13 was the first), at two new sites.
-
-**Decision**: Re-derive an ownership condition at the step that acts, rather than inheriting a finding computed earlier in the same skill; and when sweeping for other instances of the defect, key the search on the destructive operation rather than on how its actor is reached.
-
-**Consequences**:
-- The preamble check and the acting step sit far apart, so only the nearer one is read at the moment of acting. Step 4 now re-runs the diff-content check where it decides to spawn, mirroring the floor-measurement paragraph already beside it.
-- **A dispatch-shaped sweep certifies coverage it cannot measure.** Grepping `subagent_type` found exactly one site and reported the fix complete; two siblings were invisible to it, and both were found by reviewers rather than by the search. `merge-task-docs` reached an `rm -rf` of a whole source folder gated only on a completeness sweep, with its one contested check twelve lines above asking a narrower question (whose `## Last Session` bullets these are) — strictly worse than the pruner's `Edit`, since uncommitted content has no reflog. `condense-claude-md` performs the same whole-file rewrite as its guarded sibling `condense-task-doc` and had no ownership language at all; it is reached by direct `Skill()` invocation, so no dispatch-site grep could ever have seen it.
-- **A caller-side gate does not extend to what it hands off to.** The pruner passes its check, then may invoke `condense-claude-md`, which writes on its own authority — a peer starting to edit in that gap is invisible to both. The callee needs its own check because it has its own entry points.
-- An agent's contested test cannot be "is the diff non-empty": its dispatcher usually edited the file moments earlier and left those writes uncommitted, so the expected case is a diff full of the caller's own work. Taken literally, a bare non-emptiness test makes the pruner refuse every legitimate dispatch. The caller now names the sections it wrote, and the agent judges attribution against that.
-- Deferring a destructive step leaves an action owed, which needs a durable home (the doc's own `## Next Steps`) rather than the run's transcript — the session that resolves the contest is rarely the one that found it.
-- A staleness probe for a generated agent needs its own command, not another alternate in an existing one: `grep -L` lists files matching *none* of its patterns, so widening the alternation makes the probe flag fewer files while reading like a tightening. Verified with a file on each side, per the repo's own `grep -Ll` rule.
-
-**Status**: committed · **Reversible**: yes

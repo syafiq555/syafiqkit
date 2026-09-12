@@ -2,6 +2,8 @@
 
 Cold path for `condense-claude-md` Restructuring #6/#7. Reached only when a file is **over** its budget (`../../_shared/references/declared-budget.md`) and compression alone hasn't closed the gap. An under-budget file splits *in place* — `### ` subsections with `{#anchor}`s, every row inline, no new file.
 
+> **Size budget: ~10KB, NOT the ~6KB prose-reference default (owner decision).** This file is a cold-path lookup reached only by a reader already holding an over-budget file, so its value is having the complete split decision tree in one place — a reader who must open a second file to find the lever they need is worse off than one reading a long table. Splitting it was evaluated and **declined**; don't re-open either question. Measure against 10KB and report a real overage past it — a declared budget suppresses the decision, never the measurement.
+
 ## Choosing a lever
 
 | Lever | Fires when | Result |

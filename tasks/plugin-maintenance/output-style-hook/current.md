@@ -99,8 +99,4 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 
 ## Last Session (2026-08-17)
 
-Built the hook end to end: `hooks.json`, `RULESET.md` (drafted, then two `unhobble-instructions` passes via `haiku` with three cut facts patched back), version bump to 1.163.0 in both manifests, plus CLAUDE.md/README/CHANGELOG documentation.
-
-`/done` ran docs-only mode. The reviewer caught the `fork` matcher contradicting "every session" claims in three docs; the product reviewer caught the README promising no escape while hiding `claude plugin uninstall`, and an ENOENT claim in CLAUDE.md stated as settled when only half of it had been tested. All fixed.
-
-Version landed on 1.163.0 rather than the planned 1.162.0 — a concurrent session staged a 1.162.0 changelog entry mid-run.
+Built hook end-to-end, drafted and two passes refined `RULESET.md`. Reviewers caught `fork` matcher contradicting docs, README hiding the escape hatch, and a half-tested ENOENT claim. Version bumped to 1.163.0 (concurrent session conflict with planned 1.162.0).

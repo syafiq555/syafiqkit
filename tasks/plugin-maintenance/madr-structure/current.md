@@ -35,14 +35,7 @@ Decisions about the MADR (decision-record) format itself: when to use it, how it
 
 ## Task Status
 
-| # | Task | Status |
-|---|------|--------|
-| 1 | Whole-doc MADR pricing model (D8) | ✅ |
-| 2 | Multi-mode knowledge-capture skills split canonical structure into `references/` (D9) | ✅ |
-| 3 | Skill/command name-sharing needs no wrapper command (D10) | ✅ |
-| 4 | Doc-format upgrade ships its condensation rule atomically (D13) | ✅ |
-| 5 | MADR made the default structure, not opt-in (D16) | ✅ |
-| 6 | Template made the sole source of a task doc's section set (D-template-is-sole-shape-source) | ✅ |
+All tasks completed. See Key Technical Decisions for details.
 
 ---
 

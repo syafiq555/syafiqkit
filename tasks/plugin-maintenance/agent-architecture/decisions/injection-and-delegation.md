@@ -3,15 +3,20 @@ Status: Reference
 Domain: plugin-maintenance/agent-architecture/injection-and-delegation
 Gotchas (critical — full list in each ADR's Consequences):
   - Agents don't inherit CLAUDE.md — conventions must be injected into agent prompts (D1)
-  - Orchestrator skills delegate, never inline a sibling's procedure (D4)
+  - Orchestrator skills delegate, never inline a sibling's procedure (D4, D14, D29, D43)
   - Correct wiring to invoke a sibling skill doesn't guarantee the model calls it (D15)
+  - Prohibitions fail; role-based scoping succeeds (D60, D-explore-write-is-granted-scoped-by-role)
 Related: ../current.md (feature index), ../../doc-condensation/current.md, ../../madr-structure/current.md
-Last updated: 2026-07-20
+Last updated: 2026-09-12
 -->
 
 # Agent Architecture — Prompt Injection & Sibling-Skill Delegation
 
 How generated project agents get project conventions, and how they call sibling skills instead of reimplementing them.
+
+## Section 1: Prompt Injection & Inheritance
+
+When agents spawn, they start without project context. D1 establishes the foundational approach: bake conventions into agent prompts via explicit injection.
 
 ---
 
@@ -44,6 +49,12 @@ Chosen: bake conventions into agent system prompts via injection markers, genera
 
 ---
 
+## Section 2: Sibling-Skill Delegation
+
+The core principle: never inline a sibling skill's procedure. This principle extends from orchestrators (D4) through agent wiring (D14), through expanding agent coverage (D29), through new artifact types (D43). Each decision applies the same rule at a different layer.
+
+---
+
 ### D4 — Orchestrator Skills Delegate, Never Inline a Sibling's Procedure — committed
 
 **Problem**
@@ -57,7 +68,7 @@ Chosen: an orchestrator names the sub-skill and delegates; it never reproduces t
 
 **Consequences**
 - Applied again in `agent-setup`'s generated agents: templates now carry `Skill` in `tools:` and name `/read-summary` as canonical for task-doc discovery, with a short inline fallback only for when the skill can't be invoked (D14).
-- Gotcha: correct wiring (tool + instruction) doesn't guarantee the model reliably calls the sibling skill — see D15.
+- ⚠️ **Correct wiring (tool + instruction) does not guarantee reliability** — see D15 for why explicit counter-instructions are needed beyond just naming the skill and providing the tool.
 
 **Status**: committed · **Reversible**: yes
 
@@ -125,6 +136,12 @@ Chosen: branch the agent on artifact type. New Step 0.5 detects CLAUDE.md vs tas
 
 ---
 
+## Section 3: Wiring Insufficiency & Explicit Counter-Instructions
+
+Delegation via `Skill` tool + naming is necessary but not sufficient. D15 identifies why: correct wiring doesn't guarantee an agent will invoke a skill when it should.
+
+---
+
 ### D15 — Correct Wiring to Invoke a Sibling Skill ≠ the Model Reliably Calling It — committed
 
 **Problem**
@@ -140,6 +157,14 @@ Chosen: add an explicit counter-instruction to `Explore`/`Plan` templates — pr
 Only `Explore`/`Plan` needed this fix — `code-reviewer`/`code-simplifier`/`product-reviewer` trigger off `git diff`, not free-text prompts, so they aren't exposed to the same misjudgment.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+## Section 4: Tool Grants, Prohibition Failure, & Role-Based Scoping
+
+When a tool grant needs boundary, guards (disallowedTools) are a mechanical layer that fails against the real problem: the harness's framing reaches the wrong reader. D60 identifies this failure; D-explore-write-is-granted-scoped-by-role establishes the solution.
+
+---
 
 ### D60 — A `disallowedTools` Guard Blocks the Call, Not the Intent; Redirect by Role, and Keep the Redirect Anchored — committed — 2026-07-28
 

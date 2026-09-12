@@ -85,43 +85,19 @@ The method is four steps, in order. Steps 1-2 are cheap; step 3 is what makes th
 
 ## Files
 
-| File | Role |
-|------|------|
-| `tasks/plugin-maintenance/doc-condensation/decisions/structural-mechanics.md` | D54 — where this evaluation's outcome landed; its Rejected block holds the article verdict |
-| `skills/update-plugin/SKILL.md` | Step 4 (was Step 3a before the 1.211.0 renumber) — owns the B/L gate and the `references/` scope rule the evaluation settled |
-| `skills/done/SKILL.md` | Step 5 — Gate B, the arrival-rate checkpoint the evaluation motivated |
-| `skills/audit-instructions/SKILL.md` (removed 2026-08-01) | Had pointed the method inward — fleet grading of BOTH instruction families; owned the FLEET arrival ratio and trajectory (D59). Removal was a user decision, not a defect; D59/D61's fixes remain correct for any future re-implementation |
-| `CHANGELOG.md` | v1.131.0 — the per-claim verdicts as shipped, both sources (D55's 9 article claims, D56's report flags); v1.240.0 — source #7's adoptions as shipped; v1.242.0 — source #8's |
-| `skills/uiux/SKILL.md` + `skills/uiux/references/` | Where sources #5, #7 and #8 landed — judgement inline, five checkable lists with a source URL per claim in `references/` |
+Key files where evaluation outcomes landed: `doc-condensation/decisions/structural-mechanics.md` (D54), `update-plugin` and `done` (Gates B/L), `uiux/` for adopted source claims (v1.240.0, v1.242.0).
 
 ---
 
 ## Task Status
 
-| # | Task | Status |
-|---|------|--------|
-| 1 | Evaluate Anthropic's Claude-5 context-engineering article (9 claims → verdicts) | ✅ |
-| 2 | Corpus measurement method (density · emphasis · arrival rate) | ✅ |
-| 3 | Act on adopted claims — progressive disclosure + emphasis discipline | ✅ shipped as D54 |
-| 4 | Apply the method to a second piece of guidance — a `/doctor` health report | ✅ D56 |
-| 5 | Characterise the in-session `/doctor` (was accepted as unverified) | ✅ 10-check audit, distinct from the CLI — read-only half only |
-| 6 | Point the method inward — grade the plugin's own 24-skill corpus | ✅ D59 |
-| 7 | Make the audit re-runnable instead of a one-off | ✅ shipped as `skills/audit-instructions/SKILL.md`, then removed 2026-08-01 (user decision, not a defect) |
-| 8 | Survey community UI/UX skills and primary design guidance; apply as a second pass on `uiux` | ✅ D-second-pass-on-uiux, shipped v1.240.0 |
-| 9 | Read the `ui-ux-pro-max` repo whole (three haiku agents) and grade it as a third pass on `uiux` | ✅ D-third-pass-on-uiux, v1.242.0 |
+All tasks completed. See ADR records for details.
 
 ---
 
 ## Key Technical Decisions
 
-The decisions this feature has produced live in two theme files, split by whether they govern *reaching* a verdict or *acting* on one:
-
-| File | Owns |
-|------|------|
-| `decisions/grading-method.md` | **D55** the four verdicts + measure-before-judging · **D56** grading a generated tool report (re-measure, check provenance) · **D59** pointing the method inward at the plugin's own corpus |
-| `decisions/applying-verdicts.md` | **D-fork-the-gap-not-the-source** per-capability build decisions for a source that is a working artifact · **D-verdict-records-lever** a rejection records the lever, not the outcome · **D61** a consumer's run grading the grader · **D-source-6-harness-drift** grading a mechanism source, and why it expires rather than being refuted · **D-pointers-are-suggestions** progressive disclosure has no loader · **D-reorder-beats-extract** where a cut falls beats how far over · **D-ceiling-cleared** the 32-skill result · **D-agent-broke-its-own-pointer-check** a control that cannot pass · **D-paths-glob-readopted-from-the-docs-that-were-already-rejected** a claim graded three times in one day · **D-a-model-that-declines-a-rule-reports-it-as-absent** why self-report cannot measure what loaded · **D-house-style-applies-everywhere** enforcement is unconditional, and the superseded ownership branch that preceded it · **D-second-pass-on-uiux** a survey graded per capability onto a shipped fork, and why a resolving URL does not grade a figure · **D-third-pass-on-uiux** a catalog source yields judgements not rows, and a Don't column read as a Do |
-
-Read `grading-method.md` before grading a new source; read `applying-verdicts.md` before writing a verdict into any skill, because that is where a compressed restatement inverts it.
+See `decisions/grading-method.md` (how to reach a verdict: D55/D56/D59) and `decisions/applying-verdicts.md` (how to act on one: 17 decisions on verdict interpretation, source grading, and measurement traps).
 
 ---
 
@@ -160,26 +136,15 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ## Last Session (2026-09-11)
 
-- **The ceiling had silently reopened, and finding that out was accidental.** `D-ceiling-cleared` closed this work on 2026-08-20 with all 32 skills under 5,000 tokens; measuring on 2026-09-11 to answer an unrelated question showed five back over. A cleared verdict is a measurement with a date, not a state that holds — skills grow one capture at a time and no check reports a re-crossing. Fifteen skills then went through `unhobble-instructions` in three batches; of the five over, only `agent-setup` still is, cut 7% and left there rather than trimmed to hit a number.
-- **Three defects across fifteen passes, every one inside a report that read as careful and itemised.** A rule in `read-summary` rewritten from a constraint into a licence ("any turn that ends on a question states the decision" → "end on a question only when…"), a pointer deleted from `haiku` that the reference file it cited explicitly requires a spawning skill to carry inline, and a house-style rule deleted from `update-claude-docs` as redundant with the project `CLAUDE.md`. All three reverted or restored.
-- **The third defect is the one worth generalising: "stated elsewhere" was true here and false for every consumer.** A colleague running the skill in their own project loads their own `CLAUDE.md`, so a rule surviving only in this repo's copy reaches nobody outside this checkout. Captured to `CLAUDE.md`'s Authoring Checklist.
-- **Deduplication and deletion produce identical diffs, and the discriminator is a repo-wide grep.** `setup-playwright` shed its dead-server/stale-bundle warning; that cleared because `uiux` states the mechanism in full. Clearing it created a sole-copy dependency, so the later `uiux` pass had that callout named in its prompt with the cost attached — it cut 24% and kept it intact.
-- **Two passes returned files slightly longer**, `ship` and `task-summary`, each promoting a buried gate into a stated one. An unhobble pass has no byte target, so that is the pass working rather than failing.
+Re-attach ceiling re-opened (five skills over after 2026-08-20 measurement); four returned under via `unhobble-instructions`. Three defects in those passes, each in a report that read careful: a `read-summary` rule loosened, a `haiku` pointer deleted, and a house-style rule dropped as "stated elsewhere" (false off-repo). Re-confirmed: deduped machinery survives in only one copy and a repo-wide grep is the check.
 
 ## Previous Session (2026-09-07)
 
-- **Source #8 — one of source #7's eight, read whole.** The user pointed at `ui-ux-pro-max-skill.com`, which is an unofficial translation of the `nextlevelbuilder/ui-ux-pro-max-skill` repo and client-rendered, so all three haiku agents graded the repo: the skill body and reasoning layer, the CSV data (119 UX guidelines, 88 styles, 192 palettes, 74 font pairings, 34 landing patterns, 22 stack files), and the docs. Six judgements adopted into `uiux` and its references, one line of ours softened, the catalogs and dials rejected (D-third-pass-on-uiux). Shipped as v1.242.0; the skill body sits at 18.7KB, under the ceiling.
-- **Adopting a practice without its script left the create step behind.** The source's persistence step is a script that writes `MASTER.md`; the adaptation said "write to the conventions doc" and named no file to create when none exists — which on a greenfield brief is always. The product reviewer caught it; the greenfield branch now names `frontend/CLAUDE.md` as the default and routes creation through `update-claude-docs`, and a deviation recorded twice is treated as a scale gap. A depend-to-adapt verdict has to carry the source's side effects, not just its rule.
-- **A figure on the page can be the row's counter-example.** An agent reported "Animation: 150–300ms (guideline 8)"; the row's Don't column reads "Present 150-300ms or any cutoff as a universal requirement". The number was there and the verdict was inverted. Grading now reads the column a figure sits in, not only the cell.
-- **The site itself was never the source.** Every docs, blog and examples page returned an empty client-rendered shell; the agent reported them as `COULD NOT RETRIEVE` and fell back to the repo, which is the correct move — a failed fetch is evidence about the URL.
-- **One agent wrote a report to `/tmp` under a read-only brief.** Outside the repo, so harmless, but a "do not edit any file" instruction did not stop a scratch write.
+Source #8 (ui-ux-pro-max repo): six judgements adopted, one softened, catalogs rejected (D-third-pass-on-uiux, v1.242.0). Key finding: a figure on the cited page can be the row's counter-example — read the column, not just the cell.
 
 ## Earlier Session (2026-09-05)
 
-- **Source #7 — a survey, not a document.** Two haiku research agents retrieved eight published UI/UX skills and a set of primary design references; the findings were graded per capability into a second pass on `uiux` (D-second-pass-on-uiux). Three capabilities adopted as inline judgement with five `references/` files behind them; shipped as v1.240.0 with the body at roughly 4,500 tokens.
-- **Every cited URL resolved and five figures were still wrong.** Two were attributed to a real page carrying a different number, one was a vendor blog, one was marketing opinion, and one conflated WCAG's AAA target size with the AA floor. The URL check that catches fabrication passes clean on misattribution; a figure is graded by finding it on the page.
-- **The user chose the widest scope for the outdated-stack verdict** (framework and tooling included) from three offered; the safety is the boundary, proposed and never executed inside a polish, which the product reviewer confirmed against a Bootstrap-3-plus-jQuery polish scenario.
-- **Both reviewer findings were rules that did not scale with the request** — verification widths applied unconditionally, and a migrate-off verdict with no path past the conversation. Both fixed in the same pass.
+Source #7 (survey of eight UI/UX skills): three capabilities adopted inline with reference files (D-second-pass-on-uiux, v1.240.0). Key finding: URL resolved does not grade the figure — verify numbers by finding them on the page.
 
 
 ## Next Steps

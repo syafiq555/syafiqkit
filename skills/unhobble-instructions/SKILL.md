@@ -10,7 +10,7 @@ description: >
 
 ## What This Is Not
 
-- Not a condensing pass — `condense-claude-md`/`condense-task-doc` own byte reduction and structural splits.
+- Not a condensing pass — `condense-claude-md`/`condense-task-doc` own byte reduction and structural splits. So finishing here leaves every file you touched still an untouched condense target, and "already looked at these" is the reasoning that skips them. It bites hardest on a target with companions: unhobble the whole set, then condense only the file someone named, and the companions go unexamined while the work reads as done. Scope the condense by the set, not by what this pass was invoked on.
 - Not a correctness review: a rule can be correct and still the wrong shape, and prose can read well and be quietly wrong, which `code-reviewer` catches and this doesn't.
 - Not a one-time fix, since overconstraint accumulates one patched worst-case at a time.
 

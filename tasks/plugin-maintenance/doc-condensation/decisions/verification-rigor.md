@@ -345,3 +345,33 @@ The two failures were caught by unrelated means — nine "broken" pointers inspe
 ⚠️ Read alongside `D-deferral-is-not-delivery`: this pass also found the inverse failure, where `[ -e ]` confirmed a pointer target existed while the target sat untracked and would have been dropped by `git commit -am`. Existing on disk and being in the commit are different claims, and the check that exists cannot see the difference.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+### D-a-shared-vocabulary-is-not-a-shared-rule — The Resident-vs-Lazy-Load Extraction Was Measured And Declined — committed — 2026-09-12
+
+**Problem**
+A Next Steps row had stood since 2026-08-11 saying the "resident vs. lazy-load" routing principle was stated near-identically in four files and was past the 3+ extraction threshold, growing each time a session touched one of those skills without doing the extraction. It was re-confirmed and deferred at least twice more. A dispatched survey agent read all four sites and concluded the same thing in stronger terms — "a single principle stated repeatedly at different abstraction levels", "strong candidate for extraction", citing consistent vocabulary across the sites as its evidence.
+
+Reading the four passages against each other does not support it. They are four different rules that share a vocabulary:
+
+- `condense-claude-md/SKILL.md` — a pointer's trigger CONDITION is content, so merging a list of `📖`s onto one line deletes the mechanism by which anyone chooses to open them.
+- `condense-claude-md/references/structural-splits.md` — how to SHAPE a companion's pointer, as a per-category symptom index rather than one trigger phrase.
+- `unhobble-instructions/SKILL.md` — the routing TEST itself (safety-critical? before-action or during-failure? catalog?), plus the separate fact that relocating is not delivering.
+- `update-claude-docs/SKILL.md` — one compressed GATE inside a different three-gate sequence whose order is itself the rule.
+
+Only the last two express the same underlying test, and a two-site overlap is below the threshold the row invoked.
+
+**Decision**
+Close the row as measured and not warranted. Extracting all four would merge distinct rules into one blurred statement and strand each skill's fit — the failure already recorded as D69, a rule stated in N files drifting in the ones that paraphrase it. The genuinely duplicated fact in this cluster is "relocating is not delivering", which already has a home in the root `CLAUDE.md` in two places and in `unhobble-instructions`; that duplication is deliberate under the deferral rule, since the sentence telling a reader they have a problem must stay inline.
+
+**Rejected**
+- Extract anyway on the 3+ count. Why not: the count was of files sharing vocabulary, not of files stating the rule. The threshold exists to catch a fact with several homes, and applying it to a near-miss produces exactly the drift it was written to prevent.
+- Rewrite the four sites to converge on one phrasing first, then extract. Why not: that is the extraction with an extra step, and it would cost each site the specificity that makes it fire at its own moment.
+
+**Consequences**
+A shared vocabulary is the cheapest evidence of duplication to gather and the weakest to act on — a grep for "resident", "lazy-load" and "📖" returns all four sites and cannot tell a rule from a rule's subject matter. The check that settles it is reading the passages side by side and asking what each one tells a reader to DO; here the four answers were don't-merge-pointers, shape-the-index, run-the-test, and order-the-gates. A survey agent reported the opposite conclusion confidently while quoting the very passages that refute it, which is the ordinary case rather than a lapse: the quotes were accurate and the synthesis was not.
+
+⚠️ The row also demonstrates a backlog-specific decay. It asserted a count ("4+ files") that no mechanism re-checked across roughly a month and five deferrals, and each deferral read as a decision to postpone real work rather than as a decision resting on an unverified number.
+
+**Status**: committed · **Reversible**: yes
