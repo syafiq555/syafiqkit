@@ -1,12 +1,12 @@
 <!--LLM-CONTEXT
-Status: Shipped (v1.163.0, pushed 2c3239d) — injection verified, adherence still open
+Status: Shipped (v1.163.0, pushed 2c3239d); ruleset rebuilt on a numbered spine 2026-09-14 (v1.278.0, uncommitted) — injection verified; adherence MEASURED 2026-09-14 at 70% rule-10 failure across ten transcripts, rules 5/10 and the style carve-out rewritten in response
 Domain: plugin-maintenance/output-style-hook
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
   - ../agent-architecture/current.md (sibling feature — how agents are defined and dispatched)
   - ../external-guidance/current.md (sibling feature — grading outside guidance against local evidence)
   - ../../../hooks/RULESET.md (the injected payload)
-Last updated: 2026-08-17
+Last updated: 2026-09-14
 -->
 
 # Plugin Maintenance — Output-Style Hook
@@ -41,7 +41,7 @@ hooks/hooks.json     exec form → cat + ${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md
 hooks/RULESET.md     the injected payload, plain markdown, no frontmatter
 ```
 
-Auto-discovered by well-known path; neither manifest declares a `hooks` field. Matchers `startup|resume|clear|compact`. Roughly 5.2KB per injection (~1,200 tokens), appended after the cached prefix so it pays full rate once and cache-reads after.
+Auto-discovered by well-known path; neither manifest declares a `hooks` field. Matchers `startup|resume|clear|compact`. Roughly 6.4KB per injection (1342 tokens, cl100k_base, measured 2026-09-14 after the numbered-spine rebuild; was 999 tokens), appended after the cached prefix so it pays full rate once and cache-reads after. Measure with a tokenizer, never `bytes ÷ 4` — this file's prose runs 4.78 bytes/token, so the divisor over-reports by ~20%. The cost recurs per session rather than per read, which is the argument to weigh against any future growth.
 
 ---
 
@@ -81,6 +81,11 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 | A reference implementation's file list is not its wiring | Upstream ships three runtimes and wires one. Read what a project *executes*, not what it contains — the unexecuted files look like coverage and provide none. |
 | An unhobble pass trims by appearance, not by derivability | Two passes over `RULESET.md` cut a numbered-steps principle, a cross-skill precedence fact, and a self-guard against over-trimming — each wore imperative clothing while naming something a cold reader can't derive. Read the rewrite whole against the original; a report's confident preservation claim costs nothing to write. |
 | A raw line-number citation goes stale silently | One pass cited `read-summary` SKILL.md "lines 78-84". The numbers were correct that day. `RULESET.md` is `cat`'d standalone, so a reader can't follow a pointer anywhere — facts have to be inline. |
+| A rewrite pass on this file misses in whichever direction it wasn't watching | Three passes over-trimmed it (2026-08-17 ×2, 2026-09-14), and the pass correcting the third *grew* it 78% with prose arguing for its own rules — a reader arrives competent, so "why this rule exists" is the padding a condense pass will cut next, restarting the cycle. Brief a pass on this file with the measured token count and state plainly that size is not the objective in either direction; without that, an agent infers one. |
+| Prose makes a single rule deletable without the deletion being visible | The cycle above ran four times because the file had no inventory to check a rewrite against: a cut that improved the flow looked identical to a cut that removed a rule. Resolved 2026-09-14 by rebuilding on upstream's numbered ten-rule spine — **a missing paragraph is invisible, a missing number is not.** A pass over this file is now verifiable: count to ten, count seven exceptions. Renumbering or un-numbering the rules removes the only check that catches the recurrence. |
+| A rule-survival grep can return zero for every version including one you've read | While auditing which rules each version still held, a `git show \| grep -c` loop with a `\|` alternation under `sh` returned 0 across the board — including for a line already read on screen in that same session. The all-zero table was reported as a finding before the contradiction was noticed. A zero contradicting something you have seen is a broken checker, so pair every survival sweep with a known-present AND a known-absent control; a single positive control passes even when the predicate is inverted. |
+| `compact` is context pressure, not turn count | The matcher list reads as periodic coverage, so a long session looks self-correcting. It isn't: `compact` fires when the window fills, so a 114-turn session that never fills it never re-fires the hook and is exactly as decayed at turn 114 as before. This is why the measured failure rate tracks session length and why the carrier, not the wording, is the binding constraint. |
+| Rewording a decayed rule is the fix that has already failed here | Three passes (`6b84490` → `2c3239d` → `8cab34e`) each improved rule 10's wording; the measured rate rose across them. The header mutated (`Privately, what I need next` → `Needed next` → `Needs:`) while the shape underneath survived every time — a half-remembered rule, not an absent one. Rule 10's banned-string blockquote exists because recall reconstructs prose loosely but recognises exact phrases; that enumeration is deliberate and is the one place in this file where a list beats a principle. |
 
 ---
 
@@ -88,7 +93,9 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 
 **Verification**
 - ✅ Injection confirmed 2026-08-17 — a `SessionStart:clear` in a subsequent session delivered `RULESET.md` in full as hook output
-- Confirm the ruleset is actually *followed*, judged from outside the session that read it — a session grading its own output shape is not evidence
+- ✅ Adherence measured 2026-09-14 from outside the sessions, by parsing ten transcript `.jsonl` files: **174 of 249 assistant turns (70%) opened by narrating planning state instead of answering.** Per-session rate tracks length, not topic — 0% at 6 turns, 61% at 23, 73% at 93, 90% at 114, 100% at 26. This is the first evidence of adherence the item below had been open for since 2026-08-17, and it answers it in the negative
+- Confirm the ruleset is actually *followed*, judged from outside the session that read it — a session grading its own output shape is not evidence. The numbered spine makes this cheaper to judge than prose did: name the rule number that was broken rather than arguing about tone
+- Re-check rule survival after any future pass — count to ten, count seven exceptions. This is the check the four prior cycles had no way to run
 - Observe missing-file behaviour end-to-end (rename `RULESET.md`, start a session) rather than inferring it from `cat` exiting 1 plus a documented exit-code table
 
 **Deferred by decision**
@@ -96,6 +103,12 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 - Off-switch — only if a colleague asks, and it reopens D-no-off-switch rather than patching around it
 
 ---
+
+## Last Session (2026-09-14)
+
+User reported dissatisfaction with the ruleset and pointed at upstream `ayghri/i-have-adhd` to study. The working tree held three divergent versions — HEAD 5291 bytes, staged 3341, worktree 4934 — and the SessionStart copy in context matched none of them, so the output being judged came from an older installed copy. Four rules had been lost across the cut-then-regrow cycle: flat errors, no-preamble/recap/closers, the `read-summary` precedence fact (cut once before and restored), and the ambiguity exception. Rebuilt on upstream's numbered ten-rule spine with seven explicit exceptions, all four restored, verified by grep with both a known-present and known-absent control. 1342 tokens. Fixed manifest drift (1.277.0 vs 1.275.0) and bumped both to 1.278.0.
+
+Not done: nothing is committed. Adherence remains unverifiable from inside the session that read the ruleset, and this rebuild does not change that — the open verification item below still stands, and now has a fresh payload to judge.
 
 ## Last Session (2026-08-17)
 

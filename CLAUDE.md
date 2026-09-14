@@ -131,7 +131,7 @@ Every mechanism here loads at a *moment*, and a rule placed in the wrong one is 
 | Must fire | Put it in | Loads |
 |---|---|---|
 | Every turn, no exceptions | A `UserPromptSubmit` hook's stdout | Once per turn; the harness injects it |
-| Every session, surviving compaction | `hooks/RULESET.md` via the SessionStart hook, or a project-root `CLAUDE.md` | Session start + re-fires on `compact` |
+| Every session, surviving compaction | `hooks/RULESET.md` via the SessionStart hook, or a project-root `CLAUDE.md` | Session start + re-fires on `compact` — which is context pressure, not turn count, so a long session that never fills its window never re-fires |
 | When a matching file is touched | `.claude/rules/*.md` with `paths:` frontmatter | On read of a matching path |
 | When a named task starts | A skill body, first 5,000 tokens | On invoke |
 | Only if the reader chooses to look | A `📖` reference | Never, unless opened |

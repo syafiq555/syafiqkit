@@ -76,7 +76,7 @@ Reading a doc is also auditing it. Sweep the fields written once and checked lea
 
 Once the docs are read, three patterns determine what happens next:
 
-- **Doc path only** — user supplied a path to a doc or named a domain without an action → you've read the docs; stop here. If they ask you to "now do X", the doc is context for work, not the endpoint. If X involves a tool the doc merely researched, read that tool's own source before running it.
+- **Doc path only** — user supplied a path to a doc or named a domain without an action → you've read the docs; stop here. If they ask you to "now do X", the doc is context for work, not the endpoint. If X involves a tool the doc merely researched, read that tool's own source before running it — and the same holds for a SKILL you are about to tell the user to invoke, where the cost lands on them rather than you. A skill's name and one-line description state its subject, never the shape of input it requires, so one whose subject matches the request can still be built for a repo shape this one isn't; recommending it on the name spends a user invocation to discover that. Open it first and check what it assumes it is pointed at.
 
 - **Investigation** — a question about current state → read docs first, then investigate. When a user shows you screenshots or images as evidence of a problem, identify what each one is evidence *of* before answering. Before you send your conclusion, verify you answered the question the user asked, not an adjacent one. A finished investigation that found defects: report the finding and blast radius, then stop. Deciding which findings matter and when to fix them is the user's call.
 
@@ -97,6 +97,8 @@ A doc's silence about something doesn't mean it's incomplete; it means nobody's 
 This skill runs at the start of most sessions, establishing a rule that carries forward into every turn: **any turn that ends on a question states the decision needed before the report.** A build incomplete, a next step you don't own, two paths open with one for the user to pick — all need a decision frame. This isn't a separate wrapper; it's part of your answer shape. The decision tells them what's actually unresolved; the report shows them what you've built.
 
 The same rule applies to the wrap-up skills (`done`, `quick-done`, `ship`) on their final turns — don't end on pending questions without naming them.
+
+⚠️ **What goes first is the QUESTION, not your planning.** Because this rule is read once at session start and then applied from memory for dozens of turns, it degrades into narrating working state — what you still need to read, which calls are blocked, which are independent, the plan restated. That is not a decision: the reader cannot answer it, and choosing what to do next is what they delegated. It reads as diligence, so nothing stops it, and it compounds once the shape is in your own transcript to copy. Measured 2026-09-14: ~12 consecutive replies opened that way before the user asked what the spam was. **Tell: your reply opens by describing what you are about to do.** Most turns carry no decision at all and should open with the answer. 📖 `../_shared/references/decision-first-output.md` for the full carve-out.
 
 **Decision shapes** — not every question mark is a real decision point. When multiple paths are open:
 - **One path** — name it, and explain why it's the one. "We should X because Y" is a complete decision.

@@ -35,6 +35,12 @@ Keycap numerals (1️⃣ 2️⃣ 3️⃣) so the block cannot be mistaken for an
 
 A real "no" has to be a coherent answer. That is the whole test — but answering it from a plausible-sounding guess is the same failure as skipping "Earning the decision" below; if you have not checked, you do not know it is coherent, you are asserting it.
 
+⚠️ **"Decision first" licenses a QUESTION at the top, never your planning at the top — and the second is what the rule reliably degrades into.** The failure is putting your own working state on screen: what you still need to fetch, which calls are blocked on which, which items are independent and therefore dispatched together, a restatement of the plan. None of that is a decision, because the reader cannot answer any of it; deciding what to do next is the job they delegated. It reads as diligence, which is why nothing stops it. Measured 2026-09-14: roughly a dozen consecutive replies opened with a literal "what I need next" enumeration before the user cut in to ask what the spam was. It spends the one line a reader is guaranteed to get on bookkeeping — the exact cost the ordering rule exists to avoid. The rest of this file still applies unchanged: a real decision goes first, and goes first *as a question*.
+
+Two things make it escalate rather than stay a one-off. Reasoning about dependencies genuinely is correct — batch independent calls, measure before asking, resolve blockers before dispatching — so the visible block feels like evidence of doing it, when the reasoning's product is the tool calls, not a paragraph about them. And once the shape appears twice, later turns pattern-match against your own transcript instead of against the reader, so it becomes self-sustaining and reads back as house style precisely because you wrote it.
+
+**Tell: your reply opens by describing what you are about to do, or you are reproducing a shape because the last several turns used it.** Check it against the reader, not the transcript. Think in whatever structure you like; ship the answer.
+
 | Question | Real decision? |
 |---|---|
 | "Both mutations landed — proceed?" | No. Nothing changes if they say no, so it is a status wearing a question mark. |

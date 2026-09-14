@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: ✅ Method proven on 8 sources — on 2026-09-07 the `ui-ux-pro-max` repo read whole as a third pass on `uiux` (six judgements adopted, one of ours softened, the catalogs rejected; one agent finding was the inverse of its cited row), on 2026-09-05 a survey of community UI/UX skills plus primary design guidance, graded per capability into a second pass on `uiux` (three capabilities adopted, five research figures rejected as unverified), the Claude-5 article (2 of 9 claims adopted), a `/doctor` report (0 of 3 live-state flags survived re-measurement), the plugin's own corpus (14 of 24 skills clean; 3 agent findings disproved), a consumer's run that graded the grader (D59/D61), the official `frontend-design` plugin (first source that was a usable artifact, graded per-capability into depend/adapt/build), and on 2026-08-20 Anthropic's live reference docs for CLAUDE.md, skills and subagents — the first source whose claims are MECHANISM rather than advice, so 10 of 12 local statements were wrong or silent and none could be rejected on local evidence
+Status: ✅ Method proven on 9 sources — on 2026-09-15 the `superdesign` plugin (MIT) graded as a fourth pass on `uiux`: four capabilities adopted from a source that is ~90% unusable CLI mechanics, and a pointer to an external plugin caught as a dependency the domain had already rejected; on 2026-09-07 the `ui-ux-pro-max` repo read whole as a third pass on `uiux` (six judgements adopted, one of ours softened, the catalogs rejected; one agent finding was the inverse of its cited row), on 2026-09-05 a survey of community UI/UX skills plus primary design guidance, graded per capability into a second pass on `uiux` (three capabilities adopted, five research figures rejected as unverified), the Claude-5 article (2 of 9 claims adopted), a `/doctor` report (0 of 3 live-state flags survived re-measurement), the plugin's own corpus (14 of 24 skills clean; 3 agent findings disproved), a consumer's run that graded the grader (D59/D61), the official `frontend-design` plugin (first source that was a usable artifact, graded per-capability into depend/adapt/build), and on 2026-08-20 Anthropic's live reference docs for CLAUDE.md, skills and subagents — the first source whose claims are MECHANISM rather than advice, so 10 of 12 local statements were wrong or silent and none could be rejected on local evidence
 Domain: plugin-maintenance/external-guidance
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
@@ -7,7 +7,7 @@ Related:
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../output-style-hook/current.md (sibling feature — the ayghri/i-have-adhd source: findings adopted, structure rejected)
-Last updated: 2026-09-07 — source #8, the `ui-ux-pro-max` repo read whole as a third pass on `uiux`: a catalog source yields judgements, not rows; an agent can read a Don't column as a Do
+Last updated: 2026-09-15 — source #9, `superdesign` graded per capability into a fourth pass on `uiux`: a mostly-unusable source can still carry four adoptable judgements, and a pointer naming an external plugin is a dependency rather than a citation
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
@@ -134,11 +134,19 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ---
 
-## Last Session (2026-09-11)
+## Last Session (2026-09-15)
+
+Source #9 (`superdesign` plugin, MIT): fourth pass on `uiux`, four capabilities adopted from a source that is ~90% CLI mechanics for a canvas product we don't use. Graded per capability as D-fork-the-gap-not-the-source prescribes — nothing about auth, payload budgeting, asset routing, resume state or Petite-Vue templates crossed over. What did: read the render *branch* not the import name; capture the before on a redesign; partial source yields invention wearing reproduction's clothes; never fabricate brand identity. A fifth insertion closed issue #28 (a one-word theme brief assembled as a costume) and is unrelated to this source.
+
+**A pointer to an external plugin is a dependency, and `uiux` is the skill that exists because that was rejected.** Issue #28 asked for a `frontend-design` pointer; it went in as "load it alongside" and a reviewer caught that D-fork-the-gap-not-the-source had turned down exactly that in 2026-08-11, on the still-true ground that colleagues install syafiqkit without it. Resolved by making the restraint check self-sufficient prose inline and demoting the plugin to a named-where-installed resource — no `## Dependencies` row, since there is no longer a dependency to register. The general form: **a skill that ships to other people cannot route a step through something only some of them have**, and the tell is an instruction naming a plugin rather than an outcome.
+
+**Converting a count to judgement can drop the act as well as the number.** Issue #28's suggested tell was "four or more separate things that exist because of the theme word"; house style bans mechanical thresholds, so it shipped as "several". The product reviewer's objection is recorded and unresolved: the count forced an *enumeration step*, and every other check in that section is phrased as an act to perform (blur the screen, read the variable names aloud) while the theme tell is now an end-state to notice. Live question for the next pass, not a settled call.
+
+## Previous Session (2026-09-11)
 
 Re-attach ceiling re-opened (five skills over after 2026-08-20 measurement); four returned under via `unhobble-instructions`. Three defects in those passes, each in a report that read careful: a `read-summary` rule loosened, a `haiku` pointer deleted, and a house-style rule dropped as "stated elsewhere" (false off-repo). Re-confirmed: deduped machinery survives in only one copy and a repo-wide grep is the check.
 
-## Previous Session (2026-09-07)
+## Earlier Session (2026-09-07)
 
 Source #8 (ui-ux-pro-max repo): six judgements adopted, one softened, catalogs rejected (D-third-pass-on-uiux, v1.242.0). Key finding: a figure on the cited page can be the row's counter-example — read the column, not just the cell.
 

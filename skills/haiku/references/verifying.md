@@ -60,6 +60,8 @@ So after walking the original for what left, walk the rewrite for what arrived: 
 
 **Tell: the rewrite has a Files or Enforcement section fuller than the original's, and you have checked only that nothing was lost.**
 
+**A causal claim about where a value comes from arrives wearing none of those three markers, and still has to be checked.** `unhobble-instructions` rewrote a verified line — fixed thresholds for a heat-map's bands — into "config-driven thresholds", softening exact percentages to "roughly" on the strength of a mechanism it never traced. No config file held those numbers; grepping `config/*.php` for the feature found nothing, and the only same-named hits in the codebase belonged to an unrelated module. The agent's own report described the edit as routing to config as source of truth — confident and wrong. It passed because a reworded version of a line that was already there is the least suspicious shape available: no new path, no new status word, no new figure, so the arrived-content walk has nothing to catch it on. The global rule this instantiates ("an EXPLANATION is a claim too") already exists elsewhere — what this file was missing is the reminder to point it at rewrites specifically: **for every "because", "driven by", or "resolves via" a rewrite adds to a line that was merely reworded, open the thing it names** (the config file, the service method, the table) **before letting the softened wording stand.** The asymmetry is worth carrying alongside the tell: a wrong fix gets caught by the next run; a wrong explanation outlives the bug and sends the next reader to the wrong layer.
+
 ## Patching: placement, instrument, and scope
 
 **Restoring a fact into the section the agent left it in inherits that placement as correct.** Patching restores the fact in the new file's shape, and for a templated doc type "shape" is a placement question as much as a wording one. Check the destination section against that doc type's own template (`task-summary`'s `references/templates.md`, a SKILL.md's canonical layout) before writing the restoration. Measured 2026-09-11: a `current.md` restructure correctly flagged nine closed items whose detail had been compressed away under "Next Steps", and the patch correctly restored every fact — back into "Next Steps", whose template shows every canonical example as `[ ]` open work. The items were `[x]` ✅-complete and belonged in "Last Session". The loss was caught and fixed; the placement error survived the patch and needed a second pass after the user asked "but it should disappear." A fact that is true, well-worded and in the wrong section is still a defect, and the fact-survival check cannot see it.
@@ -71,3 +73,13 @@ So after walking the original for what left, walk the rewrite for what arrived: 
 ## If the user has read it, verification is done
 
 Verification exists to tell them whether to trust the result. Auditing after they've looked themselves re-answers a question they answered. If you have a real defect in hand (a dead pointer, a known-wrong fact), state it in one line and leave it with them rather than acting on it.
+
+## Your own write as baseline
+
+Two measured cases behind the pre-dispatch rule that a recent write of your own is as dangerous a baseline as a peer's.
+
+**After a failure (2026-09-01).** A re-dispatch landed while the tree still held a bad write mid-revert. The agent opened the truncated file, worked from it, and reported "no rows dropped" — true against the baseline it actually saw, and worthless as evidence about the file you think you have.
+
+**After a success (2026-09-11).** The recurring shape, and harder to catch because nothing about it feels like a correction. A four-file refresh finished Pass 1, the caller patched one thing the pass got wrong, then dispatched Pass 2. That agent had already opened the target before the patch landed, so it re-gutted a restored `<!--LLM-CONTEXT-->` block and reported honestly against its own pre-patch baseline. The same block needed restoring twice in one run.
+
+The asymmetry is why the second keeps happening: a patch applied minutes ago reads as obviously current, so the re-read feels redundant exactly when it is load-bearing. Stating the rule again does not fix it — put the post-patch counts in the next prompt as numbers the agent must check before editing, which moves the catch to the party that can still see the mismatch.
