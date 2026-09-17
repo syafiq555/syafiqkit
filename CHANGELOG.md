@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.292.0
+
+**`casual-message` shipped with a Malay register section that never mentioned pronouns, which is the strongest register signal the language has.** The skill lists particles, shortened forms and code-switching as what makes Malay read casual — all correct, and all missable in the same draft that gets the pronoun wrong. Reported within hours of 1.291.0 (#31): a casual reply to a colleague came back using `saya`, where the sender uses `aku` with peers and reserves `saya` for clients. Nothing in the draft looks wrong, because `saya` is grammatically neutral and therefore passes every check the section did describe.
+
+`## Language` now states that first and second person (`aku`/`saya`, `kau`/`awak`/`you`) track the sender's *relationship with the recipient* rather than the formality of the sentence, and routes the unknown case into the client-contact question the skill already asks rather than adding a second round — a per-sender preference is exactly the kind of thing the skill's own "register is inferred, not asked" rule carves out, since it cannot be read off the request text.
+
 ## 1.291.0
 
 **New skill `casual-message`: a reply to one named colleague is not a document, and `gchat-format` had no way to know that.** Its "settle standing before drafting" section fired correctly — audience asked before drafting, answer given — and the draft still came back fenced, with bold section headers and a formal close, for a one-line WhatsApp reply to a single person. The audience answer was technically right; the skill simply has no notion of **register**, so it only ever produces a document (#29, 167 lines with zero occurrences of register/formal/casual/whatsapp/tone/colleague, and "Google Chat" twelve times). This was already a recurrence — that standing section was itself added after a near-identical miss — which is why the fix is neither a re-wording of standing nor a second question.

@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: ✅ Two skills shipped (1.291.0) — casual-message, continue-session
+Status: ✅ Shipped and live — 1.291.0 pushed to master (134631f), both skills verified present on the remote
 Domain: plugin-maintenance
 Gotchas (critical — full list in ## Gotchas below):
   - A mid-session reload registers a skill's NAME but not its description, so it cannot auto-fire and a trigger test done then measures nothing
@@ -15,7 +15,7 @@ Last updated: 2026-09-17
 ## Quick Start (read this first in next session)
 
 **Next action**: Trigger-test both new skills in a session started AFTER 2026-09-17 — say "reply to syazwan, make it like my standard whatsapp message" and confirm `casual-message` wins over `gchat-format`; say "let's continue" and confirm `tackle` wins over `continue-session`. This cannot be done in the authoring session — a mid-session reload registers the name but not the description (first Gotcha row).
-**Current state**: 1.291.0 in both manifests. Committed as one release covering twelve versions (1.280.0–1.291.0) accumulated across several sessions, not just this work.
+**Current state**: Live. `134631f` on `origin/master`; `git show origin/master:.claude-plugin/plugin.json` reads 1.291.0 and both manifests agree there. One release covering twelve versions (1.280.0–1.291.0) accumulated across several sessions. Consumers pick it up with `claude plugin update syafiqkit@syafiqkit`.
 **Success looks like**: Each of the four phrasings routes to the intended skill, and issues #29/#30 close by hand.
 
 ## Overview

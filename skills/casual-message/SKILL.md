@@ -46,6 +46,8 @@ Match the language already in use — the user's draft, the thread, or how they 
 
 Casual Malay has its own register, and it is not formal Malay made shorter: particles (`lah`, `kot`, `je`, `eh`), shortened forms (`x` for `tak`, `dgn`, `tu`/`ni`), and English loanwords mid-sentence are what make it read as a person texting. A grammatically correct formal Malay sentence, trimmed, still reads like a letter. The same holds for Manglish — if the user's own messages code-switch, the reply should.
 
+**Pronouns carry more register than any of those, and `saya` is the one that slips through.** First and second person (`aku`/`saya`, `kau`/`awak`/`you`) track the sender's relationship with the recipient rather than the formality of the sentence, so `saya` to a peer reads as distance even in a message that is casual everywhere else — and because it is grammatically neutral, nothing about the draft looks wrong. Many senders use `aku` with colleagues and `saya` only with clients. Take it from the thread or the sender's own draft where either exists; where neither does, it is a per-sender preference you cannot infer, so ask — alongside the client-contact question above, not as a second round.
+
 ## Syntax
 
 `*bold*`, `_italic_`, `~strike~`, bullets and links are the same characters on WhatsApp as in Google Chat — WhatsApp renders this markdown natively, which is why one skill covers both destinations.
