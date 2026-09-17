@@ -346,3 +346,11 @@ Found while surveying: `update-claude-docs` had no ownership handling at all, wh
 
 **Status**: committed · **Reversible**: yes
 
+### D-emission-rule-goes-last
+
+| Decision | Rationale |
+|---|---|
+| `done`'s one-message emission rule is stated ONCE, as the last thing in Step 1 before the dispatch — not before the partition material | Five recorded failures, every prior fix a move or a re-wording while leaving the rule ahead of ~40 lines of ownership and prompting content. The failure mode is consistent and is not comprehension: sessions read it correctly and then compose the dispatch from memory after the partition reasoning has absorbed attention. Position at the moment of the act is the only lever left short of a hook, and a hook is wrong here — the rule must fire once per `/done` Step 1, whereas the available events (`SessionStart`) fire far too early. The earlier mention is cut to a forward pointer so the concept is asserted once; two statements of one rule was itself part of the problem, since the first read as the authoritative one and licensed skipping the second |
+| The re-anchor added by an earlier fix is treated as evidence, not as a failure of that fix | It was absorbed by a later condense pass — the same "a pass that inlines a fact takes the pointer with it" pattern this CHANGELOG already records about four other files. A one-line re-anchor is structurally fragile against condensing because it reads as redundant with the rule it anchors. Making the rule's ONLY home the dispatch point removes the thing a condense pass would delete |
+
+**Status**: committed · **Reversible**: yes

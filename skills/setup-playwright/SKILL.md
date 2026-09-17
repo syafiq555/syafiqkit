@@ -97,6 +97,8 @@ Building that state by hand means reading what the app actually persists rather 
 
 Cap the setup project's parallelism (`fullyParallel: false` on that project — `workers` is not a per-project option) so a cold start doesn't burst.
 
+⚠️ **Caching the state and still paying for it every run is the common end state — `dependencies: [setup]` re-runs the whole setup project whether or not the cached state is fresh.** So a suite built exactly as above, with `storageState` correctly written and reused, still re-authenticates every identity × every worker before a single test starts, and the cost scales with both. Measured: one spec file took **70 s with the dependency and 7 s with `--no-deps`**, the entire difference being logins re-establishing sessions that were already valid. Nothing looks wrong — the run passes, just slowly — so it gets absorbed as "E2E is slow" and silently taxes every verification loop in a session, which is what makes a session stop verifying. When iterating, run with `--no-deps` and drop it when auth genuinely changed (a seeded reset, an expired token, a login failing at the app layer) or when a failure implicates the session rather than the diff. **Tell: you are waiting on a login you already have on disk.**
+
 ### Environment and browser drift
 
 The signature: "works on my machine," with no data race, no missing fixture, and no throttle — the three checks above all come back clean.

@@ -6,6 +6,7 @@ Related:
   - ../doc-condensation/current.md (sibling feature — fighting duplication/bloat across docs, CLAUDE.md, skills)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../output-style-hook/current.md (sibling feature — the SessionStart hook; shares the verify-the-agent's-report problem)
+  - ../skill-authoring/current.md (sibling feature — creating and scoping skills; where issue #27 was finally closed)
 Last updated: 2026-08-26 (v1.211.0). Session-by-session history lives in `## Last Session` and the ADRs it cites, not here. Key incidents: issue #27 (named agents don't return reports), issue #24 (contested-file guard placement), D-agent-may-not-redelegate (tool grants in comments), D-verify-by-definition-not-by-string (template parity checks).
 -->
 

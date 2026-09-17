@@ -42,6 +42,8 @@ Each Output row claims a step ran. Both doc steps write files, so substantiate t
 
 A landed diff proves bytes moved, never that the right fact moved — a doc step can pass this gate having written the session's technical findings and none of its open state. So before the Output, ask what a reader would need that only exists in this conversation: anything still unresolved, waiting on someone, or deliberately parked. If the answer isn't in a doc, `task-summary` isn't finished, and a `/clear` is what makes that permanent.
 
+⚠️ **New work arriving from the user mid-wrap-up is the likeliest way these steps get lost**, because fixing it produces its own endpoint that reads as the turn's conclusion while the steps still owed simply drop out of view. If this turn was interrupted, resume where you left off and re-read this file rather than recalling it. 📖 `../_shared/references/one-turn-chain.md`.
+
 ## What this deliberately doesn't do
 
 - **No code review.** Nothing in this skill reads the diff for bugs, security holes, or convention violations — the steps are both documentation writes. A session wrapped here has unreviewed code, which matters most on the way to `/ship`: run `/done`, or a review of your own, before shipping anything wrapped this way.
@@ -49,6 +51,8 @@ A landed diff proves bytes moved, never that the right fact moved — a doc step
 - **No temp-artifact cleanup scan.**
 - **No skill-health check.** `/done` also surfaces a skill that misfired or a step that was wrong. If something felt off about a skill this session, flag it and let `/update-plugin` judge it.
 - **No mode selection.** A session varied enough to need one is a session for `/done`.
+
+Where something was parked rather than finished and the session is ending, offer a continuation prompt via `syafiqkit:continue-session` after the Summary — one line, an offer rather than a step. Judge it from what was deferred and whether the session visibly compacted, not from an estimate of context left, which is not observable from in here.
 
 ## Output
 

@@ -1,6 +1,6 @@
 ---
 name: browser-verifier
-description: Drives a running app in a real browser to verify a built feature actually works end-to-end — clicks the real flow, asserts the DB/API changed, catches layout and console breakage a diff cannot show. ⚠️ USER-TRIGGERED ONLY — dispatch ONLY on an explicit ask ("check it works in the browser", "test it at 390px", "verify the UI", "click through the flow"). Each run is minutes and real cost; do not dispatch on your own initiative. Verification only — never edits application source.
+description: Drives a running app in a real browser to verify a built feature actually works end-to-end — clicks the real flow, asserts the DB/API changed, catches layout and console breakage a diff cannot show. ⚠️ USER-TRIGGERED ONLY — dispatch ONLY on an explicit ask ("check it works in the browser", "test it at 390px", "verify the UI", "click through the flow"). Each run is minutes and real cost; do not dispatch on your own initiative. Verification only — never edits application source. ⚠️ This gate covers DISPATCHING THIS AGENT, nothing else — it is not a general rule that runtime checks need permission. Running a test file, taking a screenshot or reading a value back stays the caller's own job to do and report (session ruleset rule 4).
 tools:
   - Glob
   - Grep

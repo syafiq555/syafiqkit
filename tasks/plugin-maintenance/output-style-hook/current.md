@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: Shipped (v1.163.0, pushed 2c3239d); ruleset rebuilt on a numbered spine 2026-09-14 (v1.278.0, uncommitted) — injection verified; adherence MEASURED 2026-09-14 at 70% rule-10 failure across ten transcripts, rules 5/10 and the style carve-out rewritten in response
+Status: Shipped (v1.163.0, pushed 2c3239d); ruleset rebuilt on a numbered spine 2026-09-14, reordered 2026-09-15 so the most-failed rule leads (both committed in 1.291.0) — injection verified; adherence MEASURED at 70% across ten transcripts (2026-09-14) and 84% on an eleventh (2026-09-15), the worst yet and on a session that received the current file. Four wording/position passes have not moved it; `{#rule-placement}` says the carrier is the binding constraint, and the `UserPromptSubmit` row is empty
 Domain: plugin-maintenance/output-style-hook
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
@@ -94,7 +94,9 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 **Verification**
 - ✅ Injection confirmed 2026-08-17 — a `SessionStart:clear` in a subsequent session delivered `RULESET.md` in full as hook output
 - ✅ Adherence measured 2026-09-14 from outside the sessions, by parsing ten transcript `.jsonl` files: **174 of 249 assistant turns (70%) opened by narrating planning state instead of answering.** Per-session rate tracks length, not topic — 0% at 6 turns, 61% at 23, 73% at 93, 90% at 114, 100% at 26. This is the first evidence of adherence the item below had been open for since 2026-08-17, and it answers it in the negative
-- Confirm the ruleset is actually *followed*, judged from outside the session that read it — a session grading its own output shape is not evidence. The numbered spine makes this cheaper to judge than prose did: name the rule number that was broken rather than arguing about tone
+- ✅ Re-measured 2026-09-15 on an eleventh transcript, a 196-turn session whose line-5 `SessionStart:startup` hook success carries this file's own text: **166 of 196 turns (84%)** opened with a banned string. The openers converged from paraphrase (`I'll start by`, `the honest list of what I still need`) to the literal `What I need next:` header and then held for the rest of the session. This is the highest rate yet recorded and lands *above* the 70% that prompted the 2026-09-14 rewrite
+- Confirm the ruleset is actually *followed*, judged from outside the session that read it — a session grading its own output shape is not evidence. **Still open**, and the 2026-09-15 reorder does not close it: `SessionStart` fires at turn 0 while the failure is measured at turn 23+, so moving a rule within a once-injected payload cannot reach the moment it fails. Judge any future pass against the 84% baseline
+- **Decide the carrier before attempting a fifth wording pass.** `CLAUDE.md` `{#rule-placement}` puts a rule that must hold every turn in a `UserPromptSubmit` hook — the only mechanism the harness executes per-turn rather than the model choosing to recall — and nothing currently occupies that row. Four passes have now moved rule 10's wording or position (`6b84490` → `2c3239d` → `8cab34e` → 2026-09-15) and the measured rate rose across them; a fifth is the same experiment
 - Re-check rule survival after any future pass — count to ten, count seven exceptions. This is the check the four prior cycles had no way to run
 - Observe missing-file behaviour end-to-end (rename `RULESET.md`, start a session) rather than inferring it from `cat` exiting 1 plus a documented exit-code table
 
@@ -103,6 +105,14 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 - Off-switch — only if a colleague asks, and it reopens D-no-off-switch rather than patching around it
 
 ---
+
+## Last Session (2026-09-15)
+
+Re-measured adherence on an eleventh transcript and got 84% — the worst rate yet, on a session that provably received the current file. Reordered the ruleset so the most-failed rule sits first: rule 10 became rule 1, the other nine renumbered, via `condense-claude-md` (8295 → 7786 bytes). Three defects followed from that pass and were fixed by hand: it deleted rule 5's "same rule seen from two ends" sentence as a dead cross-reference when the renumber made it fixable; it dropped the 70/100/0 measured figures while keeping the "the failure is measurable" claim they supported; and it renumbered without sweeping citations, leaving the Exceptions section's decision-first carve-out pointing at rule 1 when it means rule 2. Restored all three, and folded the 84% into the evidence paragraph. Final: 61 lines, rules 1–10 intact, seven exceptions, both `rule N` citations verified against what the numbers now name.
+
+A ten-turn `claude -p --resume` chain confirmed the probe mechanism works but proved nothing about adherence — ten turns tests the regime where this file already scores 0%. The failure is recall decay past turn ~23; a short scripted chain cannot reach it.
+
+Not committed. The reorder is attempt four at the same rule and the doc does not claim it will move the number — see Next Steps on deciding the carrier.
 
 ## Last Session (2026-09-14)
 

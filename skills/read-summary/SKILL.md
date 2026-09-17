@@ -11,6 +11,8 @@ When scope changes — a new domain enters mid-conversation, a second repo touch
 
 Before writing to a doc, one `ListAgents` call shows whether another session is live and might be editing the same `current.md`. Presence alone doesn't say which checkout they're in, so it narrows the question rather than settling it — 📖 `../_shared/references/cross-session-messaging.md` covers what a peer's presence does and doesn't tell you.
 
+⚠️ **A live peer also makes `git stash` unsafe for the whole session that follows, and that rule lives only in references the implementing skills never open.** The ban is written down thoroughly (📖 `../_shared/references/diff-ownership.md`), but it is reachable only from wrap-up and doc skills — so a session that reads docs, then builds for two hours, meets the command with nothing loaded. Hold the operative half here, where a session starts: **`git stash` answers no QUESTION.** Whatever a stash is being reached for — what a file used to contain, whether a failure predates your edits, which session wrote a line — is answered by `git show HEAD:<path>`, `git diff HEAD -- <path>`, `git log -S`, or a second worktree at HEAD, none of which move a byte. Reserve it for a merge that genuinely needs one path parked. Note `--keep-index` is not the careful variant it appears to be: it protects your staged copies while still taking every *unstaged* file in the tree, which on a shared checkout is exactly a peer's in-flight work plus any of your own edits made since the last auto-stage. **Tell: you are about to stash for any reason other than an in-progress merge.**
+
 ---
 
 ## Discovery: Finding the Right Doc {#finding-docs}

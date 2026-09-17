@@ -54,7 +54,7 @@ Judge file ownership by diff *content*, since the harness auto-stages your own w
 
 Read 📖 `${CLAUDE_SKILL_DIR}/references/owner-and-partition.md` for the ownership decision process and contested-file handling.
 
-Emit all agents in **ONE message**, opening with the first `Agent` call. No prose before the dispatch — narration serializes the starts and delays reports. Introduce *after* the last call.
+All agents go out in **ONE message** — the shape rule is restated at the dispatch itself, below, because that is where it has repeatedly failed.
 
 ### Agents to run
 
@@ -79,6 +79,8 @@ Glob: .claude/agents/product-reviewer.md
 
 Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`, then read 📖 `${CLAUDE_SKILL_DIR}/references/emission-and-agent-counts.md` for the scaling table, partitioning rules, and what each agent prompt needs. The guide covers all role-specific prompting and how to supply high-value details (unsure judgement calls, what you've already verified, what you didn't check).
 
+**Now dispatch — and this is the message the one-message rule governs.** Everything above was preparation; what you write next is the batch. Your first token is an `Agent` call, not a sentence about `Agent` calls: whatever you were about to say (which agent gets which files, what you already verified) goes in the message *after* the last call, or it goes in the partition message *before* this one. This paragraph is last on purpose — the rule has now failed seven recorded times, every one of them a session that read it correctly ~40 lines earlier and then composed the dispatch from memory once the partition reasoning had absorbed its attention (2026-09-17 is the latest; the sixth and seventh both came after this paragraph was moved here for exactly this reason, which is why 1.288.0 ruled that restating it again makes it less followed, not more). **Tell: you are writing a sentence and the next thing after it is an `Agent` call.**
+
 **While they run:** Start the verification agenda below — reading agent blind spots, preparing your re-reads of git state, deciding output structure. Don't duplicate the agents' work by previewing changes in parallel; that destroys the check that makes delegation safe. 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/explore-delegation.md`
 
 **After all agents complete:**
@@ -92,6 +94,8 @@ Cross-agent findings (agent A's result needs a change in agent B's file) are app
 ## Step 2: Clean up temp code
 
 Scan the session for temporary artifacts — debug UI, logging, commented-out migration code — and remove or ask before keeping. Skip if none found.
+
+⚠️ **A component published to a design system has a second home, and editing the first one silently retires the copy everyone else builds against.** Where a repo mirrors components out to a published system (Claude Design, a Storybook deploy, a released package), the source file is the only one your diff, your tests and your reviewers can see; the published copy keeps serving the version it was last built from, and nothing errors — designs and downstream consumers keep rendering, just from code that no longer exists here. The drift is therefore invisible at exactly the moment it is created, and it compounds per session. Establish whether the files you touched are mirrored (the sync's own config or build manifest enumerates them — that list is the authority, never the directory name), and when they are, say so in Output with the count and offer the re-sync rather than running it: a sync is long, it publishes, and whether it happens now is the user's call. Measured 2026-09-16: eleven mirrored files across four published components were edited and committed while the published system still served the prior build. **Tell: you are wrapping up a session whose diff touched a component directory, and you have not checked whether anything republishes it.**
 
 ## Steps 3 + 4: Capture Knowledge + Update Task Docs (sequential — Step 3, then Step 4)
 
@@ -141,9 +145,13 @@ Second, is anything the user must decide placed first in Output? Open questions 
 
 **Six rows to fill reads as thorough and makes skipping this check likelier.** Measured 2026-08-28: `/done` wrote a decision block and stopped while a sequencing plan stayed in the conversation; the next `/quick-done` caught it. Structure that looks complete is not evidence a check ran.
 
+⚠️ **If new work arrived from the user while this skill was running, the wrap-up is the thing most likely to have been lost — and nothing will remind you.** A bug report mid-`/done` is real and urgent, so attending to it is right; what makes it costly is that fixing it produces its own endpoint (tests green, a screenshot) which then gets written up as the turn's conclusion, because at that moment it is the only outstanding thing in view. The steps still owed are not contradicted by anything — they are simply no longer present, having entered context before several rounds of file edits. Measured 2026-09-17: five interrupting reports landed during a `/done`; all five were fixed and verified, and the reply that followed carried no Knowledge, Task-docs or Plugin row and never mentioned `/done` had run. **Before writing Output, ask whether this turn was interrupted; if it was, resume at the step you left and re-read this file rather than recalling it.** 📖 `../_shared/references/one-turn-chain.md` for the involuntary-severance cases and why an honest summary of the remaining step still evades every guard.
+
 ## Output
 
 Lead with what the user has to decide; report what was built underneath it. Group by **what was built** (features/changes), not by workflow step (agents/skills). Read 📖 `${CLAUDE_SKILL_DIR}/references/output-structure-rules.md` for the full structure, ordering rules, and template.
+
+**Where the session is ending with work deferred rather than finished** — something parked for lack of room, an explicit "next session", or a visible compaction — offer a continuation prompt via `syafiqkit:continue-session` after the Summary. One line; it's an offer, not a step. Don't estimate your remaining context to decide: that number is unmeasurable from the inside, and the signals above are observable without it.
 
 **Quick rules:**
 - One open question: `AskUserQuestion`. Two or more: `## Decisions`.

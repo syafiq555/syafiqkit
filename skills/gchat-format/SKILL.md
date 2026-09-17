@@ -7,7 +7,9 @@ description: >
   in Google Chat, or says anything like "format this for Google Chat", "convert to
   Google Chat", "post this in Chat", "gchat format", or "make this Chat-friendly".
   Google Chat has a limited, non-standard subset of Markdown -- this skill ensures
-  correct output every time.
+  correct output every time. NOT for composing a message in the sender's own voice
+  to a named person or small group -- a WhatsApp reply, a quick DM, "tell X that..."
+  -- even when the destination is Google Chat: that's `casual-message`.
 ---
 
 # Google Chat Formatter
@@ -21,6 +23,12 @@ A Chat message lands in a thread with an existing power structure, and the draft
 The common case is a vendor or support engineer answering into a **customer's** internal thread. There, the participants are coordinating among themselves and the sender is a guest: state what the product does and what was found, then leave the decision with them, and where a fix touches their data or their tenant, offer rather than direct. Reverse the posture and it reads as the vendor running their operations.
 
 Ask who the participants are to the sender before drafting, not after a rejected draft. A draft that tells a named person on the other side what to do, or ends with a summary block closing out their conversation, has the standing wrong.
+
+## Is this a document, or a message in your own voice?
+
+Settling standing answers who receives this. It does not answer how dressed-up it should be, and those are different axes — conflating them is why this section exists. A correct "client" audience answer still produced a fenced, headed, formally-closed draft for a one-line reply to a single named colleague, and the shape was the thing that was wrong.
+
+If the ask is "reply to X", "tell Y that…", or a message in the sender's own words to a named person, that's `casual-message`, not this skill. Hand off **before** drafting rather than after producing a document that gets rejected. This skill's shape — fence, bold headers, structured bullets, formal close — is for something that exists independently of who reads it.
 
 ## Release notes: shape the content BEFORE formatting
 

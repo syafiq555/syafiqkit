@@ -120,7 +120,7 @@ If tightening lands during this session, bump the plugin version + CHANGELOG per
 
 Apply the most targeted edit for the kind of change:
 
-- **Trigger description** — name the words users say, artifacts they mention, edge cases. It carries routing vocabulary: a boundary clause sends a near-miss to the right skill.
+- **Trigger description** — name the words users say, artifacts they mention, edge cases. It carries routing vocabulary: a boundary clause sends a near-miss to the right skill. Widening one is a claim about every other trigger, so read the `description:` of the adjacent skills before adding vocabulary rather than grepping for your own words — a sibling that overlaps usually claims the *category* term, which your grep never searches (`tackle` owning "continuation" against a new `continue-session`, 2026-09-17). Where the ground is genuinely shared, the boundary clause belongs in **both** descriptions; one side deferring leaves the other still claiming it.
 - **Workflow rule** — goes into the most relevant existing section; don't spin up a new section for one rule. State the general principle, not a retelling. A marker (`⚠️`, bold, `**Tell:**`) belongs only when the risk is silent or irreversible. These files ship publicly, so examples must generalize to the mechanism's layer, not name exact paths users can't run. Per 📖 **`../_shared/references/consumer-portability.md`**.
 - **A rule moved out of a reference and inlined** — place it where that skill acts, not where it explains. A skill with both a rules list and numbered steps will have readers walk the steps and never return to the list.
 - **Architecture decision** — append to `decisions/*.md` as `Decision | Rationale`, and make the rationale explain why.
