@@ -22,6 +22,8 @@ Parallel fleet scan of every `tasks/<domain>/*/current.md` to find subsystem ove
 
 Delegate to `Explore`: list every `tasks/<domain>/<feature>/current.md`, plus `_archive/`, flat `tasks/<domain>/<feature>.md`, and `decisions/*.md` siblings, grouped by domain. Raw paths only, per `../_shared/references/explore-delegation.md`.
 
+⚠️ **Take the domain list yourself before batching** — `ls -d tasks/*/` costs one call and is the only authority for what exists. The inventory agent's output is what you batch FROM, so a domain it omits is never assigned, never reported on, and never missed by any downstream check; Step 4's control then reconciles the batches against the same short list and confirms a sweep that never happened.
+
 ### Step 2 — Fan out verification + candidate-finding
 
 Split the domain list into N batches (aim for ≤6 domains per batch so each agent's context stays light) and dispatch one `Explore` agent per batch (one-message parallelism rule: `../_shared/references/explore-delegation.md`). A read-only sweep has no file-partition conflict, so fan out freely here.
@@ -58,7 +60,7 @@ Don't merge inline. For each confirmed group, invoke `merge-task-docs` (Skill to
 
 **Zero confirmed groups is a claim about the sweep, not about the tree — worth proving the sweep could have returned something before accepting it.** An all-`keep separate` result and a sweep that silently failed produce the identical Step 3 summary line ("N pairs checked, correctly separated"), and that line reads to the user as a verified all-clear either way. Because the verdicts are delegated (Step 2), any batch agent that mis-scoped its `ls`, read the wrong domain dirs, or returned an empty table contributes zeroes that compile into a confident N indistinguishable from a genuine clean sweep. Before terminating on zero, confirm all three:
 
-1. **N reconciles with the Step 1 inventory** — every domain dir appears in some batch's report; a domain silently absent is a failed batch, not a clean one.
+1. **N reconciles against the TREE, not the Step 1 inventory** — re-list the domain dirs yourself (`ls -d tasks/*/`) and diff that set against the union of what the batches reported. Step 1 is itself a delegated call, so an inventory that silently drops a domain propagates into the batch assignments and every later check: the batches then reconcile perfectly against a short list and the control passes clean. Measured 2026-09-17: an inventory returned 20 of 22 domains, omitting `ui/` (13 docs) and `ticket/` (1); four batches reported no drift, and the only surviving merge candidate in the whole sweep was in the domain that was never assigned. A domain absent from the batches is a failed sweep whether or not it was ever on the list.
 2. **At least one batch returned a non-trivial `keep separate` verdict with a stated reason** — a batch whose every row is bare "no overlap" never read the docs.
 3. **Spot-check one `keep separate` pair yourself** — Step 2's own note calls every batch verdict provisional; that spot-check is what makes the zero-candidate exit trustworthy, and it's the only path where no candidate forces you to look at a doc.
 

@@ -6,6 +6,8 @@ description: >
 
 # Unhobble Instructions
 
+Fewest tokens for the same or better meaning, never fewer at the cost of meaning (📖 `../_shared/references/writing-style.md`). A rewrite that reads tighter but silently reversed a rule's actual guidance, or trimmed away the evidence that made a "Tell:" checkable, is not an improvement. Meaning is conserved; form is free — but conserved means checked, not assumed.
+
 **Read the target whole, decide what shape it should have, and rewrite it.** The deliverable is the edited file. A run ending in findings, a strategy or an estimated cut has not done the job however good the analysis — two live runs stopped there and left the target byte-identical. If you reach the end holding a plan, execute it.
 
 ## What This Is Not

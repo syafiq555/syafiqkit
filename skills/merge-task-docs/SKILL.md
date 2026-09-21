@@ -45,7 +45,7 @@ Present a table to the user before writing:
 Also list what stays standalone and why. Confirm via `AskUserQuestion` as three separate forks, each raised at the point the merge plan reveals it — not bundled into one flat "does this look right?":
 
 1. **Scope** — does the proposed grouping match the user's intent? If the user requests a different grouping against the subsystem test, pause and confirm tradeoffs rather than silently complying.
-2. **Structure** — if merged docs would exceed 300 lines combined, choose between: condense aggressively (if bloat exists) or split into index + `decisions/<theme>.md` theme files (if facts are dense and neither source is verbose). Decide before writing either.
+2. **Structure** — if merged docs would exceed 300 lines OR ~15KB combined (check both; a MADR-heavy pair can clear the line budget while running dense), choose between: condense aggressively (if bloat exists) or split into index + `decisions/<theme>.md` theme files (if facts are dense and neither source is verbose). Decide before writing either.
 3. **Naming** — if the merge changes canonical paths, ask explicitly for the merged doc's name rather than assuming the richest source doc's path.
 
 Each decision needs a recommended option so the user can accept by default. Don't proceed without confirmation.
@@ -66,7 +66,7 @@ For each merge group:
 4. **Write the merged doc** matching `templates.md`: LLM-CONTEXT (`Status`, `Domain`, `Related`, `Last updated`), Quick Start, Overview, Architecture, Files, Task Status, Key Technical Decisions, Critical Gotchas, Next Steps, Last Session. Regroup multi-doc Next Steps by kind of work (task-summary template), not by source doc. Strip `<content>` tags from `Read` results before writing.
 5. **Merge sections without duplication** — one Gotchas table, one Files map, never per-doc subsections. Absorb rows from both sources.
 6. **Last Session** notes the merge. Check if any source doc is contested (a peer's uncommitted work) — fold contested sections into typed sections instead of collapsing them. Don't preserve both docs' Last Session entries where uncontested.
-7. **Size check before writing** — measure source docs' line counts. If the sum + 10% padding exceeds 300, decide: condense (if bloat exists) or split structurally (if facts are dense and neither is verbose).
+7. **Size check before writing** — measure source docs' line AND byte counts (`wc -lc`). If the line sum + 10% padding exceeds 300, or the byte sum exceeds ~15KB even under that line count, decide: condense (if bloat exists) or split structurally (if facts are dense and neither is verbose).
    - **Condense**: collapse completed Task Status rows, trim Files to living map, cut Gotchas to rule+symptom. Structure stays flat.
    - **Structural split**: use `task-summary/references/decision-splits.md` pattern. Index keeps Quick Start + doc-wide operational tables + routing table. `Task Status`, `Bugs Fixed`, `Critical Gotchas`, `Next Steps` stay in index (scoped to cross-cutting items). `Next Steps` includes one-line entries pointing to theme files (so readers don't open four files for status). Add 3–5 `decisions/<theme>.md` theme files, each self-contained with own LLM-CONTEXT and `Related:` pointer back to index.
 

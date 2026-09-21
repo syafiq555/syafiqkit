@@ -76,6 +76,8 @@ A populated, working interface is what gets reviewed. What it looks like while l
 
 ## Look at the Picture
 
+⚠️ **When SEVERAL images arrive with a positional reference ("this one", "the second"), resolve which surface is meant before doing any work, and say which you resolved it to.** The pointer attaches to whatever is most salient to you, which is normally the surface you worked on last — the one your own shape has already formed around. An image set with one instruction per image is the common carrier. Cheap to confirm in a line; expensive to discover after the work, since a full pass on the wrong screen looks like a completed pass. 📖 `../design-handoff/SKILL.md` carries the worked case (a brief written for the wrong screenshot, caught three turns later).
+
 When a screenshot arrives, read it as a rendered interface *separately* from whatever question came with it. Even when the question is about a bug, an API, or a query — not about UI at all — scan the image for overflow, collision, misalignment, inconsistent spacing, truncation, contrast. This applies even when nobody has called it a UI problem, because visual defects hide themselves inside technical questions.
 
 Answer what was asked first, then note what else you saw and offer to fix it; don't silently widen scope. "Your slider timeout question — here's the fix. I also spotted the image overflowing its container and the title text colliding with it; want me to address those too?" beats silently fixing the layout and reporting it back.

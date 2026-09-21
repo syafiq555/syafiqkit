@@ -21,6 +21,21 @@ comes out carrying that shape. It reads as thoroughness. What it actually does i
 designer's judgement on ratifying yours, and it arrives with enough authority that a junior
 designer will not push back on it.
 
+⚠️ **Settle WHICH surface first, in one line, whenever the request arrives with more than one
+candidate in view.** A brief is long and researched, so an excellent one for the wrong screen
+absorbs the whole effort and the error surfaces only when the designer answers about something
+else. The dangerous shape is an image set with a positional reference — "this one needs a
+rethink" beside several screenshots, or a reply covering three surfaces where only one is the
+ask — because the pointer resolves against whatever is most salient to you rather than what
+the user indicated. Salience is the trap: the surface you most recently worked on wins, which
+is exactly the one your own shape has already formed around. Measured 2026-09-20: "image 1
+needs a uiux rethink" with three attached screenshots was read as the second image; a full
+brief went out for the wrong screen and the mistake surfaced three turns later, mid-scoping.
+Name the surface and its file path back to the user as the first line of your reply, and where
+the request reached you through a positional reference to attachments, say which attachment you
+resolved it to. **Tell: more than one screen is in play and you are starting research without
+having named the target.**
+
 ## Withhold the design, ship the constraints
 
 The line is not "avoid UI words". It is **who decides**.
@@ -103,6 +118,34 @@ tool are different shapes. For Google Chat, `gchat-format` owns the syntax.
 Keep the brief to what a person will actually read. Lead with what the screen is for; put the
 measured failures where they cannot be skipped. End by offering the material you held back —
 prior artboards, extra screenshots, the full doc — rather than pre-emptively attaching all of it.
+
+**When the destination is a project filesystem rather than a person**, that last rule inverts: a
+designer opening a project reads what is in it, and material you held back to offer is material
+they never see. Write the reference files too, split by what each answers — the brief, the assets
+and links, the source material in its own voice — so a reader lands on the one they need instead
+of scrolling one long file. Check what the project already contains before writing, since these
+tools seed a new project from whichever system was last active and the inherited one may belong
+to a different product.
+
+⚠️ **Writing those files is not delivering the handoff, and it is the most convincing substitute
+for it.** The person asked for something to *send* — the trigger's own first phrase is "give me
+the prompt" — and files written into a project are addressed to the designer, not to them. Ending
+on a report of what you wrote leaves them holding nothing to paste, and it reads as completion
+because the research is real and the files are good, so nothing signals the gap; a session ended
+this way twice on one task before the user said "i dont see the prompt?". Where the destination
+has a filesystem, **both** artefacts are owed: the files in the project, and the short prompt that
+points at them. Keep the prompt to what the files do not already carry — once the brief opens with
+the ask and names its own siblings, the prompt is a few lines, and padding it back into a summary
+of the brief is the same failure wearing the opposite face. **Tell: your closing message describes
+files you wrote rather than giving the user words to send.**
+
+Verify the destination's own facts before citing them. A URL you constructed rather than copied
+from a live page is the common defect: it looks authoritative in a brief and sends the designer
+to a 404, and a fetch tool will answer a question *about* a page that does not exist by assembling
+the answer from elsewhere, so the content reads correct while the address is wrong. Check with
+`curl -sL -o /dev/null -w '%{http_code}' '<url>'` before citing it — 📖
+`../haiku/references/verifying-research.md` for why a fetch's success is never evidence the
+address was real.
 
 ## After
 

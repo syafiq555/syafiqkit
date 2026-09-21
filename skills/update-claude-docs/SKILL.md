@@ -5,6 +5,8 @@ description: Create, rewrite, condense, or capture-into CLAUDE.md files followin
 
 # Update CLAUDE.md
 
+Across every mode: fewest tokens for the same or better meaning, never fewer at the cost of meaning (📖 `../_shared/references/writing-style.md`). A capture that duplicates an existing fact, a rewrite that condenses away a caveat, or a restructure that moves content without confirming the new location actually holds it, is not progress.
+
 The single manager for CLAUDE.md files — the analog of `task-summary` for `current.md`. Four modes; pick the one matching how it was invoked.
 
 ## Mode selection (decide first)

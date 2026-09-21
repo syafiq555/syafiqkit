@@ -21,7 +21,7 @@ A reader not told the command can work one out; they cannot recover from a confi
 
 ### Shape by signal type
 
-On first capture, default to plain statement-of-fact prose — no `⚠️` callout, no trigger phrases, no prescribed sequences. Reserve the imperative shape (`**Never X**`) for the "Violations → Escalate" path, after a rule has already been violated. An entry that came out as `**Never X**` plus a parenthetical carve-out is the imperative shape reasserting itself where prose was cleaner; that shape signals a repeat violation, not a first discovery.
+On first capture, default to plain statement-of-fact prose — no trigger phrases, no prescribed sequences. Never write `⚠️` into any entry, at any refinement stage — lead with the bolded claim itself; the mechanism-plus-Tell shape carries the weight the emoji would have decorated. Reserve the imperative shape (`**Never X**`) for the "Violations → Escalate" path, after a rule has already been violated. An entry that came out as `**Never X**` plus a parenthetical carve-out is the imperative shape reasserting itself where prose was cleaner; that shape signals a repeat violation, not a first discovery.
 
 - **Gotchas / Guidance**: apply the test above.
 - **Behavioral corrections**: the same test applies — if the correction is "you reached for the wrong thing, here's why", that's reasoning and belongs in prose. `❌ NEVER | ✅ ALWAYS` earns its place when the correction is a bare swap with no reasoning worth stating (this command, not that one). Either way, compare against specific past actions rather than general principles.

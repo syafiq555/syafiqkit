@@ -55,7 +55,7 @@ Before inventorying, check each file for concurrent work: Run `git diff HEAD -- 
 
 For each file path provided:
 1. Read the file — task-doc branch: the index **and every `decisions/*.md` sibling**
-2. Run `wc -l` to get current line count. Task-doc branch: measure the SET (`find <doc-dir> -name '*.md' | xargs cat | wc -lc`), since an index measured alone reads healthy while the feature's docs are the real problem. Use `find`, not a `decisions/*.md` glob — an unsplit doc has no such directory and zsh aborts on the unmatched glob, reporting 0
+2. Run `wc -lc` to get current line AND byte counts — line count alone reads a dense file as healthy while bytes climb past budget. Task-doc branch: measure the SET (`find <doc-dir> -name '*.md' | xargs cat | wc -lc`), since an index measured alone reads healthy while the feature's docs are the real problem. Use `find`, not a `decisions/*.md` glob — an unsplit doc has no such directory and zsh aborts on the unmatched glob, reporting 0
 3. Read root `CLAUDE.md` as the authoritative reference for CLAUDE.md-branch items
 
 ### 3. Never-remove facts
@@ -125,7 +125,7 @@ This liveness check is the agent's distinctive value — neither condense skill 
 
 ### 6. Apply changes
 
-Edit surgically rather than rewriting whole files — use the `Edit` tool for each removal, since a full-file rewrite risks losing content this pass never intended to touch. After edits, run `wc -l` and report before/after. Task-doc branch: report the SET, and name which sibling files you touched.
+Edit surgically rather than rewriting whole files — use the `Edit` tool for each removal, since a full-file rewrite risks losing content this pass never intended to touch. After edits, run `wc -lc` and report before/after — the same two counts taken at inventory, so the comparison is apples to apples. Task-doc branch: report the SET, and name which sibling files you touched.
 
 ### 7. Report
 

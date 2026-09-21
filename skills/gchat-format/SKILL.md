@@ -32,6 +32,8 @@ If the ask is "reply to X", "tell Y that…", or a message in the sender's own w
 
 ## Release notes: shape the content BEFORE formatting
 
+⚠️ **Where the note is going has usually answered the shape question already, and the answer is one read away.** A destination that has carried release notes before — a tracker list, a Chat space, a wiki page — holds dozens of prior entries establishing length, structure and voice, and those override every default in this section, including its own bias toward brevity. Nothing prompts you to look: the request arrives as "format this", the source changelog is in hand, and drafting from it feels like the whole job. Measured 2026-09-21 — a note was condensed hard and rejected, while the destination list's 68 existing entries were each verbatim from the changelog with the date headings intact; one read of the most recent would have settled it before the first draft. The prior entries are the strongest calibration available and cost one read. **Open the latest entry at the destination before drafting, and match what it does.** **Tell: you are about to draft for a destination whose existing entries you have not opened.**
+
 When the input is a **release note / deployment announcement** (not already-final prose the user just wants reformatted), the Chat version is a short user-facing announcement, not a work log. Get to the point:
 
 | ❌ NEVER include | ✅ Keep only |
@@ -41,7 +43,11 @@ When the input is a **release note / deployment announcement** (not already-fina
 | "Still to come" / "outstanding" / caveats / data-integrity notes | — |
 | Multiple sections for one shipped thing | One outcome = 1-3 lines total |
 
-A staging-only change is at most a one-line "on staging for testing" note — it is not a full release announcement. Lead with the outcome a non-engineer reads; delete everything explaining the underlying implementation. When unsure how terse, err shorter and offer a one-liner variant.
+Lead with the outcome a non-engineer reads; delete everything explaining the underlying implementation.
+
+**Length follows what shipped, never which environment it shipped to.** A staging deploy of one fix is a one-line note; a staging deploy of ten days' work is not, and "staging" is not the fact that decides it. Size the note from the source: a handful of items compresses to a few lines, sixty items does not compress to sixteen without losing things the reader needed. Where the deploy is large, the environment is one clause at the top ("now on staging"), not a reason to summarise the body away.
+
+⚠️ **Terseness is the instruction this section can't help over-applying, because every cut feels like the rule working.** The guidance above is all subtractive, so a draft that keeps cutting reads as increasingly compliant right up to the point the reader asks where everything went — and the items that go first are the specifics that made each one land (the figure, the affected count, the before-state), since those look most like the "mechanics" the table bans. They are not: a count of who was affected is *what changed*, not *how it works*. Measured 2026-09-21 — sixty changelog items went to forty-six bullets and 3,507 words to 1,210, was rejected as not thorough enough, and the accepted rewrite was four times longer than the first draft. **When the source is long, draft at the source's own level of detail and cut only what the ❌ column actually names.** **Tell: your draft's word count is under half the source's and you reached that by trimming detail rather than by merging duplicates.**
 
 Regroup by feature instead of inheriting the source's `Added`/`Fixed` split. Those headings sort by what the change did to the code, so one feature lands in multiple sections while unrelated items sit as equals — the reader gets a flat list with no way to see what the release actually IS. Restructure to lead with a short prose sentence about what a user can now do and what they couldn't before, then group the main feature's items together (whichever heading they came from), then demote everything unrelated under a catch-all. A bug that reads as "this feature now works" goes under the feature, not beside it.
 

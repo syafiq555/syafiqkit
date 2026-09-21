@@ -34,6 +34,8 @@ The point is that the next session can act without re-deriving anything. Four th
 
 1. **`/syafiqkit:read-summary <exact task doc path>`** as the first line — the literal path, never a topic. Keyword discovery can miss the doc, and a handoff that sends the next session hunting has failed at its only job.
 2. **The one next task**, its scope, and what is explicitly out of scope. One task, not the backlog; a list invites the next session to pick.
+
+    ⚠️ **Unless the invocation asks for scale** — "the max we can do", "everything left", "as much as fits". Then one task is the wrong answer and reads as diligence: the rule above is right for a default handoff, so it holds while the user's own argument contradicts it. Give the whole reachable set, but SEQUENCED so it still cannot be cherry-picked — ordered waves, each one a file partition that can go to parallel builders, with the gating item alone in wave 0 and the verification that must pass before the next wave starts. What keeps that from becoming the backlog-dump the rule forbids is the second half: every item the next session must NOT decide goes in an explicit KIV block naming whose call it is. Read the task docs' own Next Steps to build this rather than recalling the session — and fix any item that is now stale (work you completed, or a fix rendered moot) before carrying it across, since a handoff that sends the next session at a deleted component fails the same way a missing path does. **Tell: the user asked for maximum and your draft names a single task.**
 3. **The blocker** that must be solved first — the non-obvious one, the thing that cost this session time to find. If there isn't one, say so rather than inventing.
 4. **Uncommitted state**, with "don't commit unless asked" where the tree is dirty.
 
@@ -49,6 +51,23 @@ Fence it, and put nothing after the closing backticks — text below a fence rea
 Next: <the one task — what to build, and what's out of scope>
 Blocker: <the thing to solve first, or "none known">
 State: <N files uncommitted / all committed at <sha>> — don't commit unless asked.
+```
+
+Asked for scale, `Next:` becomes ordered waves and gains a KIV block; the other lines are unchanged:
+
+```
+/syafiqkit:read-summary tasks/<domain>/<topic>/current.md
+
+Next: <the goal>. Partition by file, parallel builders per wave, specs between waves.
+
+WAVE 0 — <the gating item, alone, because the rest depends on it>
+WAVE 1 — <independent files, N builders>
+WAVE 2 — <next tranche>
+
+KIV — do NOT decide these, they are the user's call: <item + where it's parked>
+
+Blocker: <...>
+State: <...>
 ```
 
 Keep it to what a fresh session cannot recover on its own. Everything else is in the doc it will read first, and duplicating it here means two copies that drift.

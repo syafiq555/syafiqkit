@@ -1,11 +1,11 @@
 ---
 name: condense-claude-md
-description: Aggressively condense and restructure a bloated CLAUDE.md file — strip verbose WHY columns, discoverable content, redundant tables, and overly long rows, then rewrite it shorter and clearer. Use when the user says "condense", "shrink", "trim", "clean up", or "make CLAUDE.md shorter", or when the file exceeds ~250 lines. Also use when asked to "restructure" or "rephrase" CLAUDE.md sections. Do NOT confuse with claude-md-improver (which adds missing content) — this skill removes excess.
+description: Aggressively condense and restructure a bloated CLAUDE.md file — strip verbose WHY columns, discoverable content, redundant tables, and overly long rows, then rewrite it shorter and clearer. Use when the user says "condense", "shrink", "trim", "clean up", or "make CLAUDE.md shorter", or when the file exceeds ~200 lines OR ~40KB — check both, since a dense file can hold its line count while bytes climb well past budget. Also use when asked to "restructure" or "rephrase" CLAUDE.md sections. Do NOT confuse with claude-md-improver (which adds missing content) — this skill removes excess.
 ---
 
 # Condense CLAUDE.md
 
-Maximum information density: every line must earn its place, readable in under two minutes.
+Fewest tokens for the same or better meaning, never fewer at the cost of meaning (📖 `../_shared/references/writing-style.md`). Maximum information density: every line must earn its place, readable in under two minutes — but density is measured after verifying nothing load-bearing left with the bytes, not instead of that check.
 
 **This skill owns CLAUDE.md size policy — thresholds and split decisions.** No other skill or agent carries its own number. `claude-md-pruner` delegates here for staleness/duplication; `condense-task-doc` owns task docs by the same principle.
 
@@ -41,6 +41,7 @@ These conversions are house style and apply everywhere:
 - "Never X" + "Always Y" + WHY paragraph → single ❌/✅ row
 - `Symptom | Cause | Fix` redundancy → state mechanism once
 - Incident narrative → mechanism + class-name pointer only
+- `⚠️` prefix on a callout → delete the emoji, keep the bolded claim as the lead — never write `⚠️` into a CLAUDE.md
 
 Collapsing `Symptom | Cause | Fix` to prose is legitimate when clearer. What *must* survive: Cause cells hold greppable specifics (exception class, exact expression, `See <Class>` pointer). Renaming kept columns breaks positional `awk` checks.
 
@@ -61,7 +62,7 @@ A split producing multiple companions is index-based by default: a thin router f
 
 Report `wc -l` and `wc -c` before and after — both, every run. A line drop with bytes flat means content moved, not deleted. A byte drop past ~10% on restructure means content left; past ~33%, name the rules judged non-essential and why, not just the total. If an extraction went to a companion/subdir, that destination should have grown by roughly what the source lost — shrink on both sides means content went nowhere.
 
-If still >250 lines after compressing, offer to split before asking what to cut. When growth is the diagnosis, report headroom in days, not bytes: "6KB left, ~4 days at observed rate" (check history: `git log --format='%h %ad %s' --date=short -N -- <file>`).
+If still >200 lines or >40KB after compressing, offer to split before asking what to cut — check both, since a file can clear one budget and miss the other. When growth is the diagnosis, report headroom in days, not bytes: "6KB left, ~4 days at observed rate" (check history: `git log --format='%h %ad %s' --date=short -N -- <file>`).
 
 Extract first column of old/new (`awk -F'|' '{print $2}'`), `comm -23` them, confirm each against diff. Confirm the last line is real content (not a `</content>` tag — see Hard rules).
 

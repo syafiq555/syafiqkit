@@ -12,7 +12,9 @@ A write's validation scope usually ends at the diff — which is where staleness
 
 3. **Derivable state.** If your write touched git state or environment status, run these doc-wide greps: `committed`/`uncommitted`/`pushed` (delete any outside an MADR `**Status**: committed` lifecycle field) and `deployed`/`staging`/`prod` (collapse multiple sections into Quick Start's state line). Both leak into Task Status and Last Session in ways section-by-section editing misses.
 
-4. **No wrapper artifacts.** Last line is real content, not a `</content>` tag from a Read result. Run `tail -c 40 <file>` to check.
+4. **One session under `## Last Session`.** `grep -c '^## Last Session'` is 1 (a second means a rotation collided), and the dated blocks beneath it number one. Appending a block above the previous one satisfies every other check here — unique heading, accurate content, no duplicated facts — so this is the only step that sees a section turning into a changelog.
+
+5. **No wrapper artifacts.** Last line is real content, not a `</content>` tag from a Read result. Run `tail -c 40 <file>` to check.
 
 ## Judgment Checks — Logical Completeness
 
