@@ -19,6 +19,6 @@ A write's validation scope usually ends at the diff — which is where staleness
 ## Judgment Checks — Logical Completeness
 
 - **Cross-section duplication.** Grep the doc for 2–3 critical phrases. A phrase in more than two sections or the same fact across two bullets means collapsing to one. A doc-wide grep after all edits lands; section-by-section reading misses duplicates introduced within one section.
-- **Back-references reconciled (§6).** No roadmap/index/`Related:` doc still mirrors an outdated status for the feature you updated.
+- **Back-references reconciled (SKILL.md "After Writing").** No roadmap/index/`Related:` doc still mirrors an outdated status for the feature you updated.
 - **MADR compliance.** Every row in `## Key Technical Decisions` is either an MADR block or legitimately escaped it (no real alternative existed). If whole-doc MADR exceeds 300 lines, split into index + `decisions/<theme>.md`.
 - **Doc-stated counts.** If the doc names a count ("N decisions", "5 critical gotchas"), re-derive it by running the command that produces it, never adjust by hand. A doc carrying both the count and the command drifts silently on every increment.

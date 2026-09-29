@@ -5,7 +5,9 @@ description: >
   project, a contractor, a teammate who cannot read this repo. Fires on "give me the prompt",
   "brief for the designer", "I'll prompt over there", "hand it to Claude Design", "business
   side only", "what do they need to know". Also fires when a reply is about to volunteer a
-  layout, component list or step breakdown for work someone else owns. NOT for designing it
+  layout, component list or step breakdown for work someone else owns, and when a build
+  needs screens or states the team's live design (a Claude Design project, Figma) never
+  drew. Brief those before a builder invents them. NOT for designing it
   yourself — that is `uiux`, which applies design judgement here; this skill deliberately
   withholds it and ships context instead.
 ---

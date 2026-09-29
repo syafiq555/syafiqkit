@@ -8,6 +8,8 @@ A clean "no" (files aren't yours) is straightforward. What's missed is "partly" 
 
 **How to settle it:** Read `${CLAUDE_SKILL_DIR}/../_shared/references/diff-ownership.md` for the full logic and edge cases. The short version: compare file modification times against your session start for any file on the boundary, then `git diff HEAD -- <file>` on anything you don't remember editing, since a foreign edit is recognisable on sight.
 
+⚠️ **Classifying by FILENAME rather than by diff content inverts the answer on exactly the work most likely to need partitioning.** Grepping the changed-file list for your feature's vocabulary is fast and reads as content-aware, but it is wrong whenever your session touched files that predate the feature — a permission tier threaded through nine existing policies, a rename propagated across callers, a signature change rippling outward. Those filenames carry no trace of what you built, so they land in the "peer" bucket while the peer's genuinely unrelated files sit unnoticed among them, and the output looks plausible either way: a tidy split with a believable count. Measured 2026-09-22: a filename grep filed ~20 of the session's own policy and controller edits as another session's, caught only because the list was eyeballed and recognised. The instruments above answer a question about a file's **history** (when it changed, what the change looks like); a filename answers a question about its **subject**, which is a different question. **Tell: you are deciding ownership from a pattern matched against paths rather than against `git diff` output or mtimes.**
+
 ## When You Don't Own the Whole Diff
 
 - Scope every agent to **your** files only and name contested paths off-limits

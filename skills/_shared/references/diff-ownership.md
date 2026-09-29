@@ -47,3 +47,18 @@ Never `git stash`/`checkout -- .`/`reset`/`clean`/`restore` to "clear" contested
 ⚠️ **The same verbs are equally unsafe pointed at your OWN work, and that case reads as safe because nothing of anyone else's is at stake.** The framing above — and the agent-prompt verb ban that cites it — is about protecting a peer, so stashing your own file to answer "is this failure mine?" passes every guard while being the same repo-wide operation. On an auto-staged tree a plain `git stash push` can `pop` back *silently incomplete*: a new file is deleted outright, a modified one reverts to HEAD, and `git status` renders the result as a clean tree with no `UU`, no conflict markers and nothing for a marker-grep to find. Measured 2026-09-10 — two files lost for an hour, surfacing as a bundler's "failed to resolve import" that presented first as an E2E locator regression and then as a layout bug, none of which pointed at git.
 
 Two habits close it. **Read a baseline without moving anything** — `git show HEAD:<path>`, `git diff HEAD -- <path>`, or a second worktree at HEAD all answer "was this failing before?" while the working tree stays put, which is the question a stash is usually reached for. And **never chain the restore into a compound command**: `git stash pop >/dev/null && echo restored` prints success on a failed pop, so run it alone and read its output. Recovery, once it happens, is `git checkout stash@{0} -- <path>` per file rather than a second `pop` — a stash on a shared checkout holds several sessions' work and popping it wholesale is its own collision. **Tell: you are about to stash your own edits to test whether a failure is yours.**
+
+## When a peer's hunk sits inside a file you are committing {#peer-hunk-in-your-file}
+
+**A pathspec scopes FILES, not hunks.** `git commit -- <file>` takes the whole worktree copy, so a peer's in-flight key in a shared locale file, CHANGELOG or doc paragraph ships under your message. `git show --name-only` cannot reveal it either — the file list is exactly what you intended. Build the commit from a temporary index, which leaves the shared one alone:
+
+```bash
+export GIT_INDEX_FILE=/tmp/my-commit-index && git read-tree HEAD
+git update-index --add <files that are wholly yours>
+# shared file: write HEAD's copy plus only your lines to a scratch file, then
+git update-index --cacheinfo 100644,$(git hash-object -w <scratch>),<shared path>
+git diff --cached HEAD            # read every hunk: yours only
+git commit --no-verify -F <msg> && unset GIT_INDEX_FILE
+```
+
+`--no-verify` is needed when a pre-commit hook stashes the tree (lint-staged does), since that restores the peer's files into your commit; run the hook's checks on your paths by hand first and say so in the body. ⚠️ **Afterwards the shared index still holds your PRE-commit copies** (`MM` in `git status`): a peer's next bare commit would silently revert your change. `git add` each of your paths so index matches worktree, then confirm `git diff --cached HEAD -- <shared path>` shows only the peer's hunks.

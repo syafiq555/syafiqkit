@@ -25,10 +25,14 @@ Invoke `syafiqkit:task-summary` bare. An explicit path skips its multi-domain sc
 
 ## Step 3: Plugin gate — only if it fires
 
-The checkout is shared across every project, so it may carry another session's concurrent work. Any file you don't remember editing must be read before assuming it's yours — a foreign edit is recognisable on sight, and shipping one under your version bump is the failure this gate exists to prevent.
+Two questions, and only the second has a command. **Did a skill mislead you this session?** — it sent you somewhere wrong, you corrected a step mid-execution, you worked around an instruction, or a trigger stayed silent when it should have fired. That is answered by recalling the session, never by `git status`: a misfire leaves the plugin tree clean, so the ownership check below returns empty and reads as "nothing to do" on exactly the sessions with a defect worth capturing. Answer it explicitly before running any command — if yes, invoke `syafiqkit:update-plugin` regardless of what the check finds, and say which skill and what it cost.
+
+⚠️ **Fixing the problem well is what empties the evidence.** A skill that misled you, once worked around, leaves no artifact — and a session that recovered gracefully feels least like one with a defect, because nothing went visibly wrong by the end. Weigh the correction you made, not the state you finished in.
+
+The second question is ownership. The checkout is shared across every project, so it may carry another session's concurrent work. Any file you don't remember editing must be read before assuming it's yours — a foreign edit is recognisable on sight, and shipping one under your version bump is the failure this gate exists to prevent.
 
 **Check ownership:**
-1. Run `git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'` from the plugin checkout as CWD, not `git -C <path>` — that walks up to an enclosing repo and answers about the wrong tree. An empty list means the gate didn't fire; skip silently and omit the row.
+1. Run `git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'` from the plugin checkout as CWD, not `git -C <path>` — that walks up to an enclosing repo and answers about the wrong tree. An empty list means no plugin file was edited — it says nothing about whether a skill misled you, so it closes the ownership question only. Omit the row if the first question was also a no.
 
 2. For each file, verify you edited it this session:
    - **Mtime check:** read each file's modification time. Files predating your session start were edited by another. 
@@ -49,7 +53,7 @@ A landed diff proves bytes moved, never that the right fact moved — a doc step
 - **No code review.** Nothing in this skill reads the diff for bugs, security holes, or convention violations — the steps are both documentation writes. A session wrapped here has unreviewed code, which matters most on the way to `/ship`: run `/done`, or a review of your own, before shipping anything wrapped this way.
 - **No simplifier or product reviewer.** A new user-facing flow, or any doubt the feature is complete end-to-end, belongs in `/done`'s product lens and simplification pass.
 - **No temp-artifact cleanup scan.**
-- **No skill-health check.** `/done` also surfaces a skill that misfired or a step that was wrong. If something felt off about a skill this session, flag it and let `/update-plugin` judge it.
+- **No automated skill-health scan.** `/done` surfaces a misfired skill as part of its own flow; here it is the first question of Step 3, which you answer from memory rather than from a command.
 - **No mode selection.** A session varied enough to need one is a session for `/done`.
 
 Where something was parked rather than finished and the session is ending, offer a continuation prompt via `syafiqkit:continue-session` after the Summary — one line, an offer rather than a step. Judge it from what was deferred and whether the session visibly compacted, not from an estimate of context left, which is not observable from in here.

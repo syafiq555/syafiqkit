@@ -1,12 +1,12 @@
 <!--LLM-CONTEXT
-Status: Shipped (v1.163.0, pushed 2c3239d); ruleset rebuilt on a numbered spine 2026-09-14, reordered 2026-09-15 so the most-failed rule leads (both committed in 1.291.0) — injection verified; adherence MEASURED at 70% across ten transcripts (2026-09-14) and 84% on an eleventh (2026-09-15), the worst yet and on a session that received the current file. Four wording/position passes have not moved it; `{#rule-placement}` says the carrier is the binding constraint, and the `UserPromptSubmit` row is empty
+Status: Shipped (v1.163.0, pushed 2c3239d); ruleset rebuilt on a numbered spine 2026-09-14, reordered 2026-09-15 so the most-failed rule leads (both committed in 1.291.0) — injection verified; adherence MEASURED at 70% across ten transcripts (2026-09-14) and 84% on an eleventh (2026-09-15), the worst yet and on a session that received the current file. Six wording/position passes now (1.301.0 register callout recurred 2026-09-21; 1.311.0 gave it rule 1's exact-phrase-list instrument instead of another principle restatement) — UNVERIFIED from outside a session. `UserPromptSubmit`/`PreToolUse` ruled out 2026-09-22 (D-no-userpromptsubmit) — carrier stays `SessionStart`-only by decision, not by open question
 Domain: plugin-maintenance/output-style-hook
 Gotchas: see "Gotchas that will trip you" in Quick Start below — this line is a pointer, not a copy
 Related:
   - ../agent-architecture/current.md (sibling feature — how agents are defined and dispatched)
   - ../external-guidance/current.md (sibling feature — grading outside guidance against local evidence)
   - ../../../hooks/RULESET.md (the injected payload)
-Last updated: 2026-09-14
+Last updated: 2026-09-29 — doc hygiene only (Last Session stack collapsed to Prior, pass count and withdrawn-hook instruction reconciled)
 -->
 
 # Plugin Maintenance — Output-Style Hook
@@ -71,6 +71,14 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 **Rejected**: Including `fork`, whose behaviour with hook output was never verified.
 **Consequences**: A bounded, nameable gap beats machinery that would first misbehave in production. Adding it later is a one-token change once someone confirms what a forked session does — at which point the carve-out wording in `README.md` and the changelog comes out too.
 
+### D-no-userpromptsubmit — Ruled out as the carrier fix
+
+**Status**: rejected 2026-09-22
+**Context**: Five wording/position passes on the once-per-session `SessionStart` payload have not moved the measured adherence failure (70%→84% across two measurements), and the 2026-09-21 session showed a second, independent rule (register, not just rule 10's preamble pattern) failing the identical way — recalled at load, unchecked by the time a reply is composed turns later. `CLAUDE.md` `{#rule-placement}` names `UserPromptSubmit` as the mechanism the harness executes every turn rather than leaving to recall, and this doc's Next Steps had named "decide the carrier" as the open item since 2026-09-14.
+**Decision**: Do not build a `UserPromptSubmit` hook for this. Asked directly; user declined, no reason attached, and pushed back on the framing that it was the only candidate — correctly: `PreToolUse`/`PostToolUse` matched on the `Skill` tool were never evaluated anywhere in this task doc or `update-plugin`'s CHANGELOG history, and are arguably the more precise fix for THIS failure specifically (fires exactly when a skill invocation displaces register, not on every turn regardless of relevance). `Stop` was also unexamined but fires after the reply is generated, too late to prevent it.
+**Rejected**: Any per-turn or per-tool-call re-injection hook (`UserPromptSubmit`, and by the same user decision, `PreToolUse`/`PostToolUse` on `Skill`) — the user declined building new hook machinery for this problem, not specifically `UserPromptSubmit` over its alternatives.
+**Consequences**: The carrier stays `SessionStart`-only, so the measured decay (rule read once, unchecked at reply time, worse at longer sessions) remains open and unaddressed by design rather than by oversight. The sixth wording pass (1.311.0, rule 2's register callout) is done and unverified; a seventh on `RULESET.md` is the only remaining lever without new hook machinery, despite six priors not moving the rate. If this is revisited, evaluate `PreToolUse` on `Skill` on its own merits rather than reusing the `UserPromptSubmit` analysis — it is a different mechanism with a different trigger surface, not a synonym for it.
+
 ---
 
 ## Critical Gotchas
@@ -85,7 +93,7 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 | Prose makes a single rule deletable without the deletion being visible | The cycle above ran four times because the file had no inventory to check a rewrite against: a cut that improved the flow looked identical to a cut that removed a rule. Resolved 2026-09-14 by rebuilding on upstream's numbered ten-rule spine — **a missing paragraph is invisible, a missing number is not.** A pass over this file is now verifiable: count to ten, count seven exceptions. Renumbering or un-numbering the rules removes the only check that catches the recurrence. |
 | A rule-survival grep can return zero for every version including one you've read | While auditing which rules each version still held, a `git show \| grep -c` loop with a `\|` alternation under `sh` returned 0 across the board — including for a line already read on screen in that same session. The all-zero table was reported as a finding before the contradiction was noticed. A zero contradicting something you have seen is a broken checker, so pair every survival sweep with a known-present AND a known-absent control; a single positive control passes even when the predicate is inverted. |
 | `compact` is context pressure, not turn count | The matcher list reads as periodic coverage, so a long session looks self-correcting. It isn't: `compact` fires when the window fills, so a 114-turn session that never fills it never re-fires the hook and is exactly as decayed at turn 114 as before. This is why the measured failure rate tracks session length and why the carrier, not the wording, is the binding constraint. |
-| Rewording a decayed rule is the fix that has already failed here | Three passes (`6b84490` → `2c3239d` → `8cab34e`) each improved rule 10's wording; the measured rate rose across them. The header mutated (`Privately, what I need next` → `Needed next` → `Needs:`) while the shape underneath survived every time — a half-remembered rule, not an absent one. Rule 10's banned-string blockquote exists because recall reconstructs prose loosely but recognises exact phrases; that enumeration is deliberate and is the one place in this file where a list beats a principle. |
+| Rewording a decayed rule is the fix that has already failed here | Three passes (`6b84490` → `2c3239d` → `8cab34e`) each improved rule 10's wording; the measured rate rose across them. The header mutated (`Privately, what I need next` → `Needed next` → `Needs:`) while the shape underneath survived every time — a half-remembered rule, not an absent one. Rule 10's banned-string blockquote exists because recall reconstructs prose loosely but recognises exact phrases; 1.311.0 gave rule 2's register callout the same instrument rather than a fourth principle restatement, since it decays the identical way (read at `SessionStart`, decided turns later after a skill invocation). Unverified either way from inside a session. |
 
 ---
 
@@ -96,7 +104,7 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 - ✅ Adherence measured 2026-09-14 from outside the sessions, by parsing ten transcript `.jsonl` files: **174 of 249 assistant turns (70%) opened by narrating planning state instead of answering.** Per-session rate tracks length, not topic — 0% at 6 turns, 61% at 23, 73% at 93, 90% at 114, 100% at 26. This is the first evidence of adherence the item below had been open for since 2026-08-17, and it answers it in the negative
 - ✅ Re-measured 2026-09-15 on an eleventh transcript, a 196-turn session whose line-5 `SessionStart:startup` hook success carries this file's own text: **166 of 196 turns (84%)** opened with a banned string. The openers converged from paraphrase (`I'll start by`, `the honest list of what I still need`) to the literal `What I need next:` header and then held for the rest of the session. This is the highest rate yet recorded and lands *above* the 70% that prompted the 2026-09-14 rewrite
 - Confirm the ruleset is actually *followed*, judged from outside the session that read it — a session grading its own output shape is not evidence. **Still open**, and the 2026-09-15 reorder does not close it: `SessionStart` fires at turn 0 while the failure is measured at turn 23+, so moving a rule within a once-injected payload cannot reach the moment it fails. Judge any future pass against the 84% baseline
-- **Decide the carrier before attempting a fifth wording pass.** `CLAUDE.md` `{#rule-placement}` puts a rule that must hold every turn in a `UserPromptSubmit` hook — the only mechanism the harness executes per-turn rather than the model choosing to recall — and nothing currently occupies that row. Four passes have now moved rule 10's wording or position (`6b84490` → `2c3239d` → `8cab34e` → 2026-09-15) and the measured rate rose across them; a fifth is the same experiment
+- ~~Decide the carrier before attempting a sixth wording pass~~ — **closed 2026-09-22, see D-no-userpromptsubmit.** `UserPromptSubmit` ruled out on ask; the carrier stays `SessionStart`-only. Five passes (`6b84490` → `2c3239d` → `8cab34e` → 2026-09-15 reorder → 1.301.0's register callout on rule 2) have not moved the measured rate, and a sixth wording pass on `RULESET.md` is the only remaining lever — expect it to fail the same way and log further recurrences here rather than re-proposing the hook
 - Re-check rule survival after any future pass — count to ten, count seven exceptions. This is the check the four prior cycles had no way to run
 - Observe missing-file behaviour end-to-end (rename `RULESET.md`, start a session) rather than inferring it from `cat` exiting 1 plus a documented exit-code table
 
@@ -106,7 +114,21 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 
 ---
 
-## Last Session (2026-09-15)
+## Last Session (2026-09-22)
+
+Sixth wording/position pass, this time on rule 2's register callout rather than rule 10. Diagnosis before writing: rule 1 already has the fix for this exact decay shape (banned-opener strings, because "recall reconstructs prose loosely but recognises exact phrases") and rule 2's callout — added 1.301.0, recurred 2026-09-21 — never used it, stating the mechanism as principle instead. Applied rule 1's instrument to rule 2: a literal scan list of skill-internal terms to cut before sending, plus an explicit rule that a stated plain-language preference outranks a just-invoked skill's vocabulary. Shipped as 1.311.0 (`hooks/RULESET.md`, `CHANGELOG.md`, `.claude-plugin/plugin.json`). Rule survival verified: 10 numbered rules, 7 exceptions, known-present/known-absent grep controls both correct.
+
+Also corrected this doc's own drift from the same session, one turn earlier: it had claimed `UserPromptSubmit` was the only per-turn candidate ever evaluated for `D-no-userpromptsubmit`, and the user pushed back correctly — `PreToolUse`/`PostToolUse` matched on the `Skill` tool were never evaluated anywhere in this plugin's history and are arguably more targeted (fires exactly at skill-invocation time, not on unrelated turns). `D-no-userpromptsubmit`'s Context/Rejected fields now name what was and wasn't considered, so the closed decision doesn't carry a false premise forward.
+
+**Not done**: whether the phrase-anchor works is unverified from inside this session, same as every prior pass — judge from a fresh transcript, not from this one reporting on itself. The doc's Status line now reads UNVERIFIED rather than implying six passes settles anything.
+
+## Prior Session (2026-09-21)
+
+Confirming recurrence of the same carrier failure, one day after 1.301.0 shipped a fix for it. A Dourr session invoked `/sweep-doc-overlaps` then `/judgement`, each dropping its own dense procedural prose into context; the reply immediately after `/judgement` used that skill's vocabulary ("per the measure-first test," "theirs' case") to a user who by then had asked three consecutive times, in increasingly plain language, for a simpler answer ("i dont know what needs me" → "so what u want to highlight ?" → "cant u simplify ?"). The 1.301.0 Rule 2 callout — including its own `Tell:` clause naming this exact pattern — was present and correctly worded in the loaded `RULESET.md`; it had been read at `SessionStart` and was not re-consulted at the moment of composing the reply. This is failure point 2 from `update-plugin`'s Step 1a ("reached and read as satisfied") — rules 1-10 were individually followed (short reply, led with content, no preamble), so the ruleset read as satisfied while the register rule specifically sat unchecked.
+
+No SKILL.md or RULESET.md edit made — per Step 1a, a recurrence calls for changing the instrument, not the wording, and this file already named the correct next step (decide the `UserPromptSubmit` carrier) before this session started. Logged as a second, independent rule (register, distinct from rule 10's preamble/recap pattern) failing on the identical once-per-session carrier, which is evidence the defect is the carrier itself rather than any one rule's phrasing. Updated Status and the Next Steps bullet to reflect five passes, not four, and reframed the open item: the next fix is building the `UserPromptSubmit` hook, not a sixth prose pass on `RULESET.md`. **Superseded 2026-09-22 by D-no-userpromptsubmit:** the hook was declined and the sixth prose pass shipped as 1.311.0.
+
+## Prior Session (2026-09-15)
 
 Re-measured adherence on an eleventh transcript and got 84% — the worst rate yet, on a session that provably received the current file. Reordered the ruleset so the most-failed rule sits first: rule 10 became rule 1, the other nine renumbered, via `condense-claude-md` (8295 → 7786 bytes). Three defects followed from that pass and were fixed by hand: it deleted rule 5's "same rule seen from two ends" sentence as a dead cross-reference when the renumber made it fixable; it dropped the 70/100/0 measured figures while keeping the "the failure is measurable" claim they supported; and it renumbered without sweeping citations, leaving the Exceptions section's decision-first carve-out pointing at rule 1 when it means rule 2. Restored all three, and folded the 84% into the evidence paragraph. Final: 61 lines, rules 1–10 intact, seven exceptions, both `rule N` citations verified against what the numbers now name.
 
@@ -114,12 +136,12 @@ A ten-turn `claude -p --resume` chain confirmed the probe mechanism works but pr
 
 Not committed. The reorder is attempt four at the same rule and the doc does not claim it will move the number — see Next Steps on deciding the carrier.
 
-## Last Session (2026-09-14)
+## Prior Session (2026-09-14)
 
 User reported dissatisfaction with the ruleset and pointed at upstream `ayghri/i-have-adhd` to study. The working tree held three divergent versions — HEAD 5291 bytes, staged 3341, worktree 4934 — and the SessionStart copy in context matched none of them, so the output being judged came from an older installed copy. Four rules had been lost across the cut-then-regrow cycle: flat errors, no-preamble/recap/closers, the `read-summary` precedence fact (cut once before and restored), and the ambiguity exception. Rebuilt on upstream's numbered ten-rule spine with seven explicit exceptions, all four restored, verified by grep with both a known-present and known-absent control. 1342 tokens. Fixed manifest drift (1.277.0 vs 1.275.0) and bumped both to 1.278.0.
 
 Not done: nothing is committed. Adherence remains unverifiable from inside the session that read the ruleset, and this rebuild does not change that — the open verification item below still stands, and now has a fresh payload to judge.
 
-## Last Session (2026-08-17)
+## Prior Session (2026-08-17)
 
 Built hook end-to-end, drafted and two passes refined `RULESET.md`. Reviewers caught `fork` matcher contradicting docs, README hiding the escape hatch, and a half-tested ENOENT claim. Version bumped to 1.163.0 (concurrent session conflict with planned 1.162.0).

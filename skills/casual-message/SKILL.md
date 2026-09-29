@@ -6,10 +6,12 @@ description: >
   a named person something. Casual by default: short, no fence, no section headers,
   closes the way the sender actually talks. Fires on "reply to X", "tell Y that...",
   "make it sound like me", "my usual WhatsApp message", "just a quick text", "reply
-  casually", or naming a recipient by name or relationship rather than by audience
-  category. NOT for a document being posted or converted — a changelog, release
-  note, status update, or already-drafted prose someone wants reformatted for Chat's
-  markdown is `gchat-format`, even when the destination is a 1:1 DM.
+  casually", "what should we reply", or naming a recipient by name or relationship
+  rather than by audience category. Includes a reply on a team thread or task card
+  (ClickUp, Chat) that speaks for the sender, even a long one such as a timeline.
+  NOT for a document being posted or converted — a changelog, release note, status
+  update, or already-drafted prose someone wants reformatted for Chat's markdown is
+  `gchat-format`, even when the destination is a 1:1 DM.
 ---
 
 # Casual Message
@@ -40,6 +42,20 @@ Short. Usually a few lines, often one. No fence, no bold section headers, no bul
 
 The things `gchat-format` does that must not leak in: the code fence, bold section headers, table-to-bullet conversion, regroup-by-feature, the formal close. The failure that created this skill was a session defaulting to that shape because it is the one written down at length.
 
+## Replying to their message
+
+When there is a message being replied to, the reply answers it rather than summarising it back. Find it first: it may be pasted, screenshotted, or have arrived turns earlier as the user's prompt to a different skill. Relayed text in someone else's first person reads as the user's own words, so check before treating it as context rather than as the thread.
+
+Two failures read as not having listened. **Restating their point to them** — "makes sense, because X" where X is the reason they just gave — is an explanation to someone who already holds it. **Answering past their doubt** — a hedge like "not sure if we can push to Jan" is the thing needing a reply, and framing your news as if the doubt weren't there ("good news for Jan") contradicts them without saying so. When asked for more acknowledgement, add what they did (relayed, decided, logged it) and what you've taken on, not a longer explanation.
+
+## Speaking for the sender
+
+A reply posted under the sender's name commits them to what it says, and the draft is where that commitment gets made. When the reply carries dates, estimates or a split of work, length follows the content rather than the short default, and three defaults hold until the sender overrides them:
+
+- **Estimates stay estimates.** Name the assumptions they rest on (inputs arriving on time, an external system behaving as documented) and say when they will firm up. How confident to sound is the sender's to add, not yours. Keep the deadline an outside party was given apart from the internal target, because they are different numbers with different owners.
+- **A colleague's earlier version in the same thread is the baseline.** Diff yours against it before drafting, carry over whatever yours dropped, and frame the reply as building on theirs. A replacement posted without that reads as overriding them in front of everyone else on the thread.
+- **Split the work by owner, and estimate only the sender's share.** A teammate's duration is theirs to give, so mark it for them to confirm.
+
 ## Language
 
 Match the language already in use — the user's draft, the thread, or how they phrased the request. Ask only if nothing establishes it.
@@ -56,7 +72,7 @@ Casual Malay has its own register, and it is not formal Malay made shorter: part
 
 Two facts worth carrying here, since a casual message is where they bite:
 
-- **No em dashes.** A hyphen with a space on either side is the same clause break with a narrower glyph and does not satisfy this — use a comma or a full stop. Casual writing rarely wants the dash at all.
+- **No em dashes.** A hyphen with a space on either side is the same clause break with a narrower glyph and does not satisfy this — use a comma or a full stop. Casual writing rarely wants the dash at all. That holds when the hyphen is doing arithmetic, too: `720.49 - 96.55` reads as a dash to the sender, and some editors turn it into one. Write money sums in words ("720.49 minus 96.55 plus 231.71 = RM 855.65"), and never use a Unicode minus `−`.
 - Most of `gchat-format`'s conversion table is about structures a casual message shouldn't contain. If you find yourself converting a table, the message is a document and belongs to that skill.
 
 WhatsApp and Google Chat differ slightly on link rendering and strikethrough support across clients. Where it matters for a specific message, prefer the plainest form that works in both — a bare URL rather than a labelled link.

@@ -51,7 +51,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/design-handoff` | Write a brief for someone ELSE to design a screen (external designer, Claude Design, contractor) — purpose, audience, business and legal rules, measured failures; layout, components and step count stay theirs. Designing it yourself is `/uiux` |
 | `/gchat-format` | Convert Markdown to Google Chat syntax — for a document posted to a thread (release note, status update, announcement) |
 | `/casual-message` | Write a casual 1:1 message in your own voice — a WhatsApp reply, a colleague DM, "tell X that…"; short, unfenced, matches how you actually talk (including casual Malay/Manglish) |
-| `/continue-session` | Produce the copy-paste prompt that starts a fresh session where this one stopped — doc path, next task, blocker, uncommitted state |
+| `/continue-session` | Produce the copy-paste prompt that starts a fresh session where this one stopped — doc path, next goal, uncommitted state; next session asks open decisions |
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
 | `/excalidraw-board` | Draw a task doc or worklist as a black-and-white Excalidraw discussion board (gates, waiting-on, parked-with-revive-trigger, live decisions strip), pasted into the user's excalidraw.com tab |
 | `/user-manual` | Write an end-user manual — scope, tutorials, E2E screenshots, Word/PDF editions |

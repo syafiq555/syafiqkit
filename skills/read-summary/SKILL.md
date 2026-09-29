@@ -119,7 +119,11 @@ The same rule applies to the wrap-up skills (`done`, `quick-done`, `ship`) on th
 
 For doc discovery, dispatch the `Explore` agent to search task docs by content. The agent returns raw hits; your judgment ranks them and picks the right doc. While the agent runs, do other work or think — don't re-read or re-grep the same files yourself. That duplication costs context for a fact you'll see again in the agent's report, and the check that makes delegation safe is verification *after* the report, not before.
 
+⚠️ **If there is no other work, end the turn — do not manufacture the wait.** The harness re-invokes you when the agent finishes; a `sleep`, or a `ReadNotifications` fired again after it returned nothing, buys nothing. It evades the rule above because it doesn't duplicate the agent's work, so polling feels diligent. **Tell: you are about to make a call whose previous identical call returned nothing new, with no other work queued** — whatever it's named. 📖 `../_shared/references/explore-delegation.md` § The Waiting Game
+
 One clause belongs in the prompt itself, since it isn't derivable from the agent's side: tell it to batch its searches into few calls instead of one per pattern. 📖 `../_shared/references/explore-delegation.md` has the rest of the mechanics, including what separates delegable gathering from judgment you keep.
+
+**When the report lands, open the files it names before concluding anything from it.** The hits are an index, not the answer — the Discovery rule above is about grep output you ran yourself, and it applies identically to output an agent ran for you, which is the form that evades it because a report looks like a deliverable rather than a search result. Read `explore-delegation.md`'s ⚠️ on the returning report if you are about to tell the user a cause.
 
 For implementing work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline. This skill prescribes only the agent for its own discovery step.
 

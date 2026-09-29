@@ -36,7 +36,7 @@ memory: project
 4. **Check callers/callees** — Before extracting or moving logic, `Grep` for the symbol name to see all callers. This catches unintended side effects from deduplication. Skip for leaf functions that have no callers outside the file.
 5. **Check adjacent patterns** — How do similar responsibilities live in neighboring files? Refactoring is easier and safer when it follows the local style.
 6. **Run diagnostics** — `mcp__ide__getDiagnostics` on changed files to catch type/lint issues that might surface during refactoring.
-7. **Apply refinements** — edit directly, run linter/formatter after (e.g., `vendor/bin/pint --dirty` for PHP).
+7. **Apply refinements** — edit directly, then run the linter/formatter on the files you edited, by path (e.g., `vendor/bin/pint <file>...` for PHP). Never a tree-wide mode such as `pint --dirty`: it formats every modified file, including a peer session's uncommitted work.
 
 ## What to Simplify
 

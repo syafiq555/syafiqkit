@@ -77,11 +77,21 @@ Glob: .claude/agents/product-reviewer.md
 
 ### Agent Count & Prompting
 
-Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`, then read 📖 `${CLAUDE_SKILL_DIR}/references/emission-and-agent-counts.md` for the scaling table, partitioning rules, and what each agent prompt needs. The guide covers all role-specific prompting and how to supply high-value details (unsure judgement calls, what you've already verified, what you didn't check).
+Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`, then scale **per role**:
+
+| Changed files | Reviewers | Simplifiers | Product | TOTAL |
+|---|---|---|---|---|
+| ≤30 | 1 | 1 | 1 | **3** |
+| 31–80 | 2 | 2 | 1 | **5** |
+| 81+ | 3 (cap) | 3 (cap) | 1 | **7** |
+
+⚠️ **The count is inlined because a pointer loses it.** It was a `📖` away until 1.291.0, and the paragraph that follows this one is a loud "dispatch NOW, no prose first" — which pulls attention past the pointer, so the reference goes unopened and three agents feel like the whole batch whatever the diff size. Measured 2026-09-22: a 110-file diff (81+ band, seven agents) got three, and the shortfall surfaced only because the user asked. Nothing in the dispatch reads as wrong — three agents is the *correct* answer for the band you never checked, and every report comes back clean because each agent reviewed what it was handed. **Tell: you are about to emit a batch without having named which band the file count put you in.**
+
+Then read 📖 `${CLAUDE_SKILL_DIR}/references/emission-and-agent-counts.md` for partitioning rules and what each agent prompt needs — role-specific prompting, and how to supply the high-value details (unsure judgement calls, what you've already verified, what you did NOT check and want hunted).
 
 **Now dispatch — and this is the message the one-message rule governs.** Everything above was preparation; what you write next is the batch. Your first token is an `Agent` call, not a sentence about `Agent` calls: whatever you were about to say (which agent gets which files, what you already verified) goes in the message *after* the last call, or it goes in the partition message *before* this one. This paragraph is last on purpose — the rule has now failed eight recorded times, every one of them a session that read it correctly ~40 lines earlier and then composed the dispatch from memory once the partition reasoning had absorbed its attention (2026-09-18 is the latest; the sixth and seventh both came after this paragraph was moved here for exactly this reason, which is why 1.288.0 ruled that restating it again makes it less followed, not more). **Tell: you are writing a sentence and the next thing after it is an `Agent` call.** ⚠️ The eighth failure hid inside the carve-out above: the sentence written before call #1 was *about the partition*, which this paragraph explicitly permits — so it read as the allowed preamble rather than as narration, and the Tell never fired. The carve-out means a partition message sent **before** the batch, not a partition sentence sharing the message with it.
 
-**While they run:** Start the verification agenda below — reading agent blind spots, preparing your re-reads of git state, deciding output structure. Don't duplicate the agents' work by previewing changes in parallel; that destroys the check that makes delegation safe. 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/explore-delegation.md`
+**While they run:** Start the verification agenda below — reading agent blind spots, preparing your re-reads of git state, deciding output structure. Don't duplicate the agents' work by previewing changes in parallel; that destroys the check that makes delegation safe. **When that agenda is done, end the turn rather than waiting** — the harness re-invokes you when the agents finish, and a `sleep` or re-fired status check buys nothing. Polling reads as the diligent alternative to previewing. **Tell: your previous identical call returned nothing new and you have no other work queued.** 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/explore-delegation.md` § The Waiting Game
 
 **After all agents complete:**
 
