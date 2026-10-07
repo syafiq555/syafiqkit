@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔨 Doc set complete at 1.363.0 on 2026-10-07; being committed and shipped, destination check open
+Status: ✅ Doc set shipped as 1.363.0 on 2026-10-07 (84fc1b3 on origin/master); only the git-sourced install check remains
 Domain: plugin-maintenance/project-docs
 Gotchas: `[SOURCED]`/`[INFERRED]`/`[TBD]` tags and `[TBD]` headings in the set are content, not scaffolding — pruners must not strip them
 Related:
@@ -12,7 +12,7 @@ Last updated: 2026-10-07
 
 ## Quick Start (read this first in next session)
 
-**Next action**: Finish `/ship` for 1.363.0 (user chose bump + CHANGELOG). After the release, list a git-sourced install to settle whether `docs/` ships. Read the two `product-reviewer` agent-memory files (one new, one modified index) before committing.
+**Next action**: 1.363.0 is shipped. List a git-sourced install to settle whether `docs/` ships. Read the two `product-reviewer` agent-memory files (one new, one modified index) before committing.
 **Current state**: All Next Steps from the first pass are done, at 1.363.0 in both manifests. The seven generated agents carry a Bootstrap row to the docs; `claude-md-pruner` also covers `docs/` and protects the tags. `product-reviewer`'s row cites the PRD only, on purpose (completeness reviewer, not a silent-rule checker). Essentials holds 20 entries, each tagged with the `CLAUDE.md` section it extracts. `plugins/vue-lsp/` is removed. Nothing was measured against a git-sourced install.
 **Success looks like**: A session opening this repo reads `docs/ARCHITECTURE-ESSENTIALS.md` whole before its first edit, and agents bootstrap from the same files.
 
@@ -45,7 +45,7 @@ The plugin's core doc set: `docs/PRD.md` (Shape Up pitch plus standard PRD secti
 ## Next Steps
 
 ### Blocking handoff
-- [ ] 🟠 Confirm the 1.363.0 push landed on `master` (both memory files were read before commit)
+- [x] 1.363.0 pushed 2026-10-07: `git ls-remote origin master` returned 84fc1b3 matching local HEAD; GitHub's `docs/` listing shows the three files and `plugin.json` reads 1.363.0
 - [ ] 🟡 Agents' task-doc rows enumerate feature folders and omit `skill-authoring` and `project-docs`; this predates the set and was left alone (`update-plugin`'s routing row was fixed)
 
 ### Blocked on a decision from Syafiq
