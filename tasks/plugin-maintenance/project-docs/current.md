@@ -12,8 +12,7 @@ Last updated: 2026-10-07
 
 ## Quick Start (read this first in next session)
 
-**Next action**: 1.363.0 is shipped. List a git-sourced install to settle whether `docs/` ships. Read the two `product-reviewer` agent-memory files (one new, one modified index) before committing.
-**Current state**: All Next Steps from the first pass are done, at 1.363.0 in both manifests. The seven generated agents carry a Bootstrap row to the docs; `claude-md-pruner` also covers `docs/` and protects the tags. `product-reviewer`'s row cites the PRD only, on purpose (completeness reviewer, not a silent-rule checker). Essentials holds 20 entries, each tagged with the `CLAUDE.md` section it extracts. `plugins/vue-lsp/` is removed. Nothing was measured against a git-sourced install.
+**Next action**: 1.363.0 is shipped. List a git-sourced install to settle whether `docs/` ships.**Current state**: All Next Steps from the first pass are done, at 1.363.0 in both manifests. The seven generated agents carry a Bootstrap row to the docs; `claude-md-pruner` also covers `docs/` and protects the tags. `product-reviewer`'s row cites the PRD only, on purpose (completeness reviewer, not a silent-rule checker). Essentials holds 20 entries, each tagged with the `CLAUDE.md` section it extracts. `plugins/vue-lsp/` is removed. Nothing was measured against a git-sourced install.
 **Success looks like**: A session opening this repo reads `docs/ARCHITECTURE-ESSENTIALS.md` whole before its first edit, and agents bootstrap from the same files.
 
 ## Overview
