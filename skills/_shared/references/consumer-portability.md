@@ -8,7 +8,7 @@ The plugin's author works in a git checkout on macOS. Most people running these 
 
 | Assumption | Reality |
 |---|---|
-| "The whole repo ships" | **`tasks/` does not ship.** Verify by listing an install, never by reading `marketplace.json`'s `source` field |
+| "The whole repo ships" | **`tasks/` does not ship.** Verify by listing a **git-sourced** install, never by reading `marketplace.json`'s `source` field. On the author's machine the marketplace is a `directory` source (`known_marketplaces.json`), so its cache is a copy of the working tree: it holds `tasks/` and even uncommitted files, and proves nothing about what a colleague receives |
 | `~/.claude/plugins/<name>/` | Installs are **version-scoped**: `plugins/cache/<marketplace>/<plugin>/<version>/`. Any literal path is stale on the user's next update |
 | `~` resolves | Not on native Windows (`%USERPROFILE%`). A `~/.claude` shared with WSL stores paths broken on the other side ([#36575](https://github.com/anthropics/claude-code/issues/36575), closed as not-planned) |
 

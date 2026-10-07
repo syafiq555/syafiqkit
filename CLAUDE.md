@@ -6,7 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working on this
 
 Invoke skills directly by name: `/syafiqkit:<name>`. Skills are organized by invocation pattern below.
 
-## Skills by Invocation Pattern
+## Project Docs {#project-docs}
+
+| File | Read when |
+|---|---|
+| `docs/ARCHITECTURE-ESSENTIALS.md` | Before any edit — the rules that break silently |
+| `docs/ARCHITECTURE.md` | Designing or changing a subsystem |
+| `docs/PRD.md` | Scoping, or arguing whether something is in scope |
+| `tasks/plugin-maintenance/*/current.md` | Decision history per subsystem |
+
+Where two disagree, the task doc wins over a derived view, and the files themselves win over both. `ARCHITECTURE-ESSENTIALS.md` is a set of extracts of rules stated in this file: when a rule here changes, change its extract too. `AGENTS.md` points here.
+
+## Skills by Invocation Pattern {#skills-by-pattern}
 
 ### Direct user invocation
 
@@ -74,8 +85,8 @@ These skills accept explicit user command:
 | Skill | Spawned by |
 |-------|-----------|
 | `task-summary` | `/write-summary`, `/update-summary`, `/done` |
-| `read-summary` | `/tackle`, `/done` Step 1 |
-| `brainstorming` | `/done` (on architectural decisions) |
+| `read-summary` | `/tackle` (`/done` no longer reads task docs itself; its steps are review agents, cleanup, `update-claude-docs`, `task-summary`, `update-plugin`) |
+| `brainstorming` | Invoked directly; `skills/done/SKILL.md` does not call it |
 
 ### Commands
 
@@ -220,7 +231,7 @@ Skills and commands follow these principles:
 When modifying or creating skills and commands:
 
 - **Skill registry sync**: The registry lives in two places — this file's Skills table and `README.md`. Both drift independently, so check each against what's actually on disk rather than against the other.
-- **Plugin-internal paths**: `tasks/**` is not shipped in marketplace. Route writes through `update-plugin` (the only skill with an ownership gate).
+- **Plugin-internal paths**: `tasks/**` is not shipped in marketplace (verify against a git-sourced install; a `directory`-source cache is a working-tree copy and shows `tasks/` and uncommitted files). Route writes through `update-plugin` (the only skill with an ownership gate).
 - **Git probes**: `git -C <plugin-dir>` walks up to an enclosing repo and can answer about the wrong one. Use `git rev-parse --show-toplevel` instead to query the CWD. A skill step that reads state from git needs to say what happens when git *errors* rather than returns empty — consumers run these skills in unversioned projects and in repos whose first commit doesn't exist yet, where `git status` succeeds and every `git diff HEAD` fails. Those are two states, not one: `rev-parse --git-dir` asks whether a repo exists, `rev-parse HEAD` whether there's a commit to diff against, and a branch written for the first still breaks on the second. `skills/_shared/references/verifying-a-write-landed.md` owns the substitutes; cite it rather than restating them.
 - **Scope and naming**: When a name stops matching scope, rename in the same change — a stale name under-fires forever. When a command's body becomes "run skill X", migrate it to a skill.
 - **Shared rules**: When a rule appears in 3+ skills, extract it to `skills/_shared/references/` — reference files use literal relative paths resolved against the citing file's directory: `../` from `skills/<name>/SKILL.md`, `../../` from `skills/<name>/references/*.md`. The depth is the whole trap, and reading a pointer never catches it: `../_shared/...` is correct in a SKILL.md and broken one directory down, while both look identical in review and neither 404s at authoring time. Resolve it as a path rather than by eye — `ls` the pointer's target from the citing file's own directory, which is the only check that fails when the depth is wrong.

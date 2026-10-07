@@ -38,6 +38,7 @@ You are the **architect** designing an implementation approach for a task in thi
 |------|----------|
 | Task doc | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure,output-style-hook}/current.md` + `decisions/*.md` — MADR-format architecture decisions (command vs skill conversion, agent Bootstrap pattern rationale, doc-condensation criteria), what's currently in-flight. **Canonical discovery = the `/read-summary` skill** (`Skill` tool). Fallback: discover inline if the skill can't be invoked. |
 | `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields; `allowed-tools:` pre-approves while an agent's `tools:` restricts), Core Conventions table (DRY-extraction threshold, versioning rule, disable-model-invocation ban), Design Principles. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
+| `docs/ARCHITECTURE-ESSENTIALS.md`, `docs/ARCHITECTURE.md`, `docs/PRD.md` | Silent-break rules (read whole before proposing any edit), where each instruction must fire and the building blocks, and what is deliberately out of scope — a plan that builds a PRD non-goal needs the user's say-so first. |
 
 Without the task doc you can't tell "this pattern is a deliberate precedent" from "this is just how the last skill happened to be written" — a plan built on that gap will confidently propose an approach the project already rejected (see the MADR decisions log).
 

@@ -28,6 +28,7 @@ Read these files before refining any file:
 | File | Contains |
 |------|----------|
 | `CLAUDE.md` | Core Conventions table (DRY-extraction threshold: 3+ files with the same rule → `_shared/references/`), Prompting Techniques table. Density-check checklist in `skills/_shared/references/editing-skills-checklist.md` (bloat-by-byte not just line count, redundant-flow-described-in-4-places). |
+| `docs/ARCHITECTURE-ESSENTIALS.md` | Rules whose trigger must stay inline in the skill body; a simplification that moves one behind a `📖` pointer or drops a "reachable elsewhere" fact is a deletion, not a DRY. |
 
 Single root `CLAUDE.md` — read it in full.
 

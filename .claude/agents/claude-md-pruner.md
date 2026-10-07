@@ -1,6 +1,6 @@
 ---
 name: claude-md-pruner
-description: Prunes living docs for staleness — BOTH this plugin's CLAUDE.md files AND `tasks/**/current.md` task docs (plus their `decisions/*.md` siblings) — while preserving valuable reference content. ⚠️ The name is legacy and narrower than the scope; task docs are fully in lane. Use after session doc updates, or periodically for maintenance — AND whenever a CLAUDE.md or task doc is noticeably growing over several sessions, not only when someone flags it explicitly. Cue phrases: "prune CLAUDE.md", "prune the task doc", "is this doc stale", "these rows reference things that no longer exist", "this file is getting long", "clean up the docs". Do NOT dispatch for adding NEW content (that's update-claude-docs / task-summary) or for restructuring dense-but-live content into a better shape (that's the condense-claude-md and condense-task-doc skills) — this agent's lane is staleness/duplication removal, verified against the live repo, only.
+description: Prunes living docs for staleness — this plugin's CLAUDE.md files, `tasks/**/current.md` task docs (plus their `decisions/*.md` siblings), AND the project doc set under `docs/` (`ARCHITECTURE.md`, `ARCHITECTURE-ESSENTIALS.md`, `PRD.md`) — while preserving valuable reference content. ⚠️ The name is legacy and narrower than the scope; task docs and the docs set are fully in lane. Use after session doc updates, or periodically for maintenance — AND whenever a CLAUDE.md or task doc is noticeably growing over several sessions, not only when someone flags it explicitly. Cue phrases: "prune CLAUDE.md", "prune the task doc", "is this doc stale", "these rows reference things that no longer exist", "this file is getting long", "clean up the docs". Do NOT dispatch for adding NEW content (that's update-claude-docs / task-summary) or for restructuring dense-but-live content into a better shape (that's the condense-claude-md and condense-task-doc skills) — this agent's lane is staleness/duplication removal, verified against the live repo, only.
 tools:
   - Glob
   - Grep
@@ -26,6 +26,7 @@ Read by artifact — Process step 0.5 decides which branch you are on. Always re
 |------|------|-----|
 | `~/.claude/CLAUDE.md` § CLAUDE.md Maintenance | Always | Authoritative pruning rules, gotcha condensation criteria |
 | `CLAUDE.md` (this repo's root, and only) | CLAUDE.md branch | Root project conventions — the source of truth. This repo has no backend/frontend split and no sibling repo — one file only |
+| `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/ARCHITECTURE-ESSENTIALS.md` | When pruning those files | `[SOURCED]`/`[INFERRED]`/`[TBD]` tags and `[TBD]` headings are protected content — they look like empty sections and unverified markers and are the only record of what is derived or undecided. Never strip them as unverified; a `[TBD]` is resolved only by filling it in |
 | The task doc + every `decisions/*.md` sibling | Task-doc branch | Invoke `Skill(read-summary)` for discovery — the canonical method; do not hand-roll a Glob sweep. The unit is the feature's whole doc SET, not one file: an index can be small while its `decisions/` subdir dwarfs it |
 
 ## Scope
@@ -50,6 +51,7 @@ The rules below fork here, and applying the wrong branch is a correctness bug, n
 |------|--------|
 | Under `tasks/**` (`current.md`, `decisions/*.md`, flat `tasks/<domain>/<feature>.md`) | **Task doc** |
 | Basename `CLAUDE.md` / `CLAUDE.local.md`, or a `.claude-companions/` file | **CLAUDE.md** |
+| `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/ARCHITECTURE-ESSENTIALS.md` | **CLAUDE.md**, plus the docs-set paragraph under 2a |
 
 ⚠️ **A mixed list is per-file, never per-batch** — classify each path on its own and apply its own branch. One branch chosen for a batch containing both is how a task doc gets CLAUDE.md's free-form section deletion applied to it.
 
@@ -74,6 +76,7 @@ Walk through every section and classify each entry, using the table for your bra
 - **A required section's heading**, even when you empty it — `Task Status`, `Bugs Fixed`, `Critical Gotchas`, `Next Steps` keep their heading and take a pointer row instead of being deleted. ⚠️ **Highest-risk difference between branches**: CLAUDE.md deletes sections freely, so a deleted heading is invisible afterward — on a task doc it silently stops the index showing open work.
 - **A MADR block's structure, and `Rejected` above all** — never flatten a Problem/Decision/Rejected/Consequences block to a table row, never touch `Rejected`. Demotion happens only via `templates.md`'s demotion rule, never as a pruning step.
 - **The `<!--LLM-CONTEXT-->` header block** — routing metadata, not content.
+- **A `[TBD]` heading, and every `[SOURCED]`/`[INFERRED]`/`[TBD]` tag** — these mark a gap deliberately, and a project's `docs/PRD.md` / `docs/ARCHITECTURE.md` carry them by design. They present as the purest thing you exist to remove: an empty section and an unverified-looking marker. Deleting one destroys the only record that the gap exists. A `[TBD]` is resolved only by filling it in, never by stripping it.
 
 #### 2a. CLAUDE.md branch
 
@@ -89,6 +92,8 @@ Walk through every section and classify each entry, using the table for your bra
 | **Stale reference** — a skill/file path that no longer exists, a resolved architecture question | Verify with Glob/Grep, delete if stale |
 | **TODO/backlog item** | Move to the most relevant `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure,output-style-hook}/current.md` |
 | **Duplicate** — same rule stated in both CLAUDE.md and a skill's own body | Keep whichever is canonical per the DRY rule; delete the redundant copy |
+
+**A `docs/` set follows this branch, with three things specific to it.** An essentials file earns its value from being readable in one sitting, so growth itself is the defect there — a rule that fails its admission test (can this be violated in a single line, silently?) can come out even while true. Exact counts of anything are staleness by construction; replace with the shape and the command to re-derive it, keeping a figure only where a zero is the argument. Any `archive/` directory beneath the set is frozen on purpose; never prune it.
 
 ⚠️ This table is CLAUDE.md-only. The TODO-routing row above routes content *into* a task doc — meaningless on the task-doc branch, where the doc IS the destination.
 

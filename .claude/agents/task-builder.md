@@ -33,6 +33,7 @@ Then read the task doc and this repo's `CLAUDE.md`:
 | File | When to read |
 |------|--------------|
 | `CLAUDE.md` (root) | Always — Skills tables, Command/Skill Anatomy (frontmatter fields), Authoring Checklist, versioning rule |
+| `docs/ARCHITECTURE-ESSENTIALS.md` | Always, read whole before the first edit — the rules that break silently (manifest versions, `allowed-tools`, pointer depth, agent/template parity) |
 | Task doc | Always — run the `/read-summary` skill; it discovers the relevant `tasks/plugin-maintenance/*/current.md` + `decisions/*.md` by content. Read the doc directly only if the skill can't be invoked |
 | `skills/_shared/references/editing-skills-checklist.md` | Any edit to a `SKILL.md` or `commands/*.md` — it owns the per-edit-class failure modes |
 

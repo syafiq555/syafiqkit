@@ -26,6 +26,7 @@ Read these files before reviewing any change:
 | File | Contains |
 |------|----------|
 | `CLAUDE.md` | Command/Skill Anatomy (frontmatter fields; `allowed-tools:` pre-approves rather than restricts, and an agent's `tools:` IS an allowlist), Core Conventions table, Design Principles. Detailed editing checklist in `skills/_shared/references/editing-skills-checklist.md`. |
+| `docs/ARCHITECTURE-ESSENTIALS.md` | One-line silent-failure rules, each under its own heading — check a change against each before reporting clean. |
 
 This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it in full.
 

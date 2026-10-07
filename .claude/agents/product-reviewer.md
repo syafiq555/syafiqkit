@@ -32,6 +32,7 @@ You find what `code-reviewer` structurally cannot: **the things that aren't ther
 |------|----------|
 | Task doc | `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure,output-style-hook}/current.md` + `decisions/*.md` — what a skill/change was INTENDED to accomplish, and what "done" means for it. **Canonical discovery = the `/read-summary` skill** (`Skill` tool). Fallback: discover inline if the skill can't be invoked. |
 | `CLAUDE.md` | Skills table (what each skill claims to do and who invokes it), Typical invocation sequence (which skills are expected to compose with which), Design Principles (autonomous-over-interactive, auto-create-over-abort — the bar a skill is judged against). |
+| `docs/PRD.md` | Personas, scope, acceptance criteria and the Out of scope list — a change that builds a listed non-goal is a finding. `[TBD]` entries are undecided, not gaps to report as defects. |
 
 **The task doc is mandatory** — without the intent, you can't tell a deliberate scope-cut (e.g. "cold-path extracted to references/ on purpose") from a forgotten step.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.363.0
+
+**The plugin repo now has its own project docs, and its agents read them.** Anyone editing this plugin (not just using it) gets `docs/PRD.md`, `docs/ARCHITECTURE.md` and a one-page `docs/ARCHITECTURE-ESSENTIALS.md` listing the rules that break silently, plus an `AGENTS.md` pointer and a "Project Docs" table in `CLAUDE.md`. Using the plugin needs nothing new beyond `claude plugin update syafiqkit@syafiqkit`.
+- **Project agents** in this repo's `.claude/agents/` gained a Bootstrap row pointing at the docs; `claude-md-pruner` also treats `docs/` as in its lane and never strips `[SOURCED]`/`[INFERRED]`/`[TBD]` tags. The agent templates are unchanged, so no `/agent-setup` re-run is needed in your projects.
+- **Removed `plugins/vue-lsp/`**, a nested Vue language-server wrapper that no manifest, setting or doc wired up. If you had enabled it by hand, it is gone after the update; nothing in the plugin depended on it.
+- **Maintainer-side fixes**: "verify what ships by listing an install" now says to use a git-sourced install, since a `directory`-source marketplace caches the working tree and proves nothing about what a colleague receives. `update-plugin` routes to all seven `plugin-maintenance` task-doc folders. `CLAUDE.md`'s Sub-skills table no longer lists `/done` as spawning `read-summary` or `brainstorming`.
+- Writer: n/a. Reader: anyone or any agent about to edit the plugin. Maintainer: `claude-md-pruner` (docs-set rules added to the generated agent), `update-plugin`. Verifier: n/a.
+
 ## 1.362.0
 
 **`uiux` now fits under the post-compaction re-attach ceiling.** The skill file went from 5,122 to 3,817 tokens (`cl100k_base`), so everything in it survives a compaction. No action needed beyond `claude plugin update syafiqkit@syafiqkit`; skill behaviour is unchanged except where noted below.

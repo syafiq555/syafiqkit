@@ -70,7 +70,7 @@ Verify your diagnosis by opening the file: a plausible story about why a rule di
 |--------|------|
 | `skills/<name>/SKILL.md` → `description:` | Trigger was wrong or missed |
 | `skills/<name>/SKILL.md` → body | Workflow step, rule, or gotcha was wrong/missing |
-| `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure}/current.md` | Architecture or composition decision; `external-guidance` owns verdicts on outside advice |
+| `tasks/plugin-maintenance/{agent-architecture,doc-condensation,external-guidance,madr-structure,output-style-hook,skill-authoring,project-docs}/current.md` | Architecture or composition decision; `external-guidance` owns verdicts on outside advice, `project-docs` owns the repo's own `docs/` set |
 | `CLAUDE.md` + `README.md` skill tables | A skill was added to the registry — both hand-maintained; `CLAUDE.md` splits by how a skill fires, so one that auto-fires needs its proactive row too |
 | `CHANGELOG.md` | A skill changed meaningfully |
 | `skills/agent-setup/templates/<agent>.template.md` + every generated copy | A behavioral fix to an agent that has a template |
