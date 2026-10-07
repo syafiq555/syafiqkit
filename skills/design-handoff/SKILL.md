@@ -26,17 +26,13 @@ designer will not push back on it.
 ⚠️ **Settle WHICH surface first, in one line, whenever the request arrives with more than one
 candidate in view.** A brief is long and researched, so an excellent one for the wrong screen
 absorbs the whole effort and the error surfaces only when the designer answers about something
-else. The dangerous shape is an image set with a positional reference — "this one needs a
-rethink" beside several screenshots, or a reply covering three surfaces where only one is the
-ask — because the pointer resolves against whatever is most salient to you rather than what
-the user indicated. Salience is the trap: the surface you most recently worked on wins, which
-is exactly the one your own shape has already formed around. Measured 2026-09-20: "image 1
-needs a uiux rethink" with three attached screenshots was read as the second image; a full
-brief went out for the wrong screen and the mistake surfaced three turns later, mid-scoping.
-Name the surface and its file path back to the user as the first line of your reply, and where
-the request reached you through a positional reference to attachments, say which attachment you
-resolved it to. **Tell: more than one screen is in play and you are starting research without
-having named the target.**
+else. Salience is the trap: the surface you most recently worked on wins, which is exactly the
+one your own shape has already formed around. Name the surface and its file path back to the
+user as the first line of your reply, and where the request reached you through a positional
+reference to attachments, say which attachment you resolved it to. 📖
+`references/handoff-incident-patterns.md#{surface-selection}` for a measured 2026-09-20 incident where this cost a
+full misdirected brief. **Tell: more than one screen is in play and you are starting research
+without having named the target.**
 
 ## Withhold the design, ship the constraints
 
@@ -79,6 +75,23 @@ test names, deploy mechanics. Passing those through is worse than omitting them,
 designer cannot tell which apply and will either honour a rule for a screen nobody is designing
 or discount the whole list.
 
+⚠️ **The docs read earlier in the session cover the screens you started on. They do not cover
+every operation the brief ends up naming.** A brief is about a feature, so it names neighbouring
+operations as requirements: renew, terminate, retry, pause. Each of those has its own domain and
+its own doc, and the reading done at session start feels like it covers them. A rule then gets
+written from memory or from the nearest doc, and it reads as authoritative because the rest of
+the brief is sourced. So before writing, list every operation and every state the brief will
+name, and open the doc that owns each one you have not opened this session (`read-summary`'s
+discovery finds it). Write each business rule down only once you have read it, and from where you
+read it. For every operation, the brief also owes:
+- what it does to things already prepared or already sent;
+- what each named state means (what makes a bill "failed", say).
+
+Those are the questions a designer returns first. 📖 `references/handoff-incident-patterns.md#{billing-brief}`
+for a measured 2026-10-07 incident where incomplete research left the designer with unanswerable
+questions and one false rule. **Tell: the brief names an operation whose domain doc you have not
+opened this session, or states a rule you cannot point to a source for.**
+
 Cut anything that only means something to a person editing the code. Keep the business fact and
 throw away its file path. If a constraint cannot be stated so that someone who has never seen
 the repo understands it, either translate it or drop it.
@@ -106,10 +119,9 @@ were settled; its colours, type and mode were whatever the product looked like t
 as the starting file, it hands the designer an outdated design language to extend, and nothing
 flags it: the prototype renders, it matches the old brief, and it predates a rebrand only by date.
 Before offering one as a base, compare its date with the app's last visual change; when it is
-older, cite what it decided in the brief and leave the file out. Measured 2026-09-30: a
-September prototype (dark, green, old font) was copied into a new project as "today's state"
-after a teal, light-mode rebrand, and the user caught it from a screenshot. **Tell: the file you
-are about to call "current" came from a design project, not from the running app.**
+older, cite what it decided in the brief and leave the file out. 📖 `references/handoff-incident-patterns.md#{rebrand-prototype}`
+for a measured 2026-09-30 incident where an outdated palette was included in a new project.
+**Tell: the file you are about to call "current" came from a design project, not from the running app.**
 
 ## Show the current state
 
@@ -141,26 +153,20 @@ of scrolling one long file. Check what the project already contains before writi
 tools seed a new project from whichever system was last active and the inherited one may belong
 to a different product.
 
-⚠️ **Writing those files is not delivering the handoff, and it is the most convincing substitute
-for it.** The person asked for something to *send* — the trigger's own first phrase is "give me
-the prompt" — and files written into a project are addressed to the designer, not to them. Ending
-on a report of what you wrote leaves them holding nothing to paste, and it reads as completion
-because the research is real and the files are good, so nothing signals the gap; a session ended
-this way twice on one task before the user said "i dont see the prompt?". Where the destination
-has a filesystem, **both** artefacts are owed: the files in the project, and the short prompt that
-points at them. Keep the prompt to what the files do not already carry — once the brief opens with
-the ask and names its own siblings, the prompt is a few lines, and padding it back into a summary
-of the brief is the same failure wearing the opposite face. **Tell: your closing message describes
-files you wrote rather than giving the user words to send.**
-
-The prompt belongs in the turn's **closing** message. One delivered mid-turn and then followed by
-more tool work scrolls away, and a later "the prompt is ready to send" without the text leaves the
-user asking for it. The same goes for a follow-up you find for the designer, such as gaps in a
-returned design: if it's worth mentioning, it's worth handing over as words to paste, not as "or ask
-the designer". Measured 2026-09-30: a renewal prompt went out mid-turn, twenty tool calls followed,
-and the closing report referred to it without restating it. Canvas gaps were named with no prompt
-attached, and the user had to ask "what's the prompt". A brief revised after the prompt went out
-owes a fresh prompt, because the old one now describes a different file.
+⚠️ **Where the destination is a project with a filesystem, deliver BOTH artefacts: the files in
+the project, AND the text the person sends to the designer.** The person asked for something to
+*send* — "give me the prompt" — and files in a project are addressed to the designer, not to them.
+Ending on a report of what you wrote leaves them holding nothing to paste, and it reads as
+completion because the research is real. Project files belong in the designer's workspace; the
+prompt belongs in the person's hands in the turn's closing message, since one given mid-turn and
+followed by more tool work scrolls away. Keep the prompt to what the files do not already carry:
+once the brief opens with the ask and names its own siblings, the prompt is a few lines, and
+padding it back into a summary of the brief is the same failure wearing the opposite face. A brief
+revised after the prompt went out owes a fresh prompt. Do the same for follow-ups you find: if it's worth mentioning to the designer, hand the
+person words to paste, not a suggestion to "ask them". Measured 2026-09-30: a renewal prompt went
+mid-turn, twenty tool calls followed, the closing report referred to it without restating it, and
+the user had to ask where the prompt was. **Tell: your closing message describes files you wrote
+rather than giving the user words to send.**
 
 Screenshots of more than a few KB can't go through the design tool's `write_files`, since the bytes
 pass through model output and get truncated. Stage them in one folder under the names the brief
@@ -182,12 +188,17 @@ treating it as a mistake: a designer who breaks a rule often found something wro
 the rule may be yours to fix rather than theirs to follow. 📖 `../judgement/SKILL.md` for whose
 call it is once you know which.
 
-Read the returned design yourself; don't take a summary of it on trust. An agent's claim that something is **absent** (a
-confirm step, legal text, a state) is the claim most likely to be wrong, and the one that turns
-into build work. Measured 2026-09-30: an agent reported three confirm steps missing from a canvas.
-Two were there, drawn as dialogs. A design-tool canvas usually reads as text in seconds, with no
-agent needed:
-- unescape the HTML and drop the style and script blocks;
-- keep component names and the copy;
-- then read the script's data too, because state tables and list rows often live there, and the
-  markup alone shows only template placeholders.
+⚠️ **The rules a design ADDS are the ones nobody checks.** A returned design answers its own open
+questions by assumption: a tax on by default, a rate, a state that applies "only when the date has
+passed". Those assumptions never contradict the brief, because the brief never named them, so a
+contradiction check passes them through. Before planning the port, list every business rule the
+design states that the brief did not supply. Check each one against the domain's docs and code, and
+put the result in the plan as kept, corrected, or a question for the user, asked through `AskUserQuestion` before the plan is presented, not written into it as a default. Measured 2026-10-07: a
+returned billing design defaulted SST to on at 6% for every agency, against an opt-in rule that
+exempts residential rent. The port plan carried it until a side note flagged it. **Tell: your port
+plan lists the design's deviations from the brief and nothing the design introduced.**
+
+Read the returned design yourself; don't take a summary of it on trust. An agent's claim that
+something is **absent** (a confirm step, legal text, a state) is the claim most likely to be
+wrong, and the one that turns into build work. A canvas reads as text in seconds, with no agent
+needed. 📖 `references/reading-canvas-designs.md` for how, and the measured case.

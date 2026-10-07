@@ -14,9 +14,11 @@ This matters most for readers who don't read English natively, who are a real sh
 
 Count every open question first. The count picks the mechanism, so discovering a second one while already writing means the wrong mechanism is on screen — and a picker, once fired, can't become a list without a second round-trip.
 
-**Exactly one open question** → ask it with `AskUserQuestion`. One line of context in the question text, options shaped as the real choices (build it now, defer to the task doc's next steps). A single decision is where the picker earns its cost: it stops the reply and cannot be scrolled past.
+**One to four open questions** → ask them with ONE `AskUserQuestion` call, one entry per question (the tool takes up to four). One line of context in each question text, options shaped as the real choices. The picker stops the reply and cannot be scrolled past. A prose list can be scrolled past: the user then has to type each answer back, and that is how a "finish everything" session ends with its decisions unanswered. An instruction from the user to "ask me with AskUserQuestion" settles the mechanism outright.
 
-**Two or more** → a `## Decisions` block, first in the output, before any summary table:
+**When the user asked to finish everything** (a continuation prompt, "do all the next steps"), a question that surfaces mid-work or mid-wrap-up is asked before the turn ends, and its answer is built in the same session. Writing it into the task doc as an open question instead leaves the brief unfinished while every row reads complete. Park a question only when the user declines, or the answer needs someone outside the conversation. Measured 2026-10-07: a `/done` product review raised four redirect questions on a "finish every open Next Steps item" session. They went into the task doc and a prose `## Decisions` block, and the user asked why questions were still open. **Tell: your wrap-up adds an "open questions" section to a doc on a session whose brief was to finish it.**
+
+**Five or more**, or a question whose answers cannot be shaped as options → a `## Decisions` block, first in the output, before any summary table. The picker asks the first four; the block carries the fifth onward:
 
 ```
 ## Decisions

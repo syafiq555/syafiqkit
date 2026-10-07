@@ -8,7 +8,7 @@
 
 ## Content Order
 
-1. **Open with open questions** — A product gap that stayed a recommendation, or any call the user owns. One uses `AskUserQuestion`, two+ use a `## Decisions` block. See `${CLAUDE_SKILL_DIR}/../_shared/references/decision-first-output.md` for shape, tests, and rationale. Nothing open means no block at all.
+1. **Open with open questions** — A product gap that stayed a recommendation, or any call the user owns. One to four go in one `AskUserQuestion` call; five or more add a `## Decisions` block. See `${CLAUDE_SKILL_DIR}/../_shared/references/decision-first-output.md` for shape, tests, and rationale. Nothing open means no block at all.
 
 2. **Per-change summaries** — For each change, report what Simplify/Review/Product found. Omit roles that produced nothing on that change. A cell reports the finding; it isn't where you argue the work was good, and a gap already asked about above gets pointed at rather than restated.
 
@@ -31,7 +31,7 @@
 1️⃣ [what's true now]
    [the question]
 
-(two or more open questions only)
+(five or more open questions only; up to four go through one AskUserQuestion call)
 
 ## /done Summary
 

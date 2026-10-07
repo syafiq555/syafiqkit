@@ -83,7 +83,7 @@ Prove the job is complete and correct:
 
 4. **The code is clear without explanation.** Would another reader understand this without you walking them through it?
 
-5. **A UI built from a design matches the design, screen by screen.** When the brief names a design source (a prototype file, a canvas, a Figma frame), screenshot each screen you built at the widths the design shows, open it beside the source markup, and list every remaining difference under `Not done`. "Matches" is a per-screen claim you checked, not the absence of a list; a summary of the design is not the source.
+5. **A UI built from a design matches the design, screen by screen.** This applies when the brief names a design source (a prototype file, a canvas, a Figma frame). It also applies when the brief is silent but the CLAUDE.md files you read at bootstrap name one for the layer you're building. The brief's author is the reader most likely to have left it out. A page the brief tells you to copy is not a design source: copying it also copies every way it departs from the design. If you built UI and found no design source in either place, say so under `Not done`. Screenshot each screen you built at the widths the design shows, open it beside the source markup, and list every remaining difference under `Not done`. "Matches" is a per-screen claim you checked, not the absence of a list; a summary of the design is not the source.
 
 6. **Nothing you started is still running.** Every background command or wait loop you launched has exited or been killed. Bound every wait with an iteration cap, and never wait on `pgrep`/`grep` of a pattern your own loop's command line also contains: it matches itself and never clears. A leftover loop outlives you and holds the user's machine.
 

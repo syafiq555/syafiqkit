@@ -101,6 +101,8 @@ Reconcile agents against each other and the work. Agents have bounded visibility
 
 Cross-agent findings (agent A's result needs a change in agent B's file) are applied *after* both return, by you or a fresh dispatch with the finding in its brief. Messaging a still-running agent reads as an out-of-brief instruction; a well-built agent refuses it (two did 2026-09-05, and the finding nearly lost while every report read complete).
 
+Questions the product reviewer raises are asked through one `AskUserQuestion` call now, before Step 4, so the task doc records answers rather than open questions. On a brief to finish everything, build the answers first.
+
 ## Step 2: Clean up temp code
 
 Scan the session for temporary artifacts — debug UI, logging, commented-out migration code — and remove or ask before keeping. Skip if none found.
@@ -168,7 +170,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 **Where the session is ending with work deferred rather than finished** — something parked for lack of room, an explicit "next session", or a visible compaction — offer a continuation prompt via `syafiqkit:continue-session` after the Summary. One line; it's an offer, not a step. Don't estimate your remaining context to decide: that number is unmeasurable from the inside, and the signals above are observable without it.
 
 **Quick rules:**
-- One open question: `AskUserQuestion`. Two or more: `## Decisions`.
+- One to four open questions: one `AskUserQuestion` call. Five or more: `## Decisions` as well. If the session's brief was to finish everything, ask them before wrapping up and build the answers. Don't park them in the task doc (📖 `../_shared/references/decision-first-output.md` § Where it goes).
 - Omit empty rows; don't fill with "N/A".
 - One change = one `### [Change]` + `### Session`.
 - A change with only ✅ still gets its heading.
@@ -183,7 +185,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 1️⃣ [what's true now]
    [the question]
 
-(two or more open questions only)
+(five or more open questions only; up to four go through one AskUserQuestion call)
 
 ## /done Summary
 
