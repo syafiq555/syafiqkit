@@ -4,9 +4,9 @@ After invoking `task-summary`, measure the doc set before leaving the step.
 
 ## Three Core Rules
 
-1. **Measure the SET, never the index alone.** Use `find` not a `decisions/*.md` glob — an unsplit doc has no such dir, and under zsh an unmatched glob aborts before `cat` runs. Once a doc splits, `decisions/*.md` routinely outweighs the index several times; an index reading ~110 lines can front a set three times its budget.
+1. **Measure the SET, never the index alone.** Use `find` not a `decisions/*.md` glob — an unsplit doc has no such dir, and under zsh an unmatched glob aborts before `cat` runs. Once a doc splits, `decisions/*.md` routinely outweighs the index several times, so measure each file to see which one grew; an index reading ~110 lines can front a `decisions/` file that is dense on its own.
 
-2. **Over budget has two outcomes only.** Run `condense-task-doc` in the same turn, or state in the Output that it was skipped and why. Reporting the overage alone is not an outcome.
+2. **"Over budget" means the index (`current.md`) is over `condense-task-doc`'s line target, or one file is dense. A set total above that number is not an overage, and a source-capture file (the only copy of client PDFs, chats or meeting notes) is not dense for size; `condense-task-doc` owns that exemption.** **Over budget has two outcomes only.** Run `condense-task-doc` in the same turn, or state in the Output that it was skipped and why. Reporting the overage alone is not an outcome.
 
 3. **Expect the pull to defer, and recognize it rather than trusting it.** An overage predating this session reads as pre-existing; a condense rewrites earlier work — both feel like reasons to defer to the user. Neither is a reason to skip the run: `condense-task-doc`'s guard reads the working tree, so committed history is a baseline rather than a collision, and its own accounting step now has to say where the bytes went before it can report success. That rules out the silent shape — a set shrinking with no file grown to receive the content — rather than guaranteeing nothing was lost. So dispatch it — then re-derive the one number rather than reading it. Where the report names a file that grew to receive what left, `wc -c` that file yourself; a set whose members all shrank had no destination, and that claim costs nothing to write whether or not it happened.
 

@@ -83,6 +83,8 @@ Write a seeder that builds N self-contained fixture sets, one per worker, idempo
 
 **`firstOrCreate`-style helpers apply their defaults only on insert.** Re-running never touches an existing row — including the exact columns specs mutate and a killed worker leaves un-restored. Re-assert those fields explicitly after the create, or the seeder's "just re-run it" recovery silently does nothing. Scope the match key to the parent FK too, so a stale child under a deleted parent can't shadow the real one.
 
+Seed the untidy shapes real data holds, not only the tidy ones: an empty JSON column, a legacy row missing a foreign key a newer table now carries, a record with no optional children. Tidy fixtures are why a form passes every spec and fails on the first old record a user opens.
+
 Prove idempotence by running it twice and diffing row counts, and prove self-healing by sabotaging a field, re-running, and reading the field back.
 
 Pair it with a precondition check that fails naming the missing rows and the exact seeder command. That converts a database reset from a debugging session into one line of output.
@@ -134,6 +136,7 @@ Two that repeatedly catch real bugs:
 
 - Assert absence with `toHaveCount(0)`, not `not.toBeVisible()` — something rendered off-screen or inside a collapsed section passes a visibility check while still being in the DOM.
 - Before any absence assertion, assert something that *must* be present. A blank or errored page satisfies every `toHaveCount(0)` in the file, so an absence-only spec passes hardest exactly when the app is most broken.
+- A save is proven by reloading and reading the value back, never by the success toast. A form can serialise a field away (an empty object arriving as `[]`, a field the payload builder drops) while the server answers 200, so the toast fires on a write that stored nothing. A spec that stubs the API with `page.route` proves only that the screen renders a given reply; keep at least one unstubbed round-trip per write path.
 
 **A spec that asserts state it never establishes is the highest-value thing to check for, because it passes.** Prove a spec is not vacuous by inverting its fixture in the database and re-running: it must fail. This is also how you check a gate is live — remove the guard and confirm something goes red. When a probe still passes, confirm the mutation is real (re-grep and check the count moved, or diff it) before concluding the spec is vacuous — a `sed` misfire or a cached view both produce a green run while the mutation never landed.
 

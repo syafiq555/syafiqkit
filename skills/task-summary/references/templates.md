@@ -294,6 +294,35 @@ Grouped by KIND of work. Emit only groups that have items. (See Next Steps vocab
 - [ ] 🟡 [Pending work item + the reason it's deferred]
 ```
 
+## Decision Theme File (`decisions/<theme>.md`) {#theme-file}
+
+A theme file is not a smaller `current.md`, so the Full Template above is the wrong shape for it. Its job is the record of why: the index answers "where are we and what's next", and the theme file answers "why is it built this way". Shape:
+
+```markdown
+<!--LLM-CONTEXT
+Status: [one line]
+Domain: [domain] ([theme])
+Gotchas (critical): [1-3 lines]
+Related: `../current.md` (index), [sibling theme files]
+Last updated: [today] — [what changed]
+-->
+
+# [Feature] — [Theme]
+
+[Optional: a few lines of context the ADRs share]
+
+## Key Technical Decisions {#decisions}
+
+### D-[slug] — [title] [status] — [date]
+(MADR block: Problem / Decision / Rejected / Consequences / Status)
+
+[Optional: theme-owned gotcha or bug rows routed here from the index, per `decision-splits.md`]
+```
+
+The sections that belong only to the index stay out: Quick Start, Task Status, Last Session and Next Steps.
+
+**A theme file that needs those sections, or its own Overview, Files, API and Bugs Fixed, has become a feature.** Don't conform it to the Full Template in place. That produces a second `current.md` hidden under `decisions/`, which no reader opens first. Propose graduating it to `tasks/<domain>/<feature>/current.md` instead, with its ADRs in that feature's own `decisions/`. Graduating changes paths other docs cite, so it is the user's call. Once agreed, follow `merge-rename.md`.
+
 ## One Fact, One Home
 
 The same status/decision/bug ID appearing in LLM-CONTEXT Status, LLM-CONTEXT Gotchas, Quick Start's two subsections, a Task Status row, AND a Bugs Fixed row isn't thoroughness — it's the same fact restated 5+ times with drifting wording, and a future edit that touches one copy but misses the others creates silent disagreement.

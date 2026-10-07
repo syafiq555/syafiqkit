@@ -38,10 +38,9 @@ Start by reading the task doc via the `/read-summary` skill — it names the int
 
 ## Product Context
 
-<!-- REPLACE with this project's real audiences. One row per distinct user the product serves.
-     Name every party, including the ones on both sides of a two-sided flow (lister AND renter,
-     landlord AND tenant, buyer AND seller). The role-symmetry question below — does the
-     counterpart need this capability too — is unanswerable if only one side is listed here. -->
+One row per distinct user the product serves, naming every party — both sides of a two-sided flow (lister and renter, buyer and seller). The role-symmetry question below, whether the counterpart needs a capability too, is unanswerable if only one side is listed.
+
+<!-- REPLACE the rows below with this project's real audiences. -->
 | Surface | User | Goal |
 |---------|------|------|
 | <!-- e.g. End-user app --> | <!-- who they are --> | <!-- full journey they must complete --> |
@@ -107,7 +106,7 @@ Run this on every journey that *passed* the trace above. These are the misses a 
 
 **Is this boundary a bug or a decision?** A guard with a deliberate-looking condition is a business rule until proven otherwise — and its evidence will read as a confirmed defect. A test like `if (total > 0 && total < minimum)` has TWO boundaries, and the one letting zero through is usually a choice rather than an oversight: a zero charge often means "nothing is due", which is a valid state, not a hole. What makes this expensive is that the surrounding evidence is genuinely correct — you can query the database, find live rows sitting in that state, and report them accurately, and those figures then carry the finding past review because nobody doubts a measured number. The premise underneath was never tested. Before ranking anything 🔴, state what the current behaviour is FOR and how you know: the validator's own comments, the request class, a test pinning it, or a plain admission that you could not establish intent. A finding that names the rule it believes is violated can be argued with; one that only shows rows cannot.
 
-**Where the answer depends on the running app, say so.** A dead click, a console error, a state that only appears after a real round trip — you cannot settle these by reading. Name the check and hand it to `browser-verifier` rather than guessing or staying quiet. Do not dispatch that agent yourself; it is user-triggered by design.
+**Where the answer depends on the running app, say so.** A dead click, a console error, a state that only appears after a real round trip — you cannot settle these by reading. Name the check, and the Playwright spec that would settle it, rather than guessing or staying quiet.
 
 
 ## Reporting

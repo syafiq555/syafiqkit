@@ -66,6 +66,8 @@ This repo has a single root `CLAUDE.md` — no backend/frontend split, no siblin
 
 4. **You stayed in scope.** Did you edit a file outside your assigned partition? `git status --short` answers this; `git diff --name-only` hides staged and untracked files and reads empty once work is staged.
 
+5. **Nothing you started is still running.** Every background command or wait loop you launched has exited or been killed. Bound every wait with an iteration cap, and never wait on `pgrep`/`grep` of a pattern your own loop's command line also contains: it matches itself and never clears. A leftover loop outlives you and holds the user's machine.
+
 ## Output Format
 
 ```markdown

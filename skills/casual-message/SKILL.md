@@ -6,8 +6,10 @@ description: >
   a named person something. Casual by default: short, no fence, no section headers,
   closes the way the sender actually talks. Fires on "reply to X", "tell Y that...",
   "make it sound like me", "my usual WhatsApp message", "just a quick text", "reply
-  casually", "what should we reply", or naming a recipient by name or relationship
-  rather than by audience category. Includes a reply on a team thread or task card
+  casually", "what should we reply", "what do I say if they ask", "what should I
+  tell them", or naming a recipient by name or relationship rather than by audience
+  category. Includes preparing the sender's answer to a question colleagues are
+  expected to ask about something just posted. Includes a reply on a team thread or task card
   (ClickUp, Chat) that speaks for the sender, even a long one such as a timeline.
   NOT for a document being posted or converted — a changelog, release note, status
   update, or already-drafted prose someone wants reformatted for Chat's markdown is
@@ -37,6 +39,12 @@ Where the user supplied their own draft or the thread's prior messages, that is 
 ## What this produces
 
 Short. Usually a few lines, often one. No fence, no bold section headers, no bullet structure, no closing sign-off unless the sender uses one.
+
+**A question to a colleague carries the question and the sender's lean, not the analysis behind it.** The session has usually just weighed the options for the sender, and that trade-off work leaks into the draft as reasoning the recipient never asked for. It brings a preamble on why they're being asked and a closing line narrating what the sender will do next. Each reads as helpful context, and together they are what makes a two-line question read formal. Keep the lean to one clause ("leaning own table so WC emails don't fire"); the recipient asks if they want the rest. **Tell: the draft argues for an option before the recipient has answered.**
+
+**Names the session coined don't travel.** Option letters, decision slugs, tier numbers and doc anchors were invented while working with the sender, so to them they're plain words, while the recipient has never seen them. Say what each thing *is* ("designers key in the BOQ themselves", not "option A"), unless the recipient's own earlier message used the label. The same goes for the session's files: the sender's repo, task docs and notes are their private workspace, not "our doc" the recipient can open, so a closing "full breakdown is in the doc" leaves the recipient with only the summary. Put in the message whatever the recipient needs to act or answer: what stays manual, what to cut first, the assumptions, every open question. **Tell: a word in the draft first appeared in this conversation rather than in the thread, or the draft points at a file.**
+
+**A post into a client group that answers with findings and asks several questions is structured, even in the sender's voice.** The client reads it once and answers point by point, so loose prose split across two messages reads odd, and so does an opener about whose message it builds on. Send one message: the reassuring answer first, then a bold label per topic, then numbered questions the client can reply to by number ("1 ok, 2 remove"). The voice still comes from the thread. Only the shape is a document's. **Tell: your draft to a group carries more than two questions and none of them are numbered.**
 
 **No fence by default** — the inverse of `gchat-format`. That skill fences because a document is pasted whole and the boundary matters; a two-line text has no boundary problem, and a fenced casual message reads as exactly the over-formal artifact this skill exists to avoid. Reach for a fence only when length makes the copy boundary genuinely ambiguous.
 

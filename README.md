@@ -71,7 +71,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/refresh-instructions` | Full three-pass refresh on any living doc — CLAUDE.md, task doc, `docs/` set file, README or runbook — restructure, condense, then unhobble, each on haiku and verified in sequence |
 | `/skill-creator` | Create a new skill — place it, draft it, register it, and verify its trigger actually fires |
 | `/self-organize-agent-memory` | Dispatch a project agent onto its own bloated `.md` file to decide what stays inline vs. what moves to its own agent-memory |
-| `/uiux` | Design judgement for UI work at any scope — polish, rethink, or redesign from one element to a whole module, greenfield or existing app; mobile-first by default, judges whether an existing design language or stack is dated, designs for people who scan rather than read; also fires on a UI screenshot or a "looks wrong" report that never names UI |
+| `/uiux` | Design judgement for UI work at any scope — polish, rethink, or redesign from one element to a whole module, greenfield or existing app; mobile-first by default, judges whether an existing design language or stack is dated, designs for people who scan rather than read; also fires on a UI screenshot or a "looks wrong" report that never names UI, or when asked how real products solve a pattern (case studies, researched and verified) |
 | `/quick-done` | Cheap docs-only wrap-up for a small session — CLAUDE.md capture + task-doc update, and no review of any kind (no code review, simplifier, or product lens) |
 
 ## Usage

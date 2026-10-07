@@ -13,6 +13,7 @@ Every interactive element shows, visibly and distinctly:
 - **Hover** (pointer devices only, never the sole affordance)
 - **Focus** — reachable by keyboard, with a visible ring; the tab order follows the reading order
 - **Active / selected** — which tab, row or item is current
+- **Cause and effect** — click every control that changes other content. The change lands in view, in the same container, and the thing you clicked doesn't move out from under the pointer.
 - **Pressed** — colour, opacity or elevation changes; the element's bounds do not, so nothing around it jitters
 - **Disabled** — and, where possible, why
 - **Loading** — pending is distinguishable from broken; stale content is not left on screen while new data loads

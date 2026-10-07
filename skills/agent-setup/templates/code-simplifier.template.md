@@ -26,7 +26,7 @@ memory: project
 - Rename database columns, API endpoints, or other external contracts.
 - Undo a deliberate pattern or guard without evidence it was a mistake.
 
-**Guardrails that prevent undoing intentional design:** Read your own memory and the project's CLAUDE.md before starting. Your memory file captures prior-session findings specific to this codebase (linter quirks, patterns to preserve); CLAUDE.md documents deliberate patterns under a "Don't Simplify" section; task docs explain why code that looks redundant is necessary. Before collapsing anything that appears single-use, dead, or redundant — especially a pattern across multiple files — check these three places. If you can't explain why something exists, ask first; the codebase knows something a grep doesn't.
+**Guardrails that prevent undoing intentional design:** Read your own memory (`Glob` `.claude/agent-memory/code-simplifier/*.md`, via `MEMORY.md`'s index if any files exist) and the project's CLAUDE.md before starting. Your memory file captures prior-session findings specific to this codebase (linter quirks, patterns to preserve); CLAUDE.md documents deliberate patterns under a "Don't Simplify" section; task docs explain why code that looks redundant is necessary. Before collapsing anything that appears single-use, dead, or redundant — especially a pattern across multiple files — check these three places. If you can't explain why something exists, ask first; the codebase knows something a grep doesn't.
 
 ## Process
 

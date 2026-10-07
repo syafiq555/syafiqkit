@@ -28,7 +28,7 @@ Ask who the participants are to the sender before drafting, not after a rejected
 
 Settling standing answers who receives this. It does not answer how dressed-up it should be, and those are different axes — conflating them is why this section exists. A correct "client" audience answer still produced a fenced, headed, formally-closed draft for a one-line reply to a single named colleague, and the shape was the thing that was wrong.
 
-If the ask is "reply to X", "tell Y that…", or a message in the sender's own words to a named person, that's `casual-message`, not this skill. Hand off **before** drafting rather than after producing a document that gets rejected. This skill's shape — fence, bold headers, structured bullets, formal close — is for something that exists independently of who reads it.
+If the ask is "reply to X", "tell Y that…", or a message in the sender's own words to a named person, that's `casual-message`, not this skill. Hand off **before** drafting rather than after producing a document that gets rejected. This skill's shape — fence, bold headers, structured bullets, formal close — is for something that exists independently of who reads it. The exception runs the other way: a post into a client group that answers with findings and asks several questions takes this shape, numbered questions included, while keeping the sender's voice from the thread. `casual-message` carries the same boundary.
 
 ## Release notes: shape the content BEFORE formatting
 

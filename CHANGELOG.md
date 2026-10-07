@@ -1,5 +1,212 @@
 # Changelog
 
+## 1.355.0
+
+**A `/done` review of the unreleased 1.334.0–1.354.0 range fixed two contradictions and recorded four behaviour changes that had no entry.** No action needed from colleagues; nothing generated needs regenerating except as noted.
+- **`condense-task-doc`** (writer: step 8): 1.349.0's source-capture paragraph had been spliced into the middle of the step, so three sentences about the index budget (backlog alone is not an overage, under budget still means step 4, tighten dense sections) read as part of the exemption. They are back beside the budget sentence and the exemption stands alone.
+- **`done/references/task-doc-measurement.md`** (maintainer): rule 1 still said an index can front "a set three times its budget", the reading rule 2 retired in 1.349.0. It now says to measure each file to see which one grew. Rule 2 names the source-capture exemption, so `done` doesn't send a client-capture file to condense.
+- **Project `task-builder` agent** (`.claude/agents/task-builder.md`): gains the template's "nothing you started is still running" check (1.342.0). The design-match and spec checks (1.341.0, 1.343.0) are left out, as this repo has no UI.
+- **Recorded late, shipped in the range:**
+  - **`continue-session`:** a paste may be started in a parallel session. It says whether that is safe and adds a `Running:` line naming what this session still has in flight.
+  - **`gchat-format` and `casual-message`:** a post into a client group that answers with findings and asks several questions takes the document shape with numbered questions, in the sender's voice. `casual-message` also gains triggers for preparing an answer to a question colleagues are expected to ask. The n/a claims about `gchat-format` in 1.336.0 and 1.340.0 predate this and are history.
+  - **`ship`:** a release note's closing line that hands an action to a named person says how to do it, or where the steps are.
+- Reader and verifier: n/a. These are corrections to skills already read at invocation, and the review itself was the verification.
+
+## 1.354.0
+
+**`md-to-pdf` renders Mermaid with `-s` (scale), since current mermaid-cli has no `-w` flag.** Measured 2026-10-06: the skill's prescribed `mmdc ... -w 1200` exited with `error: unknown option '-w'` on the npx-installed CLI; `-s 2 -b white` rendered crisp PNGs. The text-too-small gotcha now says to raise `-s` or reshape a wide flowchart, because a wide diagram shrinks to page width at any pixel size.
+- **`md-to-pdf`** (writer: Step 2 render command and the Gotchas row). Reader, maintainer and verifier: n/a, no other skill invokes mmdc (grep found none).
+
+**`md-to-pdf` Step 4 runs with `< /dev/null`.** Measured 2026-10-06: `npx --yes md-to-pdf <file>` from an agent's Bash tool hung until the 300s timeout with no Chromium process — md-to-pdf reads stdin whenever it is not a TTY. With empty stdin it fell back to the file and finished in ~4s.
+- **`md-to-pdf`** (writer: both Step 4 commands). Reader, maintainer and verifier: n/a, no other skill invokes md-to-pdf (grep found none).
+
+## 1.353.0
+
+**An oversized task-doc index is cut by moving its biggest self-contained section out whole, not by rewording cells on a cheaper tier.** Measured 2026-10-06: `/haiku` ran `condense-task-doc` as four parallel agents, one per file of a 1,000-line doc set. Two files lost 11-14% but with an inverted statement ("never deleted" became "never reassigned", "not unique" became "nullable"); one deleted a whole section on the claim that its field mapping was covered elsewhere (a grep found no copy); the index agent invented a recommendation the doc's own decisions had retired and a wrong "last updated" line, for 6.6%. Moving the client-question block, 17 KB of the index's 42, verbatim to a `decisions/` file with a one-line-per-question table behind took the index to 28 KB with nothing reworded. The meaning read the haiku skill already prescribes caught every defect, so only the tier's reputation needed correcting.
+- **`condense-task-doc`** (writer: step 2 branch "Already split, INDEX still oversized"): when the longest section is self-contained and cited from outside, move it verbatim and leave a summary table.
+- **`haiku`** (maintainer: the "restructuring and condensing" paragraph): the tier is good at them while the cut is mechanical; when a pass rewords reasoning cells, read every changed row against the snapshot.
+- `task-summary` (reader) only delegates to `condense-task-doc`, so it inherits the rule; n/a. Verifier: haiku's Verification section, which caught all four defects; unchanged.
+
+## 1.352.0
+
+**`commit` gives every commit of a requested split its own pathspec, even when every staged path belongs to this session.** Measured 2026-10-05: asked for three commits (plugin, e2e, docs) on a monorepo, a bare `git commit` for the first one took all 16 already-staged doc and e2e paths, plus a peer's staged root CLAUDE.md, into the "plugin" commit; the post-commit file-list check caught it and `reset --soft` plus `git commit -- <plugin path>` redid it. The ownership gate already required a pathspec when a staged path "isn't yours", which read as satisfied because the session's own paths were all its own — the case it missed is splitting one's own work, where auto-staging means `git add <path>` narrows nothing.
+- **`commit`** (writer: step 3 ownership gate): one added sentence covering split commits.
+- `_shared/references/diff-ownership.md` (maintainer) is about whose a hunk is, not about splitting; n/a. Reader: n/a, no other skill composes split commits. Verifier: `commit`'s own Verify step, which caught it; unchanged.
+
+## 1.351.0
+
+**A message to a colleague carries its own content instead of pointing at the sender's docs.** Measured 2026-10-04: a scope reply drafted for a colleague ended "full breakdown is in our doc". The user said the doc is theirs, not shared, and the reply had to be self-contained. The rewrite had to absorb the manual-at-launch list, the cut order, an assumption still to verify, and the remaining questions.
+- **`casual-message`** (writer: "Names the session coined don't travel"): the rule now covers the sender's own files (repo, task docs, notes) as well as coined labels, and its Tell now includes a draft that points at a file.
+- `gchat-format` (maintainer) converts documents that already exist, so it does not compose pointers. n/a. There is no reader or verifier role.
+
+## 1.350.0
+
+**`uiux` can now be asked "how do real products do this", and says what that research is worth.** Measured 2026-10-03 on a mobile line-item row. The user asked for real case studies; two haiku agents (named products' own pages; UX research bodies) returned thin results, and the first reports overstated them: four research-body pages were called 404 or paywalled from guessed paths and all returned 200 at the real ones, a "stacked rows" claim was not on the page it cited, and a quote about form-level Cancel buttons was offered for per-row delete. What survived checking was WCAG and NN/g tap-target sizes and one Stripe interaction; the layout itself came from the user's own reference principles.
+- **`uiux`** (writer: new section "When the user asks how real products solve it"): research goes through `haiku`, split by source kind, same cells per agent, sources opened before relaying, evidence reported apart from judgement. The description now names the trigger. New `references/case-study-research.md` holds the brief, the verified numbers and the failure modes above.
+- **`CLAUDE.md` and `README.md`** (maintainer): the `uiux` rows name the new trigger.
+- `haiku/references/verifying-research.md` (reader and verifier) already carries the retest-a-negative and guessed-URL rules that this session needed, so it is unchanged and the new section points at it by name. `design-handoff` and `brainstorming` do not research, so n/a.
+
+## 1.349.0
+
+**The ~300-line task-doc budget is the index's, not the set's, and a source-capture file is exempt from condensing for size.** Measured 2026-10-02 on a two-folder proposal doc set of ~900 lines. Both `current.md` indexes were already under budget (145 and 103 lines), but `task-summary` and `done`'s measurement reference compared the set total to 300, so the set read as over budget. The user called a 300-line set "almost impossible". Meanwhile `condense-task-doc` step 8 already scoped the target to "an indexed doc". Per Step 1a this was a contradiction between skills, so the fix scopes both sides rather than rewording either. Under that pressure, a haiku condense also cut a 265-line client-sources capture, the only copy of client PDFs and chats, dropping supplier names, workbook errors and verbatim quotes despite being told every figure must survive. It was reverted whole.
+- **`task-summary`** (writer: the size check after writing): the budget is the index's; `decisions/*.md` are judged one by one; the set total is for accounting.
+- **`condense-task-doc`** (reader: owns the threshold, step 8): the budget is the index's alone. New rule: a source capture is exempt from condensing for size; dedupe it, but every figure, name and quote stays.
+- **`done/references/task-doc-measurement.md`** (maintainer): "over budget" is defined as the index over target, or one dense file. The set is measured to see which file grew, not compared to the budget.
+- **`refresh-instructions`** (verifier: Process step 0): "the set total is the target" now means the scope, not a budget.
+
+## 1.348.0
+
+**A handoff prompt pointed at instead of restated, a third time. And design screenshots can't be uploaded through the tool.** Measured 2026-10-02 in a project session. The prompt went out correctly in one turn's closing message. The brief was then revised and re-uploaded, and the `/done` Output after it said "send the designer the short message from my earlier reply". The user asked "where the prompt ?". Diagnosis per Step 1a: the rule was read at invocation, and the decision came many turns later inside another skill's Output. `design-handoff` holds the rule, but `/done` writes the session's last message and never loads it. Rewording `design-handoff` a third time would not reach that turn, so the route changed. The same session found that 100-200 KB screenshots can't pass through `write_files`.
+- **`done`** (maintainer: writes the closing Output): new quick rule. Words the user still has to send are restated in full, never pointed at, and a pointer to a since-revised brief is also stale.
+- **`design-handoff`** (writer, Delivering): a revised brief owes a fresh prompt. Screenshots are staged in one folder under the names the brief cites, and the path goes in the closing message with the prompt.
+- Reader: the user, n/a. Verifier: `done/references/exit-gate-rules.md` was left alone. The quick rule sits where the Output is composed, and that file has a peer's uncommitted edits.
+
+## 1.347.0
+
+**Companion files get their own refresh row, and callers outside a router set point at the router rather than a leaf anchor.** Measured 2026-10-02 on a `.claude-companions/shared/` refresh: the pass table had no row for a companion, so the condense skill was a guess, and after the reference became a router the rules file was repointed at eight leaf anchors that the user then sent back to the router.
+- **`refresh-instructions`** (reader of the pass table): new row for CLAUDE.md companions, using `condense-claude-md` for Pass 2 and a restructure organised by symptom for Pass 1.
+- **`condense-claude-md/references/split-decision-tree.md`** (writer of routers): the index-file rule now covers deep links. A file outside the set cites the router, never `leaf.md#{anchor}`.
+- `unhobble-instructions/references/routing-content.md` (maintainer): router rows pointing at leaf anchors stay correct, so no edit. `haiku` verification (verifier) checks that pointers resolve, not which file they target, so no edit.
+
+## 1.346.0
+
+**`commit` now decides which staged paths are this session's before it commits, because "staged" carries no ownership on a shared checkout.** Measured 2026-10-01: `/syafiqkit:commit "and pull"` took all 331 pre-staged files, most of them three live sessions' unfinished work, into one commit, then merged origin on top; its only check was whether a test runner was running. This is the third recurrence of the pathspec rule (twice on 2026-09-28), which lived in a project's local instructions and in `diff-ownership.md`, but `commit` never sent the reader there before the act: its only ownership text sat in the post-commit Verify step, comparing the commit to "what you staged", so a wrongly staged set passed. Per update-plugin Step 1a the fix is a gate at the irreversible act, not reworded prose.
+- **`commit`** (writer): new first bullet in step 3, an ownership gate. It classifies each staged path by content, commits only this session's paths by pathspec, stops and shows the foreign list when the split isn't clear, and says a process check is not an ownership check.
+- **`_shared/references/diff-ownership.md`** (maintainer): lists `commit` among the skills that branch on ownership.
+- `ship` (reader) delegates its commit step to `commit`, so it inherits the gate; no edit.
+
+## 1.345.0
+
+**The rest of a task-doc refresh, after 1.344.0's Pass 1 fix: condense and unhobble passes broke the doc skeleton and dropped facts they said were elsewhere.** Measured 2026-10-01 on a 12-file refresh:
+- **Condense:** a haiku condense deleted five Last Session blocks as "covered elsewhere", and four non-derivable gotchas in them were in no other doc.
+- **Unhobble:** three of six haiku unhobble passes deleted LLM-CONTEXT or renamed or dropped template sections ("Living Systems", "Status"). One deleted 11 rows it said it "would have moved if allowed", although the brief allowed the move.
+- **Haiku no-op:** one haiku agent returned "waiting for the skill to complete" with the target untouched.
+- **Outcome:** two unhobble passes were reverted and re-run cleanly on sonnet.
+
+| Role | File | Change |
+|---|---|---|
+| Template owner (writer) | n/a | `task-summary/references/templates.md` already holds both shapes (1.344.0) |
+| Rewriter (reader) | `unhobble-instructions` SKILL.md, after the decision-block rule | A task doc's skeleton is a contract: the LLM-CONTEXT block, the template headings and required sections. Regroup inside sections and move material to theme files, but never rename into your own scheme or drop sections. A move you can't make gets reported, not deleted |
+| Condenser (maintainer) | `condense-task-doc/references/section-rules.md` Last Session row | Each fact in a block deleted as "covered elsewhere" names the section holding it, confirmed by grep |
+| Dispatcher | `refresh-instructions` Pass 1 ⚠️ | The target shape is named in the Pass 2 and Pass 3 prompts too, not only Pass 1 |
+| Dispatcher (agent prompt) | `haiku` "For general-purpose agents" | A prompt naming a skill says invoking it only loads instructions and the agent makes the edits |
+| Verifier | n/a | The orchestrator's re-count against the expected counts caught every case; the defect was in the briefs and skills, not in verification |
+
+## 1.344.0
+
+**A refresh conformed `decisions/*.md` theme files to the `current.md` Full Template, because no theme-file shape existed.** `refresh-instructions` routed index and theme files through the same "conform to template" Pass 1, and `templates.md` held only the index template. `condense-task-doc` already cited a theme-file shape in it that wasn't there. Measured 2026-10-01: a haiku agent moved a theme file's Files section ahead of its ADRs. Another moved the index's Critical Gotchas above Task Status on an order it made up ("foundational before operational"). Both were reverted after the user caught it. The user's rule: a theme file that needs index sections has become its own feature.
+
+| Role | File | Change |
+|---|---|---|
+| Writer (splits create theme files) | `condense-task-doc` step 8 | Pointer now lands on `templates.md#theme-file`, the section it already claimed existed |
+| Shape owner | `task-summary/references/templates.md` | New `## Decision Theme File {#theme-file}`: LLM-CONTEXT + ADRs, with no index sections. A feature-shaped theme file graduates to its own feature folder; that is the user's call |
+| Reader (conforms existing docs) | `task-summary` §2 table | New row: a `decisions/<theme>.md` aligns to the theme-file shape, never the Full Template |
+| Dispatcher | `refresh-instructions` file-type table + a Pass 1 ⚠️ | Index and theme file are split into separate rows. Every Pass 1 prompt names its target shape and says the template's order is the order. A feature-shaped theme file gets no Pass 1 and is reported as a candidate to graduate |
+| Verifier | n/a | `haiku` verification checks the result against the spec the prompt cites; the defect was that the prompt cited the wrong spec, which the dispatcher row now fixes |
+
+## 1.343.0
+
+**Feature specs reached later steps by seeding or calling the API, so the steps where the user's bugs lived were never driven.** Measured 2026-10-01 in a project session. Builders' agreement specs created tenancies, uploaded documents and placed signature boxes through the API to get to the screen under test. Meanwhile the user, clicking through the wizard, found the steps before it broken: rent defaulted to RM 0 unnoticed, and the agreement was generated from blanks at create. The user's instruction: "make sure e2e cover from starting to tenant created and all, user action, not all fixture". 1.342.0 covered stubbed replies and saves proven by reload; this covers how a spec reaches its state.
+
+| Role | File | Change |
+|---|---|---|
+| Builder (spec author) | `agent-setup/templates/task-builder.template.md` item 7 | A user-flow spec reaches each step through the screens; fixtures only for login and plan; API/DB reads only to assert; unreachable states named under `Not done` |
+| Suite design | `setup-playwright` | n/a. Its description excludes "writing one more spec in a suite that already works", so it isn't loaded when builders write feature specs; the builder template is where the rule is read |
+| Dispatcher | n/a | No skill owns a builder brief's spec instructions; the template carries it into every builder |
+| Verifier | n/a | `done`'s reviewers read diffs and could flag API-seeded journeys, but by then the specs are written; the rule belongs where they are written |
+
+Regenerate: projects with a generated `task-builder.md` need item 7.
+
+## 1.342.0
+
+**Three profile bugs reached the user through specs that were all green, and builders left wait loops running.** Measured 2026-10-01 in a project session. A tenant with empty `info` got `"info": []` from the API, the form hung its fields on the list, and every save stored nothing while toasting success. A contract with a NULL legacy foreign key made every save 422. A short NRIC was silently discarded. The only profile spec stubbed its 422, and the seeded tenants were all tidy, so nothing reloaded a saved value or opened an untidy record. Separately, several parallel builders ended with background wait loops still running: two waited forever on conditions that could no longer happen, and some waited on `ps aux | grep "[p]laywright test"`, which matched peers' own loops and never cleared. The user had to ask which of "4 shells, 3 monitors" were needed.
+
+| Role | File | Change |
+|---|---|---|
+| Suite design | `setup-playwright` Fixture data | Seed the untidy shapes real data holds (empty JSON, a legacy row missing a newer FK, no optional children) |
+| Suite design | `setup-playwright` Assertion conventions | A save is proven by reload and read-back; a `page.route` stub proves rendering only; keep one unstubbed round-trip per write path |
+| Builder | `agent-setup/templates/task-builder.template.md` item 6 | Nothing you started is still running; bound every wait; never wait on a pattern your own loop matches |
+| Verifier | n/a | `done`'s reviewers read diffs, not running processes; the builder is the only role that knows what it launched |
+
+Regenerate: projects with a generated `task-builder.md` need item 6.
+
+## 1.341.0
+
+**A design port handed to six builders came back as six near-misses.** Measured 2026-10-01 in a project session. The session captured a finished Claude Design canvas into a per-screen summary doc, then briefed six parallel task-builders from that summary. Every screen rendered cleanly and passed the token grep, and every one drifted: segmented pills instead of underline tabs, icon cards instead of radio cards, an old status-chip stack under a new column header. The session relayed the builders' "screenshots taken and opened" without opening them. The user caught three screens in a row ("please check the design", "u didnt check the design?", "all also different design").
+
+This is not the existing port rule failing. That rule (read the design before proposing; the design wins) was followed by the session itself. The gap is the hand-off: a summary keeps decisions and drops the look, and nothing said what a builder brief for a port must carry or who checks the result.
+
+| Role | File | Change |
+|---|---|---|
+| Writer (brief) | `uiux` port section | Brief builders with the design source and the anchors of their screens, never the summary; require a per-screen difference list; open the screenshots yourself before reporting done |
+| Builder | `agent-setup/templates/task-builder.template.md` Before You Report Done, item 5 | When the brief names a design source, screenshot each screen, compare with the source, list remaining differences under `Not done` |
+| Capture | `task-summary` live-source paragraph | n/a. The per-screen capture is right for the next session's decisions; the fault was using it as a builder spec, which is the `uiux` change |
+| Verifier | `uiux` (same paragraph) | The orchestrator opens the screenshots. The builder's item 5 moves the evidence into the report it reads, since a body rule is read once at invocation and the verdict comes after background agents return |
+
+Regenerate: projects with a generated `task-builder.md` need the new verification item.
+
+## 1.340.0
+
+**A colleague message used labels only the session knew.** Measured 2026-10-01 in a project session. A reply to a teammate said "quote A ... and B as an add-on". A and B were option names coined with the sender earlier in the conversation. The user had to point out that "she doesn't know what's A what's B".
+
+- **`casual-message`** (writer): names the session coined (option letters, decision slugs, tiers, anchors) get replaced with what they are, unless the recipient used them first. This is new, not a recurrence. The existing "question carries the lean, not the analysis" rule covers leaked reasoning, not leaked vocabulary.
+- Reader: n/a, the recipient is outside the plugin. Maintainer: n/a. Verifier: n/a, no skill reviews an outbound message. `design-handoff` already requires constraints stated for someone who has never seen the repo. `gchat-format` converts the user's own prose, so any labels in it are theirs.
+
+## 1.339.0
+
+**A handoff prompt delivered mid-turn, and a returned design read through an agent's summary.** Measured 2026-09-30 in a project session. The renewal prompt went out in the middle of a turn, twenty tool calls followed, and the closing report said "the renewal prompt is ready to send" without the text. Gaps found in the returned canvas were named with "or ask the designer" and no prompt, and the user had to ask "what's the prompt". Separately, an agent's canvas summary said three confirm steps were missing. Two were there, drawn as dialogs, and the plan had already absorbed the wrong claim as "spot-checked".
+
+- **`design-handoff`** (writer, Delivering): the prompt belongs in the turn's closing message, and a follow-up found for the designer is owed as words to paste. Diagnosis per Step 1a: the "both artefacts are owed" rule was reached and read as satisfied, because the prompt had technically been given.
+- **`design-handoff`** (verifier, After): read the returned design yourself, and treat an agent's absence claims as the likeliest to be wrong. A canvas reads as text by unescaping, dropping style and script blocks, and then reading the script's data, where state tables often live.
+- **`task-summary`** (reader, live-source capture): an agent's extraction is the capture only after its absence claims are checked against the source.
+- Maintainer: n/a. No skill refreshes a captured design reference apart from a task-summary re-capture, which the reader row covers.
+
+## 1.338.0
+
+**`design-handoff` offered an outdated prototype as "today's state".** Measured 2026-09-30 in a project session. "Check whether it has been designed already" sent the session to a prior Claude Design prototype, which it copied into a new project as the current screens. The app had been rebranded since (teal, light mode, new fonts), so the designer would have extended the old look. The user caught it from a screenshot.
+
+- **`design-handoff`** (writer): a prior design carries its decisions forward, never its look. Compare its date with the app's last visual change; when older, cite what it decided and leave the file out. "Show the current state" now says screenshots come from the running app, via a throwaway browser-test spec at desktop and phone width.
+- **`uiux`** (reader): "the design wins" now scopes to decisions; a supplied design that predates the current design language yields its look to the current system.
+- Maintainer: n/a, `task-summary` captures a live design's decisions, not its styling. Verifier: n/a, no skill checks a brief's attachments.
+
+## 1.337.0
+
+**`browser-verifier` retired; runtime checks belong to Playwright specs.** The user retired it as obsolete on 2026-09-30. A spec reruns in seconds and guards the regression. The agent spent minutes per run in a real browser, left nothing behind, and was user-triggered only, so it rarely ran.
+
+- **`agent-setup`** (writer): the fleet is seven agents. The `browser-verifier` template is deleted. The table, tree, "why" paragraph and frontmatter rules are updated, and `disallowedTools: [Write, Edit]` now belongs to `product-reviewer` alone. The verification reference drops its colour, diagnostics, enforcement and capability checks for the agent.
+- **`product-reviewer` template** (reader): a running-app question now names the Playwright spec that would settle it, rather than handing off to `browser-verifier`.
+- **`done`** (reader): the opt-in `browser-verifier` gate becomes "a UI diff with no spec covering it is a finding; write or extend the spec". Both `browser-verification.md` references are deleted.
+- **`hooks/RULESET.md`** (maintainer): its example of an agent that gates its own dispatch no longer names a browser agent.
+- Verifier: n/a. No skill verifies an agent that no longer exists. Consumer projects keep any generated `.claude/agents/browser-verifier.md` until they delete it; `agent-setup` now treats it as an agent with no template.
+
+**Template guidance lived in HTML comments, and generation strips comments.** Measured 2026-09-30 generating a project's fleet: removing `<!-- ... -->` placeholders also removed `product-reviewer`'s "name every party, both sides of a two-sided flow" rule and `browser-verifier`'s "a committed file takes a pointer, never a plaintext secret". `agent-setup` Step 4 now says to read each comment before deleting it and carry anything that instructs into the agent's own prose. `product-reviewer`'s audience rule moves out of its comment into the template body.
+
+**`code-simplifier`'s memory read-back named no path.** The template said "read your own memory" without a glob, unlike its siblings. It now globs `.claude/agent-memory/code-simplifier/*.md`.
+
+## 1.336.0
+
+**`casual-message` drafted a two-question message to a colleague as a short argument.** Measured 2026-09-29 in a project session. The session had just weighed two storage options for the sender. It then wrote the colleague a message that numbered the questions, argued for one option, opened with a preamble on why he was being asked, and closed by narrating what the sender would do next. The sender said "seems too formal". The "Short" rule was present and read as satisfied, because each added sentence looked like useful context. The mechanism, the session's own analysis leaking into the recipient's message, was unnamed.
+
+- **`casual-message`** (writer): new paragraph under "What this produces". A question carries the question and the sender's lean in one clause, not the trade-off analysis, the preamble or the narrated next step. Tell: the draft argues for an option before the recipient has answered.
+- Reader, maintainer, verifier: n/a. The message goes to a person, and no other skill drafts or checks casual messages. `gchat-format` converts documents and never sees a question to a colleague.
+
+## 1.335.0
+
+**`/done` treated a failure it proved pre-existing as a finding to report, not a failure to fix.** Measured 2026-09-29 in a project session: the full suite had 7 failures. The session baselined them against HEAD, showed they predated the diff, and wrote them up as "not caused by this session". The user had to say "fix the 7 failures too", and later made it the rule: inside `/done`, a test failure gets fixed (the code, or the outdated test), whether related or not. The 7 turned out to be date-dependent fixtures.
+
+- **`done`** (writer): new ⚠️ in the Exit Gate. A red suite blocks the exit whoever caused it. The baseline decides WHAT to fix, never WHETHER. Where the right behaviour is an open product call, fix the test's determinism and record the question. Keep the runner's full output, not a `tail`, because the failure names are what the fix needs.
+- **`done/references/exit-gate-rules.md`** (verifier): Before Writing Output asks whether the last full run is green. A subset or "fails on master too" doesn't pass.
+- **`done/references/agent-blind-spots.md`** (maintainer): the attribution row now says that, for a test, the control picks the side to fix, not whether to fix.
+- Reader: n/a. `quick-done`, `ship` and `commit` don't run the suite.
+
+## 1.334.0
+
+**`uiux` had no rule that a control belongs with what it changes, so a "users don't know this is clickable" complaint got fixed with labels instead of structure.** Measured 2026-09-29 in a project session: a month table that re-rendered a statement card above it first got a picker chip and chevrons. The user called it "separated with some hacky way" and accepted it only once each month row opened its own statement in place (an accordion).
+
+- **`uiux`** (writer): new ⚠️ under "Design for people who scan". A control sits in the same container as what it changes, and the fix for a distant one is structural (accordion or one card with the selector above), not a label. Tell: the fix adds a label rather than moving content.
+- **`uiux/references/verification-checklist.md`** (verifier): Interaction states gains "Cause and effect". Click every control that changes other content and check the change lands in view, in the same container.
+- Reader and maintainer: n/a. `design-handoff` ships context and withholds design decisions, and nothing else maintains design rules.
+
 ## 1.333.0
 
 **A `/done` review of the unreleased 1.317.0–1.332.0 range found one dangling citation, a stale "all skills under the ceiling" claim and a staged `.DS_Store`.** No action needed from colleagues; nothing generated needs regenerating.

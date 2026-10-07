@@ -45,13 +45,10 @@ mkdir -p <source-dir>/diagrams
 # Name descriptively: current-workflow.mmd, architecture.mmd, etc.
 
 # Render to PNG
-npx --yes @mermaid-js/mermaid-cli -i <name>.mmd -o <name>.png -w 1200 -b white
+npx --yes @mermaid-js/mermaid-cli -i <name>.mmd -o <name>.png -s 2 -b white
 ```
 
-**Width guidelines**:
-- Sequence diagrams with 4+ participants: `-w 1200`
-- Simple flowcharts: `-w 900`
-- Small diagrams (2-3 nodes): `-w 600`
+**Sharpness**: `-s` is the render scale; `-s 2` keeps text crisp once the PNG is shrunk to page width. Current mermaid-cli has no `-w` width flag and exits with `unknown option '-w'`; `--size <px>` caps the longest side if a diagram renders too large. If a flag is rejected, `--help` lists what the installed version accepts.
 
 ### 3. Create PDF-ready copy
 
@@ -73,15 +70,15 @@ Keep the original `.md` as the editable source (with mermaid code blocks intact)
 ### 4. Generate PDF
 
 ```bash
-cd <source-dir> && npx --yes md-to-pdf <name>-pdf.md
+cd <source-dir> && npx --yes md-to-pdf <name>-pdf.md < /dev/null
 ```
 
-Output: `<name>-pdf.pdf` in the same directory.
+Output: `<name>-pdf.pdf` in the same directory. Keep the `< /dev/null`: when stdin is not a terminal (any agent shell tool), md-to-pdf converts stdin instead of the file argument and waits on it forever — no error, no Chromium launch, just a timeout. Empty stdin makes it fall back to the file; a normal run takes seconds.
 
 If no mermaid diagrams (skipped step 2-3), convert directly:
 
 ```bash
-cd <source-dir> && npx --yes md-to-pdf <name>.md
+cd <source-dir> && npx --yes md-to-pdf <name>.md < /dev/null
 ```
 
 ### 5. Rename output (optional)
@@ -109,7 +106,7 @@ Read the PDF to confirm diagrams rendered and tables are formatted correctly.
 | Issue | Fix |
 |-------|-----|
 | `md-to-pdf` doesn't render Mermaid | Pre-render to PNG (Step 2-3) — this is by design |
-| Diagram text too small in PDF | Increase `-w` width param in mmdc |
+| Diagram text too small in PDF | Raise `-s` (scale), or reshape a wide flowchart (fewer nodes per row, `TB` instead of `LR`) — a wide diagram shrinks to page width whatever its pixel size |
 | Mermaid `<br/>` in participant names | Works in mmdc but renders as literal text in md-to-pdf code blocks |
 | `--dest` flag not supported | `md-to-pdf` outputs to same dir as input — use `mv` to relocate |
 | PDF page breaks mid-table | Add `<div style="page-break-before: always"></div>` before sections |

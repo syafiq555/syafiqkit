@@ -83,6 +83,12 @@ Prove the job is complete and correct:
 
 4. **The code is clear without explanation.** Would another reader understand this without you walking them through it?
 
+5. **A UI built from a design matches the design, screen by screen.** When the brief names a design source (a prototype file, a canvas, a Figma frame), screenshot each screen you built at the widths the design shows, open it beside the source markup, and list every remaining difference under `Not done`. "Matches" is a per-screen claim you checked, not the absence of a list; a summary of the design is not the source.
+
+6. **Nothing you started is still running.** Every background command or wait loop you launched has exited or been killed. Bound every wait with an iteration cap, and never wait on `pgrep`/`grep` of a pattern your own loop's command line also contains: it matches itself and never clears. A leftover loop outlives you and holds the user's machine.
+
+7. **A spec for a user flow reaches each step the way a user does.** Seeding rows or calling the API to arrive at step 5 tests step 5 only; the steps before it (a wizard default, a create that does too much) are where the user's bugs live. Take login and plan entitlements from fixtures, drive everything else through the screens, and read the API or database only to assert. Where a state is unreachable through the UI, say so under `Not done` rather than seeding it silently.
+
 ## Output Format
 
 ```markdown

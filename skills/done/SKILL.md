@@ -73,7 +73,7 @@ Glob: .claude/agents/product-reviewer.md
 
 **Project agents written this session won't register in time.** Read 📖 `${CLAUDE_SKILL_DIR}/references/project-agent-dispatch.md` for the timing gap, the dispatch workaround, and how to note it in the Output.
 
-**`browser-verifier` is opt-in only.** Spawn only on explicit user request. A UI diff is a reason to offer, never to assume. 📖 `${CLAUDE_SKILL_DIR}/references/browser-verification.md`
+**Runtime behaviour is a Playwright spec's job, not an agent's.** A UI diff with no spec covering it is a finding: write or extend the spec (`setup-playwright`) and run it, rather than reviewing the running app by eye.
 
 ### Agent Count & Prompting
 
@@ -149,7 +149,9 @@ Invoke `syafiqkit:update-plugin` once ownership is settled — it owns everythin
 
 ## Exit Gate — Verify Steps Ran Before Writing Output
 
-Confirm the WORK is done, not just this skill's steps — verify against the approved plan that every part was built; part-done means finish the work first. Every Output row is a claim that a step ran — verify each before writing. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for fillability tests, verification methods for Knowledge/Task docs, and failed agent handling.
+Confirm the WORK is done, not just this skill's steps — verify against the approved plan that every part was built; part-done means finish the work first.
+
+⚠️ **A red test suite blocks the exit, whoever caused it.** A failure you proved pre-existing is still a failure, and fixing it is part of `/done`. A baseline run at HEAD tells you WHAT to fix (the code or an outdated test), never WHETHER to fix it. "Not caused by this diff" is a finding to state beside the fix, not a reason to stop at a report. Fix the code when it's wrong. Fix the test when it's stale or its fixture is date- or order-dependent. Where the right behaviour is a genuinely open product call, fix the test's determinism and record the product question. Measured 2026-09-29: a `/done` proved 7 billing failures pre-existing and wrote them up as not its concern, and the user had to ask for the fix. Keep the full runner output, never a `tail`: the failure names are what a fix needs, and dropping them costs a whole re-run. **Tell: your Output says a test fails "on master too" and no row says it was fixed.** Every Output row is a claim that a step ran — verify each before writing. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for fillability tests, verification methods for Knowledge/Task docs, and failed agent handling.
 
 **Read the session from the top, asking two things:** First, what would a reader need that exists only in this conversation — a plan in prose, a rule about what to stop doing, anything parked or waiting? A doc step passes every check having written findings without reasoning. Grep the docs for the specific fact: a diff proves bytes moved, never that the right fact moved. Missing → go back to Step 4.
 
@@ -171,6 +173,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 - One change = one `### [Change]` + `### Session`.
 - A change with only ✅ still gets its heading.
 - Multi-repo: name the repo and branch per change (reader's next act is committing). Name where one repo's work is inert without the other.
+- Words the user still has to send (a handoff prompt, a message) are restated in full in Output, never pointed at ("the message from my earlier reply"). The earlier copy has scrolled away, and if what it points at was revised since, it's stale too.
 
 **Output template:**
 

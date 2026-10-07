@@ -7,7 +7,7 @@ Related:
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../output-style-hook/current.md (sibling feature — the SessionStart hook; shares the verify-the-agent's-report problem)
   - ../skill-authoring/current.md (sibling feature — creating and scoping skills; where issue #27 was finally closed)
-Last updated: 2026-08-26 (v1.211.0). Session-by-session history lives in `## Last Session` and the ADRs it cites, not here. Key incidents: issue #27 (named agents don't return reports), issue #24 (contested-file guard placement), D-agent-may-not-redelegate (tool grants in comments), D-verify-by-definition-not-by-string (template parity checks).
+Last updated: 2026-10-07 (v1.354.0). Session-by-session history lives in `## Last Session` and the ADRs it cites, not here. Key incidents: issue #27 (named agents don't return reports), issue #24 (contested-file guard placement), D-agent-may-not-redelegate (tool grants in comments), D-verify-by-definition-not-by-string (template parity checks).
 -->
 
 # Plugin Maintenance — Agent Architecture
@@ -62,8 +62,8 @@ Last updated: 2026-08-26 (v1.211.0). Session-by-session history lives in `## Las
 
 ## Immediate Next Actions
 
-1. **Task-builder vs. browser-verifier split (user decision 2026-09-11)**
-   `task-builder.md` was generated deliberately; `browser-verifier.md` was intentionally not. The pair that one decision originally treated together is now split on purpose — the original rationale still governs `browser-verifier`. No skill dispatches `task-builder` yet; dispatch is explicit rather than skill-driven. When dispatch changes, the seam is `plan-worklist`'s hand-off step (currently names only `tackle`). Backfilling also requires regenerating `claude-md-pruner.md` to ensure the contested-file check matches its template (landed by hand-edit at v1.173.0).
+1. **Task-builder vs. browser-verifier split (user decision 2026-09-11). Superseded 2026-09-30: `browser-verifier` retired from the templates entirely; runtime checks go to Playwright specs (1.337.0).**
+   `task-builder.md` was generated deliberately; `browser-verifier` has since been retired from the templates, and a consumer's generated copy is left alone by `agent-setup` as an agent with no template. No skill dispatches `task-builder` yet; dispatch is explicit rather than skill-driven. When dispatch changes, the seam is `plan-worklist`'s hand-off step (currently names only `tackle`). Backfilling also requires regenerating `claude-md-pruner.md` to ensure the contested-file check matches its template (landed by hand-edit at v1.173.0).
 
 2. **Post-write ADR-id uniqueness gate**
    Two collision rounds have occurred (D40/D44 → renumbered D48/D49, then D66 independently minted twice). The allocator CLAUDE.md prescribes (`grep -rhoE "^### D[0-9]+" tasks/ | ...`) works manually but is not automated. Add a pre-write gate to the plugin CLAUDE.md that runs the allocator against the global corpus before minting a new id. Never reuse numbering gaps — D2/D5/D7/D11/D41 are demoted/retired ids still cited in prose. Highest id is 69 (measured 2026-09-12 across `tasks/`; re-measure rather than trusting this number, which was stale at 67 when last written).
@@ -88,7 +88,7 @@ Decisions about how generated project agents (`.claude/agents/*.md`) inherit con
 | 3 | Verification rigor across skill checklists (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58, D-emission-shape-reanchor, D-decision-first-output) | ✅ |
 | 4 | Concurrency/cheap-model delegation (D30, D31, D32, D42, D53, D-commit-staleness-same-session-carveout, D-quick-done, D-agent-verb-ban-shared); transcript-scan tried + removed (D34→D36) | ✅ |
 | 5 | Agent tool-guard vs. intent; role-correction over prohibition (D60) | ✅ |
-| 6 | Backfill `task-builder`/`browser-verifier` agents in this repo | ✅ Settled — `task-builder` generated 2026-09-11 by user decision; `browser-verifier` intentionally still absent |
+| 6 | Backfill `task-builder`/`browser-verifier` agents in this repo | ✅ Settled — `task-builder` generated 2026-09-11 by user decision; `browser-verifier` retired 2026-09-30 (1.337.0) |
 
 ---
 
@@ -126,6 +126,9 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 ## Session History
 
 **Pattern across all sessions: Generated files and templates drift silently; presence-shaped checks pass while content differs.** The fix is to read the constraint text itself, not just its location. This pattern appears in issues #27, #24, and #20; it is captured at D-verify-by-definition-not-by-string and D-parity-drift-is-bidirectional. Each session below arrived at this finding independently.
+
+**v1.354.0 (2026-10-07) — `browser-verifier` retirement settled; `task-builder` parity is partial by design**
+A `/done` review of the unreleased 1.334.0–1.354.0 range found no live reference left to the retired `browser-verifier`; the two stale lines here (item 1 and the row-6 cell) now say it was retired in 1.337.0. The template's new `task-builder` checks 5–7 (design match, nothing left running, specs drive the screens) were ported to this repo's own `.claude/agents/task-builder.md` only as check 5 (nothing left running), since this repo has no UI or specs for the other two to apply to. Parity here means the applicable checks agree, not every template line.
 
 **v1.279.0 (2026-09-15) — The coordinator is inside its own file partition**
 `/done`'s partition rule ("one agent per file for writes") reads as a rule about the *agents*, so the dispatcher grants a file to a simplifier and then keeps editing it. Your context for that file goes stale the moment the agent writes, and an `Edit` from remembered text still applies cleanly — it anchors on a string that survived the rewrite while the paragraphs around it moved. Measured this session: a figure restored into `CHANGELOG.md` landed beside a paragraph the simplifier had already refolded, leaving the entry describing a dependency two paragraphs before the one explaining its removal. The harness's "modified on disk since you last read it" notice is the only signal and it arrives *after* the write, so the guard is to hold your own edits to a granted file until the agent returns, or re-read before each one. Fixed at `done/SKILL.md` Step 1. Also reconfirmed issue #27 first-hand: three reviewers were dispatched without a `SendMessage` clause and the product reviewer's findings never arrived — recovered only by resuming it and asking, which is what surfaced the two second-order defects below.

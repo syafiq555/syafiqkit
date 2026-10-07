@@ -27,7 +27,7 @@ Adding gotchas to CLAUDE.md does not by itself require updating agents — they 
 
 ## Agents
 
-Eight agents with distinct responsibilities:
+Seven agents with distinct responsibilities:
 
 | Agent | Purpose | Writes | Must NOT | Model |
 |-------|---------|--------|----------|-------|
@@ -37,10 +37,9 @@ Eight agents with distinct responsibilities:
 | **code-reviewer** | Hunts bugs, security issues, convention violations. Reads task doc and gathers all changes before reviewing. | None (read-only) | Make changes; assume task intent without reading the doc | sonnet |
 | **code-simplifier** | DRY, clarity, consistency, dead code cleanup. Applies Rule of Three. | Application files only | Venture beyond three instances; edit if only one use exists | sonnet |
 | **product-reviewer** | Product lead doing business analysis and design review — catches missing journeys and dead ends, the rules a *working* journey gets wrong (an action live against a state that forbids it, rows a user can't tell apart before a merge, a request a stranger can spam, a capability one party has and its counterpart doesn't), and what the screen leads with. Reads task doc (intent) + built code; recommends, never implements. | None (read-only) | Make changes; assume intent without reading the task doc; report clean because the journeys traced | sonnet |
-| **browser-verifier** | Drives running app in real browser — clicks real flows, asserts DB changed, catches layout/console breakage a diff misses. | None (read-only; reports bugs, never fixes) | Make changes; fabricate user approval; run without explicit user trigger | sonnet |
 | **claude-md-pruner** | Prunes CLAUDE.md + `tasks/**` task docs for staleness. Preserves reference tables, mappings, required headings, MADR blocks. Delegates sizing decisions to `condense-claude-md`/`condense-task-doc`. | CLAUDE.md + task docs only | Size-policy decisions; deletion of documented rows; removal of NEVER-remove content | sonnet |
 
-**Why eight**: each answers a different question, and the split is by *when* it can be asked. Before code exists, `Explore` asks what's there and `Plan` asks how to build it. `task-builder` is the only one that writes feature code. Afterwards, `code-reviewer` asks "correct?", `code-simplifier` asks "clean?", `product-reviewer` asks "complete?" against intent no diff shows, and `browser-verifier` asks "works?" against the running system. The last four report evidence and the user decides — a reviewer that fixes what it found has destroyed its own witness.
+**Why seven**: each answers a different question, and the split is by *when* it can be asked. Before code exists, `Explore` asks what's there and `Plan` asks how to build it. `task-builder` is the only one that writes feature code. Afterwards, `code-reviewer` asks "correct?", `code-simplifier` asks "clean?", and `product-reviewer` asks "complete?" against intent no diff shows. "Works?" against the running system is a Playwright spec's job (`setup-playwright`), not an agent's — a spec reruns in seconds and guards the regression, where an agent driving a browser costs minutes per run and leaves nothing behind. The last three report evidence and the user decides — a reviewer that fixes what it found has destroyed its own witness.
 
 **Explore and Plan shadow the built-in agents** via `name:` frontmatter (capitalized, no hyphen) → `subagent_type`, so they override the built-in project-wide. Blocking a tool takes `disallowedTools: [X]`. The resolution order matters: `disallowedTools` is applied first, then `tools` is narrowed against what remains. An empty or absent `tools:` line inherits the full set rather than granting nothing, so a tool left off that line is still callable. Both agents are granted `Write` (Explore for scratchpad temp files, Plan for `~/.claude/plans/<slug>.md`), with scoping left to body prose alone — the harness enforces field values, not commentary.
 
@@ -56,7 +55,6 @@ Project/
         ├── code-reviewer.md
         ├── code-simplifier.md
         ├── product-reviewer.md
-        ├── browser-verifier.md
         └── claude-md-pruner.md
 ```
 
@@ -66,7 +64,7 @@ Project/
 
 Find what already exists: the agent files under `.claude/agents/`, and every `CLAUDE.md` in the project at any depth.
 
-If no agents exist, create `.claude/agents/` and generate all eight from templates. If no CLAUDE.md exists, generate with the base template only (no project-specific inline rules to extract yet).
+If no agents exist, create `.claude/agents/` and generate all seven from templates. If no CLAUDE.md exists, generate with the base template only (no project-specific inline rules to extract yet).
 
 If agents already exist, run Step 5 in full against every one of them regardless of how established they look, and read each against its `templates/<name>.template.md` asking what the template's agent can do that this one can't — a structurally sound agent can still lack a capability the template gained since it was generated. Run a full `diff` against the template first (Step 5's reference file explains why: a prose read-through anchors on the reworded lines and reads past what's actually missing), then triage the output into "reworded, ignore" versus "capability absent, real finding" — the two files wording the same rule differently is expected and not itself a finding. Also enumerate the template names against the generated ones: a template with no counterpart is a missing agent rather than drift, and gets created in the same pass. What a check flags is a finding to judge, not a defect to fix — decide which side is right before changing either.
 
@@ -107,7 +105,7 @@ Write agents from the templates in `templates/`, carrying every rule the templat
 
 **Each agent file contains:**
 
-1. **Frontmatter** — name, description, tools, model, color, `memory: project`. These are fixed values, and several fail silently when wrong: tool grants resolve in field order (disallowedTools first, then tools), so `product-reviewer` and `browser-verifier` need `disallowedTools: [Write, Edit]` in camelCase; `task-builder` needs no `tools:` line at all to preserve its `Agent` grant; and `memory: project` does nothing unless the body reads it back. Consult `${CLAUDE_SKILL_DIR}/references/agent-setup-verification.md` — it lists the correct frontmatter per agent, which beats guessing and missing an enforcement line.
+1. **Frontmatter** — name, description, tools, model, color, `memory: project`. These are fixed values, and several fail silently when wrong: tool grants resolve in field order (disallowedTools first, then tools), so `product-reviewer` needs `disallowedTools: [Write, Edit]` in camelCase; `task-builder` needs no `tools:` line at all to preserve its `Agent` grant; and `memory: project` does nothing unless the body reads it back. Consult `${CLAUDE_SKILL_DIR}/references/agent-setup-verification.md` — it lists the correct frontmatter per agent, which beats guessing and missing an enforcement line.
 
 2. **Bootstrap section** — reads project CLAUDE.md files and task docs
    - Table of CLAUDE.md files with what each contains (one row per file or layer).
@@ -127,7 +125,7 @@ Write agents from the templates in `templates/`, carrying every rule the templat
 
 6. **Agent-specific tables.** Each judging agent carries a table of what NOT to act on — `code-reviewer`'s known false positives, `code-simplifier`'s preserve-these, `product-reviewer`'s expected gaps plus its severity tiers. These are what stop a reviewer reporting deliberate design as a defect, so they get filled with this project's real cases rather than copied placeholders. Take the shape from each agent's own template.
 
-   `browser-verifier` is the exception worth naming: its `## Target` table (app URL, auth accounts, breakpoint, never-run commands, off-limits environments) has placeholders that **block the agent until filled** from `CLAUDE.md`/`CLAUDE.local.md`, and a committed file takes a pointer rather than a plaintext secret.
+   Guidance a template carries inside an HTML comment (`<!-- ... -->`) is lost the moment placeholders are stripped, so read each comment before deleting it and carry anything that instructs rather than exemplifies into the agent's own prose.
 
 7. **Output Format section** — markdown template for findings/changes (reviewers/simplifier/product-reviewer).
 
@@ -150,7 +148,7 @@ Three questions, and knowing which one you are asking matters more than the orde
 
 A Bootstrap row citing a *section* of a doc can go stale when that doc is restructured. The file itself still exists and the row still reads as live, but the section it points to may be gone or renamed. Verify section citations against the doc's actual headings rather than only against file existence, and re-read any row that characterises what a doc contains. 📖 `references/agent-setup-verification.md` § A Bootstrap row can cite a section that no longer exists.
 
-**Are the fixed values right?** Colour per agent name, model tier per role, `memory: project` with a line that actually reads it back, diagnostics only on the two agents that judge correctness, `task-builder` with no `tools:` line at all, and `disallowedTools: [Write, Edit]` on `product-reviewer` and `browser-verifier` — that line is the enforcement, since the harness grants a tool merely left off `tools:`. Only those two agents need it. `code-reviewer` omits it deliberately (its read-only-ness is role prose, not frontmatter), as do `code-simplifier`, `Explore`, `claude-md-pruner` and `task-builder`. A generated agent and its template agreeing is evidence — the strongest signal available — so when both omit a line, that pairing survives intact rather than being overridden by inference. Consult `references/agent-setup-verification.md` for the definitive list per agent.
+**Are the fixed values right?** Colour per agent name, model tier per role, `memory: project` with a line that actually reads it back, diagnostics only on the two agents that judge correctness, `task-builder` with no `tools:` line at all, and `disallowedTools: [Write, Edit]` on `product-reviewer` — that line is the enforcement, since the harness grants a tool merely left off `tools:`. Only that agent needs it. `code-reviewer` omits it deliberately (its read-only-ness is role prose, not frontmatter), as do `code-simplifier`, `Explore`, `claude-md-pruner` and `task-builder`. A generated agent and its template agreeing is evidence — the strongest signal available — so when both omit a line, that pairing survives intact rather than being overridden by inference. Consult `references/agent-setup-verification.md` for the definitive list per agent.
 
 **Does each agent carry its own project's content?** A generated agent restates every rule in this project's vocabulary, so what you are looking for is whether its tables name things that exist here — not whether they match the template's wording. The failure this catches is a correct heading over the template's own `<!-- e.g. ... -->` examples, which every phrase-match passes and which means the section will never fire.
 

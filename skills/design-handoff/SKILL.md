@@ -101,9 +101,21 @@ This matters most where the prior design was *sound and partially implemented*. 
 cold gets the same answer back a second time, and the real problem — that the design was not
 followed — goes unaddressed and unmentioned.
 
+⚠️ **A prior design carries its DECISIONS forward, never its look.** Its flow, fields and states
+were settled; its colours, type and mode were whatever the product looked like that week. Offered
+as the starting file, it hands the designer an outdated design language to extend, and nothing
+flags it: the prototype renders, it matches the old brief, and it predates a rebrand only by date.
+Before offering one as a base, compare its date with the app's last visual change; when it is
+older, cite what it decided in the brief and leave the file out. Measured 2026-09-30: a
+September prototype (dark, green, old font) was copied into a new project as "today's state"
+after a teal, light-mode rebrand, and the user caught it from a screenshot. **Tell: the file you
+are about to call "current" came from a design project, not from the running app.**
+
 ## Show the current state
 
-Screenshot what exists now, at the widths that matter, in the states that matter. First load and
+Screenshot what exists now, from the running app, at the widths that matter, in the states that
+matter; a throwaway browser-test spec that walks the flow and screenshots each step at desktop
+and phone width is the reliable way, and it reaches states a hand walk-through skips. First load and
 fully-populated are different screens and the gap between them is often the whole problem; a
 form that looks empty on arrival and runs to thousands of pixels once filled cannot be described
 in prose as well as it can be shown.
@@ -141,6 +153,20 @@ the ask and names its own siblings, the prompt is a few lines, and padding it ba
 of the brief is the same failure wearing the opposite face. **Tell: your closing message describes
 files you wrote rather than giving the user words to send.**
 
+The prompt belongs in the turn's **closing** message. One delivered mid-turn and then followed by
+more tool work scrolls away, and a later "the prompt is ready to send" without the text leaves the
+user asking for it. The same goes for a follow-up you find for the designer, such as gaps in a
+returned design: if it's worth mentioning, it's worth handing over as words to paste, not as "or ask
+the designer". Measured 2026-09-30: a renewal prompt went out mid-turn, twenty tool calls followed,
+and the closing report referred to it without restating it. Canvas gaps were named with no prompt
+attached, and the user had to ask "what's the prompt". A brief revised after the prompt went out
+owes a fresh prompt, because the old one now describes a different file.
+
+Screenshots of more than a few KB can't go through the design tool's `write_files`, since the bytes
+pass through model output and get truncated. Stage them in one folder under the names the brief
+cites, and give the user that folder path in the same closing message as the prompt, since they
+upload the files by hand.
+
 Verify the destination's own facts before citing them. A URL you constructed rather than copied
 from a live page is the common defect: it looks authoritative in a brief and sends the designer
 to a 404, and a fetch tool will answer a question *about* a page that does not exist by assembling
@@ -155,3 +181,13 @@ If the returned design contradicts a constraint you supplied, that is worth read
 treating it as a mistake: a designer who breaks a rule often found something wrong with it, and
 the rule may be yours to fix rather than theirs to follow. 📖 `../judgement/SKILL.md` for whose
 call it is once you know which.
+
+Read the returned design yourself; don't take a summary of it on trust. An agent's claim that something is **absent** (a
+confirm step, legal text, a state) is the claim most likely to be wrong, and the one that turns
+into build work. Measured 2026-09-30: an agent reported three confirm steps missing from a canvas.
+Two were there, drawn as dialogs. A design-tool canvas usually reads as text in seconds, with no
+agent needed:
+- unescape the HTML and drop the style and script blocks;
+- keep component names and the copy;
+- then read the script's data too, because state tables and list rows often live there, and the
+  markup alone shows only template placeholders.

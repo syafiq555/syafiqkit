@@ -1,6 +1,6 @@
 # Determining Which Files in a Diff Are YOURS
 
-Referenced by skills whose steps branch on file ownership (done, task-summary, read-summary). Apply before any step that writes, partitions, or scopes agents across a working tree.
+Referenced by skills whose steps branch on file ownership (commit, done, task-summary, read-summary). Apply before any step that writes, partitions, or scopes agents across a working tree.
 
 **Rule:** classify by diff **content**, never by status plane. The harness auto-stages edits, so your own writes land staged (`M `) exactly like another writer's pre-existing staged work — the plane carries no ownership signal at all.
 
