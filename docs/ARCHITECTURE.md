@@ -69,7 +69,7 @@ Skill families and which skills spawn which are in `CLAUDE.md` (invocation-patte
 
 ## 6. Runtime view {#runtime}
 
-**Session start.** Harness fires `SessionStart` on `startup|resume|clear|compact` → `cat hooks/RULESET.md` → stdout becomes context. `fork` is unwired. A missing file is expected to degrade rather than block; [TBD] never observed end-to-end.
+**Session start.** Harness fires `SessionStart` on `startup|resume|clear|compact` → `cat hooks/RULESET.md` → stdout becomes context, up to 10,000 characters (past that, a file path and a 2,000-character preview). `fork` is unwired. A missing file is expected to degrade rather than block; [TBD] never observed end-to-end.
 
 **Wrap-up and release.** `/done` fans out simplifier, reviewer and product-reviewer agents, cleans temp code, captures knowledge via `update-claude-docs`, updates task docs via `task-summary`, and gates a plugin-learnings pass via `update-plugin`. `/ship` includes its own commit, then changelog, push, CI verify and release note. Consumers pick the release up with `claude plugin update syafiqkit@syafiqkit`.
 
@@ -98,7 +98,7 @@ Skill families and which skills spawn which are in `CLAUDE.md` (invocation-patte
 
 | Goal | How verified today |
 |---|---|
-| Rule reaches the reader | Ruleset adherence hand-measured across transcripts; skill ceiling measured with a tokenizer. [TBD] no routine |
+| Rule reaches the reader | Ruleset adherence hand-measured across transcripts (those from 2026-09-17 to 2026-10-08 saw only a truncated payload, so they test rule 1 alone); skill ceiling measured with a tokenizer. [TBD] no routine |
 | Safe for non-authors | Review against the portability references; consumer issues |
 | One home per fact | Greps for the mechanism's own words; `sweep-doc-overlaps` |
 | Version integrity | `.githooks/pre-commit`, if armed |

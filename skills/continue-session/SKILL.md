@@ -33,7 +33,7 @@ Offer once, at the end of the wrap-up. Don't insist.
 
 The task doc holds the plan. The prompt carries only what points at it:
 
-1. **`/syafiqkit:read-summary <exact task doc path>`** — literal path, never a topic. Keyword discovery can miss the doc; a handoff that sends the next session hunting has failed.
+1. **`/syafiqkit:read-summary <exact task doc path>`** — literal path, never a topic. Keyword discovery can miss the doc; a handoff that sends the next session hunting has failed. Confirm the path resolves first — a doc renamed or merged this session leaves your remembered name pointing at nothing, which the next session reads as "no doc".
 2. **`Next:`** — one line naming the goal. Point at the doc's Quick Start for execution order. No waves, blockers, or KIV blocks — those live in the doc and restating them creates drift. Re-read the Quick Start first: if it's missing or disagrees with your `Next:`, fix the doc — it's what the next session will actually read. No task doc at all is the finding itself; say so, since the next session needs one more than this prompt.
 3. **Uncommitted state** — file count and sha, with "don't commit unless asked" where the tree is dirty.
 

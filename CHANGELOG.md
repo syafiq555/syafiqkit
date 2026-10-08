@@ -1,5 +1,63 @@
 # Changelog
 
+## 1.371.0
+
+**The output-style ruleset loads in full again.** Claude Code caps hook output at 10,000 characters and swaps anything longer for a file path plus a 2,000-character preview, while still reporting the hook as successful. `hooks/RULESET.md` crossed the cap on 2026-09-17 (10,521) and reached 13,240, so sessions since then received rule 1 and little else. Cut by hand to 8,149 characters: all ten rules, seven exceptions, rule 1's banned-opener strings and every `rule N` citation kept; the explanatory "why" prose dropped, plus one evidence sentence measured on a truncated payload. Adherence findings from 2026-09-17 to 2026-10-08 are re-read as untested for rules 2–10, not failed.
+- **`hooks/RULESET.md`** (payload): cut to fit; six behavioural points restored after a rule-by-rule comparison against HEAD.
+- **`.githooks/pre-commit`** (gate): blocks a commit whose staged `RULESET.md` is 10,000 characters or more (`wc -m`, UTF-8 locale). Live only where `core.hooksPath` is set.
+- **`CLAUDE.md`**, **`docs/ARCHITECTURE-ESSENTIALS.md`**, **`docs/ARCHITECTURE.md`**, **`docs/PRD.md`**, **`update-plugin`** rule-placement table: name the cap where a session editing the hook reads it. The method that grew the file (wording passes measuring tokens, never characters) is what these sentences correct, not only the figure.
+
+**`code-reviewer` leaves out findings that aren't the diff's to report.** An issue that predates the diff, one a linter or existing check already catches, and one on an untouched line stay out regardless of confidence; pre-existing ones get a single closing line. Borrowed from Anthropic's `code-review` plugin; the 80% threshold and false-positive table were already here.
+- **`agent-setup` template** + **`.claude/agents/code-reviewer.md`**: same rule, examples adapted per file. Generated agents in other projects need `/agent-setup` to pick it up.
+
+**`continue-session` confirms the task doc path resolves before handing it over** — a doc renamed or merged this session otherwise reaches the next session as "no doc".
+
+**`skill-creator` points trigger testing at `claude plugin eval`**, which runs each phrasing in a fresh session with a skill-fired grader and a no-plugin baseline, rather than building a loop of its own.
+
+## 1.370.0
+
+**`casual-message` ends the turn on the draft.** Measured 2026-10-08: a WhatsApp reply was drafted and `/done` was invoked in the same reply. The draft scrolled away under the skill's load, and the sender had to ask "where the msg?". `done`'s Output rule restates words still to be sent, but only at the end of `/done`, after the text was already lost. Diagnosis per Step 1a: never reached, since the only rule sat in the skill that runs next.
+- **`casual-message`** (writer, § What this produces): the draft ends the turn. If a chain must continue, the draft is restated word for word last.
+- Reader: the sender. Maintainer: `done` § Output (unchanged; it restates at `/done`'s end). Verifier: n/a.
+
+## 1.369.0
+
+**`commit` reads each staged task doc's Quick Start before it writes a subject or commits, and a commit precondition written there gates the commit.** Measured 2026-10-08: a session committed three task docs from their diffs, and the user had to ask whether the docs were read. The skill told the agent to read each doc's `Status:` line, and a status grep reads a heading, not content. The same index held a doc whose Quick Start said "commit only when the user asks", which the status grep never showed. Diagnosis per Step 1a: reached and read as satisfied. The skill's own wording was the defect.
+- **`commit`** (writer, step 3): the gate is its own bullet before the subject step. It reads the Quick Start in full and each touched section, and stops on an unmet precondition. The shared-tree bullet names the two cases that need the temporary-index recipe (a peer's hunk in your file, or a hook that stashes the tree) and what follows: `--no-verify` with a body note, and a shared-index re-sync. Push covers `[behind N]`: integrate from a throwaway worktree, never by pulling or stashing in the shared checkout.
+- Reader: the commit act, which the gate now precedes. Maintainer: n/a, since `task-summary` writes the status lines the gate reads as headings. Verifier: n/a, since `done` Step 4 scans docs independently and its wording names no status-line-only read.
+
+## 1.368.0
+
+**`task-summary` now checks a meeting transcript's coverage block by block, by timestamp.** Measured 2026-10-08: a 63-page Gemini client transcript was captured from topic recall. It missed the client's ask to pull marketing into phase 1, and then 11 more points, including a price expectation for the next meeting. The user asked for a recheck twice. Its large-source rule checked coverage against headings, which a transcript doesn't have.
+- **`task-summary`** (writer, § Core principle, the large-source ⚠️): transcripts are named as a large source; their units are timestamp blocks, each given a row or a stated drop.
+- Reader: the global `~/.claude/CLAUDE.md#gemini-notes` (user-side, written the same session). Maintainer: n/a, since `condense-task-doc` keeps rows rather than creating them. Verifier: n/a, since `done` § Exit Gate already asks what exists only in the conversation, and the source here was a file, not the conversation.
+
+## 1.367.0
+
+**`design-handoff` now saves a returned design to disk on first read and writes the capture then.** Measured 2026-10-08: a port session read four Claude Design files into context. At wrap-up the design sign-in had lapsed and a dispatched agent had no design access at all. One file had overflowed to disk and was captured in full. Two were rebuilt from context, and 59 lines of one were never read.
+- **`design-handoff`** (reader, § After): save every design file to disk on the first read and write the capture doc then, because tool access can lapse and subagents may not have it.
+- Writer: `task-summary` (unchanged; its live-source rule already says to capture, but it fires at wrap-up, after access can be gone). Maintainer: n/a. Verifier: n/a.
+
+## 1.366.0
+
+**`done` now sends code written after its review fan-out back through review before the Output.** Measured 2026-10-07: a `/done` on a 144-file diff dispatched seven agents, then fixed their findings, built the product reviewer's gaps and took three mid-run user asks, about 50 files in all, and wrote its Output with no agent having read any of that. The user ran `/done` a second time. That pass found a selection that could not be unticked, and a missing server guard that let a paused plan join an active billing group. Diagnosis per Step 1a: the rule existed ("Whatever this loop itself produces" in `references/agent-blind-spots.md`) and was never reached, because it sat in a reference that the session did not open.
+- **`done/SKILL.md`** (reader and verifier, § Exit Gate): the rule is now stated at the gate, with a Tell. List the files changed since dispatch. A delta larger than a few one-line patches gets a reviewer (and a product reviewer where it changed what a user sees), scaled to the delta.
+- **`done/references/agent-blind-spots.md`**: its bullet is cut to a pointer at the gate, so the rule is stated once.
+- Writer: n/a. The fixes are written by the session or its builders, and no skill composes them. Maintainer: n/a. `quick-done` dispatches no reviewer, so it has no fan-out to fall behind.
+- `marketplace.json` was at 1.364.0 while `plugin.json` was at 1.365.0. Both are now 1.366.0.
+
+## 1.365.0
+
+**`commit` now splits a multi-feature staged set by feature and names each commit from its own diff.** Measured 2026-10-07: a 295-file index answered "all" became one commit, then a path-matched split whose subjects were guessed from file names; two of nine were wrong and needed a second force-push.
+- **`commit`** (writer, step 3): a staged set spanning features is several commits even on "all"; subjects come from each group's diff and task doc, builds from a temporary index when peers share the worktree, force-push asks first. `ship` delegates to `/commit`, `diff-ownership.md` covers ownership only: no change.
+
+## 1.364.0
+
+**A haiku agent briefed with a named skill now has to load it first, and the dispatcher checks that it did.** Measured 2026-10-07 on a three-pass `refresh-instructions` run: the restructure agent never called its skill, and the unhobble agent loaded `unhobble-instructions` only after the user told it to, then returned "no changes needed" resting on baseline counts it had misread. Every byte check passed; only the transcript showed the skill was absent.
+- **`haiku`** (writer, § Writing the prompt): a skill named in a prompt makes loading it the agent's first step, not background. (verifier, Verification 1): confirm the agent's output file holds the `Skill` call for the named skill, by grep, not by reading it.
+- **`refresh-instructions`** (reader): a repeat `Skill(haiku)` can answer "already loaded" and attach nothing (both repeats did), so the re-invocation rule is backed by opening `haiku`'s `## Writing the prompt` section, and each pass prompt makes the pass skill the agent's first call.
+- Writer: `haiku`. Reader: `refresh-instructions`. Maintainer: n/a, no other skill briefs an agent with a named skill. Verifier: `haiku` Verification 1.
+
 ## 1.363.0
 
 **The plugin repo now has its own project docs, and its agents read them.** Anyone editing this plugin (not just using it) gets `docs/PRD.md`, `docs/ARCHITECTURE.md` and a one-page `docs/ARCHITECTURE-ESSENTIALS.md` listing the rules that break silently, plus an `AGENTS.md` pointer and a "Project Docs" table in `CLAUDE.md`. Using the plugin needs nothing new beyond `claude plugin update syafiqkit@syafiqkit`.

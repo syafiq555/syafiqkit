@@ -202,3 +202,10 @@ Read the returned design yourself; don't take a summary of it on trust. An agent
 something is **absent** (a confirm step, legal text, a state) is the claim most likely to be
 wrong, and the one that turns into build work. A canvas reads as text in seconds, with no agent
 needed. 📖 `references/reading-canvas-designs.md` for how, and the measured case.
+
+**Save every design file to disk on the first read, and write the capture doc then, not at wrap-up.**
+A file read through a design tool exists only in your context, and the tool's sign-in can lapse
+mid-session. A subagent may not have that access at all. So a build agent can't be pointed at the
+source, and a wrap-up capture has to come from memory. Measured 2026-10-08: after a long port
+session the design sign-in had expired. Only the one file that happened to overflow to disk could
+be captured in full. Two others were rebuilt from context, and one had 59 lines never read.

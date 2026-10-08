@@ -90,7 +90,7 @@ The right target is whichever file actually owns the fact, not where the session
 | Must fire | Mechanism | Loads |
 |---|---|---|
 | Every turn | `UserPromptSubmit` hook stdout | Once per turn, harness-injected |
-| Every session, past compaction | `hooks/RULESET.md` (SessionStart), project-root `CLAUDE.md` | Start + re-fires on `compact` |
+| Every session, past compaction | `hooks/RULESET.md` (SessionStart, **under 10,000 chars** or only a 2,000-char preview loads), project-root `CLAUDE.md` | Start + re-fires on `compact` |
 | On touching matching files | `.claude/rules/*.md` with `paths:` | On read of a match |
 | When a task starts | Skill body, first **5,000 tokens** (25,000 shared, most-recent first) | On invoke |
 | Only if chosen | A `📖` reference | Never, unless opened |

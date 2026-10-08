@@ -41,7 +41,7 @@ Why now: [TBD — no statement of why the plugin was opened to colleagues beyond
 | Design and build judgement | `uiux`, `design-handoff`, `brainstorming`, `judgement`, `plan-worklist`, `setup-playwright`, `extract-shared-package`, `function-parameter-limits` | Live |
 | Operations and billing | `pull-db`, `ci-ssh-deploy-timeout`, `commit-invoice-generator` | Live |
 | Delegation | `haiku` | Live |
-| Output style | `SessionStart` hook injecting `hooks/RULESET.md` | Live; adherence unverified from outside a session |
+| Output style | `SessionStart` hook injecting `hooks/RULESET.md` | Live; delivered only as a 2,000-char preview from 2026-09-17 until the 2026-10-08 cut ships; adherence unverified from outside a session |
 
 Re-derive the list with `ls skills commands`; exact counts are deliberately not recorded here.
 

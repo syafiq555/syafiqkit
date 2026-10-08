@@ -48,6 +48,8 @@ Short. Usually a few lines, often one. No fence, no bold section headers, no bul
 
 **No fence by default** — the inverse of `gchat-format`. That skill fences because a document is pasted whole and the boundary matters; a two-line text has no boundary problem, and a fenced casual message reads as exactly the over-formal artifact this skill exists to avoid. Reach for a fence only when length makes the copy boundary genuinely ambiguous.
 
+**The draft ends the turn.** When another skill or tool call is queued after it (a `/done`, a commit, the rest of a wrap-up), the draft gets buried under that skill's load and output, so the sender scrolls back for words they still have to paste. End the turn on the draft and start the next step when they reply. If the chain must continue, restate the draft word for word as the last thing in the final reply. Measured 2026-10-08: a WhatsApp reply was drafted and `/done` was invoked in the same reply, and the sender had to ask "where the msg?". **Tell: your draft is followed by a `Skill` or `Agent` call in the same message.**
+
 The things `gchat-format` does that must not leak in: the code fence, bold section headers, table-to-bullet conversion, regroup-by-feature, the formal close. The failure that created this skill was a session defaulting to that shape because it is the one written down at length.
 
 ## Replying to their message

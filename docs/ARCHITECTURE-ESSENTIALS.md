@@ -35,7 +35,7 @@ Each entry names the `CLAUDE.md` section it extracts. Placing a rule by when it 
 *Extracts: Skill and Command Structure.* It registers the skill's name but not its description. Test auto-fire only in a session started after the file was written.
 
 ## The hook is `cat`, with no off-switch {#hook-shape}
-*Extracts: The SessionStart Hook.* No script, no `node`, no guard. Adding any of them reopens the design. `fork` is deliberately unwired.
+*Extracts: The SessionStart Hook.* No script, no `node`, no guard. Adding any of them reopens the design. `fork` is deliberately unwired. Hook stdout over 10,000 characters is silently replaced by a file path and a 2,000-character preview, so `RULESET.md` must stay under it; measure with `wc -m` before landing any pass on it.
 
 ## A named agent's report never returns {#named-agent-reports}
 *Extracts: Skill and Command Structure, agent templates.* Passing `name:` to `Agent` turns it into a teammate whose final text does not reach you. Tell it to `SendMessage`, or omit `name:`.

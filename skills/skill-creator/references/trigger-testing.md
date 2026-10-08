@@ -18,6 +18,10 @@ Open the descriptions of every skill in adjacent territory and read what they cl
 
 When you find real overlap, a clause in each description naming the boundary is the fix, and it belongs in *both* files. The new skill deferring upward is only half of it; the incumbent goes on claiming the same ground, so update its description too. Nothing checks this automatically, and a new skill's trigger is a claim about every existing trigger.
 
+## Measuring it: `claude plugin eval`
+
+The tests above are judgements; Claude Code ships a harness that measures them. Each case is a prompt a user would type, run in a fresh session, so it sidesteps the mid-session registration trap (name registered, description not). A `tool_used: Skill` grader reports whether the skill fired on that phrasing. Write cases for the phrasings above, including the near-miss that should route elsewhere, then adjust the `description` and re-run. The commonest first finding is the skill not being chosen on natural phrasing (code.claude.com/docs/en/plugin-evals.md, read 2026-10-08).
+
 ## Baseline eval
 
-If you want to measure whether the skill beats no-skill on a real task, move the skill directory out before running the without-skill arm — an installed skill gets discovered and used anyway, which contaminates the comparison.
+`claude plugin eval` runs a no-plugin baseline arm and reports the difference, which is the comparison to reach for first. Running it by hand instead, move the skill directory out before the without-skill arm — an installed skill gets discovered and used anyway, which contaminates the comparison.

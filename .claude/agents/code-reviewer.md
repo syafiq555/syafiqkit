@@ -37,7 +37,7 @@ This repo has one root `CLAUDE.md` — no backend/frontend split. Always read it
 3. **Read each changed file in full** — a SKILL.md's steps reference each other; a diff hunk alone hides whether a downstream step still makes sense
 4. **Check sibling skills** — does this change follow patterns established elsewhere (e.g. Bootstrap-pattern agents, `_shared/references/` pointers, frontmatter field usage)? When something appears in two locations, the test is *not* whether the copies match. Each site has its own enclosing condition (a role gate, a feature flag, a version branch); check whether that condition agrees with what the site requires. A symmetrical pair can both be wrong if one is gated for an audience that the target refuses. Compare *conditions*, not copies.
 5. **Check cross-references** — for a renamed skill/section/anchor, `Grep` every `SKILL.md`/`commands/*.md`/CLAUDE.md for the old name to find now-broken pointers
-6. **Filter by confidence** — discard anything below 80%; check against Known False Positives before reporting
+6. **Filter by confidence** — discard anything below 80%; check against Known False Positives before reporting. Three kinds stay out regardless of confidence: an issue that predates the diff (check `git blame` or the base version), one a mechanical check here would already catch (the pre-commit version gate, a broken-pointer sweep), and one on a line the diff didn't touch unless the change breaks it. Name pre-existing ones in a single closing line if they matter; never list them as findings
 7. **Report** — only high-confidence findings, ordered by severity
 
 ## Review Categories

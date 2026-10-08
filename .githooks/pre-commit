@@ -45,4 +45,13 @@ if [ "$p" != "$m" ]; then
 	exit 1
 fi
 
+ruleset_limit=10000
+ruleset_chars=$(git show :hooks/RULESET.md 2>/dev/null | LC_ALL=en_US.UTF-8 wc -m | tr -d ' ')
+if [ -n "$ruleset_chars" ] && [ "$ruleset_chars" -ge "$ruleset_limit" ]; then
+	echo "pre-commit: hooks/RULESET.md is $ruleset_chars characters (limit $ruleset_limit)." >&2
+	echo "Claude Code replaces SessionStart stdout over 10,000 characters with a file" >&2
+	echo "path and a 2,000-character preview, so most of the ruleset never loads." >&2
+	exit 1
+fi
+
 exit 0

@@ -7,7 +7,7 @@ Related:
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../output-style-hook/current.md (sibling feature — the ayghri/i-have-adhd source: findings adopted, structure rejected)
-Last updated: 2026-09-15 — source #9, `superdesign` graded per capability into a fourth pass on `uiux`: a mostly-unusable source can still carry four adoptable judgements, and a pointer naming an external plugin is a dependency rather than a citation
+Last updated: 2026-10-08 — source #10, whole-plugin comparables survey (decisions/skill-survey-2026-10.md); found the hook-output cap breach. Before that, 2026-09-15 — source #9, `superdesign` graded per capability into a fourth pass on `uiux`: a mostly-unusable source can still carry four adoptable judgements, and a pointer naming an external plugin is a dependency rather than a citation
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
@@ -97,7 +97,7 @@ All tasks completed. See ADR records for details.
 
 ## Key Technical Decisions
 
-See `decisions/grading-method.md` (how to reach a verdict: D55/D56/D59) and `decisions/applying-verdicts.md` (how to act on one: 17 decisions on verdict interpretation, source grading, and measurement traps).
+See `decisions/grading-method.md` (how to reach a verdict: D55/D56/D59), `decisions/applying-verdicts.md` (how to act on one: 17 decisions on verdict interpretation, source grading, and measurement traps) and `decisions/skill-survey-2026-10.md` (source #10, a whole-plugin comparables survey: the hook-cap finding, verified figures, borrowable candidates).
 
 ---
 
@@ -134,7 +134,11 @@ Step 2's corpus measurement is where a verdict is won or lost, and its traps (a 
 
 ---
 
-## Last Session (2026-09-15)
+## Last Session (2026-10-08)
+
+Source #10: five haiku agents surveyed public comparables and case studies across every syafiqkit skill (`decisions/skill-survey-2026-10.md`). The one finding that mattered today was a mechanism fact, not advice: Claude Code's 10,000-char hook-output cap, which `hooks/RULESET.md` had exceeded since 2026-09-17. Fixed in `../output-style-hook/current.md`. Two agent figures failed the on-page check and were dropped.
+
+## Prior Session (2026-09-15)
 
 Source #9 (`superdesign` plugin, MIT): fourth pass on `uiux`, four capabilities adopted from a source that is ~90% CLI mechanics for a canvas product we don't use. Graded per capability as D-fork-the-gap-not-the-source prescribes — nothing about auth, payload budgeting, asset routing, resume state or Petite-Vue templates crossed over. What did: read the render *branch* not the import name; capture the before on a redesign; partial source yields invention wearing reproduction's clothes; never fabricate brand identity. A fifth insertion closed issue #28 (a one-word theme brief assembled as a costume) and is unrelated to this source.
 
@@ -161,6 +165,9 @@ Source #7 (survey of eight UI/UX skills): three capabilities adopted inline with
 - [x] ~~Reuse D55's four-verdict table on the next piece of guidance~~ — done 2026-08-09, and the failure mode was arriving at the source without checking whether it had already been graded. See D-verdict-records-lever.
 - [x] ~~The method has no trigger~~ — closed 2026-08-20. `update-claude-docs` Step 1 and `unhobble-instructions`' document-read both now say to search the project's decision records before adopting an outside source, phrased conditionally at the point the adoption decision is made.
 - [x] ~~Re-run the fleet audit now that Step 1 disqualifies in-window creations~~ — moot: `audit-instructions` was removed 2026-08-01 (user decision). Its fixes (the disqualify-in-window-creations guard, the CWD-not-`-C` ownership probe) stay correct and worth reusing if the fleet-audit capability is ever reimplemented.
+
+**From source #10**
+- [x] ~~Ship the three built items~~ — shipped in 1.371.0 with the `RULESET.md` cut; colleagues re-run `/agent-setup` for the reviewer change. Outcomes per item in `decisions/skill-survey-2026-10.md`.
 
 **Ceiling maintenance**
 - [ ] Decide whether the re-attach ceiling wants a recurring measurement rather than periodic clearing passes. `D-ceiling-cleared` held for three weeks before five skills drifted back over, and the re-crossing was found by accident while answering an unrelated question. The measurement is one command over `skills/*/SKILL.md`; the open question is where it should live so that it runs without someone thinking to ask.

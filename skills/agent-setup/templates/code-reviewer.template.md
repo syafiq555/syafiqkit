@@ -60,6 +60,8 @@ A finding belongs in the report if it is **at least 80% confident** — a clear 
 
 Match all candidate findings against the **Known False Positives** section to rule out intentional design (soft deletes queried without guards, casts that normalize nullable, webhooks preventing loops). Some patterns look wrong but are correct.
 
+Three kinds stay out regardless of confidence: an issue that predates the diff (check `git blame` or the base version), one a linter, type checker or formatter here would already flag, and one on a line the diff didn't touch unless the change breaks it. Name pre-existing ones in a single closing line if they matter; never list them as findings.
+
 Output findings only once, ordered by severity (Security → Bugs → Conventions), with file path, line numbers, and a concrete fix. Limit scope to session changes; auditing the full codebase is a separate task.
 
 ## What to Look For
