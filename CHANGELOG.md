@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.372.0
+
+**`commit` covers the two cases a multi-feature batch hit.** A file whose hunks belong to different features can't be split per feature without hunk staging, so the skill now says to group by file set and name which commits carry a neighbouring feature's hunks. A `commit-tree` batch is verified by comparing `HEAD^{tree}` with the shared index's `write-tree`, and a path committed from a blob the shared index never held is re-synced with `git reset -q -- <path>`.
+- **`diff-ownership`** reference: the same re-sync case, stated where the peer-hunk procedure leaves the shared index.
+
 ## 1.371.0
 
 **The output-style ruleset loads in full again.** Claude Code caps hook output at 10,000 characters and swaps anything longer for a file path plus a 2,000-character preview, while still reporting the hook as successful. `hooks/RULESET.md` crossed the cap on 2026-09-17 (10,521) and reached 13,240, so sessions since then received rule 1 and little else. Cut by hand to 8,149 characters: all ten rules, seven exceptions, rule 1's banned-opener strings and every `rule N` citation kept; the explanatory "why" prose dropped, plus one evidence sentence measured on a truncated payload. Adherence findings from 2026-09-17 to 2026-10-08 are re-read as untested for rules 2–10, not failed.
