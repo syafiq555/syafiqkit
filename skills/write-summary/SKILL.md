@@ -1,6 +1,6 @@
 ---
 name: write-summary
-description: Create task summary documentation. Alias for task-summary — use when starting new feature work.
+description: Same skill as task-summary under another name — create task summary documentation when starting new feature work.
 ---
 
 > 📖 See `syafiqkit:task-summary` — this skill is a thin pointer to that skill. Go run it with the same args this skill was invoked with.

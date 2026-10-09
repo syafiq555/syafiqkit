@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Create git commits from staged changes. Works for single repos and multi-repo projects. Use when the user says "commit", "commit this", "commit staged changes", or asks to create a commit message from what's staged.
+description: Create git commits from staged changes. Works for single repos and multi-repo projects. Use when the user says "commit", "commit this", "commit staged changes", or asks to create a commit message from what's staged. Also pushes when the request includes "push" ("commit and push", `/commit push`) — a plain "commit" never pushes.
 ---
 
 # Git Commit

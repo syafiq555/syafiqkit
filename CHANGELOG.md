@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.374.0
+
+**The README now opens with an "I want to…" table, and `/commit push` is easier to find.** With 41 skills, the question is usually "which one do I run", not "what can it do".
+- **I want to…:** a short table at the top of the skill list maps twelve everyday jobs to the skill that does them: commit, commit and push, release, wrap up, read a task doc, hand off to a new session, shrink or split a doc, merge docs, write a task doc.
+- **Which CLAUDE.md rewriter:** four skills can rewrite a CLAUDE.md, so the README now says when to pick each one.
+- **Commit and push:** the `commit` skill's description now says it also pushes when your request includes "push" (`/commit push`). A plain "commit" still never pushes.
+- **Aliases:** `write-summary` and `update-summary` now say in their first words that they are the same skill as `task-summary`.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed, so nothing needs regenerating.
+
 ## 1.373.0
 
 **`uiux` can now review a screen, name what makes a UI look generic, and knows when to stop polishing.** Ideas taken from two popular AI-design skills, impeccable and taste-skill, restated in our own terms. Run `claude plugin update syafiqkit@syafiqkit`; only a project with a generated `product-reviewer` agent needs `/agent-setup` re-run.

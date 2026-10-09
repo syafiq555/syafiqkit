@@ -25,7 +25,7 @@ These skills accept explicit user command:
 
 | Skill | When to invoke |
 |-------|----------------|
-| `commit` | Create git commits from staged changes |
+| `commit` | Create git commits from staged changes; `/commit push` also pushes |
 | `write-summary` | Create a task summary document |
 | `update-summary` | Update an existing task summary |
 | `task-summary` | Create/update task summaries with full machinery |

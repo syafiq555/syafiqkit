@@ -32,12 +32,31 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 
 | Skill | Description |
 |-------|-------------|
-| `/commit` | Create git commits from staged changes; single-repo and multi-repo |
+| `/commit` | Create git commits from staged changes; single-repo and multi-repo. Add `push` (`/commit push`) to push as well |
 | `/read-summary` | Load existing task summary for context |
 | `/tackle` | Vague multi-item doc continuation only — reads the doc, judges what's buildable, builds it (use `/read-summary` for a specific ask) |
 | `/plan-worklist` | Turn a pre-scoped list of items (findings, backlog, ClickUp paste) into a build plan — dispatches `product-reviewer` to size/sequence them, then stops before writing code |
 | `/judgement` | Something came up mid-task that may not be yours to decide — measure who the change newly affects, then decide it yourself or escalate with the number attached |
 | `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |
+## I want to…
+
+| I want to | Run |
+|-----------|-----|
+| Commit what's staged | `/commit` |
+| Commit and push | `/commit push` |
+| Release to production (commit, changelog, push, check CI) | `/ship` |
+| Wrap up after a task (review, tidy, update docs) | `/done` — or `/quick-done` for a small session |
+| Read a task doc before answering or building | `/read-summary <path>` |
+| Carry on from a doc, picking what is buildable | `/tackle` |
+| Hand work off to a new or parallel session | `/continue-session` |
+| Shrink a task doc, or split one over 300 lines | `/condense-task-doc` |
+| Shrink a CLAUDE.md | `/condense-claude-md` |
+| Tidy any living doc in one go (restructure, shorten, drop over-strict rules) | `/refresh-instructions` |
+| Merge overlapping task docs | `/merge-task-docs` — `/sweep-doc-overlaps` to look across every domain |
+| Write or update a task doc | `/task-summary` — `/write-summary` and `/update-summary` are the same skill under other names |
+
+Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude-md` to make it shorter, `/update-claude-docs` to add a lesson or rebuild it to the house layout, `/refresh-instructions` for the full tidy, `/unhobble-instructions` when the rules read like commands and should read like judgement.
+
 | `/update-summary` | Append findings to existing summary (thin pointer → `task-summary`) |
 | `/task-summary` | Create/update task summary docs with path resolution, templates, cross-refs |
 | `/done` | Post-task cleanup — simplify, review, update docs |
@@ -65,7 +84,7 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/merge-task-docs` | Find related task docs in a domain and merge them, reconciling all back-references |
 | `/sweep-doc-overlaps` | Fleet-wide scan across ALL `tasks/` domains for CROSS-domain merge candidates; hands confirmed groups to `merge-task-docs` |
 | `/notes-summary` | Create, update, or read a personal session journal outside the repo |
-| `/condense-task-doc` | Aggressively condense a bloated task doc in place |
+| `/condense-task-doc` | Aggressively condense a bloated task doc in place; a doc over 300 lines is split into an index plus `decisions/` files |
 | `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
 | `/refresh-instructions` | Full three-pass refresh on any living doc — CLAUDE.md, task doc, `docs/` set file, README or runbook — restructure, condense, then unhobble, each on haiku and verified in sequence |
