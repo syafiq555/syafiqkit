@@ -6,6 +6,7 @@ Related:
   - ../agent-architecture/current.md (sibling feature — how agents are defined and dispatched)
   - ../external-guidance/current.md (sibling feature — grading outside guidance against local evidence)
   - ../../../hooks/RULESET.md (the injected payload)
+  - ../mod/current.md (sibling — the mod now shares `hooks/hooks.json` with this hook; older-client behaviour of the `modules` key is unverified)
 Last updated: 2026-09-29 — doc hygiene only (Last Session stack collapsed to Prior, pass count and withdrawn-hook instruction reconciled)
 -->
 

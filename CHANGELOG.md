@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.375.0
+
+**syafiqkit now adds a menu, a task-doc browser and session handoffs to Claude Code's terminal and Desktop app.** It ships as a plugin module (a "mod"), so `claude plugin update syafiqkit@syafiqkit` is the only step.
+- **Menu:** a line above your prompt reads `▤ syafiqkit [ Menu ] [ Docs ] │ [ Commit ] [ Done ] [ Hand off ]`, so commit is one press, hand off opens a one-line form (Enter saves, the message is optional) and Done asks first. `/sk` opens one-key actions: commit, commit and push, done, read a task doc, ship, shrink a doc (the condense runs on haiku agents), refresh a doc, merge docs, hand off. Anything that pushes, deploys, wraps up or rewrites a doc shows what it does and the exact message first, and asks again; those confirms offer an optional "also hand off to the next session when this finishes", with a message.
+- **Task docs:** `/task-docs` lists task docs (recently changed first, size warnings), `CLAUDE.md` files, rules and project docs, with a filter. Only each task's `current.md` is listed; opening one shows it rendered, with its `decisions/` files listed by name (click one to read that decision on its own page, with Prev and Next), and its open checklist items pickable; send the picks to Claude, which starts with `/syafiqkit:read-summary`. The view refreshes while the doc changes, and after you send items the Docs button returns to that doc. Mermaid diagrams appear as pictures where the terminal can draw them (iTerm2: start Claude Code with `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1`).
+- **Handoff:** saves a short haiku summary of the session, the files it touched and the git state. The next session, or the one after `/clear`, offers `↪ Handoff … [ Resume ]`, and Resume always begins with `/syafiqkit:read-summary`.
+- **Needs Claude Code 2.1.287 or later** (Desktop app 2.1.286). Update Claude Code first if you are older: the output-style ruleset shares the same hooks file, and the docs do not say how an older version treats the new entry.
+- **What it runs and writes:** `git`, `chmod` (best effort, to keep handoffs private) and, for diagrams, `npx @mermaid-js/mermaid-cli@12.0.0`, with your permissions. The mod itself writes only to `~/.claude/handoffs/` and `~/.claude/doc-pane-cache`; the first diagram also makes `npx` fill its package cache and download a browser, which can take minutes. It draws nothing in the VS Code panel or `claude -p`. Set `SYAFIQKIT_MOD=0` in your shell before starting Claude Code (setting it in `settings.json` is untested) to turn the mod off and keep the skills; `claude --safe-mode`, or disabling the plugin, turns off everything. Handoffs and diagrams no longer depend on `mkdir`, `mv` or `openssl`, so they are written to work on Windows too, but that is untested (diagrams still need `npx` on the path). One caveat: two sessions pressing Resume at the same moment could both take the same handoff.
+- No agents or templates changed, so nothing needs regenerating.
+
 ## 1.374.0
 
 **The README now opens with an "I want to…" table, and `/commit push` is easier to find.** With 41 skills, the question is usually "which one do I run", not "what can it do".

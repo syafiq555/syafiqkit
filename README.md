@@ -21,6 +21,16 @@ claude plugin install syafiqkit@syafiqkit
 
 Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hook injects an ADHD-oriented ruleset when a session starts, resumes, is cleared, or compacts — responses lead with the thing to do, multi-step work arrives numbered, estimates use real units, and stock openers and closers are dropped. It applies whether or not you invoke a syafiqkit skill (a *forked* session is the one exception — it gets no ruleset), and **there is no setting to turn it off** — the only way off it today is `claude plugin uninstall syafiqkit@syafiqkit`, which takes the skills with it. If the style gets in your way, say so and it can be made optional. The ruleset is `hooks/RULESET.md` if you want to read what it asks for. On Windows without Git Bash the hook silently does nothing and every skill still works.
 
+## Menu and task-doc browser (terminal and Desktop app)
+
+On Claude Code 2.1.287 or later (Desktop app 2.1.286), a line above your prompt reads `▤ syafiqkit  [ Menu ] [ Docs ] │ [ Commit ] [ Done ] [ Hand off ]`. Commit sends straight away; Hand off opens a one-line form where Enter saves (the message is optional); Done shows what it will do and asks first. It is a plugin module, so it needs no setup.
+
+- **`/sk` (or Menu)** — one-key menu: commit, commit and push, done, read a task doc, ship, shrink a doc (condense runs on haiku), refresh a doc, merge docs, hand off. Anything that pushes, deploys, runs done or rewrites a doc shows what it does and the exact message first, and asks again. Those confirms offer an optional "also hand off to the next session when this finishes", with a message.
+- **`/task-docs` (or Docs)** — a filterable list of task docs (recently changed first, size warnings), `CLAUDE.md` files, rules and project docs. Only `current.md` is listed; open one to read it rendered, list its `decisions/` files by name and open the one you click on its own page (with Prev and Next), pick its open checklist items and send them to Claude (after `/syafiqkit:read-summary`). It refreshes while the doc changes, and after you send items the Docs button returns to that doc. Mermaid diagrams show as pictures in terminals that can draw them (in iTerm2, start Claude Code with `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1`).
+- **Hand off** — saves a short summary of the session (one haiku call), the files touched and the git state under `~/.claude/handoffs/`. The next session, or the one after `/clear`, shows `↪ Handoff … [ Resume ]`; Resume always starts with `/syafiqkit:read-summary`.
+
+It draws nothing in the VS Code panel or `claude -p`. It runs with your permissions: it runs `git`, `chmod` (best effort, to keep handoffs private) and, for diagrams, `npx @mermaid-js/mermaid-cli@12.0.0`. The mod itself writes only to `~/.claude/handoffs/` and `~/.claude/doc-pane-cache`; the first diagram also makes `npx` fill its own package cache and download a browser, which can take minutes. Set `SYAFIQKIT_MOD=0` in your shell before starting Claude Code (setting it in `settings.json` is untested) to turn the mod off and keep the skills; `claude --safe-mode` or disabling the plugin turns off everything.
+
 ## Commands
 
 | Command | Description |
@@ -28,16 +38,6 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 | `/read-notes` | Read a personal session journal |
 | `/update-notes` | Create/update a personal session journal |
 
-## Skills
-
-| Skill | Description |
-|-------|-------------|
-| `/commit` | Create git commits from staged changes; single-repo and multi-repo. Add `push` (`/commit push`) to push as well |
-| `/read-summary` | Load existing task summary for context |
-| `/tackle` | Vague multi-item doc continuation only — reads the doc, judges what's buildable, builds it (use `/read-summary` for a specific ask) |
-| `/plan-worklist` | Turn a pre-scoped list of items (findings, backlog, ClickUp paste) into a build plan — dispatches `product-reviewer` to size/sequence them, then stops before writing code |
-| `/judgement` | Something came up mid-task that may not be yours to decide — measure who the change newly affects, then decide it yourself or escalate with the number attached |
-| `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |
 ## I want to…
 
 | I want to | Run |
@@ -57,6 +57,16 @@ Installing syafiqkit changes how Claude writes its answers. A `SessionStart` hoo
 
 Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude-md` to make it shorter, `/update-claude-docs` to add a lesson or rebuild it to the house layout, `/refresh-instructions` for the full tidy, `/unhobble-instructions` when the rules read like commands and should read like judgement.
 
+## Skills
+
+| Skill | Description |
+|-------|-------------|
+| `/commit` | Create git commits from staged changes; single-repo and multi-repo. Add `push` (`/commit push`) to push as well |
+| `/read-summary` | Load existing task summary for context |
+| `/tackle` | Vague multi-item doc continuation only — reads the doc, judges what's buildable, builds it (use `/read-summary` for a specific ask) |
+| `/plan-worklist` | Turn a pre-scoped list of items (findings, backlog, ClickUp paste) into a build plan — dispatches `product-reviewer` to size/sequence them, then stops before writing code |
+| `/judgement` | Something came up mid-task that may not be yours to decide — measure who the change newly affects, then decide it yourself or escalate with the number attached |
+| `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |
 | `/update-summary` | Append findings to existing summary (thin pointer → `task-summary`) |
 | `/task-summary` | Create/update task summary docs with path resolution, templates, cross-refs |
 | `/done` | Post-task cleanup — simplify, review, update docs |

@@ -4,7 +4,7 @@ Frame: arc42 sections, with a C4-style context diagram. Written by adoption on 2
 
 ## 1. Introduction & goals {#goals}
 
-A Claude Code plugin made of markdown. No build step, no runtime code beyond one `cat` hook: [SOURCED] "markdown files are interpreted directly". Its product is instructions a model reads, so the architecture is about *when* each instruction reaches the reader.
+A Claude Code plugin made of markdown. No build step for the skills, and the only runtime code is one `cat` hook plus the mod in `hooks/register.js` (built from `hooks/src/`): [SOURCED] "markdown files are interpreted directly". Its product is instructions a model reads, so the architecture is about *when* each instruction reaches the reader.
 
 Quality goals, ranked [INFERRED]:
 
@@ -15,7 +15,7 @@ Quality goals, ranked [INFERRED]:
 
 ## 2. Constraints {#constraints}
 
-- [SOURCED] Skills and agents are plain files the harness loads. [INFERRED] The plugin therefore runs no code of its own except through its hook.
+- [SOURCED] Skills and agents are plain files the harness loads. [INFERRED] The plugin therefore runs no code of its own except through its hook and mod.
 - [SOURCED] After a compaction only the first 5,000 tokens of each skill are re-attached (25,000 shared).
 - [SOURCED] A mid-session reload registers a new skill's name but not its description.
 - [SOURCED] Claude Code is a native binary with no bundled Node; a hook cannot assume an interpreter.
@@ -59,6 +59,7 @@ External partners: GitHub (distribution); optional plugins `code-simplifier`, `f
 | Shared references | `skills/_shared/references/` | Rules cited by three or more skills |
 | Commands | `commands/*.md` | Invocation prompts (journal read/update) |
 | Hook | `hooks/hooks.json`, `hooks/RULESET.md` | Output-style injection |
+| Mod | `hooks/src/**/*.js` built into `hooks/register.js` by `hooks/build.sh`, `hooks/register.test.ts` | Band above the prompt, /sk menu, /task-docs reader, session handoffs |
 | Agent templates | `skills/agent-setup/templates/*.template.md` | Source for generated project agents |
 | Generated agents | `.claude/agents/*.md` | This repo's own agents; must stay in parity with templates |
 | Task docs | `tasks/plugin-maintenance/<feature>/` | The plugin's own decision history; not shipped |
@@ -88,11 +89,12 @@ Skill families and which skills spawn which are in `CLAUDE.md` (invocation-patte
 - **Place a rule by when it must fire.** [SOURCED] Every turn is a hook; every session is `RULESET.md` or a root CLAUDE.md; a named task is a skill body. A rule that has failed twice is not fixed by rewording; change which of those it lives in. `CLAUDE.md` §Where a rule goes, by when it must fire.
 - **A mid-session reload cannot test a trigger.** [SOURCED] It registers a skill's name but not its description, so auto-fire is testable only in a session started after the file was written. `CLAUDE.md` §Skill and Command Structure.
 - **Renumbering steps breaks citations.** [SOURCED] After changing a step label, grep for citation syntax (`Step N`, `rule N`) rather than the retired label, and read every hit including your own. `CLAUDE.md` §Authoring Checklist.
+- **The mod's host API fails silently or at the first press.** [MEASURED 2026-10-10] `$.clock.every` returns a `{ cancel }` object, not a function. An `Input` needs `onSubmit` as well as `onInput`, or the whole render is skipped. `$.ui.close` rejects when the pane is not open. A command named like a skill (`/docs`) is refused, and that throw skips the rest of `session.start`. `$.fs.list` is not recursive. The module refuses to load, with every test failing at once, when `$` is put in an object, spread or returned, or when `$.env.get` is given a variable instead of a literal name. `$.fs` can only read, write, list and stat: `write` creates missing folders, `read(path, { as: 'bytes' })` returns base64, and there is no move, delete or chmod, so the handoff store marks state with `<id>.state` files and the picture cache with `<key>.ok`. In tests, `prompt.submit` is an event whose stub must return `{ text }`, a `turn.start` stub must return `{ turnId }`, and only one `AbovePrompt` band can be mounted at a time. `Markdown` draws wide tables badly in a narrow pane, so the mod rewrites each table row as a bullet.
 - **Doc set shape** for this repo's own docs: this `docs/` set plus `tasks/`.
 
 ## 9. Architecture decisions {#decisions}
 
-[SOURCED] Held as MADR logs in `tasks/plugin-maintenance/`: `agent-architecture` (agent definitions, delegation, parity), `doc-condensation` (one fact, one home; size policy), `external-guidance` (grading outside advice against local measurement), `madr-structure`, `output-style-hook`, `skill-authoring`. Read the matching Quick Start before changing that subsystem.
+[SOURCED] Held as MADR logs in `tasks/plugin-maintenance/`: `agent-architecture` (agent definitions, delegation, parity), `doc-condensation` (one fact, one home; size policy), `external-guidance` (grading outside advice against local measurement), `mod` (the doc-pane mod), `madr-structure`, `output-style-hook`, `skill-authoring`. Read the matching Quick Start before changing that subsystem.
 
 ## 10. Quality requirements {#quality}
 

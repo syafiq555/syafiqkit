@@ -5,6 +5,7 @@ Gotchas: `[SOURCED]`/`[INFERRED]`/`[TBD]` tags and `[TBD]` headings in the set a
 Related:
   - ../doc-condensation/current.md (sibling — one-fact-one-home; this set must not restate CLAUDE.md rules it already owns)
   - ../agent-architecture/current.md (sibling — Bootstrap tables in generated agents)
+  - ../mod/current.md (sibling — the ESSENTIALS entry `{#mod-one-file}` and ARCHITECTURE §8 host-API traps extract the mod)
 Last updated: 2026-10-07
 -->
 

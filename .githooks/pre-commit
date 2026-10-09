@@ -54,4 +54,14 @@ if [ -n "$ruleset_chars" ] && [ "$ruleset_chars" -ge "$ruleset_limit" ]; then
 	exit 1
 fi
 
+if ! "$root/hooks/build.sh" --check; then
+	exit 1
+fi
+
+if ! git diff --cached --quiet -- hooks/src hooks/register.js && ! git diff --quiet -- hooks/src hooks/register.js; then
+	echo "pre-commit: hooks/src or hooks/register.js has unstaged changes." >&2
+	echo "The bundle check reads the working tree, so stage both before committing." >&2
+	exit 1
+fi
+
 exit 0
