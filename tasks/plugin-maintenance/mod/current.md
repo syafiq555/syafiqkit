@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🚀 Built, 13 kit tests pass; not yet used in a real session or by colleagues
+Status: 🚀 Shipped as 1.375.0 (3fa861c on master, 2026-10-10); 14 kit tests pass; the band showed in a live session, not yet used by colleagues
 Domain: plugin-maintenance/mod
 Gotchas (critical — full list in ## Gotchas below):
   - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
@@ -14,12 +14,12 @@ Last updated: 2026-10-10
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 14 tests. Nothing is committed: the tree carries three uncommitted releases (1.373.0 `uiux` from another session, 1.374.0 the README front door, 1.375.0 the mod).
+**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 14 tests. Shipped to master as 1.375.0 (commit 3fa861c) with 1.372.0, 1.373.0 and 1.374.0 before it.
 
 **Immediate next actions (in order)**:
 1. Run it for real: `claude plugin update syafiqkit@syafiqkit`, restart WITHOUT `--plugin-dir /tmp/mods-try-docs` (a second copy collides on `/sk` and `/task-docs`), and with `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1` in iTerm2.
 2. Check the paths only the kit exercised: Resume under bypass permissions, band hotkeys while typing in the prompt, whether `prompt.submit` overwrites a half-typed draft, and a submit that lands mid-turn.
-3. Settle commit and ship order (1.373.0 belongs to the other session), then test one Claude Code older than 2.1.287 against the shared `hooks.json`.
+3. Test one Claude Code older than 2.1.287 against the shared `hooks.json`.
 
 **Key facts for cold start**:
 - Tests: `claude plugin test .` from the repo root (`hooks/register.test.ts`); validate: `claude plugin validate .` (`--strict` fails on three standing warnings, so judge by the plain run).
