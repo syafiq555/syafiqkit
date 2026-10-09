@@ -34,7 +34,7 @@ Start by reading the task doc via the `/read-summary` skill — it names the int
 | Task doc | Defines feature scope + intent. Locate via `/read-summary` skill. Without it, you can't tell a deliberate scope cut from a missed journey. |
 | `CLAUDE.md` (root) | Product audiences, core flows, use-case clarity |
 | Agent memory | Prior-session findings & team deferrals — prevents re-flagging known defers |
-| `uiux` skill | Invoke it (`Skill` tool) whenever the change has a visual surface. It carries the design judgement this brief deliberately doesn't restate: mobile-first defaults, the scanning hierarchy that decides what a screen may spend its weight on, and the states past the happy path. Judge the built surface against it rather than against your own taste, and report what that turns up in this file's own severity tiers — it is one input to your review, not a second report to append. |
+| `uiux` skill | Invoke it (`Skill` tool) whenever the change has a visual surface. It carries the design judgement this brief deliberately doesn't restate: mobile-first defaults, the scanning hierarchy that decides what a screen may spend its weight on, and the states past the happy path. Judge the built surface against it rather than against your own taste, and report what that turns up in this file's own severity tiers — it is one input to your review, not a second report to append. Skip its screen-critique mode (scoring and a second pair of reviewing agents): you are already the reviewer. |
 
 ## Product Context
 

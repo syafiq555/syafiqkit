@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.373.0
+
+**`uiux` can now review a screen, name what makes a UI look generic, and knows when to stop polishing.** Ideas taken from two popular AI-design skills, impeccable and taste-skill, restated in our own terms. Run `claude plugin update syafiqkit@syafiqkit`; only a project with a generated `product-reviewer` agent needs `/agent-setup` re-run.
+- **Review mode:** ask for a critique or audit of an existing screen and `uiux` scores it against ten usability checks (0–4 each), ranks what the reader loses, and hands findings back before changing anything.
+- **Generic-look checklist:** a reference of concrete giveaways (edge-stripe cards, gradient text, a small label above every heading, bounce motion), each paired with the question it should prompt.
+- **Design read first:** one line naming audience, subject, job and how bold the surface should be, written before any code.
+- **Stop rule:** one batched look plus at most one confirming look, then stop unless a specific defect is named.
+- **Landing pages and portfolios** get their own short reference; business tools keep inheriting the app's language.
+- **`product-reviewer` template** tells the reviewer to skip `uiux`'s screen-critique mode (it is already the reviewer). Projects with a generated `product-reviewer` agent need `/agent-setup` to pick this up.
+
 ## 1.372.0
 
 **`commit` covers the two cases a multi-feature batch hit.** A file whose hunks belong to different features can't be split per feature without hunk staging, so the skill now says to group by file set and name which commits carry a neighbouring feature's hunks. A `commit-tree` batch is verified by comparing `HEAD^{tree}` with the shared index's `write-tree`, and a path committed from a blob the shared index never held is re-synced with `git reset -q -- <path>`.

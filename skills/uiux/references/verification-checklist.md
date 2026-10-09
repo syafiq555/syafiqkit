@@ -2,6 +2,8 @@
 
 Read this when a surface is about to be called done. A screenshot at one width in one state is where most misses hide.
 
+Take the looks in one batched round, confirm fixes in at most one more, then stop. Polishing past that without a named defect trades the reader's time for the reviewer's unease.
+
 ## Widths
 
 Look at 375px (phone), 768px (tablet) and 1280px (desktop) at minimum. At each: no horizontal overflow, no text truncated unexpectedly, images scale without stretching, navigation reflows (bottom tabs on the phone), touch targets stay at 44px, and long-form text stays within about 65 to 75 characters a line rather than running the width of a wide screen. On the phone, also look in landscape and at the largest system text size — both reflow the layout in ways portrait at default size never shows.
