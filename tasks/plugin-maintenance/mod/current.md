@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔨 `/changes` source-control pane and the `show_image` gallery built as 1.384.0, uncommitted; 34 kit tests pass; tree, split diffs, toolbar and images were seen in the user's iTerm2, the last fix round (folder staging, rename-safe unstage, batched diffs) was not; docs-list redesign 1.382.0 built and unseen in the 106-doc repo; 1.376.0 shipped (d52b73a); not yet used by colleagues
+Status: 🔨 `/changes` source-control pane and the `show_image` gallery built as 1.384.0, pushed to master (fa2a608); 34 kit tests pass; tree, split diffs, toolbar and images were seen in the user's iTerm2, the last fix round (folder staging, rename-safe unstage, batched diffs) was not; docs-list redesign 1.382.0 built and unseen in the 106-doc repo; 1.376.0 shipped (d52b73a); not yet used by colleagues
 Domain: plugin-maintenance/mod
 Gotchas (critical — full list in ## Gotchas below):
   - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
