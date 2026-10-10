@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🚀 1.376.0 built, not yet committed (1.375.0 shipped as 3fa861c on master, 2026-10-10); 18 kit tests pass; the band showed in a live session, not yet used by colleagues
+Status: 🚀 Shipped as 1.376.0 (d52b73a on master, 2026-10-10; origin/master matches HEAD); 18 kit tests pass; the band showed in a live session, not yet used by colleagues
 Domain: plugin-maintenance/mod
 Gotchas (critical — full list in ## Gotchas below):
   - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
