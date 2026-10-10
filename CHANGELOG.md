@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.385.0
+
+**`condense-task-doc` now keeps how readers look things up when it moves a section out of the index.**
+- **Summary table left behind:** when a long section such as a client question list moves to a decisions file, the one-line-per-item table that stays now also keeps any second numbering another party quotes back (for example, the numbers used in a message already sent) and the assumption each open item works under until answered. In a test run, a 17-question summary left that numbering out, so a client reply about "question 2" would have landed on the wrong row. The table also keeps each open item's conflict (two sources disagreeing) and marks anything acted on before it is confirmed as pending, and bare "question N" mentions elsewhere in the index say which numbering they use.
+- **Session handoffs:** a handoff saved at `/clear` no longer tells the next session to "collect" the results of review agents that were still running. Background agents stop when a session ends, so the handoff now lists them as lost, along with the work to redo. Before this, the next session went looking for agent reports that no longer existed.
+- **Hand-off Message box:** the optional Message on the Done screen no longer empties when you press Enter. A dim line under it shows "Next session starts with: <your text>" (or says there is no message), pressing Enter on an empty box no longer wipes what you typed, and the resume prompt no longer repeats the goal sentence when you wrote no message. A Done turn that ends on a question now waits for the turn that finishes before saving the handoff (at most three times); an interrupted turn still saves.
+- **Merged to-dos:** merging two open items into one keeps the higher of their two priority markers. Before this, a merge could silently downgrade a 🔴 item to 🟠.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed; the mod bundle `hooks/register.js` was rebuilt.
+
 ## 1.384.0
 
 **The syafiqkit pane can review and stage your git changes, and Claude can show you screenshots in it.** You no longer need to open VS Code's Source Control to check what Claude changed.

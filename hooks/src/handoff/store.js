@@ -135,11 +135,12 @@ const loadHandoff = async ($) => {
 
 const resumeText = (record, now) => {
   const docs = record.taskDocs && record.taskDocs.length ? record.taskDocs : record.taskDocPath ? [record.taskDocPath] : []
-  const topic = record.next || goalOf(record) || 'the previous session'
   const readFirst =
     docs.length && !record.next
       ? 'Before anything else, run /syafiqkit:read-summary on ' + docs[0] + ' (the read-summary skill).'
-      : 'Before anything else, run /syafiqkit:read-summary on this topic: ' + topic + ' (the read-summary skill; it finds the task docs by content).'
+      : 'Before anything else, run /syafiqkit:read-summary on ' +
+        (record.next ? 'this topic: ' + record.next : goalOf(record) ? 'the Goal below' : 'the previous session') +
+        ' (the read-summary skill; it finds the task docs by content).'
   return [
     record.next ? 'My task for this session: ' + record.next : '',
     readFirst,

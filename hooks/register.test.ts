@@ -134,6 +134,76 @@ test('the wrap-up confirm can also hand off once the wrap-up turn finishes', asy
   await band.unmount()
 })
 
+test('a message typed in the wrap-up confirm survives Enter and reaches the saved handoff', async ($, on) => {
+  const writes: any[] = []
+  stubSession(on, [], [])
+  stubHandoffIo(on, writes, [{ role: 'user', text: 'finish the pane', toolUses: [] }])
+  stubSummary(on, 'Goal\nFinish the pane')
+  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: '' }))
+  stubRender(on)
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-wrap' })
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.press({ key: 'also-handoff' })
+  await pane.input({ key: 'handoff-message', text: 'review the band first' })
+  await pane.input({ key: 'handoff-message', text: '' })
+  await pane.press({ key: 'confirm-send' })
+  await $.turn.start({ turnId: 't1' } as any)
+  await $.turn.complete({ turnId: 't1', answer: 'done', durationMs: 5, isAborted: false, usage: null } as any)
+  for (let waited = 0; waited < 50 && writes.length === 0; waited += 1) await new Promise((resolve) => setTimeout(resolve, 10))
+  const saved = JSON.parse(writtenValue(writes[0], (value) => value.startsWith('{')))
+  expect(saved.next).toBe('review the band first')
+  await pane.unmount()
+  await band.unmount()
+})
+
+test('a wrap-up turn that ends on a question waits: the handoff saves at the turn that finishes', async ($, on) => {
+  const writes: any[] = []
+  stubSession(on, [], [])
+  stubHandoffIo(on, writes, [{ role: 'user', text: 'finish the pane', toolUses: [] }])
+  stubSummary(on, 'Goal\nFinish the pane')
+  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: '' }))
+  stubRender(on)
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-wrap' })
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.press({ key: 'also-handoff' })
+  await pane.press({ key: 'confirm-send' })
+  await $.turn.start({ turnId: 't1' } as any)
+  await $.turn.complete({ turnId: 't1', answer: 'Which one do you want?', durationMs: 5, isAborted: false, usage: null } as any)
+  await new Promise((resolve) => setTimeout(resolve, 100))
+  expect(writes.length).toBe(0)
+  await $.turn.start({ turnId: 't2' } as any)
+  await $.turn.complete({ turnId: 't2', answer: 'All done', durationMs: 5, isAborted: false, usage: null } as any)
+  for (let waited = 0; waited < 50 && writes.length === 0; waited += 1) await new Promise((resolve) => setTimeout(resolve, 10))
+  expect(writes.length).toBe(1)
+  await pane.unmount()
+  await band.unmount()
+})
+
+test('an Esc-aborted wrap-up turn saves the handoff even when it ends on a question', async ($, on) => {
+  const writes: any[] = []
+  stubSession(on, [], [])
+  stubHandoffIo(on, writes, [{ role: 'user', text: 'x', toolUses: [] }])
+  stubSummary(on, 'Goal\nFinish the pane')
+  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: '' }))
+  stubRender(on)
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-wrap' })
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.press({ key: 'also-handoff' })
+  await pane.press({ key: 'confirm-send' })
+  await $.turn.start({ turnId: 't1' } as any)
+  await $.turn.complete({ turnId: 't1', answer: 'Which one?', durationMs: 5, isAborted: true, usage: null } as any)
+  for (let waited = 0; waited < 50 && writes.length === 0; waited += 1) await new Promise((resolve) => setTimeout(resolve, 10))
+  expect(writes.length).toBe(1)
+  await pane.unmount()
+  await band.unmount()
+})
+
 test('the band hands off the session and writes the summary, files and git state', async ($, on) => {
   const writes: any[] = []
   stubSession(on, [], [])
@@ -285,7 +355,7 @@ test('resuming a handoff always starts with read-summary, even with no task doc'
   await band.press({ key: 'resume' })
   expect(sent.length).toBe(1)
   expect(sent[0].split('\n')[0]).toBe(
-    'Before anything else, run /syafiqkit:read-summary on this topic: Build the pane (the read-summary skill; it finds the task docs by content).',
+    'Before anything else, run /syafiqkit:read-summary on the Goal below (the read-summary skill; it finds the task docs by content).',
   )
   expect(sent[0]).toContain('2 files uncommitted at abc1234 on main')
   await band.unmount()

@@ -17,7 +17,7 @@ const ensurePaths = async ($) => {
 }
 
 const HANDOFF_PROMPT =
-  'Write a handoff for a fresh session that has none of this conversation. Plain text, under 220 words, with these headings: Goal (one line), Done (bullets: exact file paths, decisions, numbers), In flight (anything still running or half-edited), Next (the first thing to do), Open decisions (questions I have not answered; write none if there are none). Use only what is in the conversation and invent nothing. Do not repeat these instructions.'
+  'Write a handoff for a fresh session that has none of this conversation. Plain text, under 220 words, with these headings: Goal (one line), Done (bullets: exact file paths, decisions, numbers), In flight (anything half-edited; background agents and tasks stop when this session ends, so name any still running as lost and the work that has to be redone, never as results to collect), Next (the first thing to do), Open decisions (questions I have not answered; write none if there are none). Use only what is in the conversation and invent nothing. Do not repeat these instructions.'
 
 const FILE_TOOLS = new Set([...EDIT_TOOLS, 'NotebookEdit'])
 const TASK_DOC_PATH = /\/tasks\/(?:.+\/)?current\.md$/

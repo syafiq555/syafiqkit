@@ -46,6 +46,7 @@ const confirmView = ($, c) => {
   const { Box, Text, Button, Input, redraw, goto, bindField } = c
   const confirm = state.confirm
   if (!confirm) return menuView($, c)
+  const kept = state.handoffNext.trim()
   return Box({
     flexDirection: 'column',
     children: [
@@ -81,7 +82,15 @@ const confirmView = ($, c) => {
               placeholder: 'optional: what the next session should do first',
               value: state.handoffNext,
               onInput: bindField('handoffNext'),
-              onSubmit: bindField('handoffNext'),
+              onSubmit: (value) => {
+                if (typeof value === 'string' && value.trim()) state.handoffNext = value
+                redraw()
+              },
+            }),
+            Text({
+              key: 'handoff-message-kept',
+              dimColor: true,
+              children: kept ? 'Next session starts with: ' + kept : 'No message: the next session starts from the summary.',
             }),
           ]
         : []),
@@ -96,8 +105,8 @@ const confirmView = ($, c) => {
             onPress: () => {
               if (confirm.record) return claimAndSend($, confirm.record, confirm.text)
               if (confirm.reopen) state.reopen = confirm.reopen
-              const later = confirm.offerHandoff && state.alsoHandoff ? { next: state.handoffNext.trim(), armed: false } : null
-              return submitPrompt($, confirm.text, 'Sent: ' + confirm.title.toLowerCase(), undefined, later)
+              const later = confirm.offerHandoff && state.alsoHandoff ? { next: kept, armed: false } : null
+              return submitPrompt($, confirm.text, 'Sent: ' + confirm.title.toLowerCase() + (later ? '. Handoff saves when it finishes' : ''), undefined, later)
             },
           }),
           Button({
@@ -140,8 +149,8 @@ const handoffView = ($, c) => {
         autoFocus: true,
         onInput: bindField('handoffNext'),
         onSubmit: (value) => {
-          state.handoffNext = value
-          return saveFromForm(value)
+          if (typeof value === 'string' && value.trim()) state.handoffNext = value
+          return saveFromForm(state.handoffNext)
         },
       }),
       state.saving

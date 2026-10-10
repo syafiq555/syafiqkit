@@ -63,6 +63,14 @@ export function register(on) {
   on('turn.complete', async ($, e, next) => {
     const ran = await next(e)
     if (state.pendingHandoff && state.pendingHandoff.armed && !e.agentId) {
+      const answer = typeof e.answer === 'string' ? e.answer.trim() : ''
+      const asking = !e.isAborted && (!answer || answer.endsWith('?'))
+      if (asking && (state.pendingHandoff.deferred || 0) < MAX_HANDOFF_DEFERRALS) {
+        state.pendingHandoff.armed = false
+        state.pendingHandoff.deferred = (state.pendingHandoff.deferred || 0) + 1
+        $.ui.toast('Handoff saves after your reply')
+        return ran
+      }
       const note = state.pendingHandoff.next
       state.pendingHandoff = null
       runHandoff($, note)

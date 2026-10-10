@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔨 `/changes` source-control pane and the `show_image` gallery built as 1.384.0, pushed to master (fa2a608); 34 kit tests pass; tree, split diffs, toolbar and images were seen in the user's iTerm2, the last fix round (folder staging, rename-safe unstage, batched diffs) was not; docs-list redesign 1.382.0 built and unseen in the 106-doc repo; 1.376.0 shipped (d52b73a); not yet used by colleagues
+Status: 🔨 `/changes` source-control pane and the `show_image` gallery built as 1.384.0, pushed to master (fa2a608); handoff Message fix and defer-on-question built after it, uncommitted and unseen live; 36 kit tests pass; tree, split diffs, toolbar and images were seen in the user's iTerm2, the last fix round (folder staging, rename-safe unstage, batched diffs) was not; docs-list redesign 1.382.0 built and unseen in the 106-doc repo; 1.376.0 shipped (d52b73a); not yet used by colleagues
 Domain: plugin-maintenance/mod
 Gotchas (critical — full list in ## Gotchas below):
   - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
@@ -14,7 +14,7 @@ Last updated: 2026-10-10
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 34 tests. Shipped to master through 1.380.0; 1.382.0 (docs list), 1.383.0 (another session's `refresh-instructions` patch) and 1.384.0 (`/changes` plus `show_image`) are in the working tree, uncommitted, and the staged set also carries that other session's skill and task-doc edits.
+**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 36 tests. Shipped to master through 1.380.0; 1.382.0 (docs list), 1.383.0 (another session's `refresh-instructions` patch) and 1.384.0 (`/changes` plus `show_image`) are in the working tree, uncommitted, and the staged set also carries that other session's skill and task-doc edits.
 
 **Immediate next actions (in order)**:
 1. `/reload-plugins`, open `/changes` and look at the last fix round: folder selection plus the toolbar's `+ Stage folder`, the `Staged first, Changes first on the right` order, the 'files collapsed' line, the Open in viewer button. Then commit by version, keeping the other session's files out (`git status --short` first).
@@ -142,7 +142,11 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
 - [ ] `unstagePaths` before a first commit (`git rm -r --cached`) for a file that is staged and then modified again (`AM`): not run
 - [ ] Editor-free diagnostics (the user opened VS Code for errors; 2026-10-10): with VS Code quit, a Read of a scratch `.js` file returned TypeScript errors, but PHP after the quit and an Edit that adds an error were not retried (the first run's edit error was not reported), and an undefined function call was never flagged. If errors should be visible to the user, the Changes pane has no diagnostics view and the mod host API has no language-server call
 
+- [ ] Wrap-up handoff Message live (built 2026-10-10, unseen): Done → tick the box → type a Message → Enter. The dim line should keep showing 'Next session starts with: …' after the box clears. Also that a Done turn ending on a question defers the save (at most 3 times, any answer ending in `?` or empty) and an Esc-aborted turn still saves
+- [ ] Handoff Message cause not reproduced: the kit cannot clear an `Input` on Enter, so which callbacks the real host fires on Enter (`onInput('')` before `onSubmit`?) is unknown; if the dim line shows 'No message' after typing, `onInput` is clearing state
+
 **Decide**
+- [x] Handoff after Done: an aborted turn saves anyway; a turn that ends on a question waits for the one that finishes (user, 2026-10-10)
 - [x] Commit as three commits by version (1.373.0 is the other session's `uiux` work); ship after the live checks above
 
 **Later**
@@ -163,3 +167,5 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
 ## Last Session (2026-10-10)
 
 Built the `/changes` view and the `show_image` gallery (1.384.0) from the user's VS Code screenshots, iterating on their screenshots of the live pane: a blank pane after the first paint, tree rows spilling into the diff column, small buttons, ragged header columns, the default focus on Changes. Two `uiux` research rounds (haiku on product docs, then on open-source row code) mostly answered "not stated"; what was verified on the pages: GitHub Desktop keeps the file name and elides the directory, VS Code shows row actions only on hover or focus, Maersk truncates at the end unless the middle is distinctive, and the ARIA tree pattern wants selected and focused to look different. Two review rounds (reviewer, simplifier, product reviewer, then a second reviewer on the fixes) produced the batching, literal pathspecs, rename-safe unstage, folder staging and the image caps. Pictures drew only after the iTerm2 variable went into `~/.claude/settings.json`. Not committed. The docs list from the earlier 1.382.0 session is still unseen in the 106-doc repo.
+
+Later the same day, a handoff fix: the Done confirm's optional Message "cleared on Enter, form stayed". A first fix (ignore the submitted value) was reverted because the kit's `pane.input` fires only `onSubmit`, so the test could not tell it from the old code. Final shape: `onSubmit` keeps a non-empty value only, a dim line echoes the Message (or 'No message'), the standalone handoff form uses the same guard, `resumeText` says 'the Goal below' only when a goal exists, the Sent toast says the handoff saves when it finishes, and `turn.complete` defers the save while the turn ends on a question (`MAX_HANDOFF_DEFERRALS`). Two reviewers' findings applied; the defer rule was written after them and has only its own test.
