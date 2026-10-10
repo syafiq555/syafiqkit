@@ -932,3 +932,176 @@ test('a staged file offers Unstage but no Discard', async ($, on) => {
   expect(await ui.find({ key: 'tb-discard' })).toBeUndefined()
   await ui.unmount()
 })
+
+test('diffs load only for the files in focus, and pressing the staged section loads its files then', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  const diffed = (path: string) => runs.some((run) => run.includes('diff') && run.includes(path))
+  expect(diffed('a.md')).toBe(true)
+  expect(diffed('hooks/src/x.js')).toBe(false)
+  await ui.press({ key: 'staged-focus' })
+  expect(diffed('hooks/src/x.js')).toBe(true)
+  await ui.unmount()
+})
+
+test('focusing a file again re-reads its diff, so an edit that kept the same line counts shows up', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  const reads = () => runs.filter((run) => run.includes('diff') && run.includes('a.md')).length
+  expect(reads()).toBe(1)
+  await ui.press({ key: 'worktree-focus' })
+  await ui.press({ key: 'worktree-focus' })
+  expect(reads()).toBeGreaterThan(1)
+  await ui.unmount()
+})
+
+test('Add repo opens a path field', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  await ui.press({ key: 'ch-add' })
+  expect(await ui.find({ key: 'repo-path' })).toBeDefined()
+  await ui.unmount()
+})
+
+const openNestedRepos = async ($: any, on: any, runs: string[][], cwds: string[]) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  on('fs.list', (_$: any, e: any) => ({
+    value:
+      e.path === '/work'
+        ? [dirEntry('api'), dirEntry('web'), dirEntry('node_modules'), dirEntry('docs')]
+        : e.path === '/work/api' || e.path === '/work/web'
+          ? [dirEntry('.git')]
+          : [],
+  }))
+  const inner = fakeGit(runs, ' M a.md\0')
+  on('process.run', (_$: any, e: any) => {
+    cwds.push((e.init && e.init.cwd) || '')
+    const line = e.argv.join(' ')
+    const cwd = (e.init && e.init.cwd) || ''
+    if (line.includes('rev-parse --show-toplevel')) {
+      runs.push([...e.argv])
+      return { value: { exitCode: cwd === '/work' || cwd === '/work/api' || cwd === '/work/web' ? 0 : 128, stdout: cwd + '\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+    }
+    return inner(_$, e)
+  })
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  return $.ui.mount({ ...PANE, surface: 'terminal' })
+}
+
+test('nested repos under the folder are listed as groups, and stage-all runs inside the repo that was picked', async ($, on) => {
+  const runs: string[][] = []
+  const cwds: string[] = []
+  const ui = await openNestedRepos($, on, runs, cwds)
+  expect(await ui.find({ key: 'repo-b-/work' })).toBeDefined()
+  expect(await ui.find({ key: 'repo-b-/work/api' })).toBeDefined()
+  expect(await ui.find({ key: 'repo-b-/work/web' })).toBeDefined()
+  expect(await ui.find({ key: 'repo-b-/work/node_modules' })).toBeUndefined()
+  expect(await ui.find({ key: 'repo-b-/work/docs' })).toBeUndefined()
+  await ui.press({ key: 'repo-b-/work/api' })
+  await ui.press({ key: 'worktree-all' })
+  const at = runs.findIndex((run) => run[1] === 'add' && run[2] === '-A')
+  expect(at).toBeGreaterThan(-1)
+  expect(cwds[at]).toBe('/work/api')
+  await ui.unmount()
+})
+
+test('removing a repo from the list only forgets it: nothing is deleted, and Show brings it back', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openNestedRepos($, on, runs, [])
+  await ui.press({ key: 'repo-x-/work/web' })
+  expect(await ui.find({ key: 'repo-b-/work/web' })).toBeUndefined()
+  expect(runs.some((run) => ['clean', 'rm', 'restore'].includes(run[1]))).toBe(false)
+  await ui.press({ key: 'ch-unhide' })
+  expect(await ui.find({ key: 'repo-b-/work/web' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a folder with one repo shows no repo headers', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  expect(await ui.find({ key: 'repo-b-/work' })).toBeUndefined()
+  expect(await ui.find({ key: 'ch-add' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('removing the active repo moves to the next, the last repo cannot be removed, and Show brings the others back', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openNestedRepos($, on, runs, [])
+  await ui.press({ key: 'repo-x-/work/web' })
+  await ui.press({ key: 'repo-x-/work' })
+  expect(await ui.find({ key: 'repo-b-/work' })).toBeUndefined()
+  expect(await ui.find({ key: 'repo-b-/work/api' })).toBeUndefined()
+  expect(await ui.find({ key: 'worktree-toggle' })).toBeDefined()
+  expect(await ui.find({ key: 'ch-unhide' })).toBeDefined()
+  await ui.press({ key: 'ch-unhide' })
+  expect(await ui.find({ key: 'repo-b-/work' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree-toggle' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('the changes-only view says how many staged files it hides, and pressing the line shows them', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE, 'M  hooks/src/x.js\0 M a.md\0')
+  expect(await ui.find({ key: 'dc-hidden' })).toBeDefined()
+  await ui.press({ key: 'dc-hidden' })
+  expect(await ui.find({ key: 'dc-hidden' })).toBeUndefined()
+  expect(await ui.find({ key: 'dc-all' })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('a changed task doc opens in the reader from /changes and Back returns to the same changes view, while a source file has no Doc button', async ($, on) => {
+  const runs: string[][] = []
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/tasks': [dirEntry('a')],
+    '/work/tasks/a': [fileEntry('current.md', 60)],
+  })
+  on('fs.read', () => ({ value: '# T\n- [ ] one' }))
+  on('process.run', fakeGit(runs, ' M tasks/a/current.md\0 M x.js\0'))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ key: 'worktree:x.js#o' })).toBeUndefined()
+  await ui.press({ key: 'worktree:tasks/a/current.md#o' })
+  expect(await ui.find({ key: 'back' })).toBeDefined()
+  await ui.press({ key: 'back' })
+  expect(await ui.find({ key: 'dc-head' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a changed doc the docs list has never seen still opens in the reader, so the Doc button is never a dead end', async ($, on) => {
+  const runs: string[][] = []
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, {})
+  on('fs.read', () => ({ value: '# New\n- [ ] one' }))
+  on('process.run', fakeGit(runs, '?? tasks/fresh/current.md\0'))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'worktree:tasks/fresh/current.md#o' })
+  expect(await ui.find({ key: 'back' })).toBeDefined()
+  await ui.press({ key: 'back' })
+  expect(await ui.find({ key: 'dc-head' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a file focused under Changes says its staged half is hidden, and pressing the line switches to that half', async ($, on) => {
+  const runs: string[][] = []
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, { '/work/tasks': [dirEntry('a')], '/work/tasks/a': [fileEntry('current.md', 60)] })
+  on('fs.read', () => ({ value: '# T\n- [ ] one' }))
+  on('process.run', fakeGit(runs, 'MM tasks/a/current.md\0'))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'worktree-0b' })
+  expect(await ui.find({ key: 'dc-hidden' })).toBeDefined()
+  await ui.press({ key: 'dc-hidden' })
+  expect(await ui.find({ key: 'dc-hidden' })).toBeDefined()
+  await ui.unmount()
+})

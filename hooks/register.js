@@ -30,7 +30,9 @@ const SPLIT_MIN_COLUMNS = 100
 const TREE_COLUMNS = 42
 const COUNTS_WIDTH = 11
 const LITERAL_PATHS = { GIT_LITERAL_PATHSPECS: '1' }
-const MAX_STACKED_FILES = 100
+const MAX_STACKED_FILES = 40
+const MAX_FOCUSED_FILES = 100
+const REPO_COUNT_EVERY = 5
 const DIFF_BATCH = 8
 const MAX_UNTRACKED_BYTES = 256 * 1024
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])
@@ -287,8 +289,21 @@ const state = {
   changeFile: null,
   changeDiff: null,
   diffBack: 'changes',
+  docBack: null,
   allDiffs: {},
+  allSig: {},
   allOpen: {},
+  repoFound: [],
+  repoManual: [],
+  repoHidden: {},
+  repoCounts: {},
+  repoRoot: '',
+  repoForm: false,
+  repoPath: '',
+  repoNote: '',
+  pollTick: 0,
+  polling: false,
+  allCap: 0,
   allLoaded: false,
   allTooMany: false,
   diffGen: 0,
@@ -936,10 +951,14 @@ const redrawPane = ($) => $.ui.invalidate('ui.render')
 
 const loadChanges = async ($) => {
   if (!state.cwd) state.cwd = await $.session.cwd()
-  const next = await readStatus($, state.cwd, true)
+  const root = state.repoRoot
+  if (!root && Object.keys(state.repoHidden).length) return false
+  const next = await readStatus($, root || state.cwd, true)
+  if (root !== state.repoRoot) return false
   const same = state.changes.loaded && next.raw === state.changes.raw && next.error === state.changes.error
   state.changes = { ...next, loaded: true }
-  state.changeCount = next.entries.filter((entry) => entry.x !== '?').length
+  if (!root || root === state.repoFound[0]) state.changeCount = next.entries.filter((entry) => entry.x !== '?').length
+  if (root) state.repoCounts[root] = next.entries.length
   return !same
 }
 
@@ -961,36 +980,150 @@ const orderedFiles = (plane) =>
     .filter((row) => row.kind === 'file')
     .map((row) => row.entry)
 
-const loadAllDiffs = async ($) => {
+const loadAllDiffs = async ($, force = false) => {
   state.diffGen += 1
   const generation = state.diffGen
-  const targets = []
-  for (const plane of ['staged', 'worktree']) {
-    for (const entry of sectionEntries(state.changes.entries, plane)) targets.push({ plane, entry })
+  const root = state.repoRoot
+  const repo = state.changes.repo
+  const sizes = numstatOf(state.changes.raw)
+  const wanted = []
+  for (const plane of ['worktree', 'staged']) {
+    for (const entry of sectionEntries(state.changes.entries, plane)) {
+      if (!entryInFocus(state.changeFocus, plane, entry)) continue
+      wanted.push({ plane, entry, key: plane + ':' + entry.path, sig: signatureOf(entry, sizes) })
+    }
   }
-  state.allTotal = targets.length
-  state.allTooMany = targets.length > MAX_STACKED_FILES
-  targets.length = Math.min(targets.length, MAX_STACKED_FILES)
-  const done = []
-  for (let at = 0; at < targets.length; at += DIFF_BATCH) {
-    const batch = targets.slice(at, at + DIFF_BATCH).map((target) =>
-      readDiff($, state.changes.repo, fileTargets(target.entry), target.plane).then((diff) => ({
-        key: target.plane + ':' + target.entry.path,
-        diff,
+  const cap = state.changeFocus ? MAX_FOCUSED_FILES : MAX_STACKED_FILES
+  state.allTotal = wanted.length
+  state.allCap = cap
+  state.allTooMany = wanted.length > cap
+  if (state.allTooMany) wanted.length = cap
+  const stale = wanted.filter((target) => force || !target.sig || !state.allDiffs[target.key] || state.allSig[target.key] !== target.sig)
+  for (let at = 0; at < stale.length; at += DIFF_BATCH) {
+    const batch = await Promise.all(
+      stale.slice(at, at + DIFF_BATCH).map(async (target) => ({
+        key: target.key,
+        sig: target.sig,
+        diff: await readDiff($, repo, fileTargets(target.entry), target.plane),
       })),
     )
-    done.push(...(await Promise.all(batch)))
+    if (root !== state.repoRoot) return
+    for (const item of batch) {
+      state.allDiffs[item.key] = item.diff
+      state.allSig[item.key] = item.sig
+    }
+    redrawPane($)
     if (generation !== state.diffGen) return
   }
-  state.allDiffs = {}
-  for (const item of done) state.allDiffs[item.key] = item.diff
   state.allLoaded = true
+}
+
+const defaultFocus = () => (sectionEntries(state.changes.entries, 'worktree').length ? 'worktree:' : '')
+
+const focusOn = ($, focus) => {
+  state.changeFocus = focus
+  redrawPane($)
+  if (showsAllDiffs()) loadAllDiffs($, true).then(() => redrawPane($), () => {})
+}
+
+const resetRepoView = () => {
+  state.diffGen += 1
+  state.changeFocus = ''
+  state.changeFile = null
+  state.changeDiff = null
+  state.allDiffs = {}
+  state.allSig = {}
+  state.allOpen = {}
+  state.allFull = {}
+  state.diffSectionClosed = {}
+  state.allLoaded = false
+  state.changesCollapsed = {}
+  state.changes = { ...state.changes, loaded: false }
+}
+
+const refreshRepoList = async ($) => {
+  if (!state.cwd) state.cwd = await $.session.cwd()
+  state.repoFound = await discoverRepos($, state.cwd)
+  const roots = visibleRepos()
+  if (!state.repoRoot || !roots.includes(state.repoRoot)) {
+    state.repoRoot = roots[0] || ''
+    resetRepoView()
+  }
+  await countOtherRepos($)
+}
+
+const countOtherRepos = async ($) => {
+  const roots = visibleRepos().filter((root) => root !== state.repoRoot)
+  const counts = await Promise.all(roots.map((root) => countRepoChanges($, root)))
+  roots.forEach((root, index) => {
+    state.repoCounts[root] = counts[index]
+  })
+}
+
+const selectRepo = async ($, root) => {
+  if (root === state.repoRoot) {
+    const key = 'repo:' + root
+    state.changesCollapsed[key] = !state.changesCollapsed[key]
+    return redrawPane($)
+  }
+  state.repoRoot = root
+  resetRepoView()
+  redrawPane($)
+  await loadChanges($)
+  state.changeFocus = defaultFocus()
+  redrawPane($)
+  if (showsAllDiffs()) await loadAllDiffs($)
+  await countOtherRepos($)
+  redrawPane($)
+}
+
+const addRepo = async ($, typed) => {
+  const path = await resolveRepoPath($, typed)
+  const root = await topLevelOf($, path)
+  if (!typed.trim() || !root) {
+    state.repoNote = 'Not a git repository: ' + (typed.trim() || '(empty)')
+    return redrawPane($)
+  }
+  state.repoNote = ''
+  state.repoForm = false
+  state.repoPath = ''
+  delete state.repoHidden[root]
+  if (!state.repoManual.includes(root) && !state.repoFound.includes(root)) state.repoManual.push(root)
+  state.repoCounts[root] = 0
+  await selectRepo($, root)
+}
+
+const removeRepo = async ($, root) => {
+  state.repoHidden[root] = true
+  delete state.repoCounts[root]
+  if (root !== state.repoRoot) return redrawPane($)
+  const next = visibleRepos()[0] || ''
+  state.repoRoot = ''
+  if (next) return selectRepo($, next)
+  resetRepoView()
+  state.changes = { repo: '', entries: [], hasHead: false, error: '', raw: '', loaded: true }
+  redrawPane($)
+}
+
+const showHiddenRepos = async ($) => {
+  state.repoHidden = {}
+  if (state.repoRoot) {
+    await countOtherRepos($)
+    return redrawPane($)
+  }
+  await refreshRepoList($)
+  await loadChanges($)
+  state.changeFocus = defaultFocus()
+  redrawPane($)
+  if (showsAllDiffs()) await loadAllDiffs($)
+  redrawPane($)
 }
 
 const showsAllDiffs = () => state.view === 'change-all' || state.view === 'changes'
 
 const openChangeAll = async ($) => {
   state.view = 'change-all'
+  state.changeFocus = ''
   state.allDiffs = {}
   state.allOpen = {}
   state.allLoaded = false
@@ -1000,10 +1133,17 @@ const openChangeAll = async ($) => {
 }
 
 const refreshChanges = async ($) => {
-  if (!CHANGE_VIEWS.has(state.view)) return
+  if (!CHANGE_VIEWS.has(state.view) || state.polling) return
+  if (!state.repoRoot && Object.keys(state.repoHidden).length) return
+  state.polling = true
   try {
     const changed = await loadChanges($)
     let redraw = changed
+    state.pollTick += 1
+    if (state.pollTick % REPO_COUNT_EVERY === 0 && visibleRepos().length > 1) {
+      await countOtherRepos($)
+      redraw = true
+    }
     const file = state.changeFile
     if (state.view === 'change-file' && file && file.entry && state.changeDiff) {
       const fresh = await readDiff($, file.cwd, file.paths, file.plane)
@@ -1016,7 +1156,14 @@ const refreshChanges = async ($) => {
     if (redraw) redrawPane($)
   } catch {
     return
+  } finally {
+    state.polling = false
   }
+}
+
+const watchChanges = ($) => {
+  stopWatch()
+  state.stop = $.clock.every(POLL_MS, () => refreshChanges($))
 }
 
 const enterChanges = async ($) => {
@@ -1028,22 +1175,21 @@ const enterChanges = async ($) => {
   state.confirm = null
   state.discard = null
   state.changeFile = null
+  state.docBack = null
   state.changes = { ...state.changes, loaded: false }
   state.changeFocus = ''
   state.diffSectionClosed = {}
   state.allLoaded = false
   state.isOpen = true
   redrawPane($)
+  await refreshRepoList($)
   await loadChanges($)
-  state.changeFocus = sectionEntries(state.changes.entries, 'worktree').length ? 'worktree:' : ''
+  state.changeFocus = defaultFocus()
   redrawPane($)
-  if (showsAllDiffs()) {
-    await loadAllDiffs($)
-    redrawPane($)
-  }
+  if (showsAllDiffs()) await loadAllDiffs($)
+  redrawPane($)
   if (!state.isOpen || !CHANGE_VIEWS.has(state.view)) return
-  stopWatch()
-  state.stop = $.clock.every(POLL_MS, () => refreshChanges($))
+  watchChanges($)
 }
 
 const openChanges = async ($) => {
@@ -1074,6 +1220,68 @@ const openChangeFile = ($, entry, plane, back) =>
 
 const openDocDiff = ($, path, back) =>
   showFileDiff($, { entry: null, plane: 'head', path, paths: [path], cwd: parentOf(path) }, back)
+
+const DOC_PATH = /(^|\/)(CLAUDE(\.local)?\.md|tasks\/(.+\/)?(current\.md|decisions\/[^/]+\.md)|docs\/[^/]+\.md|\.claude\/rules\/[^/]+\.md)$/
+
+const isDocPath = (path) => DOC_PATH.test(path)
+
+const docGroupOf = (path) => {
+  if (/(^|\/)tasks\//.test(path)) return 'Task docs'
+  if (/CLAUDE(\.local)?\.md$/.test(path)) return 'CLAUDE.md chain'
+  return /\.claude\/rules\//.test(path) ? 'Rules' : 'Project docs'
+}
+
+const docAt = async ($, owner, path) => {
+  try {
+    state.docs = await discover($)
+  } catch {}
+  const found = state.docs.find((item) => item.path === owner)
+  if (found) return found
+  const folder = parentOf(owner)
+  const files = docGroupOf(path) === 'Task docs' ? await safeList($, folder + '/decisions') : []
+  return {
+    group: docGroupOf(path),
+    label: path,
+    name: owner.split('/').pop(),
+    scope: '',
+    path: owner,
+    decisions: files
+      .filter((entry) => entry.kind === 'file' && entry.name.endsWith('.md'))
+      .map((entry) => ({ name: entry.name, path: folder + '/decisions/' + entry.name, size: entry.size })),
+  }
+}
+
+const openDocFromChanges = async ($, path, back) => {
+  const absolute = state.changes.repo + '/' + path
+  const decision = /\/decisions\/[^/]+\.md$/.test(absolute)
+  const owner = decision ? absolute.replace(/\/decisions\/[^/]+$/, '/current.md') : absolute
+  const doc = await docAt($, owner, path)
+  const from = { view: back, file: state.changeFile, diffBack: state.diffBack }
+  await loadDoc($, doc)
+  state.docBack = from
+  const file = decision && (doc.decisions || []).find((item) => item.path === absolute)
+  if (file) {
+    state.decisionOpen = absolute
+    state.view = 'decision'
+    state.decisionTexts[absolute] = await readDecision($, file)
+  }
+  redrawPane($)
+}
+
+const returnFromDoc = async ($) => {
+  const from = state.docBack
+  state.docBack = null
+  stopWatch()
+  state.selected = []
+  state.current = null
+  if (from && from.view === 'change-file' && from.file) {
+    await showFileDiff($, from.file, from.diffBack)
+  } else {
+    state.view = from ? from.view : 'list'
+    redrawPane($)
+  }
+  if (from) watchChanges($)
+}
 
 const afterGit = async ($) => {
   await loadChanges($)
@@ -1127,8 +1335,7 @@ const toggleStageFocused = async ($) => {
   if (plane === 'staged') await unstageThese($, paths)
   else await stageThese($, paths)
   const other = plane === 'staged' ? 'worktree' : 'staged'
-  state.changeFocus = sectionEntries(state.changes.entries, other).some(covers) ? other + ':' + path : ''
-  redrawPane($)
+  focusOn($, sectionEntries(state.changes.entries, other).some(covers) ? other + ':' + path : '')
 }
 
 const askDiscard = ($, entry) => {
@@ -1264,6 +1471,55 @@ const readDiff = async ($, cwd, paths, plane) => {
   }
 }
 
+const SKIP_REPO_FOLDERS = new Set(['node_modules', 'vendor'])
+const MAX_REPO_FOLDERS = 200
+
+const repoNameOf = (root) => root.slice(root.lastIndexOf('/') + 1) || root
+
+const topLevelOf = async ($, cwd) => {
+  try {
+    const ran = await $.process.run(['git', 'rev-parse', '--show-toplevel'], { cwd })
+    return ran.exitCode === 0 ? ran.stdout.trim() : ''
+  } catch {
+    return ''
+  }
+}
+
+const discoverRepos = async ($, cwd) => {
+  const roots = []
+  const top = await topLevelOf($, cwd)
+  if (top) roots.push(top)
+  const entries = (await safeList($, cwd)).filter((entry) => isDirectory(entry) && !SKIP_REPO_FOLDERS.has(entry.name))
+  for (const entry of entries.slice(0, MAX_REPO_FOLDERS)) {
+    const folder = cwd + '/' + entry.name
+    if (!(await safeList($, folder)).some((child) => child.name === '.git')) continue
+    const root = (await topLevelOf($, folder)) || folder
+    if (!roots.includes(root)) roots.push(root)
+  }
+  return roots
+}
+
+const visibleRepos = () =>
+  [...state.repoFound, ...state.repoManual.filter((root) => !state.repoFound.includes(root))].filter((root) => !state.repoHidden[root])
+
+const countRepoChanges = async ($, root) => {
+  try {
+    const ran = await $.process.run(['git', '--no-optional-locks', 'status', '--porcelain=v1', '-z', '-unormal'], { cwd: root })
+    return ran.exitCode === 0 ? parseStatus(ran.stdout).length : 0
+  } catch {
+    return 0
+  }
+}
+
+const resolveRepoPath = async ($, typed) => {
+  const path = typed.trim().replace(/\/+$/, '')
+  if (path === '~' || path.startsWith('~/')) {
+    if (!state.home) state.home = await homeOf($)
+    return state.home + path.slice(1)
+  }
+  return path.startsWith('/') ? path : state.cwd + '/' + path
+}
+
 const parseStatus = (stdout) => {
   const parts = stdout.split('\0')
   const entries = []
@@ -1303,6 +1559,24 @@ const splitFocus = (focus) => {
   const cut = focus.indexOf(':')
   return cut < 0 ? null : { plane: focus.slice(0, cut), path: focus.slice(cut + 1) }
 }
+
+const entryInFocus = (focus, plane, entry) => {
+  if (!focus) return true
+  if (focus === plane + ':' || focus === plane + ':' + entry.path) return true
+  return focus.endsWith('/') && focus.startsWith(plane + ':') && entry.path.startsWith(focus.slice(plane.length + 1))
+}
+
+const numstatOf = (raw) => {
+  const sizes = {}
+  const at = raw.indexOf('\n')
+  for (const row of (at < 0 ? '' : raw.slice(at + 1)).split('\0')) {
+    const cut = row.split('\t')
+    if (cut.length >= 3) sizes[cut.slice(2).join('\t')] = cut[0] + '/' + cut[1]
+  }
+  return sizes
+}
+
+const signatureOf = (entry, sizes) => (sizes[entry.path] ? entry.x + entry.y + '|' + entry.orig + '|' + sizes[entry.path] : '')
 
 const nameOf = (path) => path.slice(path.lastIndexOf('/') + 1)
 
@@ -1356,7 +1630,7 @@ const readStatus = async ($, cwd, untracked) => {
     if (!untracked) return { repo, entries: parseStatus(status.stdout), hasHead: false, error: '', raw: status.stdout }
     const head = await $.process.run(['git', 'rev-parse', '--verify', '-q', 'HEAD'], { cwd: repo })
     const hasHead = head.exitCode === 0
-    const sizes = hasHead ? await $.process.run(['git', '--no-optional-locks', 'diff', 'HEAD', '--numstat'], { cwd: repo }) : null
+    const sizes = hasHead ? await $.process.run(['git', '--no-optional-locks', 'diff', 'HEAD', '--numstat', '--no-renames', '-z'], { cwd: repo }) : null
     return {
       repo,
       entries: parseStatus(status.stdout),
@@ -1694,6 +1968,7 @@ const openPane = async ($, view) => {
   stopWatch()
   state.view = view
   state.current = null
+  state.docBack = null
   state.error = ''
   state.selected = []
   state.filter = ''
@@ -1939,7 +2214,7 @@ const diffRows = (c, diff, prefix, cap = DIFF_MAX_LINES, onMore = null) => {
 const countsText = (diff) => (diff ? '+' + diff.added + ' −' + diff.removed : '')
 
 const changesView = ($, c) => {
-  const { Box, Text, Button, redraw } = c
+  const { Box, Text, Button, Input, redraw, bindField } = c
   const ch = state.changes
   const wide = paneColumns(c.e) >= SPLIT_MIN_COLUMNS
   state.wide = wide
@@ -1976,10 +2251,7 @@ const changesView = ($, c) => {
             key: key + 'b',
             plain: true,
             label: (state.changeFocus === folderKey ? '▶ ' : '') + clipPathTail(row.label + '/', room) + count,
-            onPress: () => {
-              state.changeFocus = state.changeFocus === folderKey ? '' : folderKey
-              redraw()
-            },
+            onPress: () => focusOn($, state.changeFocus === folderKey ? '' : folderKey),
           }),
         ],
       })
@@ -1994,8 +2266,7 @@ const changesView = ($, c) => {
       plain: true,
       onPress: () => {
         if (!wide) return openChangeFile($, entry, plane, 'changes')
-        state.changeFocus = state.changeFocus === focusKey ? '' : focusKey
-        redraw()
+        focusOn($, state.changeFocus === focusKey ? '' : focusKey)
       },
       children: [
         indent + (state.changeFocus === focusKey ? '▶ ' : '  ') + name.padEnd(room) + ' ',
@@ -2082,10 +2353,7 @@ const changesView = ($, c) => {
                   key: plane + '-focus',
                   label: ((state.changeFocus === plane + ':' ? '▶ ' : '  ') + caption).padEnd(24),
                   plain: true,
-                  onPress: () => {
-                    state.changeFocus = state.changeFocus === plane + ':' ? '' : plane + ':'
-                    redraw()
-                  },
+                  onPress: () => focusOn($, state.changeFocus === plane + ':' ? '' : plane + ':'),
                 }),
               ]
             : [
@@ -2111,6 +2379,35 @@ const changesView = ($, c) => {
     return rows
   }
 
+  const roots = visibleRepos()
+  const stacked = roots.length > 1
+  const hiddenCount = Object.keys(state.repoHidden).length
+
+  const repoHeader = (root) => {
+    const active = root === state.repoRoot
+    const open = active && !state.changesCollapsed['repo:' + root]
+    const count = active ? ch.entries.length : state.repoCounts[root]
+    const caption = (open ? '▾ ' : '▸ ') + clipMiddle(repoNameOf(root), Math.max(8, treeWidth - 12)) + (count === undefined ? '' : ' (' + count + ')')
+    return Box({
+      key: 'repo-' + root,
+      flexDirection: 'row',
+      columnGap: 1,
+      children: [
+        Button({ key: 'repo-b-' + root, label: caption, plain: true, onPress: () => selectRepo($, root) }),
+        Button({ key: 'repo-x-' + root, label: '✕', plain: true, onPress: () => removeRepo($, root) }),
+      ],
+    })
+  }
+
+  const treeBody = () => {
+    const body = wide ? [toolbar(), ...sections.flatMap(section)] : sections.flatMap(section)
+    if (!stacked) return body
+    return roots.flatMap((root) => [
+      repoHeader(root),
+      ...(root === state.repoRoot && !state.changesCollapsed['repo:' + root] ? body : []),
+    ])
+  }
+
   return Box({
     flexDirection: 'column',
     children: [
@@ -2120,9 +2417,34 @@ const changesView = ($, c) => {
         children: [
           Button({ key: 'ch-close', label: '< Close', hotkey: 'b', autoFocus: true, onPress: () => closePane($) }),
           ...(wide ? [] : [Button({ key: 'ch-all', label: 'All changes', hotkey: 'v', onPress: () => openChangeAll($) })]),
-          Button({ key: 'ch-refresh', label: 'Refresh', hotkey: 'r', onPress: () => refreshChanges($) }),
+          Button({ key: 'ch-refresh', label: 'Refresh', hotkey: 'r', onPress: () => refreshRepoList($).then(() => refreshChanges($)) }),
+          Button({
+            key: 'ch-add',
+            label: 'Add repo',
+            hotkey: 'g',
+            onPress: () => {
+              state.repoForm = !state.repoForm
+              state.repoNote = ''
+              redraw()
+            },
+          }),
+          ...(hiddenCount ? [Button({ key: 'ch-unhide', label: hiddenCount + ' hidden · show', onPress: () => showHiddenRepos($) })] : []),
         ],
       }),
+      ...(state.repoForm
+        ? [
+            Input({
+              key: 'repo-path',
+              label: 'Repo',
+              placeholder: 'folder of a git repo, e.g. ~/code/app (Remove only forgets it)',
+              value: state.repoPath,
+              autoFocus: true,
+              onInput: bindField('repoPath'),
+              onSubmit: (value) => addRepo($, typeof value === 'string' && value.trim() ? value : state.repoPath),
+            }),
+          ]
+        : []),
+      ...(state.repoNote ? [Text({ key: 'repo-note', color: 'red', children: state.repoNote })] : []),
       Text({
         bold: true,
         wrap: 'truncate-start',
@@ -2142,7 +2464,7 @@ const changesView = ($, c) => {
                     flexDirection: 'column',
                     width: TREE_COLUMNS,
                     flexShrink: 0,
-                    children: [toolbar(), ...sections.flatMap(section)],
+                    children: treeBody(),
                   }),
                   Box({
                     key: 'ch-diffs',
@@ -2154,7 +2476,7 @@ const changesView = ($, c) => {
                   }),
                 ],
               })
-            : Box({ flexDirection: 'column', children: sections.flatMap(section) }),
+            : Box({ flexDirection: 'column', children: treeBody() }),
     ],
   })
 }
@@ -2177,8 +2499,31 @@ const focusTitle = (focus) => {
   return focus.endsWith('/') ? focus.slice(cut + 1) + ' · ' + SECTION_TITLE[focus.slice(0, cut)] : focus.slice(cut + 1)
 }
 
+const showAllDiffSections = ($) => {
+  state.diffSectionClosed = {}
+  focusOn($, '')
+}
+
+const hiddenSectionHint = ($, c, focus) => {
+  const parts = splitFocus(focus)
+  if (!parts) return []
+  const other = parts.plane === 'staged' ? 'worktree' : 'staged'
+  const target = other + ':' + parts.path
+  const count = sectionEntries(state.changes.entries, other).filter((entry) => entryInFocus(target, other, entry)).length
+  if (!count) return []
+  const scope = !parts.path ? '' : parts.path.endsWith('/') ? ' in this folder' : ' for this file'
+  return [
+    c.Button({
+      key: 'dc-hidden',
+      label: SECTION_TITLE[other] + ' (' + count + ')' + scope + ' hidden · show',
+      plain: true,
+      onPress: () => (parts.path ? focusOn($, target) : showAllDiffSections($)),
+    }),
+  ]
+}
+
 const diffColumn = ($, c) => {
-  const { Box, Text, Button, redraw } = c
+  const { Box, Text, Button } = c
   const focus = coversFocus(state.changeFocus) ? state.changeFocus : ''
   const shown = allDiffBody($, c, focus)
   return [
@@ -2194,23 +2539,20 @@ const diffColumn = ($, c) => {
                 key: 'dc-all',
                 label: 'Show all',
                 hotkey: 'v',
-                onPress: () => {
-                  state.changeFocus = ''
-                  state.diffSectionClosed = {}
-                  redraw()
-                },
+                onPress: () => showAllDiffSections($),
               }),
             ]
           : []),
       ],
     }),
+    ...hiddenSectionHint($, c, focus),
     ...(state.allTooMany
       ? [
           Text({
             key: 'dc-toomany',
             dimColor: true,
             wrap: 'truncate-end',
-            children: 'Diffs shown for the first ' + MAX_STACKED_FILES + ' of ' + state.allTotal + ' files',
+            children: 'Diffs shown for the first ' + state.allCap + ' of ' + state.allTotal + ' files · press a name to open it',
           }),
         ]
       : []),
@@ -2253,23 +2595,23 @@ const fileHeader = ($, c, entry, plane, open, pathWidth) => {
         onPress: () => (staged ? unstageThese($, fileTargets(entry)) : stageThese($, stageTargets(entry))),
       }),
       ...(staged ? [] : [Button({ key: key + '#d', label: '↶', onPress: () => askDiscard($, entry) })]),
+      ...(isDocPath(entry.path)
+        ? [Button({ key: key + '#o', label: 'Doc', onPress: () => openDocFromChanges($, entry.path, state.view) })]
+        : []),
     ],
   })
 }
 
 const allDiffBody = ($, c, only) => {
-  const { Text, Button, redraw } = c
+  const { Box, Text, Button, redraw } = c
   const body = []
   let any = false
   let budget = DIFF_TOTAL_ROWS
   let collapsedForRoom = 0
   const columnWidth = state.wide ? paneColumns(c.e) - TREE_COLUMNS - 2 : paneColumns(c.e) - 2
-  const pathWidth = Math.max(16, columnWidth - COUNTS_WIDTH - 20)
+  const pathWidth = Math.max(16, columnWidth - COUNTS_WIDTH - 26)
   for (const plane of ['worktree', 'staged']) {
-    const files = orderedFiles(plane).filter((entry) => {
-      if (!only || only === plane + ':' || only === plane + ':' + entry.path) return true
-      return only.endsWith('/') && only.startsWith(plane + ':') && entry.path.startsWith(only.slice(plane.length + 1))
-    })
+    const files = orderedFiles(plane).filter((entry) => entryInFocus(only, plane, entry))
     if (!files.length) continue
     any = true
     const closed = !only && state.diffSectionClosed[plane] === true
@@ -2295,6 +2637,31 @@ const allDiffBody = ($, c, only) => {
       if (!open && explicit === undefined) collapsedForRoom += 1
       const full = fileFocus || state.allFull[key] === true
       const cap = full ? DIFF_MAX_LINES : explicit === true ? DIFF_AUTO_ROWS : Math.max(0, Math.min(DIFF_AUTO_ROWS, budget))
+      if (!open && explicit === undefined) {
+        const letter = letterOf(entry, plane)
+        body.push(
+          Box({
+            key: key + '#cr',
+            flexDirection: 'row',
+            columnGap: 1,
+            children: [
+              Button({
+                key: key + '#h',
+                label: '▸ ' + clipPath(entry.path, pathWidth).padEnd(pathWidth) + ' ' + letter,
+                plain: true,
+                onPress: () => {
+                  state.allOpen[key] = true
+                  focusOn($, key)
+                },
+              }),
+              ...(isDocPath(entry.path)
+                ? [Button({ key: key + '#o', label: 'Doc', onPress: () => openDocFromChanges($, entry.path, state.view) })]
+                : []),
+            ],
+          }),
+        )
+        continue
+      }
       body.push(fileHeader($, c, entry, plane, open, pathWidth))
       if (open && diff) {
         if (diff.note) body.push(Text({ key: key + '#n', dimColor: true, children: diff.note }))
@@ -2364,6 +2731,9 @@ const changeFileView = ($, c) => {
           ...(file.entry && !staged
             ? [Button({ key: 'cf-discard', label: 'Discard ⚠', hotkey: 'd', onPress: () => askDiscard($, file.entry) })]
             : []),
+          ...(file.entry && isDocPath(file.path)
+            ? [Button({ key: 'cf-doc', label: 'Open doc', hotkey: 'o', onPress: () => openDocFromChanges($, file.path, 'change-file') })]
+            : []),
         ],
       }),
       Box({
@@ -2399,7 +2769,7 @@ const changeAllView = ($, c) => {
               key: 'ca-toomany',
               dimColor: true,
               wrap: 'truncate-end',
-              children: 'Diffs shown for the first ' + MAX_STACKED_FILES + ' of ' + state.allTotal + ' files',
+              children: 'Diffs shown for the first ' + state.allCap + ' of ' + state.allTotal + ' files',
             }),
           ]
         : []),
@@ -2423,7 +2793,10 @@ const discardView = ($, c) => {
   return Box({
     flexDirection: 'column',
     children: [
-      Text({ bold: true, children: 'Discard changes: ' + entry.path }),
+      Text({
+        bold: true,
+        children: 'Discard changes: ' + (visibleRepos().length > 1 ? repoNameOf(state.changes.repo) + ' · ' : '') + entry.path,
+      }),
       Text({ color: 'yellow', children: 'Effect: ' + effect }),
       Text({ children: ' ' }),
       Box({
@@ -2574,7 +2947,8 @@ const docView = ($, c) => {
       flexDirection: 'row',
       columnGap: 2,
       children: [
-        action('back', '< Back', { hotkey: 'b', autoFocus: true }, () => {
+        action('back', state.docBack ? '< Back to changes' : '< Back', { hotkey: 'b', autoFocus: true }, () => {
+          if (state.docBack) return returnFromDoc($)
           stopWatch()
           state.selected = []
           goto('list')
@@ -2590,7 +2964,7 @@ const docView = ($, c) => {
               action('handoff', 'Hand off', { hotkey: 'h' }, openHandoff),
             ]
           : []),
-        action('changes', 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
+        action('changes', state.docBack ? 'Doc diff' : 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
         action('refresh', 'Refresh ⚠', { hotkey: 'r' }, () =>
           askFirst('Refresh ' + state.current.label, refreshRequest(state.current), REFRESH_EFFECT),
         ),
@@ -3139,6 +3513,7 @@ const paneContext = ($, e) => {
   }
 
   const open = async (doc) => {
+    state.docBack = null
     await loadDoc($, doc)
     redraw()
   }

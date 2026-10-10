@@ -68,7 +68,7 @@ const diffRows = (c, diff, prefix, cap = DIFF_MAX_LINES, onMore = null) => {
 const countsText = (diff) => (diff ? '+' + diff.added + ' −' + diff.removed : '')
 
 const changesView = ($, c) => {
-  const { Box, Text, Button, redraw } = c
+  const { Box, Text, Button, Input, redraw, bindField } = c
   const ch = state.changes
   const wide = paneColumns(c.e) >= SPLIT_MIN_COLUMNS
   state.wide = wide
@@ -105,10 +105,7 @@ const changesView = ($, c) => {
             key: key + 'b',
             plain: true,
             label: (state.changeFocus === folderKey ? '▶ ' : '') + clipPathTail(row.label + '/', room) + count,
-            onPress: () => {
-              state.changeFocus = state.changeFocus === folderKey ? '' : folderKey
-              redraw()
-            },
+            onPress: () => focusOn($, state.changeFocus === folderKey ? '' : folderKey),
           }),
         ],
       })
@@ -123,8 +120,7 @@ const changesView = ($, c) => {
       plain: true,
       onPress: () => {
         if (!wide) return openChangeFile($, entry, plane, 'changes')
-        state.changeFocus = state.changeFocus === focusKey ? '' : focusKey
-        redraw()
+        focusOn($, state.changeFocus === focusKey ? '' : focusKey)
       },
       children: [
         indent + (state.changeFocus === focusKey ? '▶ ' : '  ') + name.padEnd(room) + ' ',
@@ -211,10 +207,7 @@ const changesView = ($, c) => {
                   key: plane + '-focus',
                   label: ((state.changeFocus === plane + ':' ? '▶ ' : '  ') + caption).padEnd(24),
                   plain: true,
-                  onPress: () => {
-                    state.changeFocus = state.changeFocus === plane + ':' ? '' : plane + ':'
-                    redraw()
-                  },
+                  onPress: () => focusOn($, state.changeFocus === plane + ':' ? '' : plane + ':'),
                 }),
               ]
             : [
@@ -240,6 +233,35 @@ const changesView = ($, c) => {
     return rows
   }
 
+  const roots = visibleRepos()
+  const stacked = roots.length > 1
+  const hiddenCount = Object.keys(state.repoHidden).length
+
+  const repoHeader = (root) => {
+    const active = root === state.repoRoot
+    const open = active && !state.changesCollapsed['repo:' + root]
+    const count = active ? ch.entries.length : state.repoCounts[root]
+    const caption = (open ? '▾ ' : '▸ ') + clipMiddle(repoNameOf(root), Math.max(8, treeWidth - 12)) + (count === undefined ? '' : ' (' + count + ')')
+    return Box({
+      key: 'repo-' + root,
+      flexDirection: 'row',
+      columnGap: 1,
+      children: [
+        Button({ key: 'repo-b-' + root, label: caption, plain: true, onPress: () => selectRepo($, root) }),
+        Button({ key: 'repo-x-' + root, label: '✕', plain: true, onPress: () => removeRepo($, root) }),
+      ],
+    })
+  }
+
+  const treeBody = () => {
+    const body = wide ? [toolbar(), ...sections.flatMap(section)] : sections.flatMap(section)
+    if (!stacked) return body
+    return roots.flatMap((root) => [
+      repoHeader(root),
+      ...(root === state.repoRoot && !state.changesCollapsed['repo:' + root] ? body : []),
+    ])
+  }
+
   return Box({
     flexDirection: 'column',
     children: [
@@ -249,9 +271,34 @@ const changesView = ($, c) => {
         children: [
           Button({ key: 'ch-close', label: '< Close', hotkey: 'b', autoFocus: true, onPress: () => closePane($) }),
           ...(wide ? [] : [Button({ key: 'ch-all', label: 'All changes', hotkey: 'v', onPress: () => openChangeAll($) })]),
-          Button({ key: 'ch-refresh', label: 'Refresh', hotkey: 'r', onPress: () => refreshChanges($) }),
+          Button({ key: 'ch-refresh', label: 'Refresh', hotkey: 'r', onPress: () => refreshRepoList($).then(() => refreshChanges($)) }),
+          Button({
+            key: 'ch-add',
+            label: 'Add repo',
+            hotkey: 'g',
+            onPress: () => {
+              state.repoForm = !state.repoForm
+              state.repoNote = ''
+              redraw()
+            },
+          }),
+          ...(hiddenCount ? [Button({ key: 'ch-unhide', label: hiddenCount + ' hidden · show', onPress: () => showHiddenRepos($) })] : []),
         ],
       }),
+      ...(state.repoForm
+        ? [
+            Input({
+              key: 'repo-path',
+              label: 'Repo',
+              placeholder: 'folder of a git repo, e.g. ~/code/app (Remove only forgets it)',
+              value: state.repoPath,
+              autoFocus: true,
+              onInput: bindField('repoPath'),
+              onSubmit: (value) => addRepo($, typeof value === 'string' && value.trim() ? value : state.repoPath),
+            }),
+          ]
+        : []),
+      ...(state.repoNote ? [Text({ key: 'repo-note', color: 'red', children: state.repoNote })] : []),
       Text({
         bold: true,
         wrap: 'truncate-start',
@@ -271,7 +318,7 @@ const changesView = ($, c) => {
                     flexDirection: 'column',
                     width: TREE_COLUMNS,
                     flexShrink: 0,
-                    children: [toolbar(), ...sections.flatMap(section)],
+                    children: treeBody(),
                   }),
                   Box({
                     key: 'ch-diffs',
@@ -283,7 +330,7 @@ const changesView = ($, c) => {
                   }),
                 ],
               })
-            : Box({ flexDirection: 'column', children: sections.flatMap(section) }),
+            : Box({ flexDirection: 'column', children: treeBody() }),
     ],
   })
 }
@@ -306,8 +353,31 @@ const focusTitle = (focus) => {
   return focus.endsWith('/') ? focus.slice(cut + 1) + ' · ' + SECTION_TITLE[focus.slice(0, cut)] : focus.slice(cut + 1)
 }
 
+const showAllDiffSections = ($) => {
+  state.diffSectionClosed = {}
+  focusOn($, '')
+}
+
+const hiddenSectionHint = ($, c, focus) => {
+  const parts = splitFocus(focus)
+  if (!parts) return []
+  const other = parts.plane === 'staged' ? 'worktree' : 'staged'
+  const target = other + ':' + parts.path
+  const count = sectionEntries(state.changes.entries, other).filter((entry) => entryInFocus(target, other, entry)).length
+  if (!count) return []
+  const scope = !parts.path ? '' : parts.path.endsWith('/') ? ' in this folder' : ' for this file'
+  return [
+    c.Button({
+      key: 'dc-hidden',
+      label: SECTION_TITLE[other] + ' (' + count + ')' + scope + ' hidden · show',
+      plain: true,
+      onPress: () => (parts.path ? focusOn($, target) : showAllDiffSections($)),
+    }),
+  ]
+}
+
 const diffColumn = ($, c) => {
-  const { Box, Text, Button, redraw } = c
+  const { Box, Text, Button } = c
   const focus = coversFocus(state.changeFocus) ? state.changeFocus : ''
   const shown = allDiffBody($, c, focus)
   return [
@@ -323,23 +393,20 @@ const diffColumn = ($, c) => {
                 key: 'dc-all',
                 label: 'Show all',
                 hotkey: 'v',
-                onPress: () => {
-                  state.changeFocus = ''
-                  state.diffSectionClosed = {}
-                  redraw()
-                },
+                onPress: () => showAllDiffSections($),
               }),
             ]
           : []),
       ],
     }),
+    ...hiddenSectionHint($, c, focus),
     ...(state.allTooMany
       ? [
           Text({
             key: 'dc-toomany',
             dimColor: true,
             wrap: 'truncate-end',
-            children: 'Diffs shown for the first ' + MAX_STACKED_FILES + ' of ' + state.allTotal + ' files',
+            children: 'Diffs shown for the first ' + state.allCap + ' of ' + state.allTotal + ' files · press a name to open it',
           }),
         ]
       : []),
@@ -382,23 +449,23 @@ const fileHeader = ($, c, entry, plane, open, pathWidth) => {
         onPress: () => (staged ? unstageThese($, fileTargets(entry)) : stageThese($, stageTargets(entry))),
       }),
       ...(staged ? [] : [Button({ key: key + '#d', label: '↶', onPress: () => askDiscard($, entry) })]),
+      ...(isDocPath(entry.path)
+        ? [Button({ key: key + '#o', label: 'Doc', onPress: () => openDocFromChanges($, entry.path, state.view) })]
+        : []),
     ],
   })
 }
 
 const allDiffBody = ($, c, only) => {
-  const { Text, Button, redraw } = c
+  const { Box, Text, Button, redraw } = c
   const body = []
   let any = false
   let budget = DIFF_TOTAL_ROWS
   let collapsedForRoom = 0
   const columnWidth = state.wide ? paneColumns(c.e) - TREE_COLUMNS - 2 : paneColumns(c.e) - 2
-  const pathWidth = Math.max(16, columnWidth - COUNTS_WIDTH - 20)
+  const pathWidth = Math.max(16, columnWidth - COUNTS_WIDTH - 26)
   for (const plane of ['worktree', 'staged']) {
-    const files = orderedFiles(plane).filter((entry) => {
-      if (!only || only === plane + ':' || only === plane + ':' + entry.path) return true
-      return only.endsWith('/') && only.startsWith(plane + ':') && entry.path.startsWith(only.slice(plane.length + 1))
-    })
+    const files = orderedFiles(plane).filter((entry) => entryInFocus(only, plane, entry))
     if (!files.length) continue
     any = true
     const closed = !only && state.diffSectionClosed[plane] === true
@@ -424,6 +491,31 @@ const allDiffBody = ($, c, only) => {
       if (!open && explicit === undefined) collapsedForRoom += 1
       const full = fileFocus || state.allFull[key] === true
       const cap = full ? DIFF_MAX_LINES : explicit === true ? DIFF_AUTO_ROWS : Math.max(0, Math.min(DIFF_AUTO_ROWS, budget))
+      if (!open && explicit === undefined) {
+        const letter = letterOf(entry, plane)
+        body.push(
+          Box({
+            key: key + '#cr',
+            flexDirection: 'row',
+            columnGap: 1,
+            children: [
+              Button({
+                key: key + '#h',
+                label: '▸ ' + clipPath(entry.path, pathWidth).padEnd(pathWidth) + ' ' + letter,
+                plain: true,
+                onPress: () => {
+                  state.allOpen[key] = true
+                  focusOn($, key)
+                },
+              }),
+              ...(isDocPath(entry.path)
+                ? [Button({ key: key + '#o', label: 'Doc', onPress: () => openDocFromChanges($, entry.path, state.view) })]
+                : []),
+            ],
+          }),
+        )
+        continue
+      }
       body.push(fileHeader($, c, entry, plane, open, pathWidth))
       if (open && diff) {
         if (diff.note) body.push(Text({ key: key + '#n', dimColor: true, children: diff.note }))
@@ -493,6 +585,9 @@ const changeFileView = ($, c) => {
           ...(file.entry && !staged
             ? [Button({ key: 'cf-discard', label: 'Discard ⚠', hotkey: 'd', onPress: () => askDiscard($, file.entry) })]
             : []),
+          ...(file.entry && isDocPath(file.path)
+            ? [Button({ key: 'cf-doc', label: 'Open doc', hotkey: 'o', onPress: () => openDocFromChanges($, file.path, 'change-file') })]
+            : []),
         ],
       }),
       Box({
@@ -528,7 +623,7 @@ const changeAllView = ($, c) => {
               key: 'ca-toomany',
               dimColor: true,
               wrap: 'truncate-end',
-              children: 'Diffs shown for the first ' + MAX_STACKED_FILES + ' of ' + state.allTotal + ' files',
+              children: 'Diffs shown for the first ' + state.allCap + ' of ' + state.allTotal + ' files',
             }),
           ]
         : []),
@@ -552,7 +647,10 @@ const discardView = ($, c) => {
   return Box({
     flexDirection: 'column',
     children: [
-      Text({ bold: true, children: 'Discard changes: ' + entry.path }),
+      Text({
+        bold: true,
+        children: 'Discard changes: ' + (visibleRepos().length > 1 ? repoNameOf(state.changes.repo) + ' · ' : '') + entry.path,
+      }),
       Text({ color: 'yellow', children: 'Effect: ' + effect }),
       Text({ children: ' ' }),
       Box({

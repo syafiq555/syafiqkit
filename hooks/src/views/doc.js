@@ -125,7 +125,8 @@ const docView = ($, c) => {
       flexDirection: 'row',
       columnGap: 2,
       children: [
-        action('back', '< Back', { hotkey: 'b', autoFocus: true }, () => {
+        action('back', state.docBack ? '< Back to changes' : '< Back', { hotkey: 'b', autoFocus: true }, () => {
+          if (state.docBack) return returnFromDoc($)
           stopWatch()
           state.selected = []
           goto('list')
@@ -141,7 +142,7 @@ const docView = ($, c) => {
               action('handoff', 'Hand off', { hotkey: 'h' }, openHandoff),
             ]
           : []),
-        action('changes', 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
+        action('changes', state.docBack ? 'Doc diff' : 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
         action('refresh', 'Refresh ⚠', { hotkey: 'r' }, () =>
           askFirst('Refresh ' + state.current.label, refreshRequest(state.current), REFRESH_EFFECT),
         ),

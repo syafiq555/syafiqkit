@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.386.0
+
+**`/changes` stays usable on big change sets, and shows git repos nested inside the folder.**
+- **Diffs no longer vanish on big changes:** with hundreds of changed files, the right side could show only file names, because every 2-second refresh restarted loading from scratch while Claude was still editing. Diffs now appear as each batch finishes and are kept between refreshes; a file is re-read only when its status or line counts change.
+- **Faster:** only the files in focus (the Changes section it opens on, a folder, or one file) have their diffs read, instead of up to 100 files from both sections up front. A focused section or folder reads 100 files at most; with nothing focused it reads 40 (it was 100). The pane says how many it left out. Files past the row budget are drawn as one plain line each, and pressing the name focuses it and loads its diff. Pressing a section, folder or file again re-reads it, and new or untracked files are re-read on every refresh that sees a change, because git gives no line counts to compare for them.
+- **Refresh fixes:** a refresh no longer starts while the previous one is still running, and a diff load that is overtaken by a newer one keeps the batches it already finished.
+- **Several repos:** when the folder you started in holds git repos one level down (`node_modules` and `vendor` are skipped), the left side lists each repo with its change count. Press a repo to open it (press again to fold it); the stage-all, stage, unstage and discard buttons then act in that repo only. `Add repo` takes any folder that is a git repo, and `✕` on a repo removes it from the list without touching anything on disk; `N hidden · show` brings removed ones back, hand-added ones included. Added repos last for the session, not across restarts. `~/` paths work. With one repo nothing looks different, apart from the new `Add repo` button. The band's `Changes (N)` still counts only the repo at the folder you started in, not the other repos.
+- **Hidden staged files are announced:** the right side opens on Changes only, which hid a large staged section without a word and read as "only 10 changes". It now shows `Staged Changes (255) hidden · show` under the title; pressing it shows both sections. Focusing a folder or file says the same for its other half (`Staged Changes (3) in this folder hidden · show`).
+- **Open a changed doc rendered:** a changed task doc, decisions file, `CLAUDE.md`, `docs/` file or `.claude/rules/` file has a `Doc` button (and `Open doc` on its own page) that opens it in the `/task-docs` reader; `< Back to changes` returns to the same view. The button also appears on the one-line rows of a large change set. In the reader, the diff button reads `Doc diff` when you came from `/changes`. Other markdown, such as agent files, has no button.
+- **New calls the mod makes:** `git rev-parse --show-toplevel` in other folders, a read-only `git status` per listed repo (every 10 seconds while the pane is open), and directory listings one level under the starting folder.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then restart Claude Code so the mod reloads. No agents or templates changed. Not yet seen live: the repo list in a real folder with nested repos.
+
 ## 1.385.0
 
 **`condense-task-doc` now keeps how readers look things up when it moves a section out of the index.**

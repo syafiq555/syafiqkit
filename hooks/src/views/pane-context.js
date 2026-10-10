@@ -8,6 +8,7 @@ const paneContext = ($, e) => {
   }
 
   const open = async (doc) => {
+    state.docBack = null
     await loadDoc($, doc)
     redraw()
   }

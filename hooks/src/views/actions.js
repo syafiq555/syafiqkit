@@ -2,6 +2,7 @@ const openPane = async ($, view) => {
   stopWatch()
   state.view = view
   state.current = null
+  state.docBack = null
   state.error = ''
   state.selected = []
   state.filter = ''

@@ -38,6 +38,24 @@ const splitFocus = (focus) => {
   return cut < 0 ? null : { plane: focus.slice(0, cut), path: focus.slice(cut + 1) }
 }
 
+const entryInFocus = (focus, plane, entry) => {
+  if (!focus) return true
+  if (focus === plane + ':' || focus === plane + ':' + entry.path) return true
+  return focus.endsWith('/') && focus.startsWith(plane + ':') && entry.path.startsWith(focus.slice(plane.length + 1))
+}
+
+const numstatOf = (raw) => {
+  const sizes = {}
+  const at = raw.indexOf('\n')
+  for (const row of (at < 0 ? '' : raw.slice(at + 1)).split('\0')) {
+    const cut = row.split('\t')
+    if (cut.length >= 3) sizes[cut.slice(2).join('\t')] = cut[0] + '/' + cut[1]
+  }
+  return sizes
+}
+
+const signatureOf = (entry, sizes) => (sizes[entry.path] ? entry.x + entry.y + '|' + entry.orig + '|' + sizes[entry.path] : '')
+
 const nameOf = (path) => path.slice(path.lastIndexOf('/') + 1)
 
 const treeRows = (entries, section, collapsed) => {
@@ -90,7 +108,7 @@ const readStatus = async ($, cwd, untracked) => {
     if (!untracked) return { repo, entries: parseStatus(status.stdout), hasHead: false, error: '', raw: status.stdout }
     const head = await $.process.run(['git', 'rev-parse', '--verify', '-q', 'HEAD'], { cwd: repo })
     const hasHead = head.exitCode === 0
-    const sizes = hasHead ? await $.process.run(['git', '--no-optional-locks', 'diff', 'HEAD', '--numstat'], { cwd: repo }) : null
+    const sizes = hasHead ? await $.process.run(['git', '--no-optional-locks', 'diff', 'HEAD', '--numstat', '--no-renames', '-z'], { cwd: repo }) : null
     return {
       repo,
       entries: parseStatus(status.stdout),
