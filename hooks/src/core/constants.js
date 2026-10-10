@@ -11,6 +11,7 @@ const NAME_WIDTH = 26
 const SCOPE_WIDTH = 24
 const MEASURE_FROM_BYTES = 8000
 const TASK_DOC_MAX_LINES = 300
+const DECISION_MAX_BYTES = 40 * 1024
 const CLAUDE_MD_MAX_LINES = 200
 const CLAUDE_MD_MAX_BYTES = 40000
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])

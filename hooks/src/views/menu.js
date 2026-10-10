@@ -93,6 +93,7 @@ const confirmView = ($, c) => {
             hotkey: 's',
             onPress: () => {
               if (confirm.record) return claimAndSend($, confirm.record, confirm.text)
+              if (confirm.reopen) state.reopen = confirm.reopen
               const later = confirm.offerHandoff && state.alsoHandoff ? { next: state.handoffNext.trim(), armed: false } : null
               return submitPrompt($, confirm.text, 'Sent: ' + confirm.title.toLowerCase(), undefined, later)
             },
@@ -104,7 +105,7 @@ const confirmView = ($, c) => {
             autoFocus: true,
             onPress: () => {
               state.pick = null
-              goto('menu')
+              goto(confirm.back && confirm.back !== 'confirm' ? confirm.back : 'menu')
             },
           }),
         ],

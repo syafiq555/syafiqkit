@@ -73,7 +73,13 @@ const docView = ($, c) => {
           ? decisionFiles.map((file, index) =>
               Button({
                 key: 'dec' + index,
-                label: '     ' + file.name.replace(/\.md$/, '') + '  ' + kb(file.size) + '  ›',
+                label:
+                  (isOversizedDecision(file) ? '   ⚠ ' : '     ') +
+                  file.name.replace(/\.md$/, '') +
+                  '  ' +
+                  kb(file.size) +
+                  (isOversizedDecision(file) ? ' (over 40 KB)' : '') +
+                  '  ›',
                 plain: true,
                 onPress: () => openDecision(index),
               }),
@@ -200,7 +206,7 @@ const docView = ($, c) => {
 }
 
 const decisionView = ($, c) => {
-  const { Box, Text, Button, Markdown, goto, openDecision } = c
+  const { Box, Text, Button, Markdown, goto, openDecision, askFirst } = c
   const files = state.current.decisions || []
   const index = files.findIndex((file) => file.path === state.decisionOpen)
   if (index < 0) return docView($, c)
@@ -224,6 +230,19 @@ const decisionView = ($, c) => {
           ...(index < files.length - 1
             ? [Button({ key: 'dec-next', label: 'Next ›', hotkey: 'n', onPress: () => openDecision(index + 1) })]
             : []),
+          Button({
+            key: 'dec-condense',
+            label: 'Condense ⚠',
+            hotkey: 'k',
+            onPress: () =>
+              askFirst('Condense ' + file.name, condenseFileRequest(state.current, file), CONDENSE_FILE_EFFECT, false, state.current),
+          }),
+          Button({
+            key: 'dec-split',
+            label: 'Split ⚠',
+            hotkey: 't',
+            onPress: () => askFirst('Split ' + file.name, splitRequest(state.current, file), SPLIT_EFFECT, false, state.current),
+          }),
         ],
       }),
       Box({
@@ -232,6 +251,9 @@ const decisionView = ($, c) => {
         children: [
           Text({ bold: true, wrap: 'truncate-start', children: state.current.label + ' › ' + file.name.replace(/\.md$/, '') }),
           Text({ dimColor: true, children: kb(file.size) + ' · ' + (index + 1) + ' of ' + files.length }),
+          ...(isOversizedDecision(file)
+            ? [Text({ key: 'dec-over', color: 'yellow', children: '⚠ over 40 KB' })]
+            : []),
         ],
       }),
       Text({ children: ' ' }),

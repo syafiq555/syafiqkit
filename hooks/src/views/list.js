@@ -3,7 +3,7 @@ const docRow = (c, doc, key) => {
   const when = agoOf(state.now, doc.mtime)
   const heavy = isHeavy(doc)
   const tail = heavy
-    ? '⚠ ' + doc.lines + ' lines'
+    ? heavyNote(doc)
     : doc.status
       ? when.padEnd(11) + doc.status
       : when.padEnd(11) + kb(doc.size)

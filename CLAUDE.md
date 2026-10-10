@@ -52,7 +52,7 @@ These skills accept explicit user command:
 | `setup-project-docs` | Establish a project's core doc set — PRD, ARCHITECTURE.md, ARCHITECTURE-ESSENTIALS.md, CLAUDE.md/AGENTS.md — greenfield by derivation, or by archaeology when adopting an existing codebase |
 | `extract-shared-package` | Pull a module two or more apps need into a shared Composer or npm package — boundary first, then shape (one package, an entry per capability), hosting read off how each consumer installs at deploy, exact pins, multi-version proof, strangler rollout |
 | `update-claude-docs` | Create, rewrite, or condense CLAUDE.md files |
-| `condense-task-doc` | Aggressively condense a bloated task doc; splits >300 lines into index + decisions |
+| `condense-task-doc` | Aggressively condense a bloated task doc; splits >300 lines, or a decisions file >40 KB, into a routing index + decisions |
 | `condense-claude-md` | Aggressively condense a bloated CLAUDE.md (removes excess — not the analog that adds content) |
 | `agent-setup` | Create or update project-local agents using Bootstrap pattern |
 | `haiku` | Run a task or a named skill on one or more haiku agents instead of this session, then verify the result before reporting — snapshot, identifier/number survival, and the reworded-claim check a grep can't catch |

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.376.0
+
+**A decisions file over 40 KB now counts as too big, and the task-doc browser flags it.** Before, only `current.md` was measured by lines, so a short index with a 185 KB requirements capture behind it looked healthy.
+- **Convention:** a large source (a requirements spec, a transcript) is captured as several `decisions/` files along the source's own sections, and `current.md` is the router that says which file holds what. A decisions file over ~40 KB is condensed, split by topic into sibling files, or both, whichever its content calls for; a source capture is never cut, only split. Moved text goes word for word (`task-summary`, `condense-task-doc`, `decision-splits.md`, `refresh-instructions`).
+- **Mod, docs list:** a task doc with a decisions file over 40 KB is listed under "Needs shrinking" as `⚠ decisions/<file> <size>` (`+N` when there are more), and sorts by how far over it is. **Shrink** on a task doc now asks the `task-summary` skill to judge each oversized file (condense, split, both, or propose a better structure first) instead of a haiku condense of the whole set.
+- **Mod, decisions page:** **Condense ⚠** (`k`) and **Split ⚠** (`t`) act on that one file on haiku, after asking first; a file over 40 KB shows "⚠ over 40 KB". Cancel returns to the page you came from, and after Send the next Docs press reopens the doc. Every haiku request ends by asking the session to restore any fact, figure or quote that was dropped or changed in meaning, rather than revert.
+- **Haiku skill:** a small gain is not a reason to revert a pass; patch back what was lost.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed, so nothing needs regenerating.
+
 ## 1.375.0
 
 **syafiqkit now adds a menu, a task-doc browser and session handoffs to Claude Code's terminal and Desktop app.** It ships as a plugin module (a "mod"), so `claude plugin update syafiqkit@syafiqkit` is the only step.

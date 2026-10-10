@@ -11,6 +11,7 @@ const NAME_WIDTH = 26
 const SCOPE_WIDTH = 24
 const MEASURE_FROM_BYTES = 8000
 const TASK_DOC_MAX_LINES = 300
+const DECISION_MAX_BYTES = 40 * 1024
 const CLAUDE_MD_MAX_LINES = 200
 const CLAUDE_MD_MAX_BYTES = 40000
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])
@@ -128,24 +129,97 @@ const summaryOf = (line) => {
 
 const isInstructionFile = (doc) => doc.group === 'CLAUDE.md chain'
 
+const isOversizedDecision = (file) => (file.size || 0) > DECISION_MAX_BYTES
+
+const oversizedDecisions = (doc) => (doc.decisions || []).filter(isOversizedDecision)
+
 const isHeavy = (doc) => {
+  if (doc.group === 'Task docs' && oversizedDecisions(doc).length) return true
   if (typeof doc.lines !== 'number') return false
   if (isInstructionFile(doc)) return doc.lines > CLAUDE_MD_MAX_LINES || (doc.size || 0) > CLAUDE_MD_MAX_BYTES
   return doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES
 }
 
+const heavyNote = (doc) => {
+  const big = oversizedDecisions(doc).sort((a, b) => (b.size || 0) - (a.size || 0))
+  const parts = []
+  if (big.length) parts.push('decisions/' + big[0].name + ' ' + kb(big[0].size) + (big.length > 1 ? ' +' + (big.length - 1) : ''))
+  if (typeof doc.lines === 'number' && doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES) parts.push(doc.lines + ' lines')
+  if (!parts.length) parts.push(doc.lines + ' lines')
+  return '⚠ ' + parts.join(' · ')
+}
+
+const heaviness = (doc) => oversizedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
+
 const REFRESH_EFFECT = 'Rewrites the doc in place with three passes (restructure, shorten, loosen over-strict rules).'
 const SHRINK_EFFECT =
-  'Condenses the doc in place on haiku agents and verifies it, and splits a task doc over 300 lines into an index plus decisions files.'
+  'Task doc: the task-summary skill judges each file over the limit (index over 300 lines, decisions file over 40 KB) and condenses, splits, does both, or proposes a better structure first. CLAUDE.md: condensed in place on haiku and verified.'
 
 const refreshRequest = (doc) => 'Use the refresh-instructions skill on ' + doc.path + '.'
 
-const shrinkRequest = (doc) =>
+const haikuRequest = (skill, path, ask) =>
   'Use the haiku skill to run the ' +
-  (isInstructionFile(doc) ? 'condense-claude-md' : 'condense-task-doc') +
+  skill +
   ' skill on ' +
-  doc.path +
-  ', then verify the result before reporting.'
+  path +
+  ask +
+  ' Then verify the result, and restore any fact, figure or quote the agent dropped or changed the meaning of, rather than reverting its work.'
+
+const decisionLabel = (file) => 'decisions/' + file.name + ' (' + kb(file.size) + ')'
+
+const decisionFileRequest = (doc, file, verb, ask) =>
+  haikuRequest(
+    'condense-task-doc',
+    file.path,
+    ' to ' +
+      verb +
+      ' ' +
+      decisionLabel(file) +
+      ask +
+      ' Only this file is in scope: leave its index ' +
+      doc.path +
+      ' and the other decisions files alone, except routing rows and links that must change.',
+  )
+
+
+const SPLIT_EFFECT =
+  'A haiku agent splits one decisions file into smaller ones by topic, moving the text word for word, and makes current.md the router that says which file holds what. Links to the old file are repointed, and the result is checked before it is reported.'
+
+const splitRequest = (doc, file) =>
+  decisionFileRequest(
+    doc,
+    file,
+    'split',
+    ' by topic into smaller decisions files. Move the text word for word and count its headings and table rows before and after, make current.md the router that says which file holds what, and repoint every link to the old file.',
+  )
+
+const CONDENSE_FILE_EFFECT =
+  'A haiku agent condenses one decisions file in place: drops superseded and repeated text, keeps every decision, figure, name and quote, and checks the result before it is reported.'
+
+const condenseFileRequest = (doc, file) =>
+  decisionFileRequest(
+    doc,
+    file,
+    'condense',
+    ' in place. Remove superseded and repeated text, and keep every decision, figure, name and quoted line. If the file is the only copy of an outside source (a spec, a transcript, client notes), do not cut it: only remove repeats, and split it if it is over 40 KB. If it is still over 40 KB afterwards, say so.',
+  )
+
+const taskDocShrinkRequest = (doc) => {
+  const sizes = []
+  if (typeof doc.lines === 'number' && doc.lines > TASK_DOC_MAX_LINES) sizes.push('current.md is ' + doc.lines + ' lines (index limit 300)')
+  const big = oversizedDecisions(doc)
+  if (big.length) sizes.push(big.map(decisionLabel).join(', ') + (big.length === 1 ? ' is' : ' are') + ' over the 40 KB limit for one decisions file')
+  return (
+    'Use the task-summary skill on ' +
+    doc.path +
+    '. ' +
+    (sizes.length ? 'Over the limit: ' + sizes.join('; ') + '. ' : '') +
+    'For each oversized file, judge what fits: condense it, split it by topic with current.md as the router, condense then split, or a better structure. If you see a better way than these, propose it before changing anything. Keep every decision, figure, name and quote, and move text between files word for word. Verify the result before reporting.'
+  )
+}
+
+const shrinkRequest = (doc) =>
+  isInstructionFile(doc) ? haikuRequest('condense-claude-md', doc.path, '.') : taskDocShrinkRequest(doc)
 
 const state = {
   view: 'list',
@@ -372,7 +446,7 @@ const measureHeavy = async ($) => {
   )
 }
 
-const heavyDocs = () => state.docs.filter(isHeavy).sort((a, b) => b.lines - a.lines)
+const heavyDocs = () => state.docs.filter(isHeavy).sort((a, b) => heaviness(b) - heaviness(a))
 
 const recentDocs = () =>
   state.docs
@@ -1190,7 +1264,13 @@ const docView = ($, c) => {
           ? decisionFiles.map((file, index) =>
               Button({
                 key: 'dec' + index,
-                label: '     ' + file.name.replace(/\.md$/, '') + '  ' + kb(file.size) + '  ›',
+                label:
+                  (isOversizedDecision(file) ? '   ⚠ ' : '     ') +
+                  file.name.replace(/\.md$/, '') +
+                  '  ' +
+                  kb(file.size) +
+                  (isOversizedDecision(file) ? ' (over 40 KB)' : '') +
+                  '  ›',
                 plain: true,
                 onPress: () => openDecision(index),
               }),
@@ -1317,7 +1397,7 @@ const docView = ($, c) => {
 }
 
 const decisionView = ($, c) => {
-  const { Box, Text, Button, Markdown, goto, openDecision } = c
+  const { Box, Text, Button, Markdown, goto, openDecision, askFirst } = c
   const files = state.current.decisions || []
   const index = files.findIndex((file) => file.path === state.decisionOpen)
   if (index < 0) return docView($, c)
@@ -1341,6 +1421,19 @@ const decisionView = ($, c) => {
           ...(index < files.length - 1
             ? [Button({ key: 'dec-next', label: 'Next ›', hotkey: 'n', onPress: () => openDecision(index + 1) })]
             : []),
+          Button({
+            key: 'dec-condense',
+            label: 'Condense ⚠',
+            hotkey: 'k',
+            onPress: () =>
+              askFirst('Condense ' + file.name, condenseFileRequest(state.current, file), CONDENSE_FILE_EFFECT, false, state.current),
+          }),
+          Button({
+            key: 'dec-split',
+            label: 'Split ⚠',
+            hotkey: 't',
+            onPress: () => askFirst('Split ' + file.name, splitRequest(state.current, file), SPLIT_EFFECT, false, state.current),
+          }),
         ],
       }),
       Box({
@@ -1349,6 +1442,9 @@ const decisionView = ($, c) => {
         children: [
           Text({ bold: true, wrap: 'truncate-start', children: state.current.label + ' › ' + file.name.replace(/\.md$/, '') }),
           Text({ dimColor: true, children: kb(file.size) + ' · ' + (index + 1) + ' of ' + files.length }),
+          ...(isOversizedDecision(file)
+            ? [Text({ key: 'dec-over', color: 'yellow', children: '⚠ over 40 KB' })]
+            : []),
         ],
       }),
       Text({ children: ' ' }),
@@ -1364,7 +1460,7 @@ const docRow = (c, doc, key) => {
   const when = agoOf(state.now, doc.mtime)
   const heavy = isHeavy(doc)
   const tail = heavy
-    ? '⚠ ' + doc.lines + ' lines'
+    ? heavyNote(doc)
     : doc.status
       ? when.padEnd(11) + doc.status
       : when.padEnd(11) + kb(doc.size)
@@ -1562,6 +1658,7 @@ const confirmView = ($, c) => {
             hotkey: 's',
             onPress: () => {
               if (confirm.record) return claimAndSend($, confirm.record, confirm.text)
+              if (confirm.reopen) state.reopen = confirm.reopen
               const later = confirm.offerHandoff && state.alsoHandoff ? { next: state.handoffNext.trim(), armed: false } : null
               return submitPrompt($, confirm.text, 'Sent: ' + confirm.title.toLowerCase(), undefined, later)
             },
@@ -1573,7 +1670,7 @@ const confirmView = ($, c) => {
             autoFocus: true,
             onPress: () => {
               state.pick = null
-              goto('menu')
+              goto(confirm.back && confirm.back !== 'confirm' ? confirm.back : 'menu')
             },
           }),
         ],
@@ -1659,8 +1756,8 @@ const paneContext = ($, e) => {
     }
   }
 
-  const askFirst = (title, text, effect, offerHandoff) => {
-    state.confirm = { title, text, effect, offerHandoff: Boolean(offerHandoff) }
+  const askFirst = (title, text, effect, offerHandoff, reopen) => {
+    state.confirm = { title, text, effect, offerHandoff: Boolean(offerHandoff), back: state.view, reopen: reopen || null }
     state.alsoHandoff = false
     state.handoffNext = ''
     goto('confirm')

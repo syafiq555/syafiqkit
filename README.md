@@ -49,7 +49,7 @@ It draws nothing in the VS Code panel or `claude -p`. It runs with your permissi
 | Read a task doc before answering or building | `/read-summary <path>` |
 | Carry on from a doc, picking what is buildable | `/tackle` |
 | Hand work off to a new or parallel session | `/continue-session` |
-| Shrink a task doc, or split one over 300 lines | `/condense-task-doc` |
+| Shrink a task doc, or split one over 300 lines or with a decisions file over 40 KB | `/condense-task-doc` |
 | Shrink a CLAUDE.md | `/condense-claude-md` |
 | Tidy any living doc in one go (restructure, shorten, drop over-strict rules) | `/refresh-instructions` |
 | Merge overlapping task docs | `/merge-task-docs` — `/sweep-doc-overlaps` to look across every domain |
@@ -94,7 +94,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/merge-task-docs` | Find related task docs in a domain and merge them, reconciling all back-references |
 | `/sweep-doc-overlaps` | Fleet-wide scan across ALL `tasks/` domains for CROSS-domain merge candidates; hands confirmed groups to `merge-task-docs` |
 | `/notes-summary` | Create, update, or read a personal session journal outside the repo |
-| `/condense-task-doc` | Aggressively condense a bloated task doc in place; a doc over 300 lines is split into an index plus `decisions/` files |
+| `/condense-task-doc` | Aggressively condense a bloated task doc in place; a doc over 300 lines, or a decisions file over 40 KB, is split into a routing index plus smaller `decisions/` files |
 | `/condense-claude-md` | Aggressively condense a bloated CLAUDE.md file in place |
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
 | `/refresh-instructions` | Full three-pass refresh on any living doc — CLAUDE.md, task doc, `docs/` set file, README or runbook — restructure, condense, then unhobble, each on haiku and verified in sequence |

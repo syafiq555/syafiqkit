@@ -128,7 +128,7 @@ Overshoot is the same miss and arrives labelled as a win. An agent briefed to cu
 
 **Write the re-dispatch prompt first.** Not a decision about whether to revert — the actual prompt, listing every fact that would need naming. Then read what you wrote: a list of nameable facts *is* the patch instructions, so patch. Reverting is for the case where you cannot write that prompt at all.
 
-A symptom list — whole sections gone, contradicting numbers, an untrustworthy report — reads as authorisation the moment one item matches. Those symptoms establish that something is wrong; they never establish that the rest is worthless.
+A symptom list — whole sections gone, contradicting numbers, an untrustworthy report — reads as authorisation the moment one item matches. Those symptoms establish that something is wrong; they never establish that the rest is worthless. A small gain is not a reason to revert either: patch back what was lost and keep what the agent got right. Measured 2026-10-10: a condense that saved 1.9 KB and dropped six live passages was reverted whole, and the user's answer was that the main session should have patched them.
 
 Three ways a patch goes wrong after that call is correctly made. **Tell: your evidence for "systemic" is a set of greps you chose, and you have not opened the rewritten file's sections.** **Tell: you are restoring a passage because it reads as more detailed, not because you can name what a reader loses without it.** **Tell: a fact was restored into the section the agent happened to leave it in, and you have not checked whether that placement is actually correct.**
 

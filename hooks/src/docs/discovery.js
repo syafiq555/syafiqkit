@@ -131,7 +131,7 @@ const measureHeavy = async ($) => {
   )
 }
 
-const heavyDocs = () => state.docs.filter(isHeavy).sort((a, b) => b.lines - a.lines)
+const heavyDocs = () => state.docs.filter(isHeavy).sort((a, b) => heaviness(b) - heaviness(a))
 
 const recentDocs = () =>
   state.docs

@@ -14,7 +14,7 @@ A task doc's unit is `current.md` **plus its `decisions/*.md` siblings** — one
 
 `ls -lc current.md decisions/*.md` shows density per file. The index typically gets refreshed by passing sessions and stays tidy; siblings grow unattended. Narrowing to the index catches the wrong end — the real work is in the siblings, which is why a refresh that only touched `current.md` reported "not done" despite measurable improvement there. Sequential passes across siblings are safe: each dispatch re-reads its own file, so stale-copy risk doesn't justify narrowing. Run the sequence per file (siblings in parallel), or name upfront which file you're scoping to and why.
 
-The set's total is not a budget for condense: `condense-task-doc`'s size thresholds apply to the index's line count, and source-capture files are exempt from condensing for size. When a doc index is ≤300 lines but a 14-ADR set totals 408, the split needs to fire inside the dispatch, not as work invented after the user notices the file is still large. Name the threshold (≤300 lines, bytes grown from new ADRs) in the Pass 2 prompt as a number to check.
+The set's total is not a budget for condense: `condense-task-doc`'s size thresholds apply to the index's line count and to each decisions file's ~40 KB, and source-capture files are exempt from condensing for size. When a doc index is ≤300 lines but a 14-ADR set totals 408, the split needs to fire inside the dispatch, not as work invented after the user notices the file is still large. Name the threshold (≤300 lines, bytes grown from new ADRs) in the Pass 2 prompt as a number to check.
 
 ## Protecting facts when building the list
 

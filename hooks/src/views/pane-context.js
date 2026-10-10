@@ -24,8 +24,8 @@ const paneContext = ($, e) => {
     }
   }
 
-  const askFirst = (title, text, effect, offerHandoff) => {
-    state.confirm = { title, text, effect, offerHandoff: Boolean(offerHandoff) }
+  const askFirst = (title, text, effect, offerHandoff, reopen) => {
+    state.confirm = { title, text, effect, offerHandoff: Boolean(offerHandoff), back: state.view, reopen: reopen || null }
     state.alsoHandoff = false
     state.handoffNext = ''
     goto('confirm')

@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🚀 Shipped as 1.375.0 (3fa861c on master, 2026-10-10); 14 kit tests pass; the band showed in a live session, not yet used by colleagues
+Status: 🚀 1.376.0 built, not yet committed (1.375.0 shipped as 3fa861c on master, 2026-10-10); 18 kit tests pass; the band showed in a live session, not yet used by colleagues
 Domain: plugin-maintenance/mod
 Gotchas (critical — full list in ## Gotchas below):
   - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
@@ -73,6 +73,7 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
 | 7 | Source split into `hooks/src/` and bundled; Wrap up renamed Done | ✅ |
 | 8 | Handoffs and diagrams without `mkdir`/`mv`/`openssl` (Windows) | ✅ built, untested on Windows |
 | 9 | Real-session soak, older-client check, `SYAFIQKIT_MOD=0` via shell and via settings.json | ⏳ |
+| 10 | A decisions file over 40 KB (`DECISION_MAX_BYTES`) makes its task doc heavy, whatever `current.md`'s size; list shows `⚠ decisions/<file> <size>`, shrink request asks for a split with `current.md` as router; each decisions page has Condense ⚠ (`dec-condense`, `k`) and Split ⚠ (`dec-split`, `t`, not `s`: Send is `s`), both on haiku, both ask first; Cancel returns to the calling view (`confirm.back`), Send sets `reopen`; doc Shrink asks task-summary to judge (1.376.0) | ✅ four tests added |
 
 ---
 

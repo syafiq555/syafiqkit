@@ -351,6 +351,100 @@ test('the reader folds a doc\'s decisions in on demand, and the list shows only 
   await ui.unmount()
 })
 
+const fileEntry = (name: string, size: number) => ({ name, kind: 'file', size, mtimeMs: 999_000, isLink: false })
+const dirEntry = (name: string) => ({ name, kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false })
+
+const stubTaskDoc = async ($: any, on: any, sent: string[], doc: string, currentSize: number, decisions: any[], read: string) => {
+  stubSession(on, sent, [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/tasks': [dirEntry(doc)],
+    ['/work/tasks/' + doc]: [fileEntry('current.md', currentSize), dirEntry('decisions')],
+    ['/work/tasks/' + doc + '/decisions']: decisions,
+  })
+  on('fs.read', () => ({ value: read }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+}
+
+const openBigDecision = async ($: any, on: any, sent: string[]) => {
+  await stubTaskDoc($, on, sent, 'a', 60, [fileEntry('plan.md', 47_000)], '# Plan\nBecause.')
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'r0b' })
+  await ui.press({ key: 'decisions-toggle' })
+  await ui.press({ key: 'dec0' })
+  return ui
+}
+
+test('a short task doc with a decisions file over 40 KB is listed for shrinking, and Shrink asks task-summary to judge condense, split or a better shape', async ($, on) => {
+  const sent: string[] = []
+  await stubTaskDoc(
+    $,
+    on,
+    sent,
+    'brs',
+    2000,
+    [fileEntry('requirements.md', 185_000), fileEntry('small.md', 9_000)],
+    '# T\n- [ ] one',
+  )
+  await $.command.run({ command: 'sk', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'vb5' })
+  expect(await ui.find({ key: 'y0b' })).toBeDefined()
+  await ui.press({ key: 'y0b' })
+  await ui.press({ key: 'confirm-send' })
+  expect(sent.length).toBe(1)
+  expect(sent[0]).toContain('decisions/requirements.md')
+  expect(sent[0]).not.toContain('small.md')
+  expect(sent[0]).toContain('Use the task-summary skill')
+  expect(sent[0]).toContain('propose it before changing anything')
+  await ui.unmount()
+})
+
+test('a decisions page offers Split, which asks first and names that one file', async ($, on) => {
+  const sent: string[] = []
+  const ui = await openBigDecision($, on, sent)
+  expect(await ui.find({ key: 'dec-split' })).toBeDefined()
+  await ui.press({ key: 'dec-split' })
+  expect(sent.length).toBe(0)
+  await ui.press({ key: 'confirm-send' })
+  expect(sent.length).toBe(1)
+  expect(sent[0]).toContain('split decisions/plan.md')
+  expect(sent[0]).toContain('Use the haiku skill')
+  expect(sent[0]).toContain('/work/tasks/a/decisions/plan.md')
+  expect(sent[0]).toContain('Only this file is in scope')
+  await ui.unmount()
+})
+
+test('cancelling Split returns to the decisions page, and sending it brings the doc back on the next Docs press', async ($, on) => {
+  const sent: string[] = []
+  const ui = await openBigDecision($, on, sent)
+  await ui.press({ key: 'dec-split' })
+  await ui.press({ key: 'confirm-cancel' })
+  expect(await ui.find({ key: 'dec-split' })).toBeDefined()
+  await ui.press({ key: 'dec-split' })
+  await ui.press({ key: 'confirm-send' })
+  await ui.unmount()
+  await $.command.run({ command: 'task-docs', args: '' })
+  const again = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await again.find({ key: 'decisions-toggle' })).toBeDefined()
+  await again.unmount()
+})
+
+test('a decisions page offers Condense, which asks first and condenses that one file on haiku', async ($, on) => {
+  const sent: string[] = []
+  const ui = await openBigDecision($, on, sent)
+  await ui.press({ key: 'dec-condense' })
+  expect(sent.length).toBe(0)
+  await ui.press({ key: 'confirm-send' })
+  expect(sent.length).toBe(1)
+  expect(sent[0]).toContain('condense decisions/plan.md')
+  expect(sent[0]).toContain('Use the haiku skill')
+  expect(sent[0]).toContain('split it if it is over 40 KB')
+  expect(sent[0]).toContain('changed the meaning of')
+  await ui.unmount()
+})
+
 test('CLAUDE.md files are named by scope and a file reached by two routes is listed once', async ($, on) => {
   stubSession(on, [], [], [], ['session.cwd', 'fs.exists'])
   on('session.cwd', () => ({ value: '/home/test/.claude/p' }))
