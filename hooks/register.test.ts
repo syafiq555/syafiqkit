@@ -486,3 +486,100 @@ test('a safe menu verb sends its prompt and a risky one asks first', async ($, o
   expect(sent[1]).toBe('Use the commit skill to commit the staged changes, and push.')
   await again.unmount()
 })
+
+test('a handoff note reaches the summary prompt, and the record names the session it came from', async ($, on) => {
+  const writes: any[] = []
+  const prompts: string[] = []
+  stubSession(on, [], [])
+  stubHandoffIo(on, writes, [
+    { role: 'user', text: 'fix the billing groups', toolUses: [] },
+    { role: 'assistant', text: 'Fixed', toolUses: [] },
+  ])
+  on('model.complete', (_$: any, e: any) => {
+    prompts.push(e.prompt)
+    return {
+      value: {
+        isAnswered: true,
+        text: 'Goal\nRefresh the uiux skill',
+        usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+      },
+    }
+  })
+  on('session.id', () => ({ value: 'sess-billing' }))
+  stubRender(on)
+  const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await ui.press({ key: 'band-handoff' })
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.input({ key: 'handoff-next', text: 'refresh the uiux skill' })
+  expect(prompts[0]).toContain('"refresh the uiux skill"')
+  const saved = JSON.parse(writtenValue(writes[0], (value) => value.startsWith('{')))
+  expect(saved.sessionId).toBe('sess-billing')
+  expect(saved.sessionGoal).toBe('fix the billing groups')
+  await pane.unmount()
+  await ui.unmount()
+})
+
+test('resuming a handoff with a note leads with the note and shows which session saved it', async ($, on) => {
+  const sent: string[] = []
+  stubSession(on, sent, [], [], ['fs.list', 'fs.exists'])
+  const record = {
+    id: '999000-abc',
+    createdAt: 999_000,
+    cwd: '/work',
+    sessionGoal: 'fix the billing groups',
+    summary: 'Goal\nRefresh the uiux skill',
+    how: 'summary',
+    next: 'refresh the uiux skill',
+    selected: [],
+    taskDocPath: '/work/tasks/billing/current.md',
+    taskDocs: ['/work/tasks/billing/current.md'],
+    files: [],
+    branch: 'main',
+    sha: 'abc1234',
+    uncommitted: 0,
+  }
+  on('fs.exists', () => ({ value: true }))
+  on('fs.list', () => ({ value: [{ name: '999000-abc.json', kind: 'file', size: 400, mtimeMs: 999_000, isLink: false }] }))
+  const marks: Record<string, string> = {}
+  on('fs.write', (_$: any, e: any) => {
+    marks[e.path] = e.text
+    return { value: undefined }
+  })
+  on('fs.read', (_$: any, e: any) => ({ value: e.path.endsWith('.state') ? marks[e.path] ?? '' : JSON.stringify(record) }))
+  on('process.run', () => ({ value: { exitCode: 0, stdout: '', stderr: '' } }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await band.find({ type: 'Text', text: /from: fix the billing groups/ })).toBeDefined()
+  await band.press({ key: 'resume' })
+  const lines = sent[0].split('\n')
+  expect(lines[0]).toBe('My task for this session: refresh the uiux skill')
+  expect(lines[1]).toContain('read-summary on this topic: refresh the uiux skill')
+  expect(sent[0]).toContain('Task docs the previous session touched: /work/tasks/billing/current.md')
+  await band.unmount()
+})
+
+test('the docs list shows the plugin skills, each opening its SKILL.md', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  on('fs.list', (_$: any, e: any) => ({
+    value: e.path.endsWith('/skills')
+      ? [
+          { name: 'uiux', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false },
+          { name: '_shared', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false },
+          { name: 'commit', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false },
+        ]
+      : [],
+  }))
+  on('fs.stat', () => ({ value: { kind: 'file', size: 100, mtimeMs: 999_000, isLink: false } }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'task-docs', args: '' })
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /SYAFIQKIT SKILLS \(2\)/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /_shared/ })).toBeUndefined()
+  expect(await ui.find({ key: 'd0b' })).toBeDefined()
+  expect(await ui.find({ key: 'd1b' })).toBeDefined()
+  await ui.unmount()
+})

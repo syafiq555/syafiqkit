@@ -74,7 +74,24 @@ const transcriptOf = (messages) => {
   return kept.join('\n')
 }
 
-const summariseSession = async ($, messages) => {
+const sessionGoalOf = (messages) => {
+  for (const message of messages) {
+    if (message.role !== 'user' || !message.text || NOISE.test(message.text.trimStart())) continue
+    const goal = message.text.match(/^Goal\b[:*\s]*([^\n]+)/im)
+    const line = (goal ? goal[1] : message.text).replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim()
+    if (line) return clip(line, 80)
+  }
+  return ''
+}
+
+const nextNotePrompt = (next) =>
+  next
+    ? '\n\nThe user typed this as the next session\'s task: "' +
+      next +
+      '". Write Goal as that task. If the conversation did not work on it, say so in one line under Done and keep only the facts that bear on it; do not present the conversation\'s own goal as the next session\'s.'
+    : ''
+
+const summariseSession = async ($, messages, next) => {
   const transcript = transcriptOf(messages)
   const fallback = () => ({ text: digestOf(messages), how: 'digest' })
   if (!transcript) return fallback()
@@ -82,7 +99,7 @@ const summariseSession = async ($, messages) => {
     const reply = await $.model.complete({
       model: SUMMARY_MODEL,
       system: 'You write handoffs between coding sessions from a transcript. Use only what the transcript says.',
-      prompt: 'Conversation, oldest first:\n' + transcript + '\n\n' + HANDOFF_PROMPT,
+      prompt: 'Conversation, oldest first:\n' + transcript + '\n\n' + HANDOFF_PROMPT + nextNotePrompt(next),
       maxTokens: 700,
       timeoutMs: 60000,
     })

@@ -24,7 +24,7 @@ const MERMAID_TIMEOUT_MS = 240000
 const MAX_IMAGE_ROWS = 60
 const MAX_BASE64 = Math.floor((2 * 1024 * 1024 * 4) / 3)
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs']
+const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs', 'Skills']
 
 const VERBS = [
   { label: 'Commit', hint: 'staged changes only', text: 'Use the commit skill to commit the staged changes.', toast: 'Sent: commit' },
@@ -145,11 +145,14 @@ const heavyNote = (doc) => {
   const parts = []
   if (big.length) parts.push('decisions/' + big[0].name + ' ' + kb(big[0].size) + (big.length > 1 ? ' +' + (big.length - 1) : ''))
   if (typeof doc.lines === 'number' && doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES) parts.push(doc.lines + ' lines')
-  if (!parts.length) parts.push(doc.lines + ' lines')
+  if (!parts.length) parts.push(isInstructionFile(doc) && doc.lines <= CLAUDE_MD_MAX_LINES ? kb(doc.size) : doc.lines + ' lines')
   return '⚠ ' + parts.join(' · ')
 }
 
-const heaviness = (doc) => oversizedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
+const heaviness = (doc) =>
+  isInstructionFile(doc)
+    ? doc.size || 0
+    : oversizedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
 
 const REFRESH_EFFECT = 'Rewrites the doc in place with three passes (restructure, shorten, loosen over-strict rules).'
 const SHRINK_EFFECT =
@@ -180,7 +183,6 @@ const decisionFileRequest = (doc, file, verb, ask) =>
       doc.path +
       ' and the other decisions files alone, except routing rows and links that must change.',
   )
-
 
 const SPLIT_EFFECT =
   'A haiku agent splits one decisions file into smaller ones by topic, moving the text word for word, and makes current.md the router that says which file holds what. Links to the old file are repointed, and the result is checked before it is reported.'
@@ -419,6 +421,24 @@ const findMarkdownIn = async ($, group, dir) => {
     }))
 }
 
+const findSkills = async ($) => {
+  const root = $.plugin.root
+  if (!root) return []
+  const folders = (await safeList($, root + '/skills')).filter((entry) => isDirectory(entry) && !entry.name.startsWith('_'))
+  const found = await Promise.all(
+    folders.map(async (folder) => {
+      const path = root + '/skills/' + folder.name + '/SKILL.md'
+      try {
+        const stat = await $.fs.stat(path)
+        return { group: 'Skills', label: folder.name, name: folder.name, scope: 'skill', path, size: stat.size, mtime: stat.mtimeMs }
+      } catch {
+        return null
+      }
+    }),
+  )
+  return found.filter(Boolean).sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const discover = async ($) => {
   const cwd = await $.session.cwd()
   state.cwd = cwd
@@ -428,6 +448,7 @@ const discover = async ($) => {
     findInstructionFiles($, cwd, home),
     findMarkdownIn($, 'Rules', cwd + '/.claude/rules'),
     findMarkdownIn($, 'Project docs', cwd + '/docs'),
+    findSkills($),
   ])
   return groups.flat()
 }
@@ -817,7 +838,24 @@ const transcriptOf = (messages) => {
   return kept.join('\n')
 }
 
-const summariseSession = async ($, messages) => {
+const sessionGoalOf = (messages) => {
+  for (const message of messages) {
+    if (message.role !== 'user' || !message.text || NOISE.test(message.text.trimStart())) continue
+    const goal = message.text.match(/^Goal\b[:*\s]*([^\n]+)/im)
+    const line = (goal ? goal[1] : message.text).replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim()
+    if (line) return clip(line, 80)
+  }
+  return ''
+}
+
+const nextNotePrompt = (next) =>
+  next
+    ? '\n\nThe user typed this as the next session\'s task: "' +
+      next +
+      '". Write Goal as that task. If the conversation did not work on it, say so in one line under Done and keep only the facts that bear on it; do not present the conversation\'s own goal as the next session\'s.'
+    : ''
+
+const summariseSession = async ($, messages, next) => {
   const transcript = transcriptOf(messages)
   const fallback = () => ({ text: digestOf(messages), how: 'digest' })
   if (!transcript) return fallback()
@@ -825,7 +863,7 @@ const summariseSession = async ($, messages) => {
     const reply = await $.model.complete({
       model: SUMMARY_MODEL,
       system: 'You write handoffs between coding sessions from a transcript. Use only what the transcript says.',
-      prompt: 'Conversation, oldest first:\n' + transcript + '\n\n' + HANDOFF_PROMPT,
+      prompt: 'Conversation, oldest first:\n' + transcript + '\n\n' + HANDOFF_PROMPT + nextNotePrompt(next),
       maxTokens: 700,
       timeoutMs: 60000,
     })
@@ -850,7 +888,12 @@ const saveHandoff = async ($, next) => {
   } catch {
     messages = []
   }
-  const [git, branch, summary] = await Promise.all([gitState($), branchOf($), summariseSession($, messages)])
+  const [git, branch, summary, sessionId] = await Promise.all([
+    gitState($),
+    branchOf($),
+    summariseSession($, messages, next),
+    $.session.id().catch(() => ''),
+  ])
   const docs = taskDocsIn(messages)
   if (!docs.length && state.lastDoc && state.lastDoc.group === 'Task docs') docs.push(state.lastDoc.path)
   const createdAt = await $.clock.now()
@@ -859,6 +902,8 @@ const saveHandoff = async ($, next) => {
     id,
     createdAt,
     cwd: state.cwd,
+    sessionId,
+    sessionGoal: sessionGoalOf(messages),
     summary: summary.text,
     how: summary.how,
     next,
@@ -910,6 +955,8 @@ const cleanRecord = (raw, name) => {
     id: text(raw.id) || name.replace(/\.json$/, ''),
     createdAt: count(raw.createdAt),
     cwd: text(raw.cwd),
+    sessionId: text(raw.sessionId),
+    sessionGoal: text(raw.sessionGoal),
     summary: text(raw.summary),
     how: text(raw.how),
     next: text(raw.next),
@@ -971,10 +1018,12 @@ const loadHandoff = async ($) => {
 const resumeText = (record, now) => {
   const docs = record.taskDocs && record.taskDocs.length ? record.taskDocs : record.taskDocPath ? [record.taskDocPath] : []
   const topic = record.next || goalOf(record) || 'the previous session'
-  const readFirst = docs.length
-    ? 'Before anything else, run /syafiqkit:read-summary on ' + docs[0] + ' (the read-summary skill).'
-    : 'Before anything else, run /syafiqkit:read-summary on this topic: ' + topic + ' (the read-summary skill; it finds the task docs by content).'
+  const readFirst =
+    docs.length && !record.next
+      ? 'Before anything else, run /syafiqkit:read-summary on ' + docs[0] + ' (the read-summary skill).'
+      : 'Before anything else, run /syafiqkit:read-summary on this topic: ' + topic + ' (the read-summary skill; it finds the task docs by content).'
   return [
+    record.next ? 'My task for this session: ' + record.next : '',
     readFirst,
     'Then continue from the previous session. Its handoff, saved ' + agoOf(Date.now(), record.createdAt) + ':',
     record.summary || '',
@@ -982,7 +1031,11 @@ const resumeText = (record, now) => {
       ? 'Items it had picked, in order:\n' + record.selected.map((item, index) => index + 1 + '. ' + item).join('\n')
       : '',
     record.next ? 'Next, from me: ' + record.next : '',
-    docs.length > 1 ? 'Other task docs it touched: ' + docs.slice(1).join(', ') : '',
+    record.next && docs.length
+      ? 'Task docs the previous session touched: ' + docs.join(', ')
+      : docs.length > 1
+        ? 'Other task docs it touched: ' + docs.slice(1).join(', ')
+        : '',
     record.files && record.files.length ? 'Files it touched: ' + record.files.join(', ') : '',
     'State at handoff: ' + record.uncommitted + ' files uncommitted at ' + record.sha + (record.branch ? ' on ' + record.branch : '') + '. Now: ' + now.uncommitted + ' uncommitted at ' + now.sha + ". Don't commit unless asked.",
     'First ask me any open product decisions with AskUserQuestion.',
@@ -1162,6 +1215,9 @@ const bandView = ($, e, next) => {
         children: [
           Text({ color: 'yellow', bold: true, children: '↪ Handoff ' + when }),
           Text({ wrap: 'truncate-end', children: clip(headline, 60) }),
+          ...(record.sessionGoal && record.sessionGoal !== headline
+            ? [Text({ dimColor: true, wrap: 'truncate-end', children: 'from: ' + clip(record.sessionGoal, 50) })]
+            : []),
           ...(docMoved ? [Text({ dimColor: true, children: '(doc moved)' })] : []),
           ...(state.olderCount ? [Text({ dimColor: true, children: '+' + state.olderCount + ' older' })] : []),
           Button({
@@ -1555,7 +1611,12 @@ const listView = (c) => {
   GROUPS.forEach((group) => {
     const inGroup = state.docs.filter((doc) => doc.group === group)
     if (!inGroup.length) return
-    const title = group === 'Task docs' ? 'ALL TASK DOCS (' + inGroup.length + ')' : group.toUpperCase()
+    const title =
+      group === 'Task docs'
+        ? 'ALL TASK DOCS (' + inGroup.length + ')'
+        : group === 'Skills'
+          ? 'SYAFIQKIT SKILLS (' + inGroup.length + ')'
+          : group.toUpperCase()
     rows.push(header('h-' + group, title))
     inGroup.forEach((doc) => rows.push(docRow(c, doc, 'd' + state.docs.indexOf(doc))))
   })
@@ -1669,8 +1730,9 @@ const confirmView = ($, c) => {
             hotkey: 'x',
             autoFocus: true,
             onPress: () => {
-              state.pick = null
-              goto(confirm.back && confirm.back !== 'confirm' ? confirm.back : 'menu')
+              const back = confirm.back && confirm.back !== 'confirm' ? confirm.back : 'menu'
+              if (back !== 'list') state.pick = null
+              goto(back)
             },
           }),
         ],

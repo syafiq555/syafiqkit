@@ -24,7 +24,7 @@ const MERMAID_TIMEOUT_MS = 240000
 const MAX_IMAGE_ROWS = 60
 const MAX_BASE64 = Math.floor((2 * 1024 * 1024 * 4) / 3)
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs']
+const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs', 'Skills']
 
 const VERBS = [
   { label: 'Commit', hint: 'staged changes only', text: 'Use the commit skill to commit the staged changes.', toast: 'Sent: commit' },

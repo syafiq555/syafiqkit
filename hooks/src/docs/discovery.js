@@ -104,6 +104,24 @@ const findMarkdownIn = async ($, group, dir) => {
     }))
 }
 
+const findSkills = async ($) => {
+  const root = $.plugin.root
+  if (!root) return []
+  const folders = (await safeList($, root + '/skills')).filter((entry) => isDirectory(entry) && !entry.name.startsWith('_'))
+  const found = await Promise.all(
+    folders.map(async (folder) => {
+      const path = root + '/skills/' + folder.name + '/SKILL.md'
+      try {
+        const stat = await $.fs.stat(path)
+        return { group: 'Skills', label: folder.name, name: folder.name, scope: 'skill', path, size: stat.size, mtime: stat.mtimeMs }
+      } catch {
+        return null
+      }
+    }),
+  )
+  return found.filter(Boolean).sort((a, b) => a.name.localeCompare(b.name))
+}
+
 const discover = async ($) => {
   const cwd = await $.session.cwd()
   state.cwd = cwd
@@ -113,6 +131,7 @@ const discover = async ($) => {
     findInstructionFiles($, cwd, home),
     findMarkdownIn($, 'Rules', cwd + '/.claude/rules'),
     findMarkdownIn($, 'Project docs', cwd + '/docs'),
+    findSkills($),
   ])
   return groups.flat()
 }

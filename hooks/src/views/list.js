@@ -98,7 +98,12 @@ const listView = (c) => {
   GROUPS.forEach((group) => {
     const inGroup = state.docs.filter((doc) => doc.group === group)
     if (!inGroup.length) return
-    const title = group === 'Task docs' ? 'ALL TASK DOCS (' + inGroup.length + ')' : group.toUpperCase()
+    const title =
+      group === 'Task docs'
+        ? 'ALL TASK DOCS (' + inGroup.length + ')'
+        : group === 'Skills'
+          ? 'SYAFIQKIT SKILLS (' + inGroup.length + ')'
+          : group.toUpperCase()
     rows.push(header('h-' + group, title))
     inGroup.forEach((doc) => rows.push(docRow(c, doc, 'd' + state.docs.indexOf(doc))))
   })

@@ -24,6 +24,14 @@ To know what you're designing for, trace to the branch that actually renders on 
 
 Then decide the smallest system that keeps the second screen consistent with the first: one typeface, tokens for colour/type/spacing, an 8px base, mobile-first breakpoints, a mature library customised through tokens. Write those decisions into the conventions doc the brownfield branch goes looking for — `frontend/CLAUDE.md` by default, created through `update-claude-docs` when it doesn't exist yet — so the next session reads them instead of re-deciding; a screen needing a different value records it as a named deviation, not a second rule. 📖 `references/greenfield-minimum-system.md` for the decisions in order.
 
+## Scope and Blast Radius
+
+Scope by blast radius, not phrasing: a "polish this section" is smaller than "redesign this page" because polish affects existing surfaces while redesign reworks structure.
+
+Single-element fixes build directly. Section polishes (card layout, forms) propose inline and code. Page redesigns or module-wide passes survey first (existing language, audience/subject/job), capture the before-state, then propose and wait for approval. Use `AskUserQuestion` for genuine branches, inline prose for one direction to confirm. Put the mockup in option `preview`, not prose ahead — the prompt is what the user sees (📖 `brainstorming` Step 4).
+
+**Prefer a rendering tool to a text mockup:** Claude Design's tools (`mcp__claude-design__*`), artifacts, or a dev-server page show type, weight, spacing and colour (the decision). Box-drawing shows none of it. These tools are usually one `ToolSearch` away; the fallback to ASCII happens silently by default. Use a rendering tool wherever the stakes are highest (page redesign, new visual direction, anything with brand or palette). It also creates a durable home the next session can reopen, which a prompt string does not. Reserve text mockups for layout ORDER and information hierarchy, decided in one turn.
+
 ## The Tension
 
 Matching the app fights being distinctive. "Match existing conventions" unchecked inherits the app's templated defaults. "Be distinctive" unchecked produces a page that doesn't match anything. **Spend distinctiveness where the surface's actual *job* calls for it; keep everything else consistent.** Core workflow pages can stand out; sidebars, modals and settings inherit. If the brief already pins a direction (brand refresh, new component system), consistency wins.
@@ -62,14 +70,6 @@ Treat a design principle the user supplied (a screenshot, a reel) as a source to
 
 "Critique", "audit" or "what's wrong with this" is a judging job, not a fixing job: score it, rank what the reader loses, and hand the findings back before touching anything. 📖 `references/critique-mode.md` for the two isolated reviews and the 0-4 scoring.
 
-## Scope and Blast Radius
-
-Scope by blast radius, not phrasing: a "polish this section" is smaller than "redesign this page" because polish affects existing surfaces while redesign reworks structure.
-
-Single-element fixes build directly. Section polishes (card layout, forms) propose inline and code. Page redesigns or module-wide passes survey first (existing language, audience/subject/job), capture the before-state, then propose and wait for approval. Use `AskUserQuestion` for genuine branches, inline prose for one direction to confirm. Put the mockup in option `preview`, not prose ahead — the prompt is what the user sees (📖 `brainstorming` Step 4).
-
-**Prefer a rendering tool to a text mockup:** Claude Design's tools (`mcp__claude-design__*`), artifacts, or a dev-server page show type, weight, spacing and colour (the decision). Box-drawing shows none of it. These tools are usually one `ToolSearch` away; the fallback to ASCII happens silently by default. Use a rendering tool wherever the stakes are highest (page redesign, new visual direction, anything with brand or palette). It also creates a durable home the next session can reopen, which a prompt string does not. Reserve text mockups for layout ORDER and information hierarchy, decided in one turn.
-
 ## The States Beyond the Happy Path
 
 A populated, working interface is what gets reviewed. What it looks like while loading, with zero rows, with one row, on error, when disabled, and when text overflows is the space where shallow UI breaks silently. Build for those too.
@@ -100,10 +100,10 @@ Reproduce only what you can fully read. Where the real page won't fit — too ma
 
 Verify the render came from your source. A stale bundle looks like a design defect — a vanished control reads as broken conditional, shifted layout as bad spacing. Check the bundle is present, fetchable and newer than your edits. 📖 `references/verification-traps.md` for stale-bundle and other verification traps.
 
-**A builder's screenshots are a set to grade, not a sample to spot-check.** Open every one before calling the screens done. The shots you skip are usually the reused or secondary surfaces, and that is where the defects sit. Add what a static capture misses: an open dropdown or picker inside a scrolling modal (clipping), each step of a multi-step modal, and the colour mode the user actually runs. Grade each against its siblings on the same page (does it read as one of them, for this reader?), not against "does it render". When the user then calls a screen unpolished, look at its structure before its copy: a component in the wrong context needs replacing, and patching its strings first wastes a round. **Tell: your verdict cites fewer screenshots than the builder produced.**
+**A builder's screenshots are a set to grade, not a sample to spot-check.** Open every one before calling the screens done, and grade them on a fresh invocation of this skill rather than the research invocation, whose rules are recalled by then (see the research section's Tell). The shots you skip are usually the reused or secondary surfaces, and that is where the defects sit. Add what a static capture misses: an open dropdown or picker inside a scrolling modal (clipping), each step of a multi-step modal, and the colour mode the user actually runs. Grade each against its siblings on the same page (does it read as one of them, for this reader?), not against "does it render". When the user then calls a screen unpolished, look at its structure before its copy: a component in the wrong context needs replacing, and patching its strings first wastes a round. **Tell: your verdict cites fewer screenshots than the builder produced.**
 
-Ask for screenshots after proposals, especially at scope where surprises are common, and treat the first render as a second approval gate. Where a browser-driving agent exists, verify flows with it. Otherwise screenshots verify static state: spacing, alignment, readability, contrast. Use rendering tools (not ASCII mockups) for proposals — they show type, padding, weight; box-drawing hides all of it.
-
-Verification scales with blast radius: single-element fixes at two widths; page redesigns at 375px, 768px, 1280px with hover, focus, disabled, loading states, contrast, motion, layout-shift. Look in one batched round, confirm fixes in at most one more, then stop: a further round needs a named defect, not a feeling that it could be better. The before capture and the approval render are not rounds. 📖 `references/verification-checklist.md` for thresholds.
+Ask for screenshots after proposals, especially at scope where surprises are common, and treat the first render as a second approval gate. Where a browser-driving agent exists, verify flows with it; `browser-verifier` dispatches only on an explicit ask this turn, so otherwise run the flow yourself. Otherwise screenshots verify static state: spacing, alignment, readability, contrast.
 
 E2E recordings surface defects assertions can't — markup rendering as text, copy broken by the product never delivering. Treat a cut-off edge as viewport boundary, not layout bug.
+
+Verification scales with blast radius: a single-element fix checks the widths where it can actually break, usually a phone width and the desktop it sits in; a page redesign checks 375px, 768px, 1280px with hover, focus, disabled, loading states, contrast, motion, layout-shift. Look in one batched round, confirm fixes in one more, then go further only for a named defect, not a feeling that it could be better. The before capture and the approval render are not rounds. 📖 `references/verification-checklist.md` for thresholds.

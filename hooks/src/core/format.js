@@ -77,11 +77,14 @@ const heavyNote = (doc) => {
   const parts = []
   if (big.length) parts.push('decisions/' + big[0].name + ' ' + kb(big[0].size) + (big.length > 1 ? ' +' + (big.length - 1) : ''))
   if (typeof doc.lines === 'number' && doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES) parts.push(doc.lines + ' lines')
-  if (!parts.length) parts.push(doc.lines + ' lines')
+  if (!parts.length) parts.push(isInstructionFile(doc) && doc.lines <= CLAUDE_MD_MAX_LINES ? kb(doc.size) : doc.lines + ' lines')
   return '⚠ ' + parts.join(' · ')
 }
 
-const heaviness = (doc) => oversizedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
+const heaviness = (doc) =>
+  isInstructionFile(doc)
+    ? doc.size || 0
+    : oversizedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
 
 const REFRESH_EFFECT = 'Rewrites the doc in place with three passes (restructure, shorten, loosen over-strict rules).'
 const SHRINK_EFFECT =
@@ -112,7 +115,6 @@ const decisionFileRequest = (doc, file, verb, ask) =>
       doc.path +
       ' and the other decisions files alone, except routing rows and links that must change.',
   )
-
 
 const SPLIT_EFFECT =
   'A haiku agent splits one decisions file into smaller ones by topic, moving the text word for word, and makes current.md the router that says which file holds what. Links to the old file are repointed, and the result is checked before it is reported.'

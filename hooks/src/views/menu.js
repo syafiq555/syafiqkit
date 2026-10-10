@@ -104,8 +104,9 @@ const confirmView = ($, c) => {
             hotkey: 'x',
             autoFocus: true,
             onPress: () => {
-              state.pick = null
-              goto(confirm.back && confirm.back !== 'confirm' ? confirm.back : 'menu')
+              const back = confirm.back && confirm.back !== 'confirm' ? confirm.back : 'menu'
+              if (back !== 'list') state.pick = null
+              goto(back)
             },
           }),
         ],

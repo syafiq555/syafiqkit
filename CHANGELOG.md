@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.380.0
+
+**`uiux` reads in the order it is used, and its screenshot grading now happens on a fresh invocation.** A three-pass refresh (condense, then unhobble) of the skill found it already tight; the changes are about where rules sit.
+- **Order:** "Scope and Blast Radius" moved up to follow the first section, which already sent the reader to "the scope below", so the proposal mechanics (when to ask, rendering tool over text mockup) come before the design principles. The E2E-recordings note now sits beside the verification sentence it belongs to.
+- **Grading:** the builder-screenshots rule says to grade on a fresh invocation of the skill, not the research one, at the point where the verdict is made rather than only in the research section.
+- **Verification:** the fixed caps ("two widths", "at most one more round") became judgement wording. A single-element fix checks the widths where it can break; a further round needs a named defect. This drops the hard round cap.
+- **Browser verifier:** the skill now notes that `browser-verifier` dispatches only on an explicit ask this turn, so otherwise the caller runs the flow itself.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed.
+
+## 1.379.0
+
+**A handoff's note now steers its summary, and the band says which session saved it.** The note typed in Hand off ("refresh the uiux skill") used to be glued under a summary of whatever the session had done, so a fresh session got the old session's goal, its task doc for read-summary, and the new task as a footnote. Handoffs are shared by every session in a project, so a Resume pressed in the wrong pane picked up another session's work with nothing to show it.
+- **Summary:** haiku now gets the note and writes Goal as that task, saying so when the conversation never worked on it.
+- **Resume:** with a note, the prompt opens "My task for this session: …", runs read-summary on the note's topic, and lists the old session's task docs as context only.
+- **Band:** the handoff row adds "from: <the first request of the session that saved it>", and the record keeps that session's id.
+- **Docs browser:** a SYAFIQKIT SKILLS group lists every skill's `SKILL.md` (not `_shared`), to read and Refresh from the pane. Cancelling a confirm that came from the list now keeps the pick mode, and CLAUDE.md files sort and show their weight by bytes, not lines.
+- **Host calls:** the mod now uses `$.session.id` (saving the session id) and `$.fs.stat` (finding skills).
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed.
+
 ## 1.378.0
 
 **`uiux` now covers the build that follows its research, not just the research.** A session invoked `uiux` to research case studies, then handed the screens to builders, and graded their screenshots from memory many turns later. Three gaps let defects through.
@@ -7,6 +26,11 @@
 - **Re-invoke:** research is the first half. The skill now says to re-invoke it before briefing builders and again before grading their output, so the verify rules are read at the verdict instead of recalled.
 - **Grade every screenshot:** builder screenshots are a set to grade, not a sample. Open every one, including open dropdowns inside scrolling modals, each modal step and the user's colour mode, and grade against sibling sections rather than "does it render". On an "unpolished" complaint, check structure before copy.
 - Measured 2026-10-10: three of eleven screenshots opened and called fine. The user returned five screenshots of defects: the reused form, a section unlike its siblings, a clipped dropdown, and dark-mode copy.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed.
+
+## 1.377.0
+
+**`/ship` reviews unreviewed code before it pushes, instead of noting it in the summary.** On a shared checkout, "ship everything" carries other sessions' commits, often committed under this session's own trailer and the same git author, so neither tells you who reviewed them. `ship` now lists the commits in the range whose code this session neither wrote nor took through `/done`, and dispatches a code reviewer (and a product reviewer where users see the change) on those before the push. Measured 2026-10-10: a caveat-only ship put a silent rent-loss regression on production, and the fix needed a second release the same day.
 - **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed.
 
 ## 1.376.0

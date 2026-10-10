@@ -52,6 +52,9 @@ const bandView = ($, e, next) => {
         children: [
           Text({ color: 'yellow', bold: true, children: '↪ Handoff ' + when }),
           Text({ wrap: 'truncate-end', children: clip(headline, 60) }),
+          ...(record.sessionGoal && record.sessionGoal !== headline
+            ? [Text({ dimColor: true, wrap: 'truncate-end', children: 'from: ' + clip(record.sessionGoal, 50) })]
+            : []),
           ...(docMoved ? [Text({ dimColor: true, children: '(doc moved)' })] : []),
           ...(state.olderCount ? [Text({ dimColor: true, children: '+' + state.olderCount + ' older' })] : []),
           Button({

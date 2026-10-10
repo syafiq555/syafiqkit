@@ -15,6 +15,8 @@ If you are **resuming** this skill mid-chain (a compaction landed between two st
 
 **Code must have been reviewed.** `/done` runs a code review, simplification pass, and updates docs. `/quick-done` skips the review — it is docs-only — so a session wrapped with `/quick-done` reaches this skill with its code unread. If that's what happened, say so and get a review before proceeding rather than treating the wrap-up as sufficient cover.
 
+⚠️ **"Ship everything" on a shared checkout pushes code nobody in this session reviewed, and naming that in the summary is not the review.** The push carries every commit the deploy branch lacks, including peers' work this session just committed under its own trailer, so neither the git author nor the `Claude-Session:` trailer tells you who wrote or reviewed it. Before pushing, list the range's commits whose code this session neither wrote nor saw through `/done`, and dispatch a code reviewer (plus a product reviewer where users see the change) on exactly those, scaled to their file count. Fix what they find before the push, not in a second release. Measured 2026-10-10: four peer sessions' commits shipped with only a caveat in the Ship Summary. The review run afterwards found a unit-detach fix had become a silent loss of rent, and a wrong changelog line, so the fixes went out as a second production release the same day. **Tell: your Ship Summary says some of the code wasn't reviewed in this session, and no reviewer ran before the push.**
+
 **Changes are staged or ready to stage.**
 
 ## Workflow
@@ -60,8 +62,8 @@ Apply two rules ON TOP of `/commit`, specific to the ship context:
 
 **Backlog and authorship:** `git log origin/<deploy-branch>..HEAD` shows unpushed commits. If any exist:
 - Surface the count in the Ship Summary
-- Check authorship: `git log --format='%an' <deploy-branch>..HEAD | sort | uniq -c`
-- If another author's work is riding along, name what surface it touches — the user decides whether to ship it
+- Check authorship: `git log --format='%an' <deploy-branch>..HEAD | sort | uniq -c`. One name can still hide several sessions' work; the Prerequisites review gate covers that case.
+- If another author's work is riding along, name what surface it touches — the user decides whether to ship it. Whatever is shipped and wasn't reviewed in this session goes to a code reviewer (and a product reviewer where users see it) before the push, with findings fixed first (Prerequisites review gate)
 
 **If conflicts occur:** The CHANGELOG needs special handling — both authors usually write under the same dated heading, and accepting both hunks duplicates it. For every other file, keep both sides (picking one discards a colleague's real work). 📖 `references/merge-conflict-resolution.md` for the changelog case and the entry-count check.
 

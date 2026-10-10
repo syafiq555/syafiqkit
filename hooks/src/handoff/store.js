@@ -6,7 +6,12 @@ const saveHandoff = async ($, next) => {
   } catch {
     messages = []
   }
-  const [git, branch, summary] = await Promise.all([gitState($), branchOf($), summariseSession($, messages)])
+  const [git, branch, summary, sessionId] = await Promise.all([
+    gitState($),
+    branchOf($),
+    summariseSession($, messages, next),
+    $.session.id().catch(() => ''),
+  ])
   const docs = taskDocsIn(messages)
   if (!docs.length && state.lastDoc && state.lastDoc.group === 'Task docs') docs.push(state.lastDoc.path)
   const createdAt = await $.clock.now()
@@ -15,6 +20,8 @@ const saveHandoff = async ($, next) => {
     id,
     createdAt,
     cwd: state.cwd,
+    sessionId,
+    sessionGoal: sessionGoalOf(messages),
     summary: summary.text,
     how: summary.how,
     next,
@@ -66,6 +73,8 @@ const cleanRecord = (raw, name) => {
     id: text(raw.id) || name.replace(/\.json$/, ''),
     createdAt: count(raw.createdAt),
     cwd: text(raw.cwd),
+    sessionId: text(raw.sessionId),
+    sessionGoal: text(raw.sessionGoal),
     summary: text(raw.summary),
     how: text(raw.how),
     next: text(raw.next),
@@ -127,10 +136,12 @@ const loadHandoff = async ($) => {
 const resumeText = (record, now) => {
   const docs = record.taskDocs && record.taskDocs.length ? record.taskDocs : record.taskDocPath ? [record.taskDocPath] : []
   const topic = record.next || goalOf(record) || 'the previous session'
-  const readFirst = docs.length
-    ? 'Before anything else, run /syafiqkit:read-summary on ' + docs[0] + ' (the read-summary skill).'
-    : 'Before anything else, run /syafiqkit:read-summary on this topic: ' + topic + ' (the read-summary skill; it finds the task docs by content).'
+  const readFirst =
+    docs.length && !record.next
+      ? 'Before anything else, run /syafiqkit:read-summary on ' + docs[0] + ' (the read-summary skill).'
+      : 'Before anything else, run /syafiqkit:read-summary on this topic: ' + topic + ' (the read-summary skill; it finds the task docs by content).'
   return [
+    record.next ? 'My task for this session: ' + record.next : '',
     readFirst,
     'Then continue from the previous session. Its handoff, saved ' + agoOf(Date.now(), record.createdAt) + ':',
     record.summary || '',
@@ -138,7 +149,11 @@ const resumeText = (record, now) => {
       ? 'Items it had picked, in order:\n' + record.selected.map((item, index) => index + 1 + '. ' + item).join('\n')
       : '',
     record.next ? 'Next, from me: ' + record.next : '',
-    docs.length > 1 ? 'Other task docs it touched: ' + docs.slice(1).join(', ') : '',
+    record.next && docs.length
+      ? 'Task docs the previous session touched: ' + docs.join(', ')
+      : docs.length > 1
+        ? 'Other task docs it touched: ' + docs.slice(1).join(', ')
+        : '',
     record.files && record.files.length ? 'Files it touched: ' + record.files.join(', ') : '',
     'State at handoff: ' + record.uncommitted + ' files uncommitted at ' + record.sha + (record.branch ? ' on ' + record.branch : '') + '. Now: ' + now.uncommitted + ' uncommitted at ' + now.sha + ". Don't commit unless asked.",
     'First ask me any open product decisions with AskUserQuestion.',
