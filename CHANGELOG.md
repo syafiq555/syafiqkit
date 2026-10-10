@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.378.0
+
+**`uiux` now covers the build that follows its research, not just the research.** A session invoked `uiux` to research case studies, then handed the screens to builders, and graded their screenshots from memory many turns later. Three gaps let defects through.
+- **Reuse:** a component reused in a new place brings its old audience with it. A tenant-voiced bank form landed in a staff modal, with a decorative card preview, "your bank" copy and a lone button. The skill now says to judge reuse by reader and container, and to name the sibling a new section must match in the builder's brief.
+- **Re-invoke:** research is the first half. The skill now says to re-invoke it before briefing builders and again before grading their output, so the verify rules are read at the verdict instead of recalled.
+- **Grade every screenshot:** builder screenshots are a set to grade, not a sample. Open every one, including open dropdowns inside scrolling modals, each modal step and the user's colour mode, and grade against sibling sections rather than "does it render". On an "unpolished" complaint, check structure before copy.
+- Measured 2026-10-10: three of eleven screenshots opened and called fine. The user returned five screenshots of defects: the reused form, a section unlike its siblings, a clipped dropdown, and dark-mode copy.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed.
+
 ## 1.376.0
 
 **A decisions file over 40 KB now counts as too big, and the task-doc browser flags it.** Before, only `current.md` was measured by lines, so a short index with a 185 KB requirements capture behind it looked healthy.
