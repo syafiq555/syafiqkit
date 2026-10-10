@@ -17,7 +17,7 @@ This skill sequences the three; all mechanics live in `syafiqkit:haiku` (snapsho
 |---|---|
 | File is already well-structured AND tight | Run only `unhobble-instructions` |
 | File is bloated OR misordered | Run all three |
-| File is structured but density unknown | Check bytes-per-line: ≤4.5 = tight, >4.5 = run condense |
+| File is structured but density unknown | Check bytes per line (`wc -c` ÷ `wc -l`): above roughly 120–150 is dense, so run condense |
 
 **Don't use "the invocation added work" or "it ran earlier" as reason to skip.** Check per-file tightness via `wc -l` and `wc -c`, independent of what invoked the skill or prior sessions.
 
@@ -45,8 +45,9 @@ This skill sequences the three; all mechanics live in `syafiqkit:haiku` (snapsho
 3. **Load `Skill(haiku)` before writing Pass 1's prompt.** Load it again before Pass 2, again before Pass 3. One invocation per pass; a repeat can answer "already loaded" and attach nothing, so then open `../haiku/SKILL.md` at `## Writing the prompt` before writing the prompt. A single prompt listing multiple skills has them overwrite each other. Each prompt needs:
    - Banned git verbs named: `commit`, `push`, `stash`, `reset`, `checkout -- .`, `clean`
    - Target file type and shape (e.g., "conform to Full Template" for a task doc index)
-   - Protected facts as a list of NAMED INSTANCES with costs (not form-based classes like "keep all `⚠️` lines", but "the 2026-09-06 chunk-load incident because it's the only evidence this rule exists")
+   - Protected facts as a list of NAMED INSTANCES with costs (not form-based classes like "keep all `⚠️` lines", but "the 2026-09-06 chunk-load incident because it's the only evidence this rule exists"). A rule the file itself records as failing from recall ("this rule does not fire from recall", "recurred") goes on this list by name too: an unhobble pass reads a hard rule next to a softer exception as a contradiction and softens it, when the right repair is to write the exception into the rule's own sentence. Measured 2026-10-10: "Use `Edit` for all file changes" became "Prefer `Edit`" in a global `CLAUDE.md`.
    - A structural boundary for this pass: `condense-task-doc` measures row counts (deliberate deletions); `unhobble-instructions` names whether anything became a principle or left the hot path
+   - For Pass 3 on a task-doc set, the file as it stood BEFORE Pass 2 and an instruction to restore from it any rejected alternative, quoted wording, measured figure or stated reason whose loss changes what a reader would conclude. Condense trims inside decision records even though `condense-task-doc` says they are kept whole, and no check between the passes reads for it; measured 2026-10-10 on two decisions files, where Pass 3 restored 12 and 4 such passages.
 
 4. **Dispatch Pass 1**, verify (byte/line diff, then read the whole file for meaning).
 
@@ -72,6 +73,6 @@ This skill sequences the three; all mechanics live in `syafiqkit:haiku` (snapsho
 
 **Verify structurally, not by counting survivors.** A pass claiming "no edits warranted" is a legitimate verdict AND the cheapest fail-state — re-take any number its reasoning rests on. A pass claiming changes but not whether anything became principle or left the hot path has only reworded; structure didn't move. A pass claiming extraction needs both sides verified: sources shrank, not only that the companion appeared.
 
-**On a target that makes claims about a codebase (agent memory, task docs), no pass checks whether a surviving claim is still true.** State words like "unfixed", "still missing", "in-flight" survive every pass unchanged. Put the reverse check in the condense prompt: re-check each open-state claim against the code, not only the ones being cut.
+**On a target that makes claims about a codebase (agent memory, task docs), no pass checks whether a surviving claim is still true.** State words like "unfixed", "still missing", "in-flight" survive every pass unchanged. Put the reverse check in the condense prompt: re-check each open-state claim against the code, not only the ones being cut. ⚠️ That check manufactures the opposite error: an agent's grep that comes back empty becomes a dated "not in code" fact in the doc, and its vocabulary is the agent's (a singular name for a plural table, a search that skipped `vendor/`). So hand every parallel agent the current-state facts you verified yourself, not just the agent whose file obviously needs them, and grep each new "absent / does not exist / design-only" correction before the next pass builds on it. Measured 2026-10-10: of five condense agents, the one given the verified facts got the status right, while one without them wrote "`party_capacity` is design-only" into a doc whose table and consumers both exist.
 
 📖 `references/process-details.md` — full detail on fact-vs-constraint judgment in protection lists, what "well-structured" means per file type, Syafiqkit conventions, version bumping, and why the haiku-loading rule appears where it does.

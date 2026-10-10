@@ -43,7 +43,7 @@ Last updated: 2026-10-07 (v1.354.0). Session-by-session history lives in `## Las
 - Parity between template and generated agent proves agreement, never correctness — D-parity-drift-is-bidirectional
 
 **Elsewhere** — unhobbling's own ADR history lives in the sibling feature, not here:
-- Checking a rule's content is not the same test as checking its row decoration, and a step the linear Process never references doesn't get applied even when it exists elsewhere in the file — D63–D66 (../doc-condensation/decisions/verification-rigor.md)
+- Checking a rule's content is not the same test as checking its row decoration, and a step the linear Process never references doesn't get applied even when it exists elsewhere in the file — D63–D66 (../doc-condensation/decisions/unhobble-rule-writing.md)
 
 **Concurrency & Delegation** (decisions/concurrency-and-delegation.md):
 - Delegating heavy steps to cheaper agents requires splitting mechanical (retrieval) from judgment halves — D30

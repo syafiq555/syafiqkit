@@ -10,6 +10,8 @@ Open two or three cited URLs yourself before relaying anything, especially any c
 
 Ask the report to separate what was retrieved from what was not. An agent that must file `COULD NOT RETRIEVE` has somewhere to put a gap other than a guess.
 
+**A report where most cells say "not stated" has not found an absence; it has shown the brief pointed at pages that don't carry the answer.** Re-brief once at a different source kind (release notes, component demos and props) before relaying, and say what stayed unsourced if it is still thin.
+
 ## An honest wall of failures still needs checking
 
 The dangerous failure is not a claim invented in place of a retrieval — it is a conclusion drawn *from* the retrieval failures. The discipline works exactly as designed, and then the agent reasons from its own empty result: "these sources 404, therefore the literature has moved offline." That arrives as a genuine-looking finding about the world, sourced to nothing, and reads as *more* trustworthy than a normal answer because it is visibly self-critical.

@@ -7,8 +7,8 @@ Gotchas (critical — full list in each ADR's Consequences):
   - A report's numbers are a snapshot of its run time; 3 of 3 live-state flags failed re-measurement (D56)
   - Provenance and staleness are different tests — run both, neither substitutes (D56)
   - An agent's finding is a hypothesis whose line numbers are usually right even when the claim is wrong (D59)
-Related: ../current.md (feature index), applying-verdicts.md (sibling theme — what happens when a verdict is acted on), ../../doc-condensation/current.md (owns D50/D54, the density decisions this method consumes)
-Last updated: 2026-08-20 — split out of current.md when it reached 294 lines, ahead of grading source #6
+Related: ../current.md (feature index), applying-verdicts.md (sibling theme — what happens when a verdict is acted on), reattach-ceiling.md, agent-and-edit-traps.md, house-style-ownership.md (sibling themes split out of applying-verdicts.md on 2026-10-10), ../../doc-condensation/current.md (owns D50/D54, the density decisions this method consumes)
+Last updated: 2026-10-10 — Related now names the sibling files split out of applying-verdicts.md; 2026-08-20 — split out of current.md when it reached 294 lines, ahead of grading source #6
 -->
 
 # External Guidance — The Grading Method
@@ -33,7 +33,7 @@ Chosen: grade each claim discretely with one of four verdicts — **adopt**, **a
 
 **Consequences**
 - Verdicts on the 9 claims: **adopt** progressive disclosure + skills-as-lightweight-guides; **already adopted** judgment-over-prescription (scope later refined by D63, not D33 — D33 is the unrelated `<thinking>`-scaffold retirement, a mis-citation fixed 2026-07-31), CLAUDE.md-as-navigable-tree, comment rules (harness-level), tool-examples (measured: only 2 `Agent()` + 2 `Skill()` corpus-wide, nothing to cut); **reject** the 80% cut (D23→D50) · eliminate-repetition (measured distinct) · automatic memory (standing user decision, forbidden in global CLAUDE.md and plugin CLAUDE.md alike); **unverified→false** `claude doctor`.
-- **Judgment-over-prescription's boundary, found by a live A/B test rather than reasoned**: correct for judgement-shaped content (a Sonnet agent scored 6/6 on reasoning questions from a prose-only excerpt), measurably wrong applied unconditionally to value-shaped content (the same agent's confidence dropped on a pure-lookup question prose had nowhere to carry a literal answer). `../doc-condensation/decisions/verification-rigor.md` D63.
+- **Judgment-over-prescription's boundary, found by a live A/B test rather than reasoned**: correct for judgement-shaped content (a Sonnet agent scored 6/6 on reasoning questions from a prose-only excerpt), measurably wrong applied unconditionally to value-shaped content (the same agent's confidence dropped on a pure-lookup question prose had nowhere to carry a literal answer). `../../doc-condensation/decisions/unhobble-rule-writing.md` D63.
 - Shipped from the two adopted claims: `⚠️` 291 → 233 corpus-wide (global CLAUDE.md 53 → 12), three cold-path extractions, and Gate B (D54).
 - **A rejected claim now costs one lookup instead of one re-evaluation.** The next "shouldn't we just cut the rules?" resolves to D23→D50 + the arrival-rate number.
 

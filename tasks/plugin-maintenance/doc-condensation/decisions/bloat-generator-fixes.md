@@ -1,16 +1,12 @@
 <!--LLM-CONTEXT
 Status: Reference
 Domain: plugin-maintenance/doc-condensation/bloat-generator-fixes
-Gotchas (critical — full list in each ADR's Consequences):
-  - Fix doc bloat at the generator (task-summary rules), not by hand-trimming individual docs (D3)
-  - A CLAUDE.md line is dead weight once a skill enforces it at action-time (D6)
+Gotchas (critical — each ADR states its own):
   - `.claude/rules/*.md` path-scoping frontmatter doesn't actually scope (D17)
-  - `/read-summary` discovery in Explore/Plan is now unconditional, not gated on prompt specificity (D18)
-  - Task-doc index + pointer is a second structural lever for over-budget CLAUDE.md (D19)
+  - `/read-summary` discovery in Explore/Plan is unconditional, not gated on prompt specificity (D18)
   - Seam-test must check EVERY real sibling subdirectory, not just the obvious one (D20)
-  - `/commit`'s staleness gate carves out lexical false positives (`pending` in an identifier) on a shape test, keeping D37's semantic absolutism (D57)
-Related: ../current.md (feature index), ../../agent-architecture/current.md, ../../madr-structure/current.md
-Last updated: 2026-07-27
+Related: ../current.md (feature index), ../../agent-architecture/current.md, ../../madr-structure/current.md, duplication-and-integrity.md, structural-mechanics.md, verification-rigor.md, unhobble-rule-writing.md
+Last updated: 2026-10-10 — conformed to theme-file shape (Key Technical Decisions heading, sibling theme files in Related)
 -->
 
 # Doc Condensation — Fix Bloat at the Generator, Not by Hand-Trimming
@@ -19,13 +15,15 @@ The seed lineage: doc bloat gets fixed in `task-summary`'s rules and CLAUDE.md's
 
 ---
 
+## Key Technical Decisions {#decisions}
+
 ### D3 — Fix Doc Bloat at the Generator, Not by Hand-Trimming — committed — 2026-06-09
 
 **Problem**
 User flagged the `done`/`task-summary` workflow as "bloated." Repeated facts came from each template section restating the critical thing.
 
 **Decision**
-Chosen: add anti-bloat governance rules to `task-summary` itself (one-fact-one-home, rows-≤2-sentences, LLM-CONTEXT-is-pointer-index, Quick-Start-≤15-lines) rather than manually trimming individual docs. `done` cut 164→111 lines: deleted the inline conversation-analysis procedure duplicating `update-claude-docs`; capture is now one delegated Skill call. `## Last Session` strengthened to enforce exactly one heading.
+Chosen: add anti-bloat governance rules to `task-summary` itself (one-fact-one-home, rows-≤2-sentences, LLM-CONTEXT-is-pointer-index, Quick-Start-≤15-lines) rather than manually trimming individual docs. `done` deleted the inline conversation-analysis procedure duplicating `update-claude-docs`; capture is now one delegated Skill call. `## Last Session` strengthened to enforce exactly one heading.
 
 **Rejected**
 - Hand-trimming each bloated doc as found. Why not: doesn't fix the generator — every future doc re-bloats the same way.
@@ -61,19 +59,18 @@ Prevents stale-CLAUDE.md-vs-skill contradiction; part of the "one fact, one home
 Chosen: empirically test the claim with a canary (a secret string in a path-scoped rule file, probed from a fresh session on a non-matching path). Result: the file loaded regardless — the model just self-suppresses acting on it, which is model judgment, not context filtering. Removed `.claude/rules/` as the recommended target; replaced with "real subdirectory CLAUDE.md," verified to genuinely scope.
 
 **Rejected**
-- Trusting the vendor-docs-sourced claim (a fetched official doc page did describe `.claude/rules/` frontmatter as reducing loaded context) without a live test. Why not: official docs describe intended/designed behavior; a live bug (this exact gap is tracked upstream, e.g. path-scoped rules failing to apply as documented) can silently break the part that matters. "The docs say X" and "X is true in this install" are different facts on a fast-moving CLI tool.
+- Trusting the vendor docs' claim (they describe `.claude/rules/` frontmatter as reducing loaded context) without a live test. Why not: docs describe intended behavior; a live bug (this gap is tracked upstream) can silently break the part that matters. "The docs say X" and "X is true in this install" are different facts on a fast-moving CLI tool.
 - Leaving the recommendation in place with a caveat. Why not: a routing table is read at the moment of a real decision — a caveat gets skipped under time pressure; the wrong destination needed to be replaced, not annotated.
 
 **Consequences**
-- Fixed `update-claude-docs/references/structure.md` (capture-filter table + `@import` row clarified as also not scoping — launch-time load, DRY-only) and `condense-claude-md/SKILL.md` (step 6, added explicit anti-pattern warning) — the two skill files a future CLAUDE.md split decision would actually read.
-- Global `~/.claude/CLAUDE.md` Platform Gotchas gained the frontmatter-doesn't-scope row, plus a corrected row on `📖 See <file>` pointer reliability: a follow-up test showed `read-summary`/the project `Explore`/`Plan` agents already do the correct thing (mandatory CLAUDE.md tree-walk + `/read-summary` call) — but that walk is gated on "does this look like a documented feature/flow," same gate as task-doc discovery, not on "does the search touch a directory with a CLAUDE.md." A generic symptom-only investigation prompt naming no specific flow can slip past that gate straight to code search. Initial framing ("investigation tasks skip docs") was imprecise; corrected after tracing the actual gate in `Explore.template.md`/live `Explore.md`.
-- Establishes a general lesson for this decision log's "verify before documenting" lineage: a context-management mechanism's own official docs are a claim to test empirically (negative control: plant a distinguishable fact, probe from a session that should NOT have it, confirm absence), not evidence to route on directly — same standard as any other unverified project claim. Also: when a negative-control test finds a "reliability gap," trace it to the actual gating logic in the responsible skill/template before generalizing — the first plausible explanation (task-type) was wrong; the real one (feature-name-matching) was one file-read away.
+- Fixed `update-claude-docs/references/structure.md` (capture-filter table and the `@import` row, both not scoping) and `condense-claude-md/SKILL.md` (step 6 anti-pattern warning). Global `~/.claude/CLAUDE.md` Platform Gotchas gained the frontmatter row and a corrected `📖 See <file>` reliability row: `read-summary` and the `Explore`/`Plan` agents walk the CLAUDE.md tree only when the prompt names a documented feature or flow, so a generic symptom-only prompt can slip past to code search.
+- General lesson for the "verify before documenting" lineage: a context-management mechanism's own official docs are a claim to test empirically (negative control: plant a distinguishable fact, probe from a session that should NOT have it, confirm absence), not evidence to route on. When a negative control finds a "reliability gap," trace the actual gating logic before generalizing.
 
 **Status**: committed · **Reversible**: yes (revisit if Anthropic ships a fix)
 
-⚠️ **Re-adopted in error on 2026-08-20, reversed, and then re-confirmed by interactive re-test — this finding stands on CLI 2.1.235.** A source-grading pass read `memory.md`'s recommendation and graded it **adopt** without checking this record, shipping the disproved claim into `structure.md`, `read-summary/SKILL.md` and a release note. The re-test that followed nearly overturned it in the other direction: four headless probes concluded the file now loads *never*, until an interactive run showed the harness printing `Loaded <path>` while the model declined to act on the planted rule and thereby reported it as absent.
+**Re-adopted in error on 2026-08-20, reversed, then re-confirmed by interactive re-test (CLI 2.1.235).** A grading pass adopted the vendor recommendation without checking this record. The headless re-test then read as "never loads" until an interactive run showed the harness printing `Loaded <path>` while the model declined to act on the planted rule.
 
-Two things for whoever revisits this. The docs still say the opposite, so the next pass that reads them will be pulled the same way — this record is load-bearing against a live vendor recommendation, not settled history. And **do not re-test it by asking a session what it knows**: a planted canary invites the model to dismiss it as planted, which is indistinguishable from a rule that never loaded. Read the harness's own load report instead. See `../../external-guidance/decisions/applying-verdicts.md` → `D-paths-glob-readopted-from-the-docs-that-were-already-rejected` and `D-a-model-that-declines-a-rule-reports-it-as-absent`.
+The docs still say the opposite, so this record is load-bearing against a live vendor recommendation. Asking a session what it knows cannot re-test this: a planted canary draws a dismissal that looks the same as a rule that never loaded, so the harness's `Loaded <path>` report is the measure that tells them apart. See `../../external-guidance/decisions/applying-verdicts.md` → `D-paths-glob-readopted-from-the-docs-that-were-already-rejected` and `../../external-guidance/decisions/agent-and-edit-traps.md` → `D-a-model-that-declines-a-rule-reports-it-as-absent`.
 
 ---
 
@@ -83,11 +80,11 @@ Two things for whoever revisits this. The docs still say the opposite, so the ne
 D17 concluded the `Explore`/`Plan` Bootstrap gate (task-doc/CLAUDE.md discovery only ran when prompt named a feature/flow) was intentional, correct design. The user chose precision over efficiency: **"burn tokens on unnecessary lookups over risk missing a real gotcha."**
 
 **Decision**
-Chosen: remove the feature/flow-name gate from `Explore.template.md` and `Plan.template.md` — `/read-summary` discovery now runs on every call. Bootstrap sections now open with a `⚠️ MANDATORY, no exceptions` line rather than a caveat buried after it.
+Chosen: remove the feature/flow-name gate from `Explore.template.md` and `Plan.template.md` — `/read-summary` discovery now runs on every call. Bootstrap sections now open with a `MANDATORY, no exceptions` line rather than a caveat buried after it.
 
 **Rejected**
 - Leaving `Explore` gated but making `Plan` unconditional (or vice versa). Why not: user's stated preference was general ("I don't mind, Explore is haiku anyway") — applied to both since `Plan`'s lower call-frequency per session offsets its higher per-call model cost (sonnet) similarly to `Explore`'s low per-call cost at higher frequency.
-- Only strengthening wording in the existing caveat rather than restructuring Bootstrap's opening. Why not: the caveat already existed (D17's own text) and still didn't prevent the original miss — a rule stated as an exception-to-a-default reads weaker than one stated as the default itself; matches this doc's own D3/D6 "escalate by position and sharpness" lineage.
+- Only strengthening wording in the existing caveat rather than restructuring Bootstrap's opening. Why not: the caveat already existed (D17's own text) and still didn't prevent the miss — a rule stated as an exception to a default reads weaker than one stated as the default itself.
 - Reverting D17's underlying finding (that the old gate was well-designed). Why not: D17's finding was correct as a description of the code's PRE-existing intent — this decision is a values call by the user overriding that intent going forward, not new evidence that the old design was flawed.
 
 **Consequences**
@@ -108,14 +105,14 @@ Chosen: add a second lever to `references/structure.md` §6 — when a block is 
 
 **Rejected**
 - Applying this lever to ANY over-budget block, including cross-cutting layer conventions. Why not: `code-reviewer`/`code-simplifier` don't run `/read-summary` on every trivial edit the way `Explore`/`Plan` now do (D18 only changed those two) — a write-time convention a fresh session needs BEFORE editing would silently vanish for those agents if moved out of CLAUDE.md. Restricted to debugging/investigation-shaped content (`Symptom | Cause | Fix`), which is what a task doc's Gotchas table already holds and what `Explore`/`Plan` actually consume.
-- Treating "seam-test fails" as terminal (per D17's own then-correct conclusion, later reaffirmed in `condense-claude-md`'s step 6 warning: "the section stays in the layer file — that's the correct outcome"). Why not: that conclusion predates D18's mandatory-discovery change; a lever that didn't reliably work when D17 was written now does, verified live.
+- Treating "seam-test fails" as terminal (D17's then-correct conclusion, reaffirmed in `condense-claude-md`'s step 6 warning). Why not: it predates D18's mandatory-discovery change; a lever that didn't reliably work then does now.
 - Auto-creating a new task doc slug just to hold a relocated section. Why not: an orphaned single-purpose doc invented to house one block is worse than leaving the block inline — the lever only applies when a real feature doc exists or genuinely should via content-based discovery, never a guessed folder name.
 
 **Consequences**
 - `update-claude-docs/references/structure.md` §6 gained the second-lever section + boundary table.
 - `condense-claude-md/SKILL.md` step 6 warning updated: checks feature-specificity before declaring the layer file terminal.
 
-⚠️ **Correction (see D20)**: "spans the whole authz layer" was true but irrelevant — Multi-Agency concentrates 11-26x in `app/Http/*` vs 0-4 in `app/Domain/*`, so it DID pass seam-test against a subdirectory this decision never checked.
+**Correction (see D20)**: Multi-Agency concentrates 11-26x in `app/Http/*` vs 0-4 in `app/Domain/*`, so it did pass seam-test against a subdirectory this decision never checked.
 
 **Status**: committed · **Reversible**: yes
 
@@ -127,11 +124,11 @@ Chosen: add a second lever to `references/structure.md` §6 — when a block is 
 D17 concluded Multi-Agency Gotchas "fails the seam-test," checked only against `app/Domain/*`. Re-examination grepped its core symbols against every top-level `app/` subdirectory and found 5-10x concentration in `app/Http/*` — a real seam the original check never looked for.
 
 **Decision**
-The seam-test itself was under-specified — "check the seam-test" meant "check the intuitively-named subdirectory," not systematic. Added explicit instruction to `references/structure.md` §1 and both skill SKILL.md files: grep core symbols against EVERY candidate subdirectory with `grep -rl "<symbol>" <dir> | wc -l`, let counts decide. Applied live: created `app/Http/CLAUDE.md` (86 lines), moved Multi-Agency Gotchas + Controller Patterns there, `app/CLAUDE.md` shrank 295→241 lines (20.5% reduction).
+The seam-test itself was under-specified — "check the seam-test" meant "check the intuitively-named subdirectory," not systematic. Added explicit instruction to `references/structure.md` §1 and both skill SKILL.md files: grep core symbols against EVERY candidate subdirectory with `grep -rl "<symbol>" <dir> | wc -l`, let counts decide. Applied live: created `app/Http/CLAUDE.md`, moved Multi-Agency Gotchas + Controller Patterns there; `app/CLAUDE.md` shrank 295→241 lines.
 
 **Rejected**
 - Treating this as a one-off correction to D17 alone, not a methodology fix. Why not: the same "check only the obvious candidate" gap exists in every place the seam-test is invoked (`condense-claude-md` step 6, `update-claude-docs` §2/Rewrite step 6) — fixing D17's specific conclusion without fixing the underlying check means the next session hits the identical miss on a different section/project.
-- Re-checking Cast Gotchas and Media/PDF against the same broadened methodology and finding they ALSO have a hidden seam. Why not: actually checked (grep counts run) — Cast Gotchas stays genuinely cross-cutting (`$casts` concentrates in `Domain`+`Models`, both real content-generating layers, no single dominant seam), Media/PDF splits evenly between `Http`/`Domain` with no dominant candidate either. Not every miss is the same miss; verified rather than assumed the fix generalized to all three sections.
+- Re-checking Cast Gotchas and Media/PDF and finding they ALSO have a hidden seam. Why not: grep counts show Cast Gotchas is genuinely cross-cutting and Media/PDF splits evenly between `Http` and `Domain`. Not every miss is the same miss.
 
 **Consequences**
 - `references/structure.md` §1, `condense-claude-md/SKILL.md` step 6, `update-claude-docs/SKILL.md` §2 patched with the "check every real sibling" instruction + methodology.
@@ -144,9 +141,9 @@ The seam-test itself was under-specified — "check the seam-test" meant "check 
 ### D44 — A File's Own Declared Size Budget Outranks the Skill's Default — committed — 2026-07-25
 
 **Problem**
-Reported by an external consumer as [issue #9](https://github.com/syafiq555/syafiqkit/issues/9) against installed 1.123.1. `update-claude-docs` Step 4 spawned `claude-md-pruner` unconditionally once the agent file existed, and Step 5 flagged overage against a hardcoded 350. A project whose CLAUDE.md header records the owner's decision — budget ~460 not 350, 13 consecutive passes confirming every gotcha row load-bearing, per-stack splitting evaluated and **declined**, "don't re-open either question" — therefore got an agent spawned to re-answer a closed question and a false overage on every run. The reporter deviated from the step twice in one session to behave correctly, which is the signal that a step is missing a case.
+Reported by an external consumer as [issue #9](https://github.com/syafiq555/syafiqkit/issues/9). `update-claude-docs` Step 4 spawned `claude-md-pruner` unconditionally once the agent file existed, and Step 5 flagged overage against a hardcoded 350. A project whose CLAUDE.md header records the owner's decision — budget ~460 not 350, per-stack splitting evaluated and **declined**, "don't re-open either question" — got an agent spawned to re-answer a closed question and a false overage on every run.
 
-Two things kept this alive. Step 4's existing ⚠️ "only background-prune files that are SETTLED" scopes to *timing within a session* (don't prune a file you're still editing), so it read as satisfied while the permanently-closed case went unhandled — a warning whose wording overlaps an uncovered case actively suppresses the fix. And the root cause was an authority inversion appearing at **four** sites, not the two the issue named: fixing only the caller leaves a directly-invoked pruner or condenser still re-litigating.
+Two things kept this alive. Step 4's existing rule "only background-prune files that are SETTLED" scopes to *timing within a session*, so it read as satisfied while the permanently-closed case went unhandled — a warning whose wording overlaps an uncovered case suppresses the fix. And the authority inversion appeared at **four** sites, not the two the issue named: fixing only the caller leaves a directly-invoked pruner or condenser still re-litigating.
 
 **Decision**
 Chosen: a file's own stated budget/decision outranks every default. Detection lives once in `skills/_shared/references/declared-budget.md` (prose signals — a declared budget, a "don't re-open"/"declined" note, a recorded count of no-op passes — plus an act table and fallbacks), cited by one-line pointers from `update-claude-docs` Steps 4+5, `condense-claude-md` step 4, `structure.md` §6, and the pruner agent+template. Prose-signal detection over a formal marker, so files already written this way (including the reporter's) work with no retrofit. Step 4 gained a third table row: agent found **but the file records pruning/splitting as decided** → skip the spawn, report size against the file's own budget.
@@ -159,7 +156,7 @@ Chosen: a file's own stated budget/decision outranks every default. Detection li
 **Consequences**
 - A declared budget below the default is equally authoritative — the signal is "the owner decided", not "the owner wants more room".
 - A declared *split* decision suppresses `condense-claude-md`'s split offer, not merely its number — the reporter's file had declined the split specifically.
-- Follow-on the same session: the pruner stopped carrying any size policy at all (its `~200`/`350` figures deleted), leaving `condense-claude-md`/`condense-task-doc` as the single owners per artifact. Recorded as a `CLAUDE.md` § Conventions row. See D43 (`../../agent-architecture/decisions/injection-and-delegation.md`) for the agent's own scope change.
+- The pruner stopped carrying any size policy (its `~200`/`350` figures deleted), leaving `condense-claude-md`/`condense-task-doc` as the single owners per artifact. Recorded as a `CLAUDE.md` § Conventions row. See D43 (`../../agent-architecture/decisions/injection-and-delegation.md`) for the agent's own scope change.
 
 **Status**: committed · **Reversible**: yes
 
@@ -168,7 +165,7 @@ Chosen: a file's own stated budget/decision outranks every default. Detection li
 ### D51 — An Undersized File Skips the Pruner Spawn, Gated on a Ratio Rather Than a Fourth Absolute Number — committed — 2026-07-26
 
 **Problem**
-Reported as [issue #10](https://github.com/syafiq555/syafiqkit/issues/10) against installed 1.124.1, and the direct successor to D44. D44 taught Step 4 to skip when the owner had *decided* against pruning, but the middle row gates on a decision, never on size — so a 26-line project CLAUDE.md (7% of the 350 default) with no declared decision still mandated a spawn that could only return a no-op. The reporter declined it, the same deviation signal D44 was filed on.
+Reported as [issue #10](https://github.com/syafiq555/syafiqkit/issues/10), the direct successor to D44. D44's skip covers a file whose owner *decided* against pruning, but the middle row gates on a decision, never on size — so a 26-line project CLAUDE.md with no declared decision still mandated a spawn that could only return a no-op.
 
 `_shared/references/declared-budget.md` already stated the cost principle ("a no-op result … is not a success worth paying an agent for") but scoped it to the decided case, so it read as covering this and did not.
 
@@ -182,7 +179,7 @@ Chosen: a size floor in the shared reference's Act table — **under half the ha
 
 **Consequences**
 - All 6 sites citing `declared-budget.md` inherit the floor.
-- ⚠️ **A gate needs its measurement named at the DECIDING step.** Step 4 gained an explicit measure line. This recurrence is why a `CLAUDE.md` § Maintenance checklist now requires it.
+- **A gate works only where its input is computed at the deciding step.** An unmeasured condition resolves to the permissive default, so the gate passes by doing nothing; Step 4 gained an explicit measure line for that reason. The rule now sits in `_shared/references/editing-skills-checklist.md` (“A gate is only real if some step computes its inputs”), since the Maintenance checklist that held it was extracted out of `CLAUDE.md`.
 
 **Status**: committed · **Reversible**: yes
 
@@ -191,7 +188,7 @@ Chosen: a size floor in the shared reference's Act table — **under half the ha
 ### D57 — `/commit`'s Staleness Gate Gained a Lexical Carve-Out for Identifier/UI-Name Hits — committed (v1.132.0) — 2026-07-27
 
 **Problem**
-Reported as [issue #14](https://github.com/syafiq555/syafiqkit/issues/14) against 1.130.0. The `/commit` staleness gate greps task docs for `uncommitted|not yet pushed|pending` and, by D37's design, forbids any judgment about whether a hit is "real" staleness — the absolutism defeats *rationalization* ("it's accurate right now" excusing a genuinely stale hedge). But `pending` is ordinary domain vocabulary: in one real run it matched `pendingStep` (a DTO field) and "pending-step chip" (a UI element), neither a commit-state claim. The no-judgment rule forbade saying so, leaving only a pointless full `task-summary` run or an undocumented deviation — the latter is what happened, eroding the gate generally.
+Reported as [issue #14](https://github.com/syafiq555/syafiqkit/issues/14). The `/commit` staleness gate greps task docs for `uncommitted|not yet pushed|pending` and, by D37's design, forbids any judgment about whether a hit is "real" staleness — the absolutism defeats *rationalization* ("it's accurate right now" excusing a genuinely stale hedge). But `pending` is ordinary domain vocabulary: in one real run it matched `pendingStep` (a DTO field) and "pending-step chip" (a UI element), neither a commit-state claim. The no-judgment rule forbade saying so, leaving only a pointless full `task-summary` run or an undocumented deviation — the latter is what happened, eroding the gate generally.
 
 **Decision**
 Chosen: a carve-out on a DIFFERENT axis from the one the absolutism guards. The absolutism is semantic (real-vs-rationalized staleness); the carve-out is lexical (identifier-vs-prose). A hit fused into a camelCase/kebab/Pascal identifier or a quoted UI-label (`pendingStep`, `pending-step chip`, `PendingTasks`) is the domain's vocabulary — note it inline, no `task-summary` run. Token SHAPE is mechanically checkable and never reopens the judgment door; anything not unambiguously code-shaped defaults to prose and the absolutism applies in full. Also fixed the coupling this exposed: `/commit` line 28 said the gate's run "satisfies" `/done` Step 4, but a carve-out-only resolution runs NO `task-summary`, so both `/commit` line 28 and `done` Step 4 now key on whether a run ACTUALLY happened, not on the gate firing — else a false-positive resolution makes `/done` skip a scan it owes.
@@ -210,7 +207,7 @@ Chosen: a carve-out on a DIFFERENT axis from the one the absolutism guards. The 
 ### D67 — `condense-task-doc`'s Aggregate Line/Byte Target Passed While Individual Sentences Stayed Bloated — committed — 2026-08-02
 
 **Problem**
-A real run on Dourr's `blog-automation/current.md` (a sibling project, not this repo) did a full row-existence pass per D-family precedent, cut the doc 21% by bytes, and reported the pass done against step 9's target. The user's reply was "each line also bloated" — several Task Status and Bugs Fixed rows were still single sentences running 500-1000+ characters, stacking parentheticals, inline measurements ("$2.8778", "13/107 vs 12/35"), and multiple `⚠️` clauses in one run-on. Step 9's tripwire is entirely aggregate (bytes-per-line, total size), which a doc can clear while only its worst few lines carry the bloat — most lines in a typical task doc are short table rows or short prose, so an average absorbs a handful of very long sentences without moving much.
+A real run on Dourr's `blog-automation/current.md` (a sibling project) did a full row-existence pass, cut the doc by bytes, and reported the pass done against the aggregate target. The user's reply was "each line also bloated" — several Task Status and Bugs Fixed rows were still single sentences running 500-1000+ characters, stacking parentheticals, inline measurements and multiple warning clauses in one run-on. The aggregate check is the wrong tripwire: most lines in a task doc are short, so an average absorbs a handful of very long sentences.
 
 **Decision**
 Added step 11: after the row-existence pass, run `awk '{print length, NR}' <file> | sort -rn | head -15` directly against sentence length, not the aggregate. Tighten the worst offenders specifically — evidence/measurement detail collapses to its conclusion, three related facts fused into one run-on become one line naming the mechanism. Same underlying test as step 6's row-existence keep-test, just applied one level down: bytes-per-line already existed as a *derived* signal in step 9 ("bytes-per-line above ~120-150... means there's a second pass"), but nothing forced actually running that second pass, and a derived aggregate threshold is exactly the shape D50/D54 already flagged as gameable without a direct per-unit check.
@@ -246,7 +243,7 @@ Measurement moves to Step 4, the deciding step. Over budget → condense in the 
 ### D-guard-scoped-to-what-it-can-see — Contest Is Uncommitted State, Not History — committed — 2026-08-10
 
 **Problem**
-Same issue #19. A session declined the condense as "another session's content," but the reporter's instinct was right — they would have been fine.
+Same issue #19. A session declined the condense as "another session's content."
 
 `condense-task-doc` step 0 uses `git diff HEAD` (uncommitted work only). Committed history has no live party to collide with.
 
@@ -282,9 +279,9 @@ Invoking a skill with an argument makes the harness replace every bare dollar-ze
 Read a line back through a shell variable (`grep -n` for the number, `sed -n "${var}p"` for the text) rather than an awk whole-line field. The mechanic is stated in `editing-skills-checklist.md` and restated inline in `condense-task-doc`'s Core Facts, since a reference nothing routes through at the moment of writing would not have been read.
 
 **Consequences**
-- The budget check this replaced had been silently lost by an earlier unhobbling rewrite, leaving prose with no command behind it. Restoring it exposed a second defect: the original excluded everything below the `## Next Steps` heading rather than the section, so any doc with sections after it was undercounted — this doc's own index read 66 instead of 105.
+- The budget check this replaced had been silently lost by an earlier unhobbling rewrite, leaving prose with no command behind it. Restoring it exposed a second defect: the original excluded everything below the `## Next Steps` heading rather than the section, so any doc with sections after it was undercounted.
 - A snippet restored faithfully from a bug report or an older commit carries whatever bug it already had. The report proves the command ran, never that it was right; run it against a real doc and check the output against a manual read.
-- `task-summary/SKILL.md`'s size gate still states bytes (`wc -c`) where step 7 now measures lines with a section subtracted. Left as-is, tracked in Next Steps.
+- The `task-summary` size gate this entry flagged as still stating bytes (`wc -c`) was closed on 2026-09-12 (see the Next Steps history in `../current.md`): all three size gates now measure lines.
 
 **Status**: committed · **Reversible**: yes
 
@@ -293,7 +290,7 @@ Read a line back through a shell variable (`grep -n` for the number, `sed -n "${
 **Problem**
 A user reported task docs going stale "almost every time" and asked whether `task-summary` actually updates them under `/done`, `/quick-done` or direct invocation. It does — the defect was that §5's checks are all scoped to the write that just happened. The three essential ones ask whether this edit dropped a row, broke a structure, or introduced a duplicate; the additional ones are prefixed *"run these if they apply to your write."* Staleness is by definition what lives outside the diff, so a doc passes validation cleanly while carrying a paragraph that went false three sessions ago.
 
-The reason it recurs rather than being an occasional slip: the session that falsifies a fact and the session that could notice are structurally different sessions. Rename a set of containers and you update the doc *about* the rename, thoroughly. The sibling `decisions/*.md` mentioning the old name in passing is not in the diff, not in §1's scan (which maps *code* changes to docs, never doc changes to sibling docs), and not in §5's scope — three independent misses, none of which look like a miss from inside the session. Observed live in the AR repo: a decisions file opened for unrelated work still claimed production "runs under the historical `ar_standby_*` container names," falsified by a rename the previous session had itself performed and documented in the index.
+The reason it recurs rather than being an occasional slip: the session that falsifies a fact and the session that could notice are structurally different sessions. Rename a set of containers and you update the doc *about* the rename, thoroughly. The sibling `decisions/*.md` mentioning the old name in passing is not in the diff, not in §1's scan (which maps *code* changes to docs, never doc changes to sibling docs), and not in §5's scope — three independent misses, none of which look like a miss from inside the session. Observed live: a decisions file opened for unrelated work still claimed production ran under container names a rename had already retired.
 
 **Decision**
 One paragraph at the head of §5, above the three checks rather than appended as a fourth, reframing what "true" covers. It names the mechanism (why the two session types diverge), the fields that decay most, and the split-doc case where the index gets the attention and siblings inherit the drift. Placement is the point — a check landing after the numbered list gets walked past by a session executing the list as a procedure, the failure `update-plugin`'s Step 3 names for a rule that is present in the file and still never fires because it sits outside the step where it applies.

@@ -2,7 +2,7 @@
 Status: Source #10 graded 2026-10-08 — one live defect found and fixed (hook cap, see ../../output-style-hook/current.md); six borrowable ideas recorded, none planned yet
 Domain: plugin-maintenance/external-guidance (whole-plugin comparables survey)
 Gotchas (critical): research agents' figures were checked on the page; the ones marked unverified were not, and two agent figures did not survive the check
-Related: `../current.md` (index), `applying-verdicts.md`, `grading-method.md`, `../../output-style-hook/current.md`
+Related: `../current.md` (index), `applying-verdicts.md`, `reattach-ceiling.md`, `agent-and-edit-traps.md`, `house-style-ownership.md`, `grading-method.md`, `../../output-style-hook/current.md`
 Last updated: 2026-10-08 — created
 -->
 
