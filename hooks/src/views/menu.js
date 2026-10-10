@@ -11,7 +11,7 @@ const menuView = ($, c) => {
           Button({
             key: 'vb' + index,
             label: (verb.label + (verb.danger ? ' ⚠' : '')).padEnd(18),
-            hotkey: String(index + 1),
+            ...(index < 9 ? { hotkey: String(index + 1) } : {}),
             plain: true,
             ...(index === 0 ? { autoFocus: true } : {}),
             onPress: () => {
@@ -27,6 +27,8 @@ const menuView = ($, c) => {
                 return goto('list')
               }
               if (verb.go === 'handoff') return openHandoff()
+              if (verb.go === 'changes') return enterChanges($)
+              if (verb.go === 'images') return goto('images')
               if (verb.danger) return askFirst(verb.label, verb.text, verb.effect, true)
               return submitPrompt($, verb.text, verb.toast)
             },

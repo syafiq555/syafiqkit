@@ -141,6 +141,7 @@ const docView = ($, c) => {
               action('handoff', 'Hand off', { hotkey: 'h' }, openHandoff),
             ]
           : []),
+        action('changes', 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
         action('refresh', 'Refresh ⚠', { hotkey: 'r' }, () =>
           askFirst('Refresh ' + state.current.label, refreshRequest(state.current), REFRESH_EFFECT),
         ),
@@ -230,6 +231,12 @@ const decisionView = ($, c) => {
           ...(index < files.length - 1
             ? [Button({ key: 'dec-next', label: 'Next ›', hotkey: 'n', onPress: () => openDecision(index + 1) })]
             : []),
+          Button({
+            key: 'dec-changes',
+            label: 'Changes',
+            hotkey: 'd',
+            onPress: () => openDocDiff($, file.path, 'decision'),
+          }),
           Button({
             key: 'dec-condense',
             label: 'Condense ⚠',

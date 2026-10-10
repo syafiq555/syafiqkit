@@ -75,7 +75,7 @@ const isHeavy = (doc) => {
 const heavyNote = (doc) => {
   const big = oversizedDecisions(doc).sort((a, b) => (b.size || 0) - (a.size || 0))
   const parts = []
-  if (big.length) parts.push('decisions/' + big[0].name + ' ' + kb(big[0].size) + (big.length > 1 ? ' +' + (big.length - 1) : ''))
+  if (big.length) parts.push(big.length > 1 ? big.length + ' decisions, max ' + kb(big[0].size) : 'decisions ' + kb(big[0].size))
   if (typeof doc.lines === 'number' && doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES) parts.push(doc.lines + ' lines')
   if (!parts.length) parts.push(isInstructionFile(doc) && doc.lines <= CLAUDE_MD_MAX_LINES ? kb(doc.size) : doc.lines + ' lines')
   return '⚠ ' + parts.join(' · ')

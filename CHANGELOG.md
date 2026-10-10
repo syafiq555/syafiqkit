@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.384.0
+
+**The syafiqkit pane can review and stage your git changes, and Claude can show you screenshots in it.** You no longer need to open VS Code's Source Control to check what Claude changed.
+- **Changes:** press `Changes (N)` in the band, run `/changes`, or pick Changes in the menu. From 100 columns the left side is a file tree (Staged Changes first, then Changes; the `▾` arrow collapses a section or folder, pressing a title, folder or file selects it) with a toolbar above it for the selection: `+ Stage` or `− Unstage` (key `s`), `↶ Discard` (key `d`), and `+ Stage folder` for a folder. The right side shows the diffs, Changes first, with line numbers, red and green rows and the changed words marked, and each file header has its own `+`/`−` and `↶`. It opens on your unstaged files when there are any; `Show all` or the Staged title switches. Below 100 columns the tree is a list and each file opens on its own page. It refreshes every 2 seconds while open, so edits Claude makes appear on their own.
+- **Large change sets:** the right side draws about 500 rows in all (120 per file, `· show` opens the rest, 100 files at most) and says how many files it collapsed to save room; select a file to see up to 400 lines of it. A selected folder still shares the same row budget, and the collapsed-files line is not shown while anything is selected.
+- **Discard** asks first and names the file; an untracked file is deleted, so it says that cannot be undone. It is offered for working-tree changes only: a staged file is unstaged first (the toolbar says so). Stage and unstage run on press and are reversible. There is no Commit button in the pane; the band's Commit stays.
+- **Docs:** a doc's page and a decisions page have a `Changes` button showing that file's diff since the last commit.
+- **Images:** Claude gets a `show_image` tool for PNG files (absolute paths, under 12 MiB), so e2e screenshots saved under `/tmp` land in a gallery instead of arriving as a path. The pane does not open by itself: press `Images (N)` in the band or Menu → Images, then Prev, Next, Clear, or Open in viewer (your system's image viewer). The newest 12 are kept until you press Clear. Pictures over 2 MiB open only through the viewer; JPEG is refused with the file named. In iTerm2 pictures need `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1`, which worked from the `env` block of `~/.claude/settings.json`.
+- **New calls the mod makes:** `git add`, `git restore`, `git rm --cached` and `git clean` (only on a button press, with `GIT_LITERAL_PATHSPECS=1` so a name like `[id].tsx` is never read as a pattern), read-only `git status` and `git diff`, `uname` plus `open`, `xdg-open` or `start` for Open in viewer, and `$.tool.register` for `show_image`, which adds one tool to every session.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then restart Claude Code so the mod reloads. No agents or templates changed. Not yet seen: whether Claude Code asks you to allow `show_image` the first time Claude calls it (it did not in a session running with permissions bypassed).
+
+## 1.383.0
+
+**`refresh-instructions` now tells you how to tell a dense file apart, and guards two things a three-pass run was losing.**
+- **Density check:** the "is this file dense?" line gave a threshold in the wrong unit (a figure of 4.5 bytes per line, where real files run 100+). It now says to divide `wc -c` by `wc -l` and treat anything above roughly 120–150 as dense, the same figure `task-summary` uses.
+- **Rules that already failed once stay put:** a rule the file itself records as failing from recall now goes on the protected list by name. In a test run the unhobble pass read "use `Edit` for all file changes" next to a softer exception and loosened it to "prefer `Edit`".
+- **Condense can trim inside decisions:** for a task-doc set, the unhobble prompt now carries the file as it stood before the condense pass and asks to restore any rejected alternative, quote, figure or reason whose loss changes what a reader would conclude. Without it nothing between the passes read for that.
+- **One decisions file:** `condense-task-doc` now treats a request that names a single decisions file as the whole scope; the index and sibling files stay untouched. A named index still means the whole set.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed; nothing to regenerate.
+
+## 1.382.0
+
+**The docs list shows each doc once, grouped by folder, with space between sections; `uiux` research aims at evidence that carries layout.** `/task-docs` used to list a doc under "Changed lately", again under "Needs shrinking" and again in the full list, and printed the folder name on every row.
+- **Spacing:** a blank line now separates every section, and section headers are bold instead of dim, so Changed lately, Task docs, CLAUDE.md chain, Project docs and Skills read as separate blocks.
+- **`uiux` research:** a research request now starts from the situation (what repeats, what sits in two places) and sends agents to release notes and component demos, markup and props, since help pages describe use and not layout. A report that is mostly "not stated" is treated as a bad brief and re-briefed once before it is relayed. Non-terminal products count as sources for a terminal screen when the pattern doesn't depend on the medium. The haiku research-verification note carries the same check.
+- **One row per doc:** a doc over the size limit stays in its folder with a yellow `⚠ 578 lines` or `⚠ decisions 55.4 KB` beside its age. The "Needs shrinking" list is now one line, `⚠ 18 over the size limit · show`, which opens the same over-the-limit view as before.
+- **Folders are headers:** `▾ tenant (9)  ⚠ 4` shows how many docs and how many are over the limit. Press a folder to collapse it. The five most recently changed docs sit on top with their folder and status, and are not repeated in their folder.
+- **Unchanged:** filter results, the over-the-limit view and the CLAUDE.md files still show each doc's scope on its row. Folders start open.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. No agents or templates changed.
+
 ## 1.380.0
 
 **`uiux` reads in the order it is used, and its screenshot grading now happens on a fresh invocation.** A three-pass refresh (condense, then unhobble) of the skill found it already tight; the changes are about where rules sit.

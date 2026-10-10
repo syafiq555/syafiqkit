@@ -12,8 +12,12 @@ export function register(on) {
     }
     await registerCommand($, COMMAND, 'Browse task docs, CLAUDE.md files and project docs')
     await registerCommand($, MENU_COMMAND, 'Open the syafiqkit menu: commit, ship, done, docs, hand off')
+    await registerCommand($, CHANGES_COMMAND, 'Review changed files, stage, unstage or discard them')
+    await registerImageTool($)
     await loadHandoff($)
     $.clock.every(HANDOFF_POLL_MS, () => loadHandoff($))
+    $.clock.every(CHANGES_POLL_MS, () => countChanges($).catch(() => {}))
+    countChanges($).catch(() => {})
     return next(e)
   })
 
@@ -41,6 +45,13 @@ export function register(on) {
     await openPane($, 'menu')
     return {}
   })
+
+  on('command.run', { command: CHANGES_COMMAND }, async ($) => {
+    await openChanges($)
+    return {}
+  })
+
+  on('tool.call', { tool: SHOW_IMAGE_TOOL }, async ($, e) => ({ result: await showImages($, e) }))
 
   on('ui.render', { component: 'AbovePrompt' }, bandView)
 

@@ -77,7 +77,7 @@ test('session start registers the menu and docs commands', async ($, on) => {
   const names: string[] = []
   stubSession(on, [], [], names)
   await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-  expect(names).toEqual(['task-docs', 'sk'])
+  expect(names).toEqual(['task-docs', 'sk', 'changes'])
 })
 
 test('the band offers the menu and the docs while the pane is closed', async ($, on) => {
@@ -445,6 +445,41 @@ test('a decisions page offers Condense, which asks first and condenses that one 
   await ui.unmount()
 })
 
+test('the docs list shows each task doc once: folders are headers, a heavy doc is flagged in its folder, a folder collapses', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  const doc = (name: string, size: number, mtimeMs: number) => ({ name, entry: { name: 'current.md', kind: 'file', size, mtimeMs, isLink: false } })
+  const docs: Record<string, ReturnType<typeof doc>[]> = {
+    tenant: [doc('a', 60, 999_000), doc('b', 60, 996_000), doc('c', 60, 995_000), doc('d', 9_000, 1_000)],
+    auth: [doc('e', 60, 998_000), doc('f', 60, 997_000), doc('g', 60, 2_000)],
+  }
+  const tree: Record<string, any[]> = { '/work/tasks': Object.keys(docs).map(dirEntry) }
+  Object.entries(docs).forEach(([folder, list]) => {
+    tree['/work/tasks/' + folder] = list.map((item) => dirEntry(item.name))
+    list.forEach((item) => (tree['/work/tasks/' + folder + '/' + item.name] = [item.entry]))
+  })
+  stubTree(on, tree)
+  on('fs.read', () => ({ value: '# T\n' + '\n'.repeat(400) }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ key: 'r0b' })).toBeDefined()
+  expect(await ui.find({ key: 'd0b' })).toBeUndefined()
+  expect(await ui.find({ key: 'd3b' })).toBeDefined()
+  expect(await ui.find({ key: 'd6b' })).toBeDefined()
+  expect(await ui.find({ key: 'fold-tenant' })).toBeDefined()
+  expect(await ui.find({ key: 'fold-auth' })).toBeDefined()
+  expect(await ui.find({ key: 'show-heavy' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /NEEDS SHRINKING/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /⚠ 402 lines/ })).toBeDefined()
+  await ui.press({ key: 'fold-tenant' })
+  expect(await ui.find({ key: 'd3b' })).toBeUndefined()
+  expect(await ui.find({ key: 'd6b' })).toBeDefined()
+  await ui.press({ key: 'fold-tenant' })
+  expect(await ui.find({ key: 'd3b' })).toBeDefined()
+  await ui.unmount()
+})
+
 test('CLAUDE.md files are named by scope and a file reached by two routes is listed once', async ($, on) => {
   stubSession(on, [], [], [], ['session.cwd', 'fs.exists'])
   on('session.cwd', () => ({ value: '/home/test/.claude/p' }))
@@ -581,5 +616,249 @@ test('the docs list shows the plugin skills, each opening its SKILL.md', async (
   expect(await ui.find({ type: 'Text', text: /_shared/ })).toBeUndefined()
   expect(await ui.find({ key: 'd0b' })).toBeDefined()
   expect(await ui.find({ key: 'd1b' })).toBeDefined()
+  await ui.unmount()
+})
+
+const DIFF_TEXT = [
+  'diff --git a/a.md b/a.md',
+  'index 1..2 100644',
+  '--- a/a.md',
+  '+++ b/a.md',
+  '@@ -3,2 +3,2 @@',
+  ' keep',
+  '-old line',
+  '+new line',
+  '',
+].join('\n')
+
+const fakeGit = (runs: string[][], status: string) => (_$: any, e: any) => {
+  runs.push([...e.argv])
+  const line = e.argv.join(' ')
+  const done = (stdout = '') => ({ value: { exitCode: 0, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } })
+  if (line.includes('rev-parse --show-toplevel')) return done('/work\n')
+  if (line.includes('rev-parse --verify')) return done('abc\n')
+  if (line.includes(' status ')) return done(status)
+  if (line.includes(' diff ')) return done(DIFF_TEXT)
+  if (line.includes('ls-files')) return done('x')
+  return done()
+}
+
+const NARROW = { ...PANE, props: { ...PANE.props, bodyColumns: 80 } }
+
+const MIXED_STATUS = 'M  hooks/src/x.js\0 M a.md\0?? new.txt\0'
+
+const openChangesPane = async ($: any, on: any, runs: string[][], pane: any = NARROW, status: string = MIXED_STATUS) => {
+  stubSession(on, [], [])
+  on('process.run', fakeGit(runs, status))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  return $.ui.mount({ ...pane, surface: 'terminal' })
+}
+
+const ran = (runs: string[][], ...argv: string[]) => runs.some((run) => argv.every((part, index) => run[index] === part))
+
+test('the changes pane lists staged and unstaged files, and stage, unstage and stage-all run the exact git command', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  expect(await ui.find({ key: 'staged-toggle' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree-toggle' })).toBeDefined()
+  expect(await ui.find({ key: 'tb-stage' })).toBeUndefined()
+  await ui.press({ key: 'worktree-0b' })
+  await ui.press({ key: 'tb-stage' })
+  expect(ran(runs, 'git', 'add', '--', 'a.md')).toBe(true)
+  await ui.press({ key: 'staged-1b' })
+  await ui.press({ key: 'tb-stage' })
+  expect(ran(runs, 'git', 'restore', '--staged', '--', 'hooks/src/x.js')).toBe(true)
+  await ui.press({ key: 'worktree-all' })
+  expect(ran(runs, 'git', 'add', '-A')).toBe(true)
+  await ui.press({ key: 'staged-all' })
+  expect(ran(runs, 'git', 'restore', '--staged', '.')).toBe(true)
+  await ui.unmount()
+})
+
+test('pressing a file shows its diff with hidden-line gaps, and Back returns to the list', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs)
+  await ui.press({ key: 'worktree-0b' })
+  expect(await ui.find({ key: 'cf-back' })).toBeDefined()
+  expect(ran(runs, 'git', '--no-optional-locks', 'diff')).toBe(true)
+  expect(await ui.find({ key: 'l1' })).toBeDefined()
+  expect(await ui.find({ key: 'l3' })).toBeDefined()
+  expect(await ui.find({ key: 'cf-stage' })).toBeDefined()
+  await ui.press({ key: 'cf-back' })
+  expect(await ui.find({ key: 'worktree-toggle' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('Discard asks first, names the file, and an untracked file is removed with git clean', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  await ui.press({ key: 'worktree-0b' })
+  await ui.press({ key: 'tb-discard' })
+  expect(await ui.find({ key: 'discard-yes' })).toBeDefined()
+  await ui.press({ key: 'discard-cancel' })
+  expect(runs.some((run) => run[1] === 'restore' && !run.includes('--staged'))).toBe(false)
+  expect(await ui.find({ key: 'worktree-toggle' })).toBeDefined()
+  await ui.press({ key: 'worktree-1b' })
+  await ui.press({ key: 'tb-discard' })
+  expect(runs.some((run) => run[1] === 'clean')).toBe(false)
+  await ui.press({ key: 'discard-yes' })
+  expect(ran(runs, 'git', 'clean', '-f', '--', 'new.txt')).toBe(true)
+  await ui.unmount()
+})
+
+test('a doc page has a Changes button that diffs that file against the last commit and returns to the doc', async ($, on) => {
+  const runs: string[][] = []
+  on('process.run', fakeGit(runs, ''))
+  await stubTaskDoc($, on, [], 'a', 60, [], '# T\n- [ ] one')
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'r0b' })
+  await ui.press({ key: 'changes' })
+  expect(ran(runs, 'git', '--no-optional-locks', 'diff', 'HEAD')).toBe(true)
+  expect(await ui.find({ key: 'l3' })).toBeDefined()
+  expect(await ui.find({ key: 'cf-stage' })).toBeUndefined()
+  await ui.press({ key: 'cf-back' })
+  expect(await ui.find({ key: 'changes' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a wide pane splits the tree from the diffs of every file, and pressing a file narrows the right side to it', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  expect(await ui.find({ key: 'ch-diffs' })).toBeDefined()
+  expect(await ui.find({ key: 'ch-all' })).toBeUndefined()
+  expect(await ui.find({ key: 'worktree:a.md#3' })).toBeDefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeUndefined()
+  expect(await ui.find({ key: 'dc-all' })).toBeDefined()
+  await ui.press({ key: 'dc-all' })
+  expect(await ui.find({ key: 'dc-all' })).toBeUndefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeDefined()
+  await ui.press({ key: 'worktree-0b' })
+  expect(await ui.find({ key: 'dc-all' })).toBeDefined()
+  expect(await ui.find({ key: 'cf-back' })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('show_image puts PNG screenshots in the pane, names the files it refused, and the gallery draws the picture', async ($, on) => {
+  const specs: any[] = []
+  const opened: string[] = []
+  stubSession(on, [], opened)
+  on('tool.register', (_$: any, e: any) => {
+    specs.push(e)
+    return { value: { tool: 'mcp__syafiqkit__show_image' } }
+  })
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', (_$: any, e: any) => ({ value: { base64: String(e.path).endsWith('.png') ? 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' : 'AAAA' } }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const spec = specs[0].tool ?? specs[0]
+  expect(spec.name).toBe('show_image')
+  expect(spec.isDeferred).toBe(false)
+  const out: any = await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/a.png', '/tmp/b.jpg', 'rel.png'] })
+  expect(String(out.result)).toContain('Added 1 image')
+  expect(String(out.result)).toContain('/tmp/b.jpg')
+  expect(String(out.result)).toContain('rel.png (not an absolute path)')
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(opened).toEqual([])
+  await band.press({ key: 'open-images' })
+  expect(opened).toEqual(['doc-pane'])
+  await band.unmount()
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ key: 'img-close' })).toBeDefined()
+  expect(await ui.find({ key: 'img-next' })).toBeUndefined()
+  await ui.press({ key: 'img-clear' })
+  expect(await ui.find({ key: 'img-clear' })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('the narrow All changes screen has collapsible sections and a stage button on each file header, Changes first', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs)
+  await ui.press({ key: 'ch-all' })
+  expect(await ui.find({ key: 'dt-worktree' })).toBeDefined()
+  expect(await ui.find({ key: 'dt-staged' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree:a.md#m' })).toBeDefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeDefined()
+  await ui.press({ key: 'worktree:a.md#m' })
+  expect(ran(runs, 'git', 'add', '--', 'a.md')).toBe(true)
+  await ui.press({ key: 'dt-worktree' })
+  expect(await ui.find({ key: 'worktree:a.md#m' })).toBeUndefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('pressing a section title in the wide tree focuses the diffs on that section only, and Show all restores both', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  expect(await ui.find({ key: 'worktree:a.md#m' })).toBeDefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeUndefined()
+  expect(await ui.find({ key: 'dt-worktree' })).toBeUndefined()
+  await ui.press({ key: 'staged-focus' })
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree:a.md#m' })).toBeUndefined()
+  await ui.press({ key: 'dc-all' })
+  expect(await ui.find({ key: 'worktree:a.md#m' })).toBeDefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('the right side opens on the unstaged changes, and shows both sections when nothing is unstaged', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE, 'M  hooks/src/x.js\0A  b.md\0')
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeDefined()
+  expect(await ui.find({ key: 'dc-all' })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('the gallery has an Open button that hands the file to the system viewer', async ($, on) => {
+  const runs: string[][] = []
+  stubSession(on, [], [])
+  on('tool.register', () => ({ value: { tool: 'mcp__syafiqkit__show_image' } }))
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', () => ({ value: { base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' } }))
+  on('process.run', (_$: any, e: any) => {
+    runs.push([...e.argv])
+    return { value: { exitCode: 0, stdout: e.argv[0] === 'uname' ? 'Darwin\n' : '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+  })
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/a.png'] })
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'open-images' })
+  await band.unmount()
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'img-open' })
+  expect(ran(runs, 'open', '/tmp/a.png')).toBe(true)
+  await ui.unmount()
+})
+
+test('pressing a folder selects it: the toolbar stages the whole folder and git runs with literal pathspecs', async ($, on) => {
+  const runs: string[][] = []
+  const envs: any[] = []
+  stubSession(on, [], [])
+  const inner = fakeGit(runs, 'M  hooks/src/x.js\0M  hooks/src/y.js\0 M a.md\0')
+  on('process.run', (_$: any, e: any) => {
+    if (e.argv[1] === 'restore' || e.argv[1] === 'add') envs.push(e.init && e.init.env)
+    return inner(_$, e)
+  })
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'staged-0b' })
+  await ui.press({ key: 'tb-stage' })
+  expect(ran(runs, 'git', 'restore', '--staged', '--', 'hooks/src/x.js', 'hooks/src/y.js')).toBe(true)
+  expect(envs[0]).toEqual({ GIT_LITERAL_PATHSPECS: '1' })
+  await ui.unmount()
+})
+
+test('a staged file offers Unstage but no Discard', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  await ui.press({ key: 'staged-1b' })
+  expect(await ui.find({ key: 'tb-stage' })).toBeDefined()
+  expect(await ui.find({ key: 'tb-discard' })).toBeUndefined()
   await ui.unmount()
 })

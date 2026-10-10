@@ -29,6 +29,22 @@ const bandView = ($, e, next) => {
           hotkey: 'd',
           onPress: () => openPane($, 'list'),
         }),
+        Button({
+          key: 'open-changes',
+          label: state.changeCount ? 'Changes (' + state.changeCount + ')' : 'Changes',
+          hotkey: 'g',
+          onPress: () => openChanges($),
+        }),
+        ...(state.images.length
+          ? [
+              Button({
+                key: 'open-images',
+                label: 'Images (' + state.images.length + ')',
+                hotkey: 'i',
+                onPress: () => openImages($),
+              }),
+            ]
+          : []),
         Text({ dimColor: true, children: '│' }),
         Button({ key: 'band-commit', label: 'Commit', hotkey: 'c', onPress: () => sendVerb($, 'Commit') }),
         Button({ key: 'band-wrap', label: 'Done', hotkey: 'w', onPress: () => confirmVerb($, 'Done') }),
