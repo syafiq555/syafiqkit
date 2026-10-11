@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.387.0
+
+**`setup-playwright`: login-form specs no longer flake once you rerun quickly.**
+- **Throttle counts successes:** a login throttle applied as route middleware (Laravel `throttle:<name>`, which Fortify adds when `fortify.limiters.login` is set, as Jetstream and the starter kits do) counts successful logins too. So specs that log in through the form on purpose (landing after login, wrong password) fail a few rapid reruns in, even with cached state. The 429 often shows only as an error modal on the login page. The skill now says to reset the fixture accounts' counters from the seeder or setup step that runs before the suite, using the key exactly as the limiter builds it, and to prove the fix against a failing baseline. Measured on a Laravel app: 2–3 failures in 8 rapid runs before, 0 in 8 after.
+- **Stale build in screenshots:** the stale-render warning now covers apps that serve built assets with no Vite dev server, and spec screenshots as well as recordings. Rebuild before grading either. A review graded old screens this way.
+
 ## 1.386.0
 
 **`/changes` stays usable on big change sets, and shows git repos nested inside the folder.**
