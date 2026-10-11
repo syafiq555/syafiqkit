@@ -5,6 +5,7 @@ const CHANGES_COMMAND = 'changes'
 const MAX_ENTRIES = 60
 const MAX_CHARS = 90000
 const POLL_MS = 2000
+const GIT_TIMEOUT_MS = 15000
 const HANDOFF_POLL_MS = 4000
 const MAX_HANDOFF_DEFERRALS = 3
 const HANDOFF_EXPIRES_MS = 24 * 60 * 60 * 1000
@@ -18,8 +19,11 @@ const CLAUDE_MD_MAX_LINES = 200
 const CLAUDE_MD_MAX_BYTES = 40000
 const DIFF_CONTEXT = 3
 const DIFF_MAX_LINES = 400
-const DIFF_AUTO_ROWS = 120
-const DIFF_TOTAL_ROWS = 500
+const DESKTOP_STRIP_ROWS = 2
+const DESKTOP_PAGE_BAR_ROWS = 4
+const WINDOW_ROWS = 60
+const DESKTOP_WRAP_CHARS = 140
+const DESKTOP_MAP_ROWS = 3
 const CHANGES_POLL_MS = 5000
 const SHOW_IMAGE_TOOL = 'mcp__syafiqkit__show_image'
 const MAX_GALLERY = 12
@@ -29,9 +33,31 @@ const PNG_PREFIX = 'iVBORw0KGgo'
 const SPLIT_MIN_COLUMNS = 100
 const TREE_COLUMNS = 42
 const COUNTS_WIDTH = 11
+const DESKTOP_DIFF = { added: '#1b3a2a', removed: '#40232a', addedWord: '#2e6b49', removedWord: '#7c3340' }
+const DESKTOP_TONE = {
+  strip: '#1f2633',
+  stripHot: '#24324a',
+  warnStrip: '#3a2f14',
+  mutedChip: '#2c2f36',
+  addChip: '#1e5b3a',
+  delChip: '#6b2330',
+  warnChip: '#6b5a1e',
+  modChip: '#5a4a1a',
+  renChip: '#1f4a5a',
+  addBlock: '#2e6b49',
+  addBlockHot: '#3fa86b',
+  delBlock: '#7c3340',
+  delBlockHot: '#c0505e',
+  mixBlock: '#5b6a3a',
+  mixBlockHot: '#8aa055',
+  meter: '#5b8ad0',
+  warnMeter: '#d0a03a',
+  meterTrack: '#2c2f36',
+  border: '#3a3f4a',
+  gapRow: '#1a1d23',
+}
+const DESKTOP_MAP_CELLS = 64
 const LITERAL_PATHS = { GIT_LITERAL_PATHSPECS: '1' }
-const MAX_STACKED_FILES = 40
-const MAX_FOCUSED_FILES = 100
 const REPO_COUNT_EVERY = 5
 const DIFF_BATCH = 8
 const MAX_UNTRACKED_BYTES = 256 * 1024
@@ -44,6 +70,14 @@ const MERMAID_PACKAGE = '@mermaid-js/mermaid-cli@12.0.0'
 const MERMAID_TIMEOUT_MS = 240000
 const MAX_IMAGE_ROWS = 60
 const MAX_BASE64 = Math.floor((2 * 1024 * 1024 * 4) / 3)
+const DESKTOP_DRAW_CHARS = 90000
+const DESKTOP_DRAW_LIMIT = 95000
+const MAX_HOVER_SCOPE = 64
+const MOD_LOG_FILE = 'mod.log'
+const MOD_LOG_LINES = 300
+const PREVIEW_STEPS = [[1080, 60], [900, 50], [720, 45], [600, 40]]
+const PREVIEW_TIMEOUT_MS = 20000
+const DESKTOP_PICTURE_WIDTH = 720
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs', 'Skills']
 

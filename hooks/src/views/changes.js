@@ -21,51 +21,25 @@ const clipPath = (path, width) => {
   return clipPathTail(path.slice(0, cut), width - name.length - 1) + '/' + name
 }
 
-const diffRows = (c, diff, prefix, cap = DIFF_MAX_LINES, onMore = null) => {
-  const { Box, Text, Button } = c
-  const shown = diff.lines.slice(0, cap)
-  const width = String(Math.max(1, ...shown.map((line) => Math.max(line.oldNo, line.newNo)))).length
-  const num = (line) => String(line.kind === 'del' ? line.oldNo : line.newNo).padStart(width)
-  const rows = shown.map((line, index) => {
-    const key = prefix + index
-    if (line.kind === 'gap') return Text({ key, dimColor: true, children: '⋯ ' + line.hidden + ' hidden lines' })
-    const isAdd = line.kind === 'add'
-    const isDel = line.kind === 'del'
-    const sign = isAdd ? '+' : isDel ? '−' : ' '
-    const wordColor = isAdd ? 'diffAddedWord' : 'diffRemovedWord'
-    const body = line.span
-      ? Text({
-          children: [
-            ...(line.span[0] > 0 ? [Text({ key: 'a', children: line.text.slice(0, line.span[0]) })] : []),
-            Text({ key: 'b', backgroundColor: wordColor, children: line.text.slice(line.span[0], line.span[1]) || ' ' }),
-            ...(line.span[1] < line.text.length ? [Text({ key: 'c', children: line.text.slice(line.span[1]) })] : []),
-          ],
-        })
-      : Text({ children: line.text || ' ' })
-    return Box({
-      key,
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      ...(isAdd ? { backgroundColor: 'diffAdded' } : isDel ? { backgroundColor: 'diffRemoved' } : {}),
-      children: [
-        Box({ flexShrink: 0, children: [Text({ dimColor: true, children: num(line) + ' ' + sign + ' ' })] }),
-        Box({ flexGrow: 1, flexShrink: 1, children: [body] }),
-      ],
-    })
-  })
-  const hidden = diff.lines.length - shown.length
-  if (hidden > 0) {
-    const label = '… ' + hidden + ' more lines' + (onMore ? ' · show' : ' not shown')
-    rows.push(
-      onMore
-        ? Button({ key: prefix + 'more', label, plain: true, onPress: onMore })
-        : Text({ key: prefix + 'more', dimColor: true, children: label }),
-    )
-  }
-  return rows
-}
-
 const countsText = (diff) => (diff ? '+' + diff.added + ' −' + diff.removed : '')
+
+const activeFocus = () => (coversFocus(state.changeFocus) ? state.changeFocus : '')
+
+const diffIsOpen = (key) => state.allOpen[key] !== false
+
+const noDiffsText = () => (state.allLoaded ? 'Nothing changed.' : 'Reading diffs…')
+
+const lineNumberWidth = (lines) => String(Math.max(1, ...lines.map((line) => Math.max(line.oldNo, line.newNo)))).length
+
+const shownLines = (key, diff) => (state.allFull[key] === true ? diff.lines : diff.lines.slice(0, DIFF_MAX_LINES))
+
+const diffNoteItems = (c, key, diff) =>
+  diff.note ? [{ height: 1, make: () => c.Text({ key, dimColor: true, wrap: 'truncate', children: diff.note }) }] : []
+
+const moreLinesItem = (c, key, hidden, onPress) => ({
+  height: 1,
+  make: () => c.Button({ key, label: '… ' + hidden + ' more lines · show', plain: true, onPress }),
+})
 
 const changesView = ($, c) => {
   const { Box, Text, Button, Input, redraw, bindField } = c
@@ -85,12 +59,25 @@ const changesView = ($, c) => {
         redraw()
       }
       if (!wide) {
-        const room = Math.max(8, treeWidth - indent.length - 2 - count.length)
-        return Button({
-          key: key + 'b',
-          plain: true,
-          label: indent + (row.open ? '▾ ' : '▸ ') + clipPathTail(row.label + '/', room) + count,
-          onPress: collapse,
+        const room = Math.max(8, treeWidth - indent.length - 11 - count.length)
+        return Box({
+          key,
+          flexDirection: 'row',
+          columnGap: 1,
+          children: [
+            Button({
+              key: key + 'b',
+              plain: true,
+              label: indent + (row.open ? '▾ ' : '▸ ') + clipPathTail(row.label + '/', room) + count,
+              onPress: collapse,
+            }),
+            Button({ key: key + 'v', plain: true, label: 'view', onPress: () => openChangeAll($, plane + ':' + row.dirPath) }),
+            Button({
+              key: key + 's',
+              label: plane === 'staged' ? '−' : '+',
+              onPress: () => toggleStageFolder($, plane, row.dirPath),
+            }),
+          ],
         })
       }
       const folderKey = plane + ':' + row.dirPath
@@ -115,16 +102,20 @@ const changesView = ($, c) => {
     const focusKey = plane + ':' + entry.path
     const room = Math.max(8, treeWidth - indent.length - 4)
     const name = clipMiddle(nameOf(entry.path) + (entry.orig ? ' ← ' + nameOf(entry.orig) : ''), room)
-    return Button({
-      key: key + 'b',
-      plain: true,
-      onPress: () => {
-        if (!wide) return openChangeFile($, entry, plane, 'changes')
-        focusOn($, state.changeFocus === focusKey ? '' : focusKey)
-      },
+    return Box({
+      key,
+      flexDirection: 'row',
       children: [
-        indent + (state.changeFocus === focusKey ? '▶ ' : '  ') + name.padEnd(room) + ' ',
-        Text({ key: 's', color: STATUS_COLOR[letter], bold: true, children: letter }),
+        Button({
+          key: key + 'b',
+          plain: true,
+          label: indent + (state.changeFocus === focusKey ? '▶ ' : '  ') + name.padEnd(room) + ' ',
+          onPress: () => {
+            if (!wide) return openChangeFile($, entry, plane, 'changes')
+            focusOn($, state.changeFocus === focusKey ? '' : focusKey)
+          },
+        }),
+        Text({ key: key + 's', color: STATUS_COLOR[letter], bold: true, children: letter }),
       ],
     })
   }
@@ -213,6 +204,9 @@ const changesView = ($, c) => {
             : [
                 Button({ key: plane + '-toggle', label: ((closed ? '▸ ' : '▾ ') + caption).padEnd(26), plain: true, onPress: toggle }),
               ]),
+          ...(entries.length && !wide
+            ? [Button({ key: plane + '-view', label: 'view', onPress: () => openChangeAll($, plane + ':') })]
+            : []),
           ...(entries.length
             ? [
                 Button({
@@ -254,7 +248,9 @@ const changesView = ($, c) => {
   }
 
   const treeBody = () => {
-    const body = wide ? [toolbar(), ...sections.flatMap(section)] : sections.flatMap(section)
+    const body = wide
+      ? [toolbar(), ...sections.flatMap(section)]
+      : [Text({ key: 'tb-hint', dimColor: true, wrap: 'truncate-end', children: 'Press a file or "view" to see diffs' }), ...sections.flatMap(section)]
     if (!stacked) return body
     return roots.flatMap((root) => [
       repoHeader(root),
@@ -378,8 +374,10 @@ const hiddenSectionHint = ($, c, focus) => {
 
 const diffColumn = ($, c) => {
   const { Box, Text, Button } = c
-  const focus = coversFocus(state.changeFocus) ? state.changeFocus : ''
-  const shown = allDiffBody($, c, focus)
+  const focus = activeFocus()
+  const shown = allDiffItems($, c, focus, true)
+  const hints = hiddenSectionHint($, c, focus)
+  const top = 3 + (state.repoForm ? 1 : 0) + (state.repoNote ? 1 : 0) + hints.length
   return [
     Box({
       key: 'dc-head',
@@ -399,26 +397,10 @@ const diffColumn = ($, c) => {
           : []),
       ],
     }),
-    ...hiddenSectionHint($, c, focus),
-    ...(state.allTooMany
-      ? [
-          Text({
-            key: 'dc-toomany',
-            dimColor: true,
-            wrap: 'truncate-end',
-            children: 'Diffs shown for the first ' + state.allCap + ' of ' + state.allTotal + ' files · press a name to open it',
-          }),
-        ]
-      : []),
+    ...hints,
     ...(shown.any
-      ? shown.body
-      : [
-          Text({
-            key: 'dc-empty',
-            dimColor: true,
-            children: state.allLoaded ? 'Nothing changed.' : 'Reading diffs…',
-          }),
-        ]),
+      ? windowedRows(c, shown.items, top)
+      : [Text({ key: 'dc-empty', dimColor: true, children: noDiffsText() })]),
   ]
 }
 
@@ -439,6 +421,7 @@ const fileHeader = ($, c, entry, plane, open, pathWidth) => {
         onPress: () => {
           state.allOpen[key] = !open
           redraw()
+          if (!open && !state.allDiffs[key]) loadOneDiff($, entry, plane)
         },
       }),
       Text({ key: key + '#l', color: STATUS_COLOR[letter], bold: true, children: letter }),
@@ -456,13 +439,64 @@ const fileHeader = ($, c, entry, plane, open, pathWidth) => {
   })
 }
 
-const allDiffBody = ($, c, only) => {
-  const { Box, Text, Button, redraw } = c
-  const body = []
+const expandTabs = (text) => text.replace(/\t/g, '    ')
+
+const terminalLineItems = (c, line, key, numWidth, bodyWidth) => {
+  const { Box, Text } = c
+  if (line.kind === 'gap') {
+    return [{ height: 1, make: () => Text({ key, dimColor: true, wrap: 'truncate', children: '⋯ ' + line.hidden + ' hidden lines' }) }]
+  }
+  const isAdd = line.kind === 'add'
+  const isDel = line.kind === 'del'
+  const before = expandTabs(line.span ? line.text.slice(0, line.span[0]) : line.text)
+  const marked = line.span ? expandTabs(line.text.slice(line.span[0], line.span[1])) || ' ' : ''
+  const after = line.span ? expandTabs(line.text.slice(line.span[1])) : ''
+  const text = before + marked + after
+  const segments = line.span
+    ? [[0, before.length, false], [before.length, before.length + marked.length, true], [before.length + marked.length, text.length, false]]
+    : [[0, text.length, false]]
+  const width = Math.max(10, bodyWidth)
+  const gutter = String(isDel ? line.oldNo : line.newNo).padStart(numWidth) + ' ' + (isAdd ? '+' : isDel ? '−' : ' ') + ' '
+  const background = isAdd || isDel ? { backgroundColor: isAdd ? 'diffAdded' : 'diffRemoved' } : {}
+  const pieces = (from, to) =>
+    segments
+      .filter(([start, end]) => end > from && start < to)
+      .map(([start, end, mark], index) =>
+        Text({
+          key: 'p' + index,
+          ...(mark ? { backgroundColor: isAdd ? 'diffAddedWord' : 'diffRemovedWord' } : {}),
+          children: text.slice(Math.max(start, from), Math.min(end, to)),
+        }),
+      )
+  const count = Math.max(1, Math.ceil(text.length / width))
+  return Array.from({ length: count }, (_, part) => ({
+    height: 1,
+    make: () =>
+      Box({
+        key: part ? key + '.' + part : key,
+        height: 1,
+        flexShrink: 0,
+        flexDirection: 'row',
+        ...background,
+        children: [
+          Text({ key: 'g', dimColor: true, children: part ? ' '.repeat(gutter.length) : gutter }),
+          Text({ key: 't', wrap: 'truncate', children: text.length ? pieces(part * width, (part + 1) * width) : ' ' }),
+        ],
+      }),
+  }))
+}
+
+const terminalDiffItems = (c, lines, prefix, columnWidth) => {
+  const numWidth = lineNumberWidth(lines)
+  return lines.flatMap((line, index) => terminalLineItems(c, line, prefix + index, numWidth, columnWidth - numWidth - 3))
+}
+
+const allDiffItems = ($, c, only, beside) => {
+  const { Text, Button, redraw } = c
+  const items = []
+  const add = (make) => items.push({ height: 1, make })
   let any = false
-  let budget = DIFF_TOTAL_ROWS
-  let collapsedForRoom = 0
-  const columnWidth = state.wide ? paneColumns(c.e) - TREE_COLUMNS - 2 : paneColumns(c.e) - 2
+  const columnWidth = beside ? paneColumns(c.e) - TREE_COLUMNS - 2 : paneColumns(c.e) - 2
   const pathWidth = Math.max(16, columnWidth - COUNTS_WIDTH - 26)
   for (const plane of ['worktree', 'staged']) {
     const files = orderedFiles(plane).filter((entry) => entryInFocus(only, plane, entry))
@@ -470,7 +504,7 @@ const allDiffBody = ($, c, only) => {
     any = true
     const closed = !only && state.diffSectionClosed[plane] === true
     if (!only) {
-      body.push(
+      add(() =>
         Button({
           key: 'dt-' + plane,
           label: (closed ? '▸ ' : '▾ ') + SECTION_TITLE[plane] + ' (' + files.length + ')',
@@ -485,71 +519,28 @@ const allDiffBody = ($, c, only) => {
     for (const entry of closed ? [] : files) {
       const key = plane + ':' + entry.path
       const diff = state.allDiffs[key]
-      const explicit = state.allOpen[key]
-      const fileFocus = Boolean(only) && !only.endsWith(':') && !only.endsWith('/')
-      const open = explicit === undefined ? budget > 0 || fileFocus : explicit
-      if (!open && explicit === undefined) collapsedForRoom += 1
-      const full = fileFocus || state.allFull[key] === true
-      const cap = full ? DIFF_MAX_LINES : explicit === true ? DIFF_AUTO_ROWS : Math.max(0, Math.min(DIFF_AUTO_ROWS, budget))
-      if (!open && explicit === undefined) {
-        const letter = letterOf(entry, plane)
-        body.push(
-          Box({
-            key: key + '#cr',
-            flexDirection: 'row',
-            columnGap: 1,
-            children: [
-              Button({
-                key: key + '#h',
-                label: '▸ ' + clipPath(entry.path, pathWidth).padEnd(pathWidth) + ' ' + letter,
-                plain: true,
-                onPress: () => {
-                  state.allOpen[key] = true
-                  focusOn($, key)
-                },
-              }),
-              ...(isDocPath(entry.path)
-                ? [Button({ key: key + '#o', label: 'Doc', onPress: () => openDocFromChanges($, entry.path, state.view) })]
-                : []),
-            ],
-          }),
-        )
+      const open = diffIsOpen(key)
+      add(() => fileHeader($, c, entry, plane, open, pathWidth))
+      if (!open) continue
+      if (!diff) {
+        add(() => Text({ key: key + '#r', dimColor: true, children: '   Reading diff…' }))
         continue
       }
-      body.push(fileHeader($, c, entry, plane, open, pathWidth))
-      if (open && diff) {
-        if (diff.note) body.push(Text({ key: key + '#n', dimColor: true, children: diff.note }))
-        const rowCap = Math.max(cap, 20)
-        body.push(
-          ...diffRows(
-            c,
-            diff,
-            key + '#',
-            rowCap,
-            full
-              ? null
-              : () => {
-                  state.allFull[key] = true
-                  redraw()
-                },
-          ),
+      const lines = shownLines(key, diff)
+      items.push(...diffNoteItems(c, key + '#n', diff), ...terminalDiffItems(c, lines, key + '#', columnWidth))
+      const hidden = diff.lines.length - lines.length
+      if (hidden > 0) {
+        items.push(
+          moreLinesItem(c, key + '#more', hidden, () => {
+            state.allFull[key] = true
+            redraw()
+          }),
         )
-        if (!full) budget -= Math.min(diff.lines.length, rowCap)
       }
     }
-    body.push(Text({ key: 'dg-' + plane, children: ' ' }))
+    add(() => Text({ key: 'dg-' + plane, children: ' ' }))
   }
-  if (collapsedForRoom && !only) {
-    body.unshift(
-      Text({
-        key: 'dc-collapsed',
-        dimColor: true,
-        wrap: 'truncate-end',
-        children: collapsedForRoom + ' files collapsed to save room · press a name to open',
-      }),
-    )
-  }
-  return { body, any }
+  return { items, any }
 }
 
 const changeFileView = ($, c) => {
@@ -603,7 +594,11 @@ const changeFileView = ($, c) => {
         ? Text({ dimColor: true, children: 'Reading diff…' })
         : Box({
             flexDirection: 'column',
-            children: [...(diff.note ? [Text({ key: 'cf-note', dimColor: true, children: diff.note })] : []), ...diffRows(c, diff, 'l')],
+            children: windowedRows(
+              c,
+              [...diffNoteItems(c, 'cf-note', diff), ...terminalDiffItems(c, diff.lines, 'l', paneColumns(c.e) - 2)],
+              3,
+            ),
           }),
     ],
   })
@@ -611,25 +606,18 @@ const changeFileView = ($, c) => {
 
 const changeAllView = ($, c) => {
   const { Box, Text, Button, goto } = c
-  const shown = allDiffBody($, c, '')
+  const focus = activeFocus()
+  const shown = allDiffItems($, c, focus, false)
+  const status = state.allLoaded || !state.allStatus ? [] : [Text({ key: 'ca-status', dimColor: true, children: 'Diffs: ' + state.allStatus })]
   return Box({
     flexDirection: 'column',
     children: [
       Button({ key: 'ca-back', label: '< Back', hotkey: 'b', autoFocus: true, onPress: () => goto('changes') }),
-      Text({ bold: true, children: 'All changes' }),
-      ...(state.allTooMany
-        ? [
-            Text({
-              key: 'ca-toomany',
-              dimColor: true,
-              wrap: 'truncate-end',
-              children: 'Diffs shown for the first ' + state.allCap + ' of ' + state.allTotal + ' files',
-            }),
-          ]
-        : []),
+      Text({ bold: true, children: focusTitle(focus) }),
+      ...status,
       shown.any
-        ? Box({ flexDirection: 'column', children: shown.body })
-        : Text({ dimColor: true, children: state.allLoaded ? 'Nothing changed.' : 'Reading diffs…' }),
+        ? Box({ key: 'ca-list', flexDirection: 'column', children: windowedRows(c, shown.items, 2 + status.length) })
+        : Text({ dimColor: true, children: noDiffsText() }),
     ],
   })
 }

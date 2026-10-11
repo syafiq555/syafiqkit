@@ -1,6 +1,6 @@
 const runGit = async ($, args) => {
   try {
-    const ran = await $.process.run(['git', ...args], { cwd: state.changes.repo, env: LITERAL_PATHS })
+    const ran = await gitRun($, ['git', ...args], { cwd: state.changes.repo, env: LITERAL_PATHS })
     if (ran.exitCode !== 0) {
       $.ui.toast('git ' + args[0] + ' failed: ' + (ran.stderr || ran.stdout).trim().slice(0, 100))
       return false

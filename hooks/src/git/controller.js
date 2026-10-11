@@ -39,34 +39,32 @@ const loadAllDiffs = async ($, force = false) => {
   const root = state.repoRoot
   const repo = state.changes.repo
   const sizes = numstatOf(state.changes.raw)
+  const focus = activeFocus()
   const wanted = []
   for (const plane of ['worktree', 'staged']) {
     for (const entry of sectionEntries(state.changes.entries, plane)) {
-      if (!entryInFocus(state.changeFocus, plane, entry)) continue
-      wanted.push({ plane, entry, key: plane + ':' + entry.path, sig: signatureOf(entry, sizes) })
+      const key = plane + ':' + entry.path
+      if (!entryInFocus(focus, plane, entry) || !diffIsOpen(key)) continue
+      wanted.push({ plane, entry, key, sig: signatureOf(entry, sizes) })
     }
   }
-  const cap = state.changeFocus ? MAX_FOCUSED_FILES : MAX_STACKED_FILES
-  state.allTotal = wanted.length
-  state.allCap = cap
-  state.allTooMany = wanted.length > cap
-  if (state.allTooMany) wanted.length = cap
   const stale = wanted.filter((target) => force || !target.sig || !state.allDiffs[target.key] || state.allSig[target.key] !== target.sig)
-  for (let at = 0; at < stale.length; at += DIFF_BATCH) {
-    const batch = await Promise.all(
-      stale.slice(at, at + DIFF_BATCH).map(async (target) => ({
-        key: target.key,
-        sig: target.sig,
-        diff: await readDiff($, repo, fileTargets(target.entry), target.plane),
-      })),
-    )
-    if (root !== state.repoRoot) return
-    for (const item of batch) {
-      state.allDiffs[item.key] = item.diff
-      state.allSig[item.key] = item.sig
-    }
-    redrawPane($)
+  const untrackedLast = [...stale.filter((target) => target.entry.y !== '?'), ...stale.filter((target) => target.entry.y === '?')]
+  for (const [index, target] of untrackedLast.entries()) {
     if (generation !== state.diffGen) return
+    if (!force && target.sig && state.allDiffs[target.key] && state.allSig[target.key] === target.sig) continue
+    state.allStatus = 'reading ' + (index + 1) + ' of ' + untrackedLast.length + ': ' + nameOf(target.entry.path)
+    if (index === 0) redrawPane($)
+    const diff = await readDiff($, repo, fileTargets(target.entry), target.plane)
+    if (root !== state.repoRoot) return
+    state.allDiffs[target.key] = diff
+    state.allSig[target.key] = target.sig
+    if (generation !== state.diffGen) {
+      redrawPane($)
+      return
+    }
+    state.allStatus = wanted.filter((item) => state.allDiffs[item.key]).length + ' of ' + wanted.length + ' read'
+    if ((index + 1) % DIFF_BATCH === 0 || index < 3) redrawPane($)
   }
   state.allLoaded = true
 }
@@ -174,15 +172,23 @@ const showHiddenRepos = async ($) => {
 
 const showsAllDiffs = () => state.view === 'change-all' || state.view === 'changes'
 
-const openChangeAll = async ($) => {
+const openChangeAll = ($, focus = '') => {
   state.view = 'change-all'
-  state.changeFocus = ''
+  state.changeFocus = focus
   state.allDiffs = {}
   state.allOpen = {}
+  state.allScroll = { view: '', offset: 0, body: state.allScroll.body }
   state.allLoaded = false
+  state.allStatus = 'starting'
   redrawPane($)
-  await loadAllDiffs($)
-  redrawPane($)
+  loadAllDiffs($).then(
+    () => redrawPane($),
+    (error) => {
+      state.allStatus = 'failed: ' + String((error && error.message) || error)
+      modLog($, 'all diffs: ' + state.allStatus.slice(0, 200))
+      redrawPane($)
+    },
+  )
 }
 
 const refreshChanges = async ($) => {
@@ -222,6 +228,7 @@ const watchChanges = ($) => {
 const enterChanges = async ($) => {
   stopWatch()
   state.view = 'changes'
+  state.allScroll = { view: '', offset: 0, body: state.allScroll.body }
   state.current = null
   state.error = ''
   state.selected = []
@@ -261,6 +268,7 @@ const showFileDiff = async ($, file, back) => {
   state.changeDiff = null
   state.diffBack = back
   state.view = 'change-file'
+  state.allScroll = { view: '', offset: 0, body: state.allScroll.body }
   redrawPane($)
   const diff = await readDiff($, file.cwd, file.paths, file.plane)
   if (state.changeFile !== file) return
@@ -389,6 +397,15 @@ const toggleStageFocused = async ($) => {
   else await stageThese($, paths)
   const other = plane === 'staged' ? 'worktree' : 'staged'
   focusOn($, sectionEntries(state.changes.entries, other).some(covers) ? other + ':' + path : '')
+}
+
+const toggleStageFolder = async ($, plane, path) => {
+  const paths = sectionEntries(state.changes.entries, plane)
+    .filter((entry) => entry.path.startsWith(path))
+    .flatMap(plane === 'staged' ? fileTargets : stageTargets)
+  if (!paths.length) return
+  if (plane === 'staged') await unstageThese($, paths)
+  else await stageThese($, paths)
 }
 
 const askDiscard = ($, entry) => {

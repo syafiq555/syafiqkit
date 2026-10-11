@@ -5,7 +5,7 @@ const repoNameOf = (root) => root.slice(root.lastIndexOf('/') + 1) || root
 
 const topLevelOf = async ($, cwd) => {
   try {
-    const ran = await $.process.run(['git', 'rev-parse', '--show-toplevel'], { cwd })
+    const ran = await gitRun($, ['git', 'rev-parse', '--show-toplevel'], { cwd })
     return ran.exitCode === 0 ? ran.stdout.trim() : ''
   } catch {
     return ''
@@ -31,7 +31,7 @@ const visibleRepos = () =>
 
 const countRepoChanges = async ($, root) => {
   try {
-    const ran = await $.process.run(['git', '--no-optional-locks', 'status', '--porcelain=v1', '-z', '-unormal'], { cwd: root })
+    const ran = await gitRun($, ['git', '--no-optional-locks', 'status', '--porcelain=v1', '-z', '-unormal'], { cwd: root })
     return ran.exitCode === 0 ? parseStatus(ran.stdout).length : 0
   } catch {
     return 0

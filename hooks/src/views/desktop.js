@@ -1,0 +1,707 @@
+const STATUS_TONE = { M: 'mod', A: 'add', U: 'add', D: 'del', R: 'ren', C: 'del' }
+
+const lineCountOf = (sizes, entry, key) => {
+  const diff = state.allDiffs[key]
+  if (diff) return { added: diff.added, removed: diff.removed }
+  const size = sizes[entry.path]
+  if (!size || size.startsWith('-')) return { added: 0, removed: 0 }
+  const [added, removed] = size.split('/').map(Number)
+  return { added: added || 0, removed: removed || 0 }
+}
+
+const statusChip = (c, key, letter) =>
+  c.Box({ key, width: 3, flexShrink: 0, children: [chip(c, key + 't', letter, STATUS_TONE[letter] || 'muted')] })
+
+const shortFolder = (path) => {
+  const parts = folderOfPath(path).split('/').filter(Boolean)
+  return parts.length > 2 ? '…/' + parts.slice(-2).join('/') : parts.join('/')
+}
+
+const folderOfPath = (path) => {
+  const cut = path.lastIndexOf('/')
+  return cut < 0 ? '' : path.slice(0, cut)
+}
+
+const changeMap = ($, c, sizes) => {
+  const { Box, Text } = c
+  const files = []
+  for (const plane of ['staged', 'worktree']) {
+    for (const entry of orderedFiles(plane)) {
+      const key = plane + ':' + entry.path
+      const lines = lineCountOf(sizes, entry, key)
+      files.push({ plane, entry, key, ...lines, weight: Math.max(1, Math.round(Math.log2(lines.added + lines.removed + 2))) })
+    }
+  }
+  if (!files.length) return []
+  let shown = files
+  let total = shown.reduce((sum, file) => sum + file.weight, 0)
+  while (total > DESKTOP_MAP_CELLS && shown.some((file) => file.weight > 1)) {
+    shown = shown.map((file) => ({ ...file, weight: Math.max(1, file.weight - 1) }))
+    total = shown.reduce((sum, file) => sum + file.weight, 0)
+  }
+  const extra = Math.max(0, shown.length - DESKTOP_MAP_CELLS)
+  if (extra) shown = shown.slice(0, DESKTOP_MAP_CELLS)
+  return [
+    Box({
+      key: 'map',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      columnGap: 0,
+      children: [
+        ...shown.map((file) =>
+          mapBlock(c, {
+            key: 'map-' + file.key,
+            scope: hoverScope(file.key),
+            added: file.added,
+            removed: file.removed,
+            cells: file.weight,
+            onPress: () => openChangeFile($, file.entry, file.plane, 'changes'),
+          }),
+        ),
+        ...(extra ? [Text({ key: 'map-more', dimColor: true, children: ' +' + extra })] : []),
+      ],
+    }),
+  ]
+}
+
+const desktopChangesView = ($, c) => {
+  const { Box, Text, Button, Input, redraw, bindField } = c
+  const ch = state.changes
+  state.wide = false
+  const sizes = numstatOf(ch.raw || '')
+  const roots = visibleRepos()
+  const stacked = roots.length > 1
+  const hiddenCount = Object.keys(state.repoHidden).length
+  let totalAdded = 0
+  let totalRemoved = 0
+  for (const plane of ['staged', 'worktree']) {
+    for (const entry of sectionEntries(ch.entries, plane)) {
+      const lines = lineCountOf(sizes, entry, plane + ':' + entry.path)
+      totalAdded += lines.added
+      totalRemoved += lines.removed
+    }
+  }
+
+  const fileRow = (row, plane, index) => {
+    const entry = row.entry
+    const letter = letterOf(entry, plane)
+    const key = plane + ':' + entry.path
+    const lines = lineCountOf(sizes, entry, key)
+    const indent = row.depth * 2
+    return Box({
+      key: 'r-' + plane + '-' + index,
+      height: 1,
+      flexShrink: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      columnGap: 1,
+      paddingLeft: 1 + indent,
+      paddingRight: 1,
+      hover: { scope: hoverScope(key), backgroundColor: DESKTOP_TONE.stripHot },
+      children: [
+        statusChip(c, 'r-' + plane + '-' + index + 's', letter),
+        Box({
+          key: 'r-' + plane + '-' + index + 'n',
+          flexGrow: 1,
+          flexShrink: 1,
+          children: [
+            Button({
+              key: 'r-' + plane + '-' + index + 'b',
+              plain: true,
+              label: nameOf(entry.path) + (entry.orig ? ' ← ' + nameOf(entry.orig) : ''),
+              onPress: () => openChangeFile($, entry, plane, 'changes'),
+            }),
+          ],
+        }),
+        counts(c, 'r-' + plane + '-' + index + 'c', lines.added, lines.removed),
+      ],
+    })
+  }
+
+  const folderRow = (row, plane, index) => {
+    const collapse = () => {
+      state.changesCollapsed[row.key] = row.open
+      redraw()
+    }
+    const key = 'd-' + plane + '-' + index
+    return Box({
+      key,
+      height: 1,
+      flexShrink: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      columnGap: 1,
+      paddingLeft: 1 + row.depth * 2,
+      paddingRight: 1,
+      children: [
+        Box({
+          key: key + 'n',
+          flexGrow: 1,
+          flexShrink: 1,
+          children: [Button({ key: key + 'b', plain: true, label: (row.open ? '▾ ' : '▸ ') + row.label + '/', onPress: collapse })],
+        }),
+        Text({ key: key + 'c', dimColor: true, children: String(row.count) }),
+        Button({ key: key + 'v', label: 'view ›', plain: true, onPress: () => openChangeAll($, plane + ':' + row.dirPath) }),
+        Button({ key: key + 's', label: plane === 'staged' ? 'unstage' : 'stage', plain: true, onPress: () => toggleStageFolder($, plane, row.dirPath) }),
+      ],
+    })
+  }
+
+  const section = (plane) => {
+    const entries = sectionEntries(ch.entries, plane)
+    const closed = Boolean(state.changesCollapsed['sec:' + plane])
+    const staged = plane === 'staged'
+    const header = () =>
+      strip(c, {
+        key: 'sec-' + plane,
+        title: (closed ? '▸ ' : '▾ ') + (staged ? 'STAGED' : 'CHANGES'),
+        count: entries.length,
+        onPress: () => {
+          state.changesCollapsed['sec:' + plane] = !closed
+          redraw()
+        },
+        right: entries.length
+          ? [
+              Button({ key: 'sec-' + plane + '-view', label: 'view ›', onPress: () => openChangeAll($, plane + ':') }),
+              Button({
+                key: 'sec-' + plane + '-all',
+                label: staged ? 'Unstage all' : 'Stage all',
+                hotkey: staged ? 'u' : 'a',
+                ...(staged ? {} : { variant: 'primary' }),
+                onPress: () => (staged ? unstageEverything($) : stageEverything($)),
+              }),
+            ]
+          : [],
+      })
+    const items = [{ height: DESKTOP_STRIP_ROWS, make: () => Box({ key: 'sec-' + plane + '-w', height: DESKTOP_STRIP_ROWS, flexShrink: 0, flexDirection: 'column', justifyContent: 'center', children: [header()] }) }]
+    if (closed) return items
+    if (!entries.length) {
+      items.push({ height: 1, make: () => Text({ key: plane + '-none', dimColor: true, children: '  Nothing ' + (staged ? 'staged' : 'unstaged') + '.' }) })
+    }
+    treeRows(entries, plane, state.changesCollapsed).forEach((row, index) =>
+      items.push({ height: 1, make: () => (row.kind === 'dir' ? folderRow(row, plane, index) : fileRow(row, plane, index)) }),
+    )
+    return items
+  }
+
+  const body = () => {
+    if (ch.error) return [Text({ key: 'ch-err', color: 'error', children: ch.error })]
+    if (!ch.loaded) return [Text({ key: 'ch-loading', dimColor: true, children: 'Reading git status…' })]
+    if (!ch.entries.length) return [Text({ key: 'ch-clean', dimColor: true, children: 'Nothing changed. Edits Claude makes appear here.' })]
+    const top = DESKTOP_PAGE_BAR_ROWS + DESKTOP_STRIP_ROWS + DESKTOP_MAP_ROWS + (stacked ? roots.length * DESKTOP_STRIP_ROWS : 0)
+    return [
+      ...changeMap($, c, sizes),
+      Box({ key: 'ch-rows', flexDirection: 'column', children: windowedRows(c, [...section('staged'), ...section('worktree')], top) }),
+    ]
+  }
+
+  const repoStrip = (root) => {
+    const active = root === state.repoRoot
+    const count = active ? ch.entries.length : state.repoCounts[root]
+    return strip(c, {
+      key: 'repo-' + root,
+      title: (active ? '● ' : '○ ') + repoNameOf(root),
+      count,
+      hot: active,
+      onPress: () => selectRepo($, root),
+      right: [Button({ key: 'repo-x-' + root, label: '✕', plain: true, onPress: () => removeRepo($, root) })],
+    })
+  }
+
+  return Box({
+    flexDirection: 'column',
+    rowGap: 1,
+    children: [
+      pageBar(c, {
+        back: { key: 'ch-close', label: '< Close', hotkey: 'b', onPress: () => closePane($) },
+        actions: [
+          { key: 'ch-all', label: 'All diffs', hotkey: 'v', primary: true, onPress: () => openChangeAll($) },
+          { key: 'ch-refresh', label: 'Refresh', hotkey: 'r', onPress: () => refreshRepoList($).then(() => refreshChanges($)) },
+          {
+            key: 'ch-add',
+            label: 'Add repo',
+            hotkey: 'g',
+            onPress: () => {
+              state.repoForm = !state.repoForm
+              state.repoNote = ''
+              redraw()
+            },
+          },
+          ...(hiddenCount ? [{ key: 'ch-unhide', label: hiddenCount + ' hidden · show', onPress: () => showHiddenRepos($) }] : []),
+        ],
+      }),
+      ...(state.repoForm
+        ? [
+            Input({
+              key: 'repo-path',
+              label: 'Repo',
+              placeholder: 'folder of a git repo, e.g. ~/code/app (Remove only forgets it)',
+              value: state.repoPath,
+              autoFocus: true,
+              onInput: bindField('repoPath'),
+              onSubmit: (value) => addRepo($, typeof value === 'string' && value.trim() ? value : state.repoPath),
+            }),
+          ]
+        : []),
+      ...(state.repoNote ? [Text({ key: 'repo-note', color: 'error', children: state.repoNote })] : []),
+      Box({
+        key: 'ch-head',
+        flexDirection: 'row',
+        alignItems: 'center',
+        columnGap: 2,
+        children: [
+          Text({ key: 'ch-title', bold: true, wrap: 'truncate-start', children: ch.repo ? repoNameOf(ch.repo) : 'Changes' }),
+          Text({ key: 'ch-files', dimColor: true, children: ch.entries.length + (ch.entries.length === 1 ? ' file' : ' files') }),
+          counts(c, 'ch-counts', totalAdded, totalRemoved),
+        ],
+      }),
+      Box({
+        key: 'ch-body',
+        flexDirection: 'column',
+        children: stacked
+          ? roots.flatMap((root) => [repoStrip(root), ...(root === state.repoRoot ? body() : [])])
+          : body(),
+      }),
+    ],
+  })
+}
+
+const desktopDiffRow = (c, line, key, width) => {
+  const { Box, Text } = c
+  if (line.kind === 'gap') {
+    return Box({
+      key,
+      height: 1,
+      flexShrink: 0,
+      paddingLeft: width + 3,
+      backgroundColor: DESKTOP_TONE.gapRow,
+      children: [Text({ dimColor: true, wrap: 'truncate', children: '⋯ ' + line.hidden + ' unchanged lines' })],
+    })
+  }
+  const isAdd = line.kind === 'add'
+  const isDel = line.kind === 'del'
+  const word = isAdd ? DESKTOP_DIFF.addedWord : DESKTOP_DIFF.removedWord
+  const body = line.span
+    ? Text({
+        children: [
+          ...(line.span[0] > 0 ? [Text({ key: key + 'wa', children: line.text.slice(0, line.span[0]) })] : []),
+          Text({ key: key + 'wb', backgroundColor: word, children: line.text.slice(line.span[0], line.span[1]) || ' ' }),
+          ...(line.span[1] < line.text.length ? [Text({ key: key + 'wc', children: line.text.slice(line.span[1]) })] : []),
+        ],
+      })
+    : Text({ children: line.text || ' ' })
+  return Box({
+    key,
+    flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    ...(isAdd || isDel ? { backgroundColor: isAdd ? DESKTOP_DIFF.added : DESKTOP_DIFF.removed } : {}),
+    children: [
+      Text({
+        key: key + 'g',
+        children: [
+          Text({ key: key + 'n', dimColor: true, children: String(isDel ? line.oldNo : line.newNo).padStart(width) + ' ' }),
+          Text({ key: key + 's', color: isAdd ? 'success' : isDel ? 'error' : undefined, children: (isAdd ? '+' : isDel ? '−' : ' ') + ' ' }),
+        ],
+      }),
+      body,
+    ],
+  })
+}
+
+const loadOneDiff = async ($, entry, plane) => {
+  const key = plane + ':' + entry.path
+  const root = state.repoRoot
+  const diff = await readDiff($, state.changes.repo, fileTargets(entry), plane)
+  if (root !== state.repoRoot) return
+  state.allDiffs[key] = diff
+  redrawPane($)
+}
+
+const windowedRows = (c, items, topRows) => {
+  const view = state.allScroll
+  const bodyRows = view.body || WINDOW_ROWS
+  const total = items.reduce((sum, item) => sum + item.height, 0)
+  const offset = view.view === state.view ? Math.min(view.offset, Math.max(0, topRows + total - bodyRows)) : 0
+  state.windowAt = offset
+  const from = offset - topRows - Math.ceil(bodyRows / 2)
+  const to = offset - topRows + Math.ceil(bodyRows * 1.5)
+  let y = 0
+  let above = 0
+  let below = 0
+  const drawn = []
+  for (const item of items) {
+    const end = y + item.height
+    if (end <= from) above += item.height
+    else if (y >= to) below += item.height
+    else drawn.push(item.make())
+    y = end
+  }
+  const spacer = (key, height) => (height ? [c.Box({ key, height, flexShrink: 0 })] : [])
+  return [...spacer('w-above', above), ...drawn, ...spacer('w-below', below)]
+}
+
+const desktopGroups = (focus) =>
+  ['worktree', 'staged']
+    .map((plane) => ({ plane, files: orderedFiles(plane).filter((entry) => entryInFocus(focus, plane, entry)) }))
+    .filter((group) => group.files.length)
+
+const desktopFileStrip = ($, c, entry, plane, diff, toggle) => {
+  const { Button } = c
+  const key = plane + ':' + entry.path
+  const staged = plane === 'staged'
+  return c.Box({
+    key: key + '#hd',
+    height: DESKTOP_STRIP_ROWS,
+    flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: 1,
+    paddingX: 1,
+    backgroundColor: DESKTOP_TONE.strip,
+    hover: { scope: hoverScope(key), backgroundColor: DESKTOP_TONE.stripHot },
+    children: [
+      statusChip(c, key + '#l', letterOf(entry, plane)),
+      c.Box({
+        key: key + '#p',
+        flexGrow: 1,
+        flexShrink: 1,
+        flexDirection: 'row',
+        columnGap: 1,
+        children: [
+          Button({ key: key + '#h', plain: true, label: nameOf(entry.path), onPress: () => openChangeFile($, entry, plane, state.view) }),
+          c.Text({ key: key + '#f', dimColor: true, wrap: 'truncate-start', children: shortFolder(entry.path) }),
+        ],
+      }),
+      ...(diff ? [counts(c, key + '#c', diff.added, diff.removed)] : []),
+      ...(toggle ? [Button({ key: key + '#t', label: toggle.open ? 'Hide' : 'Show diff ›', onPress: toggle.onPress })] : []),
+      Button({
+        key: key + '#m',
+        label: staged ? 'Unstage' : 'Stage',
+        onPress: () => (staged ? unstageThese($, fileTargets(entry)) : stageThese($, stageTargets(entry))),
+      }),
+      ...(staged ? [] : [Button({ key: key + '#d', label: 'Discard', onPress: () => askDiscard($, entry) })]),
+      ...(isDocPath(entry.path) ? [Button({ key: key + '#o', label: 'Doc', onPress: () => openDocFromChanges($, entry.path, state.view) })] : []),
+    ],
+  })
+}
+
+const desktopChangeAllView = ($, c) => {
+  const { Box, Text, goto, redraw } = c
+  const focus = activeFocus()
+  const groups = desktopGroups(focus)
+  const fileCount = groups.reduce((sum, group) => sum + group.files.length, 0)
+  const items = []
+  const add = (height, make) => items.push({ height, make })
+  for (const group of groups) {
+    if (!focus || groups.length > 1) {
+      const title = (group.plane === 'staged' ? 'STAGED' : 'CHANGES') + '  ' + group.files.length
+      add(2, () => Box({ key: 'dg-' + group.plane, height: 2, flexShrink: 0, alignItems: 'flex-end', children: [Text({ bold: true, children: title })] }))
+    }
+    for (const entry of group.files) {
+      const key = group.plane + ':' + entry.path
+      const diff = state.allDiffs[key]
+      const open = diffIsOpen(key)
+      const toggle = {
+        open,
+        onPress: () => {
+          state.allOpen[key] = !open
+          redraw()
+          if (!open && !diff) loadOneDiff($, entry, group.plane)
+        },
+      }
+      add(DESKTOP_STRIP_ROWS, () => desktopFileStrip($, c, entry, group.plane, diff, toggle))
+      if (!open) continue
+      if (!diff) {
+        add(1, () => Text({ key: key + '#r', dimColor: true, wrap: 'truncate', children: state.allLoaded ? 'Diff not read' : 'Reading diff…' }))
+        continue
+      }
+      const shown = shownLines(key, diff)
+      items.push(...diffNoteItems(c, key + '#n', diff), ...desktopDiffItems(c, shown, key + '#'))
+      const hidden = diff.lines.length - shown.length
+      if (hidden > 0) {
+        items.push(
+          moreLinesItem(c, key + '#more', hidden, () => {
+            state.allFull[key] = true
+            redraw()
+          }),
+        )
+      }
+    }
+  }
+  const reading = state.allLoaded || !state.allStatus ? '' : 'Reading diffs · ' + state.allStatus
+  return Box({
+    flexDirection: 'column',
+    rowGap: 1,
+    children: [
+      pageBar(c, {
+        back: { key: 'ca-back', label: '< Back', hotkey: 'b', onPress: () => goto('changes') },
+        actions: focus ? [{ key: 'ca-all', label: 'Show all', hotkey: 'v', onPress: () => openChangeAll($) }] : [],
+        title: focusTitle(focus) + ' · ' + fileCount + (fileCount === 1 ? ' file' : ' files'),
+        sub: reading,
+      }),
+      items.length
+        ? Box({ key: 'ca-list', flexDirection: 'column', children: windowedRows(c, items, DESKTOP_PAGE_BAR_ROWS) })
+        : Text({ key: 'ca-empty', dimColor: true, children: noDiffsText() }),
+    ],
+  })
+}
+
+const desktopDiffItems = (c, lines, prefix) => {
+  const width = lineNumberWidth(lines)
+  return lines.map((line, index) => ({
+    height: line.kind === 'gap' ? 1 : Math.max(1, Math.ceil(line.text.length / DESKTOP_WRAP_CHARS)),
+    make: () => desktopDiffRow(c, line, prefix + index, width),
+  }))
+}
+
+const desktopChangeFileView = ($, c) => {
+  const { Box, Text, goto } = c
+  const file = state.changeFile
+  if (!file) return desktopChangesView($, c)
+  const diff = state.changeDiff
+  const files = file.entry && state.diffBack === 'changes' ? orderedFiles(file.plane) : []
+  const at = files.findIndex((entry) => entry.path === file.path)
+  const staged = file.plane === 'staged'
+  const step = (key, label, hotkey, target) => ({ key, label, hotkey, onPress: () => openChangeFile($, target, file.plane, state.diffBack) })
+  return Box({
+    flexDirection: 'column',
+    rowGap: 1,
+    children: [
+      pageBar(c, {
+        back: { key: 'cf-back', label: '< Back', hotkey: 'b', onPress: () => goto(state.diffBack) },
+        actions: [
+          ...(at > 0 ? [step('cf-prev', '‹ Prev', 'p', files[at - 1])] : []),
+          ...(at >= 0 && at < files.length - 1 ? [step('cf-next', 'Next ›', 'n', files[at + 1])] : []),
+          ...(file.entry ? [{ key: 'cf-stage', label: staged ? 'Unstage' : 'Stage', hotkey: 's', primary: !staged, onPress: () => toggleStageOpenFile($) }] : []),
+          ...(file.entry && !staged ? [{ key: 'cf-discard', label: 'Discard', hotkey: 'd', onPress: () => askDiscard($, file.entry) }] : []),
+          ...(file.entry && isDocPath(file.path)
+            ? [{ key: 'cf-doc', label: 'Open doc', hotkey: 'o', onPress: () => openDocFromChanges($, file.path, 'change-file') }]
+            : []),
+        ],
+      }),
+      Box({
+        key: 'cf-head',
+        height: DESKTOP_STRIP_ROWS,
+        flexShrink: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        columnGap: 1,
+        paddingX: 1,
+        backgroundColor: DESKTOP_TONE.strip,
+        children: [
+          ...(file.entry ? [statusChip(c, 'cf-l', letterOf(file.entry, file.plane))] : []),
+          Text({ key: 'cf-name', bold: true, children: nameOf(file.path) }),
+          Box({ key: 'cf-fold', flexGrow: 1, flexShrink: 1, children: [Text({ dimColor: true, wrap: 'truncate-start', children: folderOfPath(file.path) })] }),
+          ...(diff ? [counts(c, 'cf-c', diff.added, diff.removed)] : []),
+          Text({ key: 'cf-plane', dimColor: true, children: PLANE_LABEL[file.plane] + (at >= 0 ? ' · ' + (at + 1) + ' of ' + files.length : '') }),
+        ],
+      }),
+      !diff
+        ? Text({ key: 'cf-reading', dimColor: true, children: 'Reading diff…' })
+        : Box({
+            key: 'cf-rows',
+            flexDirection: 'column',
+            children: windowedRows(c, [...diffNoteItems(c, 'cf-note', diff), ...desktopDiffItems(c, diff.lines, 'l')],DESKTOP_PAGE_BAR_ROWS + DESKTOP_STRIP_ROWS + 1),
+          }),
+    ],
+  })
+}
+
+const docGauge = (doc) => {
+  if (typeof doc.lines === 'number') {
+    const max = isInstructionFile(doc) ? CLAUDE_MD_MAX_LINES : TASK_DOC_MAX_LINES
+    return { value: doc.lines, max, label: doc.lines + '/' + max }
+  }
+  return { value: doc.size || 0, max: CLAUDE_MD_MAX_BYTES, label: kb(doc.size || 0) }
+}
+
+const desktopDocRow = (c, doc, key, withScope, indent) => {
+  const { Box, Text, Button, pickAction } = c
+  const heavy = isHeavy(doc)
+  const gauge = docGauge(doc)
+  const decisionsHeavy = oversizedDecisions(doc).length
+  return Box({
+    key,
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: 1,
+    paddingLeft: indent ? 3 : 1,
+    paddingRight: 1,
+    hover: { backgroundColor: DESKTOP_TONE.stripHot },
+    children: [
+      Box({
+        key: key + 'n',
+        width: indent ? 22 : 24,
+        flexShrink: 0,
+        children: [Button({ key: key + 'b', label: doc.name || doc.label, plain: true, onPress: () => pickAction(doc) })],
+      }),
+      Box({ key: key + 'g', width: 9, flexShrink: 0, children: [meter(c, key + 'm', gauge.value, gauge.max, 8)] }),
+      Box({
+        key: key + 'l',
+        width: 10,
+        flexShrink: 0,
+        paddingLeft: 1,
+        children: [Text({ key: key + 'lt', color: heavy ? 'warning' : undefined, dimColor: !heavy, children: gauge.label })],
+      }),
+      Box({ key: key + 'a', width: 9, flexShrink: 0, children: [Text({ dimColor: true, children: agoOf(state.now, doc.mtime) })] }),
+      Box({
+        key: key + 't',
+        flexGrow: 1,
+        flexShrink: 1,
+        flexDirection: 'row',
+        columnGap: 1,
+        children: [
+          ...(decisionsHeavy ? [chip(c, key + 'dc', '⚠ decisions', 'warn')] : []),
+          ...(withScope && doc.scope ? [Text({ key: key + 's', dimColor: true, wrap: 'truncate-end', children: doc.scope })] : []),
+          ...(doc.status ? [Text({ key: key + 'st', wrap: 'truncate-end', children: doc.status })] : []),
+        ],
+      }),
+    ],
+  })
+}
+
+const MENU_GROUPS = [
+  { title: 'SHIP WORK', labels: ['Commit', 'Commit and push', 'Done', 'Ship'] },
+  { title: 'DOCS', labels: ['Read a task doc', 'Shrink a doc', 'Refresh a doc', 'Merge docs'] },
+  { title: 'SESSION', labels: ['Hand off', 'Changes', 'Images'] },
+]
+
+const desktopMenuView = ($, c) => {
+  const { Box, Text, Button } = c
+  const rows = []
+  MENU_GROUPS.forEach((group) => {
+    rows.push(Box({ key: 'mg-' + group.title, marginTop: rows.length ? 1 : 0, children: [strip(c, { key: 'mgs-' + group.title, title: group.title })] }))
+    group.labels.forEach((label) => {
+      const index = VERBS.findIndex((verb) => verb.label === label)
+      if (index < 0) return
+      const verb = VERBS[index]
+      rows.push(
+        Box({
+          key: 'v' + index,
+          flexDirection: 'row',
+          alignItems: 'center',
+          columnGap: 1,
+          paddingX: 1,
+          hover: { backgroundColor: DESKTOP_TONE.stripHot },
+          children: [
+            Box({
+              key: 'vn' + index,
+              width: 22,
+              flexShrink: 0,
+              children: [
+                Button({
+                  key: 'vb' + index,
+                  label: verb.label,
+                  ...(index < 9 ? { hotkey: String(index + 1) } : {}),
+                  plain: true,
+                  ...(index === 0 ? { autoFocus: true } : {}),
+                  onPress: () => runVerb($, c, verb),
+                }),
+              ],
+            }),
+            Box({ key: 'vh' + index, flexGrow: 1, flexShrink: 1, children: [Text({ dimColor: true, wrap: 'truncate-end', children: verb.hint })] }),
+            ...(verb.danger ? [chip(c, 'vd' + index, 'asks first', 'warn')] : []),
+          ],
+        }),
+      )
+    })
+  })
+  return Box({ flexDirection: 'column', children: [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' }), ...rows] })
+}
+
+let galleryPick = ''
+
+const pngBytes = (image) => (image.png ? Math.floor((image.png.length * 3) / 4) : 0)
+
+const desktopImagesView = ($, c) => {
+  const { Box, Text, Button, redraw } = c
+  const list = [...state.images].reverse()
+  const close = { key: 'img-close', label: '< Close', hotkey: 'b', onPress: () => closePane($) }
+  if (!list.length) {
+    return Box({
+      flexDirection: 'column',
+      rowGap: 1,
+      children: [pageBar(c, { back: close }), Text({ key: 'img-none', dimColor: true, children: 'No images yet. Ask Claude to show a screenshot and it appears here.' })],
+    })
+  }
+  if (galleryPick && !list.some((image) => image.path === galleryPick)) galleryPick = ''
+  const pick = (path) => {
+    galleryPick = path
+    redraw()
+  }
+  const chips = list.map((image, index) => {
+    const drawable = Boolean(svgPicture(image))
+    return Button({
+      key: 'img-pick-' + image.path,
+      label: String(index + 1) + ' · ' + (drawable ? kb(pngBytes(image)) : 'too big'),
+      variant: galleryPick === image.path ? 'primary' : 'secondary',
+      onPress: () => pick(galleryPick === image.path ? '' : image.path),
+    })
+  })
+  const shown = galleryPick ? list.filter((image) => image.path === galleryPick) : list
+  let room = DESKTOP_DRAW_CHARS
+  const fits = (image) => {
+    const picture = svgPicture(image)
+    const size = picture ? picture.source.length : 0
+    if (size > room) return false
+    room -= size
+    return true
+  }
+  return Box({
+    flexDirection: 'column',
+    rowGap: 1,
+    children: [
+      pageBar(c, {
+        back: close,
+        actions: [
+          {
+            key: 'img-clear',
+            label: 'Clear',
+            hotkey: 'c',
+            onPress: () => {
+              state.images = []
+              galleryPick = ''
+              redraw()
+            },
+          },
+        ],
+      }),
+      Box({
+        key: 'img-strip',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        columnGap: 1,
+        rowGap: 1,
+        children: [Button({ key: 'img-pick-all', label: 'All ' + list.length, variant: galleryPick ? 'secondary' : 'primary', onPress: () => pick('') }), ...chips],
+      }),
+      ...shown.map((image) =>
+        Box({
+          key: 'img-' + image.path,
+          flexDirection: 'column',
+          children: [
+            strip(c, {
+              key: 'img-h-' + image.path,
+              title: (list.indexOf(image) + 1) + '  ' + image.name,
+              right: [Button({ key: 'img-open-' + image.path, label: 'Open in viewer', onPress: () => openInViewer($, image.path) })],
+            }),
+            Text({
+              key: 'img-meta-' + image.path,
+              dimColor: true,
+              wrap: 'truncate-start',
+              children: [image.preview ? 'smaller copy, full size in the viewer' : '', image.caption, image.path].filter(Boolean).join(' · '),
+            }),
+            fits(image)
+              ? galleryPicture(c, image, true, 0)
+              : Button({
+                  key: 'img-room-' + image.path,
+                  plain: true,
+                  label: 'Not drawn with the others · press to show it alone',
+                  onPress: () => pick(image.path),
+                }),
+          ],
+        }),
+      ),
+    ],
+  })
+}

@@ -1,4 +1,5 @@
 const docRow = (c, doc, key, withScope, indent) => {
+  if (isDesktop(c.e)) return desktopDocRow(c, doc, key, withScope, indent)
   const { Box, Text, Button, pickAction } = c
   const heavy = isHeavy(doc)
   const pad = indent ? '  ' : ''
@@ -37,7 +38,11 @@ const taskFolders = (docs) => {
 const listView = (c) => {
   const { Box, Text, Button, Input, goto, redraw, bindField } = c
   const gap = (key) => Text({ key: 'gap-' + key, children: ' ' })
-  const header = (key, title) => Box({ key: 'sec-' + key, flexDirection: 'column', children: [gap(key), Text({ key, bold: true, children: title })] })
+  const desktop = isDesktop(c.e)
+  const header = (key, title) =>
+    desktop
+      ? Box({ key: 'sec-' + key, flexDirection: 'column', marginTop: 1, children: [strip(c, { key, title })] })
+      : Box({ key: 'sec-' + key, flexDirection: 'column', children: [gap(key), Text({ key, bold: true, children: title })] })
   const needle = state.filter.trim().toLowerCase()
   const rows = [
     Box({
@@ -135,6 +140,28 @@ const listView = (c) => {
     taskFolders(rest).forEach((folder) => {
       const open = !state.collapsed['dir:' + folder.name]
       const flagged = folder.docs.filter(isHeavy).length
+      const fold = () => {
+        state.collapsed['dir:' + folder.name] = open
+        redraw()
+      }
+      if (desktop) {
+        rows.push(
+          Box({
+            key: 'fold-' + folder.name,
+            flexDirection: 'row',
+            alignItems: 'center',
+            columnGap: 1,
+            paddingX: 1,
+            children: [
+              Button({ key: 'fold-' + folder.name + 'b', plain: true, label: (open ? '▾ ' : '▸ ') + folder.name, onPress: fold }),
+              Text({ key: 'fold-' + folder.name + 'c', dimColor: true, children: String(folder.docs.length) }),
+              ...(flagged ? [chip(c, 'fold-' + folder.name + 'w', '⚠ ' + flagged, 'warn')] : []),
+            ],
+          }),
+        )
+        if (open) folder.docs.forEach((doc) => rows.push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
+        return
+      }
       rows.push(
         Button({
           key: 'fold-' + folder.name,

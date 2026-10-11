@@ -37,3 +37,17 @@ const fitImage = (size, maxColumns) => {
   }
   return { columns, rows: Math.max(1, Math.min(rows, 255)) }
 }
+
+const svgOf = (data, mime, size) => {
+  const { width, height } = size || {}
+  if (!data || !width || !height) return null
+  const wide = Math.min(width, DESKTOP_PICTURE_WIDTH)
+  const high = Math.round((wide * height) / width)
+  const source =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + wide + '" height="' + high + '" viewBox="0 0 ' + wide + ' ' + high + '">' +
+    '<image href="data:image/' + mime + ';base64,' + data + '" width="' + wide + '" height="' + high + '"/></svg>'
+  if (source.length > DESKTOP_DRAW_CHARS) return null
+  return { source, width: wide, height: high }
+}
+
+const svgPicture = (image) => svgOf(image.png, 'png', image.size) || (image.preview ? svgOf(image.preview, 'jpeg', image.size) : null)

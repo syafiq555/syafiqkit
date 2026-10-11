@@ -1,7 +1,7 @@
 const gitState = async ($) => {
   try {
-    const status = await $.process.run(['git', '--no-optional-locks', 'status', '--porcelain'])
-    const head = await $.process.run(['git', 'rev-parse', '--short', 'HEAD'])
+    const status = await gitRun($, ['git', '--no-optional-locks', 'status', '--porcelain'])
+    const head = await gitRun($, ['git', 'rev-parse', '--short', 'HEAD'])
     return { uncommitted: status.stdout.split('\n').filter(Boolean).length, sha: head.stdout.trim() || 'none' }
   } catch {
     return { uncommitted: 0, sha: 'unknown' }
@@ -110,7 +110,7 @@ const summariseSession = async ($, messages, next) => {
 
 const branchOf = async ($) => {
   try {
-    return (await $.process.run(['git', 'branch', '--show-current'])).stdout.trim()
+    return (await gitRun($, ['git', 'branch', '--show-current'])).stdout.trim()
   } catch {
     return ''
   }

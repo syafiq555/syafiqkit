@@ -94,7 +94,8 @@ const docView = ($, c) => {
       return Text({ key: 't' + index, dimColor: true, children: '   ' + (part.done ? '[x] ' : '[ ] ') + part.text })
     }
     const diagram = state.diagrams[hashOf(part.source)]
-    if (!Image) return sourceOf(part.source, 's' + index)
+    const svgDiagram = isDesktop(e) && Boolean(c.Svg)
+    if (!Image && !svgDiagram) return sourceOf(part.source, 's' + index)
     if (!diagram || diagram.status === 'rendering') {
       return Text({ key: 'w' + index, dimColor: true, children: '… rendering diagram (the first run can take a minute)' })
     }
@@ -107,6 +108,17 @@ const docView = ($, c) => {
           sourceOf(part.source, 's' + index),
         ],
       })
+    }
+    if (svgDiagram) {
+      const drawn = svgPicture(diagram)
+      if (!drawn) {
+        return Box({
+          key: 'e' + index,
+          flexDirection: 'column',
+          children: [Text({ dimColor: true, children: 'Diagram too large for Desktop to draw; source below.' }), sourceOf(part.source, 's' + index)],
+        })
+      }
+      return Box({ key: 'g' + index, children: [c.Svg({ source: drawn.source, alt: 'Mermaid diagram', width: drawn.width, height: drawn.height })] })
     }
     const size = fitImage(diagram.size, Math.max(20, (e.bodyColumns || 100) - 2))
     return Image({

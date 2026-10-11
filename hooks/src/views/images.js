@@ -1,5 +1,29 @@
+const galleryPicture = (c, image, desktop, columns) => {
+  const { Box, Text, Image, Svg } = c
+  const note = (message) => Text({ dimColor: true, children: message })
+  const tooLarge = desktop
+    ? 'Too large for Desktop to draw here, and no smaller copy could be made: press Open in viewer.'
+    : 'Too large to draw here (over 2 MiB): press Open in viewer.'
+  if (desktop) {
+    const drawn = svgPicture(image)
+    if (!drawn) return note(tooLarge)
+    return Box({ key: 'gallery-svg-' + image.path, children: [Svg({ source: drawn.source, alt: image.name, width: drawn.width, height: drawn.height })] })
+  }
+  if (!image.png) return note(tooLarge)
+  if (!Image) return note('This screen cannot draw pictures.')
+  const size = fitImage(image.size, columns)
+  return Image({
+    key: 'gallery-img-' + image.path,
+    source: { png: image.png },
+    columns: size.columns,
+    rows: size.rows,
+    alt: 'Image not drawn here: start Claude Code with CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1',
+  })
+}
+
 const imagesView = ($, c) => {
-  const { e, Box, Text, Button, Image, redraw } = c
+  if (isDesktop(c.e) && c.Svg) return desktopImagesView($, c)
+  const { e, Box, Text, Button, redraw } = c
   const list = state.images
   const close = Button({ key: 'img-close', label: '< Close', hotkey: 'b', autoFocus: true, onPress: () => closePane($) })
   if (!list.length) {
@@ -11,64 +35,39 @@ const imagesView = ($, c) => {
       ],
     })
   }
-  const at = Math.min(Math.max(state.imageAt, 0), list.length - 1)
-  const image = list[at]
-  const move = (key, label, hotkey, to) =>
-    Button({
-      key,
-      label,
-      hotkey,
-      onPress: () => {
-        state.imageAt = to
-        redraw()
-      },
-    })
-  const size = fitImage(image.size, Math.max(20, paneColumns(e) - 2))
+  const columns = Math.max(20, paneColumns(e) - 2)
+  const clear = Button({
+    key: 'img-clear',
+    label: 'Clear',
+    hotkey: 'c',
+    onPress: () => {
+      state.images = []
+      redraw()
+    },
+  })
+  const shown = [...list].reverse().map((image, index) =>
+    Box({
+      key: 'img-' + image.path,
+      flexDirection: 'column',
+      children: [
+        Box({
+          flexDirection: 'row',
+          columnGap: 2,
+          children: [
+            Text({ bold: true, children: image.name }),
+            Text({ dimColor: true, children: list.length - index + ' of ' + list.length }),
+            Button({ key: 'img-open-' + image.path, label: 'Open in viewer', onPress: () => openInViewer($, image.path) }),
+          ],
+        }),
+        ...(image.caption ? [Text({ dimColor: true, wrap: 'truncate-end', children: image.caption })] : []),
+        Text({ dimColor: true, wrap: 'truncate-start', children: image.path }),
+        galleryPicture(c, image, false, columns),
+      ],
+    }),
+  )
   return Box({
     flexDirection: 'column',
-    children: [
-      Box({
-        flexDirection: 'row',
-        columnGap: 2,
-        children: [
-          close,
-          ...(at > 0 ? [move('img-prev', '‹ Prev', 'p', at - 1)] : []),
-          ...(at < list.length - 1 ? [move('img-next', 'Next ›', 'n', at + 1)] : []),
-          Button({ key: 'img-open', label: 'Open in viewer', hotkey: 'o', onPress: () => openInViewer($, image.path) }),
-          Button({
-            key: 'img-clear',
-            label: 'Clear',
-            hotkey: 'c',
-            onPress: () => {
-              state.images = []
-              state.imageAt = 0
-              redraw()
-            },
-          }),
-        ],
-      }),
-      Box({
-        flexDirection: 'row',
-        columnGap: 2,
-        children: [
-          Text({ bold: true, children: image.name }),
-          Text({ dimColor: true, children: at + 1 + ' of ' + list.length }),
-          ...(image.caption ? [Text({ wrap: 'truncate-end', children: image.caption })] : []),
-        ],
-      }),
-      Text({ dimColor: true, wrap: 'truncate-start', children: image.path }),
-      Image && image.png
-        ? Image({
-            key: 'gallery-img',
-            source: { png: image.png },
-            columns: size.columns,
-            rows: size.rows,
-            alt: 'Image not drawn here: start Claude Code with CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1',
-          })
-        : Text({
-            dimColor: true,
-            children: image.png ? 'This screen cannot draw pictures.' : 'Too large to draw here (over 2 MiB): press Open in viewer.',
-          }),
-    ],
+    rowGap: 1,
+    children: [Box({ flexDirection: 'row', columnGap: 2, children: [close, clear] }), ...shown],
   })
 }

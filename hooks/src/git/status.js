@@ -97,18 +97,18 @@ const treeRows = (entries, section, collapsed) => {
 
 const readStatus = async ($, cwd, untracked) => {
   try {
-    const top = await $.process.run(['git', 'rev-parse', '--show-toplevel'], { cwd })
+    const top = await gitRun($, ['git', 'rev-parse', '--show-toplevel'], { cwd })
     if (top.exitCode !== 0) return { repo: '', entries: [], hasHead: false, error: 'This folder is not a git repository.', raw: '' }
     const repo = top.stdout.trim()
-    const status = await $.process.run(
+    const status = await gitRun($,
       ['git', '--no-optional-locks', 'status', '--porcelain=v1', '-z', untracked ? '-uall' : '-uno'],
       { cwd: repo },
     )
     if (status.exitCode !== 0) return { repo, entries: [], hasHead: false, error: 'git status failed: ' + status.stderr.slice(0, 120), raw: '' }
     if (!untracked) return { repo, entries: parseStatus(status.stdout), hasHead: false, error: '', raw: status.stdout }
-    const head = await $.process.run(['git', 'rev-parse', '--verify', '-q', 'HEAD'], { cwd: repo })
+    const head = await gitRun($, ['git', 'rev-parse', '--verify', '-q', 'HEAD'], { cwd: repo })
     const hasHead = head.exitCode === 0
-    const sizes = hasHead ? await $.process.run(['git', '--no-optional-locks', 'diff', 'HEAD', '--numstat', '--no-renames', '-z'], { cwd: repo }) : null
+    const sizes = hasHead ? await gitRun($, ['git', '--no-optional-locks', 'diff', 'HEAD', '--numstat', '--no-renames', '-z'], { cwd: repo }) : null
     return {
       repo,
       entries: parseStatus(status.stdout),

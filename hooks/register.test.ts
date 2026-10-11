@@ -799,6 +799,7 @@ test('a wide pane splits the tree from the diffs of every file, and pressing a f
   const ui = await openChangesPane($, on, runs, PANE)
   expect(await ui.find({ key: 'ch-diffs' })).toBeDefined()
   expect(await ui.find({ key: 'ch-all' })).toBeUndefined()
+  expect(await ui.find({ key: 'worktree-view' })).toBeUndefined()
   expect(await ui.find({ key: 'worktree:a.md#3' })).toBeDefined()
   expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeUndefined()
   expect(await ui.find({ key: 'dc-all' })).toBeDefined()
@@ -808,6 +809,18 @@ test('a wide pane splits the tree from the diffs of every file, and pressing a f
   await ui.press({ key: 'worktree-0b' })
   expect(await ui.find({ key: 'dc-all' })).toBeDefined()
   expect(await ui.find({ key: 'cf-back' })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('the terminal reads the diff of every file past 40, never folds files to save room, and draws only the rows near the scroll position', async ($, on) => {
+  const runs: string[][] = []
+  const many = Array.from({ length: 45 }, (_, index) => ' M f' + index + '.md\0').join('')
+  const ui = await openChangesPane($, on, runs, PANE, many)
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  expect(runs.some((argv) => argv.includes('diff') && argv.includes('f44.md'))).toBe(true)
+  expect(await ui.find({ key: 'dc-collapsed' })).toBeUndefined()
+  expect(await ui.find({ key: 'worktree:f0.md#hd' })).toBeDefined()
+  expect(await ui.find({ key: 'w-below' })).toBeDefined()
   await ui.unmount()
 })
 
@@ -837,9 +850,40 @@ test('show_image puts PNG screenshots in the pane, names the files it refused, a
   await band.unmount()
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ key: 'img-close' })).toBeDefined()
-  expect(await ui.find({ key: 'img-next' })).toBeUndefined()
   await ui.press({ key: 'img-clear' })
   expect(await ui.find({ key: 'img-clear' })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('a narrow pane keeps the heading as a fold and gives each section its own view button, which shows only that section', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs)
+  expect(await ui.find({ key: 'worktree-view' })).toBeDefined()
+  expect(await ui.find({ key: 'staged-view' })).toBeDefined()
+  await ui.press({ key: 'worktree-toggle' })
+  expect(await ui.find({ key: 'worktree-0b' })).toBeUndefined()
+  expect(await ui.find({ key: 'worktree-view' })).toBeDefined()
+  await ui.press({ key: 'worktree-view' })
+  expect(await ui.find({ key: 'ca-back' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree:a.md#m' })).toBeDefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeUndefined()
+  await ui.press({ key: 'ca-back' })
+  expect(await ui.find({ key: 'worktree-toggle' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a narrow folder row folds on its name and shows only its own diffs from its view button', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs)
+  await ui.press({ key: 'staged-0b' })
+  expect(await ui.find({ key: 'staged-0v' })).toBeDefined()
+  await ui.press({ key: 'staged-0v' })
+  expect(await ui.find({ key: 'ca-back' })).toBeDefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#m' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree:a.md#m' })).toBeUndefined()
+  await ui.press({ key: 'ca-back' })
+  await ui.press({ key: 'staged-0s' })
+  expect(ran(runs, 'git', 'restore', '--staged', '--', 'hooks/src/x.js')).toBe(true)
   await ui.unmount()
 })
 
@@ -894,14 +938,53 @@ test('the gallery has an Open button that hands the file to the system viewer', 
   })
   stubRender(on)
   await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/a.png'] })
+  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/a.png', '/tmp/c.png'] })
   const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
   await band.press({ key: 'open-images' })
   await band.unmount()
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await ui.press({ key: 'img-open' })
+  expect(await ui.find({ key: 'img-open-/tmp/c.png' })).toBeDefined()
+  await ui.press({ key: 'img-open-/tmp/a.png' })
   expect(ran(runs, 'open', '/tmp/a.png')).toBe(true)
   await ui.unmount()
+})
+
+test('on Desktop the gallery draws each picture as an Svg, and the terminal keeps its Image', async ($, on) => {
+  stubSession(on, [], [])
+  on('tool.register', () => ({ value: { tool: 'mcp__syafiqkit__show_image' } }))
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', () => ({ value: { base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' } }))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/a.png'] })
+  const band = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  await band.press({ key: 'open-images' })
+  await band.unmount()
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect(await desktop.find({ key: 'gallery-svg-/tmp/a.png' })).toBeDefined()
+  expect(await desktop.find({ key: 'gallery-img-/tmp/a.png' })).toBeUndefined()
+  await desktop.unmount()
+  const terminal = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await terminal.find({ key: 'gallery-img-/tmp/a.png' })).toBeDefined()
+  expect(await terminal.find({ key: 'gallery-svg-/tmp/a.png' })).toBeUndefined()
+  await terminal.unmount()
+})
+
+test('on Desktop a picture too big for an Svg falls back to the viewer button instead of a broken drawing', async ($, on) => {
+  stubSession(on, [], [])
+  on('tool.register', () => ({ value: { tool: 'mcp__syafiqkit__show_image' } }))
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', () => ({ value: { base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' + 'A'.repeat(140000) } }))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/big.png'] })
+  const band = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  await band.press({ key: 'open-images' })
+  await band.unmount()
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect(await desktop.find({ key: 'img-open-/tmp/big.png' })).toBeDefined()
+  expect(await desktop.find({ key: 'gallery-svg-/tmp/big.png' })).toBeUndefined()
+  await desktop.unmount()
 })
 
 test('pressing a folder selects it: the toolbar stages the whole folder and git runs with literal pathspecs', async ($, on) => {
@@ -1103,5 +1186,133 @@ test('a file focused under Changes says its staged half is hidden, and pressing 
   expect(await ui.find({ key: 'dc-hidden' })).toBeDefined()
   await ui.press({ key: 'dc-hidden' })
   expect(await ui.find({ key: 'dc-hidden' })).toBeDefined()
+  await ui.unmount()
+})
+
+const DESKTOP_PANE = { ...PANE, props: { ...PANE.props, bodyColumns: undefined } }
+
+const openDesktopChanges = async ($: any, on: any, runs: string[][], status: string = MIXED_STATUS) => {
+  stubSession(on, [], [])
+  on('process.run', fakeGit(runs, status))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  return $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })
+}
+
+test('Desktop /changes draws section strips, a change map and file rows, and stage-all runs the exact git command', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openDesktopChanges($, on, runs)
+  expect(await ui.find({ key: 'sec-staged' })).toBeDefined()
+  expect(await ui.find({ key: 'sec-worktree' })).toBeDefined()
+  expect(await ui.find({ key: 'map-worktree:a.md' })).toBeDefined()
+  expect(await ui.find({ key: 'staged-toggle' })).toBeUndefined()
+  await ui.press({ key: 'sec-worktree-all' })
+  expect(ran(runs, 'git', 'add', '-A')).toBe(true)
+  await ui.press({ key: 'sec-staged-all' })
+  expect(ran(runs, 'git', 'restore', '--staged', '.')).toBe(true)
+  await ui.unmount()
+})
+
+test('Desktop: pressing a change-map block opens that file with tinted diff rows, and Back returns', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openDesktopChanges($, on, runs)
+  await ui.press({ key: 'map-worktree:a.md-b' })
+  expect(await ui.find({ key: 'cf-back' })).toBeDefined()
+  expect(await ui.find({ key: 'cf-rows' })).toBeDefined()
+  expect(await ui.find({ key: 'l1' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /new line/ })).toBeDefined()
+  await ui.press({ key: 'cf-back' })
+  expect(await ui.find({ key: 'sec-worktree' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('Desktop All diffs draws each file under a file strip with Stage and its diff rows', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openDesktopChanges($, on, runs)
+  await ui.press({ key: 'ch-all' })
+  expect(await ui.find({ key: 'worktree:a.md#hd' })).toBeDefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#hd' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree:a.md#0' })).toBeDefined()
+  await ui.press({ key: 'worktree:a.md#m' })
+  expect(ran(runs, 'git', 'add', '--', 'a.md')).toBe(true)
+  await ui.unmount()
+})
+
+const fakeDesktopGit = (status: string, diff: string) => (_$: any, e: any) => {
+  const line = e.argv.join(' ')
+  const done = (stdout = '') => ({ value: { exitCode: 0, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } })
+  if (line.includes('rev-parse --show-toplevel')) return done('/work\n')
+  if (line.includes('rev-parse --verify')) return done('abc\n')
+  if (line.includes(' status ')) return done(status)
+  if (line.includes(' diff ')) return done(diff)
+  return done()
+}
+
+const openLoggedDesktop = async ($: any, on: any, writes: any[], status: string, diff: string) => {
+  stubSession(on, [], [])
+  on('fs.write', (_$: any, e: any) => {
+    writes.push(e)
+    return { value: undefined }
+  })
+  on('process.run', fakeDesktopGit(status, diff))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  return $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })
+}
+
+const modLogText = (writes: any[]) =>
+  writes
+    .filter((write) => String(write.path).endsWith('/.claude/doc-pane-cache/mod.log'))
+    .map((write) => String(write.content ?? write.data ?? write.text ?? ''))
+    .join('\n')
+
+test('a Desktop page that repeats a key shows why instead of a blank pane, and the reason goes to the mod log', async ($, on) => {
+  const writes: any[] = []
+  const ui = await openLoggedDesktop($, on, writes, ' M a.md\0 M a.md\0', DIFF_TEXT)
+  expect(await ui.find({ key: 'draw-close' })).toBeDefined()
+  expect(await ui.find({ key: 'ch-all' })).toBeUndefined()
+  await new Promise((resolve) => setTimeout(resolve, 20))
+  expect(modLogText(writes)).toContain('pane changes (desktop): two elements share the key')
+  await ui.unmount()
+})
+
+test('a Desktop page past the size Desktop draws still draws, and the mod log warns about it', async ($, on) => {
+  const writes: any[] = []
+  const giant = ['diff --git a/a.md b/a.md', '--- a/a.md', '+++ b/a.md', '@@ -1,1 +1,2 @@', ' line', '+' + 'x'.repeat(120000), ''].join('\n')
+  const ui = await openLoggedDesktop($, on, writes, ' M a.md\0', giant)
+  await ui.press({ key: 'r-worktree-0b' })
+  expect(await ui.find({ key: 'cf-back' })).toBeDefined()
+  await new Promise((resolve) => setTimeout(resolve, 20))
+  expect(modLogText(writes)).toContain('pane change-file (desktop): about')
+  await ui.unmount()
+})
+
+test('Desktop pages stay drawable with 200 changed files: the overview, All diffs and a file', async ($, on) => {
+  const writes: any[] = []
+  const many = Array.from({ length: 200 }, (_, index) => ' M dir' + (index % 7) + '/f' + index + '.md\0').join('')
+  const ui = await openLoggedDesktop($, on, writes, many, DIFF_TEXT)
+  await ui.press({ key: 'ch-all' })
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  expect(await ui.find({ key: 'w-below' })).toBeDefined()
+  await ui.press({ key: 'ca-back' })
+  await ui.press({ key: 'r-worktree-1b' })
+  expect(await ui.find({ key: 'cf-back' })).toBeDefined()
+  expect(modLogText(writes)).toBe('')
+  await ui.unmount()
+})
+
+test('Desktop All diffs reads every file, Hide folds one and Show diff brings it back', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openDesktopChanges($, on, runs)
+  await ui.press({ key: 'ch-all' })
+  expect(runs.some((argv) => argv.includes('diff') && argv.includes('hooks/src/x.js'))).toBe(true)
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#0' })).toBeDefined()
+  await ui.press({ key: 'staged:hooks/src/x.js#t' })
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#0' })).toBeUndefined()
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#hd' })).toBeDefined()
+  await ui.press({ key: 'staged:hooks/src/x.js#t' })
+  expect(await ui.find({ key: 'staged:hooks/src/x.js#0' })).toBeDefined()
   await ui.unmount()
 })

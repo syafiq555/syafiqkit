@@ -54,11 +54,6 @@ const parseDiff = (text) => {
   return lines
 }
 
-const allAdded = (raw) => {
-  const rows = raw.endsWith('\n') ? raw.slice(0, -1).split('\n') : raw.split('\n')
-  return rows.map((text, index) => ({ kind: 'add', oldNo: 0, newNo: index + 1, text }))
-}
-
 const tally = (lines, note) => ({
   lines,
   note,
@@ -86,7 +81,7 @@ const EMPTY_DIFF_NOTE = {
 const readDiff = async ($, cwd, paths, plane) => {
   const first = paths[0]
   try {
-    const ran = await $.process.run(diffArgs(plane, paths), { cwd, env: LITERAL_PATHS })
+    const ran = await gitRun($, diffArgs(plane, paths), { cwd, env: LITERAL_PATHS })
     if (ran.exitCode !== 0) {
       return tally([], 'Git could not diff this file: it is not in a repository, or the repository has no commit yet.')
     }
@@ -94,19 +89,24 @@ const readDiff = async ($, cwd, paths, plane) => {
       const lines = parseDiff(ran.stdout)
       return tally(lines, lines.length ? '' : 'Binary file or a change with no text lines.')
     }
-    const tracked = await $.process.run(['git', '--no-optional-locks', 'ls-files', '--error-unmatch', '--', first], {
+    const tracked = await gitRun($, ['git', '--no-optional-locks', 'ls-files', '--error-unmatch', '--', first], {
       cwd,
       env: LITERAL_PATHS,
     })
     if (tracked.exitCode !== 0) {
       const absolute = first.startsWith('/') ? first : cwd + '/' + first
-      try {
-        const stat = await $.fs.stat(absolute)
-        if (stat.size > MAX_UNTRACKED_BYTES) return tally([], 'New file, ' + kb(stat.size) + ': too large to show here.')
-        return tally(allAdded(await $.fs.read(absolute)), 'New file, not yet added to git.')
-      } catch {
-        return tally([], 'This file cannot be read: it may have been removed, or it is a folder.')
+      const stat = await $.fs.stat(absolute).catch(() => null)
+      if (stat && stat.size > MAX_UNTRACKED_BYTES) return tally([], 'New file, ' + kb(stat.size) + ': too large to show here.')
+      const added = await gitRun($,
+        ['git', '--no-optional-locks', 'diff', '--no-index', '--no-color', '-U' + DIFF_CONTEXT, '--', '/dev/null', absolute],
+        { cwd },
+      )
+      if (!added.stdout.trim()) {
+        return tally([], added.exitCode === 0 ? 'New empty file, not yet added to git.' : 'This file cannot be read: it may have been removed, or it is a folder.')
       }
+      if (added.stdout.length > MAX_UNTRACKED_BYTES) return tally([], 'New file, ' + kb(added.stdout.length) + ': too large to show here.')
+      const lines = parseDiff(added.stdout)
+      return tally(lines, lines.length ? 'New file, not yet added to git.' : 'Binary file or a change with no text lines.')
     }
     return tally([], EMPTY_DIFF_NOTE[plane])
   } catch {

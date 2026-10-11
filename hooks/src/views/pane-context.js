@@ -4,6 +4,7 @@ const paneContext = ($, e) => {
 
   const goto = (view) => {
     state.view = view
+    state.allScroll = { view: '', offset: 0, body: state.allScroll.body }
     redraw()
   }
 

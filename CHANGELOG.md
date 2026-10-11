@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.388.0
+
+**The mod's panes are redesigned for Claude Desktop, and `/changes` shows every changed file on both Desktop and the terminal.**
+- **Every file, nothing collapsed:** `/changes`, All diffs and a file's own page now draw only the rows near where you are scrolled, so they stay fast with hundreds of changed files. The "N files collapsed to save room" line and the 40-file limit are gone, and every diff is read.
+  - Hide (Desktop) or ▾ (terminal) folds one file.
+  - A diff over 400 lines ends in `… N more lines · show`.
+  - Long lines wrap in the pane instead of being cut off.
+- **A Desktop look:** the terminal looks as it did. In Desktop you get:
+  - native buttons and tinted section bars with counts;
+  - a clickable map of the change set (hovering a block lights its file);
+  - size gauges on task docs;
+  - the `/sk` menu grouped into Ship work, Docs and Session, with an "asks first" tag on risky actions;
+  - diff rows tinted like the native Changes panel, and numbered chips in the gallery.
+- **Big pictures in Desktop:** a screenshot too big for the Desktop pane is shown as a smaller copy at the pane's width. It is made with `sips`, so macOS only, and the full size still opens in the viewer. On other systems the viewer button stays. "All" shows as many pictures as fit, and the rest open one at a time.
+- **When a pane looks wrong:** the mod keeps the last 300 problems in `~/.claude/doc-pane-cache/mod.log`: pages Desktop would not draw, git commands that failed or timed out, and pictures it could not shrink. It holds file paths, so read it before sharing. A page Desktop would refuse now says so instead of going blank.
+- **New things the mod runs or writes:**
+  - `sips`, in Desktop sessions on macOS, for big pictures.
+  - Picture copies and `mod.log` under `~/.claude/doc-pane-cache`.
+  - Git commands now run one at a time, with a 15-second limit each.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then restart Claude Code. No agents or templates changed. Seen in the author's Desktop; not yet run: scrolling `/changes` in a real terminal, Linux, and Desktop's light theme.
+
 ## 1.387.0
 
 **`setup-playwright`: login-form specs no longer flake once you rerun quickly.**

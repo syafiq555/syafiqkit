@@ -1,6 +1,8 @@
 const bandView = ($, e, next) => {
   if (state.disabled) return next(e)
   const { Box, Text, Button } = $.ui.resolve(e)
+  const desktop = isDesktop(e)
+  state.desktop = desktop
   if (state.isOpen) {
     if (state.view !== 'doc' || !state.selected.length || !state.current || state.current.group !== 'Task docs') return next(e)
     return Box({
@@ -46,7 +48,7 @@ const bandView = ($, e, next) => {
             ]
           : []),
         Text({ dimColor: true, children: '│' }),
-        Button({ key: 'band-commit', label: 'Commit', hotkey: 'c', onPress: () => sendVerb($, 'Commit') }),
+        Button({ key: 'band-commit', label: 'Commit', hotkey: 'c', ...(desktop ? { variant: 'primary' } : {}), onPress: () => sendVerb($, 'Commit') }),
         Button({ key: 'band-wrap', label: 'Done', hotkey: 'w', onPress: () => confirmVerb($, 'Done') }),
         state.saving
           ? Text({ color: 'cyan', children: 'Summarising…' })
@@ -65,6 +67,7 @@ const bandView = ($, e, next) => {
         flexDirection: 'row',
         columnGap: 2,
         paddingX: 1,
+        ...(desktop ? { backgroundColor: DESKTOP_TONE.warnStrip, alignItems: 'center' } : {}),
         children: [
           Text({ color: 'yellow', bold: true, children: '↪ Handoff ' + when }),
           Text({ wrap: 'truncate-end', children: clip(headline, 60) }),
@@ -76,6 +79,7 @@ const bandView = ($, e, next) => {
           Button({
             key: 'resume',
             label: 'Resume',
+            ...(desktop ? { variant: 'primary' } : {}),
             onPress: async () => {
               const text = resumeText(record, await gitState($))
               if (RISKY.test(text)) {

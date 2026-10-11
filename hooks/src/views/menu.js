@@ -1,5 +1,26 @@
+const runVerb = ($, c, verb) => {
+  const { goto, openHandoff, askFirst } = c
+  if (verb.go === 'list') return goto('list')
+  if (verb.go === 'heavy') {
+    state.heavyOnly = true
+    state.pick = 'shrink'
+    return goto('list')
+  }
+  if (verb.go === 'refresh') {
+    state.heavyOnly = false
+    state.pick = 'refresh'
+    return goto('list')
+  }
+  if (verb.go === 'handoff') return openHandoff()
+  if (verb.go === 'changes') return enterChanges($)
+  if (verb.go === 'images') return goto('images')
+  if (verb.danger) return askFirst(verb.label, verb.text, verb.effect, true)
+  return submitPrompt($, verb.text, verb.toast)
+}
+
 const menuView = ($, c) => {
-  const { Box, Text, Button, goto, openHandoff, askFirst } = c
+  if (isDesktop(c.e)) return desktopMenuView($, c)
+  const { Box, Text, Button } = c
   const rows = [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' })]
   VERBS.forEach((verb, index) => {
     rows.push(
@@ -14,24 +35,7 @@ const menuView = ($, c) => {
             ...(index < 9 ? { hotkey: String(index + 1) } : {}),
             plain: true,
             ...(index === 0 ? { autoFocus: true } : {}),
-            onPress: () => {
-              if (verb.go === 'list') return goto('list')
-              if (verb.go === 'heavy') {
-                state.heavyOnly = true
-                state.pick = 'shrink'
-                return goto('list')
-              }
-              if (verb.go === 'refresh') {
-                state.heavyOnly = false
-                state.pick = 'refresh'
-                return goto('list')
-              }
-              if (verb.go === 'handoff') return openHandoff()
-              if (verb.go === 'changes') return enterChanges($)
-              if (verb.go === 'images') return goto('images')
-              if (verb.danger) return askFirst(verb.label, verb.text, verb.effect, true)
-              return submitPrompt($, verb.text, verb.toast)
-            },
+            onPress: () => runVerb($, c, verb),
           }),
           Text({ key: 'vh' + index, dimColor: true, wrap: 'truncate-end', children: verb.hint }),
         ],
@@ -47,16 +51,29 @@ const confirmView = ($, c) => {
   const confirm = state.confirm
   if (!confirm) return menuView($, c)
   const kept = state.handoffNext.trim()
+  const desktop = isDesktop(c.e)
   return Box({
     flexDirection: 'column',
+    ...(desktop ? { rowGap: 1 } : {}),
     children: [
       Text({ bold: true, children: 'Confirm: ' + confirm.title }),
-      ...(confirm.effect ? [Text({ color: 'yellow', wrap: 'truncate-end', children: 'Effect: ' + confirm.effect })] : []),
+      ...(confirm.effect && desktop
+        ? [
+            Box({
+              key: 'confirm-effect',
+              paddingX: 1,
+              backgroundColor: DESKTOP_TONE.warnStrip,
+              children: [Text({ color: 'warning', children: 'Effect: ' + confirm.effect })],
+            }),
+          ]
+        : []),
+      ...(confirm.effect && !desktop ? [Text({ color: 'yellow', wrap: 'truncate-end', children: 'Effect: ' + confirm.effect })] : []),
       Text({ dimColor: true, children: 'This goes to Claude, which will act on it:' }),
       Box({
         key: 'confirm-box',
         flexDirection: 'column',
         borderStyle: 'round',
+        ...(desktop ? { borderColor: DESKTOP_TONE.border } : {}),
         paddingX: 1,
         children: confirm.text.split('\n').map((line, index) => Text({ key: 'c' + index, children: line || ' ' })),
       }),
@@ -102,6 +119,7 @@ const confirmView = ($, c) => {
             key: 'confirm-send',
             label: 'Send',
             hotkey: 's',
+            ...(desktop ? { variant: 'primary' } : {}),
             onPress: () => {
               if (confirm.record) return claimAndSend($, confirm.record, confirm.text)
               if (confirm.reopen) state.reopen = confirm.reopen
@@ -114,6 +132,7 @@ const confirmView = ($, c) => {
             label: 'Cancel',
             hotkey: 'x',
             autoFocus: true,
+            ...(desktop ? { role: 'dismiss' } : {}),
             onPress: () => {
               const back = confirm.back && confirm.back !== 'confirm' ? confirm.back : 'menu'
               if (back !== 'list') state.pick = null
@@ -163,12 +182,14 @@ const handoffView = ($, c) => {
                 key: 'handoff-save',
                 label: 'Save handoff',
                 hotkey: 'v',
+                ...(isDesktop(c.e) ? { variant: 'primary' } : {}),
                 onPress: () => saveFromForm(state.handoffNext),
               }),
               Button({
                 key: 'handoff-cancel',
                 label: 'Cancel',
                 hotkey: 'x',
+                ...(isDesktop(c.e) ? { role: 'dismiss' } : {}),
                 onPress: () => (state.handoffFromBand ? closePane($) : goto(state.current ? 'doc' : 'menu')),
               }),
             ],

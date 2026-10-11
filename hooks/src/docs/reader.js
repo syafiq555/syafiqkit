@@ -67,6 +67,8 @@ const resetPane = () => {
   state.confirm = null
   state.alsoHandoff = false
   state.handoffFromBand = false
+  state.diffGen += 1
+  state.allScroll = { view: '', offset: 0, body: state.allScroll.body }
 }
 
 const closePane = async ($) => {

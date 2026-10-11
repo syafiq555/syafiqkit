@@ -96,4 +96,17 @@ export function register(on) {
   })
 
   on('ui.render', { component: 'Pane' }, paneView)
+
+  on('ui.fault', ($, e, next) => {
+    modLog($, 'fault ' + e.component + ' ' + e.phase + ' (' + e.surface + '): ' + String(e.reason).slice(0, 300))
+    return next(e)
+  })
+
+  on('ui.scroll', { component: 'Pane' }, ($, e, next) => {
+    if (e.requestId !== PANE) return next(e)
+    state.allScroll = { view: state.view, offset: e.offset, body: e.bodyRows }
+    const ran = next(e)
+    if (Math.abs(e.offset - state.windowAt) > e.bodyRows / 3) $.ui.invalidate('ui.render')
+    return ran
+  })
 }
