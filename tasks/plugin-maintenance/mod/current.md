@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔨 1.384.0–1.386.0 on master (1.386.0 unseen live). 1.388.0 committed:
+Status: 🔨 1.384.0–1.386.0 on master (1.386.0 unseen live). 1.387.0 and 1.388.0 pushed to master (6782599, installed copy updated to 1.388.0):
   - The Desktop redesign (rows 16–17).
   - Windowed Changes pages on both surfaces (row 18).
   - Gallery smaller copies via `sips` (row 13).
@@ -20,9 +20,9 @@ Last updated: 2026-10-11
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 60 tests. 1.384.0–1.386.0 are on master.
+**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 60 tests. 1.384.0–1.388.0 are on master.
 
-1.388.0 (committed after the other session's `setup-playwright` 1.387.0):
+1.388.0, pushed to master (6782599) after the other session's `setup-playwright` 1.387.0:
 - The Desktop redesign of every pane (row 17).
 - `/changes`, All diffs and the file page drawing only the rows near the scroll position, on both surfaces (row 18).
 - Gallery smaller copies via macOS `sips` (row 13).
