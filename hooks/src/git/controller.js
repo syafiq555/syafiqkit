@@ -206,7 +206,7 @@ const refreshChanges = async ($) => {
     const file = state.changeFile
     if (state.view === 'change-file' && file && file.entry && state.changeDiff) {
       const fresh = await readDiff($, file.cwd, file.paths, file.plane)
-      if (state.changeFile === file && JSON.stringify(fresh.lines) !== JSON.stringify(state.changeDiff.lines)) {
+      if (state.changeFile === file && (JSON.stringify(fresh.lines) !== JSON.stringify(state.changeDiff.lines) || mediaStamp(fresh) !== mediaStamp(state.changeDiff))) {
         state.changeDiff = fresh
         redraw = true
       }
@@ -253,6 +253,7 @@ const enterChanges = async ($) => {
 }
 
 const openChanges = async ($) => {
+  state.isOpen = true
   try {
     await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
   } catch (error) {

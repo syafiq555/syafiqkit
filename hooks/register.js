@@ -98,6 +98,15 @@ const MOD_LOG_FILE = 'mod.log'
 const MOD_LOG_LINES = 300
 const PREVIEW_STEPS = [[1080, 60], [900, 50], [720, 45], [600, 40]]
 const PREVIEW_TIMEOUT_MS = 20000
+const PICTURE_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'heic'])
+const MEDIA_PAIR_CHARS = 30000
+const MEDIA_PAIR_WIDTH = 360
+const MEDIA_ROW_PX = 20
+const SLICE_WIDTH = 1000
+const SLICE_HEIGHT = 520
+const SLICE_CHARS = 85000
+const SLICE_QUALITIES = [60, 45, 35]
+const PDF_PAGE_SIDE = 1100
 const DESKTOP_PICTURE_WIDTH = 720
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs', 'Skills']
@@ -450,6 +459,7 @@ const state = {
   allFull: {},
   diffSectionClosed: {},
   images: [],
+  galleryRestore: null,
   changeFocus: '',
   wide: false,
   discard: null,
@@ -751,11 +761,17 @@ const clipboardCommand = async ($) => {
   return ['clip']
 }
 
-const copyDocText = async ($, text, name, surface) => {
-  if (!text) return $.ui.toast('Nothing to copy yet: the doc is still loading.')
+const copyDocFile = async ($, path, name, surface) => {
+  let text = ''
+  try {
+    text = await $.fs.read(path)
+  } catch (error) {
+    return $.ui.toast('Could not read ' + name + ': ' + messageOf(error).slice(0, 80))
+  }
   try {
     const copied = await $.ui.copy({ text, ...(surface ? { surface } : {}) })
     if (copied && copied.isCopied) return $.ui.toast('Copied ' + name + ' to the clipboard.')
+    if (copied && copied.reason === 'refused') return $.ui.toast('Copy was refused.')
   } catch {}
   try {
     const ran = await $.process.run(await clipboardCommand($), { stdin: text })
@@ -842,7 +858,44 @@ const shrinkForDesktop = async ($, image) => {
   return image
 }
 
+const galleryIndexPath = async ($) => {
+  const [home, id] = await Promise.all([homeOf($), $.session.id().catch(() => '')])
+  if (!home || !id) return ''
+  return home + '/.claude/doc-pane-cache/gallery-' + id + '.json'
+}
+
+const saveGallery = async ($) => {
+  try {
+    const path = await galleryIndexPath($)
+    if (path) await $.fs.write(path, JSON.stringify(state.images.map((image) => ({ path: image.path, caption: image.caption || '' }))))
+  } catch (error) {
+    modLog($, 'gallery: could not save the list: ' + messageOf(error).slice(0, 200))
+  }
+}
+
+const restoreGallery = ($) => {
+  if (state.galleryRestore) return state.galleryRestore
+  state.galleryRestore = (async () => {
+    try {
+      const path = await galleryIndexPath($)
+      if (!path || state.images.length) return
+      const saved = JSON.parse(await $.fs.read(path))
+      if (!Array.isArray(saved)) return
+      const entries = saved.filter((item) => item && typeof item.path === 'string').slice(-MAX_GALLERY)
+      const read = await Promise.all(entries.map((item) => readGalleryImage($, item.path, typeof item.caption === 'string' ? item.caption : '')))
+      const restored = []
+      for (const item of read) if (item.image) restored.push(await shrinkForDesktop($, item.image))
+      if (restored.length && !state.images.length) {
+        state.images = restored
+        redrawPane($)
+      }
+    } catch {}
+  })()
+  return state.galleryRestore
+}
+
 const showImages = async ($, e) => {
+  await restoreGallery($)
   const raw = Array.isArray(e.paths) ? e.paths : typeof e.path === 'string' ? [e.path] : []
   const wanted = [...new Set(raw.filter((path) => typeof path === 'string' && path))]
   const paths = wanted.slice(0, MAX_GALLERY)
@@ -856,6 +909,7 @@ const showImages = async ($, e) => {
   if (added.length) {
     const kept = state.images.filter((image) => !added.some((fresh) => fresh.path === image.path))
     state.images = [...kept, ...added].slice(-MAX_GALLERY)
+    await saveGallery($)
     const noun = added.length + (added.length === 1 ? ' image' : ' images')
     $.ui.toast(noun + ' ready: press Images in the band')
     redrawPane($)
@@ -901,6 +955,56 @@ const openImages = async ($) => {
   }
 }
 
+const sliceGeometry = (size) => {
+  const width = Math.min(size.width, SLICE_WIDTH)
+  const height = Math.round((size.height * width) / size.width)
+  return { width, height, count: Math.max(1, Math.ceil(height / SLICE_HEIGHT)) }
+}
+
+const slicesWanted = (image) => Boolean(image.size) && (sliceGeometry(image.size).count > 1 || image.size.width > DESKTOP_PICTURE_WIDTH)
+
+const ensureSlice = async ($, image, index) => {
+  if (!state.desktop || !image.size) return
+  image.slices = image.slices || {}
+  if (index in image.slices || image.slicing) return
+  image.slicing = true
+  try {
+    const geo = sliceGeometry(image.size)
+    const dir = await mediaDir($)
+    if (!dir) {
+      image.slices[index] = null
+      return
+    }
+    const stem = dir + '/' + hoverScope(image.path) + '-z'
+    let source = image.path
+    if (image.size.width > SLICE_WIDTH) {
+      source = stem + '-wide.png'
+      if (!image.scaled) {
+        await sipsRun($, ['--resampleWidth', String(SLICE_WIDTH), image.path, '--out', source])
+        image.scaled = true
+      }
+    }
+    const top = index * SLICE_HEIGHT
+    const high = Math.min(SLICE_HEIGHT, geo.height - top)
+    let drawn = null
+    for (const quality of SLICE_QUALITIES) {
+      const out = stem + '-' + index + '.jpg'
+      await sipsRun($, ['-c', String(high), String(geo.width), '--cropOffset', String(top), '0', ...jpegArgs(quality), source, '--out', out])
+      const { base64 } = await $.fs.read(out, { as: 'bytes' })
+      drawn = svgOf(base64, 'jpeg', { width: geo.width, height: high }, SLICE_CHARS, SLICE_WIDTH)
+      if (drawn) break
+    }
+    image.slices[index] = drawn
+  } catch (error) {
+    modLog($, 'picture ' + image.path + ': slice ' + index + ' failed: ' + messageOf(error).slice(0, 200))
+    image.slices[index] = null
+  } finally {
+    image.slicing = false
+  }
+  const wanted = image.slice || 0
+  if (!(wanted in image.slices)) await ensureSlice($, image, wanted)
+}
+
 const hashOf = (text) => {
   let hash = 5381
   for (let index = 0; index < text.length; index += 1) {
@@ -941,15 +1045,15 @@ const fitImage = (size, maxColumns) => {
   return { columns, rows: Math.max(1, Math.min(rows, 255)) }
 }
 
-const svgOf = (data, mime, size) => {
+const svgOf = (data, mime, size, limit = DESKTOP_DRAW_CHARS, widest = DESKTOP_PICTURE_WIDTH) => {
   const { width, height } = size || {}
   if (!data || !width || !height) return null
-  const wide = Math.min(width, DESKTOP_PICTURE_WIDTH)
+  const wide = Math.min(width, widest)
   const high = Math.round((wide * height) / width)
   const source =
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + wide + '" height="' + high + '" viewBox="0 0 ' + wide + ' ' + high + '">' +
     '<image href="data:image/' + mime + ';base64,' + data + '" width="' + wide + '" height="' + high + '"/></svg>'
-  if (source.length > DESKTOP_DRAW_CHARS) return null
+  if (source.length > limit) return null
   return { source, width: wide, height: high }
 }
 
@@ -1135,12 +1239,16 @@ const resetPane = () => {
 }
 
 const closePane = async ($) => {
-  resetPane()
   try {
     await $.ui.close({ id: PANE })
-  } catch {}
+  } catch (error) {
+    modLog($, 'close: ' + messageOf(error).slice(0, 200))
+  }
   state.isOpen = false
-  $.ui.invalidate('ui.render')
+  resetPane()
+  try {
+    $.ui.invalidate('ui.render')
+  } catch {}
 }
 
 const submitPrompt = async ($, text, note, onFail, handoffAfter) => {
@@ -1427,7 +1535,7 @@ const refreshChanges = async ($) => {
     const file = state.changeFile
     if (state.view === 'change-file' && file && file.entry && state.changeDiff) {
       const fresh = await readDiff($, file.cwd, file.paths, file.plane)
-      if (state.changeFile === file && JSON.stringify(fresh.lines) !== JSON.stringify(state.changeDiff.lines)) {
+      if (state.changeFile === file && (JSON.stringify(fresh.lines) !== JSON.stringify(state.changeDiff.lines) || mediaStamp(fresh) !== mediaStamp(state.changeDiff))) {
         state.changeDiff = fresh
         redraw = true
       }
@@ -1474,6 +1582,7 @@ const enterChanges = async ($) => {
 }
 
 const openChanges = async ($) => {
+  state.isOpen = true
   try {
     await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
   } catch (error) {
@@ -1734,18 +1843,19 @@ const readDiff = async ($, cwd, paths, plane) => {
     if (ran.exitCode !== 0) {
       return tally([], 'Git could not diff this file: it is not in a repository, or the repository has no commit yet.')
     }
+    const absolute = first.startsWith('/') ? first : cwd + '/' + first
     if (ran.stdout.trim()) {
       const lines = parseDiff(ran.stdout)
-      return tally(lines, lines.length ? '' : 'Binary file or a change with no text lines.')
+      if (lines.length) return tally(lines, '')
+      return attachMedia($, cwd, tally([], 'Binary file or a change with no text lines.'), absolute, plane, false)
     }
     const tracked = await gitRun($, ['git', '--no-optional-locks', 'ls-files', '--error-unmatch', '--', first], {
       cwd,
       env: LITERAL_PATHS,
     })
     if (tracked.exitCode !== 0) {
-      const absolute = first.startsWith('/') ? first : cwd + '/' + first
       const stat = await $.fs.stat(absolute).catch(() => null)
-      if (stat && stat.size > MAX_UNTRACKED_BYTES) return tally([], 'New file, ' + kb(stat.size) + ': too large to show here.')
+      if (stat && stat.size > MAX_UNTRACKED_BYTES) return attachMedia($, cwd, tally([], 'New file, ' + kb(stat.size) + '.'), absolute, plane, true)
       const added = await gitRun($,
         ['git', '--no-optional-locks', 'diff', '--no-index', '--no-color', '-U' + DIFF_CONTEXT, '--', '/dev/null', absolute],
         { cwd },
@@ -1753,14 +1863,163 @@ const readDiff = async ($, cwd, paths, plane) => {
       if (!added.stdout.trim()) {
         return tally([], added.exitCode === 0 ? 'New empty file, not yet added to git.' : 'This file cannot be read: it may have been removed, or it is a folder.')
       }
-      if (added.stdout.length > MAX_UNTRACKED_BYTES) return tally([], 'New file, ' + kb(added.stdout.length) + ': too large to show here.')
+      if (added.stdout.length > MAX_UNTRACKED_BYTES) return attachMedia($, cwd, tally([], 'New file, ' + kb(added.stdout.length) + '.'), absolute, plane, true)
       const lines = parseDiff(added.stdout)
-      return tally(lines, lines.length ? 'New file, not yet added to git.' : 'Binary file or a change with no text lines.')
+      if (lines.length) return tally(lines, 'New file, not yet added to git.')
+      return attachMedia($, cwd, tally([], 'Binary file or a change with no text lines.'), absolute, plane, true)
     }
     return tally([], EMPTY_DIFF_NOTE[plane])
   } catch {
     return tally([], 'Git could not be run here.')
   }
+}
+
+const mediaMemo = new Map()
+
+const extOf = (path) => {
+  const dot = path.lastIndexOf('.')
+  return dot < 0 ? '' : path.slice(dot + 1).toLowerCase()
+}
+
+const mediaKind = (path) => {
+  const ext = extOf(path)
+  if (ext === 'pdf') return 'pdf'
+  return PICTURE_EXTS.has(ext) ? 'picture' : 'file'
+}
+
+const mediaDir = async ($) => {
+  const home = await homeOf($)
+  if (!home) return ''
+  const dir = home + '/.claude/doc-pane-cache'
+  await $.fs.write(dir + '/.previews', 'ok')
+  return dir
+}
+
+const pixelSize = async ($, path) => {
+  const ran = await $.process.run(['sips', '-g', 'pixelWidth', '-g', 'pixelHeight', path], { timeoutMs: PREVIEW_TIMEOUT_MS })
+  if (ran.exitCode !== 0) return null
+  const width = Number((ran.stdout.match(/pixelWidth:\s*(\d+)/) || [])[1])
+  const height = Number((ran.stdout.match(/pixelHeight:\s*(\d+)/) || [])[1])
+  return width && height ? { width, height } : null
+}
+
+const sipsRun = async ($, args) => {
+  const ran = await $.process.run(['sips', ...args], { timeoutMs: PREVIEW_TIMEOUT_MS })
+  if (ran.exitCode !== 0) throw new Error((ran.stderr || 'sips failed').trim().slice(0, 200))
+}
+
+const jpegArgs = (quality) => ['-s', 'format', 'jpeg', '-s', 'formatOptions', String(quality)]
+
+const fitPreview = async ($, source, outBase, budget, widest) => {
+  const size = await pixelSize($, source)
+  if (!size) return null
+  const original = await $.fs.read(source, { as: 'bytes' })
+  const whole = original.base64 && original.base64.startsWith(PNG_PREFIX) ? svgOf(original.base64, 'png', size, budget, widest) : null
+  if (whole) return { svg: whole, size }
+  for (const [side, quality] of PREVIEW_STEPS) {
+    const out = outBase + '-' + side + '.jpg'
+    await sipsRun($, [...jpegArgs(quality), '-Z', String(side), source, '--out', out])
+    const { base64 } = await $.fs.read(out, { as: 'bytes' })
+    const svg = svgOf(base64, 'jpeg', size, budget, widest)
+    if (svg) return { svg, size }
+  }
+  return null
+}
+
+const blobPath = async ($, cwd, spec, out) => {
+  const ran = await gitRun($, ['sh', '-c', 'git --no-optional-locks cat-file blob "$1" > "$2"', 'sh', spec, out], { cwd })
+  return ran.exitCode === 0
+}
+
+const relativeTo = (cwd, path) => (path.startsWith(cwd + '/') ? path.slice(cwd.length + 1) : path)
+
+const pictureSide = async ($, source, outBase, budget, widest) => {
+  try {
+    return await fitPreview($, source, outBase, budget, widest)
+  } catch (error) {
+    modLog($, 'picture ' + source + ': ' + messageOf(error).slice(0, 200))
+    return null
+  }
+}
+
+const pdfFirstPage = async ($, source, stem) => {
+  const folder = stem + '-ql'
+  try {
+    await $.fs.write(folder + '/.q', 'ok')
+    const ran = await $.process.run(['qlmanage', '-t', '-s', String(PDF_PAGE_SIDE), '-o', folder, source], { timeoutMs: PREVIEW_TIMEOUT_MS })
+    if (ran.exitCode === 0) return folder + '/' + source.slice(source.lastIndexOf('/') + 1) + '.png'
+  } catch (error) {
+    modLog($, 'pdf ' + source + ': qlmanage failed: ' + messageOf(error).slice(0, 200))
+  }
+  try {
+    const out = stem + '-page.png'
+    await sipsRun($, ['-s', 'format', 'png', source, '--out', out])
+    return out
+  } catch (error) {
+    modLog($, 'pdf ' + source + ': first page could not be made: ' + messageOf(error).slice(0, 200))
+    return ''
+  }
+}
+
+const mediaStamp = (diff) => (diff.media ? diff.media.mtime + ':' + diff.media.bytes : '')
+
+const mediaPreview = async ($, cwd, media, plane) => {
+  const stat = await $.fs.stat(media.abs).catch(() => null)
+  const memoKey = [media.kind, cwd, media.abs, plane, media.isNew, stat ? stat.mtimeMs + ':' + stat.size : 'gone'].join('|')
+  if (!mediaMemo.has(memoKey)) {
+    const pending = buildPreview($, cwd, media, plane, stat, memoKey)
+    mediaMemo.set(memoKey, pending)
+    pending.catch(() => mediaMemo.delete(memoKey))
+    if (mediaMemo.size > 60) mediaMemo.delete(mediaMemo.keys().next().value)
+  }
+  return mediaMemo.get(memoKey)
+}
+
+const buildPreview = async ($, cwd, media, plane, stat, memoKey) => {
+  const dir = await mediaDir($)
+  if (!dir) return {}
+  const rel = relativeTo(cwd, media.abs)
+  const stem = dir + '/m-' + hashOf(memoKey)
+  const pair = !media.isNew && stat && media.kind === 'picture'
+  const budget = pair ? MEDIA_PAIR_CHARS : DESKTOP_DRAW_CHARS - 20000
+  const widest = pair ? MEDIA_PAIR_WIDTH : DESKTOP_PICTURE_WIDTH
+  const side = (source, name) => pictureSide($, source, stem + '-' + name, budget, widest)
+  const result = {}
+  if (media.kind === 'pdf') {
+    const page = stat ? await pdfFirstPage($, media.abs, stem) : ''
+    if (page) result.after = await side(page, 'after')
+  } else if (media.kind === 'picture') {
+    if (stat && plane !== 'staged') result.after = await side(media.abs, 'after')
+    if (plane === 'staged' && (await blobPath($, cwd, ':./' + rel, stem + '-staged'))) result.after = await side(stem + '-staged', 'after')
+    if (!media.isNew) {
+      const spec = (plane === 'worktree' ? ':./' : 'HEAD:./') + rel
+      if (await blobPath($, cwd, spec, stem + '-was')) result.before = await side(stem + '-was', 'before')
+    }
+  }
+  if (stat) {
+    result.bytes = stat.size
+    result.mtime = stat.mtimeMs
+  }
+  return result
+}
+
+const attachMedia = async ($, cwd, diff, abs, plane, isNew) => {
+  const media = { kind: mediaKind(abs), abs, isNew }
+  if (state.desktop && media.kind !== 'file') {
+    try {
+      Object.assign(media, await mediaPreview($, cwd, media, plane))
+    } catch (error) {
+      modLog($, 'preview ' + abs + ': ' + messageOf(error).slice(0, 200))
+    }
+  }
+  return { ...diff, media }
+}
+
+const mediaCaption = (media) => {
+  const kind = media.kind === 'pdf' ? 'PDF' : media.kind === 'picture' ? 'Picture' : 'File'
+  const where = media.isNew ? 'New ' : 'Changed '
+  const dims = media.after && media.after.size ? media.after.size.width + ' x ' + media.after.size.height : ''
+  return [where + kind.toLowerCase(), dims, media.bytes ? kb(media.bytes) : ''].filter(Boolean).join(' · ')
 }
 
 const SKIP_REPO_FOLDERS = new Set(['node_modules', 'vendor'])
@@ -2522,6 +2781,7 @@ const bandView = ($, e, next) => {
   const { Box, Text, Button } = $.ui.resolve(e)
   const desktop = isDesktop(e)
   state.desktop = desktop
+  restoreGallery($)
   if (state.isOpen) {
     if (state.view !== 'doc' || !state.selected.length || !state.current || state.current.group !== 'Task docs') return next(e)
     return Box({
@@ -2658,6 +2918,58 @@ const shownLines = (key, diff) => (state.allFull[key] === true ? diff.lines : di
 
 const diffNoteItems = (c, key, diff) =>
   diff.note ? [{ height: 1, make: () => c.Text({ key, dimColor: true, wrap: 'truncate', children: diff.note }) }] : []
+
+const mdRaw = {}
+
+const isNewMarkdown = (path, diff) =>
+  extOf(path) === 'md' && diff.lines.length > 0 && diff.removed === 0 && diff.lines.every((line) => line.kind === 'add')
+
+const markdownItems = (c, key, diff) => {
+  const text = shape(diff.lines.map((line) => line.text).join('\n'))
+  const rendered = mdRaw[key] !== true
+  const choose = (raw) => () => {
+    mdRaw[key] = raw
+    c.redraw()
+  }
+  const toggle = {
+    height: 1,
+    make: () =>
+      c.Box({
+        key: key + '#t',
+        flexDirection: 'row',
+        columnGap: 1,
+        children: [
+          c.Button({ key: key + '#t-md', label: 'Rendered', variant: rendered ? 'primary' : 'secondary', onPress: choose(false) }),
+          c.Button({ key: key + '#t-raw', label: 'Raw', variant: rendered ? 'secondary' : 'primary', onPress: choose(true) }),
+        ],
+      }),
+  }
+  const body = {
+    height: text.split('\n').length + Math.ceil(text.length / 100),
+    make: () => c.Markdown({ key: key + '#md', text }),
+  }
+  return { toggle, body, rendered }
+}
+
+const terminalMediaItems = ($, c, key, diff) => [
+  { height: 1, make: () => c.Text({ key: key + '-cap', dimColor: true, wrap: 'truncate', children: mediaCaption(diff.media) }) },
+  {
+    height: 1,
+    make: () => c.Button({ key: key + '-open', label: 'Open in viewer', plain: true, onPress: () => openInViewer($, diff.media.abs) }),
+  },
+]
+
+const diffBodyItems = ($, c, key, path, diff, drawLines, desktop) => {
+  if (diff.media) {
+    const media = desktop ? desktopMediaItems($, c, key + '#m', diff) : terminalMediaItems($, c, key + '#m', diff)
+    return { items: media, plain: false }
+  }
+  const note = diffNoteItems(c, key + '#n', diff)
+  if (!isNewMarkdown(path, diff)) return { items: [...note, ...drawLines()], plain: true }
+  const md = markdownItems(c, key, diff)
+  if (md.rendered) return { items: [...note, md.toggle, md.body], plain: false }
+  return { items: [...note, md.toggle, ...drawLines()], plain: true }
+}
 
 const moreLinesItem = (c, key, hidden, onPress) => ({
   height: 1,
@@ -3150,9 +3462,10 @@ const allDiffItems = ($, c, only, beside) => {
         continue
       }
       const lines = shownLines(key, diff)
-      items.push(...diffNoteItems(c, key + '#n', diff), ...terminalDiffItems(c, lines, key + '#', columnWidth, entry.path))
+      const body = diffBodyItems($, c, key, entry.path, diff, () => terminalDiffItems(c, lines, key + '#', columnWidth, entry.path), false)
+      items.push(...body.items)
       const hidden = diff.lines.length - lines.length
-      if (hidden > 0) {
+      if (body.plain && hidden > 0) {
         items.push(
           moreLinesItem(c, key + '#more', hidden, () => {
             state.allFull[key] = true
@@ -3219,7 +3532,7 @@ const changeFileView = ($, c) => {
             flexDirection: 'column',
             children: windowedRows(
               c,
-              [...diffNoteItems(c, 'cf-note', diff), ...terminalDiffItems(c, diff.lines, 'l', paneColumns(c.e) - 2, file.path)],
+              diffBodyItems($, c, 'cf', file.path, diff, () => terminalDiffItems(c, diff.lines, 'l', paneColumns(c.e) - 2, file.path), false).items,
               3,
             ),
           }),
@@ -3740,9 +4053,10 @@ const desktopChangeAllView = ($, c) => {
         continue
       }
       const shown = shownLines(key, diff)
-      items.push(...diffNoteItems(c, key + '#n', diff), ...desktopDiffItems(c, shown, key + '#', entry.path))
+      const body = diffBodyItems($, c, key, entry.path, diff, () => desktopDiffItems(c, shown, key + '#', entry.path), true)
+      items.push(...body.items)
       const hidden = diff.lines.length - shown.length
-      if (hidden > 0) {
+      if (body.plain && hidden > 0) {
         items.push(
           moreLinesItem(c, key + '#more', hidden, () => {
             state.allFull[key] = true
@@ -3781,6 +4095,61 @@ const desktopDiffItems = (c, lines, prefix, path) => {
           make: () => desktopDiffRow(c, line, prefix + index, width, tokens[index]),
         },
   )
+}
+
+const mediaSides = (media) => {
+  const pair = Boolean(media.before && media.after)
+  if (pair) return [['Before', media.before], ['After', media.after]]
+  if (media.after) return [[media.kind === 'pdf' ? 'Page 1' : media.isNew ? 'New' : 'Now', media.after]]
+  if (media.before) return [['Removed', media.before]]
+  return []
+}
+
+const desktopMediaItems = ($, c, key, diff) => {
+  const { Box, Text, Button, Svg } = c
+  const media = diff.media
+  const sides = mediaSides(media)
+  const caption = {
+    height: 2,
+    make: () =>
+      Box({
+        key: key + '-cap',
+        flexDirection: 'row',
+        alignItems: 'center',
+        columnGap: 2,
+        children: [
+          Text({ dimColor: true, children: mediaCaption(media) }),
+          Button({ key: key + '-open', label: 'Open in viewer', onPress: () => openInViewer($, media.abs) }),
+        ],
+      }),
+  }
+  if (!sides.length) {
+    const why = media.kind === 'file' ? '' : 'No preview could be made here (needs macOS sips). Press Open in viewer.'
+    return why ? [caption, { height: 1, make: () => Text({ key: key + '-none', dimColor: true, wrap: 'truncate', children: why }) }] : [caption]
+  }
+  const tallest = Math.max(...sides.map(([, side]) => side.svg.height))
+  return [
+    caption,
+    {
+      height: Math.ceil(tallest / MEDIA_ROW_PX) + 2,
+      make: () =>
+        Box({
+          key: key + '-pics',
+          flexDirection: 'row',
+          columnGap: 2,
+          children: sides.map(([label, side]) =>
+            Box({
+              key: key + '-side-' + label,
+              flexDirection: 'column',
+              children: [
+                Text({ dimColor: true, children: label }),
+                Svg({ source: side.svg.source, alt: label, width: side.svg.width, height: side.svg.height }),
+              ],
+            }),
+          ),
+        }),
+    },
+  ]
 }
 
 const desktopChangeFileView = ($, c) => {
@@ -3833,7 +4202,11 @@ const desktopChangeFileView = ($, c) => {
         : Box({
             key: 'cf-rows',
             flexDirection: 'column',
-            children: windowedRows(c, [...diffNoteItems(c, 'cf-note', diff), ...desktopDiffItems(c, diff.lines, 'l', file.path)],DESKTOP_PAGE_BAR_ROWS + DESKTOP_STRIP_ROWS + 1),
+            children: windowedRows(
+              c,
+              diffBodyItems($, c, 'cf', file.path, diff, () => desktopDiffItems(c, diff.lines, 'l', file.path), true).items,
+              DESKTOP_PAGE_BAR_ROWS + DESKTOP_STRIP_ROWS + 1,
+            ),
           }),
     ],
   })
@@ -3947,7 +4320,7 @@ let galleryPick = ''
 const pngBytes = (image) => (image.png ? Math.floor((image.png.length * 3) / 4) : 0)
 
 const desktopImagesView = ($, c) => {
-  const { Box, Text, Button, redraw } = c
+  const { Box, Text, Button, Svg, redraw } = c
   const list = [...state.images].reverse()
   const close = { key: 'img-close', label: '< Close', hotkey: 'b', onPress: () => closePane($) }
   if (!list.length) {
@@ -3961,6 +4334,20 @@ const desktopImagesView = ($, c) => {
   const pick = (path) => {
     galleryPick = path
     redraw()
+    const image = list.find((item) => item.path === path)
+    if (image && slicesWanted(image)) ensureSlice($, image, image.slice || 0).then(redraw)
+  }
+  const stepSlice = (image, delta) => {
+    image.slice = Math.max(0, Math.min(sliceGeometry(image.size).count - 1, (image.slice || 0) + delta))
+    redraw()
+    ensureSlice($, image, image.slice).then(redraw)
+  }
+  const zoomed = (image) => galleryPick === image.path && slicesWanted(image)
+  const slicePicture = (image) => {
+    const drawn = image.slices && image.slices[image.slice || 0]
+    if (drawn) return Svg({ key: 'img-slice-' + image.path + '-' + (image.slice || 0), source: drawn.source, alt: image.name, width: drawn.width, height: drawn.height })
+    if (image.slices && (image.slice || 0) in image.slices) return galleryPicture(c, image, true, 0)
+    return Text({ key: 'img-cutting-' + image.path, dimColor: true, children: 'Cutting this part of the picture…' })
   }
   const chips = list.map((image, index) => {
     const drawable = Boolean(svgPicture(image))
@@ -3993,6 +4380,7 @@ const desktopImagesView = ($, c) => {
             hotkey: 'c',
             onPress: () => {
               state.images = []
+              saveGallery($)
               galleryPick = ''
               redraw()
             },
@@ -4015,15 +4403,33 @@ const desktopImagesView = ($, c) => {
             strip(c, {
               key: 'img-h-' + image.path,
               title: (list.indexOf(image) + 1) + '  ' + image.name,
-              right: [Button({ key: 'img-open-' + image.path, label: 'Open in viewer', onPress: () => openInViewer($, image.path) })],
+              right: [
+                ...(zoomed(image) && sliceGeometry(image.size).count > 1
+                  ? [
+                      Button({ key: 'img-up-' + image.path, label: '‹ Up', hotkey: 'p', onPress: () => stepSlice(image, -1) }),
+                      Button({ key: 'img-down-' + image.path, label: 'Down ›', hotkey: 'n', onPress: () => stepSlice(image, 1) }),
+                    ]
+                  : []),
+                Button({ key: 'img-open-' + image.path, label: 'Open in viewer', onPress: () => openInViewer($, image.path) }),
+              ],
             }),
             Text({
               key: 'img-meta-' + image.path,
               dimColor: true,
               wrap: 'truncate-start',
-              children: [image.preview ? 'smaller copy, full size in the viewer' : '', image.caption, image.path].filter(Boolean).join(' · '),
+              children: [
+                image.size ? image.size.width + ' x ' + image.size.height : '',
+                zoomed(image) && sliceGeometry(image.size).count > 1 ? 'part ' + ((image.slice || 0) + 1) + ' of ' + sliceGeometry(image.size).count : '',
+                image.preview && !zoomed(image) ? 'smaller copy, full size in the viewer' : '',
+                image.caption,
+                image.path,
+              ]
+                .filter(Boolean)
+                .join(' · '),
             }),
-            fits(image)
+            zoomed(image)
+              ? slicePicture(image)
+              : fits(image)
               ? galleryPicture(c, image, true, 0)
               : Button({
                   key: 'img-room-' + image.path,
@@ -4195,7 +4601,7 @@ const docView = ($, c) => {
             ]
           : []),
         action('changes', state.docBack ? 'Doc diff' : 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
-        action('copy', 'Copy', { hotkey: 'y' }, (press) => copyDocText($, state.raw, 'the doc', press && press.surface)),
+        action('copy', 'Copy', { hotkey: 'y' }, (press) => copyDocFile($, state.current.path, 'the doc', press && press.surface)),
         action('open', 'Open in editor', { hotkey: 'o' }, () => openInEditor($, state.current.path)),
         action('refresh', 'Refresh ⚠', { hotkey: 'r' }, () =>
           askFirst('Refresh ' + state.current.label, refreshRequest(state.current), REFRESH_EFFECT),
@@ -4295,7 +4701,7 @@ const decisionView = ($, c) => {
           key: prefix + 'dec-copy',
           label: 'Copy',
           ...liveOnly(prefix, { hotkey: 'y' }),
-          onPress: (press) => copyDocText($, state.decisionTexts[file.path], file.name, press && press.surface),
+          onPress: (press) => copyDocFile($, file.path, file.name, press && press.surface),
         }),
         Button({
           key: prefix + 'dec-open',
@@ -4386,6 +4792,7 @@ const imagesView = ($, c) => {
     hotkey: 'c',
     onPress: () => {
       state.images = []
+      saveGallery($)
       redraw()
     },
   })
@@ -4907,7 +5314,7 @@ const paneContext = ($, e) => {
 }
 
 const paneView = async ($, e, next) => {
-  if (e.requestId !== PANE) return next(e)
+  if (e.requestId !== PANE || !state.isOpen) return next(e)
   const c = paneContext($, e)
   state.desktop = isDesktop(e)
   state.stickyTop = null
@@ -5206,13 +5613,25 @@ export function register(on) {
     return ran
   })
 
-  on('ui.close', ($, e, next) => {
-    if (e.id === PANE || e.requestId === PANE) {
-      resetPane()
-      state.isOpen = false
-      $.ui.invalidate('ui.render')
+  on('ui.close', async ($, e, next) => {
+    const mine = e.id === PANE || e.requestId === PANE
+    let closed
+    try {
+      closed = await next(e)
+    } catch (error) {
+      if (mine) modLog($, 'close (' + e.surface + '): host refused: ' + messageOf(error).slice(0, 200))
+      throw error
     }
-    return next(e)
+    if (mine) {
+      state.isOpen = false
+      resetPane()
+      try {
+        $.ui.invalidate('ui.render')
+      } catch (error) {
+        modLog($, 'close (' + e.surface + '): redraw failed: ' + messageOf(error).slice(0, 200))
+      }
+    }
+    return closed
   })
 
   on('ui.render', { component: 'Pane' }, paneView)
@@ -5223,7 +5642,7 @@ export function register(on) {
   })
 
   on('ui.scroll', { component: 'Pane' }, ($, e, next) => {
-    if (e.requestId !== PANE) return next(e)
+    if (e.requestId !== PANE || !state.isOpen) return next(e)
     state.allScroll = { view: state.view, offset: e.offset, body: e.bodyRows }
     const ran = next(e)
     if (state.topShown || state.stickyShown || e.offset > TOP_BUTTON_AFTER || (state.desktop && e.offset >= STICKY_AFTER) || Math.abs(e.offset - state.windowAt) > e.bodyRows / 3) $.ui.invalidate('ui.render')

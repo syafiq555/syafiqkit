@@ -13,11 +13,17 @@ const clipboardCommand = async ($) => {
   return ['clip']
 }
 
-const copyDocText = async ($, text, name, surface) => {
-  if (!text) return $.ui.toast('Nothing to copy yet: the doc is still loading.')
+const copyDocFile = async ($, path, name, surface) => {
+  let text = ''
+  try {
+    text = await $.fs.read(path)
+  } catch (error) {
+    return $.ui.toast('Could not read ' + name + ': ' + messageOf(error).slice(0, 80))
+  }
   try {
     const copied = await $.ui.copy({ text, ...(surface ? { surface } : {}) })
     if (copied && copied.isCopied) return $.ui.toast('Copied ' + name + ' to the clipboard.')
+    if (copied && copied.reason === 'refused') return $.ui.toast('Copy was refused.')
   } catch {}
   try {
     const ran = await $.process.run(await clipboardCommand($), { stdin: text })

@@ -3,6 +3,7 @@ const bandView = ($, e, next) => {
   const { Box, Text, Button } = $.ui.resolve(e)
   const desktop = isDesktop(e)
   state.desktop = desktop
+  restoreGallery($)
   if (state.isOpen) {
     if (state.view !== 'doc' || !state.selected.length || !state.current || state.current.group !== 'Task docs') return next(e)
     return Box({

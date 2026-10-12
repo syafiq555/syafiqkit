@@ -85,18 +85,19 @@ const readDiff = async ($, cwd, paths, plane) => {
     if (ran.exitCode !== 0) {
       return tally([], 'Git could not diff this file: it is not in a repository, or the repository has no commit yet.')
     }
+    const absolute = first.startsWith('/') ? first : cwd + '/' + first
     if (ran.stdout.trim()) {
       const lines = parseDiff(ran.stdout)
-      return tally(lines, lines.length ? '' : 'Binary file or a change with no text lines.')
+      if (lines.length) return tally(lines, '')
+      return attachMedia($, cwd, tally([], 'Binary file or a change with no text lines.'), absolute, plane, false)
     }
     const tracked = await gitRun($, ['git', '--no-optional-locks', 'ls-files', '--error-unmatch', '--', first], {
       cwd,
       env: LITERAL_PATHS,
     })
     if (tracked.exitCode !== 0) {
-      const absolute = first.startsWith('/') ? first : cwd + '/' + first
       const stat = await $.fs.stat(absolute).catch(() => null)
-      if (stat && stat.size > MAX_UNTRACKED_BYTES) return tally([], 'New file, ' + kb(stat.size) + ': too large to show here.')
+      if (stat && stat.size > MAX_UNTRACKED_BYTES) return attachMedia($, cwd, tally([], 'New file, ' + kb(stat.size) + '.'), absolute, plane, true)
       const added = await gitRun($,
         ['git', '--no-optional-locks', 'diff', '--no-index', '--no-color', '-U' + DIFF_CONTEXT, '--', '/dev/null', absolute],
         { cwd },
@@ -104,9 +105,10 @@ const readDiff = async ($, cwd, paths, plane) => {
       if (!added.stdout.trim()) {
         return tally([], added.exitCode === 0 ? 'New empty file, not yet added to git.' : 'This file cannot be read: it may have been removed, or it is a folder.')
       }
-      if (added.stdout.length > MAX_UNTRACKED_BYTES) return tally([], 'New file, ' + kb(added.stdout.length) + ': too large to show here.')
+      if (added.stdout.length > MAX_UNTRACKED_BYTES) return attachMedia($, cwd, tally([], 'New file, ' + kb(added.stdout.length) + '.'), absolute, plane, true)
       const lines = parseDiff(added.stdout)
-      return tally(lines, lines.length ? 'New file, not yet added to git.' : 'Binary file or a change with no text lines.')
+      if (lines.length) return tally(lines, 'New file, not yet added to git.')
+      return attachMedia($, cwd, tally([], 'Binary file or a change with no text lines.'), absolute, plane, true)
     }
     return tally([], EMPTY_DIFF_NOTE[plane])
   } catch {

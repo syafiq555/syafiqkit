@@ -72,12 +72,16 @@ const resetPane = () => {
 }
 
 const closePane = async ($) => {
-  resetPane()
   try {
     await $.ui.close({ id: PANE })
-  } catch {}
+  } catch (error) {
+    modLog($, 'close: ' + messageOf(error).slice(0, 200))
+  }
   state.isOpen = false
-  $.ui.invalidate('ui.render')
+  resetPane()
+  try {
+    $.ui.invalidate('ui.render')
+  } catch {}
 }
 
 const submitPrompt = async ($, text, note, onFail, handoffAfter) => {

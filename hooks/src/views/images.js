@@ -42,6 +42,7 @@ const imagesView = ($, c) => {
     hotkey: 'c',
     onPress: () => {
       state.images = []
+      saveGallery($)
       redraw()
     },
   })

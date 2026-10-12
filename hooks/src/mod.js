@@ -86,13 +86,25 @@ export function register(on) {
     return ran
   })
 
-  on('ui.close', ($, e, next) => {
-    if (e.id === PANE || e.requestId === PANE) {
-      resetPane()
-      state.isOpen = false
-      $.ui.invalidate('ui.render')
+  on('ui.close', async ($, e, next) => {
+    const mine = e.id === PANE || e.requestId === PANE
+    let closed
+    try {
+      closed = await next(e)
+    } catch (error) {
+      if (mine) modLog($, 'close (' + e.surface + '): host refused: ' + messageOf(error).slice(0, 200))
+      throw error
     }
-    return next(e)
+    if (mine) {
+      state.isOpen = false
+      resetPane()
+      try {
+        $.ui.invalidate('ui.render')
+      } catch (error) {
+        modLog($, 'close (' + e.surface + '): redraw failed: ' + messageOf(error).slice(0, 200))
+      }
+    }
+    return closed
   })
 
   on('ui.render', { component: 'Pane' }, paneView)
@@ -103,7 +115,7 @@ export function register(on) {
   })
 
   on('ui.scroll', { component: 'Pane' }, ($, e, next) => {
-    if (e.requestId !== PANE) return next(e)
+    if (e.requestId !== PANE || !state.isOpen) return next(e)
     state.allScroll = { view: state.view, offset: e.offset, body: e.bodyRows }
     const ran = next(e)
     if (state.topShown || state.stickyShown || e.offset > TOP_BUTTON_AFTER || (state.desktop && e.offset >= STICKY_AFTER) || Math.abs(e.offset - state.windowAt) > e.bodyRows / 3) $.ui.invalidate('ui.render')

@@ -1,5 +1,5 @@
 const paneView = async ($, e, next) => {
-  if (e.requestId !== PANE) return next(e)
+  if (e.requestId !== PANE || !state.isOpen) return next(e)
   const c = paneContext($, e)
   state.desktop = isDesktop(e)
   state.stickyTop = null

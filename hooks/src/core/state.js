@@ -69,6 +69,7 @@ const state = {
   allFull: {},
   diffSectionClosed: {},
   images: [],
+  galleryRestore: null,
   changeFocus: '',
   wide: false,
   discard: null,

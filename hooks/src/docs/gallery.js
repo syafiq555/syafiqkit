@@ -65,7 +65,44 @@ const shrinkForDesktop = async ($, image) => {
   return image
 }
 
+const galleryIndexPath = async ($) => {
+  const [home, id] = await Promise.all([homeOf($), $.session.id().catch(() => '')])
+  if (!home || !id) return ''
+  return home + '/.claude/doc-pane-cache/gallery-' + id + '.json'
+}
+
+const saveGallery = async ($) => {
+  try {
+    const path = await galleryIndexPath($)
+    if (path) await $.fs.write(path, JSON.stringify(state.images.map((image) => ({ path: image.path, caption: image.caption || '' }))))
+  } catch (error) {
+    modLog($, 'gallery: could not save the list: ' + messageOf(error).slice(0, 200))
+  }
+}
+
+const restoreGallery = ($) => {
+  if (state.galleryRestore) return state.galleryRestore
+  state.galleryRestore = (async () => {
+    try {
+      const path = await galleryIndexPath($)
+      if (!path || state.images.length) return
+      const saved = JSON.parse(await $.fs.read(path))
+      if (!Array.isArray(saved)) return
+      const entries = saved.filter((item) => item && typeof item.path === 'string').slice(-MAX_GALLERY)
+      const read = await Promise.all(entries.map((item) => readGalleryImage($, item.path, typeof item.caption === 'string' ? item.caption : '')))
+      const restored = []
+      for (const item of read) if (item.image) restored.push(await shrinkForDesktop($, item.image))
+      if (restored.length && !state.images.length) {
+        state.images = restored
+        redrawPane($)
+      }
+    } catch {}
+  })()
+  return state.galleryRestore
+}
+
 const showImages = async ($, e) => {
+  await restoreGallery($)
   const raw = Array.isArray(e.paths) ? e.paths : typeof e.path === 'string' ? [e.path] : []
   const wanted = [...new Set(raw.filter((path) => typeof path === 'string' && path))]
   const paths = wanted.slice(0, MAX_GALLERY)
@@ -79,6 +116,7 @@ const showImages = async ($, e) => {
   if (added.length) {
     const kept = state.images.filter((image) => !added.some((fresh) => fresh.path === image.path))
     state.images = [...kept, ...added].slice(-MAX_GALLERY)
+    await saveGallery($)
     const noun = added.length + (added.length === 1 ? ' image' : ' images')
     $.ui.toast(noun + ' ready: press Images in the band')
     redrawPane($)
@@ -122,4 +160,54 @@ const openImages = async ($) => {
     state.isOpen = false
     redrawPane($)
   }
+}
+
+const sliceGeometry = (size) => {
+  const width = Math.min(size.width, SLICE_WIDTH)
+  const height = Math.round((size.height * width) / size.width)
+  return { width, height, count: Math.max(1, Math.ceil(height / SLICE_HEIGHT)) }
+}
+
+const slicesWanted = (image) => Boolean(image.size) && (sliceGeometry(image.size).count > 1 || image.size.width > DESKTOP_PICTURE_WIDTH)
+
+const ensureSlice = async ($, image, index) => {
+  if (!state.desktop || !image.size) return
+  image.slices = image.slices || {}
+  if (index in image.slices || image.slicing) return
+  image.slicing = true
+  try {
+    const geo = sliceGeometry(image.size)
+    const dir = await mediaDir($)
+    if (!dir) {
+      image.slices[index] = null
+      return
+    }
+    const stem = dir + '/' + hoverScope(image.path) + '-z'
+    let source = image.path
+    if (image.size.width > SLICE_WIDTH) {
+      source = stem + '-wide.png'
+      if (!image.scaled) {
+        await sipsRun($, ['--resampleWidth', String(SLICE_WIDTH), image.path, '--out', source])
+        image.scaled = true
+      }
+    }
+    const top = index * SLICE_HEIGHT
+    const high = Math.min(SLICE_HEIGHT, geo.height - top)
+    let drawn = null
+    for (const quality of SLICE_QUALITIES) {
+      const out = stem + '-' + index + '.jpg'
+      await sipsRun($, ['-c', String(high), String(geo.width), '--cropOffset', String(top), '0', ...jpegArgs(quality), source, '--out', out])
+      const { base64 } = await $.fs.read(out, { as: 'bytes' })
+      drawn = svgOf(base64, 'jpeg', { width: geo.width, height: high }, SLICE_CHARS, SLICE_WIDTH)
+      if (drawn) break
+    }
+    image.slices[index] = drawn
+  } catch (error) {
+    modLog($, 'picture ' + image.path + ': slice ' + index + ' failed: ' + messageOf(error).slice(0, 200))
+    image.slices[index] = null
+  } finally {
+    image.slicing = false
+  }
+  const wanted = image.slice || 0
+  if (!(wanted in image.slices)) await ensureSlice($, image, wanted)
 }

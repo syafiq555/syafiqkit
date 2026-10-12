@@ -36,6 +36,58 @@ const shownLines = (key, diff) => (state.allFull[key] === true ? diff.lines : di
 const diffNoteItems = (c, key, diff) =>
   diff.note ? [{ height: 1, make: () => c.Text({ key, dimColor: true, wrap: 'truncate', children: diff.note }) }] : []
 
+const mdRaw = {}
+
+const isNewMarkdown = (path, diff) =>
+  extOf(path) === 'md' && diff.lines.length > 0 && diff.removed === 0 && diff.lines.every((line) => line.kind === 'add')
+
+const markdownItems = (c, key, diff) => {
+  const text = shape(diff.lines.map((line) => line.text).join('\n'))
+  const rendered = mdRaw[key] !== true
+  const choose = (raw) => () => {
+    mdRaw[key] = raw
+    c.redraw()
+  }
+  const toggle = {
+    height: 1,
+    make: () =>
+      c.Box({
+        key: key + '#t',
+        flexDirection: 'row',
+        columnGap: 1,
+        children: [
+          c.Button({ key: key + '#t-md', label: 'Rendered', variant: rendered ? 'primary' : 'secondary', onPress: choose(false) }),
+          c.Button({ key: key + '#t-raw', label: 'Raw', variant: rendered ? 'secondary' : 'primary', onPress: choose(true) }),
+        ],
+      }),
+  }
+  const body = {
+    height: text.split('\n').length + Math.ceil(text.length / 100),
+    make: () => c.Markdown({ key: key + '#md', text }),
+  }
+  return { toggle, body, rendered }
+}
+
+const terminalMediaItems = ($, c, key, diff) => [
+  { height: 1, make: () => c.Text({ key: key + '-cap', dimColor: true, wrap: 'truncate', children: mediaCaption(diff.media) }) },
+  {
+    height: 1,
+    make: () => c.Button({ key: key + '-open', label: 'Open in viewer', plain: true, onPress: () => openInViewer($, diff.media.abs) }),
+  },
+]
+
+const diffBodyItems = ($, c, key, path, diff, drawLines, desktop) => {
+  if (diff.media) {
+    const media = desktop ? desktopMediaItems($, c, key + '#m', diff) : terminalMediaItems($, c, key + '#m', diff)
+    return { items: media, plain: false }
+  }
+  const note = diffNoteItems(c, key + '#n', diff)
+  if (!isNewMarkdown(path, diff)) return { items: [...note, ...drawLines()], plain: true }
+  const md = markdownItems(c, key, diff)
+  if (md.rendered) return { items: [...note, md.toggle, md.body], plain: false }
+  return { items: [...note, md.toggle, ...drawLines()], plain: true }
+}
+
 const moreLinesItem = (c, key, hidden, onPress) => ({
   height: 1,
   make: () => c.Button({ key, label: '… ' + hidden + ' more lines · show', plain: true, onPress }),
@@ -527,9 +579,10 @@ const allDiffItems = ($, c, only, beside) => {
         continue
       }
       const lines = shownLines(key, diff)
-      items.push(...diffNoteItems(c, key + '#n', diff), ...terminalDiffItems(c, lines, key + '#', columnWidth, entry.path))
+      const body = diffBodyItems($, c, key, entry.path, diff, () => terminalDiffItems(c, lines, key + '#', columnWidth, entry.path), false)
+      items.push(...body.items)
       const hidden = diff.lines.length - lines.length
-      if (hidden > 0) {
+      if (body.plain && hidden > 0) {
         items.push(
           moreLinesItem(c, key + '#more', hidden, () => {
             state.allFull[key] = true
@@ -596,7 +649,7 @@ const changeFileView = ($, c) => {
             flexDirection: 'column',
             children: windowedRows(
               c,
-              [...diffNoteItems(c, 'cf-note', diff), ...terminalDiffItems(c, diff.lines, 'l', paneColumns(c.e) - 2, file.path)],
+              diffBodyItems($, c, 'cf', file.path, diff, () => terminalDiffItems(c, diff.lines, 'l', paneColumns(c.e) - 2, file.path), false).items,
               3,
             ),
           }),

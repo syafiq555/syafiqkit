@@ -528,6 +528,34 @@ test('Copy puts the decision and the doc on the clipboard, falling back to pbcop
   await ui.unmount()
 })
 
+test('Copy takes the file as written, not the reader\'s reshaped text, and a refused copy is not retried', async ($, on) => {
+  const raw = '<!-- note -->\n# Plan\n\n| a | b |\n|---|---|\n| 1 | 2 |\n'
+  const copied: string[] = []
+  const runs: any[] = []
+  on('ui.copy', (_$: any, e: any) => {
+    copied.push(e.text)
+    return { value: copied.length === 1 ? { isCopied: true } : { isCopied: false, reason: 'refused' } }
+  })
+  on('process.run', (_$: any, e: any) => {
+    runs.push(e)
+    return { value: { exitCode: 0, stdout: '', stderr: '' } }
+  })
+  const sent: string[] = []
+  await stubTaskDoc($, on, sent, 'a', 60, [fileEntry('plan.md', 47_000)], raw)
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'r0b' })
+  await ui.press({ key: 'decisions-toggle' })
+  await ui.press({ key: 'dec0' })
+  runs.length = 0
+  await ui.press({ key: 'dec-copy' })
+  expect(copied[0]).toBe(raw)
+  await ui.press({ key: 'dec-copy' })
+  expect(copied.length).toBe(2)
+  expect(runs.some((run) => run.argv[0] === 'pbcopy' || run.argv[0] === 'xclip' || run.argv[0] === 'clip')).toBe(false)
+  await ui.unmount()
+})
+
 test('a decisions page offers Condense, which asks first and condenses that one file on haiku', async ($, on) => {
   const sent: string[] = []
   const ui = await openBigDecision($, on, sent)
@@ -968,6 +996,27 @@ test('show_image puts PNG screenshots in the pane, names the files it refused, a
   await ui.unmount()
 })
 
+test('a render that arrives after the pane closed draws nothing of ours, so an expanded pane cannot be left redrawing the docs list', async ($, on) => {
+  const opened: string[] = []
+  stubSession(on, [], opened)
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', () => ({ value: { base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' } }))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/a.png'] })
+  const band = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  await band.press({ key: 'open-images' })
+  const open = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect(await open.find({ key: 'img-close' })).toBeDefined()
+  await open.press({ key: 'img-close' })
+  await open.unmount()
+  const late = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect(await late.find({ key: 'img-close' })).toBeUndefined()
+  expect(await late.find({ key: 'filter' })).toBeUndefined()
+  await late.unmount()
+  await band.unmount()
+})
+
 test('a narrow pane keeps the heading as a fold and gives each section its own view button, which shows only that section', async ($, on) => {
   const runs: string[][] = []
   const ui = await openChangesPane($, on, runs)
@@ -1081,6 +1130,32 @@ test('on Desktop the gallery draws each picture as an Svg, and the terminal keep
   expect(await terminal.find({ key: 'gallery-img-/tmp/a.png' })).toBeDefined()
   expect(await terminal.find({ key: 'gallery-svg-/tmp/a.png' })).toBeUndefined()
   await terminal.unmount()
+})
+
+test('a reloaded mod brings back the session gallery from its saved list and keeps adding to it', async ($, on) => {
+  const writes: any[] = []
+  stubSession(on, [], [])
+  on('tool.register', () => ({ value: { tool: 'mcp__syafiqkit__show_image' } }))
+  on('session.id', () => ({ value: 'sess-1' }))
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', (_$: any, e: any) => ({
+    value: e.path.endsWith('/gallery-sess-1.json')
+      ? JSON.stringify([{ path: '/tmp/old.png', caption: 'before the reload' }])
+      : { base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' },
+  }))
+  on('fs.write', (_$: any, e: any) => {
+    writes.push(e)
+    return { value: undefined }
+  })
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/new.png'] })
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  const images: any = await band.find({ key: 'open-images' })
+  expect(JSON.stringify(images)).toContain('Images (2)')
+  await band.unmount()
+  const saved = writes.filter((w) => w.path.endsWith('/gallery-sess-1.json')).pop()
+  expect(JSON.parse(saved.content ?? saved.text ?? saved.data).map((i: any) => i.path)).toEqual(['/tmp/old.png', '/tmp/new.png'])
 })
 
 test('on Desktop a picture too big for an Svg falls back to the viewer button instead of a broken drawing', async ($, on) => {
@@ -1337,6 +1412,103 @@ test('Desktop: pressing a change-map block opens that file with tinted diff rows
   expect(await ui.find({ type: 'Text', text: /new/ })).toBeDefined()
   await ui.press({ key: 'cf-back' })
   expect(await ui.find({ key: 'sec-worktree' })).toBeDefined()
+  await ui.unmount()
+})
+
+const TINY_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+
+const mediaGit = (status: string, diff: string, runs: string[][], tracked: boolean) => (_$: any, e: any) => {
+  runs.push([...e.argv])
+  const line = e.argv.join(' ')
+  const done = (stdout = '', exitCode = 0) => ({ value: { exitCode, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } })
+  if (e.argv[0] === 'sips' && e.argv[1] === '-g') return done('  pixelWidth: 800\n  pixelHeight: 600\n')
+  if (e.argv[0] === 'sips' || e.argv[0] === 'sh') return done()
+  if (line.includes('rev-parse --show-toplevel')) return done('/work\n')
+  if (line.includes('rev-parse --verify')) return done('abc\n')
+  if (line.includes(' status ')) return done(status)
+  if (line.includes('--no-index')) return done(diff)
+  if (line.includes(' diff ')) return done(tracked ? diff : '')
+  if (line.includes('ls-files')) return done('x', tracked ? 0 : 1)
+  return done()
+}
+
+const openMediaFile = async ($: any, on: any, runs: string[][], status: string, diff: string, tracked: boolean, size: number, key: string) => {
+  stubSession(on, [], [])
+  on('fs.stat', () => ({ value: { kind: 'file', size, mtimeMs: 5, isLink: false } }))
+  on('fs.read', () => ({ value: { base64: TINY_PNG } }))
+  on('fs.write', () => ({ value: undefined }))
+  on('process.run', mediaGit(status, diff, runs, tracked))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  const ui = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })
+  await ui.press({ key })
+  return ui
+}
+
+test('Desktop: a changed picture shows its before and after instead of "Binary file", with an Open in viewer button', async ($, on) => {
+  const runs: string[][] = []
+  const binary = 'Binary files a/shot.png and b/shot.png differ\n'
+  const ui = await openMediaFile($, on, runs, ' M shot.png\0', binary, true, 5000, 'map-worktree:shot.png-b')
+  expect(await ui.find({ key: 'cf#m-open' })).toBeDefined()
+  expect((await ui.findAll({ type: 'Svg' })).length).toBe(2)
+  expect(await ui.find({ type: 'Text', text: /Binary file/ })).toBeUndefined()
+  expect(ran(runs, 'sh', '-c')).toBe(true)
+  await ui.unmount()
+})
+
+test('Desktop: a large new PDF shows its first page and a viewer button, never "too large to show here"', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openMediaFile($, on, runs, '?? guide.pdf\0', '', false, 1_500_000, 'map-worktree:guide.pdf-b')
+  expect(await ui.find({ key: 'cf#m-open' })).toBeDefined()
+  expect((await ui.findAll({ type: 'Svg' })).length).toBe(1)
+  expect(await ui.find({ type: 'Text', text: /too large/ })).toBeUndefined()
+  expect(runs.some((run) => run[0] === 'qlmanage' && run.includes('/work/guide.pdf'))).toBe(true)
+  await ui.unmount()
+})
+
+const TALL_PNG = 'iVBORw0KGgoAAAANSUhEUgAABkAAABBoCAIAAAA='
+
+test('Desktop gallery: a tall picture picked alone is cut into readable parts, and Down shows the next part', async ($, on) => {
+  const runs: string[][] = []
+  stubSession(on, [], [])
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', (_$: any, e: any) => ({ value: { base64: String(e.path).endsWith('.jpg') ? TINY_PNG : TALL_PNG } }))
+  on('fs.write', () => ({ value: undefined }))
+  on('process.run', (_$: any, e: any) => {
+    runs.push([...e.argv])
+    return { value: { exitCode: 0, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+  })
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/tall.png'] })
+  const band = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  await band.press({ key: 'open-images' })
+  const ui = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })
+  expect(await ui.find({ key: 'img-down-/tmp/tall.png' })).toBeUndefined()
+  await ui.press({ key: 'img-pick-/tmp/tall.png' })
+  expect(await ui.find({ key: 'img-down-/tmp/tall.png' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /1600 x 4200 · part 1 of 6/ })).toBeDefined()
+  expect(runs.some((run) => run[0] === 'sips' && run.includes('--cropOffset') && run.includes('0'))).toBe(true)
+  await ui.press({ key: 'img-down-/tmp/tall.png' })
+  expect(await ui.find({ type: 'Text', text: /part 2 of 6/ })).toBeDefined()
+  expect(runs.some((run) => run[0] === 'sips' && run[run.indexOf('--cropOffset') + 1] === '520')).toBe(true)
+  await ui.unmount()
+  await band.unmount()
+})
+
+const NEW_MD_DIFF = ['diff --git a/guide.md b/guide.md', '--- /dev/null', '+++ b/guide.md', '@@ -0,0 +1,3 @@', '+# Guide', '+', '+Hello **world**', ''].join('\n')
+
+test('Desktop: a new markdown file draws rendered, and Raw switches to the added lines and back', async ($, on) => {
+  const ui = await openMediaFile($, on, [], '?? guide.md\0', NEW_MD_DIFF, false, 200, 'map-worktree:guide.md-b')
+  expect(await ui.find({ key: 'cf#t-md' })).toBeDefined()
+  expect(await ui.find({ type: 'Markdown' })).toBeDefined()
+  expect(await ui.find({ key: 'l1' })).toBeUndefined()
+  await ui.press({ key: 'cf#t-raw' })
+  expect(await ui.find({ type: 'Markdown' })).toBeUndefined()
+  expect(await ui.find({ key: 'l1' })).toBeDefined()
+  await ui.press({ key: 'cf#t-md' })
+  expect(await ui.find({ type: 'Markdown' })).toBeDefined()
   await ui.unmount()
 })
 

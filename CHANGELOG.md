@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.396.0
+
+**/changes shows pictures, PDFs and new markdown files properly, and the gallery lets you read tall pictures.**
+- A changed picture shows Before and After side by side instead of "Binary file or a change with no text lines". A new or changed PDF shows its first page. A large new file shows its size, never "too large to show here", and every one of these has an Open in viewer button. Terminal shows the caption and the button only.
+- A new markdown file draws rendered, with Rendered and Raw buttons to switch to the added lines and back.
+- In the gallery, picking one picture cuts a tall or wide one into readable parts with ‹ Up and Down › buttons, and shows its real size (1600 x 4200). "All" still shows the smaller copies.
+- **New calls and writes (Desktop only):** macOS `sips` (read size, resample, crop) and `qlmanage` (PDF first page), `git cat-file blob` through `sh` to write the committed copy of a picture, and picture files under `~/.claude/doc-pane-cache` (`m-<hash>-*` for diffs, `<hash>-z-*` for gallery parts). Without macOS tools the pages fall back to the caption and Open in viewer.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.395.2
+
+**Closing the pane in Desktop's expanded (big screen) mode no longer crashes it.**
+- After a close, the pane could still be asked to draw while its state had been reset to the docs list, which on a large repo is a page too big for Desktop to draw. A pane that is not open now draws nothing, and scroll events after a close are ignored.
+- A close the host refuses, or a redraw that fails after it, is written to `~/.claude/doc-pane-cache/mod.log` instead of vanishing. If it still hangs, read that file first.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.395.1
+
+**/task-docs Copy now copies the file exactly as written.**
+- On a decisions page it copied the reader's reshaped text: tables turned into bullets, comments stripped, and anything past 90,000 characters cut. Both Copy buttons now read the file from disk at the moment you press.
+- A doc that failed to load now says it could not be read, instead of "still loading".
+- When a copy is refused on purpose by another plugin, Copy no longer goes around it with `pbcopy`.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.395.0
 
 **/task-docs gets Copy and Open in editor, because the Desktop app does not let you highlight text in a pane.**

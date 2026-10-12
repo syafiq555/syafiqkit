@@ -453,9 +453,10 @@ const desktopChangeAllView = ($, c) => {
         continue
       }
       const shown = shownLines(key, diff)
-      items.push(...diffNoteItems(c, key + '#n', diff), ...desktopDiffItems(c, shown, key + '#', entry.path))
+      const body = diffBodyItems($, c, key, entry.path, diff, () => desktopDiffItems(c, shown, key + '#', entry.path), true)
+      items.push(...body.items)
       const hidden = diff.lines.length - shown.length
-      if (hidden > 0) {
+      if (body.plain && hidden > 0) {
         items.push(
           moreLinesItem(c, key + '#more', hidden, () => {
             state.allFull[key] = true
@@ -494,6 +495,61 @@ const desktopDiffItems = (c, lines, prefix, path) => {
           make: () => desktopDiffRow(c, line, prefix + index, width, tokens[index]),
         },
   )
+}
+
+const mediaSides = (media) => {
+  const pair = Boolean(media.before && media.after)
+  if (pair) return [['Before', media.before], ['After', media.after]]
+  if (media.after) return [[media.kind === 'pdf' ? 'Page 1' : media.isNew ? 'New' : 'Now', media.after]]
+  if (media.before) return [['Removed', media.before]]
+  return []
+}
+
+const desktopMediaItems = ($, c, key, diff) => {
+  const { Box, Text, Button, Svg } = c
+  const media = diff.media
+  const sides = mediaSides(media)
+  const caption = {
+    height: 2,
+    make: () =>
+      Box({
+        key: key + '-cap',
+        flexDirection: 'row',
+        alignItems: 'center',
+        columnGap: 2,
+        children: [
+          Text({ dimColor: true, children: mediaCaption(media) }),
+          Button({ key: key + '-open', label: 'Open in viewer', onPress: () => openInViewer($, media.abs) }),
+        ],
+      }),
+  }
+  if (!sides.length) {
+    const why = media.kind === 'file' ? '' : 'No preview could be made here (needs macOS sips). Press Open in viewer.'
+    return why ? [caption, { height: 1, make: () => Text({ key: key + '-none', dimColor: true, wrap: 'truncate', children: why }) }] : [caption]
+  }
+  const tallest = Math.max(...sides.map(([, side]) => side.svg.height))
+  return [
+    caption,
+    {
+      height: Math.ceil(tallest / MEDIA_ROW_PX) + 2,
+      make: () =>
+        Box({
+          key: key + '-pics',
+          flexDirection: 'row',
+          columnGap: 2,
+          children: sides.map(([label, side]) =>
+            Box({
+              key: key + '-side-' + label,
+              flexDirection: 'column',
+              children: [
+                Text({ dimColor: true, children: label }),
+                Svg({ source: side.svg.source, alt: label, width: side.svg.width, height: side.svg.height }),
+              ],
+            }),
+          ),
+        }),
+    },
+  ]
 }
 
 const desktopChangeFileView = ($, c) => {
@@ -546,7 +602,11 @@ const desktopChangeFileView = ($, c) => {
         : Box({
             key: 'cf-rows',
             flexDirection: 'column',
-            children: windowedRows(c, [...diffNoteItems(c, 'cf-note', diff), ...desktopDiffItems(c, diff.lines, 'l', file.path)],DESKTOP_PAGE_BAR_ROWS + DESKTOP_STRIP_ROWS + 1),
+            children: windowedRows(
+              c,
+              diffBodyItems($, c, 'cf', file.path, diff, () => desktopDiffItems(c, diff.lines, 'l', file.path), true).items,
+              DESKTOP_PAGE_BAR_ROWS + DESKTOP_STRIP_ROWS + 1,
+            ),
           }),
     ],
   })
@@ -660,7 +720,7 @@ let galleryPick = ''
 const pngBytes = (image) => (image.png ? Math.floor((image.png.length * 3) / 4) : 0)
 
 const desktopImagesView = ($, c) => {
-  const { Box, Text, Button, redraw } = c
+  const { Box, Text, Button, Svg, redraw } = c
   const list = [...state.images].reverse()
   const close = { key: 'img-close', label: '< Close', hotkey: 'b', onPress: () => closePane($) }
   if (!list.length) {
@@ -674,6 +734,20 @@ const desktopImagesView = ($, c) => {
   const pick = (path) => {
     galleryPick = path
     redraw()
+    const image = list.find((item) => item.path === path)
+    if (image && slicesWanted(image)) ensureSlice($, image, image.slice || 0).then(redraw)
+  }
+  const stepSlice = (image, delta) => {
+    image.slice = Math.max(0, Math.min(sliceGeometry(image.size).count - 1, (image.slice || 0) + delta))
+    redraw()
+    ensureSlice($, image, image.slice).then(redraw)
+  }
+  const zoomed = (image) => galleryPick === image.path && slicesWanted(image)
+  const slicePicture = (image) => {
+    const drawn = image.slices && image.slices[image.slice || 0]
+    if (drawn) return Svg({ key: 'img-slice-' + image.path + '-' + (image.slice || 0), source: drawn.source, alt: image.name, width: drawn.width, height: drawn.height })
+    if (image.slices && (image.slice || 0) in image.slices) return galleryPicture(c, image, true, 0)
+    return Text({ key: 'img-cutting-' + image.path, dimColor: true, children: 'Cutting this part of the picture…' })
   }
   const chips = list.map((image, index) => {
     const drawable = Boolean(svgPicture(image))
@@ -706,6 +780,7 @@ const desktopImagesView = ($, c) => {
             hotkey: 'c',
             onPress: () => {
               state.images = []
+              saveGallery($)
               galleryPick = ''
               redraw()
             },
@@ -728,15 +803,33 @@ const desktopImagesView = ($, c) => {
             strip(c, {
               key: 'img-h-' + image.path,
               title: (list.indexOf(image) + 1) + '  ' + image.name,
-              right: [Button({ key: 'img-open-' + image.path, label: 'Open in viewer', onPress: () => openInViewer($, image.path) })],
+              right: [
+                ...(zoomed(image) && sliceGeometry(image.size).count > 1
+                  ? [
+                      Button({ key: 'img-up-' + image.path, label: '‹ Up', hotkey: 'p', onPress: () => stepSlice(image, -1) }),
+                      Button({ key: 'img-down-' + image.path, label: 'Down ›', hotkey: 'n', onPress: () => stepSlice(image, 1) }),
+                    ]
+                  : []),
+                Button({ key: 'img-open-' + image.path, label: 'Open in viewer', onPress: () => openInViewer($, image.path) }),
+              ],
             }),
             Text({
               key: 'img-meta-' + image.path,
               dimColor: true,
               wrap: 'truncate-start',
-              children: [image.preview ? 'smaller copy, full size in the viewer' : '', image.caption, image.path].filter(Boolean).join(' · '),
+              children: [
+                image.size ? image.size.width + ' x ' + image.size.height : '',
+                zoomed(image) && sliceGeometry(image.size).count > 1 ? 'part ' + ((image.slice || 0) + 1) + ' of ' + sliceGeometry(image.size).count : '',
+                image.preview && !zoomed(image) ? 'smaller copy, full size in the viewer' : '',
+                image.caption,
+                image.path,
+              ]
+                .filter(Boolean)
+                .join(' · '),
             }),
-            fits(image)
+            zoomed(image)
+              ? slicePicture(image)
+              : fits(image)
               ? galleryPicture(c, image, true, 0)
               : Button({
                   key: 'img-room-' + image.path,
