@@ -33,7 +33,7 @@ const pump = async ($) => {
   busy = true
   while (queue.length) {
     await convert($, queue.shift())
-    $.ui.invalidate('ui.render')
+    invalidatePane($)
   }
   busy = false
 }

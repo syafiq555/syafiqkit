@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.396.2
+
+**The band above the prompt comes back after a pane closes, and rendered markdown in `/changes` leaves less blank space. A blank expanded frame after `< Close` in Claude Desktop is NOT fixed: its cause is still unknown.**
+- After a pane closes, the band above the prompt is redrawn once, so it comes back.
+- Background work that only matters inside the pane (diff loads, doc refresh, diagram renders) redraws only while the pane is open.
+- When a pane is drawn after it closed, when the host asks to close it, and when it refuses to place a pane, `~/.claude/doc-pane-cache/mod.log` now says so, each line tagged with a short per-session id. If you still see a blank frame, send the last lines of that file.
+- A new markdown file shown rendered in `/changes` is now sized by its wrapped lines, which were over-counted, leaving blank space below the text. This is an estimate, so a very long file may still end early.
+- The `/sk` footer now reads `syafiqkit mod v1.396.2`.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session. A reload (`/reload-plugins`) will not swap a running session's mod.
+
 ## 1.396.1
 
 **The /sk menu now ends with the mod's version, so you can tell which build a session is running.**

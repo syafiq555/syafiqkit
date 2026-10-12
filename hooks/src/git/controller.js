@@ -60,11 +60,11 @@ const loadAllDiffs = async ($, force = false) => {
     state.allDiffs[target.key] = diff
     state.allSig[target.key] = target.sig
     if (generation !== state.diffGen) {
-      redrawPane($)
+      invalidatePane($)
       return
     }
     state.allStatus = wanted.filter((item) => state.allDiffs[item.key]).length + ' of ' + wanted.length + ' read'
-    if ((index + 1) % DIFF_BATCH === 0 || index < 3) redrawPane($)
+    if ((index + 1) % DIFF_BATCH === 0 || index < 3) invalidatePane($)
   }
   state.allLoaded = true
 }
@@ -74,7 +74,7 @@ const defaultFocus = () => (sectionEntries(state.changes.entries, 'worktree').le
 const focusOn = ($, focus) => {
   state.changeFocus = focus
   redrawPane($)
-  if (showsAllDiffs()) loadAllDiffs($, true).then(() => redrawPane($), () => {})
+  if (showsAllDiffs()) loadAllDiffs($, true).then(() => invalidatePane($), () => {})
 }
 
 const resetRepoView = () => {
@@ -254,13 +254,7 @@ const enterChanges = async ($) => {
 
 const openChanges = async ($) => {
   state.isOpen = true
-  try {
-    await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
-  } catch (error) {
-    state.isOpen = false
-    redrawPane($)
-    throw error
-  }
+  await openPaneWindow($, 'changes')
   await enterChanges($)
 }
 

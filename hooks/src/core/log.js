@@ -1,3 +1,4 @@
+const MOD_INSTANCE = Math.random().toString(36).slice(2, 6)
 let modLogPath = ''
 let modLogLast = ''
 let modLogQueue = Promise.resolve()
@@ -21,7 +22,7 @@ const appendModLog = async ($, entry) => {
 const modLog = ($, line) => {
   if (line === modLogLast) return modLogQueue
   modLogLast = line
-  const entry = new Date().toISOString() + ' ' + line
+  const entry = new Date().toISOString() + ' [' + MOD_INSTANCE + '] ' + line
   modLogQueue = modLogQueue.then(() => appendModLog($, entry)).catch(() => {})
   return modLogQueue
 }

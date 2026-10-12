@@ -1,6 +1,6 @@
 const paneContext = ($, e) => {
   const atoms = $.ui.resolve(e)
-  const redraw = () => $.ui.invalidate('ui.render')
+  const redraw = () => invalidatePane($)
 
   const goto = (view) => {
     state.view = view

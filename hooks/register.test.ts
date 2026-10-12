@@ -63,7 +63,7 @@ const stubHandoffIo = (on: any, writes: any[], messages: any[]) => {
   on('session.messages', () => ({ value: messages }))
   on('process.run', () => ({ value: { exitCode: 0, stdout: 'main\n', stderr: '' } }))
   on('fs.write', (_$: any, e: any) => {
-    writes.push(e)
+    if (!String(e.path).endsWith('mod.log')) writes.push(e)
     return { value: undefined }
   })
 }
@@ -90,6 +90,31 @@ test('the band offers the menu and the docs while the pane is closed', async ($,
   expect(await ui.find({ key: 'band-wrap' })).toBeDefined()
   expect(await ui.find({ key: 'band-handoff' })).toBeDefined()
   await ui.unmount()
+})
+
+test('closing the pane brings the band back: a redraw is asked for once the pane is closed, on both surfaces', async ($, on) => {
+  const redraws: string[] = []
+  stubSession(on, [], [])
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', () => ({ value: { base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' } }))
+  stubRender(on)
+  on('ui.invalidate', (_$: any, e: any) => {
+    redraws.push(String(e.event ?? e))
+    return { value: undefined }
+  })
+  for (const surface of ['terminal', 'desktop'] as const) {
+    await $.session.start({ surface, isInteractive: true, cwd: '/work' })
+    await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/a.png'] })
+    const band = await $.ui.mount({ ...BAND, surface })
+    await band.press({ key: 'open-images' })
+    const pane = await $.ui.mount({ ...PANE, surface })
+    redraws.length = 0
+    await pane.press({ key: 'img-close' })
+    for (let waited = 0; waited < 50 && redraws.length === 0; waited += 1) await new Promise((resolve) => setTimeout(resolve, 10))
+    expect(redraws.length).toBeGreaterThan(0)
+    await pane.unmount()
+    await band.unmount()
+  }
 })
 
 test('the band sends commit in one press and wrap-up only after the confirm', async ($, on) => {

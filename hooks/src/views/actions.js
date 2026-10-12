@@ -27,13 +27,7 @@ const openPane = async ($, view) => {
     state.reopen = null
     if (fresh) await loadDoc($, fresh)
   }
-  try {
-    await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
-  } catch (error) {
-    state.isOpen = false
-    $.ui.invalidate('ui.render')
-    throw error
-  }
+  await openPaneWindow($, view)
 }
 
 const verbOf = (label) => VERBS.find((item) => item.label === label)

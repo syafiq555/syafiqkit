@@ -34,11 +34,11 @@ const refresh = async ($) => {
       state.selected = state.selected.filter((item) => stillOpen.includes(item))
       wantDiagrams($, state.text)
     }
-    $.ui.invalidate('ui.render')
+    invalidatePane($)
   } catch {
     if (state.current && state.current.path === path) {
       state.error = 'Could not re-read ' + path
-      $.ui.invalidate('ui.render')
+      invalidatePane($)
     }
   }
 }
@@ -79,9 +79,7 @@ const closePane = async ($) => {
   }
   state.isOpen = false
   resetPane()
-  try {
-    $.ui.invalidate('ui.render')
-  } catch {}
+  redrawBandAfterClose($)
 }
 
 const submitPrompt = async ($, text, note, onFail, handoffAfter) => {

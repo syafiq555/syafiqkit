@@ -77,3 +77,28 @@ const state = {
 
 let queue = []
 let busy = false
+
+const invalidatePane = ($) => {
+  if (state.isOpen) $.ui.invalidate('ui.render')
+}
+
+const openPaneWindow = async ($, label) => {
+  try {
+    const opened = await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
+    if (!opened || !opened.isPlaced) modLog($, 'open ' + label + ': not placed')
+  } catch (error) {
+    modLog($, 'open ' + label + ' failed: ' + messageOf(error).slice(0, 200))
+    state.isOpen = false
+    $.ui.invalidate('ui.render')
+    throw error
+  }
+}
+
+const redrawBandAfterClose = async ($) => {
+  try {
+    await $.clock.sleep(CLOSE_REDRAW_MS)
+    if (!state.isOpen) $.ui.invalidate('ui.render')
+  } catch (error) {
+    modLog($, 'close redraw failed: ' + messageOf(error).slice(0, 200))
+  }
+}

@@ -325,7 +325,7 @@ const loadOneDiff = async ($, entry, plane) => {
   const diff = await readDiff($, state.changes.repo, fileTargets(entry), plane)
   if (root !== state.repoRoot) return
   state.allDiffs[key] = diff
-  redrawPane($)
+  invalidatePane($)
 }
 
 const windowedRows = (c, items, topRows) => {

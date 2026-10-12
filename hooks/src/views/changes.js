@@ -62,7 +62,7 @@ const markdownItems = (c, key, diff) => {
       }),
   }
   const body = {
-    height: text.split('\n').length + Math.ceil(text.length / 100),
+    height: text.split('\n').reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / DESKTOP_WRAP_CHARS)), 0),
     make: () => c.Markdown({ key: key + '#md', text }),
   }
   return { toggle, body, rendered }

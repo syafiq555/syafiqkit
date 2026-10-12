@@ -1,4 +1,5 @@
 const paneView = async ($, e, next) => {
+  if (e.requestId === PANE && !state.isOpen) modLog($, 'pane drawn while closed (' + e.surface + ')')
   if (e.requestId !== PANE || !state.isOpen) return next(e)
   const c = paneContext($, e)
   state.desktop = isDesktop(e)

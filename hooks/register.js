@@ -1,4 +1,4 @@
-const MOD_VERSION = '1.396.1'
+const MOD_VERSION = '1.396.2'
 const PANE = 'doc-pane'
 const COMMAND = 'task-docs'
 const MENU_COMMAND = 'sk'
@@ -27,6 +27,7 @@ const DESKTOP_STRIP_ROWS = 2
 const DESKTOP_PAGE_BAR_ROWS = 4
 const WINDOW_ROWS = 60
 const TOP_BUTTON_AFTER = 3
+const CLOSE_REDRAW_MS = 400
 const TOP_BUTTON_ROWS = 3
 const STICKY_AFTER = 1
 const STICKY_COVER_ROWS = 3
@@ -320,6 +321,7 @@ const taskDocShrinkRequest = (doc) => {
 const shrinkRequest = (doc) =>
   isInstructionFile(doc) ? haikuRequest('condense-claude-md', doc.path, '.') : taskDocShrinkRequest(doc)
 
+const MOD_INSTANCE = Math.random().toString(36).slice(2, 6)
 let modLogPath = ''
 let modLogLast = ''
 let modLogQueue = Promise.resolve()
@@ -343,7 +345,7 @@ const appendModLog = async ($, entry) => {
 const modLog = ($, line) => {
   if (line === modLogLast) return modLogQueue
   modLogLast = line
-  const entry = new Date().toISOString() + ' ' + line
+  const entry = new Date().toISOString() + ' [' + MOD_INSTANCE + '] ' + line
   modLogQueue = modLogQueue.then(() => appendModLog($, entry)).catch(() => {})
   return modLogQueue
 }
@@ -469,6 +471,31 @@ const state = {
 let queue = []
 let busy = false
 
+const invalidatePane = ($) => {
+  if (state.isOpen) $.ui.invalidate('ui.render')
+}
+
+const openPaneWindow = async ($, label) => {
+  try {
+    const opened = await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
+    if (!opened || !opened.isPlaced) modLog($, 'open ' + label + ': not placed')
+  } catch (error) {
+    modLog($, 'open ' + label + ' failed: ' + messageOf(error).slice(0, 200))
+    state.isOpen = false
+    $.ui.invalidate('ui.render')
+    throw error
+  }
+}
+
+const redrawBandAfterClose = async ($) => {
+  try {
+    await $.clock.sleep(CLOSE_REDRAW_MS)
+    if (!state.isOpen) $.ui.invalidate('ui.render')
+  } catch (error) {
+    modLog($, 'close redraw failed: ' + messageOf(error).slice(0, 200))
+  }
+}
+
 const convert = async ($, job) => {
   try {
     const home = await homeOf($)
@@ -504,7 +531,7 @@ const pump = async ($) => {
   busy = true
   while (queue.length) {
     await convert($, queue.shift())
-    $.ui.invalidate('ui.render')
+    invalidatePane($)
   }
   busy = false
 }
@@ -1202,11 +1229,11 @@ const refresh = async ($) => {
       state.selected = state.selected.filter((item) => stillOpen.includes(item))
       wantDiagrams($, state.text)
     }
-    $.ui.invalidate('ui.render')
+    invalidatePane($)
   } catch {
     if (state.current && state.current.path === path) {
       state.error = 'Could not re-read ' + path
-      $.ui.invalidate('ui.render')
+      invalidatePane($)
     }
   }
 }
@@ -1247,9 +1274,7 @@ const closePane = async ($) => {
   }
   state.isOpen = false
   resetPane()
-  try {
-    $.ui.invalidate('ui.render')
-  } catch {}
+  redrawBandAfterClose($)
 }
 
 const submitPrompt = async ($, text, note, onFail, handoffAfter) => {
@@ -1390,11 +1415,11 @@ const loadAllDiffs = async ($, force = false) => {
     state.allDiffs[target.key] = diff
     state.allSig[target.key] = target.sig
     if (generation !== state.diffGen) {
-      redrawPane($)
+      invalidatePane($)
       return
     }
     state.allStatus = wanted.filter((item) => state.allDiffs[item.key]).length + ' of ' + wanted.length + ' read'
-    if ((index + 1) % DIFF_BATCH === 0 || index < 3) redrawPane($)
+    if ((index + 1) % DIFF_BATCH === 0 || index < 3) invalidatePane($)
   }
   state.allLoaded = true
 }
@@ -1404,7 +1429,7 @@ const defaultFocus = () => (sectionEntries(state.changes.entries, 'worktree').le
 const focusOn = ($, focus) => {
   state.changeFocus = focus
   redrawPane($)
-  if (showsAllDiffs()) loadAllDiffs($, true).then(() => redrawPane($), () => {})
+  if (showsAllDiffs()) loadAllDiffs($, true).then(() => invalidatePane($), () => {})
 }
 
 const resetRepoView = () => {
@@ -1584,13 +1609,7 @@ const enterChanges = async ($) => {
 
 const openChanges = async ($) => {
   state.isOpen = true
-  try {
-    await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
-  } catch (error) {
-    state.isOpen = false
-    redrawPane($)
-    throw error
-  }
+  await openPaneWindow($, 'changes')
   await enterChanges($)
 }
 
@@ -2726,13 +2745,7 @@ const openPane = async ($, view) => {
     state.reopen = null
     if (fresh) await loadDoc($, fresh)
   }
-  try {
-    await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
-  } catch (error) {
-    state.isOpen = false
-    $.ui.invalidate('ui.render')
-    throw error
-  }
+  await openPaneWindow($, view)
 }
 
 const verbOf = (label) => VERBS.find((item) => item.label === label)
@@ -2946,7 +2959,7 @@ const markdownItems = (c, key, diff) => {
       }),
   }
   const body = {
-    height: text.split('\n').length + Math.ceil(text.length / 100),
+    height: text.split('\n').reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / DESKTOP_WRAP_CHARS)), 0),
     make: () => c.Markdown({ key: key + '#md', text }),
   }
   return { toggle, body, rendered }
@@ -3926,7 +3939,7 @@ const loadOneDiff = async ($, entry, plane) => {
   const diff = await readDiff($, state.changes.repo, fileTargets(entry), plane)
   if (root !== state.repoRoot) return
   state.allDiffs[key] = diff
-  redrawPane($)
+  invalidatePane($)
 }
 
 const windowedRows = (c, items, topRows) => {
@@ -5257,7 +5270,7 @@ const handoffView = ($, c) => {
 
 const paneContext = ($, e) => {
   const atoms = $.ui.resolve(e)
-  const redraw = () => $.ui.invalidate('ui.render')
+  const redraw = () => invalidatePane($)
 
   const goto = (view) => {
     state.view = view
@@ -5316,6 +5329,7 @@ const paneContext = ($, e) => {
 }
 
 const paneView = async ($, e, next) => {
+  if (e.requestId === PANE && !state.isOpen) modLog($, 'pane drawn while closed (' + e.surface + ')')
   if (e.requestId !== PANE || !state.isOpen) return next(e)
   const c = paneContext($, e)
   state.desktop = isDesktop(e)
@@ -5617,6 +5631,7 @@ export function register(on) {
 
   on('ui.close', async ($, e, next) => {
     const mine = e.id === PANE || e.requestId === PANE
+    if (mine) modLog($, 'close (' + e.surface + '): ' + (e.origin && e.origin.kind) + ' asked to close')
     let closed
     try {
       closed = await next(e)
@@ -5627,11 +5642,7 @@ export function register(on) {
     if (mine) {
       state.isOpen = false
       resetPane()
-      try {
-        $.ui.invalidate('ui.render')
-      } catch (error) {
-        modLog($, 'close (' + e.surface + '): redraw failed: ' + messageOf(error).slice(0, 200))
-      }
+      redrawBandAfterClose($)
     }
     return closed
   })

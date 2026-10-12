@@ -88,6 +88,7 @@ export function register(on) {
 
   on('ui.close', async ($, e, next) => {
     const mine = e.id === PANE || e.requestId === PANE
+    if (mine) modLog($, 'close (' + e.surface + '): ' + (e.origin && e.origin.kind) + ' asked to close')
     let closed
     try {
       closed = await next(e)
@@ -98,11 +99,7 @@ export function register(on) {
     if (mine) {
       state.isOpen = false
       resetPane()
-      try {
-        $.ui.invalidate('ui.render')
-      } catch (error) {
-        modLog($, 'close (' + e.surface + '): redraw failed: ' + messageOf(error).slice(0, 200))
-      }
+      redrawBandAfterClose($)
     }
     return closed
   })
