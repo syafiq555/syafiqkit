@@ -14,7 +14,7 @@ Last updated: 2026-10-07 (v1.354.0). Session-by-session history lives in `## Las
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents — plus how a session learns a *peer session* is writing the same files. 40 decisions (38 live, D35 superseded; D-quick-done superseded in its step composition only) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`).
+**Where we are**: How generated project agents (`.claude/agents/*.md`) inherit CLAUDE.md conventions, delegate to sibling skills, reliably invoke them, and how the plugin delegates work to cheaper/parallel agents — plus how a session learns a *peer session* is writing the same files. 41 decisions (38 live, D35 superseded; D-quick-done superseded in its step composition only) across 3 themed sub-files (counted, not incremented — `grep -h '^### D' decisions/*.md | wc -l`).
 
 **State**: this feature's own work last shipped at v1.173.0 (the issue-#24 contested-file guard). Earlier context, still true of the 1.140.x era: later versions on `origin/master` belong to sibling features — the cross-session-messaging work shipped together with the concurrent session's `haiku`/`two-tier-condense` changes, whose CHANGELOG entries (1.140.4–1.140.6) that session had already written. The contest over `CHANGELOG.md` resolved by shipping both sessions' work in one push; don't read the `haiku` or `two-tier-condense` diffs as this feature's own. This repo has no CI and no deploy chain, so the push IS the ship; consumers pick it up via `claude plugin update syafiqkit@syafiqkit`. The version files reached the push at 1.140.3 while the changelog already carried headings through 1.140.6 — the entries had been written without their bump, which `/ship`'s version gate caught and reconciled to 1.140.6.
 
@@ -29,7 +29,7 @@ Last updated: 2026-10-07 (v1.354.0). Session-by-session history lives in `## Las
 - `disallowedTools` guard blocks calls, not intent; use ROLE-based redirect — D60
 - `Explore`'s `Write`/`Edit` grant is deliberate (scratchpad); scoping is body text only — D-explore-write-is-granted-scoped-by-role (partially supersedes D60)
 
-**Verification Rigor** (decisions/verification-rigor.md):
+**Verification Rigor** (decisions/verification-checklists.md, decisions/drift-gates-and-modes.md, decisions/reader-behaviour-and-method.md):
 - A Step-N "verify" checklist needs each item run against current content, not earlier reads — D21
 - A self-caught deviation is reportable; a silent pass is not — D24
 - A "zero results = done" exit needs a must-hit control, not just a correct command — D25
@@ -99,7 +99,9 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 | File | Read if you're asking |
 |------|------------------------|
 | [decisions/injection-and-delegation.md](decisions/injection-and-delegation.md) | *How do generated agents inherit CLAUDE.md conventions and call sibling skills instead of reimplementing them?* (D1, D4, D14, D29, D43, D15) |
-| [decisions/verification-rigor.md](decisions/verification-rigor.md) | *How do skills verify their own checklists actually ran, and catch self-caught deviations or silent-pass exit conditions? When is an agent's finding trustworthy vs its clean verdict? When does `/done` run agents on an all-doc diff? Does reordering a rule earlier in a doc actually fix a salience miss?* (D21, D24, D25, D28, D38, D39, D47, D48, D49, D52, D58, D-emission-shape-reanchor) |
+| [decisions/verification-checklists.md](decisions/verification-checklists.md) | *How do skills verify their own checklists actually ran, and catch self-caught deviations or silent-pass exit conditions? When is an agent's finding trustworthy vs its clean verdict?* (D21, D24, D25, D47, D49, D52) |
+| [decisions/drift-gates-and-modes.md](decisions/drift-gates-and-modes.md) | *When does `/done` run agents on an all-doc diff, which confirmation gates default on or off, what does the template-drift check cover (addition, field-level drift), and can both sides of a template/agent pair be ahead at once?* (D28, D38, D39, D48, D58, D-parity-drift-is-bidirectional) |
+| [decisions/reader-behaviour-and-method.md](decisions/reader-behaviour-and-method.md) | *Does reordering a rule earlier in a doc actually fix a salience miss, where can a rule about every turn live, what happens when git errors in a non-git project, and why does unhobbling make string-match checks meaningless?* (D-emission-shape-reanchor, D-decision-first-output, D-non-git-projects-error-they-dont-return-empty, D-verify-by-definition-not-by-string) |
 | [decisions/concurrency-and-delegation.md](decisions/concurrency-and-delegation.md) | *How does the plugin delegate to cheaper/parallel agents, what does `run_in_background` actually guarantee, what happened to the transcript-scan mechanism, how do skills write a doc another session owns, how do two skills reconcile disagreeing about the same run-time state, where does cost relief for an expensive skill live, what must a spawned agent be told not to run, and how does a session learn a peer is editing the same files before their bytes land?* (D30, D31, D32, D34, D35, D36, D42, D53, D-commit-staleness-same-session-carveout, D-quick-done, D-agent-verb-ban-shared, D-mtime-cannot-see-concurrent-writers, D-cross-session-messaging) |
 
 ---
@@ -124,6 +126,9 @@ Full ADR content lives in `decisions/*.md` — find your question below, open on
 ---
 
 ## Session History
+
+**2026-10-12 — `verification-rigor.md` split by topic**
+The 54 KB decisions file became `verification-checklists.md` (D21, D24, D25, D47, D49, D52), `drift-gates-and-modes.md` (D28, D38, D39, D48, D58, D-parity-drift-is-bidirectional) and `reader-behaviour-and-method.md` (the four `D-` decisions on reader behaviour, non-git states and verifying by definition), text moved word for word on a haiku pass and checked line by line against a pre-split copy. The old router row listed 12 of 16 ADRs; all 16 are now routed. D47's body also sits unheaded under D58 in `drift-gates-and-modes.md` (it already did in the source), duplicating the headed copy in `verification-checklists.md`; left in place as a follow-up.
 
 **Pattern across all sessions: Generated files and templates drift silently; presence-shaped checks pass while content differs.** The fix is to read the constraint text itself, not just its location. This pattern appears in issues #27, #24, and #20; it is captured at D-verify-by-definition-not-by-string and D-parity-drift-is-bidirectional. Each session below arrived at this finding independently.
 
