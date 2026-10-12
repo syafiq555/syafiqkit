@@ -151,9 +151,9 @@ const desktopChangesView = ($, c) => {
     const entries = sectionEntries(ch.entries, plane)
     const closed = Boolean(state.changesCollapsed['sec:' + plane])
     const staged = plane === 'staged'
-    const header = () =>
+    const header = (prefix = '') =>
       strip(c, {
-        key: 'sec-' + plane,
+        key: prefix + 'sec-' + plane,
         title: (closed ? '▸ ' : '▾ ') + (staged ? 'STAGED' : 'CHANGES'),
         count: entries.length,
         onPress: () => {
@@ -162,18 +162,24 @@ const desktopChangesView = ($, c) => {
         },
         right: entries.length
           ? [
-              Button({ key: 'sec-' + plane + '-view', label: 'view ›', onPress: () => openChangeAll($, plane + ':') }),
+              Button({ key: prefix + 'sec-' + plane + '-view', label: 'view ›', onPress: () => openChangeAll($, plane + ':') }),
               Button({
-                key: 'sec-' + plane + '-all',
+                key: prefix + 'sec-' + plane + '-all',
                 label: staged ? 'Unstage all' : 'Stage all',
-                hotkey: staged ? 'u' : 'a',
+                ...liveOnly(prefix, { hotkey: staged ? 'u' : 'a' }),
                 ...(staged ? {} : { variant: 'primary' }),
                 onPress: () => (staged ? unstageEverything($) : stageEverything($)),
               }),
             ]
           : [],
       })
-    const items = [{ height: DESKTOP_STRIP_ROWS, make: () => Box({ key: 'sec-' + plane + '-w', height: DESKTOP_STRIP_ROWS, flexShrink: 0, flexDirection: 'column', justifyContent: 'center', children: [header()] }) }]
+    const items = [
+      {
+        height: DESKTOP_STRIP_ROWS,
+        make: () => Box({ key: 'sec-' + plane + '-w', height: DESKTOP_STRIP_ROWS, flexShrink: 0, flexDirection: 'column', justifyContent: 'center', children: [header()] }),
+        sticky: (prefix) => header(prefix),
+      },
+    ]
     if (closed) return items
     if (!entries.length) {
       items.push({ height: 1, make: () => Text({ key: plane + '-none', dimColor: true, children: '  Nothing ' + (staged ? 'staged' : 'unstaged') + '.' }) })
@@ -221,6 +227,7 @@ const desktopChangesView = ($, c) => {
             key: 'ch-add',
             label: 'Add repo',
             hotkey: 'g',
+            unpinned: true,
             onPress: () => {
               state.repoForm = !state.repoForm
               state.repoNote = ''
@@ -266,30 +273,33 @@ const desktopChangesView = ($, c) => {
   })
 }
 
-const desktopDiffRow = (c, line, key, width) => {
+const desktopGapRow = (c, line, key, width) => {
   const { Box, Text } = c
-  if (line.kind === 'gap') {
-    return Box({
-      key,
-      height: 1,
-      flexShrink: 0,
-      paddingLeft: width + 3,
-      backgroundColor: DESKTOP_TONE.gapRow,
-      children: [Text({ dimColor: true, wrap: 'truncate', children: '⋯ ' + line.hidden + ' unchanged lines' })],
-    })
-  }
+  return Box({
+    key,
+    height: 1,
+    flexShrink: 0,
+    paddingLeft: width + 3,
+    backgroundColor: DESKTOP_TONE.gapRow,
+    children: [Text({ dimColor: true, wrap: 'truncate', children: '⋯ ' + line.hidden + ' unchanged lines' })],
+  })
+}
+
+const desktopDiffRow = (c, line, key, width, tokens) => {
+  const { Box, Text } = c
   const isAdd = line.kind === 'add'
   const isDel = line.kind === 'del'
   const word = isAdd ? DESKTOP_DIFF.addedWord : DESKTOP_DIFF.removedWord
-  const body = line.span
+  const segments = syntaxSegments(line.text.length, tokens, line.span)
+  const body = line.text
     ? Text({
-        children: [
-          ...(line.span[0] > 0 ? [Text({ key: key + 'wa', children: line.text.slice(0, line.span[0]) })] : []),
-          Text({ key: key + 'wb', backgroundColor: word, children: line.text.slice(line.span[0], line.span[1]) || ' ' }),
-          ...(line.span[1] < line.text.length ? [Text({ key: key + 'wc', children: line.text.slice(line.span[1]) })] : []),
-        ],
+        children: segments.map((segment, index) =>
+          segment.tone || segment.mark
+            ? Text({ key: 'w' + index, ...syntaxSegmentStyle(segment, word), children: line.text.slice(segment.from, segment.to) })
+            : line.text.slice(segment.from, segment.to),
+        ),
       })
-    : Text({ children: line.text || ' ' })
+    : Text({ children: ' ' })
   return Box({
     key,
     flexShrink: 0,
@@ -319,11 +329,15 @@ const loadOneDiff = async ($, entry, plane) => {
 }
 
 const windowedRows = (c, items, topRows) => {
-  const view = state.allScroll
+  const pageChanged = state.allScroll.view !== state.view
+  const live = !pageChanged && c.e.props && c.e.props.scroll
+  const view = live ? { view: state.view, offset: live.offset, body: live.bodyRows || state.allScroll.body } : state.allScroll
+  if (pageChanged) state.allScroll = { view: state.view, offset: 0, body: state.allScroll.body }
   const bodyRows = view.body || WINDOW_ROWS
   const total = items.reduce((sum, item) => sum + item.height, 0)
   const offset = view.view === state.view ? Math.min(view.offset, Math.max(0, topRows + total - bodyRows)) : 0
   state.windowAt = offset
+  state.windowed = true
   const from = offset - topRows - Math.ceil(bodyRows / 2)
   const to = offset - topRows + Math.ceil(bodyRows * 1.5)
   let y = 0
@@ -332,6 +346,7 @@ const windowedRows = (c, items, topRows) => {
   const drawn = []
   for (const item of items) {
     const end = y + item.height
+    if ('sticky' in item && y < offset - topRows + STICKY_COVER_ROWS) state.stickySection = item.sticky
     if (end <= from) above += item.height
     else if (y >= to) below += item.height
     else drawn.push(item.make())
@@ -346,9 +361,9 @@ const desktopGroups = (focus) =>
     .map((plane) => ({ plane, files: orderedFiles(plane).filter((entry) => entryInFocus(focus, plane, entry)) }))
     .filter((group) => group.files.length)
 
-const desktopFileStrip = ($, c, entry, plane, diff, toggle) => {
+const desktopFileStrip = ($, c, entry, plane, diff, toggle, prefix = '') => {
   const { Button } = c
-  const key = plane + ':' + entry.path
+  const key = prefix + plane + ':' + entry.path
   const staged = plane === 'staged'
   return c.Box({
     key: key + '#hd',
@@ -386,6 +401,16 @@ const desktopFileStrip = ($, c, entry, plane, diff, toggle) => {
   })
 }
 
+const stageAllActions = ($, focus, groups) => {
+  const parts = splitFocus(focus)
+  if (parts && parts.path && !parts.path.endsWith('/')) return []
+  return groups.map((group) => {
+    const staged = group.plane === 'staged'
+    const press = parts ? () => toggleStageFocused($) : () => (staged ? unstageEverything($) : stageEverything($))
+    return { key: 'ca-' + group.plane + '-all', label: (staged ? 'Unstage all ' : 'Stage all ') + group.files.length, hotkey: staged ? 'u' : 'a', primary: !staged, onPress: press }
+  })
+}
+
 const desktopChangeAllView = ($, c) => {
   const { Box, Text, goto, redraw } = c
   const focus = activeFocus()
@@ -396,7 +421,11 @@ const desktopChangeAllView = ($, c) => {
   for (const group of groups) {
     if (!focus || groups.length > 1) {
       const title = (group.plane === 'staged' ? 'STAGED' : 'CHANGES') + '  ' + group.files.length
-      add(2, () => Box({ key: 'dg-' + group.plane, height: 2, flexShrink: 0, alignItems: 'flex-end', children: [Text({ bold: true, children: title })] }))
+      items.push({
+        height: 2,
+        make: () => Box({ key: 'dg-' + group.plane, height: 2, flexShrink: 0, alignItems: 'flex-end', children: [Text({ bold: true, children: title })] }),
+        sticky: (prefix) => Text({ key: prefix + 'dg-' + group.plane, bold: true, children: title }),
+      })
     }
     for (const entry of group.files) {
       const key = group.plane + ':' + entry.path
@@ -410,14 +439,18 @@ const desktopChangeAllView = ($, c) => {
           if (!open && !diff) loadOneDiff($, entry, group.plane)
         },
       }
-      add(DESKTOP_STRIP_ROWS, () => desktopFileStrip($, c, entry, group.plane, diff, toggle))
+      items.push({
+        height: DESKTOP_STRIP_ROWS,
+        make: () => desktopFileStrip($, c, entry, group.plane, diff, toggle),
+        sticky: (prefix) => desktopFileStrip($, c, entry, group.plane, diff, toggle, prefix),
+      })
       if (!open) continue
       if (!diff) {
         add(1, () => Text({ key: key + '#r', dimColor: true, wrap: 'truncate', children: state.allLoaded ? 'Diff not read' : 'Reading diff…' }))
         continue
       }
       const shown = shownLines(key, diff)
-      items.push(...diffNoteItems(c, key + '#n', diff), ...desktopDiffItems(c, shown, key + '#'))
+      items.push(...diffNoteItems(c, key + '#n', diff), ...desktopDiffItems(c, shown, key + '#', entry.path))
       const hidden = diff.lines.length - shown.length
       if (hidden > 0) {
         items.push(
@@ -436,7 +469,7 @@ const desktopChangeAllView = ($, c) => {
     children: [
       pageBar(c, {
         back: { key: 'ca-back', label: '< Back', hotkey: 'b', onPress: () => goto('changes') },
-        actions: focus ? [{ key: 'ca-all', label: 'Show all', hotkey: 'v', onPress: () => openChangeAll($) }] : [],
+        actions: [...(focus ? [{ key: 'ca-all', label: 'Show all', hotkey: 'v', onPress: () => openChangeAll($) }] : []), ...stageAllActions($, focus, groups)],
         title: focusTitle(focus) + ' · ' + fileCount + (fileCount === 1 ? ' file' : ' files'),
         sub: reading,
       }),
@@ -447,12 +480,17 @@ const desktopChangeAllView = ($, c) => {
   })
 }
 
-const desktopDiffItems = (c, lines, prefix) => {
+const desktopDiffItems = (c, lines, prefix, path) => {
   const width = lineNumberWidth(lines)
-  return lines.map((line, index) => ({
-    height: line.kind === 'gap' ? 1 : Math.max(1, Math.ceil(line.text.length / DESKTOP_WRAP_CHARS)),
-    make: () => desktopDiffRow(c, line, prefix + index, width),
-  }))
+  const tokens = highlightLines(lines, path)
+  return lines.map((line, index) =>
+    line.kind === 'gap'
+      ? { height: 1, make: () => desktopGapRow(c, line, prefix + index, width) }
+      : {
+          height: Math.max(1, Math.ceil(line.text.length / DESKTOP_WRAP_CHARS)),
+          make: () => desktopDiffRow(c, line, prefix + index, width, tokens[index]),
+        },
+  )
 }
 
 const desktopChangeFileView = ($, c) => {
@@ -464,6 +502,25 @@ const desktopChangeFileView = ($, c) => {
   const at = files.findIndex((entry) => entry.path === file.path)
   const staged = file.plane === 'staged'
   const step = (key, label, hotkey, target) => ({ key, label, hotkey, onPress: () => openChangeFile($, target, file.plane, state.diffBack) })
+  const head = (prefix) =>
+    Box({
+      key: prefix + 'cf-head',
+      height: DESKTOP_STRIP_ROWS,
+      flexShrink: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      columnGap: 1,
+      paddingX: 1,
+      backgroundColor: DESKTOP_TONE.strip,
+      children: [
+        ...(file.entry ? [statusChip(c, prefix + 'cf-l', letterOf(file.entry, file.plane))] : []),
+        Text({ key: prefix + 'cf-name', bold: true, children: nameOf(file.path) }),
+        Box({ key: prefix + 'cf-fold', flexGrow: 1, flexShrink: 1, children: [Text({ dimColor: true, wrap: 'truncate-start', children: folderOfPath(file.path) })] }),
+        ...(diff ? [counts(c, prefix + 'cf-c', diff.added, diff.removed)] : []),
+        Text({ key: prefix + 'cf-plane', dimColor: true, children: PLANE_LABEL[file.plane] + (at >= 0 ? ' · ' + (at + 1) + ' of ' + files.length : '') }),
+      ],
+    })
+  state.stickySection = head
   return Box({
     flexDirection: 'column',
     rowGap: 1,
@@ -480,29 +537,13 @@ const desktopChangeFileView = ($, c) => {
             : []),
         ],
       }),
-      Box({
-        key: 'cf-head',
-        height: DESKTOP_STRIP_ROWS,
-        flexShrink: 0,
-        flexDirection: 'row',
-        alignItems: 'center',
-        columnGap: 1,
-        paddingX: 1,
-        backgroundColor: DESKTOP_TONE.strip,
-        children: [
-          ...(file.entry ? [statusChip(c, 'cf-l', letterOf(file.entry, file.plane))] : []),
-          Text({ key: 'cf-name', bold: true, children: nameOf(file.path) }),
-          Box({ key: 'cf-fold', flexGrow: 1, flexShrink: 1, children: [Text({ dimColor: true, wrap: 'truncate-start', children: folderOfPath(file.path) })] }),
-          ...(diff ? [counts(c, 'cf-c', diff.added, diff.removed)] : []),
-          Text({ key: 'cf-plane', dimColor: true, children: PLANE_LABEL[file.plane] + (at >= 0 ? ' · ' + (at + 1) + ' of ' + files.length : '') }),
-        ],
-      }),
+      head(''),
       !diff
         ? Text({ key: 'cf-reading', dimColor: true, children: 'Reading diff…' })
         : Box({
             key: 'cf-rows',
             flexDirection: 'column',
-            children: windowedRows(c, [...diffNoteItems(c, 'cf-note', diff), ...desktopDiffItems(c, diff.lines, 'l')],DESKTOP_PAGE_BAR_ROWS + DESKTOP_STRIP_ROWS + 1),
+            children: windowedRows(c, [...diffNoteItems(c, 'cf-note', diff), ...desktopDiffItems(c, diff.lines, 'l', file.path)],DESKTOP_PAGE_BAR_ROWS + DESKTOP_STRIP_ROWS + 1),
           }),
     ],
   })
@@ -552,6 +593,7 @@ const desktopDocRow = (c, doc, key, withScope, indent) => {
         flexDirection: 'row',
         columnGap: 1,
         children: [
+          ...(doc.hub ? [chip(c, key + 'hub', 'main doc', 'muted')] : []),
           ...(decisionsHeavy ? [chip(c, key + 'dc', '⚠ decisions', 'warn')] : []),
           ...(withScope && doc.scope ? [Text({ key: key + 's', dimColor: true, wrap: 'truncate-end', children: doc.scope })] : []),
           ...(doc.status ? [Text({ key: key + 'st', wrap: 'truncate-end', children: doc.status })] : []),

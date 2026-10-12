@@ -58,34 +58,43 @@ const meter = (c, key, value, max, width = 10) => {
   })
 }
 
-const pageBar = (c, { back, actions, title, sub }) => {
+const stickyTop = (make) => {
+  state.stickyTop = make
+  return make('')
+}
+
+const liveOnly = (prefix, props) => (prefix ? {} : props)
+
+const pageBar = (c, opts) => stickyTop((prefix) => pageBarRow(c, opts, prefix))
+
+const pageBarRow = (c, { back, actions, title, sub }, prefix) => {
   const { Box, Text, Button } = c
+  const own = (hotkey, autoFocus) => liveOnly(prefix, { hotkey, ...(autoFocus ? { autoFocus: true } : {}) })
   return Box({
-    key: 'page-bar',
+    key: prefix + 'page-bar',
     flexDirection: 'column',
     rowGap: 0,
     children: [
       Box({
-        key: 'page-bar-row',
+        key: prefix + 'page-bar-row',
         flexDirection: 'row',
         columnGap: 1,
         flexWrap: 'wrap',
         children: [
-          ...(back ? [Button({ key: back.key, label: back.label, hotkey: back.hotkey, role: 'dismiss', autoFocus: true, onPress: back.onPress })] : []),
-          ...(actions || []).map((action) =>
+          ...(back ? [Button({ key: prefix + back.key, label: back.label, role: 'dismiss', ...own(back.hotkey, true), onPress: back.onPress })] : []),
+          ...(actions || []).filter((action) => !(prefix && action.unpinned)).map((action) =>
             Button({
-              key: action.key,
+              key: prefix + action.key,
               label: action.label,
-              hotkey: action.hotkey,
               variant: action.primary ? 'primary' : 'secondary',
-              ...(action.autoFocus ? { autoFocus: true } : {}),
+              ...own(action.hotkey, action.autoFocus),
               onPress: action.onPress,
             }),
           ),
         ],
       }),
-      ...(title ? [Text({ key: 'page-bar-title', bold: true, wrap: 'truncate-start', children: title })] : []),
-      ...(sub ? [Text({ key: 'page-bar-sub', dimColor: true, wrap: 'truncate-end', children: sub })] : []),
+      ...(title ? [Text({ key: prefix + 'page-bar-title', bold: true, wrap: 'truncate-start', children: title })] : []),
+      ...(sub ? [Text({ key: prefix + 'page-bar-sub', dimColor: true, wrap: 'truncate-end', children: sub })] : []),
     ],
   })
 }

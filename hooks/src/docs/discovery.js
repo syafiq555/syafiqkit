@@ -158,14 +158,19 @@ const recentDocs = () =>
     .sort((a, b) => b.mtime - a.mtime)
     .slice(0, RECENT_COUNT)
 
-const readRecentStatuses = async ($) => {
+const readDocMeta = async ($) => {
+  const recent = recentDocs()
   await Promise.all(
-    recentDocs().map(async (doc) => {
-      try {
-        doc.status = summaryOf(statusLineOf(await $.fs.read(doc.path)))
-      } catch {
-        doc.status = ''
-      }
-    }),
+    state.docs
+      .filter((doc) => doc.group === 'Task docs')
+      .map(async (doc) => {
+        try {
+          const text = await $.fs.read(doc.path)
+          doc.hub = isHubText(text)
+          if (recent.includes(doc)) doc.status = summaryOf(statusLineOf(text))
+        } catch {
+          doc.status = ''
+        }
+      }),
   )
 }

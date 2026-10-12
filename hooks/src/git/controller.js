@@ -389,11 +389,12 @@ const toggleStageFocused = async ($) => {
   const focus = splitFocus(state.changeFocus)
   if (!focus) return
   const { plane, path } = focus
-  const isFolder = path.endsWith('/')
+  const isFolder = !path || path.endsWith('/')
   const covers = (entry) => (isFolder ? entry.path.startsWith(path) : entry.path === path)
   const paths = sectionEntries(state.changes.entries, plane).filter(covers).flatMap(plane === 'staged' ? fileTargets : stageTargets)
   if (!paths.length) return
-  if (plane === 'staged') await unstageThese($, paths)
+  if (!path) await (plane === 'staged' ? unstageEverything($) : stageEverything($))
+  else if (plane === 'staged') await unstageThese($, paths)
   else await stageThese($, paths)
   const other = plane === 'staged' ? 'worktree' : 'staged'
   focusOn($, sectionEntries(state.changes.entries, other).some(covers) ? other + ':' + path : '')

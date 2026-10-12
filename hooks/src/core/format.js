@@ -50,6 +50,11 @@ const statusLineOf = (text) => {
   return hit ? hit[0].trim() : ''
 }
 
+const isHubText = (text) => {
+  const hit = text.match(/^\W*Domain\s*:.*$/im)
+  return Boolean(hit && /\(\s*hub\s*[:;,)]/i.test(hit[0]))
+}
+
 const summaryOf = (line) => {
   if (!line) return ''
   const body = line.replace(/^\W*Status\b[:\s*]*/i, '').trim()

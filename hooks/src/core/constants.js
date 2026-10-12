@@ -22,6 +22,13 @@ const DIFF_MAX_LINES = 400
 const DESKTOP_STRIP_ROWS = 2
 const DESKTOP_PAGE_BAR_ROWS = 4
 const WINDOW_ROWS = 60
+const TOP_BUTTON_AFTER = 3
+const TOP_BUTTON_ROWS = 3
+const STICKY_AFTER = 1
+const STICKY_COVER_ROWS = 3
+const STICKY_PREFIX = 'stk-'
+const LIST_FOLD_FROM = 40
+const LIST_TOP_ROWS = 3
 const DESKTOP_WRAP_CHARS = 140
 const DESKTOP_MAP_ROWS = 3
 const CHANGES_POLL_MS = 5000
@@ -34,6 +41,15 @@ const SPLIT_MIN_COLUMNS = 100
 const TREE_COLUMNS = 42
 const COUNTS_WIDTH = 11
 const DESKTOP_DIFF = { added: '#1b3a2a', removed: '#40232a', addedWord: '#2e6b49', removedWord: '#7c3340' }
+const SYNTAX_MAX_CHARS = 400
+const SYNTAX_TONE = {
+  keyword: '#c678dd',
+  string: '#e5a56b',
+  number: '#d19a66',
+  call: '#61afef',
+  type: '#e5c07b',
+  comment: '#7f848e',
+}
 const DESKTOP_TONE = {
   strip: '#1f2633',
   stripHot: '#24324a',
@@ -55,6 +71,7 @@ const DESKTOP_TONE = {
   meterTrack: '#2c2f36',
   border: '#3a3f4a',
   gapRow: '#1a1d23',
+  page: '#1e1e1e',
 }
 const DESKTOP_MAP_CELLS = 64
 const LITERAL_PATHS = { GIT_LITERAL_PATHSPECS: '1' }

@@ -106,7 +106,7 @@ export function register(on) {
     if (e.requestId !== PANE) return next(e)
     state.allScroll = { view: state.view, offset: e.offset, body: e.bodyRows }
     const ran = next(e)
-    if (Math.abs(e.offset - state.windowAt) > e.bodyRows / 3) $.ui.invalidate('ui.render')
+    if (state.topShown || state.stickyShown || e.offset > TOP_BUTTON_AFTER || (state.desktop && e.offset >= STICKY_AFTER) || Math.abs(e.offset - state.windowAt) > e.bodyRows / 3) $.ui.invalidate('ui.render')
     return ran
   })
 }

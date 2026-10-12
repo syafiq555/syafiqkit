@@ -515,7 +515,7 @@ test('a decisions page offers Condense, which asks first and condenses that one 
   await ui.unmount()
 })
 
-test('the docs list shows each task doc once: folders are headers, a heavy doc is flagged in its folder, a folder collapses', async ($, on) => {
+test('the docs list keeps a recent task doc in its folder too: folders are headers, a heavy doc is flagged in its folder, a folder collapses', async ($, on) => {
   stubSession(on, [], [], [], ['fs.list'])
   const doc = (name: string, size: number, mtimeMs: number) => ({ name, entry: { name: 'current.md', kind: 'file', size, mtimeMs, isLink: false } })
   const docs: Record<string, ReturnType<typeof doc>[]> = {
@@ -534,7 +534,7 @@ test('the docs list shows each task doc once: folders are headers, a heavy doc i
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ key: 'r0b' })).toBeDefined()
-  expect(await ui.find({ key: 'd0b' })).toBeUndefined()
+  expect(await ui.find({ key: 'd0b' })).toBeDefined()
   expect(await ui.find({ key: 'd3b' })).toBeDefined()
   expect(await ui.find({ key: 'd6b' })).toBeDefined()
   expect(await ui.find({ key: 'fold-tenant' })).toBeDefined()
@@ -548,6 +548,57 @@ test('the docs list shows each task doc once: folders are headers, a heavy doc i
   await ui.press({ key: 'fold-tenant' })
   expect(await ui.find({ key: 'd3b' })).toBeDefined()
   await ui.unmount()
+})
+
+test('on Desktop a docs list of 110 task docs opens with folders and skills folded, stays drawable, and a folder still opens', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  const folders = Array.from({ length: 21 }, (_, index) => 'area' + index)
+  const tree: Record<string, any[]> = { '/work/tasks': folders.map(dirEntry) }
+  folders.forEach((folder, index) => {
+    const names = Array.from({ length: index < 5 ? 10 : 4 }, (_, n) => folder + '-doc' + n)
+    tree['/work/tasks/' + folder] = names.map(dirEntry)
+    names.forEach((name) => (tree['/work/tasks/' + folder + '/' + name] = [fileEntry('current.md', 60)]))
+  })
+  stubTree(on, tree)
+  on('fs.read', () => ({ value: '# T\n' }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })
+  expect(await ui.find({ key: 'fold-area0' })).toBeDefined()
+  expect(await ui.find({ key: 'fold-area20' })).toBeDefined()
+  expect(JSON.stringify(await ui.drawn()).length).toBeLessThan(95_000)
+  const shown = async () => (JSON.stringify(await ui.drawn()).match(/area0-doc\d/g) || []).length
+  const before = await shown()
+  await ui.press({ key: 'fold-area0b' })
+  expect(await shown()).toBeGreaterThanOrEqual(before + 10)
+  await ui.unmount()
+})
+
+test('a doc whose Domain line says (hub is its folder main doc, marked in the folder and in Changed lately; a "detail hub" doc is not', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  const doc = (name: string, mtimeMs: number) => ({ name, entry: { name: 'current.md', kind: 'file', size: 60, mtimeMs, isLink: false } })
+  const list = [doc('back-office', 1_000), doc('delivery', 999_000), doc('pos', 2_000)]
+  const tree: Record<string, any[]> = { '/work/tasks': [dirEntry('crp45')], '/work/tasks/crp45': list.map((item) => dirEntry(item.name)) }
+  list.forEach((item) => (tree['/work/tasks/crp45/' + item.name] = [item.entry]))
+  stubTree(on, tree)
+  on('fs.read', (_$: any, e: any) => ({
+    value: e.path.includes('/delivery/') ? '<!--\nDomain: crp45 / delivery (hub: phases)\n-->\n' : '<!--\nDomain: crp45 (detail hub UX)\n-->\n',
+  }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ key: 'fold-crp45', text: /main: delivery/ })).toBeDefined()
+  expect(await ui.find({ key: 'd1', text: /main doc/ })).toBeDefined()
+  expect(await ui.find({ key: 'r1', text: /main doc/ })).toBeDefined()
+  expect(await ui.find({ key: 'd0', text: /main doc/ })).toBeUndefined()
+  expect(await ui.find({ key: 'd2', text: /main doc/ })).toBeUndefined()
+  await ui.unmount()
+
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect(await desktop.find({ key: 'd1', text: /main doc/ })).toBeDefined()
+  expect(await desktop.find({ key: 'd2', text: /main doc/ })).toBeUndefined()
+  await desktop.unmount()
 })
 
 test('CLAUDE.md files are named by scope and a file reached by two routes is listed once', async ($, on) => {
@@ -701,14 +752,14 @@ const DIFF_TEXT = [
   '',
 ].join('\n')
 
-const fakeGit = (runs: string[][], status: string) => (_$: any, e: any) => {
+const fakeGit = (runs: string[][], status: string, diff: string = DIFF_TEXT) => (_$: any, e: any) => {
   runs.push([...e.argv])
   const line = e.argv.join(' ')
   const done = (stdout = '') => ({ value: { exitCode: 0, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } })
   if (line.includes('rev-parse --show-toplevel')) return done('/work\n')
   if (line.includes('rev-parse --verify')) return done('abc\n')
   if (line.includes(' status ')) return done(status)
-  if (line.includes(' diff ')) return done(DIFF_TEXT)
+  if (line.includes(' diff ')) return done(diff)
   if (line.includes('ls-files')) return done('x')
   return done()
 }
@@ -1221,9 +1272,67 @@ test('Desktop: pressing a change-map block opens that file with tinted diff rows
   expect(await ui.find({ key: 'cf-back' })).toBeDefined()
   expect(await ui.find({ key: 'cf-rows' })).toBeDefined()
   expect(await ui.find({ key: 'l1' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /new line/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /new/ })).toBeDefined()
   await ui.press({ key: 'cf-back' })
   expect(await ui.find({ key: 'sec-worktree' })).toBeDefined()
+  await ui.unmount()
+})
+
+const PHP_DIFF = [
+  'diff --git a/src/Plan.php b/src/Plan.php',
+  '--- a/src/Plan.php',
+  '+++ b/src/Plan.php',
+  '@@ -3,2 +3,2 @@',
+  " // keep 'this'",
+  "-        return $start->addDays(14);",
+  "+        return $start->startOfDay(14);",
+  '',
+].join('\n')
+
+const coloured = async (ui: any, text: RegExp) => (await ui.findAll({ type: 'Text', text })).map((node: any) => node.props.color).filter(Boolean)
+
+test('Desktop diff rows colour code by language on flat rows and still mark the changed words', async ($, on) => {
+  stubSession(on, [], [])
+  on('process.run', fakeDesktopGit(' M src/Plan.php\0', PHP_DIFF))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  const desk = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })
+  await desk.press({ key: 'map-worktree:src/Plan.php-b' })
+  expect(await desk.find({ type: 'Code' })).toBeUndefined()
+  expect(await coloured(desk, /^return$/)).toEqual(['#c678dd', '#c678dd'])
+  expect(await coloured(desk, /^startOfDay$/)).toEqual(['#61afef'])
+  expect(await coloured(desk, /^\/\/ keep 'this'$/)).toEqual(['#7f848e'])
+  expect((await desk.find({ type: 'Text', text: /^startOfDay$/ }))?.props.backgroundColor).toBe('#2e6b49')
+  await desk.unmount()
+})
+
+test('markdown diffs colour headings and code spans', async ($, on) => {
+  const md = ['diff --git a/x/current.md b/x/current.md', '--- a/x/current.md', '+++ b/x/current.md', '@@ -1,1 +1,2 @@', ' ## Status', '+- [ ] run `mod.log` check', ''].join('\n')
+  stubSession(on, [], [])
+  on('process.run', fakeGit([], ' M x/current.md\0', md))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  const ui = await $.ui.mount({ ...NARROW, surface: 'terminal' })
+  await ui.press({ key: 'worktree-1b' })
+  expect(await coloured(ui, /^## Status$/)).toEqual(['#c678dd'])
+  expect(await coloured(ui, /^`mod\.log`$/)).toEqual(['#e5a56b'])
+  await ui.unmount()
+})
+
+test('terminal diff rows colour code by language and keep the changed-word mark', async ($, on) => {
+  stubSession(on, [], [])
+  on('process.run', fakeGit([], ' M src/Plan.php\0', PHP_DIFF))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'changes', args: '' })
+  const ui = await $.ui.mount({ ...NARROW, surface: 'terminal' })
+  await ui.press({ key: 'worktree-1b' })
+  expect(await ui.find({ key: 'cf-back' })).toBeDefined()
+  expect(await ui.find({ type: 'Code' })).toBeUndefined()
+  expect(await coloured(ui, /^return$/)).toEqual(['#c678dd', '#c678dd'])
+  expect((await ui.find({ type: 'Text', text: /^startOfDay$/ }))?.props.backgroundColor).toBe('diffAddedWord')
   await ui.unmount()
 })
 
@@ -1278,6 +1387,20 @@ test('a Desktop page that repeats a key shows why instead of a blank pane, and t
   await ui.unmount()
 })
 
+test('a Desktop page of 200 dense coloured PHP lines stays under the size Desktop draws', async ($, on) => {
+  const writes: any[] = []
+  const dense = "        $total = $this->calculator->sum($items, 'net', 14) + Carbon::today()->diffInDays($start, false); // keep"
+  const rows = Array.from({ length: 200 }, () => '+' + dense)
+  const php = ['diff --git a/src/Plan.php b/src/Plan.php', '--- a/src/Plan.php', '+++ b/src/Plan.php', '@@ -0,0 +1,200 @@', ...rows, ''].join('\n')
+  const ui = await openLoggedDesktop($, on, writes, ' M src/Plan.php\0', php)
+  await ui.press({ key: 'map-worktree:src/Plan.php-b' })
+  expect(await ui.find({ key: 'cf-back' })).toBeDefined()
+  expect((await ui.findAll({ type: 'Text', text: /^sum$/ })).length).toBeGreaterThan(20)
+  await new Promise((resolve) => setTimeout(resolve, 20))
+  expect(modLogText(writes)).not.toContain('pane change-file (desktop): about')
+  await ui.unmount()
+})
+
 test('a Desktop page past the size Desktop draws still draws, and the mod log warns about it', async ($, on) => {
   const writes: any[] = []
   const giant = ['diff --git a/a.md b/a.md', '--- a/a.md', '+++ b/a.md', '@@ -1,1 +1,2 @@', ' line', '+' + 'x'.repeat(120000), ''].join('\n')
@@ -1315,4 +1438,96 @@ test('Desktop All diffs reads every file, Hide folds one and Show diff brings it
   await ui.press({ key: 'staged:hooks/src/x.js#t' })
   expect(await ui.find({ key: 'staged:hooks/src/x.js#0' })).toBeDefined()
   await ui.unmount()
+})
+
+test('Desktop Changes only has Stage all, which runs git add -A and moves the page to Staged Changes only', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openDesktopChanges($, on, runs)
+  await ui.press({ key: 'sec-worktree-view' })
+  expect(await ui.find({ key: 'ca-staged-all' })).toBeUndefined()
+  await ui.press({ key: 'ca-worktree-all' })
+  expect(ran(runs, 'git', 'add', '-A')).toBe(true)
+  expect(await ui.find({ type: 'Text', text: /Staged Changes only/ })).toBeDefined()
+  await ui.press({ key: 'ca-staged-all' })
+  expect(ran(runs, 'git', 'restore', '--staged', '.')).toBe(true)
+  await ui.unmount()
+})
+
+test('Desktop All changes offers Stage all and Unstage all, each naming how many files it moves', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openDesktopChanges($, on, runs)
+  await ui.press({ key: 'ch-all' })
+  expect((await ui.find({ key: 'ca-worktree-all' }))?.props.label).toBe('Stage all 2')
+  expect((await ui.find({ key: 'ca-staged-all' }))?.props.label).toBe('Unstage all 1')
+  await ui.unmount()
+})
+
+test('a Top button floats over the pane once it is scrolled down, and is absent at the top', async ($, on) => {
+  const runs: string[][] = []
+  const many = Array.from({ length: 45 }, (_, index) => ' M f' + index + '.md\0').join('')
+  const ui = await openChangesPane($, on, runs, PANE, many)
+  expect(await ui.find({ key: 'pane-top' })).toBeUndefined()
+  await ui.unmount()
+  const down = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, scroll: { offset: 40, bodyRows: 30 } } })
+  expect(await down.find({ key: 'pane-top' })).toBeDefined()
+  await down.unmount()
+})
+
+test('long pages draw the rows where the pane is actually scrolled, so jumping to the top is never blank', async ($, on) => {
+  const runs: string[][] = []
+  const many = Array.from({ length: 45 }, (_, index) => ' M f' + index + '.md\0').join('')
+  const ui = await openChangesPane($, on, runs, PANE, many)
+  await ui.unmount()
+  const down = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, scroll: { offset: 400, bodyRows: 30 } } })
+  expect(await down.find({ key: 'worktree:f0.md#h' })).toBeUndefined()
+  await down.unmount()
+  const top = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, scroll: { offset: 0, bodyRows: 30 } } })
+  expect(await top.find({ key: 'worktree:f0.md#h' })).toBeDefined()
+  await top.unmount()
+})
+
+test('Desktop All diffs pins the page bar and the file being read while scrolling, and the pinned Stage stages that file', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openDesktopChanges($, on, runs, ' M a.md\0 M b.md\0')
+  await ui.press({ key: 'ch-all' })
+  expect(await ui.find({ key: 'pane-sticky' })).toBeUndefined()
+  await ui.unmount()
+  const down = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop', props: { ...DESKTOP_PANE.props, scroll: { offset: 7, bodyRows: 3 } } })
+  expect(await down.find({ key: 'pane-sticky' })).toBeDefined()
+  expect(await down.find({ key: 'stk-ca-back' })).toBeDefined()
+  expect(await down.find({ key: 'stk-worktree:a.md#hd' })).toBeDefined()
+  expect(await down.find({ key: 'draw-refused' })).toBeUndefined()
+  await down.press({ key: 'stk-worktree:a.md#m' })
+  expect(ran(runs, 'git', 'add', '--', 'a.md')).toBe(true)
+  await down.unmount()
+})
+
+test('the terminal pane pins nothing, since it has no page colour to cover the rows underneath', async ($, on) => {
+  const runs: string[][] = []
+  const many = Array.from({ length: 45 }, (_, index) => ' M f' + index + '.md\0').join('')
+  const ui = await openChangesPane($, on, runs, PANE, many)
+  await ui.unmount()
+  const down = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, scroll: { offset: 40, bodyRows: 30 } } })
+  expect(await down.find({ key: 'pane-sticky' })).toBeUndefined()
+  await down.unmount()
+})
+
+test('Desktop /task-docs pins Menu and the Filter, and typing in the pinned Filter filters the list', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  const docs = Array.from({ length: 12 }, (_, index) => dirEntry('d' + index))
+  const tree: any = { '/work/tasks': docs }
+  docs.forEach((_, index) => (tree['/work/tasks/d' + index] = [fileEntry('current.md', 60)]))
+  stubTree(on, tree)
+  on('fs.read', () => ({ value: '# T\n- [ ] one' }))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'task-docs', args: '' })
+  await (await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })).unmount()
+  const down = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop', props: { ...DESKTOP_PANE.props, scroll: { offset: 6, bodyRows: 4 } } })
+  expect(await down.find({ key: 'stk-to-menu' })).toBeDefined()
+  expect(await down.find({ key: 'stk-filter' })).toBeDefined()
+  expect(await down.find({ key: 'draw-refused' })).toBeUndefined()
+  await down.input({ key: 'stk-filter', text: 'd1' })
+  expect(await down.find({ key: 'sec-h-match' })).toBeDefined()
+  await down.unmount()
 })

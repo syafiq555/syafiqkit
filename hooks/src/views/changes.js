@@ -441,31 +441,29 @@ const fileHeader = ($, c, entry, plane, open, pathWidth) => {
 
 const expandTabs = (text) => text.replace(/\t/g, '    ')
 
-const terminalLineItems = (c, line, key, numWidth, bodyWidth) => {
+const expandSpan = (line) =>
+  line.span ? [expandTabs(line.text.slice(0, line.span[0])).length, expandTabs(line.text.slice(0, line.span[1])).length] : undefined
+
+const terminalLineItems = (c, line, key, numWidth, bodyWidth, tokens) => {
   const { Box, Text } = c
   if (line.kind === 'gap') {
     return [{ height: 1, make: () => Text({ key, dimColor: true, wrap: 'truncate', children: '⋯ ' + line.hidden + ' hidden lines' }) }]
   }
   const isAdd = line.kind === 'add'
   const isDel = line.kind === 'del'
-  const before = expandTabs(line.span ? line.text.slice(0, line.span[0]) : line.text)
-  const marked = line.span ? expandTabs(line.text.slice(line.span[0], line.span[1])) || ' ' : ''
-  const after = line.span ? expandTabs(line.text.slice(line.span[1])) : ''
-  const text = before + marked + after
-  const segments = line.span
-    ? [[0, before.length, false], [before.length, before.length + marked.length, true], [before.length + marked.length, text.length, false]]
-    : [[0, text.length, false]]
+  const text = line.text
   const width = Math.max(10, bodyWidth)
   const gutter = String(isDel ? line.oldNo : line.newNo).padStart(numWidth) + ' ' + (isAdd ? '+' : isDel ? '−' : ' ') + ' '
   const background = isAdd || isDel ? { backgroundColor: isAdd ? 'diffAdded' : 'diffRemoved' } : {}
+  const segments = syntaxSegments(text.length, tokens, line.span)
   const pieces = (from, to) =>
     segments
-      .filter(([start, end]) => end > from && start < to)
-      .map(([start, end, mark], index) =>
+      .filter((segment) => segment.to > from && segment.from < to)
+      .map((segment, index) =>
         Text({
           key: 'p' + index,
-          ...(mark ? { backgroundColor: isAdd ? 'diffAddedWord' : 'diffRemovedWord' } : {}),
-          children: text.slice(Math.max(start, from), Math.min(end, to)),
+          ...syntaxSegmentStyle(segment, isAdd ? 'diffAddedWord' : 'diffRemovedWord'),
+          children: text.slice(Math.max(segment.from, from), Math.min(segment.to, to)),
         }),
       )
   const count = Math.max(1, Math.ceil(text.length / width))
@@ -486,9 +484,11 @@ const terminalLineItems = (c, line, key, numWidth, bodyWidth) => {
   }))
 }
 
-const terminalDiffItems = (c, lines, prefix, columnWidth) => {
+const terminalDiffItems = (c, lines, prefix, columnWidth, path) => {
   const numWidth = lineNumberWidth(lines)
-  return lines.flatMap((line, index) => terminalLineItems(c, line, prefix + index, numWidth, columnWidth - numWidth - 3))
+  const expanded = lines.map((line) => (line.kind === 'gap' ? line : { ...line, text: expandTabs(line.text), span: expandSpan(line) }))
+  const tokens = highlightLines(expanded, path)
+  return expanded.flatMap((line, index) => terminalLineItems(c, line, prefix + index, numWidth, columnWidth - numWidth - 3, tokens[index]))
 }
 
 const allDiffItems = ($, c, only, beside) => {
@@ -527,7 +527,7 @@ const allDiffItems = ($, c, only, beside) => {
         continue
       }
       const lines = shownLines(key, diff)
-      items.push(...diffNoteItems(c, key + '#n', diff), ...terminalDiffItems(c, lines, key + '#', columnWidth))
+      items.push(...diffNoteItems(c, key + '#n', diff), ...terminalDiffItems(c, lines, key + '#', columnWidth, entry.path))
       const hidden = diff.lines.length - lines.length
       if (hidden > 0) {
         items.push(
@@ -596,7 +596,7 @@ const changeFileView = ($, c) => {
             flexDirection: 'column',
             children: windowedRows(
               c,
-              [...diffNoteItems(c, 'cf-note', diff), ...terminalDiffItems(c, diff.lines, 'l', paneColumns(c.e) - 2)],
+              [...diffNoteItems(c, 'cf-note', diff), ...terminalDiffItems(c, diff.lines, 'l', paneColumns(c.e) - 2, file.path)],
               3,
             ),
           }),

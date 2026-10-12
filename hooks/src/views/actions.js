@@ -17,7 +17,7 @@ const openPane = async ($, view) => {
   try {
     state.docs = await discover($)
     state.now = await $.clock.now()
-    await Promise.all([readRecentStatuses($), measureHeavy($)])
+    await Promise.all([readDocMeta($), measureHeavy($)])
   } catch (error) {
     state.docs = []
     state.error = 'Could not list docs: ' + messageOf(error)

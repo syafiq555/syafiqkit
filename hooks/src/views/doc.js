@@ -130,9 +130,9 @@ const docView = ($, c) => {
     })
   })
 
-  const actions = (isTop) => {
+  const actions = (isTop, prefix = '') => {
     const action = (id, label, topProps, onPress) =>
-      Button({ key: isTop ? id : id + '-end', label, ...(isTop ? topProps : {}), onPress })
+      Button({ key: prefix + (isTop ? id : id + '-end'), label, ...(isTop ? liveOnly(prefix, topProps) : {}), onPress })
     return Box({
       flexDirection: 'row',
       columnGap: 2,
@@ -180,7 +180,7 @@ const docView = ($, c) => {
   return Box({
     flexDirection: 'column',
     children: [
-      actions(true),
+      stickyTop((prefix) => actions(true, prefix)),
       Box({
         flexDirection: 'row',
         columnGap: 2,
@@ -232,39 +232,43 @@ const decisionView = ($, c) => {
       ...(hotkey ? { hotkey, autoFocus: true } : {}),
       onPress: () => goto('doc'),
     })
+  const topRow = (prefix) => {
+    return Box({
+      key: prefix + 'dec-top',
+      flexDirection: 'row',
+      columnGap: 2,
+      children: [
+        toDoc(prefix + 'dec-back', prefix ? '' : 'b'),
+        ...(index > 0 ? [Button({ key: prefix + 'dec-prev', label: '‹ Prev', ...liveOnly(prefix, { hotkey: 'p' }), onPress: () => openDecision(index - 1) })] : []),
+        ...(index < files.length - 1
+          ? [Button({ key: prefix + 'dec-next', label: 'Next ›', ...liveOnly(prefix, { hotkey: 'n' }), onPress: () => openDecision(index + 1) })]
+          : []),
+        Button({
+          key: prefix + 'dec-changes',
+          label: 'Changes',
+          ...liveOnly(prefix, { hotkey: 'd' }),
+          onPress: () => openDocDiff($, file.path, 'decision'),
+        }),
+        Button({
+          key: prefix + 'dec-condense',
+          label: 'Condense ⚠',
+          ...liveOnly(prefix, { hotkey: 'k' }),
+          onPress: () =>
+            askFirst('Condense ' + file.name, condenseFileRequest(state.current, file), CONDENSE_FILE_EFFECT, false, state.current),
+        }),
+        Button({
+          key: prefix + 'dec-split',
+          label: 'Split ⚠',
+          ...liveOnly(prefix, { hotkey: 't' }),
+          onPress: () => askFirst('Split ' + file.name, splitRequest(state.current, file), SPLIT_EFFECT, false, state.current),
+        }),
+      ],
+    })
+  }
   return Box({
     flexDirection: 'column',
     children: [
-      Box({
-        flexDirection: 'row',
-        columnGap: 2,
-        children: [
-          toDoc('dec-back', 'b'),
-          ...(index > 0 ? [Button({ key: 'dec-prev', label: '‹ Prev', hotkey: 'p', onPress: () => openDecision(index - 1) })] : []),
-          ...(index < files.length - 1
-            ? [Button({ key: 'dec-next', label: 'Next ›', hotkey: 'n', onPress: () => openDecision(index + 1) })]
-            : []),
-          Button({
-            key: 'dec-changes',
-            label: 'Changes',
-            hotkey: 'd',
-            onPress: () => openDocDiff($, file.path, 'decision'),
-          }),
-          Button({
-            key: 'dec-condense',
-            label: 'Condense ⚠',
-            hotkey: 'k',
-            onPress: () =>
-              askFirst('Condense ' + file.name, condenseFileRequest(state.current, file), CONDENSE_FILE_EFFECT, false, state.current),
-          }),
-          Button({
-            key: 'dec-split',
-            label: 'Split ⚠',
-            hotkey: 't',
-            onPress: () => askFirst('Split ' + file.name, splitRequest(state.current, file), SPLIT_EFFECT, false, state.current),
-          }),
-        ],
-      }),
+      stickyTop(topRow),
       Box({
         flexDirection: 'row',
         columnGap: 2,

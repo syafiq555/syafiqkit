@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.392.0
+
+**In Desktop, a pane's top buttons stay on screen while you scroll, and so does the bar of the file you are reading.**
+- Every pane page keeps its top row pinned once you scroll: Back, Stage all, Refresh, the doc page's Read-summary and Shrink, and so on. You no longer scroll back up to act.
+- On All changes, the bar of the file you are reading (name, +/− counts, Hide, Stage, Discard) is pinned under it and switches to the next file as you scroll into it. A single file's diff pins its file bar the same way, the Changes overview pins its STAGED / CHANGES header with Stage all, and `/task-docs` pins the Filter box and the folder you are in.
+- The pinned copies work like the originals but have no hotkeys, so a hotkey still means one button. Add repo is left off the pinned row, because its form opens at the top of the page.
+- Terminal only: nothing is pinned. Claude Code gives the terminal no page colour to paint behind a pinned row, so text would show through it.
+- On long diffs in Desktop the pinned file can switch a line or two early or late, because Desktop's line wrapping is estimated. The pinned bar's background is a fixed dark colour.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session. Nothing to re-run. Not yet seen in a real Desktop session.
+
+## 1.391.0
+
+**`/changes` diffs are syntax-coloured, in Desktop and the terminal.**
+- Keywords, strings, numbers, function calls, class names and comments are coloured, like the native Changes panel. The rows stay flat, with line numbers, red/green backgrounds across the full width and the darker box on the words that changed.
+- The colouring is the mod's own, not Claude Code's highlighter: Desktop draws that highlighter only as a separate boxed block with a copy button, which can't sit inside a coloured row. Three shapes built on it were tried in Desktop and dropped.
+- Covered: PHP, JS/TS, Vue, Dart, JSON, CSS/SCSS, Python, Ruby, shell, YAML and other C-style languages. Markdown gets light colouring: headings, list markers, `code` spans and link targets. Blade templates (`.blade.php`) and unknown file types stay plain, so they are never coloured wrongly. Lines over 400 characters (minified files, lockfiles) stay plain too.
+- It colours one line at a time with simple rules, so it is rougher than an editor, for example inside a multi-line string. PHP `$variables` stay white, as in the native panel.
+- The colours are fixed for a dark theme on both surfaces.
+- **Fix: pressing ↑ Top on a long `/changes` page left it blank in Desktop.** The page jumped to the top but kept drawing the rows for where you had been, because a jump made by the mod sends no scroll event. Long pages now draw the rows for the pane's actual scroll position on every redraw.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session. Nothing to re-run. Not yet seen in a real session: the coloured rows in Desktop and the terminal, and ↑ Top after this fix.
+
+## 1.390.0
+
+**`/changes` diff pages get Stage all, every pane gets a ↑ Top button, and `/task-docs` draws again in Desktop on big projects.**
+- **Stage all on the Desktop diff page:** "Changes only" now has a Stage all button with the file count (hotkey `a`), and "Staged Changes only" has Unstage all (`u`). A folder's page stages just that folder. Afterwards the page moves to the side the files went to, so you see what you just staged instead of an empty page. "All changes" shows both buttons. The terminal already had these on its section headers.
+- **↑ Top:** once you scroll a pane down, a ↑ Top button floats at its bottom-right corner and jumps back to the top. The mod now calls `$.ui.scroll` for this, and redraws on each scroll while the button shows.
+- **Fix: `/task-docs` was blank in Desktop on a big project.** With about 100 task docs, the list came to roughly 240,000 characters, and Desktop silently refuses a page that size. In Desktop, a project with more than 40 task docs now opens with its folders folded, showing counts and the main doc, and the skills list folds too. Press a folder to open it. The list also draws only the rows near where you are scrolled, like `/changes`.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session. Nothing to re-run. Not yet seen in a real session: whether Desktop draws the floating Top button, and the press itself (the test kit can't simulate a scroll).
+
+## 1.389.0
+
+**`/task-docs` now shows which doc is a folder's main one.**
+- When a domain is split into feature folders and has no doc of its own, you can now see where to start. Mark the overview doc by writing `(hub` in its `Domain:` line, e.g. `Domain: crp45 / delivery (hub: phases, client register)`. It then goes first in its folder with a `main doc` tag, and the folder line reads `main: delivery`. A line that only mentions a hub in passing ("detail hub UX") doesn't count.
+- A recently edited doc now also stays in its folder, not only under "Changed lately", so folder counts are complete.
+- Nothing to re-run: run `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.388.0
 
 **The mod's panes are redesigned for Claude Desktop, and `/changes` shows every changed file on both Desktop and the terminal.**

@@ -5,7 +5,7 @@ const docRow = (c, doc, key, withScope, indent) => {
   const pad = indent ? '  ' : ''
   const nameWidth = NAME_WIDTH - pad.length
   const head = (withScope ? clip(doc.scope || '', SCOPE_WIDTH - 1).padEnd(SCOPE_WIDTH) : '') + agoOf(state.now, doc.mtime).padEnd(11)
-  const tail = [heavy ? heavyNote(doc) : '', doc.status || (heavy ? '' : kb(doc.size))].filter(Boolean).join('  ')
+  const tail = [doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status || (heavy ? '' : kb(doc.size))].filter(Boolean).join('  ')
   return Box({
     key,
     flexDirection: 'row',
@@ -32,6 +32,10 @@ const taskFolders = (docs) => {
     const folder = folders.find((entry) => entry.name === name) || folders[folders.push({ name, docs: [] }) - 1]
     folder.docs.push(doc)
   })
+  folders.forEach((folder) => {
+    folder.docs.sort((a, b) => (b.hub ? 1 : 0) - (a.hub ? 1 : 0))
+    folder.main = folder.docs[0].hub ? folder.docs[0].name : ''
+  })
   return folders
 }
 
@@ -44,16 +48,16 @@ const listView = (c) => {
       ? Box({ key: 'sec-' + key, flexDirection: 'column', marginTop: 1, children: [strip(c, { key, title })] })
       : Box({ key: 'sec-' + key, flexDirection: 'column', children: [gap(key), Text({ key, bold: true, children: title })] })
   const needle = state.filter.trim().toLowerCase()
-  const rows = [
+  const topRow = (prefix) =>
     Box({
-      key: 'list-top',
+      key: prefix + 'list-top',
       flexDirection: 'row',
       columnGap: 2,
       children: [
         Button({
-          key: 'to-menu',
+          key: prefix + 'to-menu',
           label: '< Menu',
-          hotkey: 'm',
+          ...liveOnly(prefix, { hotkey: 'm' }),
           onPress: () => {
             state.pick = null
             state.heavyOnly = false
@@ -64,17 +68,19 @@ const listView = (c) => {
           ? Text({ color: 'cyan', children: 'Pick a doc to ' + state.pick })
           : Text({ dimColor: true, children: 'Pick a doc to read' }),
       ],
-    }),
+    })
+  const filterField = (prefix) =>
     Input({
-      key: 'filter',
+      key: prefix + 'filter',
       label: 'Filter',
       placeholder: 'type to filter docs',
       value: state.filter,
-      autoFocus: true,
+      ...liveOnly(prefix, { autoFocus: true }),
       onInput: bindField('filter'),
       onSubmit: bindField('filter'),
-    }),
-  ]
+    })
+  state.stickyTop = (prefix) => Box({ key: prefix + 'list-pin', flexDirection: 'column', children: [topRow(prefix), filterField(prefix)] })
+  const rows = [topRow(''), filterField('')]
   if (needle) {
     const matches = state.docs
       .filter((doc) => (doc.label + ' ' + doc.group + ' ' + (doc.scope || '')).toLowerCase().includes(needle))
@@ -102,14 +108,21 @@ const listView = (c) => {
     )
     return Box({ flexDirection: 'column', children: rows })
   }
+  const items = []
+  const push = (element, height = 1) => items.push({ height, make: () => element })
+  const pushHeader = (element) => items.push({ height: headerRows, make: () => element, sticky: null })
+  const headerRows = desktop ? DESKTOP_STRIP_ROWS + 1 : 2
+  const taskCount = state.docs.filter((doc) => doc.group === 'Task docs').length
+  const foldByDefault = desktop && taskCount > LIST_FOLD_FROM
+  const isOpen = (key, closedByDefault) => (key in state.collapsed ? !state.collapsed[key] : !closedByDefault)
   const recent = recentDocs()
   if (recent.length) {
-    rows.push(header('h-recent', 'CHANGED LATELY'))
-    recent.forEach((doc) => rows.push(docRow(c, doc, 'r' + state.docs.indexOf(doc), true)))
+    pushHeader(header('h-recent', 'CHANGED LATELY'))
+    recent.forEach((doc) => push(docRow(c, doc, 'r' + state.docs.indexOf(doc), true)))
   }
   if (heavy.length) {
-    rows.push(gap('heavy'))
-    rows.push(
+    push(gap('heavy'))
+    push(
       Button({
         key: 'show-heavy',
         label: '⚠ ' + heavy.length + ' over the size limit · show',
@@ -124,48 +137,69 @@ const listView = (c) => {
   GROUPS.forEach((group) => {
     const inGroup = state.docs.filter((doc) => doc.group === group)
     if (!inGroup.length) return
-    const rest = inGroup.filter((doc) => !recent.includes(doc))
+    const rest = group === 'Task docs' ? inGroup : inGroup.filter((doc) => !recent.includes(doc))
     if (!rest.length) return
     const title =
       group === 'Task docs'
-        ? 'TASK DOCS (' + inGroup.length + ')' + (rest.length < inGroup.length ? ' · ' + recent.length + ' listed above' : '')
+        ? 'TASK DOCS (' + inGroup.length + ')'
         : group === 'Skills'
           ? 'SYAFIQKIT SKILLS (' + inGroup.length + ')'
           : group.toUpperCase()
-    rows.push(header('h-' + group, title))
+    if (desktop && group === 'Skills') {
+      const open = isOpen('grp:Skills', true)
+      const fold = () => {
+        state.collapsed['grp:Skills'] = open
+        redraw()
+      }
+      pushHeader(Box({ key: 'sec-h-' + group, flexDirection: 'column', marginTop: 1, children: [strip(c, { key: 'h-' + group, title: (open ? '▾ ' : '▸ ') + title, onPress: fold })] }))
+      if (open) rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false)))
+      return
+    }
+    pushHeader(header('h-' + group, title))
     if (group !== 'Task docs') {
-      rest.forEach((doc) => rows.push(docRow(c, doc, 'd' + state.docs.indexOf(doc), group === 'CLAUDE.md chain')))
+      rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), group === 'CLAUDE.md chain')))
       return
     }
     taskFolders(rest).forEach((folder) => {
-      const open = !state.collapsed['dir:' + folder.name]
+      const open = isOpen('dir:' + folder.name, foldByDefault)
       const flagged = folder.docs.filter(isHeavy).length
       const fold = () => {
         state.collapsed['dir:' + folder.name] = open
         redraw()
       }
       if (desktop) {
-        rows.push(
+        const folderHead = (prefix) =>
           Box({
-            key: 'fold-' + folder.name,
+            key: prefix + 'fold-' + folder.name,
             flexDirection: 'row',
             alignItems: 'center',
             columnGap: 1,
             paddingX: 1,
             children: [
-              Button({ key: 'fold-' + folder.name + 'b', plain: true, label: (open ? '▾ ' : '▸ ') + folder.name, onPress: fold }),
-              Text({ key: 'fold-' + folder.name + 'c', dimColor: true, children: String(folder.docs.length) }),
-              ...(flagged ? [chip(c, 'fold-' + folder.name + 'w', '⚠ ' + flagged, 'warn')] : []),
+              Button({ key: prefix + 'fold-' + folder.name + 'b', plain: true, label: (open ? '▾ ' : '▸ ') + folder.name, onPress: fold }),
+              Text({
+                key: prefix + 'fold-' + folder.name + 'c',
+                dimColor: true,
+                children: String(folder.docs.length) + (folder.main ? ' · main: ' + folder.main : ''),
+              }),
+              ...(flagged ? [chip(c, prefix + 'fold-' + folder.name + 'w', '⚠ ' + flagged, 'warn')] : []),
             ],
-          }),
-        )
-        if (open) folder.docs.forEach((doc) => rows.push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
+          })
+        items.push({ height: 1, make: () => folderHead(''), sticky: open ? folderHead : null })
+        if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
         return
       }
-      rows.push(
+      push(
         Button({
           key: 'fold-' + folder.name,
-          label: (open ? '▾ ' : '▸ ') + folder.name + ' (' + folder.docs.length + ')' + (flagged ? '  ⚠ ' + flagged : ''),
+          label:
+            (open ? '▾ ' : '▸ ') +
+            folder.name +
+            ' (' +
+            folder.docs.length +
+            (folder.main ? ' · main: ' + folder.main : '') +
+            ')' +
+            (flagged ? '  ⚠ ' + flagged : ''),
           plain: true,
           onPress: () => {
             state.collapsed['dir:' + folder.name] = open
@@ -173,9 +207,9 @@ const listView = (c) => {
           },
         }),
       )
-      if (open) folder.docs.forEach((doc) => rows.push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
+      if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
     })
   })
-  if (!state.docs.length) rows.push(Text({ dimColor: true, children: state.error || 'No docs found from here.' }))
-  return Box({ flexDirection: 'column', children: rows })
+  if (!state.docs.length) push(Text({ dimColor: true, children: state.error || 'No docs found from here.' }))
+  return Box({ flexDirection: 'column', children: [...rows, ...windowedRows(c, items, LIST_TOP_ROWS)] })
 }
