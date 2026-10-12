@@ -95,12 +95,7 @@ const showImages = async ($, e) => {
 }
 
 const viewerCommand = async ($, path) => {
-  let system = ''
-  try {
-    system = ((await $.process.run(['uname'])).stdout || '').trim()
-  } catch {
-    system = ''
-  }
+  const system = await systemOf($)
   if (system === 'Darwin') return ['open', path]
   if (system === 'Linux') return ['xdg-open', path]
   return ['cmd', '/c', 'start', '', path]

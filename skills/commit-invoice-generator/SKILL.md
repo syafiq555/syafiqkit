@@ -37,7 +37,7 @@ When the target is an existing invoice-tracking doc with prior dated `## INV-YYY
 
 However, the clock has two failure modes:
 
-- **Degenerate clock (commits all land at once):** If commits cluster in a few minutes at the end of a session, the clock span is near zero and tells you nothing. This happens when a session lands everything at ship time. In this case, ignore the clock and move to Step 2.
+- **Degenerate clock (commits all land at once):** If commits cluster in a few minutes at the end of a session, the clock span is near zero and tells you nothing. This happens when a session lands everything at ship time. Before falling back to Step 2, read the session transcripts' own timestamps (the first and last `"timestamp"` of each `~/.claude/projects/<project>/*.jsonl` that names the feature): they measure the span the commits don't. Where several sessions ran in parallel on the work, bill the union of their spans, never the sum. Work with no transcript at all is the only case left for Step 2.
 - **Wall-clock is not billable time:** The elapsed span from first message to last commit includes planning, unrelated work, and gaps — that is not the time spent on the task. Use commit-to-commit gaps, not wall time.
 
 When the clock works, use it. When it doesn't, proceed to Step 2.

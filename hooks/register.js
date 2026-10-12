@@ -736,6 +736,45 @@ const readDocMeta = async ($) => {
   )
 }
 
+const systemOf = async ($) => {
+  try {
+    return ((await $.process.run(['uname'])).stdout || '').trim()
+  } catch {
+    return ''
+  }
+}
+
+const clipboardCommand = async ($) => {
+  const system = await systemOf($)
+  if (system === 'Darwin') return ['pbcopy']
+  if (system === 'Linux') return ['xclip', '-selection', 'clipboard']
+  return ['clip']
+}
+
+const copyDocText = async ($, text, name, surface) => {
+  if (!text) return $.ui.toast('Nothing to copy yet: the doc is still loading.')
+  try {
+    const copied = await $.ui.copy({ text, ...(surface ? { surface } : {}) })
+    if (copied && copied.isCopied) return $.ui.toast('Copied ' + name + ' to the clipboard.')
+  } catch {}
+  try {
+    const ran = await $.process.run(await clipboardCommand($), { stdin: text })
+    if (ran.exitCode === 0) return $.ui.toast('Copied ' + name + ' to the clipboard.')
+    $.ui.toast('Could not copy: ' + (ran.stderr || 'clipboard tool failed').trim().slice(0, 80))
+  } catch (error) {
+    $.ui.toast('Could not copy: ' + messageOf(error).slice(0, 80))
+  }
+}
+
+const openInEditor = async ($, path) => {
+  try {
+    const ran = await $.process.run(await viewerCommand($, path))
+    if (ran.exitCode !== 0) $.ui.toast('Could not open the doc: ' + (ran.stderr || 'no app opened it').trim().slice(0, 80))
+  } catch (error) {
+    $.ui.toast('Could not open the doc: ' + messageOf(error).slice(0, 80))
+  }
+}
+
 const registerImageTool = async ($) => {
   try {
     await $.tool.register({
@@ -833,12 +872,7 @@ const showImages = async ($, e) => {
 }
 
 const viewerCommand = async ($, path) => {
-  let system = ''
-  try {
-    system = ((await $.process.run(['uname'])).stdout || '').trim()
-  } catch {
-    system = ''
-  }
+  const system = await systemOf($)
   if (system === 'Darwin') return ['open', path]
   if (system === 'Linux') return ['xdg-open', path]
   return ['cmd', '/c', 'start', '', path]
@@ -4161,6 +4195,8 @@ const docView = ($, c) => {
             ]
           : []),
         action('changes', state.docBack ? 'Doc diff' : 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
+        action('copy', 'Copy', { hotkey: 'y' }, (press) => copyDocText($, state.raw, 'the doc', press && press.surface)),
+        action('open', 'Open in editor', { hotkey: 'o' }, () => openInEditor($, state.current.path)),
         action('refresh', 'Refresh ⚠', { hotkey: 'r' }, () =>
           askFirst('Refresh ' + state.current.label, refreshRequest(state.current), REFRESH_EFFECT),
         ),
@@ -4254,6 +4290,18 @@ const decisionView = ($, c) => {
           label: 'Changes',
           ...liveOnly(prefix, { hotkey: 'd' }),
           onPress: () => openDocDiff($, file.path, 'decision'),
+        }),
+        Button({
+          key: prefix + 'dec-copy',
+          label: 'Copy',
+          ...liveOnly(prefix, { hotkey: 'y' }),
+          onPress: (press) => copyDocText($, state.decisionTexts[file.path], file.name, press && press.surface),
+        }),
+        Button({
+          key: prefix + 'dec-open',
+          label: 'Open in editor',
+          ...liveOnly(prefix, { hotkey: 'o' }),
+          onPress: () => openInEditor($, file.path),
         }),
         Button({
           key: prefix + 'dec-condense',

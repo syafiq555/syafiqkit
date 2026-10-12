@@ -155,6 +155,8 @@ const docView = ($, c) => {
             ]
           : []),
         action('changes', state.docBack ? 'Doc diff' : 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
+        action('copy', 'Copy', { hotkey: 'y' }, (press) => copyDocText($, state.raw, 'the doc', press && press.surface)),
+        action('open', 'Open in editor', { hotkey: 'o' }, () => openInEditor($, state.current.path)),
         action('refresh', 'Refresh ⚠', { hotkey: 'r' }, () =>
           askFirst('Refresh ' + state.current.label, refreshRequest(state.current), REFRESH_EFFECT),
         ),
@@ -248,6 +250,18 @@ const decisionView = ($, c) => {
           label: 'Changes',
           ...liveOnly(prefix, { hotkey: 'd' }),
           onPress: () => openDocDiff($, file.path, 'decision'),
+        }),
+        Button({
+          key: prefix + 'dec-copy',
+          label: 'Copy',
+          ...liveOnly(prefix, { hotkey: 'y' }),
+          onPress: (press) => copyDocText($, state.decisionTexts[file.path], file.name, press && press.surface),
+        }),
+        Button({
+          key: prefix + 'dec-open',
+          label: 'Open in editor',
+          ...liveOnly(prefix, { hotkey: 'o' }),
+          onPress: () => openInEditor($, file.path),
         }),
         Button({
           key: prefix + 'dec-condense',

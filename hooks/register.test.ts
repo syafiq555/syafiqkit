@@ -501,6 +501,33 @@ test('cancelling Split returns to the decisions page, and sending it brings the 
   await again.unmount()
 })
 
+test('Copy puts the decision and the doc on the clipboard, falling back to pbcopy where the surface cannot copy', async ($, on) => {
+  const copied: string[] = []
+  const runs: any[] = []
+  let surfaceCopies = true
+  on('ui.copy', (_$: any, e: any) => {
+    copied.push(e.text)
+    return { value: surfaceCopies ? { isCopied: true } : { isCopied: false, reason: 'remote' } }
+  })
+  on('process.run', (_$: any, e: any) => {
+    runs.push(e)
+    return { value: { exitCode: 0, stdout: e.argv[0] === 'uname' ? 'Darwin\n' : '', stderr: '' } }
+  })
+  const ui = await openBigDecision($, on, [])
+  runs.length = 0
+  await ui.press({ key: 'dec-copy' })
+  expect(copied).toEqual(['# Plan\nBecause.'])
+  expect(runs.length).toBe(0)
+  surfaceCopies = false
+  await ui.press({ key: 'dec-back' })
+  await ui.press({ key: 'copy' })
+  const pbcopy = runs.find((run) => run.argv[0] === 'pbcopy')
+  expect(pbcopy.init.stdin).toBe('# Plan\nBecause.')
+  await ui.press({ key: 'open' })
+  expect(runs.some((run) => run.argv[0] === 'open' && run.argv[1] === '/work/tasks/a/current.md')).toBe(true)
+  await ui.unmount()
+})
+
 test('a decisions page offers Condense, which asks first and condenses that one file on haiku', async ($, on) => {
   const sent: string[] = []
   const ui = await openBigDecision($, on, sent)

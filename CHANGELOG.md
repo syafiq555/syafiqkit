@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.395.0
+
+**/task-docs gets Copy and Open in editor, because the Desktop app does not let you highlight text in a pane.**
+- The app draws the pane, and nothing a plugin sends makes that text selectable. So the doc page and each decision page now have **Copy** (`y`), which puts the whole file on the clipboard, and **Open in editor** (`o`), which opens it in your default app for `.md` files, where any part can be highlighted.
+- Copy tries the session's own clipboard first, then falls back to running `pbcopy` (macOS), `xclip` (Linux) or `clip` (Windows) with the doc as input. Open in editor runs `open`, `xdg-open` or `start`, the same command the gallery's Open in viewer already uses. No new file writes.
+- `commit-invoice-generator`: when the commits all landed at ship time, size from the session transcripts' own timestamps before guessing by scope, and bill parallel sessions as the union of their spans, not the sum.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session (a running Desktop session keeps the old mod).
+
+## 1.394.1
+
+**uiux no longer lets a full-page screenshot decide whether a sticky bar or pinned header is broken.**
+- A full-page capture draws a `fixed` or `sticky` element once at its viewport offset, so it lands mid-page over unrelated content. A correct bar and a broken one look identical there.
+- `uiux` now says to judge those elements from viewport shots at the top and bottom of the scroll, plus a measured overlap check, and never to dismiss a composite defect as an artefact without that check (`references/verification-traps.md`, pointer in Verify by Looking).
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`. Nothing to re-run.
+
 ## 1.394.0
 
 **The CLAUDE.md CHAIN list in /task-docs now shows every instruction file a session can load, not just the three above your folder.**
