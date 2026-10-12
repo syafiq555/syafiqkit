@@ -13,7 +13,7 @@ const docRow = (c, doc, key, withScope, indent) => {
     children: [
       Button({
         key: key + 'b',
-        label: pad + clip(doc.name || doc.label, nameWidth).padEnd(nameWidth),
+        label: pad + (doc.listName ? clipStart(doc.listName, nameWidth) : clip(doc.name || doc.label, nameWidth)).padEnd(nameWidth),
         plain: true,
         onPress: () => pickAction(doc),
       }),
@@ -38,6 +38,16 @@ const taskFolders = (docs) => {
   })
   return folders
 }
+
+const CHAIN_SECTIONS = [
+  { name: 'Loaded every session', showScope: true, has: (doc) => !doc.scope.startsWith('nested:') && !doc.scope.startsWith('companion') },
+  { name: 'Nested · load when touched', has: (doc) => doc.scope.startsWith('nested:') },
+  { name: 'Global companions · on demand', has: (doc) => doc.scope === 'companion' },
+  { name: 'Project companions · on demand', has: (doc) => doc.scope === 'companion (this project)' },
+]
+
+const chainSections = (docs) =>
+  CHAIN_SECTIONS.map((section) => ({ ...section, docs: docs.filter((doc) => section.has(doc)) })).filter((section) => section.docs.length)
 
 const listView = (c) => {
   const { Box, Text, Button, Input, goto, redraw, bindField } = c
@@ -156,12 +166,13 @@ const listView = (c) => {
       return
     }
     pushHeader(header('h-' + group, title))
-    if (group !== 'Task docs') {
-      rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), group === 'CLAUDE.md chain')))
+    if (group !== 'Task docs' && group !== 'CLAUDE.md chain') {
+      rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false)))
       return
     }
-    taskFolders(rest).forEach((folder) => {
-      const open = isOpen('dir:' + folder.name, foldByDefault)
+    const folders = group === 'Task docs' ? taskFolders(rest) : chainSections(rest)
+    folders.forEach((folder) => {
+      const open = isOpen('dir:' + folder.name, group === 'Task docs' && foldByDefault)
       const flagged = folder.docs.filter(isHeavy).length
       const fold = () => {
         state.collapsed['dir:' + folder.name] = open
@@ -186,7 +197,7 @@ const listView = (c) => {
             ],
           })
         items.push({ height: 1, make: () => folderHead(''), sticky: open ? folderHead : null })
-        if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
+        if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), Boolean(folder.showScope), true)))
         return
       }
       push(
@@ -207,7 +218,7 @@ const listView = (c) => {
           },
         }),
       )
-      if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
+      if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), Boolean(folder.showScope), true)))
     })
   })
   if (!state.docs.length) push(Text({ dimColor: true, children: state.error || 'No docs found from here.' }))

@@ -9,7 +9,11 @@ const kb = (bytes) => (typeof bytes === 'number' ? (bytes / 1024).toFixed(1) + '
 
 const clip = (text, width) => (text.length > width ? text.slice(0, width - 1) + '…' : text)
 
-const messageOf = (error) => String(error && error.message ? error.message : error)
+const clipStart = (text, width) => (text.length > width ? '…' + text.slice(text.length - width + 1) : text)
+
+const docLabel = (doc, width) => (doc.listName ? clipStart(doc.listName, width) : doc.name || doc.label)
+
+const messageOf =(error) => String(error && error.message ? error.message : error)
 
 const homeOf = async ($) => {
   let home = ''

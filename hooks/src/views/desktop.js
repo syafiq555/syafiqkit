@@ -352,7 +352,10 @@ const windowedRows = (c, items, topRows) => {
     else drawn.push(item.make())
     y = end
   }
-  const spacer = (key, height) => (height ? [c.Box({ key, height, flexShrink: 0 })] : [])
+  const spacer = (key, height) =>
+    Array.from({ length: Math.ceil(height / SPACER_MAX_ROWS) }, (_, part) =>
+      c.Box({ key: part ? key + part : key, height: Math.min(SPACER_MAX_ROWS, height - part * SPACER_MAX_ROWS), flexShrink: 0 }),
+    )
   return [...spacer('w-above', above), ...drawn, ...spacer('w-below', below)]
 }
 
@@ -575,7 +578,7 @@ const desktopDocRow = (c, doc, key, withScope, indent) => {
         key: key + 'n',
         width: indent ? 22 : 24,
         flexShrink: 0,
-        children: [Button({ key: key + 'b', label: doc.name || doc.label, plain: true, onPress: () => pickAction(doc) })],
+        children: [Button({ key: key + 'b', label: docLabel(doc, indent ? 22 : 24), plain: true, onPress: () => pickAction(doc) })],
       }),
       Box({ key: key + 'g', width: 9, flexShrink: 0, children: [meter(c, key + 'm', gauge.value, gauge.max, 8)] }),
       Box({

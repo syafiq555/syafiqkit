@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.394.0
+
+**The CLAUDE.md CHAIN list in /task-docs now shows every instruction file a session can load, not just the three above your folder.**
+- Companion files from `~/.claude/.claude-companions/shared` (and `.claude-companions/shared` in the project) are listed, labelled `companion`.
+- CLAUDE.md and CLAUDE.local.md files in sub-folders are listed as `nested: <folder>`. The scan goes 4 levels down, skips `node_modules`, `vendor`, `dist`, `build`, `storage`, `tasks` and hidden folders, and stops after 400 folders so a large app cannot slow the pane.
+- The list is grouped so repeated names can be told apart: Loaded every session, Nested · load when touched, Global companions · on demand, Project companions · on demand. Each group folds like a task-doc folder, nested files show their path (`resources/CLAUDE.md`), and the scope text that repeated on every row is gone from the group rows. Every row now shows a line count out of 200 instead of mixing lines and KB.
+- Companions and nested files get the same 200-line gauge as CLAUDE.md, so a global file that overflows into companions shows where the overflow went.
+- In Desktop, the Hand off form no longer clips what you type: the field now sits under its own label at the full width of the pane (it used to share a row with a short "Next" label), and the "also saves" line moved below the buttons. The terminal form is unchanged. Not yet seen in a real Desktop session.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session. Nothing to re-run.
+
+## 1.393.0
+
+**In Desktop, /changes on a very large change set (300+ files with long diffs) no longer draws a blank pane.**
+- Cause: the blank space standing in for the rows off screen grew past 10,000 rows, and Desktop refuses the whole page when one block is that tall. The space is now drawn in blocks of at most 10,000 rows.
+- Smaller sets were never affected.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session. Nothing to re-run.
+
 ## 1.392.0
 
 **In Desktop, a pane's top buttons stay on screen while you scroll, and so does the bar of the file you are reading.**

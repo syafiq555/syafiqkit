@@ -155,15 +155,17 @@ const handoffView = ($, c) => {
     ...(doc && doc.group === 'Task docs' ? [doc.label] : []),
     ...(state.selected.length ? [state.selected.length + ' picked items'] : []),
   ]
+  const desktop = isDesktop(c.e)
+  const saves = Text({ key: 'handoff-saves', dimColor: true, children: (desktop ? 'Also saves: ' : 'Saves: ') + carries.join(', ') + '.' })
   return Box({
     flexDirection: 'column',
     children: [
       Text({ bold: true, children: 'Hand off this session' }),
-      Text({ dimColor: true, children: 'Saves: ' + carries.join(', ') + '.' }),
+      ...(desktop ? [Text({ key: 'handoff-next-label', children: 'First thing for the next session (optional)' })] : [saves]),
       Input({
         key: 'handoff-next',
-        label: 'Next',
-        placeholder: 'optional: what the next session should do first',
+        ...(desktop ? {} : { label: 'Next' }),
+        placeholder: desktop ? 'e.g. finish the failing tests first' : 'optional: what the next session should do first',
         value: state.handoffNext,
         autoFocus: true,
         onInput: bindField('handoffNext'),
@@ -194,6 +196,7 @@ const handoffView = ($, c) => {
               }),
             ],
           }),
+      ...(desktop ? [saves] : []),
     ],
   })
 }

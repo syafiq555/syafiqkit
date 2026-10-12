@@ -17,6 +17,9 @@ const TASK_DOC_MAX_LINES = 300
 const DECISION_MAX_BYTES = 40 * 1024
 const CLAUDE_MD_MAX_LINES = 200
 const CLAUDE_MD_MAX_BYTES = 40000
+const NESTED_SCAN_DEPTH = 4
+const NESTED_SCAN_FOLDERS = 400
+const NESTED_SCAN_SKIP = ['node_modules', 'vendor', 'dist', 'build', 'storage', 'tasks']
 const DIFF_CONTEXT = 3
 const DIFF_MAX_LINES = 400
 const DESKTOP_STRIP_ROWS = 2
@@ -90,6 +93,7 @@ const MAX_BASE64 = Math.floor((2 * 1024 * 1024 * 4) / 3)
 const DESKTOP_DRAW_CHARS = 90000
 const DESKTOP_DRAW_LIMIT = 95000
 const MAX_HOVER_SCOPE = 64
+const SPACER_MAX_ROWS = 10000
 const MOD_LOG_FILE = 'mod.log'
 const MOD_LOG_LINES = 300
 const PREVIEW_STEPS = [[1080, 60], [900, 50], [720, 45], [600, 40]]
@@ -151,7 +155,11 @@ const kb = (bytes) => (typeof bytes === 'number' ? (bytes / 1024).toFixed(1) + '
 
 const clip = (text, width) => (text.length > width ? text.slice(0, width - 1) + '…' : text)
 
-const messageOf = (error) => String(error && error.message ? error.message : error)
+const clipStart = (text, width) => (text.length > width ? '…' + text.slice(text.length - width + 1) : text)
+
+const docLabel = (doc, width) => (doc.listName ? clipStart(doc.listName, width) : doc.name || doc.label)
+
+const messageOf =(error) => String(error && error.message ? error.message : error)
 
 const homeOf = async ($) => {
   let home = ''
@@ -554,6 +562,7 @@ const scopeOfInstruction = (path, cwd, home) => {
   const base = folder.endsWith('/.claude') ? parentOf(folder) : folder
   if (folder === home + '/.claude') return 'your global'
   if (base === cwd) return folder === base ? 'this project' : 'this project (.claude/)'
+  if (base.startsWith(cwd + '/')) return 'nested: ' + base.slice(cwd.length + 1)
   return 'parent: ' + (base.split('/').pop() || '/')
 }
 
@@ -591,6 +600,53 @@ const findInstructionFiles = async ($, cwd, home) => {
     }),
   )
 }
+
+const findNestedInstructionFiles = async ($, cwd, home) => {
+  const found = []
+  let visited = 0
+  const walk = async (dir, depth) => {
+    if (depth > NESTED_SCAN_DEPTH || visited >= NESTED_SCAN_FOLDERS) return
+    visited += 1
+    const entries = await safeList($, dir)
+    if (depth > 0) {
+      for (const entry of entries) {
+        if (entry.kind === 'file' && (entry.name === 'CLAUDE.md' || entry.name === 'CLAUDE.local.md')) {
+          const path = dir + '/' + entry.name
+          found.push({ ...instructionDoc(path, cwd, home), listName: path.slice(cwd.length + 1), size: entry.size, mtime: entry.mtimeMs })
+        }
+      }
+    }
+    const folders = entries.filter((entry) => isDirectory(entry) && !NESTED_SCAN_SKIP.includes(entry.name))
+    await Promise.all(folders.map((entry) => walk(dir + '/' + entry.name, depth + 1)))
+  }
+  await walk(cwd, 0)
+  return found.sort((a, b) => a.path.localeCompare(b.path))
+}
+
+const findCompanionFiles = async ($, cwd, home) => {
+  const folders = [
+    { dir: home + '/.claude/.claude-companions/shared', scope: 'companion' },
+    { dir: cwd + '/.claude-companions/shared', scope: 'companion (this project)' },
+  ]
+  const lists = await Promise.all(
+    folders.map(async ({ dir, scope }) =>
+      (await safeList($, dir))
+        .filter((entry) => entry.kind === 'file' && entry.name.endsWith('.md'))
+        .map((entry) => ({
+          group: 'CLAUDE.md chain',
+          label: entry.name + ' · ' + scope,
+          name: entry.name,
+          scope,
+          path: dir + '/' + entry.name,
+          size: entry.size,
+          mtime: entry.mtimeMs,
+        })),
+    ),
+  )
+  return lists.flat()
+}
+
+const uniqueByPath = (docs) => docs.filter((doc, index) => docs.findIndex((other) => other.path === doc.path) === index)
 
 const findMarkdownIn = async ($, group, dir) => {
   const entries = await safeList($, dir)
@@ -631,7 +687,9 @@ const discover = async ($) => {
   const home = await homeOf($)
   const groups = await Promise.all([
     findTaskDocs($, cwd),
-    findInstructionFiles($, cwd, home),
+    Promise.all([findInstructionFiles($, cwd, home), findNestedInstructionFiles($, cwd, home), findCompanionFiles($, cwd, home)]).then(
+      (parts) => uniqueByPath(parts.flat()),
+    ),
     findMarkdownIn($, 'Rules', cwd + '/.claude/rules'),
     findMarkdownIn($, 'Project docs', cwd + '/docs'),
     findSkills($),
@@ -642,7 +700,7 @@ const discover = async ($) => {
 const measureHeavy = async ($) => {
   await Promise.all(
     state.docs
-      .filter((doc) => (doc.size || 0) >= MEASURE_FROM_BYTES)
+      .filter((doc) => (doc.size || 0) >= MEASURE_FROM_BYTES || isInstructionFile(doc))
       .map(async (doc) => {
         try {
           doc.lines = (await $.fs.read(doc.path)).split('\n').length
@@ -3547,7 +3605,10 @@ const windowedRows = (c, items, topRows) => {
     else drawn.push(item.make())
     y = end
   }
-  const spacer = (key, height) => (height ? [c.Box({ key, height, flexShrink: 0 })] : [])
+  const spacer = (key, height) =>
+    Array.from({ length: Math.ceil(height / SPACER_MAX_ROWS) }, (_, part) =>
+      c.Box({ key: part ? key + part : key, height: Math.min(SPACER_MAX_ROWS, height - part * SPACER_MAX_ROWS), flexShrink: 0 }),
+    )
   return [...spacer('w-above', above), ...drawn, ...spacer('w-below', below)]
 }
 
@@ -3770,7 +3831,7 @@ const desktopDocRow = (c, doc, key, withScope, indent) => {
         key: key + 'n',
         width: indent ? 22 : 24,
         flexShrink: 0,
-        children: [Button({ key: key + 'b', label: doc.name || doc.label, plain: true, onPress: () => pickAction(doc) })],
+        children: [Button({ key: key + 'b', label: docLabel(doc, indent ? 22 : 24), plain: true, onPress: () => pickAction(doc) })],
       }),
       Box({ key: key + 'g', width: 9, flexShrink: 0, children: [meter(c, key + 'm', gauge.value, gauge.max, 8)] }),
       Box({
@@ -4322,7 +4383,7 @@ const docRow = (c, doc, key, withScope, indent) => {
     children: [
       Button({
         key: key + 'b',
-        label: pad + clip(doc.name || doc.label, nameWidth).padEnd(nameWidth),
+        label: pad + (doc.listName ? clipStart(doc.listName, nameWidth) : clip(doc.name || doc.label, nameWidth)).padEnd(nameWidth),
         plain: true,
         onPress: () => pickAction(doc),
       }),
@@ -4347,6 +4408,16 @@ const taskFolders = (docs) => {
   })
   return folders
 }
+
+const CHAIN_SECTIONS = [
+  { name: 'Loaded every session', showScope: true, has: (doc) => !doc.scope.startsWith('nested:') && !doc.scope.startsWith('companion') },
+  { name: 'Nested · load when touched', has: (doc) => doc.scope.startsWith('nested:') },
+  { name: 'Global companions · on demand', has: (doc) => doc.scope === 'companion' },
+  { name: 'Project companions · on demand', has: (doc) => doc.scope === 'companion (this project)' },
+]
+
+const chainSections = (docs) =>
+  CHAIN_SECTIONS.map((section) => ({ ...section, docs: docs.filter((doc) => section.has(doc)) })).filter((section) => section.docs.length)
 
 const listView = (c) => {
   const { Box, Text, Button, Input, goto, redraw, bindField } = c
@@ -4465,12 +4536,13 @@ const listView = (c) => {
       return
     }
     pushHeader(header('h-' + group, title))
-    if (group !== 'Task docs') {
-      rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), group === 'CLAUDE.md chain')))
+    if (group !== 'Task docs' && group !== 'CLAUDE.md chain') {
+      rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false)))
       return
     }
-    taskFolders(rest).forEach((folder) => {
-      const open = isOpen('dir:' + folder.name, foldByDefault)
+    const folders = group === 'Task docs' ? taskFolders(rest) : chainSections(rest)
+    folders.forEach((folder) => {
+      const open = isOpen('dir:' + folder.name, group === 'Task docs' && foldByDefault)
       const flagged = folder.docs.filter(isHeavy).length
       const fold = () => {
         state.collapsed['dir:' + folder.name] = open
@@ -4495,7 +4567,7 @@ const listView = (c) => {
             ],
           })
         items.push({ height: 1, make: () => folderHead(''), sticky: open ? folderHead : null })
-        if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
+        if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), Boolean(folder.showScope), true)))
         return
       }
       push(
@@ -4516,7 +4588,7 @@ const listView = (c) => {
           },
         }),
       )
-      if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false, true)))
+      if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), Boolean(folder.showScope), true)))
     })
   })
   if (!state.docs.length) push(Text({ dimColor: true, children: state.error || 'No docs found from here.' }))
@@ -4680,15 +4752,17 @@ const handoffView = ($, c) => {
     ...(doc && doc.group === 'Task docs' ? [doc.label] : []),
     ...(state.selected.length ? [state.selected.length + ' picked items'] : []),
   ]
+  const desktop = isDesktop(c.e)
+  const saves = Text({ key: 'handoff-saves', dimColor: true, children: (desktop ? 'Also saves: ' : 'Saves: ') + carries.join(', ') + '.' })
   return Box({
     flexDirection: 'column',
     children: [
       Text({ bold: true, children: 'Hand off this session' }),
-      Text({ dimColor: true, children: 'Saves: ' + carries.join(', ') + '.' }),
+      ...(desktop ? [Text({ key: 'handoff-next-label', children: 'First thing for the next session (optional)' })] : [saves]),
       Input({
         key: 'handoff-next',
-        label: 'Next',
-        placeholder: 'optional: what the next session should do first',
+        ...(desktop ? {} : { label: 'Next' }),
+        placeholder: desktop ? 'e.g. finish the failing tests first' : 'optional: what the next session should do first',
         value: state.handoffNext,
         autoFocus: true,
         onInput: bindField('handoffNext'),
@@ -4719,6 +4793,7 @@ const handoffView = ($, c) => {
               }),
             ],
           }),
+      ...(desktop ? [saves] : []),
     ],
   })
 }

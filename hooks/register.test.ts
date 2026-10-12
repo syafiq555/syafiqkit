@@ -620,6 +620,41 @@ test('CLAUDE.md files are named by scope and a file reached by two routes is lis
   await ui.unmount()
 })
 
+test('the CLAUDE.md chain lists nested files and companions, skips vendored folders, and holds companions to the same limit', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  const dir = { size: 0, mtimeMs: 999_000, isLink: false }
+  const file = (name: string, size: number) => ({ name, kind: 'file', size, mtimeMs: 999_000, isLink: false })
+  stubTree(on, {
+    '/work': [
+      { name: 'api', kind: 'directory', ...dir },
+      { name: 'node_modules', kind: 'directory', ...dir },
+    ],
+    '/work/api': [file('CLAUDE.md', 100)],
+    '/work/node_modules': [file('CLAUDE.md', 100)],
+    '/home/test/.claude/.claude-companions/shared': [file('CLAUDE-shell-gotchas.md', 9000), file('notes.txt', 10)],
+  })
+  on('fs.read', () => ({ value: '\n'.repeat(299) }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ key: 'fold-Nested · load when touched', text: /Nested · load when touched \(1\)/ })).toBeDefined()
+  expect(await ui.find({ key: 'fold-Global companions · on demand', text: /Global companions · on demand \(1\)/ })).toBeDefined()
+  expect(await ui.find({ key: 'fold-Project companions · on demand' })).toBeUndefined()
+  expect(await ui.find({ text: /api\/CLAUDE\.md/ })).toBeDefined()
+  expect(await ui.find({ text: /node_modules/ })).toBeUndefined()
+  expect(await ui.find({ text: /notes\.txt/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /300 lines/ })).toBeDefined()
+  await ui.unmount()
+
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect(await desktop.find({ text: /Nested · load when touched/ })).toBeDefined()
+  expect(await desktop.find({ text: /api\/CLAUDE\.md/ })).toBeDefined()
+  expect(await desktop.find({ text: /nested: api/ })).toBeUndefined()
+  expect(await desktop.find({ text: /300\/200/ })).toBeDefined()
+  await desktop.unmount()
+})
+
 test('a safe menu verb sends its prompt and a risky one asks first', async ($, on) => {
   const sent: string[] = []
   const opened: string[] = []
@@ -1422,6 +1457,21 @@ test('Desktop pages stay drawable with 200 changed files: the overview, All diff
   await ui.press({ key: 'ca-back' })
   await ui.press({ key: 'r-worktree-1b' })
   expect(await ui.find({ key: 'cf-back' })).toBeDefined()
+  expect(modLogText(writes)).toBe('')
+  await ui.unmount()
+})
+
+test('Desktop pages stay drawable with 313 changed files whose diffs are long and dense', async ($, on) => {
+  const writes: any[] = []
+  const dense = "        $total = $this->calculator->sum($items, 'net', 14) + Carbon::today()->diffInDays($start, false); // keep"
+  const rows = Array.from({ length: 60 }, () => '+' + dense)
+  const php = ['diff --git a/src/Plan.php b/src/Plan.php', '--- a/src/Plan.php', '+++ b/src/Plan.php', '@@ -0,0 +1,60 @@', ...rows, ''].join('\n')
+  const many = Array.from({ length: 313 }, (_, index) => ' M app/dir' + (index % 9) + '/Service' + index + '.php\0').join('')
+  const ui = await openLoggedDesktop($, on, writes, many, php)
+  await ui.press({ key: 'ch-all' })
+  await new Promise((resolve) => setTimeout(resolve, 100))
+  expect(await ui.find({ key: 'w-below' })).toBeDefined()
+  expect(await ui.find({ key: 'w-below1' })).toBeDefined()
   expect(modLogText(writes)).toBe('')
   await ui.unmount()
 })

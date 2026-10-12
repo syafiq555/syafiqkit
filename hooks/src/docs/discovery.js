@@ -51,6 +51,7 @@ const scopeOfInstruction = (path, cwd, home) => {
   const base = folder.endsWith('/.claude') ? parentOf(folder) : folder
   if (folder === home + '/.claude') return 'your global'
   if (base === cwd) return folder === base ? 'this project' : 'this project (.claude/)'
+  if (base.startsWith(cwd + '/')) return 'nested: ' + base.slice(cwd.length + 1)
   return 'parent: ' + (base.split('/').pop() || '/')
 }
 
@@ -88,6 +89,53 @@ const findInstructionFiles = async ($, cwd, home) => {
     }),
   )
 }
+
+const findNestedInstructionFiles = async ($, cwd, home) => {
+  const found = []
+  let visited = 0
+  const walk = async (dir, depth) => {
+    if (depth > NESTED_SCAN_DEPTH || visited >= NESTED_SCAN_FOLDERS) return
+    visited += 1
+    const entries = await safeList($, dir)
+    if (depth > 0) {
+      for (const entry of entries) {
+        if (entry.kind === 'file' && (entry.name === 'CLAUDE.md' || entry.name === 'CLAUDE.local.md')) {
+          const path = dir + '/' + entry.name
+          found.push({ ...instructionDoc(path, cwd, home), listName: path.slice(cwd.length + 1), size: entry.size, mtime: entry.mtimeMs })
+        }
+      }
+    }
+    const folders = entries.filter((entry) => isDirectory(entry) && !NESTED_SCAN_SKIP.includes(entry.name))
+    await Promise.all(folders.map((entry) => walk(dir + '/' + entry.name, depth + 1)))
+  }
+  await walk(cwd, 0)
+  return found.sort((a, b) => a.path.localeCompare(b.path))
+}
+
+const findCompanionFiles = async ($, cwd, home) => {
+  const folders = [
+    { dir: home + '/.claude/.claude-companions/shared', scope: 'companion' },
+    { dir: cwd + '/.claude-companions/shared', scope: 'companion (this project)' },
+  ]
+  const lists = await Promise.all(
+    folders.map(async ({ dir, scope }) =>
+      (await safeList($, dir))
+        .filter((entry) => entry.kind === 'file' && entry.name.endsWith('.md'))
+        .map((entry) => ({
+          group: 'CLAUDE.md chain',
+          label: entry.name + ' · ' + scope,
+          name: entry.name,
+          scope,
+          path: dir + '/' + entry.name,
+          size: entry.size,
+          mtime: entry.mtimeMs,
+        })),
+    ),
+  )
+  return lists.flat()
+}
+
+const uniqueByPath = (docs) => docs.filter((doc, index) => docs.findIndex((other) => other.path === doc.path) === index)
 
 const findMarkdownIn = async ($, group, dir) => {
   const entries = await safeList($, dir)
@@ -128,7 +176,9 @@ const discover = async ($) => {
   const home = await homeOf($)
   const groups = await Promise.all([
     findTaskDocs($, cwd),
-    findInstructionFiles($, cwd, home),
+    Promise.all([findInstructionFiles($, cwd, home), findNestedInstructionFiles($, cwd, home), findCompanionFiles($, cwd, home)]).then(
+      (parts) => uniqueByPath(parts.flat()),
+    ),
     findMarkdownIn($, 'Rules', cwd + '/.claude/rules'),
     findMarkdownIn($, 'Project docs', cwd + '/docs'),
     findSkills($),
@@ -139,7 +189,7 @@ const discover = async ($) => {
 const measureHeavy = async ($) => {
   await Promise.all(
     state.docs
-      .filter((doc) => (doc.size || 0) >= MEASURE_FROM_BYTES)
+      .filter((doc) => (doc.size || 0) >= MEASURE_FROM_BYTES || isInstructionFile(doc))
       .map(async (doc) => {
         try {
           doc.lines = (await $.fs.read(doc.path)).split('\n').length
