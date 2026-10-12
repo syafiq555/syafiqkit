@@ -5,7 +5,7 @@ Status: 🔨 1.384.0–1.386.0 on master (1.386.0 unseen live). 1.387.0 and 1.38
   - Gallery smaller copies via `sips` (row 13).
   - `mod.log` and tree checks (row 19).
   - 64 kit tests pass.
-  1.389.0 (row 20, main-doc tag in `/task-docs`), 1.390.0 (row 21, Stage all on the Desktop diff page and a floating ↑ Top button) and 1.391.0 (row 22, syntax colours in `/changes` diffs) and 1.392.0 (row 23, pinned bars on Desktop) are built, installed and uncommitted; 1.391.0's coloured rows not yet seen in Desktop (its three earlier `Code` builds were).
+  1.389.0 (row 20, main-doc tag in `/task-docs`), 1.390.0 (row 21, Stage all on the Desktop diff page and a floating ↑ Top button) and 1.391.0 (row 22, syntax colours in `/changes` diffs) and 1.392.0 (row 23, pinned bars on Desktop) are pushed to master in one commit (1d9cdbe, 2026-10-12) and installed; 1.391.0's coloured rows not yet seen in Desktop (its three earlier `Code` builds were).
   Desktop pages were seen working in the user's Desktop 2026-10-11: overview, All diffs, file page, gallery. Terminal windowing has not been run in a real terminal. Not yet used by colleagues.
 Domain: plugin-maintenance/mod
 Gotchas (critical — full list in ## Gotchas below):
@@ -21,7 +21,7 @@ Last updated: 2026-10-12
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 73 tests. 1.384.0–1.388.0 are on master; 1.389.0 (row 20), 1.390.0 (row 21), 1.391.0 (row 22) and 1.392.0 (row 23, pinned bars) are uncommitted.
+**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 73 tests. 1.384.0–1.392.0 are on master (1.389.0–1.392.0 as one commit, 1d9cdbe), none of 1.389.0–1.392.0 seen live yet.
 
 1.388.0, pushed to master (6782599) after the other session's `setup-playwright` 1.387.0:
 - The Desktop redesign of every pane (row 17).
@@ -32,12 +32,11 @@ Last updated: 2026-10-12
 The changelog entry must name the new `sips` call and the new writes (picture copies, `mod.log`). When a pane misbehaves, read `mod.log` first.
 
 **Immediate next actions (in order)**:
-0. **Main-doc tag, seen live** (row 20). `/reload-plugins --force` did not swap the running Desktop session's mod, so start a new Desktop session in `~/herd/beacon-mart`, open `/task-docs` and check `crp45 7 · main: delivery`, with `delivery` showing a `main doc` chip. In the same session check row 21: `/changes` → `view ›` on CHANGES shows `Stage all N`, pressing it lands on "Staged Changes only", and on a long page ↑ Top draws at the bottom-right and jumps up. Check row 22: open a PHP file and a task doc in `/changes` and compare with the native Changes panel (flat rows, full-width red/green, coloured keywords, darker changed words); scroll a long file and read `mod.log` for a size warning. Check row 23 in the same session (Next Steps has the list). Then commit 1.389.0–1.392.0.
+0. **Main-doc tag, seen live** (row 20). `/reload-plugins --force` did not swap the running Desktop session's mod, so start a new Desktop session in `~/herd/beacon-mart`, open `/task-docs` and check `crp45 7 · main: delivery`, with `delivery` showing a `main doc` chip. In the same session check row 21: `/changes` → `view ›` on CHANGES shows `Stage all N`, pressing it lands on "Staged Changes only", and on a long page ↑ Top draws at the bottom-right and jumps up. Check row 22: open a PHP file and a task doc in `/changes` and compare with the native Changes panel (flat rows, full-width red/green, coloured keywords, darker changed words); scroll a long file and read `mod.log` for a size warning. Check row 23 in the same session (Next Steps has the list). Fixes found there ship as a new version.
 1. **Terminal windowing, run in iTerm2** (row 18). In a repo with 100+ changes, open `/changes` wide and narrow All diffs.
    - Scroll with the wheel and with PgUp/arrows. Does the keyboard fire `ui.scroll`?
    - Check that rows keep drawing past the first two screens.
    - Try to reach a file's `+` far down by keyboard alone.
-   - Then commit by version, keeping the other session's files out (`git status --short` first).
 2. Open `/task-docs` in the 106-doc repo (the user's first screenshot came from it) and compare the header count with `find tasks -name current.md | wc -l`. Run it for real: `claude plugin update syafiqkit@syafiqkit`, restart WITHOUT `--plugin-dir /tmp/mods-try-docs` (a second copy collides on `/sk` and `/task-docs`), and with `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1` in iTerm2 (now set in `~/.claude/settings.json` `env`).
 3. Desktop, in a session started with **New** there (a Desktop window onto a terminal session shows nothing and proves nothing):
    - Check the panes not yet seen: the docs list in the 106-doc repo, the doc reader, the handoff form, the confirm pages, and `/sk`.
@@ -257,4 +256,4 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
 
 ## Last Session (2026-10-12)
 
-Built row 23 (1.392.0, pinned bars), uncommitted beside 1.389.0–1.391.0. The user's screenshots showed a `/changes` file bar scrolled out of view and asked that "all the headers / actions" stay sticky; they chose every page, plus the current file's bar on All changes. `/done` review: a code reviewer found no defect at high confidence; its medium findings (raw vs clamped offset, stale offset after a page change, the root re-parenting on scroll) were fixed. Product review findings that were obvious fixes (Add repo left out of the pinned copy, the swap happening late) were applied; the rest are in Next Steps. 73 tests pass; installed at 1.392.0 (cache bundle replaced by hand after the fixes and the pinned Filter).
+Built row 23 (1.392.0, pinned bars) and shipped it with 1.389.0–1.391.0 as one commit (1d9cdbe; `git ls-remote origin master` matched). Before the push a reviewer checked 1.389.0's main-doc tag, which had no recorded review; the `Domain:`/`(hub` match was tightened (still marks exactly `marketplace/core` and `crp45/delivery` in `~/herd`) and the rest went to Next Steps. The user's screenshots showed a `/changes` file bar scrolled out of view and asked that "all the headers / actions" stay sticky; they chose every page, plus the current file's bar on All changes. `/done` review: a code reviewer found no defect at high confidence; its medium findings (raw vs clamped offset, stale offset after a page change, the root re-parenting on scroll) were fixed. Product review findings that were obvious fixes (Add repo left out of the pinned copy, the swap happening late) were applied; the rest are in Next Steps. 73 tests pass; installed at 1.392.0 (cache bundle replaced by hand after the fixes and the pinned Filter).
