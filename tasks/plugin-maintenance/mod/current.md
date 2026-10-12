@@ -22,7 +22,7 @@ Last updated: 2026-10-12
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 74 tests. 1.384.0–1.392.0 are on master (1.393.0, the spacer-chunk fix, is built and installed but not yet committed) (1.389.0–1.392.0 as one commit, 1d9cdbe), none of 1.389.0–1.392.0 seen live yet.
+**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Its source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. `claude plugin validate .` passes and `claude plugin test .` passes 75 tests. 1.384.0–1.394.0 are on master (1.389.0–1.392.0 as one commit, 1d9cdbe; 1.393.0 and 1.394.0 as afdba5e), none of 1.389.0–1.394.0 seen live yet.
 
 1.388.0, pushed to master (6782599) after the other session's `setup-playwright` 1.387.0:
 - The Desktop redesign of every pane (row 17).
