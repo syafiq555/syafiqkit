@@ -712,7 +712,7 @@ const desktopMenuView = ($, c) => {
       )
     })
   })
-  return Box({ flexDirection: 'column', children: [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' }), ...rows] })
+  return Box({ flexDirection: 'column', children: [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' }), ...rows, Box({ key: 'menu-version', marginTop: 1, children: [Text({ dimColor: true, children: 'syafiqkit mod v' + MOD_VERSION })] })] })
 }
 
 let galleryPick = ''

@@ -18,6 +18,8 @@ for f in $(find "$dir/src" -name '*.js' | LC_ALL=C sort); do
 	join "$f"
 done
 join "$dir/src/mod.js"
+version=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$dir/../.claude-plugin/plugin.json" | head -n 1)
+sed "s/__MOD_VERSION__/$version/" "$tmp" > "$tmp.v" && mv "$tmp.v" "$tmp"
 if [ "$1" = "--check" ]; then
 	cmp -s "$tmp" "$dir/register.js" && rm -f "$tmp" && exit 0
 	rm -f "$tmp"

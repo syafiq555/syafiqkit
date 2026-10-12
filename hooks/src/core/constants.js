@@ -1,3 +1,4 @@
+const MOD_VERSION = '__MOD_VERSION__'
 const PANE = 'doc-pane'
 const COMMAND = 'task-docs'
 const MENU_COMMAND = 'sk'

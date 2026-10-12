@@ -1,3 +1,4 @@
+const MOD_VERSION = '1.396.1'
 const PANE = 'doc-pane'
 const COMMAND = 'task-docs'
 const MENU_COMMAND = 'sk'
@@ -4312,7 +4313,7 @@ const desktopMenuView = ($, c) => {
       )
     })
   })
-  return Box({ flexDirection: 'column', children: [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' }), ...rows] })
+  return Box({ flexDirection: 'column', children: [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' }), ...rows, Box({ key: 'menu-version', marginTop: 1, children: [Text({ dimColor: true, children: 'syafiqkit mod v' + MOD_VERSION })] })] })
 }
 
 let galleryPick = ''
@@ -5095,6 +5096,7 @@ const menuView = ($, c) => {
     )
   })
   rows.push(Text({ key: 'menu-note', dimColor: true, children: '⚠ shows exactly what will be sent, then asks again' }))
+  rows.push(Text({ key: 'menu-version', dimColor: true, children: 'syafiqkit mod v' + MOD_VERSION }))
   return Box({ flexDirection: 'column', children: rows })
 }
 

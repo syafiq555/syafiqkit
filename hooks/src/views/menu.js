@@ -43,6 +43,7 @@ const menuView = ($, c) => {
     )
   })
   rows.push(Text({ key: 'menu-note', dimColor: true, children: '⚠ shows exactly what will be sent, then asks again' }))
+  rows.push(Text({ key: 'menu-version', dimColor: true, children: 'syafiqkit mod v' + MOD_VERSION }))
   return Box({ flexDirection: 'column', children: rows })
 }
 

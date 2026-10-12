@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.396.1
+
+**The /sk menu now ends with the mod's version, so you can tell which build a session is running.**
+- A dim line, `syafiqkit mod v1.396.1`, sits at the bottom of `/sk` in the terminal and in Desktop. It is read from the plugin manifest when the mod is built.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session. A reload does not swap a running mod, so the footer only shows in a new session.
+
 ## 1.396.0
 
 **/changes shows pictures, PDFs and new markdown files properly, and the gallery lets you read tall pictures.**
