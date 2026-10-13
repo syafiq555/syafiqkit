@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.397.4
+
+**A reply drafted through `/gchat-format` stays short, a draft no longer promises work that could be done first, and `/done` on a docs-only session asks for the right reviewers.**
+- `gchat-format`: when you invoke it by name for a reply to one colleague, it now supplies only the Chat syntax and the fence, and `casual-message` governs the content (the answer and your lean, one line a point). Before, the typed command read as a request for a document, and a reply came back with a reason under every point.
+- `casual-message`: work the session can do now is done before the draft is written. A draft says "done in the attached version", not "I will do it in the next version", unless the step needs the recipient's answer first.
+- `done`: the docs-only row said "three agents" while the product reviewer runs in full mode only. It now names the two that run: reviewer and simplifier.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.397.3
 
 **In the terminal, `/task-docs` open items read as whole items, long ones can be folded, and the band above the prompt no longer covers a "Heads up" notice.**

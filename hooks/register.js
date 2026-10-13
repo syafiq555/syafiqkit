@@ -1,4 +1,4 @@
-const MOD_VERSION = '1.397.3'
+const MOD_VERSION = '1.397.4'
 const PANE = 'doc-pane'
 const COMMAND = 'task-docs'
 const MENU_COMMAND = 'sk'

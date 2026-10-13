@@ -24,7 +24,7 @@ Read `git status --short` and recent commits, then match the session to a mode. 
 | Mode | When | Step 1 runs | Verification |
 |------|------|------------|--------------|
 | **Full** (default) | Multi-file features, multi-domain work, or anything with external inputs | Three agents + partition | Agent reports |
-| **Docs-only** | Diff is entirely markdown (task docs, CLAUDE.md, SKILL.md, commands/, agents/, references/, a `docs/` project set) | Three agents + referential-integrity check | Agent reports + pointer resolution, anchor uniqueness, link validity, no wedged table rows. Where the diff touches `docs/ARCHITECTURE*.md`, also open each `file:line` anchor it cites and re-derive any count it states — both are claims about the codebase that a markdown-only diff gives a reviewer no reason to doubt |
+| **Docs-only** | Diff is entirely markdown (task docs, CLAUDE.md, SKILL.md, commands/, agents/, references/, a `docs/` project set) | Reviewer + simplifier (the product reviewer runs in full mode only) + referential-integrity check | Agent reports + pointer resolution, anchor uniqueness, link validity, no wedged table rows. Where the diff touches `docs/ARCHITECTURE*.md`, also open each `file:line` anchor it cites and re-derive any count it states — both are claims about the codebase that a markdown-only diff gives a reviewer no reason to doubt |
 | **Infra-only** | Entirely configuration code (CI, Dockerfile, nginx/env config, provisioning scripts); no application code | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 | **Ops-only** | System changes applied out-of-band (deploy, backfill, config flip); no repo diff, no commit | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 
