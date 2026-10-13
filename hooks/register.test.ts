@@ -92,6 +92,16 @@ test('the band offers the menu and the docs while the pane is closed', async ($,
   await ui.unmount()
 })
 
+test('the band yields to a survey, so a notice such as Heads up is never covered', async ($, on) => {
+  stubSession(on, [], [])
+  stubRender(on)
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...BAND, surface, props: { hasSurvey: true } })
+    expect(await ui.find({ key: 'open-menu' })).toBeUndefined()
+    await ui.unmount()
+  }
+})
+
 test('closing the pane brings the band back: a redraw is asked for once the pane is closed, on both surfaces', async ($, on) => {
   const redraws: string[] = []
   stubSession(on, [], [])
@@ -300,6 +310,58 @@ test('after sending items the docs button returns to that doc, not the list', as
   expect(await again.find({ key: 'back' })).toBeDefined()
   expect(await again.find({ key: 'r0b' })).toBeUndefined()
   await again.unmount()
+})
+
+test('a long open item is cut into rows no wider than the pane on the terminal, and pressing any row selects it', async ($, on) => {
+  const sent: string[] = []
+  stubSession(on, sent, [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/tasks': [dirEntry('a')],
+    '/work/tasks/a': [fileEntry('current.md', 600)],
+  })
+  const long = '🟡 Ask the client: who at HQ chases a quiet master outlet or an unconfirmed receipt (HQ can now act for a dealer that has not paid in two days), and what happens to the units held meanwhile?'
+  const huge = [long, long, long].join(' ')
+  on('fs.read', () => ({ value: '# T\n- [ ] short one\n- [ ] ' + long + '\n- [ ] ' + huge }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+
+  const terminal = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await terminal.press({ key: 'r0b' })
+  const gutters = async (ui: any, glyph: RegExp) => (await ui.findAll({ type: 'Text', text: glyph })).length
+  const more = /more lines? *$/
+  expect(await gutters(terminal, /^[┃╹]$/)).toBe(0)
+  expect((await terminal.findAll({ type: 'Text', text: more })).length).toBe(1)
+  expect(await terminal.find({ key: 'o1.1' })).toBeDefined()
+  await terminal.press({ key: 'o1.1' })
+  expect((await terminal.find({ key: 'send' }))?.props.label).toBe('Read-summary, then do 1 selected')
+  expect(await gutters(terminal, /^[┃╹]$/)).toBe(2)
+  expect(await gutters(terminal, /^╹$/)).toBe(1)
+  await terminal.press({ key: 'o2.3' })
+  expect((await terminal.findAll({ type: 'Text', text: more })).length).toBe(0)
+  expect((await terminal.find({ key: 'send' }))?.props.label).toBe('Read-summary, then do 1 selected')
+  expect((await terminal.find({ key: 'expand' }))?.props.label).toBe('Collapse long')
+  await terminal.unmount()
+
+  await $.command.run({ command: 'task-docs', args: '' })
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  if (await desktop.find({ key: 'r0b' })) await desktop.press({ key: 'r0b' })
+  expect((await desktop.find({ key: 'o1' }))?.props.label).toContain(long)
+  expect(await desktop.find({ key: 'o1.1' })).toBeUndefined()
+  await desktop.unmount()
+})
+
+test('the terminal doc list draws a text gauge for each doc, the way Desktop draws a meter', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/tasks': [dirEntry('a')],
+    '/work/tasks/a': [fileEntry('current.md', 600)],
+  })
+  on('fs.read', () => ({ value: '# T\n- [ ] one' }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.findAll({ type: 'Text', text: /^[█░]{6} / })).length).toBeGreaterThan(0)
+  await ui.unmount()
 })
 
 test('SYAFIQKIT_MOD=0 turns the mod off: no commands and no band', async ($, on) => {

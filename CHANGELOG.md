@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.397.3
+
+**In the terminal, `/task-docs` open items read as whole items, long ones can be folded, and the band above the prompt no longer covers a "Heads up" notice.**
+- A long OPEN item wraps to fit the pane and is no longer cut off mid-sentence. Its extra rows are indented, and a blank line follows each multi-row item so neighbours do not run together.
+- Point at any row of a multi-row item and every row of it lights up together, and clicking any row selects the item. With the keyboard, each row is its own stop, and the terminal highlights only the row you are on.
+- An item over 3 rows shows its first 3 and a dim "... N more lines" row (click it to expand). The new **Expand long** button (key `e`) opens all of them, and **Collapse long** folds them again.
+- Items you have picked show a bracket down the left of every row (`┃` then `╹` on the last), next to the `▶1`, `▶2` order number, so a picked 5-row item is clearly one item. The terminal still highlights only the first row of the item under the cursor.
+- Each doc in the list has a small bar and a count (for example `████░░ 319/300`), the same reading Desktop already gave. It turns yellow when the doc is over its limit. The old size figure is replaced by the count.
+- The syafiqkit band no longer replaces a notice such as "Heads up ... 1: Learn more 2: Knew this already 0: Dismiss". While one is showing, the band steps aside and returns once it is dismissed.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session. A reload (`/reload-plugins`) will not swap a running session's mod.
+
 ## 1.396.2
 
 **The band above the prompt comes back after a pane closes, and rendered markdown in `/changes` leaves less blank space. A blank expanded frame after `< Close` in Claude Desktop is NOT fixed: its cause is still unknown.**

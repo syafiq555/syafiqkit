@@ -58,6 +58,11 @@ const meter = (c, key, value, max, width = 10) => {
   })
 }
 
+const textMeter = (value, max, width) => {
+  const filled = value > 0 ? Math.max(1, Math.min(width, Math.round((value / Math.max(1, max)) * width))) : 0
+  return '█'.repeat(filled) + '░'.repeat(width - filled)
+}
+
 const stickyTop = (make) => {
   state.stickyTop = make
   return make('')

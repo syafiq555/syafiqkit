@@ -47,6 +47,7 @@ const state = {
   allOpen: {},
   desktop: false,
   allScroll: { view: '', offset: 0, body: 0 },
+  expandItems: false,
   windowAt: 0,
   topShown: false,
   stickyShown: false,

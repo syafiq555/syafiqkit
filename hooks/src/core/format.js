@@ -11,6 +11,37 @@ const clip = (text, width) => (text.length > width ? text.slice(0, width - 1) + 
 
 const clipStart = (text, width) => (text.length > width ? '…' + text.slice(text.length - width + 1) : text)
 
+const cellWidth = (char) => (/\p{Extended_Pictographic}/u.test(char) ? 2 : 1)
+
+const cellsOf = (chars) => chars.reduce((sum, char) => sum + cellWidth(char), 0)
+
+const wrapWords = (text, width) => {
+  const lines = []
+  let line = ''
+  let used = 0
+  const flush = () => {
+    if (used) lines.push(line)
+    line = ''
+    used = 0
+  }
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    let rest = [...word]
+    while (cellsOf(rest) > width) {
+      flush()
+      let take = 0
+      while (cellsOf(rest.slice(0, take + 1)) <= width) take += 1
+      lines.push(rest.slice(0, take).join(''))
+      rest = rest.slice(take)
+    }
+    const need = cellsOf(rest)
+    if (used && used + 1 + need > width) flush()
+    line += (used ? ' ' : '') + rest.join('')
+    used += (used ? 1 : 0) + need
+  }
+  flush()
+  return lines.length ? lines : ['']
+}
+
 const docLabel = (doc, width) => (doc.listName ? clipStart(doc.listName, width) : doc.name || doc.label)
 
 const messageOf =(error) => String(error && error.message ? error.message : error)

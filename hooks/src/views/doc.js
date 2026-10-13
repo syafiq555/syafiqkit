@@ -5,20 +5,59 @@ const docView = ($, c) => {
   const doneItems = parts.filter((part) => part.kind === 'item' && part.done)
   const sourceOf = (source, key) => Markdown({ key, text: '```mermaid\n' + source + '\n```' })
 
+  const columns = paneColumns(e)
+  const itemWidth = Math.max(20, columns - 10)
+  const cappedCount = isDesktop(e) || state.current.group !== 'Task docs' ? 0 : openItems.filter((part) => wrapWords(part.text, itemWidth).length > ITEM_CAP_ROWS).length
+
   const pickable = (part, key) => {
     const rank = state.selected.indexOf(part.text) + 1
     const picked = rank > 0
-    return Button({
-      key,
-      label: (picked ? '▶' + rank + ' ' : '   ') + '[ ] ' + part.text,
-      plain: true,
-      dimColor: !picked && state.selected.length > 0,
-      onPress: () => {
-        state.selected = picked
-          ? state.selected.filter((item) => item !== part.text)
-          : [...state.selected, part.text]
-        redraw()
-      },
+    const lead = (picked ? '▶' + rank + ' ' : '   ') + '[ ] '
+    const toggle = () => {
+      state.selected = picked
+        ? state.selected.filter((item) => item !== part.text)
+        : [...state.selected, part.text]
+      redraw()
+    }
+    const dim = !picked && state.selected.length > 0
+    if (isDesktop(e)) return Button({ key, label: lead + part.text, plain: true, dimColor: dim, onPress: toggle })
+    const all = wrapWords(part.text, itemWidth)
+    const capped = !state.expandItems && all.length > ITEM_CAP_ROWS
+    const shown = capped ? all.slice(0, ITEM_CAP_ROWS) : all
+    const lit = { hover: { scope: hoverScope('item:' + part.text), inverse: true } }
+    const first = Button({ key, plain: true, onPress: toggle, ...(all.length > 1 ? lit : {}), children: [Text({ dimColor: dim, children: lead + shown[0] })] })
+    if (all.length === 1) return first
+    const tail = shown.slice(1)
+    if (capped) {
+      const hidden = all.length - shown.length
+      tail.push('… ' + hidden + (hidden === 1 ? ' more line' : ' more lines') + (picked ? ' (included)' : ''))
+    }
+    const bodyWidth = columns - 8
+    const expandAll = () => {
+      state.expandItems = true
+      redraw()
+    }
+    return Box({
+      key: key + '-rows',
+      flexDirection: 'column',
+      children: [
+        first,
+        ...tail.map((row, at) => {
+          const isMore = capped && at === tail.length - 1
+          return Button({
+            key: key + '.' + (at + 1),
+            plain: true,
+            onPress: isMore ? expandAll : toggle,
+            ...lit,
+            children: [
+              Text({ children: '    ' }),
+              Text({ color: picked ? 'cyan' : undefined, children: picked ? (at === tail.length - 1 ? '╹' : '┃') : ' ' }),
+              Text({ dimColor: dim || isMore, children: '  ' + row.padEnd(bodyWidth) }),
+            ],
+          })
+        }),
+        Text({ key: key + '-gap', children: ' ' }),
+      ],
     })
   }
 
@@ -165,6 +204,14 @@ const docView = ($, c) => {
               action('shrink', 'Shrink ⚠', { hotkey: 'k' }, () =>
                 askFirst('Shrink ' + state.current.label, shrinkRequest(state.current), SHRINK_EFFECT),
               ),
+            ]
+          : []),
+        ...(cappedCount
+          ? [
+              action('expand', state.expandItems ? 'Collapse long' : 'Expand ' + cappedCount + ' long', { hotkey: 'e' }, () => {
+                state.expandItems = !state.expandItems
+                redraw()
+              }),
             ]
           : []),
         ...(state.selected.length

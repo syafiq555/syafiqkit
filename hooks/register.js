@@ -1,4 +1,4 @@
-const MOD_VERSION = '1.396.2'
+const MOD_VERSION = '1.397.3'
 const PANE = 'doc-pane'
 const COMMAND = 'task-docs'
 const MENU_COMMAND = 'sk'
@@ -11,6 +11,7 @@ const HANDOFF_POLL_MS = 4000
 const MAX_HANDOFF_DEFERRALS = 3
 const HANDOFF_EXPIRES_MS = 24 * 60 * 60 * 1000
 const RECENT_COUNT = 5
+const ITEM_CAP_ROWS = 3
 const NAME_WIDTH = 26
 const SCOPE_WIDTH = 24
 const MEASURE_FROM_BYTES = 8000
@@ -167,6 +168,37 @@ const kb = (bytes) => (typeof bytes === 'number' ? (bytes / 1024).toFixed(1) + '
 const clip = (text, width) => (text.length > width ? text.slice(0, width - 1) + '…' : text)
 
 const clipStart = (text, width) => (text.length > width ? '…' + text.slice(text.length - width + 1) : text)
+
+const cellWidth = (char) => (/\p{Extended_Pictographic}/u.test(char) ? 2 : 1)
+
+const cellsOf = (chars) => chars.reduce((sum, char) => sum + cellWidth(char), 0)
+
+const wrapWords = (text, width) => {
+  const lines = []
+  let line = ''
+  let used = 0
+  const flush = () => {
+    if (used) lines.push(line)
+    line = ''
+    used = 0
+  }
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    let rest = [...word]
+    while (cellsOf(rest) > width) {
+      flush()
+      let take = 0
+      while (cellsOf(rest.slice(0, take + 1)) <= width) take += 1
+      lines.push(rest.slice(0, take).join(''))
+      rest = rest.slice(take)
+    }
+    const need = cellsOf(rest)
+    if (used && used + 1 + need > width) flush()
+    line += (used ? ' ' : '') + rest.join('')
+    used += (used ? 1 : 0) + need
+  }
+  flush()
+  return lines.length ? lines : ['']
+}
 
 const docLabel = (doc, width) => (doc.listName ? clipStart(doc.listName, width) : doc.name || doc.label)
 
@@ -440,6 +472,7 @@ const state = {
   allOpen: {},
   desktop: false,
   allScroll: { view: '', offset: 0, body: 0 },
+  expandItems: false,
   windowAt: 0,
   topShown: false,
   stickyShown: false,
@@ -2791,7 +2824,7 @@ const registerCommand = async ($, name, description) => {
 }
 
 const bandView = ($, e, next) => {
-  if (state.disabled) return next(e)
+  if (state.disabled || (e.props && e.props.hasSurvey)) return next(e)
   const { Box, Text, Button } = $.ui.resolve(e)
   const desktop = isDesktop(e)
   state.desktop = desktop
@@ -4465,20 +4498,59 @@ const docView = ($, c) => {
   const doneItems = parts.filter((part) => part.kind === 'item' && part.done)
   const sourceOf = (source, key) => Markdown({ key, text: '```mermaid\n' + source + '\n```' })
 
+  const columns = paneColumns(e)
+  const itemWidth = Math.max(20, columns - 10)
+  const cappedCount = isDesktop(e) || state.current.group !== 'Task docs' ? 0 : openItems.filter((part) => wrapWords(part.text, itemWidth).length > ITEM_CAP_ROWS).length
+
   const pickable = (part, key) => {
     const rank = state.selected.indexOf(part.text) + 1
     const picked = rank > 0
-    return Button({
-      key,
-      label: (picked ? '▶' + rank + ' ' : '   ') + '[ ] ' + part.text,
-      plain: true,
-      dimColor: !picked && state.selected.length > 0,
-      onPress: () => {
-        state.selected = picked
-          ? state.selected.filter((item) => item !== part.text)
-          : [...state.selected, part.text]
-        redraw()
-      },
+    const lead = (picked ? '▶' + rank + ' ' : '   ') + '[ ] '
+    const toggle = () => {
+      state.selected = picked
+        ? state.selected.filter((item) => item !== part.text)
+        : [...state.selected, part.text]
+      redraw()
+    }
+    const dim = !picked && state.selected.length > 0
+    if (isDesktop(e)) return Button({ key, label: lead + part.text, plain: true, dimColor: dim, onPress: toggle })
+    const all = wrapWords(part.text, itemWidth)
+    const capped = !state.expandItems && all.length > ITEM_CAP_ROWS
+    const shown = capped ? all.slice(0, ITEM_CAP_ROWS) : all
+    const lit = { hover: { scope: hoverScope('item:' + part.text), inverse: true } }
+    const first = Button({ key, plain: true, onPress: toggle, ...(all.length > 1 ? lit : {}), children: [Text({ dimColor: dim, children: lead + shown[0] })] })
+    if (all.length === 1) return first
+    const tail = shown.slice(1)
+    if (capped) {
+      const hidden = all.length - shown.length
+      tail.push('… ' + hidden + (hidden === 1 ? ' more line' : ' more lines') + (picked ? ' (included)' : ''))
+    }
+    const bodyWidth = columns - 8
+    const expandAll = () => {
+      state.expandItems = true
+      redraw()
+    }
+    return Box({
+      key: key + '-rows',
+      flexDirection: 'column',
+      children: [
+        first,
+        ...tail.map((row, at) => {
+          const isMore = capped && at === tail.length - 1
+          return Button({
+            key: key + '.' + (at + 1),
+            plain: true,
+            onPress: isMore ? expandAll : toggle,
+            ...lit,
+            children: [
+              Text({ children: '    ' }),
+              Text({ color: picked ? 'cyan' : undefined, children: picked ? (at === tail.length - 1 ? '╹' : '┃') : ' ' }),
+              Text({ dimColor: dim || isMore, children: '  ' + row.padEnd(bodyWidth) }),
+            ],
+          })
+        }),
+        Text({ key: key + '-gap', children: ' ' }),
+      ],
     })
   }
 
@@ -4625,6 +4697,14 @@ const docView = ($, c) => {
               action('shrink', 'Shrink ⚠', { hotkey: 'k' }, () =>
                 askFirst('Shrink ' + state.current.label, shrinkRequest(state.current), SHRINK_EFFECT),
               ),
+            ]
+          : []),
+        ...(cappedCount
+          ? [
+              action('expand', state.expandItems ? 'Collapse long' : 'Expand ' + cappedCount + ' long', { hotkey: 'e' }, () => {
+                state.expandItems = !state.expandItems
+                redraw()
+              }),
             ]
           : []),
         ...(state.selected.length
@@ -4844,7 +4924,8 @@ const docRow = (c, doc, key, withScope, indent) => {
   const pad = indent ? '  ' : ''
   const nameWidth = NAME_WIDTH - pad.length
   const head = (withScope ? clip(doc.scope || '', SCOPE_WIDTH - 1).padEnd(SCOPE_WIDTH) : '') + agoOf(state.now, doc.mtime).padEnd(11)
-  const tail = [doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status || (heavy ? '' : kb(doc.size))].filter(Boolean).join('  ')
+  const gauge = docGauge(doc)
+  const tail = [doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status].filter(Boolean).join('  ')
   return Box({
     key,
     flexDirection: 'row',
@@ -4857,6 +4938,12 @@ const docRow = (c, doc, key, withScope, indent) => {
         onPress: () => pickAction(doc),
       }),
       Text({ key: key + 'a', dimColor: true, wrap: 'truncate-end', children: head }),
+      Text({
+        key: key + 'g',
+        dimColor: !heavy,
+        color: heavy ? 'yellow' : undefined,
+        children: textMeter(gauge.value, gauge.max, 6) + ' ' + gauge.label.padEnd(8),
+      }),
       Text({ key: key + 'm', dimColor: !heavy, color: heavy ? 'yellow' : undefined, wrap: 'truncate-end', children: tail }),
     ],
   })
@@ -5485,6 +5572,11 @@ const meter = (c, key, value, max, width = 10) => {
       ...(width - filled ? [bar('t', width - filled, DESKTOP_TONE.meterTrack)] : []),
     ],
   })
+}
+
+const textMeter = (value, max, width) => {
+  const filled = value > 0 ? Math.max(1, Math.min(width, Math.round((value / Math.max(1, max)) * width))) : 0
+  return '█'.repeat(filled) + '░'.repeat(width - filled)
 }
 
 const stickyTop = (make) => {

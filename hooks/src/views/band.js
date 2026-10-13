@@ -1,5 +1,5 @@
 const bandView = ($, e, next) => {
-  if (state.disabled) return next(e)
+  if (state.disabled || (e.props && e.props.hasSurvey)) return next(e)
   const { Box, Text, Button } = $.ui.resolve(e)
   const desktop = isDesktop(e)
   state.desktop = desktop
