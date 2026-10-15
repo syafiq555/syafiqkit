@@ -64,6 +64,8 @@ Two skills in one prompt overwrite each other's accounts — dispatch as separat
 
 Agents with non-overlapping targets go out together in one message (all at once, no prose before the calls). Anything waiting on another agent's output has to serialize — state which run parallel and why.
 
+**Partitioning by source and writing by destination are two different partitions.** Agents that each draft additions for their own slice of a source (one spec section each) cannot see what the others wrote for the same place in the target, so the placed drafts repeat and contradict each other and the text already there. Before applying, regroup the drafts by where they land and run one edit pass per destination section against its existing text. Measured 2026-10-14: about 190 sentences drafted per requirement area went into a quotation as duplicated bullets and a promise next to its own exclusion; a per-module pass merged them to 158 and marked 10 as already said.
+
 📖 `../_shared/references/explore-delegation.md` → "Spawning multiple agents" for batching mechanics.
 
 ## After dispatch: wait for the completion notification
@@ -81,6 +83,8 @@ Don't poll or shadow the agent — reading the delegated files yourself feels li
 **For research dispatches, checks 1–4 below all no-op — there is no artifact to diff.** Open two or three cited sources yourself before relaying, and for any figure find the number *on* the page rather than confirming the page resolves. Treat a negative finding as the one claim whose evidence is an absence: retest a couple of the reported failures before repeating a conclusion drawn from them. 📖 `references/verifying-research.md`
 
 **For judgement dispatches — a verdict about the world, not a file mutation (does X overlap Y, is this the same subsystem, should these merge) — checks 1–4 also no-op, and the trap is different from research's: a wrong verdict reads as thorough because the reasoning is fluent, not because a source went unchecked.** An agent citing one doc's content as evidence about a second doc — a gotcha that only appears in doc A, offered as proof docs A and B overlap — is the tell; it means the agent pattern-matched on shared vocabulary rather than confirming the cited fact is actually present in both files. Before accepting a verdict that changes what you do next (merge, delete, escalate), open the specific files the reasoning rests on and check the quoted evidence is real and where it's claimed to be — not a second dispatch, just your own read of the smallest artifact the claim depends on.
+
+⚠️ **A coverage verdict ("this sentence answers that requirement") comes back lenient, and at volume a spot read cannot catch it.** Haiku maps a requirement to any sentence on the same topic, so a generic line ("audit log of changes to settings") gets marked as covering a specific obligation ("masking changes must be permission-controlled and auditable"), and the gap ships looking covered. Where the mapping has hundreds of rows, run a second strict pass over every row marked covered, with the test written into the prompt ("would a reader of only this sentence know this specific requirement is met?") and one real rejected example as calibration. Measured 2026-10-14: a first pass over a 1,352-row requirement register passed two points a reviewer had caught by hand, and the strict pass moved about 70 rows from covered to gap.
 
 ### 1. Did the file change at all?
 

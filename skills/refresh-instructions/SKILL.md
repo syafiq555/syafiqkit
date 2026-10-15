@@ -65,6 +65,8 @@ This skill sequences the three; all mechanics live in `syafiqkit:haiku` (snapsho
 
 **After any patch between passes, encode the post-patch counts in the next prompt as a gate:** `"This file should have 18 gotchas and 8 related paths; if you see fewer, stop and report rather than proceeding."` This moves the verification catch from your memory to the agent who can still see the mismatch.
 
+**When one agent per file runs in parallel on a set, the cross-file citation sweep is yours, because no agent can do it.** An agent that renumbers a list or renames a heading sweeps its own file and truthfully reports it clean, while a sibling's agent cannot know the target moved. After every pass, grep the whole set for citation syntax (`step [0-9]`, `rule [0-9]`, `§ <heading>`), not for the old labels, and check that each hit still names what it meant. Measured 2026-10-15: an index pass folded Quick Start steps 1 to 7 into 1 to 4, reported "the only in-file reference … was in the line I rewrote", and left a sibling decisions file citing "step 1.3".
+
 ## Key Principles
 
 **State scope explicitly.** Silent narrowing to a single file when the directory holds siblings, or a silent assumption about what a prompt may extract, lets rewording pass for structural work — bytes fall while line count hides that nothing moved. Name which files are in scope, whether extraction may go to a companion, or forbid it in every prompt. Either way, give the agent a decision rather than a silence to fill.

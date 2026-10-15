@@ -1,6 +1,6 @@
 ---
 name: md-to-pdf
-description: Convert Markdown documents to professional PDFs with rendered Mermaid diagrams and charts (bar/line trend charts via xychart-beta). Use when user asks to "export to PDF", "generate PDF", "make a PDF", needs a shareable document from markdown files, or asks for a "chart"/"graph"/"diagram" in a report or document.
+description: Convert Markdown documents to professional PDFs with rendered Mermaid diagrams and charts (bar/line trend charts via xychart-beta). Use when user asks to "export to PDF", "generate PDF", "make a PDF", needs a shareable document from markdown files, or asks for a "chart"/"graph"/"diagram" in a report or document. The reverse direction (a .docx, .pdf or .xlsx into Markdown) is `doc-to-md`.
 ---
 
 # Markdown to PDF

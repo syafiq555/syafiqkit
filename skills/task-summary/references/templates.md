@@ -8,7 +8,7 @@ Place at the very top of `current.md`:
 <!--LLM-CONTEXT
 Status: 🔨 In Progress
 Domain: [domain name]
-Gotchas (critical — full list in ## Gotchas below):
+Gotchas (critical; full list in ## Gotchas below):
   - [Most important gotcha in one line]
   - [Second most important]
 Related: [Links to related task docs or "None"]
@@ -86,7 +86,7 @@ Related: None
 Last updated: [today]
 -->
 
-# [Domain] — [Feature]
+# [Domain]: [Feature]
 
 ## Quick Start (read this first in next session)
 
@@ -152,14 +152,14 @@ For significant features (use the subscription doc as the gold standard). Use Me
 <!--LLM-CONTEXT
 Status: 🔨 In Progress
 Domain: [domain]
-Gotchas (critical — full list in ## Critical Gotchas below):
+Gotchas (critical; full list in ## Critical Gotchas below):
   - [Most critical gotcha]
   - [Second most critical]
 Related: [Related docs or None]
 Last updated: [today]
 -->
 
-# [Project] — [Feature] Summary
+# [Project]: [Feature] Summary
 
 ## Quick Start (read this first in next session)
 
@@ -195,12 +195,12 @@ Last updated: [today]
 ## Files
 
 **Backend**
-- `app/Services/XService.php` — [what it does]
-- `app/Models/X.php` — [what it does]
+- `app/Services/XService.php`: [what it does]
+- `app/Models/X.php`: [what it does]
 
 **Frontend**
-- `src/pages/XPage.vue` — [what it does]
-- `src/api/x.ts` — [what it does]
+- `src/pages/XPage.vue`: [what it does]
+- `src/api/x.ts`: [what it does]
 
 ---
 
@@ -216,7 +216,7 @@ Last updated: [today]
 
 [Brief explanation if the section is complex, e.g., "Decisions are recorded as ADRs (below) when they involved rejecting alternatives or resolving tradeoffs. Simple choices that had only one sane path use a quick table row."]
 
-### D-[slug] — [Decision title] [committed | planned | debating] — [YYYY-MM-DD]
+### D-[slug]: [Decision title] [committed | planned | debating] · [YYYY-MM-DD]
 
 A well-formed decision record captures what problem prompted a choice, what was chosen, what alternatives were considered and rejected, what follows from the choice, and its current status. This structure isn't ornament — it's how decisions stay replicable and how tradeoffs survive being revisited.
 
@@ -304,20 +304,22 @@ Status: [one line]
 Domain: [domain] ([theme])
 Gotchas (critical): [1-3 lines]
 Related: `../current.md` (index), [sibling theme files]
-Last updated: [today] — [what changed]
+Last updated: [today] ([what changed])
 -->
 
-# [Feature] — [Theme]
+# [Feature]: [Theme]
 
 [Optional: a few lines of context the ADRs share]
 
 ## Key Technical Decisions {#decisions}
 
-### D-[slug] — [title] [status] — [date]
+### D-[slug]: [title] [status] · [date]
 (MADR block: Problem / Decision / Rejected / Consequences / Status)
 
 [Optional: theme-owned gotcha or bug rows routed here from the index, per `decision-splits.md`]
 ```
+
+Template headings and fields carry no em dash, since a template that prescribes one puts it in every doc written from it. Existing `D-` headings with dashes stay as written: the `### D-<slug>` prefix is what tools key on.
 
 The sections that belong only to the index stay out: Quick Start, Task Status, Last Session and Next Steps.
 

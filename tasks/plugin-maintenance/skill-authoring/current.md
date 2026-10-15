@@ -7,6 +7,7 @@ Gotchas (critical — full list in ## Gotchas below):
 Related:
   - ../agent-architecture/current.md (sibling feature — dispatch and delegation; issue #27 closed from here)
   - ../doc-condensation/current.md (sibling feature — the pointer-defers-a-rule finding behind the deferred `skill-creator` item)
+  - ../motion-clip/current.md (a skill created 2026-10-15 from one real run, then generalised after review)
 Last updated: 2026-09-17
 -->
 
@@ -32,6 +33,7 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 | `gchat-format` proactive row | ✅ Added (was direct-only) |
 | Trigger test | ⏸️ Blocked until a fresh session |
 | #29 / #30 closure | ⏸️ After ship |
+| `doc-to-md` (1.399.0) | ✅ Both stdlib scripts ran on generated `.docx`/`.xlsx` under python 3.9 and 3.14 (headings, bold, pipe table, shared/inline strings, cached values, `--formulas`); lists, images, merged cells and dates untested. Covers the no-repo case (convert both, `diff -u`) and says which check was skipped when `pdftotext`/`pandoc` is absent. ⏸️ Trigger test ("what changed between these two docx versions") in a fresh session |
 
 ## Key Technical Decisions
 

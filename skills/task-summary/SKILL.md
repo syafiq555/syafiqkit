@@ -39,6 +39,7 @@ Each fact has exactly one home. Within a doc, sections like LLM-CONTEXT and Quic
 | Full path | Use as-is |
 | Domain/feature | Expand to `tasks/<domain>/<feature>/current.md` |
 | Empty / task description | Run multi-domain scan (see 1a below) |
+| A request to create an artifact (a capture, a text copy of a document, a log to diff) | It lives under `tasks/<domain>/<feature>/`: the artifact in `decisions/`, a `current.md` routing to it. Never in the repo's `docs/` or another folder the request happened to mention. Measured 2026-10-14: a git-diffable copy of a quotation asked for through this skill went to `docs/proposals/`, and the user asked why it was not in the task docs |
 
 ### 1a. Multi-Domain Scan (when no path given)
 
