@@ -111,7 +111,7 @@ Confirm the installed browser binary matches what's failing elsewhere: `npx play
 
 ### Recording the run as video
 
-Worth wiring even when nothing is failing. A recorded pass is the cheapest way to *see* the product — a reviewer watches the flows and catches spacing, truncation, clipped modals and copy problems that no assertion encodes, because a spec asserts what someone thought to assert. Offer it once a suite covers real user journeys; the flows are already written, so the marginal cost is a flag.
+Worth wiring even when nothing is failing. A recorded pass is the cheapest way to *see* the product: a reviewer watches the flows and catches spacing, truncation, clipped modals and copy problems that no assertion encodes, because a spec asserts what someone thought to assert. Offer it once a suite covers real user journeys; the flows are already written, so the marginal cost is a flag. A designed launch or promo video is a different job: `motion-clip`.
 
 Video is a **context-creation** option, which is the whole difficulty. `use.video` reaches only the contexts the runner builds for its own `page` fixture, and files them under the per-test output dir. Specs that build contexts by hand — any multi-party flow holding two sessions open at once — need the context-level `recordVideo` option instead. Set one and half the suite silently records nothing while the config reads as done; set both and the halves land in two directories, so gather them afterwards or the missing half reads as "that spec didn't record."
 

@@ -27,6 +27,8 @@ The plugin (`~/.claude/plugins/syafiqkit/skills/`) is the default — it's git-b
 
 **The body is reasoning, not checklist.** An agent reads it already in the moment of doing the task; write principle and let it apply judgment, rather than pre-empting each failure mode with its own trip-wire. A `⚠️` or bolded imperative is earned only when missing it costs silence or irreversibility — a careful read that still walks past the problem. State facts the reader can't derive (exact commands, binaries with silent costs, structural details) flatly. What accumulates instead is the rule that restates what careful reading already concludes.
 
+**A plugin skill distilled from one project's run is written for the general case, with that run as one worked example.** The run is where the procedure was proven, so its product name, platform, file layout and fixtures leak into the description, the scope line and the templates, and each reads as accurate because it was. Name what varies across the uses the skill's own description promises (other products, platforms, repo shapes) and make each a parameter or a stated limit; keep the original run as an example file, not the default. Measured 2026-10-15: `motion-clip` shipped phone-only with one company's film as its template, and the user's first response was that it is meant for anything. **Tell: your skill's description or template names the product the session was working on.**
+
 Keep it short. If a first draft is much longer, the usual cause is a rare branch inlined beside the common path — move it to `references/` with a pointer left behind.
 
 ## Registering it

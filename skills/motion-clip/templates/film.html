@@ -1,0 +1,569 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const params = new URLSearchParams(location.search);
+const W = +(params.get('w') || 1080), H = +(params.get('h') || 1920);
+const canvas = document.getElementById('c');
+canvas.width = W; canvas.height = H;
+const g = canvas.getContext('2d');
+
+let STORY, C, L;
+const img = {};
+
+window.ready = new Promise((resolve, reject) => {
+  const script = document.createElement('script');
+  script.src = params.get('story') || 'story.js';
+  script.onload = () => Promise.resolve().then(start).then(resolve, reject);
+  script.onerror = () => reject(new Error(`story failed to load: ${script.src}`));
+  document.head.appendChild(script);
+});
+
+if (!navigator.webdriver) {
+  Object.assign(canvas.style, { maxWidth: '100vw', maxHeight: '100vh', margin: '0 auto' });
+  window.ready.then(() => {
+    const begin = performance.now();
+    const frame = (now) => { draw(((now - begin) / 1000) % STORY.duration); requestAnimationFrame(frame); };
+    requestAnimationFrame(frame);
+  }, (err) => {
+    const hint = location.protocol === 'http:' || location.protocol === 'https:'
+      ? 'Check the story file and the assets folder next to film.html.'
+      : 'Open film.html through a local web server (render.mjs serves one), not as a file.';
+    g.fillStyle = '#FFF4F2';
+    g.fillRect(0, 0, W, H);
+    g.fillStyle = '#B42318';
+    g.font = `600 ${Math.round(W * 0.035)}px sans-serif`;
+    g.textAlign = 'center';
+    g.fillText('The film could not start', W / 2, H * 0.45);
+    g.fillStyle = '#333333';
+    g.font = `400 ${Math.round(W * 0.025)}px sans-serif`;
+    g.fillText(String(err && err.message || err), W / 2, H * 0.5, W * 0.9);
+    g.fillText(hint, W / 2, H * 0.54, W * 0.9);
+  });
+}
+
+function start() {
+  STORY = window.STORY;
+  if (!STORY) throw new Error(`${params.get('story') || 'story.js'} did not set window.STORY`);
+  STORY.screens = Array.isArray(STORY.screens) ? STORY.screens : [];
+  STORY.frame = STORY.frame || 'phone';
+  if (!['phone', 'browser', 'none'].includes(STORY.frame)) throw new Error(`STORY.frame must be "phone", "browser" or "none", got "${STORY.frame}"`);
+  STORY.duration = STORY.duration || 20;
+  STORY.device = { enter: 2, leave: STORY.duration - 5, ...(STORY.device || STORY.phone) };
+  if (STORY.logoBlend) {
+    probe.globalCompositeOperation = STORY.logoBlend;
+    if (probe.globalCompositeOperation !== STORY.logoBlend) throw new Error(`STORY.logoBlend is not a canvas blend mode: "${STORY.logoBlend}"`);
+  }
+  const st = STORY.stat;
+  if (st && (![st.value, st.at, st.out].every((v) => v !== null && v !== '' && Number.isFinite(Number(v))) || (st.from != null && !Number.isFinite(Number(st.from))))) {
+    throw new Error('STORY.stat needs numeric value, at and out (and from, if given)');
+  }
+  if (STORY.shot && !(STORY.shot.w > 0 && STORY.shot.h > 0)) throw new Error('STORY.shot needs a positive w and h');
+  STORY.hook = STORY.hook || [];
+  STORY.taps = STORY.taps || [];
+  STORY.captions = STORY.captions || [];
+  STORY.camera = STORY.camera || [];
+  STORY.music = STORY.music || {};
+  STORY.fonts = STORY.fonts || {};
+  STORY.fonts.heading = { family: 'Helvetica Neue', weight: 800, ...STORY.fonts.heading };
+  STORY.fonts.body = { family: 'Helvetica Neue', weight: 600, ...STORY.fonts.body };
+  C = {
+    page: '#F7F7F5', ink: '#1B1B1B', inkMuted: '#555555', accent: '#2F6FEB', accentSoft: '#DCE7FC',
+    highlight: '#2F6FEB', surface: '#FFFFFF', line: '#D9D9D6', bezel: '#111111', ...STORY.colors,
+  };
+  Object.values(C).forEach(rgbOf);
+  L = layout();
+  document.body.style.background = C.page;
+  window.cues = buildCues();
+  const loads = [
+    ...STORY.screens.map((s) => load(s.name, s.file || `assets/screens/${s.name}.png`)),
+    loadFont(STORY.fonts.heading),
+    loadFont(STORY.fonts.body),
+  ];
+  if (STORY.logo) loads.push(load('logo', STORY.logo));
+  return Promise.all(loads).then(() => { resolveShot(); draw(0); });
+}
+
+function resolveShot() {
+  const first = STORY.screens.map((s) => img[s.name]).find(Boolean);
+  if (!STORY.shot) {
+    STORY.shot = first ? { w: first.naturalWidth, h: first.naturalHeight } : STORY.frame === 'phone' ? { w: 1170, h: 2532 } : { w: 1440, h: 900 };
+  }
+  const want = STORY.shot.w / STORY.shot.h;
+  for (const s of STORY.screens) {
+    const i = img[s.name];
+    if (i && Math.abs(i.naturalWidth / i.naturalHeight / want - 1) > 0.01) {
+      console.warn(`${s.name} is ${i.naturalWidth}x${i.naturalHeight} but shot is ${STORY.shot.w}x${STORY.shot.h}: the picture is cropped to fill`);
+    }
+  }
+}
+
+function load(name, src) {
+  return new Promise((ok) => {
+    const i = new Image();
+    i.onload = () => { img[name] = i; ok(); };
+    i.onerror = () => { console.warn(`image missing, drawing a placeholder: ${src}`); img[name] = null; ok(); };
+    i.src = src;
+  });
+}
+function loadFont({ family, weight, file }) {
+  if (!file) return Promise.resolve();
+  const face = new FontFace(family, `url("${file}")`, { weight: String(weight) });
+  document.fonts.add(face);
+  return face.load().catch(() => { throw new Error(`font failed to load: ${file}`); });
+}
+
+const color = (name) => C[name] || name;
+const probe = document.createElement('canvas').getContext('2d');
+function rgbOf(c) {
+  let v = c;
+  if (!/^#[0-9a-f]{6}$/i.test(c)) {
+    probe.fillStyle = '#010203';
+    probe.fillStyle = c;
+    v = probe.fillStyle;
+    if (v === '#010203' && String(c).trim().toLowerCase() !== '#010203') throw new Error(`colour not understood: ${c}`);
+  }
+  if (v[0] === '#') {
+    const n = parseInt(v.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  return v.match(/[\d.]+/g).slice(0, 3).map(Number);
+}
+function rgba(c, a) {
+  const [red, green, blue] = rgbOf(c);
+  return `rgba(${red},${green},${blue},${a})`;
+}
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const easeInOut = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const easeIn = (x) => { x = clamp(x); return x * x * x; };
+
+function spring(x, k, d) {
+  if (x <= 0) return 0;
+  const w0 = Math.sqrt(k), z = d / (2 * w0);
+  if (Math.abs(z - 1) < 1e-6) return 1 - Math.exp(-w0 * x) * (1 + w0 * x);
+  if (z > 1) {
+    const s = w0 * Math.sqrt(z * z - 1), r1 = -w0 * z + s, r2 = -w0 * z - s;
+    return 1 - (r2 * Math.exp(r1 * x) - r1 * Math.exp(r2 * x)) / (r2 - r1);
+  }
+  const wd = w0 * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w0 * x) * (Math.cos(wd * x) + (z * w0 / wd) * Math.sin(wd * x));
+}
+const snappy = (x) => spring(x, 260, 24);
+const smooth = (x) => spring(x, 170, 26);
+const playful = (x) => spring(x, 130, 18);
+
+function layout() {
+  const vertical = W / H < 0.8;
+  if (vertical) {
+    return { vertical, align: 'center', textX: W / 2, capY: H * 0.105, cap: W * 0.074, hook: W * 0.15,
+      phoneH: H * 0.66, cx: W / 2, cy: H * 0.6, boxW: W * 0.92, boxH: H * 0.62 };
+  }
+  const square = W / H < 1.2;
+  return { vertical, align: 'left', textX: W * (square ? 0.07 : 0.09), capY: H * 0.42, cap: square ? W * 0.046 : H * 0.068,
+    hook: square ? W * 0.1 : H * 0.15, phoneH: H * 0.84, cx: W * (square ? 0.75 : 0.72), cy: H * 0.53,
+    boxW: W * (square ? 0.46 : 0.5), boxH: H * 0.84 };
+}
+
+function font(size, heading = true) {
+  const f = heading ? STORY.fonts.heading : STORY.fonts.body;
+  return `${f.weight} ${size}px "${f.family}"`;
+}
+
+function revealLine(text, x, y, size, fill, t0, t1, t, opts = {}) {
+  const enter = snappy(t - t0);
+  const leave = t1 == null ? 0 : easeIn((t - t1) / 0.3);
+  if (enter <= 0 || leave >= 1) return;
+  g.save();
+  g.font = font(size, opts.heading !== false);
+  g.textAlign = opts.align || L.align;
+  g.textBaseline = 'alphabetic';
+  let m = g.measureText(text);
+  const fit = opts.maxWidth ?? (L.vertical ? W * 0.9 : W * 0.6 - L.textX);
+  if (m.width > fit) {
+    size *= fit / m.width;
+    g.font = font(size, opts.heading !== false);
+    m = g.measureText(text);
+  }
+  const left = g.textAlign === 'center' ? x - m.width / 2 : x;
+  g.beginPath();
+  g.rect(left - size, y - size * 1.05, m.width + size * 2, size * 1.35);
+  g.clip();
+  const dy = (1 - enter) * size * 1.2 - leave * size * 1.3;
+  g.fillStyle = fill;
+  g.fillText(text, x, y + dy);
+  g.restore();
+}
+
+function lines(rows, t0, t1, t, size, startY) {
+  rows.forEach((row, i) => {
+    const [text, fill] = Array.isArray(row) ? row : [row, 'ink'];
+    revealLine(text, L.textX, startY + i * size * 1.12, size, color(fill), t0 + i * 0.12, t1 == null ? null : t1 + i * 0.05, t);
+  });
+}
+
+function roundRect(x, y, w, h, r) {
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+
+const STATUS = 47 / 844;
+const BROWSER_BAR = 0.05;
+function deviceGeometry() {
+  const aspect = STORY.shot.w / STORY.shot.h;
+  if (STORY.frame === 'phone') {
+    const h = L.phoneH;
+    const screenH = h * 0.965;
+    const screenW = screenH / (1 + STATUS) * aspect;
+    const bezel = h * 0.0175;
+    return { screenW, screenH, w: screenW + bezel * 2, h: screenH + bezel * 2, topH: screenH * STATUS / (1 + STATUS),
+      outerRadius: (screenW + bezel * 2) * 0.15, screenRadius: screenW * 0.13 };
+  }
+  const bar = STORY.frame === 'browser' ? BROWSER_BAR : 0;
+  const screenW = Math.min(L.boxW, L.boxH / (1 / aspect + bar));
+  const topH = screenW * bar;
+  const screenH = screenW / aspect + topH;
+  const radius = screenW * (bar ? 0.018 : 0.03);
+  return { screenW, screenH, w: screenW, h: screenH, topH, outerRadius: radius, screenRadius: radius };
+}
+
+function statusBar(x, y, w, h, fill) {
+  g.fillStyle = fill;
+  g.fillRect(x, y, w, h);
+  g.fillStyle = C.ink;
+  g.font = font(h * 0.36, false);
+  g.textAlign = 'left';
+  g.textBaseline = 'middle';
+  g.fillText(STORY.statusTime || '9:41', x + w * 0.1, y + h * 0.55);
+  const bw = h * 0.5, bh = h * 0.24, bx = x + w * 0.9 - bw, by = y + h * 0.55 - bh / 2;
+  g.strokeStyle = C.ink; g.lineWidth = h * 0.03;
+  roundRect(bx, by, bw, bh, bh * 0.3); g.stroke();
+  roundRect(bx + h * 0.04, by + h * 0.04, bw * 0.7, bh - h * 0.08, bh * 0.2); g.fill();
+  for (let i = 0; i < 4; i++) {
+    const sh = bh * (0.35 + i * 0.22);
+    g.fillRect(bx - h * 0.62 + i * h * 0.09, by + bh - sh, h * 0.055, sh);
+  }
+}
+
+function browserBar(x, y, w, h) {
+  g.fillStyle = C.surface;
+  g.fillRect(x, y, w, h);
+  g.fillStyle = C.line;
+  g.fillRect(x, y + h - Math.max(1, h * 0.02), w, Math.max(1, h * 0.02));
+  ['#FF5F57', '#FEBC2E', '#28C840'].forEach((dot, i) => {
+    g.fillStyle = dot;
+    g.beginPath(); g.arc(x + h * (0.55 + i * 0.42), y + h * 0.5, h * 0.13, 0, Math.PI * 2); g.fill();
+  });
+  const urlW = w * 0.5, urlH = h * 0.56, ux = x + (w - urlW) / 2, uy = y + (h - urlH) / 2;
+  g.fillStyle = rgba(C.ink, 0.06);
+  roundRect(ux, uy, urlW, urlH, urlH / 2); g.fill();
+  g.fillStyle = C.inkMuted;
+  g.font = font(urlH * 0.5, false);
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText((STORY.browser && STORY.browser.url) || '', ux + urlW / 2, uy + urlH * 0.54, urlW * 0.9);
+}
+
+function placeholder(x, y, w, h, name) {
+  g.fillStyle = C.line;
+  g.fillRect(x, y, w, h);
+  g.fillStyle = C.inkMuted;
+  g.font = font(w * 0.06, false);
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(`missing: ${name}`, x + w / 2, y + h / 2, w * 0.9);
+}
+
+function screenAt(t) {
+  const list = STORY.screens;
+  let i = 0;
+  while (i + 1 < list.length && t >= list[i + 1].from) i++;
+  const cur = list[i];
+  if (i === 0) return [{ screen: cur, dx: 0, a: 1 }];
+  const prev = list[i - 1];
+  if (cur.via === 'fade') return [{ screen: prev, dx: 0, a: 1 }, { screen: cur, dx: 0, a: clamp((t - cur.from) / 0.18) }];
+  const p = snappy(t - cur.from);
+  return [{ screen: prev, dx: -0.3 * p, a: 1, dim: p }, { screen: cur, dx: 1 - p, a: 1, shadow: true }];
+}
+
+function camera(t) {
+  const keys = STORY.camera;
+  let c = { ...(keys[0] || { z: 1, x: 0.5, y: 0.5 }) };
+  for (const k of keys.slice(1)) {
+    const p = smooth(t - k.t);
+    if (p <= 0) break;
+    c = { z: lerp(c.z, k.z, p), x: lerp(c.x, k.x, p), y: lerp(c.y, k.y, p) };
+  }
+  return c;
+}
+
+function drawCover(picture, x, y, w, h) {
+  const pw = picture.naturalWidth, ph = picture.naturalHeight;
+  if (Math.abs((pw / ph) / (w / h) - 1) <= 0.01) {
+    g.drawImage(picture, x, y, w, h);
+    return;
+  }
+  const scale = Math.max(w / pw, h / ph);
+  const cw = w / scale, ch = h / scale;
+  g.drawImage(picture, (pw - cw) / 2, (ph - ch) / 2, cw, ch, x, y, w, h);
+}
+
+function drawDevice(t) {
+  const enter = smooth(t - STORY.device.enter);
+  const leave = easeIn((t - STORY.device.leave) / 0.45);
+  if (!STORY.screens.length || enter <= 0 || leave >= 1) return;
+  const geo = deviceGeometry();
+  const cam = camera(t);
+  const sideZoom = STORY.frame === 'phone' ? 0.25 : 0.6;
+  const zoom = L.vertical ? cam.z : 1 + (cam.z - 1) * sideZoom;
+  const cy = L.cy + (1 - enter) * H * 0.9 + leave * H;
+  const rot = (1 - enter) * 0.08 - leave * 0.05;
+  g.save();
+  g.beginPath();
+  if (L.vertical) g.rect(0, H * 0.2, W, H); else g.rect(W * 0.46, 0, W, H);
+  g.clip();
+  g.translate(L.cx, cy);
+  g.rotate(rot);
+  g.scale(zoom, zoom);
+  g.translate(-(cam.x - 0.5) * geo.screenW * (L.vertical ? 1 : sideZoom), -(cam.y - 0.5) * geo.screenH * (L.vertical ? 1 : sideZoom));
+  g.shadowColor = rgba(C.ink, 0.18);
+  g.shadowBlur = geo.h * 0.05;
+  g.shadowOffsetY = geo.h * 0.02;
+  g.fillStyle = STORY.frame === 'phone' ? C.bezel : C.surface;
+  roundRect(-geo.w / 2, -geo.h / 2, geo.w, geo.h, geo.outerRadius);
+  g.fill();
+  g.shadowColor = 'transparent';
+
+  const sx = -geo.screenW / 2, sy = -geo.screenH / 2;
+  const imgH = geo.screenH - geo.topH;
+  g.save();
+  roundRect(sx, sy, geo.screenW, geo.screenH, geo.screenRadius);
+  g.clip();
+  for (const layer of screenAt(t)) {
+    const x = sx + layer.dx * geo.screenW;
+    g.globalAlpha = layer.a;
+    if (layer.shadow && layer.dx > 0.001) {
+      g.fillStyle = rgba(C.ink, 0.12);
+      g.fillRect(x - geo.screenW * 0.03, sy, geo.screenW * 0.03, geo.screenH);
+    }
+    if (STORY.frame === 'phone') statusBar(x, sy, geo.screenW, geo.topH, color(layer.screen.status || 'page'));
+    if (STORY.frame === 'browser') browserBar(x, sy, geo.screenW, geo.topH);
+    const picture = img[layer.screen.name];
+    if (picture) drawCover(picture, x, sy + geo.topH, geo.screenW, imgH);
+    else placeholder(x, sy + geo.topH, geo.screenW, imgH, layer.screen.name);
+    if (layer.dim) { g.fillStyle = rgba(C.ink, 0.08 * layer.dim); g.fillRect(x, sy, geo.screenW, geo.screenH); }
+    g.globalAlpha = 1;
+  }
+
+  const ok = STORY.success;
+  if (ok && t > ok.at && t < ok.until) {
+    const p = clamp((t - ok.at) / 0.7);
+    const r = geo.screenW * (0.05 + 0.18 * easeInOut(p));
+    g.strokeStyle = rgba(C.highlight, 0.5 * (1 - p));
+    g.lineWidth = geo.screenW * 0.012;
+    g.beginPath();
+    g.arc(-geo.screenW / 2 + geo.screenW * (ok.x ?? 0.5), sy + geo.topH + imgH * ok.y, r, 0, Math.PI * 2);
+    g.stroke();
+  }
+
+  const pointer = STORY.frame === 'phone' ? 0.065 : 0.022;
+  for (const tap of STORY.taps) {
+    if (t < tap.show || t > tap.hide) continue;
+    const move = smooth(t - tap.show);
+    const fx = lerp(tap.from[0], tap.to[0], move), fy = lerp(tap.from[1], tap.to[1], move);
+    const px = sx + fx * geo.screenW, py = sy + geo.topH + fy * imgH;
+    const press = t >= tap.at ? 1 - snappy(t - tap.at - 0.12) : snappy(t - tap.show);
+    const pressing = t >= tap.at && t < tap.at + 0.12;
+    const r = geo.screenW * pointer * (pressing ? 0.82 : 1) * clamp(press + (t >= tap.at ? 0.0001 : 0));
+    g.fillStyle = rgba(C.ink, 0.28);
+    g.strokeStyle = 'rgba(255,255,255,0.9)';
+    g.lineWidth = geo.screenW * pointer * (0.006 / 0.065);
+    g.beginPath(); g.arc(px, py, Math.max(0, r), 0, Math.PI * 2); g.fill(); g.stroke();
+    if (t >= tap.at) {
+      const q = clamp((t - tap.at) / 0.45);
+      g.strokeStyle = `rgba(255,255,255,${0.8 * (1 - q)})`;
+      g.lineWidth = geo.screenW * pointer * (0.008 / 0.065);
+      g.beginPath(); g.arc(px, py, geo.screenW * pointer * (1 + (0.12 / 0.065) * q), 0, Math.PI * 2); g.stroke();
+    }
+  }
+  g.restore();
+  g.restore();
+}
+
+function captions(t) {
+  for (const c of STORY.captions) lines(c.rows, c.in, c.out, t, L.cap, L.capY);
+}
+
+function hook(t) {
+  const size = L.hook;
+  const cy = H * (L.vertical ? 0.44 : 0.46);
+  const x = L.vertical ? W / 2 : L.textX;
+  const opts = { maxWidth: L.vertical ? W * 0.9 : W - 2 * L.textX };
+  STORY.hook.forEach((h, i) => revealLine(h.text, x, cy + i * size * 1.15, size, color(h.color || 'ink'), h.in, h.out, t, opts));
+}
+
+function numberScene(t) {
+  const n = STORY.number;
+  if (!n || t < n.from || t > n.to) return;
+  const cols = 5, rows = Math.ceil(n.count / cols);
+  const area = L.vertical ? W * 0.78 : Math.min(W * 0.5, H * 0.95);
+  const cw = area / cols * 0.78, ch = cw * 0.62;
+  const gx = area / cols, gy = ch * 1.35;
+  const ox = L.cx - (gx * (cols - 1)) / 2;
+  const oy = (L.vertical ? H * 0.58 : H * 0.6) - (gy * (rows - 1)) / 2;
+  const merge = smooth(t - n.merge);
+  const pillW = area * 0.82, pillH = ch * 1.5;
+  const pcx = L.cx, pcy = L.vertical ? H * 0.58 : H * 0.6;
+  for (let i = 0; i < n.count; i++) {
+    const c = i % cols, r = Math.floor(i / cols);
+    const drop = playful(t - (n.drop + i * n.every));
+    if (drop <= 0) continue;
+    const bx = lerp(ox + c * gx, pcx, merge), by = lerp(oy + r * gy - (1 - drop) * H * 0.25, pcy, merge);
+    const s = lerp(1, 0.4, merge);
+    if (merge > 0.92) continue;
+    g.save();
+    g.translate(bx, by);
+    g.rotate((1 - drop) * (i % 2 ? 0.3 : -0.3));
+    g.scale(s, s);
+    g.fillStyle = C.surface;
+    g.strokeStyle = C.line;
+    g.lineWidth = cw * 0.025;
+    roundRect(-cw / 2, -ch / 2, cw, ch, ch * 0.18); g.fill(); g.stroke();
+    g.fillStyle = C.accentSoft;
+    roundRect(-cw * 0.36, -ch * 0.22, cw * 0.5, ch * 0.14, ch * 0.07); g.fill();
+    g.fillStyle = C.line;
+    roundRect(-cw * 0.36, ch * 0.06, cw * 0.72, ch * 0.12, ch * 0.06); g.fill();
+    g.restore();
+  }
+  const pill = playful(t - n.pill);
+  const out = easeIn((t - n.pillOut) / 0.35);
+  if (pill > 0 && out < 1) {
+    g.save();
+    g.translate(pcx, pcy);
+    const s = pill * (1 - out);
+    g.scale(s, s);
+    g.fillStyle = C.accent;
+    roundRect(-pillW / 2, -pillH / 2, pillW, pillH, pillH / 2); g.fill();
+    g.fillStyle = C.surface;
+    g.font = font(pillH * 0.38);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(n.pillText, 0, pillH * 0.03);
+    g.restore();
+  }
+  const tx = L.vertical ? W / 2 : L.textX;
+  let ty = L.vertical ? H * 0.22 : L.capY;
+  const opts = { align: L.vertical ? 'center' : 'left' };
+  n.lines.forEach((line, i) => {
+    if (i > 0) ty += L.cap * 1.45;
+    revealLine(line.text, tx, ty, L.cap * (line.scale || 1), color(line.color || 'ink'), line.in, line.out, t, opts);
+  });
+}
+
+function lockup(t) {
+  const lk = STORY.lockup;
+  if (!lk) return;
+  const p = playful(t - lk.at);
+  if (p <= 0) return;
+  const size = L.vertical ? W * 0.3 : H * 0.3;
+  const cx = W / 2, cy = H * (L.vertical ? 0.42 : 0.38);
+  if (img.logo) {
+    g.save();
+    g.translate(cx, cy);
+    g.scale(p, p);
+    g.globalCompositeOperation = STORY.logoBlend || 'multiply';
+    g.drawImage(img.logo, -size / 2, -size / 2, size, size);
+    g.restore();
+  }
+  const word = L.vertical ? W * 0.11 : H * 0.11;
+  const opts = { align: 'center', maxWidth: W * 0.9 };
+  revealLine(lk.name, cx, cy + size * 0.42 + word * 0.6, word, C.ink, lk.at + 0.3, null, t, opts);
+  if (lk.line) {
+    revealLine(lk.line, cx, cy + size * 0.42 + word * 1.55, word * 0.32, C.inkMuted, lk.at + 0.6, null, t,
+      { ...opts, heading: false });
+  }
+}
+
+function decimalsOf(v) {
+  const [mantissa, exp = '0'] = String(v).split('e');
+  return clamp((mantissa.split('.')[1] || '').length - Number(exp), 0, 100);
+}
+
+function statScene(t) {
+  const s = STORY.stat;
+  if (!s || t < s.at || t > s.out + 0.4) return;
+  const countFor = s.count ?? 0.9;
+  const p = countFor > 0 ? easeInOut((t - s.at) / countFor) : 1;
+  const decimals = clamp(s.decimals ?? decimalsOf(s.value), 0, 100);
+  const shown = lerp(Number(s.from ?? 0), Number(s.value), p).toFixed(decimals).replace(/^-(0(\.0*)?)$/, '$1');
+  const text = `${s.prefix || ''}${shown}${s.suffix || ''}`;
+  const x = W / 2;
+  const size = L.vertical ? W * 0.3 : H * 0.3;
+  const y = H * (L.vertical ? 0.48 : 0.5);
+  const opts = { align: 'center', maxWidth: W * 0.9 };
+  revealLine(text, x, y, size, color(s.color || 'accent'), s.at, s.out, t, opts);
+  if (s.label) revealLine(s.label, x, y + size * 0.55, L.cap, C.ink, s.at + 0.3, s.out + 0.05, t, opts);
+  if (s.source) revealLine(s.source, x, y + size * 0.55 + L.cap * 1.3, L.cap * 0.4, C.inkMuted, s.at + 0.5, s.out + 0.1, t,
+    { ...opts, heading: false });
+}
+
+function draw(t) {
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = C.page;
+  g.fillRect(0, 0, W, H);
+  hook(t);
+  drawDevice(t);
+  captions(t);
+  numberScene(t);
+  statScene(t);
+  lockup(t);
+}
+
+function buildCues() {
+  const s = STORY, m = s.music, d = s.device;
+  const pushes = s.screens.filter((x, i) => i > 0 && x.via !== 'fade').map((x) => ({ at: x.from - 0.05, length: 0.35, rising: true, gain: 0.07, pan: 0.4 }));
+  const cues = {
+    bpm: m.bpm, mood: m.mood, duration: s.duration, groove: m.groove, hats_from: m.hatsFrom, intro_bell: m.introBell,
+    taps: s.screens.length ? s.taps.map((x) => x.at) : [],
+    whooshes: s.screens.length ? [
+      { at: d.enter - 0.3, length: 0.6, rising: true, gain: 0.1 },
+      ...pushes,
+      { at: d.leave - 0.05, length: 0.5, rising: false, gain: 0.08 },
+    ] : [],
+    chimes: s.success && s.screens.length ? [
+      { at: s.success.at - 0.05, note: 84, gain: 0.12, pan: -0.15 },
+      { at: s.success.at + 0.07, note: 91, gain: 0.08, pan: 0.15 },
+    ] : [],
+    ending: s.lockup ? s.lockup.at : undefined,
+  };
+  if (s.number) {
+    cues.ticks = { from: s.number.drop, every: s.number.every, count: s.number.count };
+    cues.hit = s.number.pill;
+    cues.chimes.push({ at: s.number.pill, note: 79, gain: 0.08, length: 1.2 });
+  }
+  if (s.stat) {
+    cues.hit = cues.hit ?? s.stat.at + (s.stat.count ?? 0.9);
+    cues.chimes.push({ at: s.stat.at + (s.stat.count ?? 0.9), note: 79, gain: 0.08, length: 1.2 });
+  }
+  const round = (x) => Math.round(x * 1000) / 1000;
+  for (const list of [cues.whooshes, cues.chimes]) for (const c of list) c.at = round(c.at);
+  return cues;
+}
+
+window.seek = (t) => { draw(t); return true; };
+</script>
+</body>
+</html>
