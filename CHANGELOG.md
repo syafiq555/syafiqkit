@@ -23,6 +23,8 @@
 - If `remote` reports a missing module after a plugin update, run `bun install` in that folder again.
 - `/done` tells review agents that a build or generator script counts as a write, so a review asked only to report no longer rewrites a generated file while checking it.
 - `doc-to-md` also fires on "what changed between these two versions" and covers a comparison outside any repo; `pull-db` no longer says `remote` adds colour codes to its output.
+- `refresh-instructions`: when one agent per file runs in parallel, the session itself now checks citations between files afterwards, since each agent only sees its own file.
+- `/ship`: promoting through a throwaway worktree now handles a deploy branch that carries merge commits of its own, where a fast-forward-only merge is refused.
 - `skill-creator` now writes a skill distilled from one project's work for the general case, keeping that project as a worked example rather than the default.
 - **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
 
