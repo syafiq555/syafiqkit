@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Remote CLI Server Configuration",
+  "description": "Configuration file for remote-cli server definitions",
+  "type": "object",
+  "required": ["servers", "defaults"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON schema reference"
+    },
+    "servers": {
+      "type": "object",
+      "description": "Map of server ID to server configuration",
+      "additionalProperties": {
+        "$ref": "#/definitions/ServerConfig"
+      }
+    },
+    "defaults": {
+      "$ref": "#/definitions/Defaults"
+    }
+  },
+  "definitions": {
+    "ServerConfig": {
+      "type": "object",
+      "description": "Server configuration. Must have either 'sshAlias' OR 'host', not both.",
+      "required": ["name", "appPath"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display name for the server"
+        },
+        "appPath": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to the application directory on the server"
+        },
+        "sshAlias": {
+          "type": "string",
+          "description": "SSH alias from ~/.ssh/config (mutually exclusive with 'host')"
+        },
+        "host": {
+          "type": "string",
+          "description": "Server hostname or IP (mutually exclusive with 'sshAlias')"
+        },
+        "user": {
+          "type": "string",
+          "description": "SSH username (only used with 'host', not 'sshAlias')"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "SSH port (only used with 'host', not 'sshAlias')"
+        },
+        "sshKey": {
+          "type": "string",
+          "description": "Path to SSH private key file"
+        },
+        "password": {
+          "type": "string",
+          "description": "SSH password (prefer secrets.json for security)"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tags for fuzzy matching (e.g., ['prod', 'laravel'])"
+        }
+      },
+      "oneOf": [
+        {
+          "required": ["sshAlias"],
+          "not": { "required": ["host"] }
+        },
+        {
+          "required": ["host"],
+          "not": { "required": ["sshAlias"] }
+        }
+      ]
+    },
+    "Defaults": {
+      "type": "object",
+      "description": "Default values for server connections",
+      "properties": {
+        "user": {
+          "type": "string",
+          "default": "root",
+          "description": "Default SSH username"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 22,
+          "description": "Default SSH port"
+        },
+        "sshKey": {
+          "type": "string",
+          "default": "~/.ssh/id_rsa",
+          "description": "Default path to SSH private key"
+        }
+      }
+    }
+  }
+}

@@ -40,6 +40,12 @@ It draws nothing in the VS Code panel or `claude -p`. It runs with your permissi
 | `/read-notes` | Read a personal session journal |
 | `/update-notes` | Create/update a personal session journal |
 
+## Shell tools
+
+| Tool | Description |
+|------|-------------|
+| `remote` | Run commands on your servers over SSH, upload files and download one file. Needs Bun and a one-time setup: see [`tools/remote-cli/README.md`](tools/remote-cli/README.md) |
+
 ## I want to…
 
 | I want to | Run |
@@ -84,7 +90,9 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/casual-message` | Write a casual 1:1 message in your own voice — a WhatsApp reply, a colleague DM, "tell X that…"; short, unfenced, matches how you actually talk (including casual Malay/Manglish) |
 | `/continue-session` | Produce the copy-paste prompt that starts a fresh session where this one stopped — doc path, next goal, uncommitted state; next session asks open decisions |
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
+| `/doc-to-md` | Convert a Word, PDF or Excel file to Markdown, so versions can be compared as git diffs |
 | `/excalidraw-board` | Draw a task doc or worklist as a black-and-white Excalidraw discussion board (gates, waiting-on, parked-with-revive-trigger, live decisions strip), pasted into the user's excalidraw.com tab |
+| `/motion-clip` | Make a short launch or promo video for any product (app, website, physical product or brand) from its real screens or photos, in vertical, square and widescreen, with an original music track |
 | `/user-manual` | Write an end-user manual — scope, tutorials, E2E screenshots, Word/PDF editions |
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
