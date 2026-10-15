@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🚀 Shipping to colleagues in syafiqkit 1.399.0 (first release inside the plugin)
+Status: 🚀 Shipped to colleagues in syafiqkit 1.399.0 on master, 2026-10-15 (first release inside the plugin)
 Domain: remote-cli / distribution to colleagues
 Gotchas (critical; full list in ## Gotchas below):
   - `claude plugin test .` loads every *.test.ts in the plugin, so this tool's suites are *.spec.ts

@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🚀 Shipping in 1.399.0; trigger test still pending
+Status: 🚀 Shipped in 1.399.0 on master (2026-10-15); trigger test still pending
 Domain: plugin-maintenance / motion-clip skill
 Gotchas (critical; full list in ## Critical Gotchas below):
   - A trigger test only means something in a session started after 1.399.0 was written

@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔨 Built through 1.398.3; 1.396.3 to 1.398.3 ship in 1.399.0 (2026-10-15). 91 kit tests pass. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
+Status: 🔨 Built through 1.398.3; 1.396.3 to 1.398.3 shipped in 1.399.0 on master (2026-10-15). 91 kit tests pass. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
 Domain: plugin-maintenance/mod
 Gotchas (critical; full list in ## Gotchas below):
   - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
