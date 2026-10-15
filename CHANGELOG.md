@@ -1,5 +1,73 @@
 # Changelog
 
+## 1.399.0
+
+**New `/motion-clip`: make a short launch or promo video for any product.**
+- Ask for "a launch clip", "a promo video" or "an explainer" and it writes a brief, gathers real pictures (screens captured from the app or website, product photos, the logo), builds the film as code, checks its own frames, and renders vertical, square and widescreen MP4s.
+- Three looks: inside a phone (mobile apps), inside a browser window (web apps and websites), or frameless (photos of products, places or brands). A logo animation with no pictures works too.
+- It adds an original music track (bright, calm or dark) with taps, whooshes and chimes on the cues, so there is nothing to license. Swap in a bought track at the film's tempo (120 BPM by default) if you have one.
+- Each format takes about a minute to render for a 20-second clip; the first setup downloads Chromium.
+- Not covered yet: voiceover, character animation and scrolling through long pages. An unbuilt app is filmed from your team's design exports, never from UI the AI draws.
+- Needs Node, ffmpeg, and Python with numpy for the music. For Playwright, run `npm i playwright && npx playwright install chromium` in any folder and set `PLAYWRIGHT_DIR` to it.
+- `setup-playwright` now points promo-video requests to `/motion-clip`.
+
+**New `remote` command (in `tools/remote-cli`): run commands on your servers over SSH, upload files and download one file, from one tool.** macOS and Linux.
+- `remote <server> "command"` runs a command, and its output is only the server's output, so it is safe to capture or pipe. `remote <server> "php" < script.php` sends a local script with no escaping. `remote --sync <server> <path>` uploads, `remote --get <server> <path>` downloads one file, `remote --list` shows your servers.
+- **Set up once:** install [Bun](https://bun.sh), then:
+  1. `cd ~/.claude/plugins/marketplaces/syafiqkit/tools/remote-cli && bun install` (that folder is the plugin's git clone and keeps its path across updates).
+  2. `mkdir -p ~/.local/bin && ln -sfn "$PWD/bin/remote" ~/.local/bin/remote`, with `~/.local/bin` on your PATH.
+  3. Create `~/.config/remote-cli/servers.json`, for example `{"servers": {"prod": {"name": "Production", "sshAlias": "my-prod", "appPath": "/var/www/app"}}, "defaults": {}}`. Use `host` (with optional `user`, `port`, `sshKey`) instead of `sshAlias` for a direct login, never both.
+  4. For a password login, put `{"prod": "the-password"}` in `~/.config/remote-cli/secrets.json`; it is set to mode 600 on first read.
+- The tool's README has the full config example. Your servers and passwords stay in `~/.config/remote-cli`, never in the plugin folder.
+- Uploads need `rsync`, and `sshpass` for a password-only server. Commands and downloads do not check the server's host key (uploads do), so use them on networks you trust.
+- If `remote` reports a missing module after a plugin update, run `bun install` in that folder again.
+- `/done` tells review agents that a build or generator script counts as a write, so a review asked only to report no longer rewrites a generated file while checking it.
+- `doc-to-md` also fires on "what changed between these two versions" and covers a comparison outside any repo; `pull-db` no longer says `remote` adds colour codes to its output.
+- `skill-creator` now writes a skill distilled from one project's work for the general case, keeping that project as a worked example rather than the default.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.398.4
+
+**Task docs written from the template no longer carry em dashes.**
+- `task-summary`'s template wrote the character into every new doc: in the LLM-CONTEXT Gotchas line, the title, the Files rows and every decision heading. New task docs now use colons and brackets instead, so a doc no longer needs hand fixes to meet a no-em-dash style.
+- The template now writes `Gotchas (critical; …)`, `# Project: Feature` and `### D-<slug>: title [status] · date`. Existing headings stay as written, since a decision heading is a record and tools key only on its `### D-<slug>` prefix.
+
+## 1.398.3
+
+**Lists in the syafiqkit pane stay readable in a narrow window.**
+- Desktop: open items in a task doc wrap onto more lines instead of ending in "…", and the docs list squeezes its size gauge first so each doc's status still shows.
+- Terminal, under 60 columns: the docs list shows just the name, its scope where the section has one, and the status, and `/changes` keeps "view" and "+ all" next to each section name and shrinks file paths so the stage buttons stay on screen.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.398.2
+
+**Button bars in the syafiqkit pane wrap onto a second line when the pane is narrow, instead of running off the edge.** (The pane needs Claude Code 2.1.287 or later, Desktop 2.1.286.)
+- The doc reader (Back, Read-summary, Hand off, Changes, Copy and the rest), the decision page, the docs list header, the Changes toolbar, the single-file diff toolbar, the image header and the band's launch row all wrap now.
+- The terminal confirm page shows the whole "Effect:" warning instead of cutting it off, and a long file name in the Desktop diff header no longer pushes the counts out of view.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.398.1
+
+**`/haiku` now double-checks "covered" verdicts and edits agent drafts by where they land.**
+- When haiku agents map requirements to a document, a second strict pass re-checks every row marked covered, because the first pass accepts any sentence on the same topic.
+- When agents draft additions per section of a source, the drafts are regrouped by where they go in the target and edited there before applying, so they don't repeat each other or contradict the existing text.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.398.0
+
+**New `/doc-to-md` skill: turn a Word, PDF or Excel file into Markdown, so you can see what changed between two versions as a git diff.**
+- `.docx` and `.xlsx` convert through bundled scripts that need only Python. Headings, bold, lists and tables carry over. Each Excel sheet becomes its own table, and `--formulas` shows formulas instead of values.
+- `.pdf` converts through `pdftotext`, which keeps the text but cannot recover headings or tables.
+- The skill commits the old version first, then writes the new one over the same file, so `git diff` shows exactly what changed. It also checks that the copy's words match the source before handing it over.
+- `md-to-pdf` now points to it for the reverse direction.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.397.5
+
+**`/task-summary` puts a new artifact you ask it for in the task docs, not in `docs/`.**
+- `task-summary`: a request to create something (a capture, a text copy of a document, a log to diff) now lands under `tasks/<domain>/<feature>/`, with the artifact in `decisions/` and a `current.md` routing to it.
+- **Update:** run `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.397.4
 
 **A reply drafted through `/gchat-format` stays short, a draft no longer promises work that could be done first, and `/done` on a docs-only session asks for the right reviewers.**
