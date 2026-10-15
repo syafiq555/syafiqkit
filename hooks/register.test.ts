@@ -1867,3 +1867,65 @@ test('Desktop /task-docs pins Menu and the Filter, and typing in the pinned Filt
   expect(await down.find({ key: 'sec-h-match' })).toBeDefined()
   await down.unmount()
 })
+
+test('the doc toolbar wraps onto more lines in a narrow pane instead of running off the edge', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/tasks': [{ name: 'a', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false }],
+    '/work/tasks/a': [{ name: 'current.md', kind: 'file', size: 60, mtimeMs: 999_000, isLink: false }],
+  })
+  on('fs.read', () => ({ value: '# T\n- [ ] one' }))
+  stubRender(on)
+  await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop', props: { ...PANE.props, bodyColumns: 40 } })
+  await ui.press({ key: 'r0b' })
+  const rows = (await ui.findAll({ type: 'Box' })).filter((box: any) =>
+    JSON.stringify(box.children ?? []).includes('"handoff"'),
+  )
+  const toolbar = rows[rows.length - 1]
+  expect(toolbar).toBeDefined()
+  expect(toolbar.props.flexWrap).toBe('wrap')
+})
+
+test('under 60 columns the terminal doc list drops the age and gauge so the name and status fit', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/tasks': [dirEntry('a')],
+    '/work/tasks/a': [fileEntry('current.md', 600)],
+  })
+  on('fs.read', () => ({ value: '# T\n- [ ] one' }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, bodyColumns: 40 } })
+  expect((await ui.findAll({ type: 'Text', text: /^[█░]{6} / })).length).toBe(0)
+  const name = await ui.find({ key: 'r0b' })
+  expect(name).toBeDefined()
+  expect(String(name?.props.label).length).toBeLessThanOrEqual(18)
+  await ui.unmount()
+})
+
+test('a 40-column changes pane keeps view and stage-all beside the section name', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, { ...PANE, props: { ...PANE.props, bodyColumns: 40 } })
+  const toggle = await ui.find({ key: 'worktree-toggle' })
+  expect(String(toggle?.props.label).length).toBeLessThanOrEqual(20)
+  expect(await ui.find({ key: 'worktree-view' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree-all' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a narrow terminal list still names each CLAUDE.md by scope, now in the row tail', async ($, on) => {
+  stubSession(on, [], [], [], ['session.cwd', 'fs.exists'])
+  on('session.cwd', () => ({ value: '/home/test/.claude/p' }))
+  const present = new Set(['/home/test/.claude/p/CLAUDE.md', '/home/test/.claude/CLAUDE.md'])
+  on('fs.exists', (_$: any, e: any) => ({ value: present.has(e.path) }))
+  on('fs.stat', () => ({ value: { kind: 'file', size: 100, mtimeMs: 999_000, isLink: false } }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/home/test/.claude/p' })
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, bodyColumns: 40 } })
+  expect(await ui.find({ type: 'Text', text: /this project/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /your global/ })).toBeDefined()
+  await ui.unmount()
+})

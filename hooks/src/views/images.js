@@ -53,6 +53,7 @@ const imagesView = ($, c) => {
       children: [
         Box({
           flexDirection: 'row',
+          flexWrap: 'wrap',
           columnGap: 2,
           children: [
             Text({ bold: true, children: image.name }),

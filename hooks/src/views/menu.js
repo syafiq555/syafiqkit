@@ -68,7 +68,7 @@ const confirmView = ($, c) => {
             }),
           ]
         : []),
-      ...(confirm.effect && !desktop ? [Text({ color: 'yellow', wrap: 'truncate-end', children: 'Effect: ' + confirm.effect })] : []),
+      ...(confirm.effect && !desktop ? [Text({ color: 'yellow', children: 'Effect: ' + confirm.effect })] : []),
       Text({ dimColor: true, children: 'This goes to Claude, which will act on it:' }),
       Box({
         key: 'confirm-box',

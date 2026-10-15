@@ -20,7 +20,7 @@ const docView = ($, c) => {
       redraw()
     }
     const dim = !picked && state.selected.length > 0
-    if (isDesktop(e)) return Button({ key, label: lead + part.text, plain: true, dimColor: dim, onPress: toggle })
+    if (isDesktop(e)) return Button({ key, plain: true, onPress: toggle, children: [Text({ dimColor: dim, children: lead + part.text })] })
     const all = wrapWords(part.text, itemWidth)
     const capped = !state.expandItems && all.length > ITEM_CAP_ROWS
     const shown = capped ? all.slice(0, ITEM_CAP_ROWS) : all
@@ -174,6 +174,7 @@ const docView = ($, c) => {
       Button({ key: prefix + (isTop ? id : id + '-end'), label, ...(isTop ? liveOnly(prefix, topProps) : {}), onPress })
     return Box({
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       children: [
         action('back', state.docBack ? '< Back to changes' : '< Back', { hotkey: 'b', autoFocus: true }, () => {
@@ -285,6 +286,7 @@ const decisionView = ($, c) => {
     return Box({
       key: prefix + 'dec-top',
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       children: [
         toDoc(prefix + 'dec-back', prefix ? '' : 'b'),

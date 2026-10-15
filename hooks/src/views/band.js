@@ -8,6 +8,7 @@ const bandView = ($, e, next) => {
     if (state.view !== 'doc' || !state.selected.length || !state.current || state.current.group !== 'Task docs') return next(e)
     return Box({
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       paddingX: 1,
       children: [
@@ -21,6 +22,7 @@ const bandView = ($, e, next) => {
     Box({
       key: 'launch-row',
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       paddingX: 1,
       children: [

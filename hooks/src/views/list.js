@@ -3,10 +3,12 @@ const docRow = (c, doc, key, withScope, indent) => {
   const { Box, Text, Button, pickAction } = c
   const heavy = isHeavy(doc)
   const pad = indent ? '  ' : ''
-  const nameWidth = NAME_WIDTH - pad.length
+  const columns = paneColumns(c.e)
+  const narrow = columns < NARROW_COLUMNS
+  const nameWidth = Math.max(8, (narrow ? Math.min(NAME_WIDTH, Math.floor(columns * 0.45)) : NAME_WIDTH) - pad.length)
   const head = (withScope ? clip(doc.scope || '', SCOPE_WIDTH - 1).padEnd(SCOPE_WIDTH) : '') + agoOf(state.now, doc.mtime).padEnd(11)
   const gauge = docGauge(doc)
-  const tail = [doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status].filter(Boolean).join('  ')
+  const tail = [narrow && withScope ? doc.scope : '', doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status].filter(Boolean).join('  ')
   return Box({
     key,
     flexDirection: 'row',
@@ -18,13 +20,17 @@ const docRow = (c, doc, key, withScope, indent) => {
         plain: true,
         onPress: () => pickAction(doc),
       }),
-      Text({ key: key + 'a', dimColor: true, wrap: 'truncate-end', children: head }),
-      Text({
-        key: key + 'g',
-        dimColor: !heavy,
-        color: heavy ? 'yellow' : undefined,
-        children: textMeter(gauge.value, gauge.max, 6) + ' ' + gauge.label.padEnd(8),
-      }),
+      ...(narrow
+        ? []
+        : [
+            Text({ key: key + 'a', dimColor: true, wrap: 'truncate-end', children: head }),
+            Text({
+              key: key + 'g',
+              dimColor: !heavy,
+              color: heavy ? 'yellow' : undefined,
+              children: textMeter(gauge.value, gauge.max, 6) + ' ' + gauge.label.padEnd(8),
+            }),
+          ]),
       Text({ key: key + 'm', dimColor: !heavy, color: heavy ? 'yellow' : undefined, wrap: 'truncate-end', children: tail }),
     ],
   })
@@ -69,6 +75,7 @@ const listView = (c) => {
     Box({
       key: prefix + 'list-top',
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       children: [
         Button({

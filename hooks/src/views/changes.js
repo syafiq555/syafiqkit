@@ -98,7 +98,7 @@ const changesView = ($, c) => {
   const ch = state.changes
   const wide = paneColumns(c.e) >= SPLIT_MIN_COLUMNS
   state.wide = wide
-  const treeWidth = wide ? TREE_COLUMNS : Math.max(40, paneColumns(c.e) - 2)
+  const treeWidth = wide ? TREE_COLUMNS : Math.max(24, paneColumns(c.e) - 2)
   const sections = ['staged', 'worktree']
 
   const treeRow = (row, plane, index) => {
@@ -254,7 +254,7 @@ const changesView = ($, c) => {
                 }),
               ]
             : [
-                Button({ key: plane + '-toggle', label: ((closed ? '▸ ' : '▾ ') + caption).padEnd(26), plain: true, onPress: toggle }),
+                Button({ key: plane + '-toggle', label: clip((closed ? '▸ ' : '▾ ') + caption, Math.min(26, treeWidth - 18)).padEnd(Math.min(26, treeWidth - 18)), plain: true, onPress: toggle }),
               ]),
           ...(entries.length && !wide
             ? [Button({ key: plane + '-view', label: 'view', onPress: () => openChangeAll($, plane + ':') })]
@@ -315,6 +315,7 @@ const changesView = ($, c) => {
     children: [
       Box({
         flexDirection: 'row',
+        flexWrap: 'wrap',
         columnGap: 2,
         children: [
           Button({ key: 'ch-close', label: '< Close', hotkey: 'b', autoFocus: true, onPress: () => closePane($) }),
@@ -477,7 +478,7 @@ const fileHeader = ($, c, entry, plane, open, pathWidth) => {
         },
       }),
       Text({ key: key + '#l', color: STATUS_COLOR[letter], bold: true, children: letter }),
-      Text({ key: key + '#c', dimColor: true, children: countsText(state.allDiffs[key]).padEnd(COUNTS_WIDTH) }),
+      Text({ key: key + '#c', dimColor: true, children: countsText(state.allDiffs[key]).padEnd(pathWidth >= 16 ? COUNTS_WIDTH : 0) }),
       Button({
         key: key + '#m',
         label: staged ? '−' : '+',
@@ -549,7 +550,7 @@ const allDiffItems = ($, c, only, beside) => {
   const add = (make) => items.push({ height: 1, make })
   let any = false
   const columnWidth = beside ? paneColumns(c.e) - TREE_COLUMNS - 2 : paneColumns(c.e) - 2
-  const pathWidth = Math.max(16, columnWidth - COUNTS_WIDTH - 26)
+  const pathWidth = Math.max(8, columnWidth - COUNTS_WIDTH - 26)
   for (const plane of ['worktree', 'staged']) {
     const files = orderedFiles(plane).filter((entry) => entryInFocus(only, plane, entry))
     if (!files.length) continue
@@ -611,6 +612,7 @@ const changeFileView = ($, c) => {
     children: [
       Box({
         flexDirection: 'row',
+        flexWrap: 'wrap',
         columnGap: 2,
         children: [
           Button({ key: 'cf-back', label: '< Back', hotkey: 'b', autoFocus: true, onPress: () => goto(state.diffBack) }),

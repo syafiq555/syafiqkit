@@ -1,4 +1,4 @@
-const MOD_VERSION = '1.397.4'
+const MOD_VERSION = '1.399.0'
 const PANE = 'doc-pane'
 const COMMAND = 'task-docs'
 const MENU_COMMAND = 'sk'
@@ -14,6 +14,7 @@ const RECENT_COUNT = 5
 const ITEM_CAP_ROWS = 3
 const NAME_WIDTH = 26
 const SCOPE_WIDTH = 24
+const NARROW_COLUMNS = 60
 const MEASURE_FROM_BYTES = 8000
 const TASK_DOC_MAX_LINES = 300
 const DECISION_MAX_BYTES = 40 * 1024
@@ -2833,6 +2834,7 @@ const bandView = ($, e, next) => {
     if (state.view !== 'doc' || !state.selected.length || !state.current || state.current.group !== 'Task docs') return next(e)
     return Box({
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       paddingX: 1,
       children: [
@@ -2846,6 +2848,7 @@ const bandView = ($, e, next) => {
     Box({
       key: 'launch-row',
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       paddingX: 1,
       children: [
@@ -3028,7 +3031,7 @@ const changesView = ($, c) => {
   const ch = state.changes
   const wide = paneColumns(c.e) >= SPLIT_MIN_COLUMNS
   state.wide = wide
-  const treeWidth = wide ? TREE_COLUMNS : Math.max(40, paneColumns(c.e) - 2)
+  const treeWidth = wide ? TREE_COLUMNS : Math.max(24, paneColumns(c.e) - 2)
   const sections = ['staged', 'worktree']
 
   const treeRow = (row, plane, index) => {
@@ -3184,7 +3187,7 @@ const changesView = ($, c) => {
                 }),
               ]
             : [
-                Button({ key: plane + '-toggle', label: ((closed ? '▸ ' : '▾ ') + caption).padEnd(26), plain: true, onPress: toggle }),
+                Button({ key: plane + '-toggle', label: clip((closed ? '▸ ' : '▾ ') + caption, Math.min(26, treeWidth - 18)).padEnd(Math.min(26, treeWidth - 18)), plain: true, onPress: toggle }),
               ]),
           ...(entries.length && !wide
             ? [Button({ key: plane + '-view', label: 'view', onPress: () => openChangeAll($, plane + ':') })]
@@ -3245,6 +3248,7 @@ const changesView = ($, c) => {
     children: [
       Box({
         flexDirection: 'row',
+        flexWrap: 'wrap',
         columnGap: 2,
         children: [
           Button({ key: 'ch-close', label: '< Close', hotkey: 'b', autoFocus: true, onPress: () => closePane($) }),
@@ -3407,7 +3411,7 @@ const fileHeader = ($, c, entry, plane, open, pathWidth) => {
         },
       }),
       Text({ key: key + '#l', color: STATUS_COLOR[letter], bold: true, children: letter }),
-      Text({ key: key + '#c', dimColor: true, children: countsText(state.allDiffs[key]).padEnd(COUNTS_WIDTH) }),
+      Text({ key: key + '#c', dimColor: true, children: countsText(state.allDiffs[key]).padEnd(pathWidth >= 16 ? COUNTS_WIDTH : 0) }),
       Button({
         key: key + '#m',
         label: staged ? '−' : '+',
@@ -3479,7 +3483,7 @@ const allDiffItems = ($, c, only, beside) => {
   const add = (make) => items.push({ height: 1, make })
   let any = false
   const columnWidth = beside ? paneColumns(c.e) - TREE_COLUMNS - 2 : paneColumns(c.e) - 2
-  const pathWidth = Math.max(16, columnWidth - COUNTS_WIDTH - 26)
+  const pathWidth = Math.max(8, columnWidth - COUNTS_WIDTH - 26)
   for (const plane of ['worktree', 'staged']) {
     const files = orderedFiles(plane).filter((entry) => entryInFocus(only, plane, entry))
     if (!files.length) continue
@@ -3541,6 +3545,7 @@ const changeFileView = ($, c) => {
     children: [
       Box({
         flexDirection: 'row',
+        flexWrap: 'wrap',
         columnGap: 2,
         children: [
           Button({ key: 'cf-back', label: '< Back', hotkey: 'b', autoFocus: true, onPress: () => goto(state.diffBack) }),
@@ -4220,7 +4225,7 @@ const desktopChangeFileView = ($, c) => {
       backgroundColor: DESKTOP_TONE.strip,
       children: [
         ...(file.entry ? [statusChip(c, prefix + 'cf-l', letterOf(file.entry, file.plane))] : []),
-        Text({ key: prefix + 'cf-name', bold: true, children: nameOf(file.path) }),
+        Text({ key: prefix + 'cf-name', bold: true, wrap: 'truncate-start', children: nameOf(file.path) }),
         Box({ key: prefix + 'cf-fold', flexGrow: 1, flexShrink: 1, children: [Text({ dimColor: true, wrap: 'truncate-start', children: folderOfPath(file.path) })] }),
         ...(diff ? [counts(c, prefix + 'cf-c', diff.added, diff.removed)] : []),
         Text({ key: prefix + 'cf-plane', dimColor: true, children: PLANE_LABEL[file.plane] + (at >= 0 ? ' · ' + (at + 1) + ' of ' + files.length : '') }),
@@ -4284,22 +4289,28 @@ const desktopDocRow = (c, doc, key, withScope, indent) => {
       Box({
         key: key + 'n',
         width: indent ? 22 : 24,
-        flexShrink: 0,
+        flexShrink: 1,
+        minWidth: 10,
+        overflow: 'hidden',
         children: [Button({ key: key + 'b', label: docLabel(doc, indent ? 22 : 24), plain: true, onPress: () => pickAction(doc) })],
       }),
-      Box({ key: key + 'g', width: 9, flexShrink: 0, children: [meter(c, key + 'm', gauge.value, gauge.max, 8)] }),
+      Box({ key: key + 'g', width: 9, flexShrink: 4, minWidth: 0, overflow: 'hidden', children: [meter(c, key + 'm', gauge.value, gauge.max, 8)] }),
       Box({
         key: key + 'l',
         width: 10,
-        flexShrink: 0,
+        flexShrink: 4,
+        minWidth: 0,
+        overflow: 'hidden',
         paddingLeft: 1,
         children: [Text({ key: key + 'lt', color: heavy ? 'warning' : undefined, dimColor: !heavy, children: gauge.label })],
       }),
-      Box({ key: key + 'a', width: 9, flexShrink: 0, children: [Text({ dimColor: true, children: agoOf(state.now, doc.mtime) })] }),
+      Box({ key: key + 'a', width: 9, flexShrink: 2, minWidth: 0, overflow: 'hidden', children: [Text({ dimColor: true, children: agoOf(state.now, doc.mtime) })] }),
       Box({
         key: key + 't',
         flexGrow: 1,
         flexShrink: 1,
+        minWidth: 20,
+        overflow: 'hidden',
         flexDirection: 'row',
         columnGap: 1,
         children: [
@@ -4513,7 +4524,7 @@ const docView = ($, c) => {
       redraw()
     }
     const dim = !picked && state.selected.length > 0
-    if (isDesktop(e)) return Button({ key, label: lead + part.text, plain: true, dimColor: dim, onPress: toggle })
+    if (isDesktop(e)) return Button({ key, plain: true, onPress: toggle, children: [Text({ dimColor: dim, children: lead + part.text })] })
     const all = wrapWords(part.text, itemWidth)
     const capped = !state.expandItems && all.length > ITEM_CAP_ROWS
     const shown = capped ? all.slice(0, ITEM_CAP_ROWS) : all
@@ -4667,6 +4678,7 @@ const docView = ($, c) => {
       Button({ key: prefix + (isTop ? id : id + '-end'), label, ...(isTop ? liveOnly(prefix, topProps) : {}), onPress })
     return Box({
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       children: [
         action('back', state.docBack ? '< Back to changes' : '< Back', { hotkey: 'b', autoFocus: true }, () => {
@@ -4778,6 +4790,7 @@ const decisionView = ($, c) => {
     return Box({
       key: prefix + 'dec-top',
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       children: [
         toDoc(prefix + 'dec-back', prefix ? '' : 'b'),
@@ -4897,6 +4910,7 @@ const imagesView = ($, c) => {
       children: [
         Box({
           flexDirection: 'row',
+          flexWrap: 'wrap',
           columnGap: 2,
           children: [
             Text({ bold: true, children: image.name }),
@@ -4922,10 +4936,12 @@ const docRow = (c, doc, key, withScope, indent) => {
   const { Box, Text, Button, pickAction } = c
   const heavy = isHeavy(doc)
   const pad = indent ? '  ' : ''
-  const nameWidth = NAME_WIDTH - pad.length
+  const columns = paneColumns(c.e)
+  const narrow = columns < NARROW_COLUMNS
+  const nameWidth = Math.max(8, (narrow ? Math.min(NAME_WIDTH, Math.floor(columns * 0.45)) : NAME_WIDTH) - pad.length)
   const head = (withScope ? clip(doc.scope || '', SCOPE_WIDTH - 1).padEnd(SCOPE_WIDTH) : '') + agoOf(state.now, doc.mtime).padEnd(11)
   const gauge = docGauge(doc)
-  const tail = [doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status].filter(Boolean).join('  ')
+  const tail = [narrow && withScope ? doc.scope : '', doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status].filter(Boolean).join('  ')
   return Box({
     key,
     flexDirection: 'row',
@@ -4937,13 +4953,17 @@ const docRow = (c, doc, key, withScope, indent) => {
         plain: true,
         onPress: () => pickAction(doc),
       }),
-      Text({ key: key + 'a', dimColor: true, wrap: 'truncate-end', children: head }),
-      Text({
-        key: key + 'g',
-        dimColor: !heavy,
-        color: heavy ? 'yellow' : undefined,
-        children: textMeter(gauge.value, gauge.max, 6) + ' ' + gauge.label.padEnd(8),
-      }),
+      ...(narrow
+        ? []
+        : [
+            Text({ key: key + 'a', dimColor: true, wrap: 'truncate-end', children: head }),
+            Text({
+              key: key + 'g',
+              dimColor: !heavy,
+              color: heavy ? 'yellow' : undefined,
+              children: textMeter(gauge.value, gauge.max, 6) + ' ' + gauge.label.padEnd(8),
+            }),
+          ]),
       Text({ key: key + 'm', dimColor: !heavy, color: heavy ? 'yellow' : undefined, wrap: 'truncate-end', children: tail }),
     ],
   })
@@ -4988,6 +5008,7 @@ const listView = (c) => {
     Box({
       key: prefix + 'list-top',
       flexDirection: 'row',
+      flexWrap: 'wrap',
       columnGap: 2,
       children: [
         Button({
@@ -5221,7 +5242,7 @@ const confirmView = ($, c) => {
             }),
           ]
         : []),
-      ...(confirm.effect && !desktop ? [Text({ color: 'yellow', wrap: 'truncate-end', children: 'Effect: ' + confirm.effect })] : []),
+      ...(confirm.effect && !desktop ? [Text({ color: 'yellow', children: 'Effect: ' + confirm.effect })] : []),
       Text({ dimColor: true, children: 'This goes to Claude, which will act on it:' }),
       Box({
         key: 'confirm-box',
