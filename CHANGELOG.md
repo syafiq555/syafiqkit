@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.405.4
+
+**`uiux` research always includes real-world case studies.**
+- Every research run now sends an agent to live products where the same situation occurs, each with a fetched URL, beside the component-library and research-body agent. Research about the subject itself (a client's brand and channels, your own app) is a separate leg and no longer counts as the research: a storefront-branding run had researched only the client's own site until the user asked whether real-world case studies were done.
+- The report opens with the case studies, one row per product with the same cells and a URL each, and names the products that could not be read.
+- When a vendor's docs are client-rendered stubs and the product is installed locally (a WordPress theme, a package), its source is now a named source kind, cited by file and line.
+- `uiux` is back under the size where a skill's whole body re-attaches (23.0 KB to 19.8 KB), so its closing Verify by Looking section no longer falls off. Screenshot reading and the research and critique routes now come straight after choosing the job, ahead of scope and design. Worked incidents, lazy-loading detail and what a static capture misses moved into the skill's references with pointers left behind; every rule stays in the skill.
+
 ## 1.405.3
 
 **`ship` posts the release note even when the tracker's tools live in another repo.**

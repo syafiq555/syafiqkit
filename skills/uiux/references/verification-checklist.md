@@ -46,6 +46,10 @@ Every interactive element shows, visibly and distinctly:
 - Fonts load without a visible reflow (size-adjusted fallback or `font-display: swap` with matched metrics).
 - Stacking uses a small named scale (say 10, 20, 30, 50 for raised, sticky, overlay, modal), so a new element never needs `z-index: 9999` to win.
 
+## Captures a static shot misses
+
+Screenshots of a settled page miss clipping and sequence. Open a dropdown or picker inside a scrolling modal, step through each stage of a multi-step modal, and check the colour mode the user actually runs (not only the default). A reused or secondary surface is where defects cluster, so those shots are graded too.
+
 ## Sources
 
 - State and colour checks: https://github.com/jezweb/claude-skills/blob/main/plugins/frontend/skills/design-review/SKILL.md

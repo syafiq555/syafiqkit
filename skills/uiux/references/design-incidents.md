@@ -1,6 +1,6 @@
 # Measured design incidents
 
-The evidence behind three rules in `SKILL.md`. Read the one matching the rule you are applying.
+The evidence behind rules in `SKILL.md`. Read the one matching the rule you are applying.
 
 ## A one-word theme is a direction, not a costume
 
@@ -17,3 +17,15 @@ Measured 2026-09-29: a month-by-month table that re-rendered a statement card ab
 ## A fabricated logo reads as a finished decision
 
 Placeholders that ship silently: initials in a circle, an emoji, a generic icon-set mark, an invented SVG that merely looks brand-shaped. Where no real mark is available, leave the space empty or set the product name as text, and say the logo is missing; that is a question for whoever owns the brand.
+
+## A reused component carries its audience
+
+A form written for the account holder ("your bank", a decorative preview, reassurance banners, its own lone button) is wrong in a staff modal, even though it compiles, renders and has the right fields.
+
+## Research that never reached a case study
+
+Measured 2026-10-16: a storefront-branding run researched only the client's site and socials until the user asked whether real-world case studies had been researched too. Measured 2026-10-07: no source was opened, and the user had to ask whether the research step had run at all.
+
+## Research-only invocations are followed by builders
+
+Measured 2026-10-10: a research-only invocation was followed by two builders. One reused an end-user form in a staff modal, and the screenshots were graded "renders fine" from memory. The user then sent five screenshots of defects.

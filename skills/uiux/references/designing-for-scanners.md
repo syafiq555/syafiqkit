@@ -30,6 +30,10 @@ Eye-tracking finds four patterns. The **F-pattern** (first lines and the left ed
 
 Show the common case first and reveal the rest on request. This works only when the split matches how users prioritise, which means the grouping is a decision to test rather than assume, and it can oversimplify: hiding a capability behind "advanced" makes it invisible to the person who needed it. An accordion or "show more" header has to say what is inside it; "More settings" tells nobody whether to open it.
 
+## Lazy-loading is design
+
+Deferring a component or list buys a faster first paint by hiding discoverability, so what you defer decides what users find. Defer what they hunt for (a heavy picker, a map, page two); keep resident what tells them what the screen is and what to do. The trade lands hardest on phones, where below-the-fold content on a slow connection may never appear. Defer only where weight exists, since splitting small content costs a round trip. Deferred content still needs a loading state and a placeholder at its final size so the layout does not shift.
+
 ## Sources
 
 - Scanning patterns: https://www.nngroup.com/articles/text-scanning-patterns-eyetracking/
