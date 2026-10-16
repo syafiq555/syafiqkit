@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.405.3
+
+**`ship` posts the release note even when the tracker's tools live in another repo.**
+- A tracker's MCP server is often declared in one repo's `.mcp.json`, so a ship run from a sibling repo (a mobile app shipping beside its backend) has no tracker tools although the docs name the tracker. Step 5 now says to start a session in the repo that declares it and hand it the post, instead of reporting the tracker unreachable. It came up shipping a mobile app and its backend together on 16/10/2026.
+
 ## 1.405.2
 
 **New Enhance button on the band: turn a rough prompt into one that starts Claude already informed.**
