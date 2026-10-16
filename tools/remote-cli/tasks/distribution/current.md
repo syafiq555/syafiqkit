@@ -15,8 +15,9 @@ Last updated: 2026-10-15
 **Where we are**: `remote` moved into the public syafiqkit repo at `tools/remote-cli` and ships to colleagues in 1.399.0, with a README carrying the setup and a CHANGELOG entry. Colleagues link from the plugin's git clone at `~/.claude/plugins/marketplaces/syafiqkit/tools/remote-cli`, which keeps its path across plugin updates (the per-version cache copy does not).
 
 **Immediate next actions (in order)**:
-1. Decide whether to add host-key checking to the ssh2 paths (Next Steps), now that the tool is public and documented for others.
-2. Have one colleague follow `README.md` § Setup from scratch and note where it breaks.
+1. Harden the setup steps in `README.md` and the 1.399.0 CHANGELOG entry: add `ls ~/.claude/plugins/marketplaces` before step 1, since the folder name is unconfirmed, and give step 2's link the full path instead of `$PWD`. Offered to the user 2026-10-15 and not yet answered; it needs a commit and push.
+2. Decide whether to add host-key checking to the ssh2 paths (Next Steps), now that the tool is public and documented for others.
+3. Have one colleague follow `README.md` § Setup from scratch and note where it breaks, starting with the folder name under `~/.claude/plugins/marketplaces`.
 
 ---
 
@@ -31,7 +32,7 @@ The tool was Syafiq's own; moving it into the plugin made it public and reachabl
 | Decision | Rationale |
 |----------|-----------|
 | `bin/remote` is a POSIX `sh` wrapper, not a `#!/usr/bin/env bun` trampoline | Under a minimal PATH (hooks, cron) `env` could not find bun. The wrapper follows its own symlinks and probes PATH, `~/.bun/bin`, `/opt/homebrew/bin`, `/usr/local/bin`; checked with `env -i PATH=/usr/bin:/bin` |
-| Colleagues link from the marketplace clone, not the cache | The cache folder is per version, so a link into it dangles after an update. A GitHub marketplace is a git clone of the whole repo (`source: "./"`), so `tools/` is there |
+| Colleagues link from the marketplace clone, not the cache | The cache folder is per version, so a link into it dangles after an update. A GitHub marketplace is a shallow git clone of the whole repo (`source: "./"`), so `tools/` is there, and it is refreshed in place on update (`superpowers-marketplace`: folder born 10/10, `.git` updated 15/10). On a fresh clone, `bun install` left `git status` clean (`node_modules` ignored, `bun.lock` unchanged) and `remote --help` ran. Unconfirmed: that the folder is named from `marketplace.json`'s `name` (`syafiqkit`) rather than the repo |
 | Suites renamed `*.test.ts` to `*.spec.ts` | `claude plugin test .` ran them as mod tests and failed on `bun:test` imports; bun still picks up `.spec.ts` (57 pass) |
 | Config stays in `~/.config/remote-cli` | The repo is public; `servers.json` holds hosts, users and paths |
 
@@ -42,6 +43,7 @@ The tool was Syafiq's own; moving it into the plugin made it public and reachabl
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | Upload with `appPath: "~/app"` and `--to` creates a literal `~` folder | `mkdir -p "~/app/sub"` inside double quotes does not expand `~` | `buildMkdirChain` swaps a leading `~` for `$HOME` after validation (dry run now shows `mkdir -p "$HOME/app/sub"`) |
+| The `~/.local/bin/remote` link points at the wrong folder | Setup step 2 uses `$PWD`, so it only works in the same shell straight after step 1's `cd` | Run the two steps together, or link with the full path |
 | `remote --edit` fails without VS Code, or with `EDITOR="code -w"` | Defaulted to `code` and spawned without a shell | `VISUAL`, then `EDITOR`, then `vi`, through a shell, after creating the config folder |
 
 ---
