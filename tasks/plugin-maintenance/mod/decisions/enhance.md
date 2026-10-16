@@ -1,6 +1,6 @@
 # Enhance button: evidence, decisions and measurements
 
-Theme file for row 29 of `../current.md`. Built 2026-10-16 across 1.400.0 to 1.405.1 (one consolidated CHANGELOG entry, 1.405.1, unshipped).
+Theme file for row 29 of `../current.md`. Built 2026-10-16 across 1.400.0 to 1.405.1 (one consolidated CHANGELOG entry, 1.405.2, shipped to master 2026-10-16 in 1.405.3).
 
 ## What it is {#what}
 

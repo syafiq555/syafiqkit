@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔨 Built through 1.405.2 (Enhance button, band beside an open pane; unshipped, uncommitted); 1.399.0 on master (2026-10-15). 104 kit tests pass. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
+Status: 🔨 Built through 1.405.2 (Enhance button, band beside an open pane); shipped to master in 1.405.3 (fad768c, 2026-10-16) before its live checks, by the user's call. 104 kit tests pass. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
 Domain: plugin-maintenance/mod
 Gotchas (critical; full list in ## Gotchas below):
   - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
@@ -18,7 +18,7 @@ Last updated: 2026-10-16 (Enhance button, decisions/enhance.md; band beside an o
 **Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, session handoffs and an Enhance button that rewrites the draft prompt after a headless haiku read-summary run. Source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `prompt`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
 
 **Immediate next actions (in order)**:
-1. Commit and ship 1.405.2 (Enhance and the band beside an open pane) once the two live checks at the top of § Next Steps → Verify pass in a Desktop **New** session and a terminal session (`/sk` reads `mod v1.405.2`).
+1. Run the two live checks at the top of § Next Steps → Verify in a Desktop **New** session and a terminal session (`/sk` reads `mod v1.405.3`). 1.405.2 is already on master (shipped 2026-10-16 ahead of these checks), so a fix found there ships as a new version.
 2. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify; a fix found there ships as a new version.
 
 | Read | When |
@@ -195,7 +195,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 **Decide**
 - [x] Handoff after Done: an aborted turn saves anyway; a turn that ends on a question waits for the one that finishes (user, 2026-10-10)
-- [x] Commit as three commits by version (1.373.0 is the other session's `uiux` work); ship after the live checks above
+- [x] Commit as three commits by version (1.373.0 is the other session's `uiux` work); ship after the live checks above. 2026-10-16: the user chose to ship 1.405.2 and 1.405.3 before the live checks (commits b287c9d, e1e0385, d948fad, fad768c)
 
 **Later**
 - [ ] Colourer rough edges (row 22), from review: an apostrophe in Vue/HTML text or YAML/shell prose opens a string to the end of the line; a multi-line string or Python docstring is coloured only on its first and last lines; a regex literal holding a quote swallows the rest of the line; a comment or keyword inside the changed-word mark is low contrast (comment grey on `addedWord` is about 1.7:1)
@@ -225,4 +225,4 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ## Last Session (2026-10-16)
 
-The user brought a friend's "Enhance prompt" mod idea and asked for haiku research; the build went through nine versions in one sitting, each tried live in Desktop or iTerm (row 29, `decisions/enhance.md` for every call and measurement). `/done` review found Cancel and the timeout blocked on a silent child, edits still allowed in the headless run, no secret rule on facts, the `~/.local/bin` fallback unreachable, a ticker never cancelled (`$.clock.every` returns `{ cancel }`) and a frozen row beside an open pane; all fixed in 1.405.2 with 4 new tests. Mid-`/done` the user reported Enhance stopping when another message arrived: the `prompt.submit` hook cancelled on any submit, now only on the draft itself. A parallel session (syafiqkit-f1) built row 30, the band beside an open pane, in `band.js` under an explicit hand-over; its `/done` review found band presses re-running `openPane` on the already-open pane (a second `$.ui.open`, picks and filter wiped) and a frozen `Changes (N)`, both fixed with 2 tests. The same session moved the mod's rules from the root `CLAUDE.md` into `hooks/CLAUDE.md`. The CHANGELOG carries both as one unshipped 1.405.2 entry. Nothing is committed.
+The user brought a friend's "Enhance prompt" mod idea and asked for haiku research; the build went through nine versions in one sitting, each tried live in Desktop or iTerm (row 29, `decisions/enhance.md` for every call and measurement). `/done` review found Cancel and the timeout blocked on a silent child, edits still allowed in the headless run, no secret rule on facts, the `~/.local/bin` fallback unreachable, a ticker never cancelled (`$.clock.every` returns `{ cancel }`) and a frozen row beside an open pane; all fixed in 1.405.2 with 4 new tests. Mid-`/done` the user reported Enhance stopping when another message arrived: the `prompt.submit` hook cancelled on any submit, now only on the draft itself. A parallel session (syafiqkit-f1) built row 30, the band beside an open pane, in `band.js` under an explicit hand-over; its `/done` review found band presses re-running `openPane` on the already-open pane (a second `$.ui.open`, picks and filter wiped) and a frozen `Changes (N)`, both fixed with 2 tests. The same session moved the mod's rules from the root `CLAUDE.md` into `hooks/CLAUDE.md`. The CHANGELOG carries both as one 1.405.2 entry, shipped to master the same day with 1.405.3 before the live checks.
