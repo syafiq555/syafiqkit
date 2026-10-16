@@ -148,13 +148,16 @@ const openInViewer = async ($, path) => {
   }
 }
 
-const openImages = async ($) => {
+const openImages = async ($, fromBand = false) => {
+  const wasOpen = fromBand && state.isOpen
+  if (wasOpen && state.view === 'images') return
   try {
     stopWatch()
     state.view = 'images'
     state.current = null
     state.isOpen = true
     redrawPane($)
+    if (wasOpen) return
     await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
   } catch {
     state.isOpen = false

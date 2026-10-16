@@ -74,6 +74,7 @@ const state = {
   changeFocus: '',
   wide: false,
   discard: null,
+  enhance: { phase: 'idle', original: '', filled: '', docs: [], pending: '', abort: null, stage: '' },
 }
 
 let queue = []

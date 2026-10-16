@@ -1,25 +1,25 @@
 <!--LLM-CONTEXT
-Status: 🔨 Built through 1.398.3; 1.396.3 to 1.398.3 shipped in 1.399.0 on master (2026-10-15). 91 kit tests pass. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
+Status: 🔨 Built through 1.405.2 (Enhance button, band beside an open pane; unshipped, uncommitted); 1.399.0 on master (2026-10-15). 104 kit tests pass. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
 Domain: plugin-maintenance/mod
 Gotchas (critical; full list in ## Gotchas below):
   - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
-  - A reload does not swap a running mod; only a new session loads a changed one
+  - A reload swaps the mod only when it reports "re-read from its folder" (directory source, measured 2026-10-16); otherwise only a new session loads a changed one
   - Older Claude Code versions are unverified against a `modules` key sharing `hooks.json` with the ruleset hook
 Related:
   - ../project-docs/current.md (ESSENTIALS entry `{#mod-one-file}` extracts The Mod)
   - ../output-style-hook/current.md (shares `hooks/hooks.json`)
-Last updated: 2026-10-15 (split into decisions/: builds, design calls, live checks, session history)
+Last updated: 2026-10-16 (Enhance button, decisions/enhance.md; band beside an open pane)
 -->
 
 # Plugin Maintenance: The Mod
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and session handoffs. Source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
+**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, session handoffs and an Enhance button that rewrites the draft prompt after a headless haiku read-summary run. Source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `prompt`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
 
 **Immediate next actions (in order)**:
-1. Start a new Desktop **New** session and a new terminal session (a reload does not swap the mod), confirm `/sk` reads `mod v1.399.0`, then run the newest checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield).
-2. Work down the rest of `decisions/live-checks.md` and § Next Steps → Verify; a fix found there ships as a new version.
+1. Commit and ship 1.405.2 (Enhance and the band beside an open pane) once the two live checks at the top of § Next Steps → Verify pass in a Desktop **New** session and a terminal session (`/sk` reads `mod v1.405.2`).
+2. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify; a fix found there ships as a new version.
 
 | Read | When |
 |------|------|
@@ -27,6 +27,7 @@ Last updated: 2026-10-15 (split into decisions/: builds, design calls, live chec
 | `decisions/design-calls.md` | Why something is built the way it is, and which calls were the user's |
 | `decisions/live-checks.md` | The step-by-step check for a build, and what the close-frame and reload investigations measured |
 | `decisions/session-history.md` | Earlier sessions' user decisions and measurements |
+| `decisions/enhance.md` | The Enhance button: research evidence, the study of 3,908 past prompts behind its rewrite rules, the user's calls, headless-run measurements |
 
 **Key facts for cold start**:
 - Tests: `claude plugin test .` from the repo root (`hooks/register.test.ts`); validate: `claude plugin validate .` (`--strict` fails on three standing warnings, so judge by the plain run).
@@ -49,7 +50,7 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
 
 | Piece | What it does | Notes |
 |-------|--------------|-------|
-| Band above the prompt | Menu, Docs, `Changes (N)`, `Images (N)` (only when the gallery has images), Commit, Done, Hand off; a handoff row with Resume and Dismiss | Hidden while the pane is open; shows a send bar when items are picked. The Changes count excludes untracked files (cheap `-uno` status every 5 s); the pane lists them |
+| Band above the prompt | Menu, Enhance, Docs, `Changes (N)`, `Images (N)` (only when the gallery has images), Commit, Done, Hand off; a handoff row with Resume and Dismiss; an Enhance row while a run is going or done | Stays drawn beside an open pane but drops its hotkeys then, because the pane owns `c`, `d`, `g`; `redrawBandAfterClose` brings them back after close (1.405.0; replaces the 2026-10-12 Desktop-only variant, reverted over the same key clash). "N selected / Send to Claude" is its own row (key `selected-row`). The Changes count excludes untracked files (cheap `-uno` status every 5 s); the pane lists them |
 | Pane views | `menu`, `list`, `doc`, `decision`, `confirm`, `handoff`, `changes`, `change-file`, `change-all`, `discard`, `images` | One pane id (`doc-pane`), state in module variables |
 | Changes pane | From 100 body columns: left a fixed-width tree (Staged first, Changes second; chevron collapses, title or folder name selects) under one toolbar, right the diffs of everything, Changes first | Below 100 columns the tree is a list, a file press opens its own page, and `All changes` is a separate screen with no toolbar. Status is re-read every 2 s, never overlapping (`state.polling`); `git diff HEAD --numstat --no-renames -z` is appended to the signature so a re-edit of a modified file redraws and doubles as the per-file diff cache key (`state.allSig`). Every open file covered by the focus is read, with no cap, one git call at a time through the serial `gitRun` queue (15 s timeout each). A finished read is stored even when a newer load overtakes it. Pages draw only about two screens around the scroll position (`windowedRows`, `state.allScroll` from the `ui.scroll` hook). Files over 400 lines end in `… N more lines · show` |
 | Repos | `git/repos.js`: the session folder's repo plus subfolders one level down holding `.git` (skipping `node_modules`, `vendor`, dot folders), each normalised through `rev-parse --show-toplevel`; `Add repo` takes any path (`~/` works); `✕` hides, `N hidden · show` restores | Shown only when more than one repo is visible: one header per repo with its change count, and only the active repo's tree opens under its header (press another to switch, press the active one to fold). `state.changes` is always the ACTIVE repo's data; other repos' counts come from `-unormal` status every 10 s. Added and hidden state lives in module variables for the session only |
@@ -60,6 +61,7 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
   - `All` stops drawing when the page is full, and each picture left over gets a "press to show it alone" button. The `show_image` description and return string say which pictures will not draw |
 | Commands | `/sk` opens the menu, `/task-docs` the list, `/changes` the source-control view | Registered with `immediate: true`, so no model turn; all return `{}` |
 | Handoff record | `<id>.json` per save under `~/.claude/handoffs/<hash of cwd>/`, with a `<id>.state` marker file (`claimed:<nonce>`, `dismissed`, `superseded`, `open`) | chmod 700 dir, 600 files, best effort; expires after 24 hours |
+| Enhance | `prompt/enhance.js`: `$.prompt.read` → headless `claude -p --model haiku --permission-mode auto --disallowedTools Edit,Write,NotebookEdit --output-format stream-json --verbose` via `$.process.spawn` running `/syafiqkit:read-summary` → JSON → `$.prompt.fill`; fallback is two `$.model.complete` haiku calls (catalogue, then digest) marked `quick read` | `state.enhance.phase`: `idle`, `running`, `ready` (draft typed into meanwhile; Use it / Discard), `done` (Undo until the box changes). Each pull of the stream races a 300 ms watcher so Cancel and the 3-minute stop don't wait on output. Only a submit whose text is the draft, the filled text or the pending text ends a run. Spinner on `$.clock.every` (160 ms, skipped while a pane is open); its handle is `{ cancel }`. Evidence and calls: `decisions/enhance.md` |
 | Diagram cache | `~/.claude/doc-pane-cache/<hash>.png`, valid once `<hash>.ok` exists | PNG rendered by a pinned `@mermaid-js/mermaid-cli@12.0.0` through `npx`, read back with `$.fs.read({ as: 'bytes' })` |
 
 ---
@@ -71,12 +73,14 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
   - `docs/`: discovery, markdown, images, diagrams, reader, gallery.
   - `git/`: status parse and tree, diff parse with word marks, `syntax.js` (the diff colourer), actions, repos, controller.
   - `handoff/`: capture, store.
+  - `prompt/`: `enhance.js` (the Enhance button: prompts, catalogue, headless stream, quick fallback, band row).
   - `views/`: band, pane (the tree checks and `refusedView`), pane-context, menu, list, doc, actions, changes (terminal, with `terminalDiffItems`/`allDiffItems`), images, plus `ui.js` (Desktop parts: chip, strip, meter, pageBar, mapBlock, `hoverScope`) and `desktop.js` (Desktop pages and `windowedRows`).
   - `mod.js`: the `register` wiring, always last.
 - `hooks/build.sh` — joins `src/` into `hooks/register.js` (`--check` fails when stale; `.githooks/pre-commit` runs it). `register.js` is generated: edit `src/`, never the bundle
 - `hooks/register.test.ts` — kit tests for commands, band, menu, confirm, handoff save/resume, /clear, off switch, decisions, reopen
 - `hooks/hooks.json` — `modules: ["./register.js"]` beside the ruleset `hooks`
-- `docs/ARCHITECTURE.md` §8 — host-API traps; `docs/ARCHITECTURE-ESSENTIALS.md` `{#mod-one-file}`; `CLAUDE.md` §The Mod
+- `hooks/CLAUDE.md`: the mod's rules, host traps, debugging and what it runs (moved out of the root `CLAUDE.md` 2026-10-16; read it before mod work, since its automatic load on reading a `hooks/` file is unverified)
+- `docs/ARCHITECTURE.md` §8: host-API traps; `docs/ARCHITECTURE-ESSENTIALS.md` `{#mod-one-file}`
 
 ---
 
@@ -114,6 +118,8 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 | 26 | Terminal `/task-docs` open items (1.396.3 to 1.397.3) | ✅ hover group seen in 1.397.1; ⏳ rest unseen |
 | 27 | Narrow panes: toolbars wrap (1.398.2) | ✅ built; ⏳ unseen live |
 | 28 | Narrow lists (1.398.3) | ✅ built; ⏳ unseen live |
+| 29 | Enhance button (1.400.0 to 1.405.2) | ✅ built; headless run, live steps, Desktop row and short prompts seen in Desktop 2026-10-16; ⏳ fixes after the /done review unseen |
+| 30 | Band beside an open pane, hotkeys off while open (1.405.0); a band press switches the pane's view in place with no second `$.ui.open`, a press on the view already showing does nothing, and `Changes (N)` keeps counting beside non-Changes views | ✅ built; ⏳ unseen live |
 
 ---
 
@@ -154,6 +160,8 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 ## Next Steps
 
 **Verify**
+- [ ] Band beside the pane (row 30), in a Desktop **New** session without `/reload-plugins`: open `/changes`, check the band stays beside the pane and pressing `c` acts on the pane, not Commit; close with ✕, `< Close` and Esc, and after each check Commit's `c` works again. Then pick items in a task doc and press the band's Docs, then Changes: the view switches without the pane flashing or refocusing oddly, and pressing Docs on the Docs list keeps its filter. The blank expanded frame after close is Desktop's own bug (it stayed blank with no mod redraw, 2026-10-12); no code change for it.
+- [ ] Enhance (row 29) after the review fixes: press Cancel during a long silent step (a sub-agent) and run `ps aux | grep "claude -p"` to see the child is gone; send another message (or let a task notification arrive) mid-run and see it keep going; press Enhance with a pane open and see the row update; check Undo survives the fill (whether the host fires `prompt.edit` for the mod's own `$.prompt.fill` is unmeasured).
 - [ ] Rows 27 and 28 live at ~40 columns, Desktop and terminal (`decisions/live-checks.md` item 00000). Whether a Desktop Pane render carries `bodyColumns` is unmeasured; logging `e.props.bodyColumns` once from a Desktop session would say whether Desktop could use the terminal's width switch. Left as polish: the Desktop gallery strip's buttons can squeeze the image name to nothing; terminal menu hints truncate to fragments. From the 1.399.0 release review, unmeasured: `windowedRows` gets a fixed `topRows` (3 for the single-file page, `LIST_TOP_ROWS` for the list) while the toolbar above it can now wrap to 2 rows at ~40 columns, so spacers or a pinned header may land 1 to 2 rows off; Desktop open items are a Button around a dim Text, and Text inside a Button loses its colour, so the dim on unpicked items may vanish.
 - [ ] 1.397.3 (row 26) in a new terminal session: the five checks in `decisions/live-checks.md` item 0000. A true full-item highlight for keyboard focus is not possible (the host lights one line); if the extra Tab stops (one per row, 3 per long item) annoy, drop the clickable continuation rows. The doc-list gauge mixes units (small docs show KB against the 40 KB limit, measured docs show lines against 300) and drops the old size figure for measured docs.
 - [ ] Syntax colours (row 22) live in a Desktop New session and in iTerm2: rows look like the native panel; a tall window on a long dense file stays drawn (the kit measured a 200-line dense PHP page under the 95k warning at its default 60-row window only); light theme (colours are fixed for dark; on a light terminal the yellow type and grey comment colours on a light row may be hard to read)
@@ -215,8 +223,6 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ---
 
-## Last Session (2026-10-15)
+## Last Session (2026-10-16)
 
-The user sent a Desktop screenshot of the doc reader at about 40 columns with the toolbar clipped after "Hand" and asked to check other places too. Built 1.398.2 (row 27). `/done` review: the code reviewer found the handoff row's wrap would make the terminal band taller while its truncating text already kept Resume visible (wrap removed there), and the missed single-file diff toolbar (added); the product reviewer's wider list of fixed-width rows became 1.398.3 (row 28).
-
-Later the same day the 1.399.0 release review clipped the narrow `/changes` caption (row 28) and recorded two unmeasured risks in Next Steps; then this doc was split, moving Task Status, Key Technical Decisions, the long Quick Start checks and the earlier Last Session blocks word for word into `decisions/`.
+The user brought a friend's "Enhance prompt" mod idea and asked for haiku research; the build went through nine versions in one sitting, each tried live in Desktop or iTerm (row 29, `decisions/enhance.md` for every call and measurement). `/done` review found Cancel and the timeout blocked on a silent child, edits still allowed in the headless run, no secret rule on facts, the `~/.local/bin` fallback unreachable, a ticker never cancelled (`$.clock.every` returns `{ cancel }`) and a frozen row beside an open pane; all fixed in 1.405.2 with 4 new tests. Mid-`/done` the user reported Enhance stopping when another message arrived: the `prompt.submit` hook cancelled on any submit, now only on the draft itself. A parallel session (syafiqkit-f1) built row 30, the band beside an open pane, in `band.js` under an explicit hand-over; its `/done` review found band presses re-running `openPane` on the already-open pane (a second `$.ui.open`, picks and filter wiped) and a frozen `Changes (N)`, both fixed with 2 tests. The same session moved the mod's rules from the root `CLAUDE.md` into `hooks/CLAUDE.md`. The CHANGELOG carries both as one unshipped 1.405.2 entry. Nothing is committed.

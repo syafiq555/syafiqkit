@@ -1,4 +1,6 @@
-const openPane = async ($, view) => {
+const openPane = async ($, view, fromBand = false) => {
+  const wasOpen = fromBand && state.isOpen
+  if (wasOpen && state.view === view && view !== 'confirm') return
   stopWatch()
   state.view = view
   state.current = null
@@ -27,7 +29,8 @@ const openPane = async ($, view) => {
     state.reopen = null
     if (fresh) await loadDoc($, fresh)
   }
-  await openPaneWindow($, view)
+  if (wasOpen) $.ui.invalidate('ui.render')
+  else await openPaneWindow($, view)
 }
 
 const verbOf = (label) => VERBS.find((item) => item.label === label)
@@ -42,7 +45,7 @@ const confirmVerb = ($, label) => {
   state.confirm = { title: verb.label, text: verb.text, effect: verb.effect, offerHandoff: true }
   state.alsoHandoff = false
   state.handoffNext = ''
-  return openPane($, 'confirm')
+  return openPane($, 'confirm', true)
 }
 
 const runHandoff = async ($, next) => {

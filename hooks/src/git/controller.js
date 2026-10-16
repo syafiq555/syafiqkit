@@ -16,7 +16,7 @@ const loadChanges = async ($) => {
 }
 
 const countChanges = async ($) => {
-  if (state.disabled || state.isOpen) return
+  if (state.disabled || (state.isOpen && CHANGE_VIEWS.has(state.view))) return
   if (!state.cwd) state.cwd = await $.session.cwd()
   const next = await readStatus($, state.cwd, false)
   if (next.entries.length === state.changeCount) return
@@ -252,9 +252,11 @@ const enterChanges = async ($) => {
   watchChanges($)
 }
 
-const openChanges = async ($) => {
+const openChanges = async ($, fromBand = false) => {
+  const wasOpen = fromBand && state.isOpen
+  if (wasOpen && CHANGE_VIEWS.has(state.view)) return
   state.isOpen = true
-  await openPaneWindow($, 'changes')
+  if (!wasOpen) await openPaneWindow($, 'changes')
   await enterChanges($)
 }
 

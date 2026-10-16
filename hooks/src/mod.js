@@ -55,6 +55,20 @@ export function register(on) {
 
   on('ui.render', { component: 'AbovePrompt' }, bandView)
 
+  on('prompt.edit', ($, e, next) => {
+    dropEnhanceOnEdit($)
+    return next(e)
+  })
+
+  on('prompt.submit', ($, e, next) => {
+    if (enhanceOwnsSubmit(e.text)) {
+      if (state.enhance.abort) state.enhance.abort.abort()
+      resetEnhance()
+      redrawBand($)
+    }
+    return next(e)
+  })
+
   on('turn.start', (_$, e, next) => {
     if (state.pendingHandoff && !e.agentId) state.pendingHandoff.armed = true
     return next(e)

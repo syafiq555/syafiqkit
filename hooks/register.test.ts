@@ -41,7 +41,7 @@ const stubSession = (on: any, sent: string[], opened: string[], names: string[] 
     return { value: { isPlaced: true } }
   })
   on('ui.close', () => ({ value: undefined }))
-  on('ui.toast', () => ({ value: undefined }))
+  if (!skip.includes('ui.toast')) on('ui.toast', () => ({ value: undefined }))
   on('prompt.submit', (_$: any, e: any) => {
     sent.push(e.text)
     return { text: e.text }
@@ -89,7 +89,59 @@ test('the band offers the menu and the docs while the pane is closed', async ($,
   expect(await ui.find({ key: 'band-commit' })).toBeDefined()
   expect(await ui.find({ key: 'band-wrap' })).toBeDefined()
   expect(await ui.find({ key: 'band-handoff' })).toBeDefined()
+  expect((await ui.find({ key: 'open-menu' }))?.props.hotkey).toBe('m')
+  expect((await ui.findAll({ type: 'Text', text: /keys go to the pane/ })).length).toBe(0)
   await ui.unmount()
+})
+
+test('the band stays beside an open pane, without hotkeys so the pane keeps its letters', async ($, on) => {
+  stubSession(on, [], [])
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...BAND, surface })
+    for (const key of ['open-menu', 'open-docs', 'open-changes', 'band-commit', 'band-wrap', 'band-handoff']) {
+      const button = await ui.find({ key })
+      expect(button).toBeDefined()
+      expect(button?.props.hotkey).toBeUndefined()
+    }
+    expect((await ui.findAll({ type: 'Text', text: /keys go to the pane/ })).length).toBe(1)
+    await ui.unmount()
+  }
+})
+
+test('band presses beside an open pane switch the view in place, while a typed command still opens and focuses the pane', async ($, on) => {
+  const opened: string[] = []
+  stubSession(on, [], opened)
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  expect(opened.length).toBe(1)
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'open-docs' })
+  await band.press({ key: 'open-changes' })
+  await band.press({ key: 'open-menu' })
+  expect(opened.length).toBe(1)
+  await $.command.run({ command: 'task-docs', args: '' })
+  expect(opened.length).toBe(2)
+  await band.unmount()
+})
+
+test('the band hotkeys come back once the pane closes', async ($, on) => {
+  stubSession(on, [], [])
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', () => ({ value: { base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' } }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/a.png'] })
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'open-images' })
+  await band.unmount()
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.press({ key: 'img-close' })
+  await pane.unmount()
+  const after = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect((await after.find({ key: 'open-menu' }))?.props.hotkey).toBe('m')
+  await after.unmount()
 })
 
 test('the band yields to a survey, so a notice such as Heads up is never covered', async ($, on) => {
@@ -604,7 +656,7 @@ test('Copy puts the decision and the doc on the clipboard, falling back to pbcop
   runs.length = 0
   await ui.press({ key: 'dec-copy' })
   expect(copied).toEqual(['# Plan\nBecause.'])
-  expect(runs.length).toBe(0)
+  expect(runs.filter((run) => run.argv[0] !== 'git')).toEqual([])
   surfaceCopies = false
   await ui.press({ key: 'dec-back' })
   await ui.press({ key: 'copy' })
@@ -1928,4 +1980,280 @@ test('a narrow terminal list still names each CLAUDE.md by scope, now in the row
   expect(await ui.find({ type: 'Text', text: /this project/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /your global/ })).toBeDefined()
   await ui.unmount()
+})
+
+const DRAFT = 'fix the band hiding after the pane closes on desktop'
+
+const DOC_TEXT = '<!--\nStatus: 🔨 Built\n-->\n# The Mod\n\n**Where we are**: a band above the prompt and a pane.\n'
+const SKILL_TEXT = '---\nname: uiux\ndescription: >\n  Design judgement for UI work,\n  and research on real products.\n---\nbody'
+
+const stubEnhance = (
+  on: any,
+  box: { text: string },
+  toasts: string[],
+  reply: (box: { text: string }) => any,
+  digest: () => any = () => answered('{"facts": []}'),
+  headless: ((argv: string[]) => any) | null = null,
+) => {
+  const calls: any[] = []
+  const digests: any[] = []
+  const runs: string[][] = []
+  on('process.spawn', async function* (_$: any, e: any) {
+    runs.push(e.argv)
+    if (!headless) throw new Error('spawn ' + e.argv[0] + ' ENOENT')
+    for await (const event of headless(e.argv)) yield { stream: 'stdout', text: JSON.stringify(event) + '\n' }
+    return { value: { code: 0, signal: null } }
+  })
+  on('ui.toast', (_$: any, e: any) => {
+    toasts.push(e.text)
+    return { value: undefined }
+  })
+  stubSession(on, [], [], [], ['fs.list', 'ui.toast'])
+  stubTree(on, {
+    '/work/tasks': [{ name: 'mod', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false }],
+    '/work/tasks/mod': [{ name: 'current.md', kind: 'file', size: 60, mtimeMs: 999_000, isLink: false }],
+    '/work/tasks/mod/decisions': [{ name: 'builds.md', kind: 'file', size: 60, mtimeMs: 999_000, isLink: false }],
+    '/work/.claude/skills': [{ name: 'uiux', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false }],
+  })
+  on('fs.read', (_$: any, e: any) => ({ value: String(e.path).endsWith('SKILL.md') ? SKILL_TEXT : DOC_TEXT }))
+  on('prompt.read', () => ({ value: { text: box.text, cursor: box.text.length } }))
+  on('prompt.fill', (_$: any, e: any) => {
+    box.text = e.text
+    return { isFilled: true, text: e.text }
+  })
+  on('model.complete', (_$: any, e: any) => {
+    if (String(e.system).includes('"facts"')) {
+      digests.push(e)
+      return { value: digest() }
+    }
+    calls.push(e)
+    return { value: reply(box) }
+  })
+  stubRender(on)
+  return Object.assign(calls, { digests, runs })
+}
+
+const answered = (text: string) => ({
+  isAnswered: true,
+  text,
+  usage: { input_tokens: 10, output_tokens: 5, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+})
+
+const rewrite = (fields: Record<string, any>) => answered(JSON.stringify({ goal: '', docs: [], skills: [], scope: '', outOfScope: '', checkAgainst: '', doneWhen: '', open: [], ...fields }))
+
+test('enhance skips a short draft without calling the model', async ($, on) => {
+  const box = { text: 'fix it' }
+  const toasts: string[] = []
+  const calls = stubEnhance(on, box, toasts, () => rewrite({}))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.length).toBe(0)
+  expect(box.text).toBe('fix it')
+  expect(toasts.some((t) => /needs a few words/.test(t))).toBe(true)
+  await band.unmount()
+})
+
+test('enhance rewrites the draft with the doc, the skill, scope, proof and open points, and undo restores it', async ($, on) => {
+  const box = { text: DRAFT }
+  const calls = stubEnhance(on, box, [], () =>
+    rewrite({
+      goal: 'Fix: the band stays hidden after the pane closes on Desktop.',
+      docs: ['tasks/mod/current.md', 'tasks/invented/current.md'],
+      skills: [{ name: 'syafiqkit:uiux', why: 'check the band against the design.' }, { name: 'made-up', why: 'x' }],
+      scope: 'the band redraw after close only',
+      doneWhen: 'a screenshot of the band after closing the pane',
+      open: ['[Terminal, Desktop, or both?]'],
+    }),
+    () => answered('{"facts": ["The band is hidden while a pane is open; redrawBandAfterClose brings it back.", "A reload does not swap a running mod."]}'),
+  )
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.length).toBe(1)
+  expect(calls[0].model).toBe('haiku')
+  expect(String(calls[0].prompt)).toContain('tasks/mod/current.md | The Mod')
+  expect(String(calls[0].prompt)).toContain('a band above the prompt')
+  expect(String(calls[0].prompt)).toContain('uiux | Design judgement for UI work, and research on real products.')
+  expect(calls.digests.length).toBe(1)
+  expect(String(calls.digests[0].prompt)).toContain('=== tasks/mod/current.md\n<!--')
+  expect(String(calls.digests[0].prompt)).toContain('=== tasks/mod/decisions/builds.md\n')
+  expect(String(calls.digests[0].prompt)).toContain('=== The ask\nFix: the band stays hidden')
+  expect(box.text).toBe(
+    [
+      'Fix: the band stays hidden after the pane closes on Desktop.',
+      '',
+      'Context from tasks/mod/current.md:',
+      '- The band is hidden while a pane is open; redrawBandAfterClose brings it back.',
+      '- A reload does not swap a running mod.',
+      '',
+      'Use /uiux: check the band against the design.',
+      'Scope: the band redraw after close only',
+      'Done when: a screenshot of the band after closing the pane',
+      '',
+      'Open:',
+      '- [Terminal, Desktop, or both?]',
+    ].join('\n'),
+  )
+  expect((await band.findAll({ type: 'Text', text: /mod · \/uiux/ })).length).toBe(1)
+  await band.press({ key: 'enhance-undo' })
+  expect(box.text).toBe(DRAFT)
+  expect(await band.find({ key: 'enhance-undo' })).toBeFalsy()
+  await band.unmount()
+})
+
+test('enhance leaves the draft alone when nothing is added or the model fails', async ($, on) => {
+  const box = { text: DRAFT }
+  const toasts: string[] = []
+  let reply: any = rewrite({ goal: DRAFT })
+  stubEnhance(on, box, toasts, () => reply)
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(box.text).toBe(DRAFT)
+  expect(toasts.some((t) => /Nothing to add/.test(t))).toBe(true)
+  reply = { isAnswered: false, reason: 'api-error', status: 500, error: 'api_error', usage: answered('').usage }
+  await band.press({ key: 'band-enhance' })
+  expect(box.text).toBe(DRAFT)
+  expect(toasts.some((t) => /failed/.test(t))).toBe(true)
+  reply = answered('not json at all')
+  await band.press({ key: 'band-enhance' })
+  expect(box.text).toBe(DRAFT)
+  expect(await band.find({ key: 'enhance-undo' })).toBeFalsy()
+  await band.unmount()
+})
+
+test('enhance does not overwrite a draft typed into while it ran', async ($, on) => {
+  const box = { text: DRAFT }
+  stubEnhance(on, box, [], (current) => {
+    current.text = DRAFT + ' and the gallery'
+    return rewrite({ goal: 'Rewritten.' })
+  })
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(box.text).toBe(DRAFT + ' and the gallery')
+  expect(await band.find({ key: 'enhance-use' })).toBeTruthy()
+  await band.press({ key: 'enhance-use' })
+  expect(box.text).toBe('Rewritten.')
+  await band.press({ key: 'enhance-undo' })
+  expect(box.text).toBe(DRAFT + ' and the gallery')
+  await band.unmount()
+})
+
+test('enhance accepts a picked doc written as an absolute path, a ./ path or the folder name', async ($, on) => {
+  const box = { text: DRAFT }
+  let written = ''
+  stubEnhance(on, box, [], () => rewrite({ docs: [written] }))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  for (const form of ['/work/tasks/mod/current.md', './tasks/mod/current.md', 'mod', 'tasks/mod']) {
+    written = form
+    box.text = DRAFT
+    await band.press({ key: 'band-enhance' })
+    expect(box.text).toBe(DRAFT + '\n\nStart with /syafiqkit:read-summary on tasks/mod/current.md.')
+  }
+  await band.unmount()
+})
+
+test('enhance runs read-summary in a headless haiku claude and fills its rewrite, with no model call of its own', async ($, on) => {
+  const box = { text: DRAFT }
+  const result = JSON.stringify({
+    goal: 'Fix the band hiding when the pane closes.',
+    docs: ['tasks/mod/current.md', '/work/tasks/mod/decisions/live-checks.md'],
+    skills: [{ name: 'plugin-authoring', why: 'mod edits go through it' }, { name: 'syafiqkit:read-summary', why: 'x' }],
+    scope: '',
+    outOfScope: 'The blank Desktop frame after close.',
+    checkAgainst: '',
+    doneWhen: '',
+    open: [],
+    facts: ['live-checks.md item 000: 1.396.2 brought the band back after close.'],
+  })
+  const calls = stubEnhance(on, box, [], () => rewrite({}), undefined, () => [
+    { type: 'system', subtype: 'init' },
+    { type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Skill', input: { skill: 'syafiqkit:read-summary' } }] } },
+    { type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Read', input: { file_path: '/work/tasks/mod/current.md' } }] } },
+    { type: 'result', is_error: false, result },
+  ])
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.length).toBe(0)
+  expect(calls.runs.length).toBe(1)
+  const argv = calls.runs[0]
+  expect(argv[0]).toBe('claude')
+  expect(argv.slice(1, 11)).toEqual([
+    '-p',
+    '--model',
+    'haiku',
+    '--permission-mode',
+    'auto',
+    '--disallowedTools',
+    'Edit,Write,NotebookEdit',
+    '--output-format',
+    'stream-json',
+    '--verbose',
+  ])
+  expect(argv[11]).toContain('Run /syafiqkit:read-summary')
+  expect(argv[11]).toContain(DRAFT)
+  expect(box.text).toBe(
+    [
+      'Fix the band hiding when the pane closes.',
+      '',
+      'Context from tasks/mod/current.md and tasks/mod/decisions/live-checks.md:',
+      '- live-checks.md item 000: 1.396.2 brought the band back after close.',
+      '',
+      'Use /plugin-authoring: mod edits go through it.',
+      'Out of scope: The blank Desktop frame after close.',
+    ].join('\n'),
+  )
+  await band.unmount()
+})
+
+test('enhance falls back to the quick read when the headless run reports an error', async ($, on) => {
+  const box = { text: DRAFT }
+  const calls = stubEnhance(on, box, [], () => rewrite({ goal: 'Quick rewrite.' }), undefined, () => [
+    { type: 'result', is_error: true, result: 'Failed to authenticate' },
+  ])
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(1)
+  expect(calls.length).toBe(1)
+  expect(box.text).toBe('Quick rewrite.')
+  await band.unmount()
+})
+
+test('enhance refuses a prompt it already enhanced, and marks a quick-read result', async ($, on) => {
+  const box = { text: DRAFT + '\n\nContext from tasks/mod/current.md:\n- a fact' }
+  const toasts: string[] = []
+  const calls = stubEnhance(on, box, toasts, () => rewrite({ goal: 'Quick rewrite.', docs: ['tasks/mod/current.md'] }))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.length).toBe(0)
+  expect(toasts.some((t) => /already enhanced/.test(t))).toBe(true)
+  box.text = DRAFT
+  await band.press({ key: 'band-enhance' })
+  expect(box.text).toBe('Quick rewrite.\n\nStart with /syafiqkit:read-summary on tasks/mod/current.md.')
+  expect((await band.findAll({ type: 'Text', text: /quick read · mod/ })).length).toBe(1)
+  await band.unmount()
+})
+
+test('enhance writes a plain Context header when the facts name no doc file', async ($, on) => {
+  const box = { text: DRAFT }
+  stubEnhance(on, box, [], () => rewrite({}), undefined, () => [
+    { type: 'result', is_error: false, result: JSON.stringify({ goal: 'Fix it.', docs: ['/elsewhere/CLAUDE.md'], facts: ['a fact'] }) },
+  ])
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(box.text).toBe('Fix it.\n\nContext:\n- a fact\n')
+  await band.unmount()
+})
+
+test('a prompt sent by someone else keeps Undo; sending the enhanced prompt itself clears it', async ($, on) => {
+  const box = { text: DRAFT }
+  stubEnhance(on, box, [], () => rewrite({ goal: 'Rewritten.' }))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(box.text).toBe('Rewritten.')
+  await $.prompt.submit({ text: 'Use the done skill to wrap up this session.' })
+  await band.rerender?.()
+  expect(await band.find({ key: 'enhance-undo' })).toBeTruthy()
+  await $.prompt.submit({ text: 'Rewritten.' })
+  await band.rerender?.()
+  expect(await band.find({ key: 'enhance-undo' })).toBeFalsy()
+  await band.unmount()
 })

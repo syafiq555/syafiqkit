@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.405.2
+
+**New Enhance button on the band: turn a rough prompt into one that starts Claude already informed.**
+- Type your prompt (a few words is enough, even `what to do now ?`), then press Enhance (or `e`). Nothing is sent: the box is rewritten for you to check, edit and send, and Undo puts your original back.
+- Behind the button, a separate `claude -p` on haiku runs the real `/syafiqkit:read-summary` skill in your project: task docs and their decisions files, the `docs/` set, CLAUDE.md files and their pointers. Your prompt comes back as the ask in plain words, a `Context from` block of the 3 to 6 facts that bear on it (earlier fixes, decisions, gotchas, where the code lives), `Use /<skill>` for the skills that fit, and short Scope, Check against and Done when lines where the draft implies them. Up to three `[bracketed]` choices are left for you only when something is truly yours to decide.
+- It adds no features or scope you didn't ask for, and writes `<secret>` instead of copying a key.
+- While it runs, the band shows a spinner, the seconds so far, and what the run is doing in words (`reading mod task doc`, `$ git diff HEAD`). Cancel stops it, and it gives up by itself after 3 minutes. It keeps going when something else sends a message meanwhile (a background task finishing, another session, a plugin); only sending the draft itself ends it.
+- **Cost and reach:** about a minute and roughly US$0.07 of haiku per press. The background run uses auto permission mode, which lets safe actions through and blocks risky ones without asking. It can run read-only commands such as `git diff`, but file edits (Edit, Write) are switched off. It runs as you, so it sees your MCP servers and settings.
+- If `claude` can't be started or the run fails, Enhance falls back to a quicker two-call version, and the band marks the result `quick read`. The reason is logged in `~/.claude/doc-pane-cache/mod.log`.
+- The mod now reads and writes the prompt box (`$.prompt.read`, `$.prompt.fill`) and starts `claude` (from your PATH, else `~/.local/bin/claude`). `SYAFIQKIT_MOD=0` still turns the whole mod off.
+
+**The band stays visible while a pane is open.** Its keyboard shortcuts pause while the pane is open, because the pane uses the same letters (`c`, `d`, `g`), and a dim "keys go to the pane" says so. The "N selected / Send to Claude" bar is now its own row. A band button pressed while a pane is open switches the pane in place, and does nothing if that page is already showing, so your picks, filter and a half-typed handoff note stay. `Changes (N)` keeps counting while you read a doc.
+
+Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.399.0
 
 **New `/motion-clip`: make a short launch or promo video for any product.**
