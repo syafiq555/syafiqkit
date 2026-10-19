@@ -21,6 +21,7 @@ export async function paneView($, e, next) {
   state.stickyTop = null
   state.stickySection = null
   state.windowed = false
+  state.noTopFloat = false
   const tree = withFloats($, c, await paneTree($, c))
   const size = drawingSize(tree)
   if (state.desktop && size > DESKTOP_DRAW_LIMIT) {
@@ -35,7 +36,7 @@ export async function paneView($, e, next) {
 export function withFloats($, c, tree) {
   const scroll = c.e.props && c.e.props.scroll
   const offset = state.windowed ? state.windowAt : scroll ? scroll.offset : 0
-  state.topShown = offset > TOP_BUTTON_AFTER
+  state.topShown = !state.noTopFloat && offset > TOP_BUTTON_AFTER
   const pinned = state.desktop && offset >= STICKY_AFTER ? [state.stickyTop, state.stickySection].filter(Boolean) : []
   state.stickyShown = pinned.length > 0
   return c.Box({

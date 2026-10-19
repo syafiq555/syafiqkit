@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.406.2
+
+**Rendered task docs scroll smoothly in the terminal.**
+- The doc pane now draws only the rendered pages near where you are reading, instead of every page of the doc at once, so scrolling a long doc no longer stutters.
+- Scrolling a rendered doc no longer redraws the pane on every wheel tick. The floating ↑ Top button is gone from these pages; press `u` from anywhere in the doc to jump back to the top, or use the ↑ Top button at the end of the doc.
+- Text view (`t`), Desktop and the other pages are unchanged. Nothing to do beyond `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or a new session.
+
+## 1.406.1
+
+**The doc pane shows your machine-only companion files, and its CLAUDE.md list is easier to scan.**
+- Files in `.claude-companions/local/` (this project's and the global one in `~/.claude`) now appear under their own "this machine only" sections, so it's clear they are not shared with the team.
+- Each row now draws a bar only for a file at 80% of its limit or over (yellow when over), and those files sort first in their section. Everything else shows just its line count, dimmed.
+- Companion names drop the shared `CLAUDE-` and `.md`, and a name too long for the row is cut in the middle so its distinctive ending stays visible.
+- A file's age shows only if it changed in the last week; the Changed lately, search and over-limit lists still show every age.
+- `condense-claude-md` now holds a `CLAUDE.local.md` to the same 200-line, 40 KB target as `CLAUDE.md`, since it loads every session too, and suggests a short router file that points to `.claude-companions/local/` for the detail. `refresh-instructions` takes its size target from that skill instead of inventing a looser one.
+- Nothing to do beyond `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or a new session.
+
 ## 1.406.0
 
 **Promo videos check themselves, keep their colours, and can have a voice-over.**

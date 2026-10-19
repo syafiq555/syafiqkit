@@ -418,18 +418,55 @@ test('a long open item is cut into rows no wider than the pane on the terminal, 
   await desktop.unmount()
 })
 
-test('the terminal doc list draws a text gauge for each doc, the way Desktop draws a meter', async ($, on) => {
+test('the terminal doc list draws a text gauge only for docs near or over their limit', async ($, on) => {
   stubSession(on, [], [], [], ['fs.list'])
   stubTree(on, {
-    '/work/tasks': [dirEntry('a')],
+    '/work/tasks': [dirEntry('a'), dirEntry('b')],
     '/work/tasks/a': [fileEntry('current.md', 600)],
+    '/work/tasks/b': [fileEntry('current.md', 9000)],
   })
-  on('fs.read', () => ({ value: '# T\n- [ ] one' }))
+  on('fs.read', () => ({ value: '# T\n- [ ] one' + '\nline'.repeat(260) }))
   stubRender(on)
   await $.command.run({ command: 'task-docs', args: '' })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  expect((await ui.findAll({ type: 'Text', text: /^[█░]{6} / })).length).toBeGreaterThan(0)
+  const gauges = await ui.findAll({ type: 'Text', text: /^[█░]{6}$/ })
+  expect(gauges.length).toBeGreaterThan(0)
+  expect(gauges.length).toBe((await ui.findAll({ type: 'Text', text: /262\/300/ })).length)
+  expect(await ui.find({ type: 'Text', text: /0\.6 KB/ })).toBeDefined()
   await ui.unmount()
+})
+
+test('companion rows drop the shared CLAUDE- prefix and keep the end of a long name', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/.claude-companions/shared': [fileEntry('CLAUDE-frontend-troubleshooting-gotchas.md', 500)],
+  })
+  on('fs.read', () => ({ value: '# T' }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ text: /CLAUDE-frontend/ })).toBeUndefined()
+  expect(await ui.find({ text: /frontend-tr…ting-gotchas/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a companion section puts files over or near the limit first, and one over on bytes alone still gets a bar', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/.claude-companions/local': [fileEntry('aaa-small.md', 500), fileEntry('zzz-heavy.md', 45000)],
+  })
+  on('fs.read', () => ({ value: '# T\nline' }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  const names = (await ui.findAll({ type: 'Button', text: /aaa-small|zzz-heavy/ })).map((node: any) => String(node.props.label))
+  expect(names[0]).toContain('zzz-heavy')
+  expect((await ui.findAll({ type: 'Text', text: /^[█░]{6}$/ })).length).toBeGreaterThan(0)
+  await ui.unmount()
+  const search = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await search.input({ key: 'filter', text: 'small' })
+  expect(await search.find({ text: /local project companion/ })).toBeDefined()
+  await search.unmount()
 })
 
 test('SYAFIQKIT_MOD=0 turns the mod off: no commands and no band', async ($, on) => {
@@ -842,6 +879,7 @@ test('the CLAUDE.md chain lists nested files and companions, skips vendored fold
     '/work/api': [file('CLAUDE.md', 100)],
     '/work/node_modules': [file('CLAUDE.md', 100)],
     '/home/test/.claude/.claude-companions/shared': [file('CLAUDE-shell-gotchas.md', 9000), file('notes.txt', 10)],
+    '/work/.claude-companions/local': [file('ops-runbook.md', 500)],
   })
   on('fs.read', () => ({ value: '\n'.repeat(299) }))
   stubRender(on)
@@ -851,6 +889,8 @@ test('the CLAUDE.md chain lists nested files and companions, skips vendored fold
   expect(await ui.find({ key: 'fold-Nested · load when touched', text: /Nested · load when touched \(1\)/ })).toBeDefined()
   expect(await ui.find({ key: 'fold-Global companions · on demand', text: /Global companions · on demand \(1\)/ })).toBeDefined()
   expect(await ui.find({ key: 'fold-Project companions · on demand' })).toBeUndefined()
+  expect(await ui.find({ key: 'fold-Project local companions · this machine only', text: /Project local companions · this machine only \(1\)/ })).toBeDefined()
+  expect(await ui.find({ text: /ops-runbook/ })).toBeDefined()
   expect(await ui.find({ text: /api\/CLAUDE\.md/ })).toBeDefined()
   expect(await ui.find({ text: /node_modules/ })).toBeUndefined()
   expect(await ui.find({ text: /notes\.txt/ })).toBeUndefined()
@@ -1984,7 +2024,7 @@ test('under 60 columns the terminal doc list drops the age and gauge so the name
   stubRender(on)
   await $.command.run({ command: 'task-docs', args: '' })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, bodyColumns: 40 } })
-  expect((await ui.findAll({ type: 'Text', text: /^[█░]{6} / })).length).toBe(0)
+  expect((await ui.findAll({ type: 'Text', text: /^[█░]{6}$/ })).length).toBe(0)
   const name = await ui.find({ key: 'r0b' })
   expect(name).toBeDefined()
   expect(String(name?.props.label).length).toBeLessThanOrEqual(18)
@@ -2294,11 +2334,13 @@ test('a prompt sent by someone else keeps Undo; sending the enhanced prompt itse
 
 const TYPESET_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
 
-const openTypesetDoc = async ($: any, on: any, runs: string[][], hasTypst: boolean, bodyColumns = 100) => {
+const TYPESET_DOC = '# T\n\nSome **bold** text.\n\n| a | b |\n|---|---|\n| 1 | 2 |'
+
+const openTypesetDoc = async ($: any, on: any, runs: string[][], hasTypst: boolean, bodyColumns = 100, docText = TYPESET_DOC) => {
   stubSession(on, [], [], [], ['fs.list', 'env.get'])
   on('env.get', () => ({ value: '/Users/test' }))
   stubTree(on, { '/work/tasks': [dirEntry('a')], '/work/tasks/a': [fileEntry('current.md', 60)] })
-  on('fs.read', (_$: any, e: any) => ({ value: String(e.path).endsWith('.png') ? { base64: TYPESET_PNG } : '# T\n\nSome **bold** text.\n\n| a | b |\n|---|---|\n| 1 | 2 |' }))
+  on('fs.read', (_$: any, e: any) => ({ value: String(e.path).endsWith('.png') ? { base64: TYPESET_PNG } : docText }))
   on('fs.write', () => ({ value: undefined }))
   on('config.list', () => ({ value: [{ key: 'theme', label: 'Theme', value: 'dark' }] }))
   on('process.run', (_$: any, e: any) => {
@@ -2331,6 +2373,25 @@ test('with Typst installed, a doc renders as pictures from the bundled template,
   await ui.press({ key: 'view' })
   expect((await ui.findAll({ type: 'Image' })).length).toBe(0)
   await ui.unmount()
+})
+
+test('a long rendered doc draws only the pages near the scroll position, and scrolling it adds no floating Top button', async ($, on) => {
+  const runs: string[][] = []
+  const longDoc = Array.from({ length: 30 }, (_, index) => '## Part ' + index + '\n\nSome text for part ' + index + '.').join('\n\n')
+  const ui = await openTypesetDoc($, on, runs, true, 100, longDoc)
+  const atTop = await ui.findAll({ type: 'Image' })
+  expect(atTop.length).toBeGreaterThan(0)
+  expect(atTop.length).toBeLessThan(10)
+  expect(await ui.find({ key: 'm0p0' })).toBeDefined()
+  await ui.unmount()
+  const down = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, bodyColumns: 100, scroll: { offset: 1000, bodyRows: 30 } } })
+  const deep = await down.findAll({ type: 'Image' })
+  expect(deep.length).toBeGreaterThan(0)
+  expect(deep.length).toBeLessThan(10)
+  expect(await down.find({ key: 'm0p0' })).toBeUndefined()
+  expect(await down.find({ key: 'pane-top' })).toBeUndefined()
+  expect(await down.find({ key: 'top-end' })).toBeDefined()
+  await down.unmount()
 })
 
 test('without Typst the doc stays text and says how to get the rendered view', async ($, on) => {

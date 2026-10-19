@@ -1,4 +1,5 @@
-import { ITEM_CAP_ROWS, TYPESET_WIDTH_STEP } from '../core/constants.js'
+import { hostUiInvalidate, hostUiScroll } from '../core/api.js'
+import { ITEM_CAP_ROWS, PANE, TYPESET_WIDTH_STEP } from '../core/constants.js'
 import { CONDENSE_FILE_EFFECT, REFRESH_EFFECT, SHRINK_EFFECT, SPLIT_EFFECT, condenseFileRequest, isInstructionFile, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
 import { state } from '../core/state.js'
 import { copyDocFile, openInEditor } from '../docs/export.js'
@@ -8,11 +9,30 @@ import { typesetKeyOf, typesetSize, wantTypeset } from '../docs/typeset.js'
 import { send, stopWatch } from '../docs/reader.js'
 import { openDocDiff, returnFromDoc } from '../git/controller.js'
 import { paneColumns } from './changes.js'
+import { windowedRows } from './desktop.js'
 import { hoverScope, isDesktop, liveOnly, stickyTop } from './ui.js'
+
+const DOC_TOP_ROWS = 4
+
+function parsedDoc(text) {
+  if (!state.docParse || state.docParse.text !== text) state.docParse = { text, parts: segments(text), keys: {} }
+  return state.docParse
+}
+
+function typesetKeyAt(parsed, index, columns, look) {
+  const id = index + ':' + columns + ':' + look.mode + ':' + look.cell.width + 'x' + look.cell.height
+  if (!(id in parsed.keys)) parsed.keys[id] = typesetKeyOf(parsed.parts[index].text, columns, look)
+  return parsed.keys[id]
+}
+
+function wrappedRows(text, columns) {
+  return text.split('\n').reduce((sum, line) => sum + wrapWords(line, columns).length, 0)
+}
 
 export function docView($, c) {
   const { e, Box, Text, Button, Markdown, Image, goto, redraw, askFirst, openHandoff, openDecision } = c
-  const parts = segments(state.text)
+  const parsed = parsedDoc(state.text)
+  const parts = parsed.parts
   const openItems = parts.filter((part) => part.kind === 'item' && !part.done)
   const doneItems = parts.filter((part) => part.kind === 'item' && part.done)
   const sourceOf = (source, key) => Markdown({ key, text: '```mermaid\n' + source + '\n```' })
@@ -73,30 +93,45 @@ export function docView($, c) {
     })
   }
 
+  const entry = (height, node) => ({ height, node })
+
+  const pickableRows = (part) => {
+    const all = wrapWords(part.text, itemWidth)
+    if (all.length === 1) return 1
+    const capped = !state.expandItems && all.length > ITEM_CAP_ROWS
+    return (capped ? ITEM_CAP_ROWS + 1 : all.length) + 1
+  }
+
   const openBlock = []
   let lastSection = null
   const pickableItems = state.current.group === 'Task docs' ? openItems : []
   pickableItems.forEach((part, index) => {
     if (part.section !== lastSection) {
-      if (part.section) openBlock.push(Text({ key: 's' + index, bold: true, dimColor: true, children: part.section }))
+      if (part.section) openBlock.push(entry(1, Text({ key: 's' + index, bold: true, dimColor: true, children: part.section })))
       lastSection = part.section
     }
-    openBlock.push(pickable(part, 'o' + index))
+    openBlock.push(entry(pickableRows(part), pickable(part, 'o' + index)))
   })
 
   const doneBlock = doneItems.length
     ? [
-        Button({
-          key: 'done-toggle',
-          label: (state.showDone ? '▾' : '▸') + ' DONE (' + doneItems.length + ')',
-          plain: true,
-          onPress: () => {
-            state.showDone = !state.showDone
-            redraw()
-          },
-        }),
+        entry(
+          1,
+          Button({
+            key: 'done-toggle',
+            label: (state.showDone ? '▾' : '▸') + ' DONE (' + doneItems.length + ')',
+            plain: true,
+            onPress: () => {
+              state.showDone = !state.showDone
+              redraw()
+            },
+          }),
+        ),
         ...(state.showDone
-          ? doneItems.map((part, index) => Text({ key: 'x' + index, dimColor: true, children: '   [x] ' + part.text }))
+          ? doneItems.map((part, index) => {
+              const text = '   [x] ' + part.text
+              return entry(wrappedRows(text, columns), Text({ key: 'x' + index, dimColor: true, children: text }))
+            })
           : []),
       ]
     : []
@@ -105,35 +140,41 @@ export function docView($, c) {
   const decisionBytes = decisionFiles.reduce((sum, file) => sum + (file.size || 0), 0)
   const decisionsBlock = decisionFiles.length
     ? [
-        Button({
-          key: 'decisions-toggle',
-          label:
-            (state.showDecisions ? '▾' : '▸') +
-            ' DECISIONS (' +
-            decisionFiles.length +
-            (decisionFiles.length === 1 ? ' file, ' : ' files, ') +
-            kb(decisionBytes) +
-            ')',
-          plain: true,
-          onPress: () => {
-            state.showDecisions = !state.showDecisions
-            redraw()
-          },
-        }),
+        entry(
+          1,
+          Button({
+            key: 'decisions-toggle',
+            label:
+              (state.showDecisions ? '▾' : '▸') +
+              ' DECISIONS (' +
+              decisionFiles.length +
+              (decisionFiles.length === 1 ? ' file, ' : ' files, ') +
+              kb(decisionBytes) +
+              ')',
+            plain: true,
+            onPress: () => {
+              state.showDecisions = !state.showDecisions
+              redraw()
+            },
+          }),
+        ),
         ...(state.showDecisions
           ? decisionFiles.map((file, index) =>
-              Button({
-                key: 'dec' + index,
-                label:
-                  (isOversizedDecision(file) ? '   ⚠ ' : '     ') +
-                  file.name.replace(/\.md$/, '') +
-                  '  ' +
-                  kb(file.size) +
-                  (isOversizedDecision(file) ? ' (over 40 KB)' : '') +
-                  '  ›',
-                plain: true,
-                onPress: () => openDecision(index),
-              }),
+              entry(
+                1,
+                Button({
+                  key: 'dec' + index,
+                  label:
+                    (isOversizedDecision(file) ? '   ⚠ ' : '     ') +
+                    file.name.replace(/\.md$/, '') +
+                    '  ' +
+                    kb(file.size) +
+                    (isOversizedDecision(file) ? ' (over 40 KB)' : '') +
+                    '  ›',
+                  plain: true,
+                  onPress: () => openDecision(index),
+                }),
+              ),
             )
           : []),
       ]
@@ -142,75 +183,80 @@ export function docView($, c) {
   const pictureColumns = Math.max(20, Math.floor((columns - 2) / TYPESET_WIDTH_STEP) * TYPESET_WIDTH_STEP)
   const canTypeset = !isDesktop(e) && Boolean(Image) && state.typst !== ''
   const typesetting = canTypeset && !state.textView
-  if (typesetting) {
+  const keyAt = (index) => typesetKeyAt(parsed, index, pictureColumns, state.look)
+  if (typesetting && (!state.look || parts.some((part, index) => part.kind === 'md' && !state.typeset[keyAt(index)]))) {
     wantTypeset($, parts.filter((part) => part.kind === 'md').map((part) => part.text), pictureColumns, state.current.path).catch(() => {})
   }
+  const renderedAt = (index) => (typesetting && state.look ? state.typeset[keyAt(index)] : undefined)
+  const allPictures = typesetting && parts.every((part, index) => part.kind !== 'md' || (renderedAt(index) || {}).status === 'ready')
   const mdPart = (part, index) => {
-    const plain = Markdown({ key: 'm' + index, text: part.text })
-    if (!typesetting || !state.look) return plain
-    const entry = state.typeset[typesetKeyOf(part.text, pictureColumns, state.look)]
-    if (!entry || entry.status === 'rendering') return plain
-    if (entry.status === 'error') {
-      return Box({
-        key: 'm' + index,
-        flexDirection: 'column',
-        children: [Text({ dimColor: true, wrap: 'truncate-end', children: 'Rendered view failed: ' + entry.message }), Markdown({ key: 'mt' + index, text: part.text })],
-      })
+    const rendered = renderedAt(index)
+    const plainRows = () => wrappedRows(part.text, columns)
+    if (!rendered || rendered.status === 'rendering') return [entry(plainRows(), Markdown({ key: 'm' + index, text: part.text }))]
+    if (rendered.status === 'error') {
+      return [
+        entry(
+          1 + plainRows(),
+          Box({
+            key: 'm' + index,
+            flexDirection: 'column',
+            children: [Text({ dimColor: true, wrap: 'truncate-end', children: 'Rendered view failed: ' + rendered.message }), Markdown({ key: 'mt' + index, text: part.text })],
+          }),
+        ),
+      ]
     }
-    return Box({
-      key: 'm' + index,
-      flexDirection: 'column',
-      children: entry.pages.map((page, at) =>
+    return rendered.pages.map((page, at) => {
+      const size = typesetSize(page, pictureColumns, state.look.cell)
+      return entry(
+        size.rows,
         Image({
           key: 'm' + index + 'p' + at,
           source: { file: page.file, format: 'png' },
-          ...typesetSize(page, pictureColumns, state.look.cell),
+          ...size,
           alt: 'Rendered page not drawn here: press t for Text view',
         }),
-      ),
+      )
     })
   }
 
-  const body = parts.map((part, index) => {
-    if (part.kind === 'md') return mdPart(part, index)
-    if (part.kind === 'item') {
-      return Text({ key: 't' + index, dimColor: true, children: '   ' + (part.done ? '[x] ' : '[ ] ') + part.text })
-    }
+  const diagramPart = (part, index) => {
     const diagram = state.diagrams[hashOf(part.source)]
     const svgDiagram = isDesktop(e) && Boolean(c.Svg)
-    if (!Image && !svgDiagram) return sourceOf(part.source, 's' + index)
+    const sourceRows = wrappedRows(part.source, columns) + 2
+    const withSource = (key, note) =>
+      entry(1 + sourceRows, Box({ key, flexDirection: 'column', children: [note, sourceOf(part.source, 's' + index)] }))
+    if (!Image && !svgDiagram) return entry(sourceRows, sourceOf(part.source, 's' + index))
     if (!diagram || diagram.status === 'rendering') {
-      return Text({ key: 'w' + index, dimColor: true, children: '… rendering diagram (the first run can take a minute)' })
+      return entry(1, Text({ key: 'w' + index, dimColor: true, children: '… rendering diagram (the first run can take a minute)' }))
     }
     if (diagram.status === 'error') {
-      return Box({
-        key: 'e' + index,
-        flexDirection: 'column',
-        children: [
-          Text({ color: 'red', wrap: 'truncate-end', children: 'Diagram failed: ' + diagram.message }),
-          sourceOf(part.source, 's' + index),
-        ],
-      })
+      return withSource('e' + index, Text({ color: 'red', wrap: 'truncate-end', children: 'Diagram failed: ' + diagram.message }))
     }
     if (svgDiagram) {
       const drawn = svgPicture(diagram)
       if (!drawn) {
-        return Box({
-          key: 'e' + index,
-          flexDirection: 'column',
-          children: [Text({ dimColor: true, children: 'Diagram too large for Desktop to draw; source below.' }), sourceOf(part.source, 's' + index)],
-        })
+        return withSource('e' + index, Text({ dimColor: true, children: 'Diagram too large for Desktop to draw; source below.' }))
       }
-      return Box({ key: 'g' + index, children: [c.Svg({ source: drawn.source, alt: 'Mermaid diagram', width: drawn.width, height: drawn.height })] })
+      return entry(1, Box({ key: 'g' + index, children: [c.Svg({ source: drawn.source, alt: 'Mermaid diagram', width: drawn.width, height: drawn.height })] }))
     }
     const size = fitImage(diagram.size, Math.max(20, (e.bodyColumns || 100) - 2))
-    return Image({
-      key: 'g' + index,
-      source: { png: diagram.png },
-      columns: size.columns,
-      rows: size.rows,
-      alt: 'Diagram not drawn here: start Claude Code with CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1',
-    })
+    return entry(
+      size.rows,
+      Image({
+        key: 'g' + index,
+        source: { png: diagram.png },
+        columns: size.columns,
+        rows: size.rows,
+        alt: 'Diagram not drawn here: start Claude Code with CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1',
+      }),
+    )
+  }
+
+  const body = parts.flatMap((part, index) => {
+    if (part.kind === 'md') return mdPart(part, index)
+    if (part.kind !== 'item') return [diagramPart(part, index)]
+    const text = '   ' + (part.done ? '[x] ' : '[ ] ') + part.text
+    return [entry(wrappedRows(text, columns), Text({ key: 't' + index, dimColor: true, children: text }))]
   })
 
   const actions = (isTop, prefix = '') => {
@@ -275,9 +321,27 @@ export function docView($, c) {
               }),
             ]
           : []),
+        ...(!isTop && allPictures
+          ? [Button({ key: 'top-end', label: '↑ Top (u)', hotkey: 'u', onPress: () => hostUiScroll($, { in: PANE, to: 'start', block: 'start' }).then(() => hostUiInvalidate($, 'ui.render')) })]
+          : []),
       ],
     })
   }
+
+  const content = [
+    ...(state.current.group === 'Task docs'
+      ? [entry(1, Text({ bold: true, children: openItems.length ? 'OPEN (' + openItems.length + ')  press items to select' : 'No open items in this doc' }))]
+      : []),
+    ...openBlock,
+    ...doneBlock,
+    ...decisionsBlock,
+    entry(1, Text({ dimColor: true, children: '─── the doc, for reading ───' })),
+    ...(!isDesktop(e) && Image && state.typst === ''
+      ? [entry(1, Text({ key: 'typst-hint', dimColor: true, children: 'Rendered docs need Typst: brew install typst' }))]
+      : []),
+    ...body,
+  ]
+  if (allPictures) state.noTopFloat = true
 
   return Box({
     flexDirection: 'column',
@@ -297,26 +361,9 @@ export function docView($, c) {
         ? Text({ color: 'red', children: state.error })
         : Box({
             flexDirection: 'column',
-            children: [
-              ...(state.current.group === 'Task docs'
-                ? [
-                    Text({
-                      bold: true,
-                      children: openItems.length
-                        ? 'OPEN (' + openItems.length + ')  press items to select'
-                        : 'No open items in this doc',
-                    }),
-                  ]
-                : []),
-              ...openBlock,
-              ...doneBlock,
-              ...decisionsBlock,
-              Text({ dimColor: true, children: '─── the doc, for reading ───' }),
-              ...(!isDesktop(e) && Image && state.typst === ''
-                ? [Text({ key: 'typst-hint', dimColor: true, children: 'Rendered docs need Typst: brew install typst' })]
-                : []),
-              ...body,
-            ],
+            children: allPictures
+              ? windowedRows(c, content.map(({ height, node }) => ({ height, make: () => node })), DOC_TOP_ROWS)
+              : content.map(({ node }) => node),
           }),
       Text({ children: ' ' }),
       actions(false),

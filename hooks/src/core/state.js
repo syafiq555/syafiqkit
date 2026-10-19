@@ -60,6 +60,8 @@ export const state = {
   stickyTop: null,
   stickySection: null,
   windowed: false,
+  noTopFloat: false,
+  docParse: null,
   repoFound: [],
   repoManual: [],
   repoHidden: {},
