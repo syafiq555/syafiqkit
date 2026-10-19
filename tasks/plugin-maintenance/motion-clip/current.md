@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔨 1.406.0 built and verified, uncommitted; next: rework to make films as OpenFilm projects (D-openfilm-default), not started
+Status: 🚀 1.406.0 shipped on master (08a27d4, 2026-10-19); next: rework to make films as OpenFilm projects (D-openfilm-default), not started
 Domain: plugin-maintenance / motion-clip skill
 Gotchas (critical; full list in ## Critical Gotchas below):
   - A trigger test only means something in a session started after the skill was written
@@ -13,13 +13,12 @@ Last updated: 2026-10-19
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: `/motion-clip` makes 15 to 30 second promo videos for any product (app, website, physical product, brand) from real pictures, as code, in three formats, with an original music bed and an optional voice-over. Built from one real run (the Autorentic tenant-app launch clip). Every `~/herd/...` folder named in this doc exists only on Syafiq's machine; another reader has the facts recorded here, not the folders. The 1.406.0 additions (from a study of OpenFilm, see D-openfilm-borrow) are built and verified on a full Autorentic run but not yet committed. The user then chose to make films as OpenFilm projects editable in its Studio, keeping our engine as a fallback (D-openfilm-default); a working trial project exists, the skill rework has not started.
+**Where we are**: `/motion-clip` makes 15 to 30 second promo videos for any product (app, website, physical product, brand) from real pictures, as code, in three formats, with an original music bed and an optional voice-over. Built from one real run (the Autorentic tenant-app launch clip). Every `~/herd/...` folder named in this doc exists only on Syafiq's machine; another reader has the facts recorded here, not the folders. The 1.406.0 additions (from a study of OpenFilm, see D-openfilm-borrow) shipped in 1.406.0 after a full Autorentic run. The user then chose to make films as OpenFilm projects editable in its Studio, keeping our engine as a fallback (D-openfilm-default); a working trial project exists, the skill rework has not started.
 
 **Immediate next actions (in order)**:
-1. Confirm 1.406.0 is on master (the user chose to ship it before the rework).
-2. Plan the rework from D-openfilm-default (its two user calls are answered).
-3. Rework the skill per D-openfilm-default, starting with one timeline that generates `film.html` and the pages.
-4. In a new session, run the trigger test ("make a promo video for <product>" without the skill name).
+1. Plan the rework from D-openfilm-default (its two user calls are answered).
+2. Rework the skill per D-openfilm-default, starting with one timeline that generates `film.html` and the pages.
+3. In a new session, run the trigger test ("make a promo video for <product>" without the skill name).
 
 **Key facts for cold start**:
 - Files: `skills/motion-clip/` with `SKILL.md`, `scripts/render.mjs`, `scripts/score.py`, `templates/film.html` (engine), `templates/story.js` (starter), `templates/examples/autorentic.story.js`, `references/capture-real-ui.md`.
