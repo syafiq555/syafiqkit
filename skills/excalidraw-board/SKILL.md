@@ -15,7 +15,7 @@ Read the task doc first (`read-summary`), then sort every item by what it is wai
 - **After we build X.** Gated on our own work. Draw X once as a GATE card (thick border) at the top of the column and let the column header say "after X". One gate unblocking four items is the single most useful fact on the board; a lane called "blocked" hides it.
 - **Waiting on someone else.** Each card names who, in the card. A lawyer, a partner's API team, a regulator.
 - **Parked.** A table, not a lane: what, why parked, what brings it back, owner. A parked item with no revive trigger is the one that silently dies, so the empty cell is the finding.
-- **Done.** Dashed border, at the bottom of the first column. It shows movement without taking space.
+- **Done.** Left off by default: the board is for what is still in play, and a done card is one more box to read past (the user asked for them removed, 2026-10-19). Where the meeting wants to see movement, a dashed border at the bottom of the first column shows it without taking space.
 
 The right-hand strip holds three boxes filled during the meeting: already decided (pre-filled from the doc so nobody re-litigates), open questions, and actions as what / owner / date with blank lines left. Strip lines are not wrapped by the script, so each stays under about 58 characters; a longer thought is two lines or a shorter one. If the session ends with a question nobody owns, the board should make that visible.
 
@@ -40,9 +40,11 @@ python3 ~/.claude/plugins/syafiqkit/skills/excalidraw-board/scripts/build_board.
   <repo>/tasks/<domain>/<feature>/discussion-board.excalidraw --clipboard
 ```
 
+⚠️ **Rebuilding over a board that has been used throws away the meeting.** The script writes the whole file from the spec, so anything the user drew since (a cluster of new cards, a line struck through an item) vanishes, and the result looks like a tidy board rather than a loss. Before overwriting an existing `.excalidraw`, compare its text elements with the spec's and list every line or arrow the spec did not generate. Read each addition as a decision: a new card is an item to add, and a strike through a card usually means it is done or dropped. Fold them into the spec, confirm the strikes with the user, and keep a copy of the old file. **Tell: the board's file is newer than its spec and you are about to run the script.**
+
 Save the file beside the task doc it draws, and add one Quick Start line in that doc saying the board exists, how to open it, and that it is the conversation aid rather than the record.
 
-Then put it in front of the user and look at it yourself: open excalidraw.com in the Chrome MCP, click the canvas, `cmd+a`, `Delete`, `cmd+v`, `Escape`, click empty canvas, `shift+1`, screenshot. Send the screenshot and the file with `SendUserFile`. The Excalidraw MCP's `create_view` paints nothing in Claude Code, so a screenshot is the only proof the board renders, and the first render usually finds one overlap or one clipped heading. Iterate from the spec, not by hand-editing JSON.
+Then put it in front of the user and look at it yourself: open excalidraw.com in the Chrome MCP, click the canvas, `cmd+a`, `Delete`, `cmd+v`, `Escape`, click empty canvas, `shift+1`, screenshot. Send the screenshot and the file with `SendUserFile`. The Excalidraw MCP's `create_view` paints nothing in Claude Code, so a screenshot is the only proof the board renders, and the first render usually finds one overlap or one clipped heading. Users expect that MCP to be used, so say in the reply why it was not. When the browser is unreachable, the traps table has a local preview that stands in for the screenshot, and the reply says the real render is still unchecked. Iterate from the spec, not by hand-editing JSON.
 
 Do not upload to excalidraw.com's share link unless asked. The board carries partner names and unshipped decisions, and a share link is publication. 📖 `references/loading-and-traps.md` for the four loading routes, and the traps indexed by symptom (the renderer freeze from a page-side fetch, clipped headings, the MCP that renders nowhere, the JSON you should not `cat`).
 

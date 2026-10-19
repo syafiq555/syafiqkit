@@ -20,6 +20,7 @@
 | Zoom to fit shows the board shifted off-screen | An element was still selected when `shift+1` ran, or the click landed on a card | `Escape`, click empty canvas, then `shift+1` |
 | Old board still showing after paste | `cmd+a`/`Delete` ran while a text element had focus | Click empty canvas first; confirm the element count in the screenshot |
 | A brand-new tab already shows the previous board, or the paste lands on top of it | excalidraw.com restores the last scene from the profile's local storage, so a fresh tab is not an empty canvas | Treat every tab as non-empty: click empty canvas, `cmd+a`, `Backspace`, screenshot to confirm blank, then paste |
+| `tabs_context_mcp` says the browser extension is not connected (e.g. its OAuth token belongs to another claude.ai account) | The Chrome route is gone for this session; retrying does not fix an account mismatch | Draw a local PNG from the `.excalidraw` with Pillow (rounded rectangles, `points` lines, text at each element's x/y and font size), check in Python that no two rectangles intersect and no bound text is taller than its container, then show the PNG. It proves layout only, not Excalidraw's own font metrics, so say the real render is unchecked |
 | A strip line runs past the right edge of its box | Strips are a fixed 520 px and `build_board.py` does not wrap strip lines | Keep decided/open/action lines under about 58 characters; shorten the line rather than widening the strip |
 
 ## Element format notes for hand-built JSON

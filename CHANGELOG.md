@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.405.8
+
+**Discussion boards keep what you drew on them, and leave finished items off.**
+- Before rebuilding a board you have already drawn on, Claude now lists your hand-added cards and strike lines, folds them into the board's spec and checks the strikes with you, so a rebuild no longer wipes the meeting's work.
+- Done items are left off the board by default; ask for them if you want to show progress.
+- When the browser extension can't connect, Claude shows a local preview of the board's layout instead, says the real Excalidraw render is unchecked, and explains why it doesn't use the Excalidraw MCP.
+- Nothing to do beyond `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.405.7
 
 **Task docs read typeset, and Claude's diagrams, equations and pictures appear under its answers.**
