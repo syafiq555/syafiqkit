@@ -94,7 +94,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
 | `/doc-to-md` | Convert a Word, PDF or Excel file to Markdown, so versions can be compared as git diffs |
 | `/excalidraw-board` | Draw a task doc or worklist as a black-and-white Excalidraw discussion board (gates, waiting-on, parked-with-revive-trigger, live decisions strip), pasted into the user's excalidraw.com tab |
-| `/motion-clip` | Make a short launch or promo video for any product (app, website, physical product or brand) from its real screens or photos, in vertical, square and widescreen, with an original music track |
+| `/motion-clip` | Make a short launch or promo video for any product (app, website, physical product or brand) from its real screens or photos, in vertical, square and widescreen, with an original music track and an optional voice-over |
 | `/user-manual` | Write an end-user manual — scope, tutorials, E2E screenshots, Word/PDF editions |
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |

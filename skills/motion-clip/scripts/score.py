@@ -3,6 +3,7 @@
 Usage: python3 score.py cues.json out.wav
 """
 import json
+import os
 import sys
 import wave
 
@@ -15,6 +16,7 @@ with open(sys.argv[1]) as fh:
 OUT = sys.argv[2] if len(sys.argv) > 2 else 'score_raw.wav'
 
 SR = 48000
+VOICE_DUCK = 0.35
 DUR = float(cues.get('duration', 20))
 BEAT = 60 / float(cues.get('bpm', 120))
 N = int(SR * DUR)
@@ -204,6 +206,41 @@ if fade:
 peak = np.max(np.abs(mix)) if N else 0.0
 if peak > 0:
     mix /= peak / 0.89
+
+voice_lines = cues.get('voice', [])
+if voice_lines:
+    base = os.path.dirname(os.path.abspath(sys.argv[1]))
+    duck = np.ones(N)
+    voice = np.zeros(N)
+    ramp_in, ramp_out = int(0.12 * SR), int(0.3 * SR)
+    for line in voice_lines:
+        path = os.path.join(base, line['file'])
+        if not os.path.exists(path):
+            sys.exit(f'voice file missing, run voice.mjs first: {path}')
+        with wave.open(path) as w:
+            if w.getframerate() != SR or w.getsampwidth() != 2:
+                sys.exit(f'{path} must be 48 kHz 16-bit; write it with voice.mjs')
+            data = np.frombuffer(w.readframes(w.getnframes()), '<i2').astype(float) / 32768
+            if w.getnchannels() > 1:
+                data = data.reshape(-1, w.getnchannels()).mean(axis=1)
+        i = int(line['at'] * SR)
+        if i >= N or i < 0:
+            continue
+        data = data[: N - i]
+        voice[i : i + len(data)] += data
+        shape = np.ones(N)
+        a, b = max(i - ramp_in, 0), min(i + len(data), N)
+        shape[a:b] = VOICE_DUCK
+        shape[a:i] = np.linspace(1, VOICE_DUCK, i - a)
+        release = min(ramp_out, N - b)
+        shape[b : b + release] = np.linspace(VOICE_DUCK, 1, release)
+        duck = np.minimum(duck, shape)
+    vpeak = np.max(np.abs(voice))
+    if vpeak > 0:
+        mix = mix * duck[:, None] + (voice / vpeak * 0.85)[:, None]
+        peak = np.max(np.abs(mix))
+        if peak > 0.89:
+            mix /= peak / 0.89
 
 with wave.open(OUT, 'wb') as w:
     w.setnchannels(2)

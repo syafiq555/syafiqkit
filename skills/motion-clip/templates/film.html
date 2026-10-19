@@ -72,6 +72,10 @@ function start() {
   STORY.captions = STORY.captions || [];
   STORY.camera = STORY.camera || [];
   STORY.music = STORY.music || {};
+  STORY.voice = STORY.voice || [];
+  if (!Array.isArray(STORY.voice) || STORY.voice.some((v) => !v || !Number.isFinite(Number(v.at)) || !String(v.text || '').trim())) {
+    throw new Error('STORY.voice must be a list of { at, text } lines, each with a numeric at and some text');
+  }
   STORY.fonts = STORY.fonts || {};
   STORY.fonts.heading = { family: 'Helvetica Neue', weight: 800, ...STORY.fonts.heading };
   STORY.fonts.body = { family: 'Helvetica Neue', weight: 600, ...STORY.fonts.body };
@@ -557,6 +561,12 @@ function buildCues() {
   if (s.stat) {
     cues.hit = cues.hit ?? s.stat.at + (s.stat.count ?? 0.9);
     cues.chimes.push({ at: s.stat.at + (s.stat.count ?? 0.9), note: 79, gain: 0.08, length: 1.2 });
+  }
+  if (s.voice.length) {
+    cues.voice = s.voice.map((v, i) => {
+      const under = s.captions.find((c) => c.in <= Number(v.at) && Number(v.at) < c.out);
+      return { at: Number(v.at), text: String(v.text).trim(), file: v.file || `assets/voice/${String(i + 1).padStart(2, '0')}.wav`, captionOut: under ? under.out : undefined };
+    });
   }
   const round = (x) => Math.round(x * 1000) / 1000;
   for (const list of [cues.whooshes, cues.chimes]) for (const c of list) c.at = round(c.at);

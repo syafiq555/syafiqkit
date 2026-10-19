@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.406.0
+
+**Promo videos check themselves, keep their colours, and can have a voice-over.**
+- Before a full render, `/motion-clip` now runs an automatic check: every half second of the film is drawn twice in shuffled order and compared, so a frame that changes on its own is caught with its time named. It also flags a brand font the machine doesn't have, blank frames, missing pictures and music that is too quiet or too loud.
+- Videos are now tagged with the colour standard players expect, so brand colours stay true: a strong blue that used to drift a few shades now plays back within a shade of the original.
+- The brief now asks whether the film could belong to another company with the logo swapped, and the picture review checks for anything private (emails, keys, notifications, other browser tabs).
+- Optional voice-over: write the lines into the story and they are spoken by the free macOS voice as a draft, or by ElevenLabs or OpenAI when you choose one with `VOICE_PROVIDER` and its key. A key that happens to be set never spends money on its own, and Claude asks before sending unreleased copy to a voice service. The music dips under each line. The two paid voices have not been tried with a real key yet.
+- Ideas borrowed from the open-source [OpenFilm](https://github.com/openfilm/openfilm) video agent. Nothing to do beyond `claude plugin update syafiqkit@syafiqkit`; clips already in progress keep working, and copying the new `render.mjs` into one gives it the check.
+
 ## 1.405.8
 
 **Discussion boards keep what you drew on them, and leave finished items off.**
