@@ -1,55 +1,54 @@
-const MOD_VERSION = '__MOD_VERSION__'
-const PANE = 'doc-pane'
-const COMMAND = 'task-docs'
-const MENU_COMMAND = 'sk'
-const CHANGES_COMMAND = 'changes'
-const MAX_ENTRIES = 60
-const MAX_CHARS = 90000
-const POLL_MS = 2000
-const GIT_TIMEOUT_MS = 15000
-const HANDOFF_POLL_MS = 4000
-const MAX_HANDOFF_DEFERRALS = 3
-const HANDOFF_EXPIRES_MS = 24 * 60 * 60 * 1000
-const RECENT_COUNT = 5
-const ITEM_CAP_ROWS = 3
-const NAME_WIDTH = 26
-const SCOPE_WIDTH = 24
-const NARROW_COLUMNS = 60
-const MEASURE_FROM_BYTES = 8000
-const TASK_DOC_MAX_LINES = 300
-const DECISION_MAX_BYTES = 40 * 1024
-const CLAUDE_MD_MAX_LINES = 200
-const CLAUDE_MD_MAX_BYTES = 40000
-const NESTED_SCAN_DEPTH = 4
-const NESTED_SCAN_FOLDERS = 400
-const NESTED_SCAN_SKIP = ['node_modules', 'vendor', 'dist', 'build', 'storage', 'tasks']
-const DIFF_CONTEXT = 3
-const DIFF_MAX_LINES = 400
-const DESKTOP_STRIP_ROWS = 2
-const DESKTOP_PAGE_BAR_ROWS = 4
-const WINDOW_ROWS = 60
-const TOP_BUTTON_AFTER = 3
-const CLOSE_REDRAW_MS = 400
-const TOP_BUTTON_ROWS = 3
-const STICKY_AFTER = 1
-const STICKY_COVER_ROWS = 3
-const STICKY_PREFIX = 'stk-'
-const LIST_FOLD_FROM = 40
-const LIST_TOP_ROWS = 3
-const DESKTOP_WRAP_CHARS = 140
-const DESKTOP_MAP_ROWS = 3
-const CHANGES_POLL_MS = 5000
-const SHOW_IMAGE_TOOL = 'mcp__syafiqkit__show_image'
-const MAX_GALLERY = 12
-const MAX_GALLERY_BYTES = 12 * 1024 * 1024
-const MAX_GALLERY_BASE64 = 16 * 1024 * 1024
-const PNG_PREFIX = 'iVBORw0KGgo'
-const SPLIT_MIN_COLUMNS = 100
-const TREE_COLUMNS = 42
-const COUNTS_WIDTH = 11
-const DESKTOP_DIFF = { added: '#1b3a2a', removed: '#40232a', addedWord: '#2e6b49', removedWord: '#7c3340' }
-const SYNTAX_MAX_CHARS = 400
-const SYNTAX_TONE = {
+export const PANE = 'doc-pane'
+export const COMMAND = 'task-docs'
+export const MENU_COMMAND = 'sk'
+export const CHANGES_COMMAND = 'changes'
+export const MAX_ENTRIES = 60
+export const MAX_CHARS = 90000
+export const POLL_MS = 2000
+export const GIT_TIMEOUT_MS = 15000
+export const HANDOFF_POLL_MS = 4000
+export const MAX_HANDOFF_DEFERRALS = 3
+export const HANDOFF_EXPIRES_MS = 24 * 60 * 60 * 1000
+export const RECENT_COUNT = 5
+export const ITEM_CAP_ROWS = 3
+export const NAME_WIDTH = 26
+export const SCOPE_WIDTH = 24
+export const NARROW_COLUMNS = 60
+export const MEASURE_FROM_BYTES = 8000
+export const TASK_DOC_MAX_LINES = 300
+export const DECISION_MAX_BYTES = 40 * 1024
+export const CLAUDE_MD_MAX_LINES = 200
+export const CLAUDE_MD_MAX_BYTES = 40000
+export const NESTED_SCAN_DEPTH = 4
+export const NESTED_SCAN_FOLDERS = 400
+export const NESTED_SCAN_SKIP = ['node_modules', 'vendor', 'dist', 'build', 'storage', 'tasks']
+export const DIFF_CONTEXT = 3
+export const DIFF_MAX_LINES = 400
+export const DESKTOP_STRIP_ROWS = 2
+export const DESKTOP_PAGE_BAR_ROWS = 4
+export const WINDOW_ROWS = 60
+export const TOP_BUTTON_AFTER = 3
+export const CLOSE_REDRAW_MS = 400
+export const TOP_BUTTON_ROWS = 3
+export const STICKY_AFTER = 1
+export const STICKY_COVER_ROWS = 3
+export const STICKY_PREFIX = 'stk-'
+export const LIST_FOLD_FROM = 40
+export const LIST_TOP_ROWS = 3
+export const DESKTOP_WRAP_CHARS = 140
+export const DESKTOP_MAP_ROWS = 3
+export const CHANGES_POLL_MS = 5000
+export const SHOW_IMAGE_TOOL = 'mcp__syafiqkit__show_image'
+export const MAX_GALLERY = 12
+export const MAX_GALLERY_BYTES = 12 * 1024 * 1024
+export const MAX_GALLERY_BASE64 = 16 * 1024 * 1024
+export const PNG_PREFIX = 'iVBORw0KGgo'
+export const SPLIT_MIN_COLUMNS = 100
+export const TREE_COLUMNS = 42
+export const COUNTS_WIDTH = 11
+export const DESKTOP_DIFF = { added: '#1b3a2a', removed: '#40232a', addedWord: '#2e6b49', removedWord: '#7c3340' }
+export const SYNTAX_MAX_CHARS = 400
+export const SYNTAX_TONE = {
   keyword: '#c678dd',
   string: '#e5a56b',
   number: '#d19a66',
@@ -57,7 +56,7 @@ const SYNTAX_TONE = {
   type: '#e5c07b',
   comment: '#7f848e',
 }
-const DESKTOP_TONE = {
+export const DESKTOP_TONE = {
   strip: '#1f2633',
   stripHot: '#24324a',
   warnStrip: '#3a2f14',
@@ -80,42 +79,46 @@ const DESKTOP_TONE = {
   gapRow: '#1a1d23',
   page: '#1e1e1e',
 }
-const DESKTOP_MAP_CELLS = 64
-const LITERAL_PATHS = { GIT_LITERAL_PATHSPECS: '1' }
-const REPO_COUNT_EVERY = 5
-const DIFF_BATCH = 8
-const MAX_UNTRACKED_BYTES = 256 * 1024
-const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])
-const ITEM = /^\s*[-*]\s+\[( |x|X)\]\s+(.+)$/
-const FENCE = /^\s*```(\S*)\s*$/
-const HEADING = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/
-const RISKY = /\b(ship|push|merge|delete|deploy|drop|reset)\b/i
-const MERMAID_PACKAGE = '@mermaid-js/mermaid-cli@12.0.0'
-const MERMAID_TIMEOUT_MS = 240000
-const MAX_IMAGE_ROWS = 60
-const MAX_BASE64 = Math.floor((2 * 1024 * 1024 * 4) / 3)
-const DESKTOP_DRAW_CHARS = 90000
-const DESKTOP_DRAW_LIMIT = 95000
-const MAX_HOVER_SCOPE = 64
-const SPACER_MAX_ROWS = 10000
-const MOD_LOG_FILE = 'mod.log'
-const MOD_LOG_LINES = 300
-const PREVIEW_STEPS = [[1080, 60], [900, 50], [720, 45], [600, 40]]
-const PREVIEW_TIMEOUT_MS = 20000
-const PICTURE_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'heic'])
-const MEDIA_PAIR_CHARS = 30000
-const MEDIA_PAIR_WIDTH = 360
-const MEDIA_ROW_PX = 20
-const SLICE_WIDTH = 1000
-const SLICE_HEIGHT = 520
-const SLICE_CHARS = 85000
-const SLICE_QUALITIES = [60, 45, 35]
-const PDF_PAGE_SIDE = 1100
-const DESKTOP_PICTURE_WIDTH = 720
-const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs', 'Skills']
+export const DESKTOP_MAP_CELLS = 64
+export const LITERAL_PATHS = { GIT_LITERAL_PATHSPECS: '1' }
+export const REPO_COUNT_EVERY = 5
+export const DIFF_BATCH = 8
+export const MAX_UNTRACKED_BYTES = 256 * 1024
+export const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])
+export const ITEM = /^\s*[-*]\s+\[( |x|X)\]\s+(.+)$/
+export const FENCE = /^\s*```(\S*)\s*$/
+export const HEADING = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/
+export const RISKY = /\b(ship|push|merge|delete|deploy|drop|reset)\b/i
+export const MERMAID_PACKAGE = '@mermaid-js/mermaid-cli@12.0.0'
+export const MERMAID_TIMEOUT_MS = 240000
+export const MAX_IMAGE_ROWS = 60
+export const MAX_BASE64 = Math.floor((2 * 1024 * 1024 * 4) / 3)
+export const TYPST_CANDIDATES = ['typst', '/opt/homebrew/bin/typst', '/usr/local/bin/typst']
+export const TYPESET_CHUNK_LINES = 40
+export const TYPESET_PT_PER_COLUMN = 7
+export const TYPESET_TIMEOUT_MS = 30000
+export const DESKTOP_DRAW_CHARS = 90000
+export const DESKTOP_DRAW_LIMIT = 95000
+export const MAX_HOVER_SCOPE = 64
+export const SPACER_MAX_ROWS = 10000
+export const MOD_LOG_FILE = 'mod.log'
+export const MOD_LOG_LINES = 300
+export const PREVIEW_STEPS = [[1080, 60], [900, 50], [720, 45], [600, 40]]
+export const PREVIEW_TIMEOUT_MS = 20000
+export const PICTURE_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'heic'])
+export const MEDIA_PAIR_CHARS = 30000
+export const MEDIA_PAIR_WIDTH = 360
+export const MEDIA_ROW_PX = 20
+export const SLICE_WIDTH = 1000
+export const SLICE_HEIGHT = 520
+export const SLICE_CHARS = 85000
+export const SLICE_QUALITIES = [60, 45, 35]
+export const PDF_PAGE_SIDE = 1100
+export const DESKTOP_PICTURE_WIDTH = 720
+export const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+export const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs', 'Skills']
 
-const VERBS = [
+export const VERBS = [
   { label: 'Commit', hint: 'staged changes only', text: 'Use the commit skill to commit the staged changes.', toast: 'Sent: commit' },
   {
     label: 'Commit and push',
@@ -156,3 +159,13 @@ const VERBS = [
   { label: 'Changes', hint: 'review diffs, stage, unstage, discard', go: 'changes' },
   { label: 'Images', hint: 'screenshots Claude showed you', go: 'images' },
 ]
+export const ANSWER_IMAGE_EXT = /\.(png|jpe?g|gif|webp)$/i
+export const ANSWER_VIDEO_EXT = /\.(mp4|mov|webm|mkv|m4v)$/i
+export const ANSWER_MATH_COLUMNS = 80
+export const PICTURE_TIMEOUT_MS = 30000
+export const ANSWER_FILE_CAP = 4
+export const ANSWER_PICTURES_PROMPT =
+  'Pictures in answers (syafiqkit): in this terminal, a ```mermaid block, a $$ ... $$ display equation, a Markdown image of a local file (![alt](/full/path.png)) and the full path of a local video file are each drawn as a picture after your answer text. Use them when a picture explains more than prose: flows and architecture as mermaid, formulas as $$ blocks, full paths for screenshots or recordings you made. Pictures come after all of the text, not inline, so refer to them as "below". Inline $x$ stays plain text.'
+export const TYPESET_RENDER_VERSION = '2'
+export const ANSWER_MISSING_RETRY_MS = 10000
+export const TYPESET_WIDTH_STEP = 4

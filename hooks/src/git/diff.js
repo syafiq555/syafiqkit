@@ -1,4 +1,10 @@
-const wordSpan = (before, after) => {
+import { hostFsStat } from '../core/api.js'
+import { DIFF_CONTEXT, LITERAL_PATHS, MAX_UNTRACKED_BYTES } from '../core/constants.js'
+import { kb } from '../core/format.js'
+import { gitRun } from '../core/run.js'
+import { attachMedia } from './media.js'
+
+export function wordSpan(before, after) {
   let head = 0
   const most = Math.min(before.length, after.length)
   while (head < most && before[head] === after[head]) head++
@@ -8,7 +14,7 @@ const wordSpan = (before, after) => {
   return { before: [head, before.length - tail], after: [head, after.length - tail] }
 }
 
-const markWordChanges = (lines) => {
+export function markWordChanges(lines) {
   let at = 0
   while (at < lines.length) {
     if (lines[at].kind !== 'del') {
@@ -29,7 +35,7 @@ const markWordChanges = (lines) => {
   }
 }
 
-const parseDiff = (text) => {
+export function parseDiff(text) {
   const lines = []
   let oldNo = 1
   let newNo = 1
@@ -54,14 +60,17 @@ const parseDiff = (text) => {
   return lines
 }
 
-const tally = (lines, note) => ({
+export function tally(lines, note) {
+  return ({
   lines,
   note,
   added: lines.filter((line) => line.kind === 'add').length,
   removed: lines.filter((line) => line.kind === 'del').length,
 })
+}
 
-const diffArgs = (plane, path) => [
+export function diffArgs(plane, path) {
+  return [
   'git',
   '--no-optional-locks',
   'diff',
@@ -71,14 +80,15 @@ const diffArgs = (plane, path) => [
   '--',
   ...path,
 ]
+}
 
-const EMPTY_DIFF_NOTE = {
+export const EMPTY_DIFF_NOTE = {
   staged: 'Nothing staged for this file.',
   worktree: 'No unstaged changes in this file.',
   head: 'No changes since the last commit.',
 }
 
-const readDiff = async ($, cwd, paths, plane) => {
+export async function readDiff($, cwd, paths, plane) {
   const first = paths[0]
   try {
     const ran = await gitRun($, diffArgs(plane, paths), { cwd, env: LITERAL_PATHS })
@@ -96,7 +106,7 @@ const readDiff = async ($, cwd, paths, plane) => {
       env: LITERAL_PATHS,
     })
     if (tracked.exitCode !== 0) {
-      const stat = await $.fs.stat(absolute).catch(() => null)
+      const stat = await hostFsStat($, absolute).catch(() => null)
       if (stat && stat.size > MAX_UNTRACKED_BYTES) return attachMedia($, cwd, tally([], 'New file, ' + kb(stat.size) + '.'), absolute, plane, true)
       const added = await gitRun($,
         ['git', '--no-optional-locks', 'diff', '--no-index', '--no-color', '-U' + DIFF_CONTEXT, '--', '/dev/null', absolute],

@@ -1,25 +1,26 @@
 <!--LLM-CONTEXT
-Status: 🔨 Built through 1.405.2 (Enhance button, band beside an open pane); shipped to master in 1.405.3 (fad768c, 2026-10-16) before its live checks, by the user's call. 104 kit tests pass. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
+Status: 🔨 1.405.3 on master (fad768c). Uncommitted on 2026-10-19, to ship as 1.405.7 (1.405.6 is another session's local commit a22545c): ES-module source with no build step, Discard via Claude Code's question box, Typst-rendered `/task-docs`, pictures under terminal answers (decisions/pictures.md). 113 kit tests pass; spinner beside a pane and answer pictures (diagram, math, PNG) seen live, the rest not. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
 Domain: plugin-maintenance/mod
 Gotchas (critical; full list in ## Gotchas below):
-  - The host loads one file, so the source lives in `hooks/src/` and `hooks/build.sh` bundles it into `hooks/register.js`; `$` is never put in an object, and a save that fails to load keeps the OLD module running
+  - The host loads `hooks/src/mod.js` and follows its imports; past an import `$` goes only into a `function name($)` declaration, `$` is never put in an object, and a save that fails to load keeps the OLD module running
   - A reload swaps the mod only when it reports "re-read from its folder" (directory source, measured 2026-10-16); otherwise only a new session loads a changed one
   - Older Claude Code versions are unverified against a `modules` key sharing `hooks.json` with the ruleset hook
 Related:
   - ../project-docs/current.md (ESSENTIALS entry `{#mod-one-file}` extracts The Mod)
   - ../output-style-hook/current.md (shares `hooks/hooks.json`)
-Last updated: 2026-10-16 (Enhance button, decisions/enhance.md; band beside an open pane)
+Last updated: 2026-10-19 (cc-intelligent-ui study, ES modules, rendered docs, answer pictures; decisions/pictures.md)
 -->
 
 # Plugin Maintenance: The Mod
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, session handoffs and an Enhance button that rewrites the draft prompt after a headless haiku read-summary run. Source is `hooks/src/` (folders `core`, `docs`, `git`, `handoff`, `prompt`, `views`, plus `mod.js`), bundled by `hooks/build.sh` into the single `hooks/register.js` the host loads. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
+**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, session handoffs and an Enhance button that rewrites the draft prompt after a headless haiku read-summary run, Typst-rendered task docs and pictures under Claude's terminal answers. The host loads `hooks/src/mod.js` and its imports (folders `core`, `docs`, `git`, `handoff`, `prompt`, `views`, `answers`); every `$` call goes through `core/api.js`. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
 
 **Immediate next actions (in order)**:
-1. Run the two live checks at the top of § Next Steps → Verify in a Desktop **New** session and a terminal session (`/sk` reads `mod v1.405.3`). 1.405.2 is already on master (shipped 2026-10-16 ahead of these checks), so a fix found there ships as a new version.
-2. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify; a fix found there ships as a new version.
+1. Live-check the 2026-10-19 work in iTerm2 (the first block of § Next Steps → Verify): `/task-docs` draws pictures after the file-path fix, the video preview, dark Mermaid, the Answer pictures switch, Discard's question box. Then install from the GitHub clone in a clean profile before release, since `register.js` no longer exists.
+2. Ship with `/syafiqkit:ship` as 1.405.7: this work, the unpushed local 1.405.6 commit (a22545c, ship/commit skill changes) and, if the user confirms that session is finished, the staged 1.405.5 motion-clip files and their CHANGELOG entry. Ask that before committing. The release note names the new pictures, the macOS-first scope and the optional Typst/`ffmpeg` installs.
+3. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify; a fix found there ships as a new version.
 
 | Read | When |
 |------|------|
@@ -28,6 +29,7 @@ Last updated: 2026-10-16 (Enhance button, decisions/enhance.md; band beside an o
 | `decisions/live-checks.md` | The step-by-step check for a build, and what the close-frame and reload investigations measured |
 | `decisions/session-history.md` | Earlier sessions' user decisions and measurements |
 | `decisions/enhance.md` | The Enhance button: research evidence, the study of 3,908 past prompts behind its rewrite rules, the user's calls, headless-run measurements |
+| `decisions/pictures.md` | The cc-intelligent-ui study, what it proved about mods, the user's calls on rendered docs and answer pictures, live measurements, licences |
 
 **Key facts for cold start**:
 - Tests: `claude plugin test .` from the repo root (`hooks/register.test.ts`); validate: `claude plugin validate .` (`--strict` fails on three standing warnings, so judge by the plain run).
@@ -61,8 +63,11 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
   - `All` stops drawing when the page is full, and each picture left over gets a "press to show it alone" button. The `show_image` description and return string say which pictures will not draw |
 | Commands | `/sk` opens the menu, `/task-docs` the list, `/changes` the source-control view | Registered with `immediate: true`, so no model turn; all return `{}` |
 | Handoff record | `<id>.json` per save under `~/.claude/handoffs/<hash of cwd>/`, with a `<id>.state` marker file (`claimed:<nonce>`, `dismissed`, `superseded`, `open`) | chmod 700 dir, 600 files, best effort; expires after 24 hours |
-| Enhance | `prompt/enhance.js`: `$.prompt.read` → headless `claude -p --model haiku --permission-mode auto --disallowedTools Edit,Write,NotebookEdit --output-format stream-json --verbose` via `$.process.spawn` running `/syafiqkit:read-summary` → JSON → `$.prompt.fill`; fallback is two `$.model.complete` haiku calls (catalogue, then digest) marked `quick read` | `state.enhance.phase`: `idle`, `running`, `ready` (draft typed into meanwhile; Use it / Discard), `done` (Undo until the box changes). Each pull of the stream races a 300 ms watcher so Cancel and the 3-minute stop don't wait on output. Only a submit whose text is the draft, the filled text or the pending text ends a run. Spinner on `$.clock.every` (160 ms, skipped while a pane is open); its handle is `{ cancel }`. Evidence and calls: `decisions/enhance.md` |
-| Diagram cache | `~/.claude/doc-pane-cache/<hash>.png`, valid once `<hash>.ok` exists | PNG rendered by a pinned `@mermaid-js/mermaid-cli@12.0.0` through `npx`, read back with `$.fs.read({ as: 'bytes' })` |
+| Enhance | `prompt/enhance.js`: `$.prompt.read` → headless `claude -p --model haiku --permission-mode auto --disallowedTools Edit,Write,NotebookEdit --output-format stream-json --verbose` via `$.process.spawn` running `/syafiqkit:read-summary` → JSON → `$.prompt.fill`; fallback is two `$.model.complete` haiku calls (catalogue, then digest) marked `quick read` | `state.enhance.phase`: `idle`, `running`, `ready` (draft typed into meanwhile; Use it / Discard), `done` (Undo until the box changes). Each pull of the stream races a 300 ms watcher so Cancel and the 3-minute stop don't wait on output. Only a submit whose text is the draft, the filled text or the pending text ends a run. Spinner ticks the `enhanceTick` atom every 160 ms (`$.clock.every`, handle `{ cancel }`), which redraws the band alone, so it turns beside an open pane. Evidence and calls: `decisions/enhance.md` |
+| Diagram cache | `~/.claude/doc-pane-cache/<hash>[-dark].png`, valid once its `.ok` exists | PNG rendered by a pinned `@mermaid-js/mermaid-cli@12.0.0` through `npx` (`-t dark -b transparent` on a dark theme), read back with `$.fs.read({ as: 'bytes' })` |
+| Rendered docs | `docs/typeset.js`: each Markdown part of a doc becomes Typst pages (`hooks/render/md.typ`, chunks at headings or 40 lines) cached in `doc-pane-cache/typeset/<key>-{p}.png`, drawn as `Image` `{ file, format: 'png' }` | Terminal only, `t` toggles Text view; Typst found on PATH or Homebrew paths, else plain text with a hint; key carries `TYPESET_RENDER_VERSION`, width, theme and cell size |
+| Answer pictures | `answers/pictures.js`: a `ui.render` hook on `AssistantMessage` appends Images for mermaid, `$$` math, `![..](path)` images and video paths (max 4 files) after the host's text node | Stands aside when the tree already has an `Image` (cc-intelligent-ui); previews in `doc-pane-cache/answers/` named by source mtime; redraw via the `picturesTick` atom; `prompt.compose` adds `syafiqkit:answer-pictures` in terminal sessions; `/sk` Answer pictures saves `answerPicturesOff` in `$.store` |
+| Host calls and state | `core/api.js` holds one `host*` wrapper per `$` method; atoms `enhanceTick` and `picturesTick` are declared in `types/index.d.ts` (`plugin.json` `types`) | Discard asks through `hostUiAsk` (Claude Code's question box); a dismissal discards nothing |
 
 ---
 
@@ -70,15 +75,18 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
 
 - `hooks/src/`, the source:
   - `core/`: constants (the only hex values, `DESKTOP_TONE`/`DESKTOP_DIFF`/`SYNTAX_TONE`), state, format, `run.js` (the serial `gitRun` queue) and `log.js` (`modLog`, `treeProblem`, `drawingSize`).
-  - `docs/`: discovery, markdown, images, diagrams, reader, gallery.
+  - `docs/`: discovery, markdown, images, diagrams, reader, gallery, `typeset.js` (Typst pages).
+  - `core/api.js`: the `host*` wrappers, the only place `$.noun.method` is spelled.
   - `git/`: status parse and tree, diff parse with word marks, `syntax.js` (the diff colourer), actions, repos, controller.
   - `handoff/`: capture, store.
   - `prompt/`: `enhance.js` (the Enhance button: prompts, catalogue, headless stream, quick fallback, band row).
   - `views/`: band, pane (the tree checks and `refusedView`), pane-context, menu, list, doc, actions, changes (terminal, with `terminalDiffItems`/`allDiffItems`), images, plus `ui.js` (Desktop parts: chip, strip, meter, pageBar, mapBlock, `hoverScope`) and `desktop.js` (Desktop pages and `windowedRows`).
-  - `mod.js`: the `register` wiring, always last.
-- `hooks/build.sh` — joins `src/` into `hooks/register.js` (`--check` fails when stale; `.githooks/pre-commit` runs it). `register.js` is generated: edit `src/`, never the bundle
+  - `answers/`: `pictures.js` (pictures under answers, the prompt section, the on/off switch).
+  - `mod.js`: the `register` wiring and the module entry.
+- `hooks/render/`: vendored Typst template and packages (`NOTICE.md` lists licences)
+- `types/index.d.ts`: the state contract for the two atoms
 - `hooks/register.test.ts` — kit tests for commands, band, menu, confirm, handoff save/resume, /clear, off switch, decisions, reopen
-- `hooks/hooks.json` — `modules: ["./register.js"]` beside the ruleset `hooks`
+- `hooks/hooks.json`: `modules: ["./src/mod.js"]` beside the ruleset `hooks`
 - `hooks/CLAUDE.md`: the mod's rules, host traps, debugging and what it runs (moved out of the root `CLAUDE.md` 2026-10-16; read it before mod work, since its automatic load on reading a `hooks/` file is unverified)
 - `docs/ARCHITECTURE.md` §8: host-API traps; `docs/ARCHITECTURE-ESSENTIALS.md` `{#mod-one-file}`
 
@@ -120,6 +128,10 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 | 28 | Narrow lists (1.398.3) | ✅ built; ⏳ unseen live |
 | 29 | Enhance button (1.400.0 to 1.405.2) | ✅ built; headless run, live steps, Desktop row and short prompts seen in Desktop 2026-10-16; ⏳ fixes after the /done review unseen |
 | 30 | Band beside an open pane, hotkeys off while open (1.405.0); a band press switches the pane's view in place with no second `$.ui.open`, a press on the view already showing does nothing, and `Changes (N)` keeps counting beside non-Changes views | ✅ built; ⏳ unseen live |
+| 31 | ES modules from `hooks/src/mod.js`, no build step; `host*` wrappers; version read from `plugin.json` (2026-10-19) | ✅ built; `/sk` version unseen |
+| 32 | Discard through Claude Code's question box | ✅ built; ⏳ unseen live |
+| 33 | Typst-rendered `/task-docs`, Text view toggle | ✅ built; first try drew blank, file-path and page-name fixes since; ⏳ unseen |
+| 34 | Pictures under answers: mermaid, `$$`, images, video frames; dark Mermaid; prompt section; on/off switch | ✅ diagram, math, PNG seen live 2026-10-19; ⏳ video frame, dark Mermaid, switch, prompt section unseen |
 
 ---
 
@@ -160,6 +172,9 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 ## Next Steps
 
 **Verify**
+- [ ] 2026-10-19 work in iTerm2 after `/reload-plugins` (rows 31 to 34): `/sk` reads `mod v` plus the `plugin.json` version; `/task-docs` on a long task doc draws pictures, not a blank pane (if blank, press `t`, then a `claude --debug` session's `ui.render (Pane)` line names the refusal); text size matches the terminal (sized from the `/dev/tty` cell read) and a ~40-column pane keeps pictures inside it; the video frame under an answer naming a real `.mp4` path; Mermaid draws dark; `/sk` → Answer pictures off removes them and the prompt section, and stays off in a new session; Discard shows Claude Code's question box, Cancel and closing it discard nothing.
+- [ ] Before release: install from the GitHub clone in a clean profile (no `register.js` exists any more) and check `/plugin` shows mods active, `/sk` opens and one doc renders; `hooks/render/` (wasm, themes) must ship in the clone.
+- [ ] Desktop: Discard's question box in a **New** session, and that the doc reader and answers stay text.
 - [ ] Band beside the pane (row 30), in a Desktop **New** session without `/reload-plugins`: open `/changes`, check the band stays beside the pane and pressing `c` acts on the pane, not Commit; close with ✕, `< Close` and Esc, and after each check Commit's `c` works again. Then pick items in a task doc and press the band's Docs, then Changes: the view switches without the pane flashing or refocusing oddly, and pressing Docs on the Docs list keeps its filter. The blank expanded frame after close is Desktop's own bug (it stayed blank with no mod redraw, 2026-10-12); no code change for it.
 - [ ] Enhance (row 29) after the review fixes: press Cancel during a long silent step (a sub-agent) and run `ps aux | grep "claude -p"` to see the child is gone; send another message (or let a task notification arrive) mid-run and see it keep going; press Enhance with a pane open and see the row update; check Undo survives the fill (whether the host fires `prompt.edit` for the mod's own `$.prompt.fill` is unmeasured).
 - [ ] Rows 27 and 28 live at ~40 columns, Desktop and terminal (`decisions/live-checks.md` item 00000). Whether a Desktop Pane render carries `bodyColumns` is unmeasured; logging `e.props.bodyColumns` once from a Desktop session would say whether Desktop could use the terminal's width switch. Left as polish: the Desktop gallery strip's buttons can squeeze the image name to nothing; terminal menu hints truncate to fragments. From the 1.399.0 release review, unmeasured: `windowedRows` gets a fixed `topRows` (3 for the single-file page, `LIST_TOP_ROWS` for the list) while the toolbar above it can now wrap to 2 rows at ~40 columns, so spacers or a pinned header may land 1 to 2 rows off; Desktop open items are a Button around a dim Text, and Text inside a Button loses its colour, so the dim on unpicked items may vanish.
@@ -198,6 +213,8 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 - [x] Commit as three commits by version (1.373.0 is the other session's `uiux` work); ship after the live checks above. 2026-10-16: the user chose to ship 1.405.2 and 1.405.3 before the live checks (commits b287c9d, e1e0385, d948fad, fad768c)
 
 **Later**
+- [ ] Product review, 2026-10-19: answer pictures are macOS-first by the user's call (README says so); a colleague with both cc-intelligent-ui and syafiqkit sees ours stand aside silently (README should say so); the README now covers rendered docs, answer pictures, the switch and the optional cc-intelligent-ui install.
+- [ ] Review leftovers, 2026-10-19: Rendered view is the default even where a terminal resolves `Image` but draws nothing, so the doc shows the fallback line until `t`; `$$` math inside `- [ ]` items and relative images in typeset docs from two folders share a cache key; `readLook` is read once per session, so a theme switch needs a reload, and it treats Claude Code's `auto` theme as dark (kept by the user's call), so on a light terminal with `auto` the transparent dark Mermaid and Typst ink are hard to read (old Mermaid was always a white card); a `.ok` marker is trusted without its pages, so a future naming change needs a `TYPESET_RENDER_VERSION` bump; a timed-out `sips`/`ffmpeg` can leave a partial preview that is then trusted; a 4-backtick fence holding a 3-backtick block still leaks its tail into the math and path scan.
 - [ ] Colourer rough edges (row 22), from review: an apostrophe in Vue/HTML text or YAML/shell prose opens a string to the end of the line; a multi-line string or Python docstring is coloured only on its first and last lines; a regex literal holding a quote swallows the rest of the line; a comment or keyword inside the changed-word mark is low contrast (comment grey on `addedWord` is about 1.7:1)
 - [ ] Surface silent caps in the list: discovery stops at 180 task docs (`MAX_ENTRIES * 3`) and filter matches at 40 with the header still saying `MATCHES (40)`; the first symptom would be a missing doc
 - [ ] Render check at 80 columns with a recent heavy doc (status plus warning is about 55 characters) and a long folder name (the folder button label is not clipped); `TASK DOCS (n)` counts all docs while folder counts exclude the five recents, so the header says `· 5 listed above`
@@ -223,6 +240,6 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ---
 
-## Last Session (2026-10-16)
+## Last Session (2026-10-19)
 
-The user brought a friend's "Enhance prompt" mod idea and asked for haiku research; the build went through nine versions in one sitting, each tried live in Desktop or iTerm (row 29, `decisions/enhance.md` for every call and measurement). `/done` review found Cancel and the timeout blocked on a silent child, edits still allowed in the headless run, no secret rule on facts, the `~/.local/bin` fallback unreachable, a ticker never cancelled (`$.clock.every` returns `{ cancel }`) and a frozen row beside an open pane; all fixed in 1.405.2 with 4 new tests. Mid-`/done` the user reported Enhance stopping when another message arrived: the `prompt.submit` hook cancelled on any submit, now only on the draft itself. A parallel session (syafiqkit-f1) built row 30, the band beside an open pane, in `band.js` under an explicit hand-over; its `/done` review found band presses re-running `openPane` on the already-open pane (a second `$.ui.open`, picks and filter wiped) and a frozen `Changes (N)`, both fixed with 2 tests. The same session moved the mod's rules from the root `CLAUDE.md` into `hooks/CLAUDE.md`. The CHANGELOG carries both as one 1.405.2 entry, shipped to master the same day with 1.405.3 before the live checks.
+The user asked to study `razorback16/cc-intelligent-ui`; it showed a mod can be split into imported modules, so the bundle and `build.sh` were removed and every `$` call wrapped (row 31). The user then chose, in turn: Discard via the question box only, no update notice, cc-intelligent-ui as a separate optional install (installed on this machine with Typst), a Typst-rendered doc reader, and a lighter answer mode drawing mermaid, math, images and video frames under plain text, with a prompt section telling Claude (rows 32 to 34, calls in `decisions/pictures.md`). Live in iTerm2 the spinner, diagram, math and PNG drew; the first doc render was blank and the video frame missing, both fixed but unseen. `/done` review fixed Typst page names past 9 (`{0p}`), the reader's width from the wrong prop, code fences scanned for math and paths, and `sips`-only sizing; 113 tests pass. Another session committed 1.405.6 (a22545c) on top of the staged motion-clip 1.405.5 bump, so this work takes 1.405.7.

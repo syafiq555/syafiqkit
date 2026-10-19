@@ -1,4 +1,6 @@
-const SYNTAX_LANGS = {
+import { SYNTAX_MAX_CHARS, SYNTAX_TONE } from '../core/constants.js'
+
+export const SYNTAX_LANGS = {
   php: 'php',
   js: 'c',
   jsx: 'c',
@@ -31,7 +33,7 @@ const SYNTAX_LANGS = {
   mdx: 'md',
 }
 
-const SYNTAX_KEYWORDS = new Set(
+export const SYNTAX_KEYWORDS = new Set(
   (
     'abstract and as async await break case catch class const continue def default do echo elif else elseif enum export extends ' +
     'false final finally fn for foreach from function global if implements import in instanceof interface is lambda let match ' +
@@ -40,13 +42,13 @@ const SYNTAX_KEYWORDS = new Set(
   ).split(' '),
 )
 
-const syntaxLang = (path) => {
+export function syntaxLang(path) {
   if (/\.blade\.php$/i.test(path || '')) return null
   const found = /\.([A-Za-z0-9]+)$/.exec(path || '')
   return found ? SYNTAX_LANGS[found[1].toLowerCase()] || null : null
 }
 
-const markdownTokens = (text) => {
+export function markdownTokens(text) {
   if (/^\s{0,3}#{1,6}\s/.test(text)) return [{ from: 0, to: text.length, tone: 'keyword' }]
   if (/^\s*(```|~~~)/.test(text)) return [{ from: 0, to: text.length, tone: 'comment' }]
   const tokens = []
@@ -62,7 +64,7 @@ const markdownTokens = (text) => {
   return tokens
 }
 
-const syntaxTokens = (text, lang, inComment) => {
+export function syntaxTokens(text, lang, inComment) {
   const tokens = []
   if (!lang || text.length > SYNTAX_MAX_CHARS) return { tokens, inComment: Boolean(inComment) }
   if (lang === 'md') return { tokens: markdownTokens(text), inComment: false }
@@ -131,7 +133,7 @@ const syntaxTokens = (text, lang, inComment) => {
   return { tokens, inComment: false }
 }
 
-const syntaxSegments = (length, tokens, span) => {
+export function syntaxSegments(length, tokens, span) {
   const cuts = new Set([0, length])
   for (const token of tokens) {
     cuts.add(token.from)
@@ -158,12 +160,14 @@ const syntaxSegments = (length, tokens, span) => {
   return segments
 }
 
-const syntaxSegmentStyle = (segment, wordColor) => ({
+export function syntaxSegmentStyle(segment, wordColor) {
+  return ({
   ...(segment.tone ? { color: SYNTAX_TONE[segment.tone] } : {}),
   ...(segment.mark ? { backgroundColor: wordColor } : {}),
 })
+}
 
-const highlightLines = (lines, path) => {
+export function highlightLines(lines, path) {
   const lang = syntaxLang(path)
   const side = { old: false, now: false }
   return lines.map((line) => {

@@ -4,7 +4,7 @@ Frame: arc42 sections, with a C4-style context diagram. Written by adoption on 2
 
 ## 1. Introduction & goals {#goals}
 
-A Claude Code plugin made of markdown. No build step for the skills, and the only runtime code is one `cat` hook plus the mod in `hooks/register.js` (built from `hooks/src/`): [SOURCED] "markdown files are interpreted directly". Its product is instructions a model reads, so the architecture is about *when* each instruction reaches the reader.
+A Claude Code plugin made of markdown. No build step for the skills, and the only runtime code is one `cat` hook plus the mod in `hooks/src/` (entry `mod.js`, loaded as ES modules with no build step): [SOURCED] "markdown files are interpreted directly". Its product is instructions a model reads, so the architecture is about *when* each instruction reaches the reader.
 
 Quality goals, ranked [INFERRED]:
 
@@ -59,7 +59,7 @@ External partners: GitHub (distribution); optional plugins `code-simplifier`, `f
 | Shared references | `skills/_shared/references/` | Rules cited by three or more skills |
 | Commands | `commands/*.md` | Invocation prompts (journal read/update) |
 | Hook | `hooks/hooks.json`, `hooks/RULESET.md` | Output-style injection |
-| Mod | `hooks/src/**/*.js` built into `hooks/register.js` by `hooks/build.sh`, `hooks/register.test.ts` | Band above the prompt, /sk menu, /task-docs reader, session handoffs |
+| Mod | `hooks/src/**/*.js` (entry `mod.js`), `hooks/render/` (vendored Typst template), `types/index.d.ts`, `hooks/register.test.ts` | Band above the prompt, /sk menu, /task-docs reader, session handoffs, pictures under answers |
 | Agent templates | `skills/agent-setup/templates/*.template.md` | Source for generated project agents |
 | Generated agents | `.claude/agents/*.md` | This repo's own agents; must stay in parity with templates |
 | Task docs | `tasks/plugin-maintenance/<feature>/` | The plugin's own decision history; not shipped |

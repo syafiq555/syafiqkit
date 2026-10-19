@@ -1,15 +1,20 @@
-const splitCells = (line) =>
-  line
+import { FENCE, HEADING, ITEM, MAX_CHARS } from '../core/constants.js'
+
+export function splitCells(line) {
+  return line
     .trim()
     .replace(/^\|/, '')
     .replace(/\|$/, '')
     .split(/(?<!\\)\|/)
     .map((cell) => cell.trim().replace(/\\\|/g, '|'))
+}
 
-const isSeparator = (line) => /^\s*\|?[\s:|-]*-[\s:|-]*\|?\s*$/.test(line) && line.includes('|')
+export function isSeparator(line) {
+  return /^\s*\|?[\s:|-]*-[\s:|-]*\|?\s*$/.test(line) && line.includes('|')
+}
 
-const tableToBullets = (header, rows) =>
-  rows.map((cells) => {
+export function tableToBullets(header, rows) {
+  return rows.map((cells) => {
     const lead = cells[0] || ' '
     const rest = cells
       .slice(1)
@@ -21,8 +26,9 @@ const tableToBullets = (header, rows) =>
       .filter(Boolean)
     return '- **' + lead + '**' + (rest.length ? ' — ' + rest.join(' · ') : '')
   })
+}
 
-const reshapeTables = (text) => {
+export function reshapeTables(text) {
   const lines = text.split('\n')
   const out = []
   let inFence = false
@@ -48,12 +54,12 @@ const reshapeTables = (text) => {
   return out.join('\n')
 }
 
-const shape = (raw) => {
+export function shape(raw) {
   const text = reshapeTables(raw.replace(/<!--[\s\S]*?-->\n?/g, ''))
   return text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) + '\n\n_Truncated at ' + MAX_CHARS + ' characters._' : text
 }
 
-const segments = (text) => {
+export function segments(text) {
   const out = []
   let chunk = []
   let fence = null

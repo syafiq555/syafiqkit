@@ -1,6 +1,23 @@
-const STATUS_TONE = { M: 'mod', A: 'add', U: 'add', D: 'del', R: 'ren', C: 'del' }
+import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DIFF, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, VERBS, WINDOW_ROWS } from '../core/constants.js'
+import { agoOf, docLabel, isHeavy, isInstructionFile, kb, oversizedDecisions } from '../core/format.js'
+import { invalidatePane, state } from '../core/state.js'
+import { ensureSlice, openInViewer, saveGallery, sliceGeometry, slicesWanted } from '../docs/gallery.js'
+import { svgPicture } from '../docs/images.js'
+import { closePane } from '../docs/reader.js'
+import { addRepo, askDiscard, fileTargets, isDocPath, openChangeAll, openChangeFile, openDocFromChanges, orderedFiles, refreshChanges, refreshRepoList, removeRepo, selectRepo, showHiddenRepos, stageEverything, stageTargets, stageThese, toggleStageFocused, toggleStageFolder, toggleStageOpenFile, unstageEverything, unstageThese } from '../git/controller.js'
+import { readDiff } from '../git/diff.js'
+import { mediaCaption } from '../git/media.js'
+import { repoNameOf, visibleRepos } from '../git/repos.js'
+import { entryInFocus, letterOf, nameOf, numstatOf, sectionEntries, splitFocus, treeRows } from '../git/status.js'
+import { highlightLines, syntaxSegmentStyle, syntaxSegments } from '../git/syntax.js'
+import { PLANE_LABEL, activeFocus, diffBodyItems, diffIsOpen, focusTitle, lineNumberWidth, moreLinesItem, noDiffsText, shownLines } from './changes.js'
+import { galleryPicture } from './images.js'
+import { runVerb } from './menu.js'
+import { chip, counts, hoverScope, liveOnly, mapBlock, meter, pageBar, strip } from './ui.js'
 
-const lineCountOf = (sizes, entry, key) => {
+export const STATUS_TONE = { M: 'mod', A: 'add', U: 'add', D: 'del', R: 'ren', C: 'del' }
+
+export function lineCountOf(sizes, entry, key) {
   const diff = state.allDiffs[key]
   if (diff) return { added: diff.added, removed: diff.removed }
   const size = sizes[entry.path]
@@ -9,20 +26,21 @@ const lineCountOf = (sizes, entry, key) => {
   return { added: added || 0, removed: removed || 0 }
 }
 
-const statusChip = (c, key, letter) =>
-  c.Box({ key, width: 3, flexShrink: 0, children: [chip(c, key + 't', letter, STATUS_TONE[letter] || 'muted')] })
+export function statusChip(c, key, letter) {
+  return c.Box({ key, width: 3, flexShrink: 0, children: [chip(c, key + 't', letter, STATUS_TONE[letter] || 'muted')] })
+}
 
-const shortFolder = (path) => {
+export function shortFolder(path) {
   const parts = folderOfPath(path).split('/').filter(Boolean)
   return parts.length > 2 ? '…/' + parts.slice(-2).join('/') : parts.join('/')
 }
 
-const folderOfPath = (path) => {
+export function folderOfPath(path) {
   const cut = path.lastIndexOf('/')
   return cut < 0 ? '' : path.slice(0, cut)
 }
 
-const changeMap = ($, c, sizes) => {
+export function changeMap($, c, sizes) {
   const { Box, Text } = c
   const files = []
   for (const plane of ['staged', 'worktree']) {
@@ -64,7 +82,7 @@ const changeMap = ($, c, sizes) => {
   ]
 }
 
-const desktopChangesView = ($, c) => {
+export function desktopChangesView($, c) {
   const { Box, Text, Button, Input, redraw, bindField } = c
   const ch = state.changes
   state.wide = false
@@ -273,7 +291,7 @@ const desktopChangesView = ($, c) => {
   })
 }
 
-const desktopGapRow = (c, line, key, width) => {
+export function desktopGapRow(c, line, key, width) {
   const { Box, Text } = c
   return Box({
     key,
@@ -285,7 +303,7 @@ const desktopGapRow = (c, line, key, width) => {
   })
 }
 
-const desktopDiffRow = (c, line, key, width, tokens) => {
+export function desktopDiffRow(c, line, key, width, tokens) {
   const { Box, Text } = c
   const isAdd = line.kind === 'add'
   const isDel = line.kind === 'del'
@@ -319,7 +337,7 @@ const desktopDiffRow = (c, line, key, width, tokens) => {
   })
 }
 
-const loadOneDiff = async ($, entry, plane) => {
+export async function loadOneDiff($, entry, plane) {
   const key = plane + ':' + entry.path
   const root = state.repoRoot
   const diff = await readDiff($, state.changes.repo, fileTargets(entry), plane)
@@ -328,7 +346,7 @@ const loadOneDiff = async ($, entry, plane) => {
   invalidatePane($)
 }
 
-const windowedRows = (c, items, topRows) => {
+export function windowedRows(c, items, topRows) {
   const pageChanged = state.allScroll.view !== state.view
   const live = !pageChanged && c.e.props && c.e.props.scroll
   const view = live ? { view: state.view, offset: live.offset, body: live.bodyRows || state.allScroll.body } : state.allScroll
@@ -359,12 +377,13 @@ const windowedRows = (c, items, topRows) => {
   return [...spacer('w-above', above), ...drawn, ...spacer('w-below', below)]
 }
 
-const desktopGroups = (focus) =>
-  ['worktree', 'staged']
+export function desktopGroups(focus) {
+  return ['worktree', 'staged']
     .map((plane) => ({ plane, files: orderedFiles(plane).filter((entry) => entryInFocus(focus, plane, entry)) }))
     .filter((group) => group.files.length)
+}
 
-const desktopFileStrip = ($, c, entry, plane, diff, toggle, prefix = '') => {
+export function desktopFileStrip($, c, entry, plane, diff, toggle, prefix = '') {
   const { Button } = c
   const key = prefix + plane + ':' + entry.path
   const staged = plane === 'staged'
@@ -404,7 +423,7 @@ const desktopFileStrip = ($, c, entry, plane, diff, toggle, prefix = '') => {
   })
 }
 
-const stageAllActions = ($, focus, groups) => {
+export function stageAllActions($, focus, groups) {
   const parts = splitFocus(focus)
   if (parts && parts.path && !parts.path.endsWith('/')) return []
   return groups.map((group) => {
@@ -414,7 +433,7 @@ const stageAllActions = ($, focus, groups) => {
   })
 }
 
-const desktopChangeAllView = ($, c) => {
+export function desktopChangeAllView($, c) {
   const { Box, Text, goto, redraw } = c
   const focus = activeFocus()
   const groups = desktopGroups(focus)
@@ -484,7 +503,7 @@ const desktopChangeAllView = ($, c) => {
   })
 }
 
-const desktopDiffItems = (c, lines, prefix, path) => {
+export function desktopDiffItems(c, lines, prefix, path) {
   const width = lineNumberWidth(lines)
   const tokens = highlightLines(lines, path)
   return lines.map((line, index) =>
@@ -497,7 +516,7 @@ const desktopDiffItems = (c, lines, prefix, path) => {
   )
 }
 
-const mediaSides = (media) => {
+export function mediaSides(media) {
   const pair = Boolean(media.before && media.after)
   if (pair) return [['Before', media.before], ['After', media.after]]
   if (media.after) return [[media.kind === 'pdf' ? 'Page 1' : media.isNew ? 'New' : 'Now', media.after]]
@@ -505,7 +524,7 @@ const mediaSides = (media) => {
   return []
 }
 
-const desktopMediaItems = ($, c, key, diff) => {
+export function desktopMediaItems($, c, key, diff) {
   const { Box, Text, Button, Svg } = c
   const media = diff.media
   const sides = mediaSides(media)
@@ -552,7 +571,7 @@ const desktopMediaItems = ($, c, key, diff) => {
   ]
 }
 
-const desktopChangeFileView = ($, c) => {
+export function desktopChangeFileView($, c) {
   const { Box, Text, goto } = c
   const file = state.changeFile
   if (!file) return desktopChangesView($, c)
@@ -612,7 +631,7 @@ const desktopChangeFileView = ($, c) => {
   })
 }
 
-const docGauge = (doc) => {
+export function docGauge(doc) {
   if (typeof doc.lines === 'number') {
     const max = isInstructionFile(doc) ? CLAUDE_MD_MAX_LINES : TASK_DOC_MAX_LINES
     return { value: doc.lines, max, label: doc.lines + '/' + max }
@@ -620,7 +639,7 @@ const docGauge = (doc) => {
   return { value: doc.size || 0, max: CLAUDE_MD_MAX_BYTES, label: kb(doc.size || 0) }
 }
 
-const desktopDocRow = (c, doc, key, withScope, indent) => {
+export function desktopDocRow(c, doc, key, withScope, indent) {
   const { Box, Text, Button, pickAction } = c
   const heavy = isHeavy(doc)
   const gauge = docGauge(doc)
@@ -672,13 +691,13 @@ const desktopDocRow = (c, doc, key, withScope, indent) => {
   })
 }
 
-const MENU_GROUPS = [
+export const MENU_GROUPS = [
   { title: 'SHIP WORK', labels: ['Commit', 'Commit and push', 'Done', 'Ship'] },
   { title: 'DOCS', labels: ['Read a task doc', 'Shrink a doc', 'Refresh a doc', 'Merge docs'] },
   { title: 'SESSION', labels: ['Hand off', 'Changes', 'Images'] },
 ]
 
-const desktopMenuView = ($, c) => {
+export function desktopMenuView($, c) {
   const { Box, Text, Button } = c
   const rows = []
   MENU_GROUPS.forEach((group) => {
@@ -718,14 +737,16 @@ const desktopMenuView = ($, c) => {
       )
     })
   })
-  return Box({ flexDirection: 'column', children: [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' }), ...rows, Box({ key: 'menu-version', marginTop: 1, children: [Text({ dimColor: true, children: 'syafiqkit mod v' + MOD_VERSION })] })] })
+  return Box({ flexDirection: 'column', children: [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' }), ...rows, Box({ key: 'menu-version', marginTop: 1, children: [Text({ dimColor: true, children: 'syafiqkit mod v' + state.version })] })] })
 }
 
-let galleryPick = ''
+export let galleryPick = ''
 
-const pngBytes = (image) => (image.png ? Math.floor((image.png.length * 3) / 4) : 0)
+export function pngBytes(image) {
+  return (image.png ? Math.floor((image.png.length * 3) / 4) : 0)
+}
 
-const desktopImagesView = ($, c) => {
+export function desktopImagesView($, c) {
   const { Box, Text, Button, Svg, redraw } = c
   const list = [...state.images].reverse()
   const close = { key: 'img-close', label: '< Close', hotkey: 'b', onPress: () => closePane($) }

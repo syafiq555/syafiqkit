@@ -1,5 +1,11 @@
-const paneContext = ($, e) => {
-  const atoms = $.ui.resolve(e)
+import { hostUiResolve } from '../core/api.js'
+import { REFRESH_EFFECT, SHRINK_EFFECT, refreshRequest, shrinkRequest } from '../core/format.js'
+import { invalidatePane, state } from '../core/state.js'
+import { closePane, loadDoc, readDecision } from '../docs/reader.js'
+import { runHandoff } from './actions.js'
+
+export function paneContext($, e) {
+  const atoms = hostUiResolve($, e)
   const redraw = () => invalidatePane($)
 
   const goto = (view) => {

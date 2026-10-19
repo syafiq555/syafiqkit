@@ -1,4 +1,19 @@
-const paneView = async ($, e, next) => {
+import { hostUiInvalidate, hostUiScroll } from '../core/api.js'
+import { DESKTOP_DRAW_LIMIT, DESKTOP_TONE, MOD_LOG_FILE, PANE, STICKY_AFTER, STICKY_PREFIX, TOP_BUTTON_AFTER, TOP_BUTTON_ROWS, WINDOW_ROWS } from '../core/constants.js'
+import { drawingSize, modLog, treeProblem } from '../core/log.js'
+import { state } from '../core/state.js'
+import { closePane } from '../docs/reader.js'
+import { CHANGE_VIEWS } from '../git/controller.js'
+import { changeAllView, changeFileView, changesView } from './changes.js'
+import { desktopChangeAllView, desktopChangeFileView, desktopChangesView } from './desktop.js'
+import { decisionView, docView } from './doc.js'
+import { imagesView } from './images.js'
+import { listView } from './list.js'
+import { confirmView, handoffView, menuView } from './menu.js'
+import { paneContext } from './pane-context.js'
+import { isDesktop, pageBar } from './ui.js'
+
+export async function paneView($, e, next) {
   if (e.requestId === PANE && !state.isOpen) modLog($, 'pane drawn while closed (' + e.surface + ')')
   if (e.requestId !== PANE || !state.isOpen) return next(e)
   const c = paneContext($, e)
@@ -17,7 +32,7 @@ const paneView = async ($, e, next) => {
   return state.desktop ? refusedView($, c, problem) : tree
 }
 
-const withFloats = ($, c, tree) => {
+export function withFloats($, c, tree) {
   const scroll = c.e.props && c.e.props.scroll
   const offset = state.windowed ? state.windowAt : scroll ? scroll.offset : 0
   state.topShown = offset > TOP_BUTTON_AFTER
@@ -54,7 +69,7 @@ const withFloats = ($, c, tree) => {
                 c.Button({
                   key: 'pane-top',
                   label: '↑ Top',
-                  onPress: () => $.ui.scroll({ in: PANE, to: 'start', block: 'start' }).then(() => $.ui.invalidate('ui.render')),
+                  onPress: () => hostUiScroll($, { in: PANE, to: 'start', block: 'start' }).then(() => hostUiInvalidate($, 'ui.render')),
                 }),
               ],
             }),
@@ -64,8 +79,8 @@ const withFloats = ($, c, tree) => {
   })
 }
 
-const refusedView = ($, c, problem) =>
-  c.Box({
+export function refusedView($, c, problem) {
+  return c.Box({
     flexDirection: 'column',
     rowGap: 1,
     children: [
@@ -78,8 +93,9 @@ const refusedView = ($, c, problem) =>
       c.Text({ key: 'draw-log', dimColor: true, children: 'Written to ~/.claude/doc-pane-cache/' + MOD_LOG_FILE + ' for debugging.' }),
     ],
   })
+}
 
-const paneTree = async ($, c) => {
+export async function paneTree($, c) {
   const e = c.e
   if (state.view === 'menu') return menuView($, c)
   if (state.view === 'confirm') return confirmView($, c)
@@ -91,7 +107,6 @@ const paneTree = async ($, c) => {
   if (state.view === 'changes') return changesView($, c)
   if (state.view === 'change-file') return changeFileView($, c)
   if (state.view === 'change-all') return changeAllView($, c)
-  if (state.view === 'discard') return discardView($, c)
   if (state.view === 'decision' && state.current) return decisionView($, c)
   if (state.view === 'doc' && state.current) return docView($, c)
   return listView(c)

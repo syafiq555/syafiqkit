@@ -1,4 +1,12 @@
-const docRow = (c, doc, key, withScope, indent) => {
+import { DESKTOP_STRIP_ROWS, GROUPS, LIST_FOLD_FROM, LIST_TOP_ROWS, NAME_WIDTH, NARROW_COLUMNS, SCOPE_WIDTH } from '../core/constants.js'
+import { agoOf, clip, clipStart, heavyNote, isHeavy } from '../core/format.js'
+import { state } from '../core/state.js'
+import { heavyDocs, recentDocs } from '../docs/discovery.js'
+import { paneColumns } from './changes.js'
+import { desktopDocRow, docGauge, windowedRows } from './desktop.js'
+import { chip, isDesktop, liveOnly, strip, textMeter } from './ui.js'
+
+export function docRow(c, doc, key, withScope, indent) {
   if (isDesktop(c.e)) return desktopDocRow(c, doc, key, withScope, indent)
   const { Box, Text, Button, pickAction } = c
   const heavy = isHeavy(doc)
@@ -36,9 +44,11 @@ const docRow = (c, doc, key, withScope, indent) => {
   })
 }
 
-const folderOf = (doc) => doc.scope || 'tasks'
+export function folderOf(doc) {
+  return doc.scope || 'tasks'
+}
 
-const taskFolders = (docs) => {
+export function taskFolders(docs) {
   const folders = []
   docs.forEach((doc) => {
     const name = folderOf(doc)
@@ -52,17 +62,18 @@ const taskFolders = (docs) => {
   return folders
 }
 
-const CHAIN_SECTIONS = [
+export const CHAIN_SECTIONS = [
   { name: 'Loaded every session', showScope: true, has: (doc) => !doc.scope.startsWith('nested:') && !doc.scope.startsWith('companion') },
   { name: 'Nested · load when touched', has: (doc) => doc.scope.startsWith('nested:') },
   { name: 'Global companions · on demand', has: (doc) => doc.scope === 'companion' },
   { name: 'Project companions · on demand', has: (doc) => doc.scope === 'companion (this project)' },
 ]
 
-const chainSections = (docs) =>
-  CHAIN_SECTIONS.map((section) => ({ ...section, docs: docs.filter((doc) => section.has(doc)) })).filter((section) => section.docs.length)
+export function chainSections(docs) {
+  return CHAIN_SECTIONS.map((section) => ({ ...section, docs: docs.filter((doc) => section.has(doc)) })).filter((section) => section.docs.length)
+}
 
-const listView = (c) => {
+export function listView(c) {
   const { Box, Text, Button, Input, goto, redraw, bindField } = c
   const gap = (key) => Text({ key: 'gap-' + key, children: ' ' })
   const desktop = isDesktop(c.e)

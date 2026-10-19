@@ -1,16 +1,22 @@
-const isDesktop = (e) => Boolean(e) && e.surface === 'desktop'
+import { DESKTOP_TONE } from '../core/constants.js'
+import { state } from '../core/state.js'
 
-const hoverScope = (text) => {
+export function isDesktop(e) {
+  return Boolean(e) && e.surface === 'desktop'
+}
+
+export function hoverScope(text) {
   let hash = 0
   for (let at = 0; at < text.length; at++) hash = (Math.imul(hash, 31) + text.charCodeAt(at)) | 0
   return 'f' + (hash >>> 0).toString(36)
 }
 
-const chip = (c, key, text, tone) =>
-  c.Text({ key, backgroundColor: DESKTOP_TONE[tone + 'Chip'] || DESKTOP_TONE.mutedChip, children: ' ' + text + ' ' })
+export function chip(c, key, text, tone) {
+  return c.Text({ key, backgroundColor: DESKTOP_TONE[tone + 'Chip'] || DESKTOP_TONE.mutedChip, children: ' ' + text + ' ' })
+}
 
-const counts = (c, key, added, removed) =>
-  c.Box({
+export function counts(c, key, added, removed) {
+  return c.Box({
     key,
     flexDirection: 'row',
     columnGap: 1,
@@ -20,8 +26,9 @@ const counts = (c, key, added, removed) =>
       ...(removed ? [c.Text({ key: key + '-', color: 'error', children: '−' + removed })] : []),
     ],
   })
+}
 
-const strip = (c, { key, title, count, tone, right, onPress, hot }) => {
+export function strip(c, { key, title, count, tone, right, onPress, hot }) {
   const { Box, Text, Button } = c
   const label = [title, count === undefined ? '' : String(count)].filter(Boolean).join('  ')
   return Box({
@@ -41,7 +48,7 @@ const strip = (c, { key, title, count, tone, right, onPress, hot }) => {
   })
 }
 
-const meter = (c, key, value, max, width = 10) => {
+export function meter(c, key, value, max, width = 10) {
   const over = value > max
   const filled = Math.max(value > 0 ? 1 : 0, Math.min(width, Math.round((value / Math.max(1, max)) * width)))
   const bar = (part, cells, color) =>
@@ -58,21 +65,25 @@ const meter = (c, key, value, max, width = 10) => {
   })
 }
 
-const textMeter = (value, max, width) => {
+export function textMeter(value, max, width) {
   const filled = value > 0 ? Math.max(1, Math.min(width, Math.round((value / Math.max(1, max)) * width))) : 0
   return '█'.repeat(filled) + '░'.repeat(width - filled)
 }
 
-const stickyTop = (make) => {
+export function stickyTop(make) {
   state.stickyTop = make
   return make('')
 }
 
-const liveOnly = (prefix, props) => (prefix ? {} : props)
+export function liveOnly(prefix, props) {
+  return (prefix ? {} : props)
+}
 
-const pageBar = (c, opts) => stickyTop((prefix) => pageBarRow(c, opts, prefix))
+export function pageBar(c, opts) {
+  return stickyTop((prefix) => pageBarRow(c, opts, prefix))
+}
 
-const pageBarRow = (c, { back, actions, title, sub }, prefix) => {
+export function pageBarRow(c, { back, actions, title, sub }, prefix) {
   const { Box, Text, Button } = c
   const own = (hotkey, autoFocus) => liveOnly(prefix, { hotkey, ...(autoFocus ? { autoFocus: true } : {}) })
   return Box({
@@ -104,7 +115,7 @@ const pageBarRow = (c, { back, actions, title, sub }, prefix) => {
   })
 }
 
-const mapBlock = (c, { key, scope, added, removed, cells, onPress }) => {
+export function mapBlock(c, { key, scope, added, removed, cells, onPress }) {
   const { Box, Button } = c
   const tone = added && removed ? 'mix' : removed ? 'del' : 'add'
   return Box({

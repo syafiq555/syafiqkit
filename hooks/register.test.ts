@@ -80,6 +80,22 @@ test('session start registers the menu and docs commands', async ($, on) => {
   expect(names).toEqual(['task-docs', 'sk', 'changes'])
 })
 
+test('the menu shows the version read from plugin.json at session start', async ($, on) => {
+  const reads: string[] = []
+  stubSession(on, [], [])
+  stubRender(on)
+  on('fs.read', (_$: any, e: any) => {
+    reads.push(e.path)
+    return { value: String(e.path).endsWith('/.claude-plugin/plugin.json') ? '{ "name": "syafiqkit", "version": "9.8.7" }' : '' }
+  })
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  expect(reads.some((path) => path.endsWith('/.claude-plugin/plugin.json'))).toBe(true)
+  await $.command.run({ command: 'sk', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.findAll({ type: 'Text', text: /syafiqkit mod v9\.8\.7/ })).length).toBe(1)
+  await ui.unmount()
+})
+
 test('the band offers the menu and the docs while the pane is closed', async ($, on) => {
   stubSession(on, [], [])
   stubRender(on)
@@ -1041,20 +1057,37 @@ test('pressing a file shows its diff with hidden-line gaps, and Back returns to 
   await ui.unmount()
 })
 
-test('Discard asks first, names the file, and an untracked file is removed with git clean', async ($, on) => {
+test('Discard asks in the Claude Code question box, names the file, and an untracked file is removed with git clean', async ($, on) => {
   const runs: string[][] = []
+  const asked: any[] = []
+  const answers = ['Cancel', 'Discard']
+  on('tool.call', { tool: 'AskUserQuestion' }, (_$: any, e: any) => {
+    const question = e.questions[0]
+    asked.push(question)
+    return { result: { questions: e.questions, answers: { [question.question]: answers.shift() } } }
+  })
   const ui = await openChangesPane($, on, runs, PANE)
   await ui.press({ key: 'worktree-0b' })
   await ui.press({ key: 'tb-discard' })
-  expect(await ui.find({ key: 'discard-yes' })).toBeDefined()
-  await ui.press({ key: 'discard-cancel' })
+  expect(JSON.stringify(asked[0])).toContain('cannot be undone')
   expect(runs.some((run) => run[1] === 'restore' && !run.includes('--staged'))).toBe(false)
   expect(await ui.find({ key: 'worktree-toggle' })).toBeDefined()
   await ui.press({ key: 'worktree-1b' })
-  await ui.press({ key: 'tb-discard' })
   expect(runs.some((run) => run[1] === 'clean')).toBe(false)
-  await ui.press({ key: 'discard-yes' })
+  await ui.press({ key: 'tb-discard' })
+  expect(JSON.stringify(asked[1])).toContain('new.txt?')
   expect(ran(runs, 'git', 'clean', '-f', '--', 'new.txt')).toBe(true)
+  await ui.unmount()
+})
+
+test('closing the Discard question discards nothing', async ($, on) => {
+  const runs: string[][] = []
+  on('tool.call', { tool: 'AskUserQuestion' }, () => ({ deny: 'dismissed' }))
+  const ui = await openChangesPane($, on, runs, PANE)
+  await ui.press({ key: 'worktree-1b' })
+  await ui.press({ key: 'tb-discard' })
+  expect(runs.some((run) => run[1] === 'clean' || (run[1] === 'restore' && !run.includes('--staged')))).toBe(false)
+  expect(await ui.find({ key: 'worktree-toggle' })).toBeDefined()
   await ui.unmount()
 })
 
@@ -1738,6 +1771,7 @@ const openLoggedDesktop = async ($: any, on: any, writes: any[], status: string,
     return { value: undefined }
   })
   on('process.run', fakeDesktopGit(status, diff))
+  on('fs.read', () => ({ value: '{ "version": "0.0.0" }' }))
   stubRender(on)
   await $.session.start({ surface: 'desktop', isInteractive: true, cwd: '/work' })
   await $.command.run({ command: 'changes', args: '' })
@@ -2256,4 +2290,199 @@ test('a prompt sent by someone else keeps Undo; sending the enhanced prompt itse
   await band.rerender?.()
   expect(await band.find({ key: 'enhance-undo' })).toBeFalsy()
   await band.unmount()
+})
+
+const TYPESET_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+
+const openTypesetDoc = async ($: any, on: any, runs: string[][], hasTypst: boolean, bodyColumns = 100) => {
+  stubSession(on, [], [], [], ['fs.list', 'env.get'])
+  on('env.get', () => ({ value: '/Users/test' }))
+  stubTree(on, { '/work/tasks': [dirEntry('a')], '/work/tasks/a': [fileEntry('current.md', 60)] })
+  on('fs.read', (_$: any, e: any) => ({ value: String(e.path).endsWith('.png') ? { base64: TYPESET_PNG } : '# T\n\nSome **bold** text.\n\n| a | b |\n|---|---|\n| 1 | 2 |' }))
+  on('fs.write', () => ({ value: undefined }))
+  on('config.list', () => ({ value: [{ key: 'theme', label: 'Theme', value: 'dark' }] }))
+  on('process.run', (_$: any, e: any) => {
+    const argv = e.argv || e.command || e
+    runs.push(argv)
+    if (argv[1] === '--version') return { value: { exitCode: hasTypst && argv[0] === 'typst' ? 0 : 1, stdout: '', stderr: '' } }
+    if (argv[1] === 'compile') return { value: { exitCode: 0, stdout: '', stderr: '' } }
+    return { value: { exitCode: 1, stdout: '', stderr: '' } }
+  })
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, props: { ...PANE.props, bodyColumns }, surface: 'terminal' })
+  await ui.press({ key: 'r0b' })
+  for (let tries = 0; tries < 20 && !(await ui.findAll({ type: 'Image' })).length; tries += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    await ui.rerender?.()
+  }
+  return ui
+}
+
+test('with Typst installed, a doc renders as pictures from the bundled template, and Text view switches back', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openTypesetDoc($, on, runs, true)
+  const compile = runs.find((run) => run[1] === 'compile')
+  expect(compile).toBeDefined()
+  expect(compile?.some((arg) => arg.endsWith('/hooks/render/md.typ'))).toBe(true)
+  expect(compile).toContain('theme=dark')
+  expect((await ui.findAll({ type: 'Image' })).length).toBeGreaterThan(0)
+  await ui.press({ key: 'view' })
+  expect((await ui.findAll({ type: 'Image' })).length).toBe(0)
+  await ui.unmount()
+})
+
+test('without Typst the doc stays text and says how to get the rendered view', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openTypesetDoc($, on, runs, false)
+  await ui.rerender?.()
+  expect(runs.some((run) => run[1] === 'compile')).toBe(false)
+  expect((await ui.findAll({ type: 'Image' })).length).toBe(0)
+  expect((await ui.findAll({ type: 'Text', text: /Rendered docs need Typst/ })).length).toBe(1)
+  expect(await ui.find({ key: 'view' })).toBeUndefined()
+  await ui.unmount()
+})
+
+const ANSWER_TEXT = [
+  'Here is the flow:',
+  '',
+  '```mermaid',
+  'graph TD; A-->B',
+  '```',
+  '',
+  '$$\\int_0^1 x^2\\,dx = \\frac{1}{3}$$',
+  '',
+  '![chart](/Users/test/out/chart.jpg)',
+  '',
+  'The recording is at `/Users/test/out/demo.mp4`.',
+].join('\n')
+
+const stubAnswerIo = (on: any, runs: string[][]) => {
+  stubSession(on, [], [], [], ['env.get', 'fs.exists'])
+  on('env.get', () => ({ value: '/Users/test' }))
+  on('fs.exists', (_$: any, e: any) => ({ value: String(e.path).startsWith('/Users/test/out/') }))
+  on('fs.write', (_$: any, e: any) => {
+    runs.push(['write', String(e.path)])
+    return { value: undefined }
+  })
+  on('fs.read', (_$: any, e: any) => ({ value: String(e.path).endsWith('.png') ? { base64: TYPESET_PNG } : '{ "version": "0.0.0" }' }))
+  on('config.list', () => ({ value: [] }))
+  on('process.run', (_$: any, e: any) => {
+    const argv = e.argv || e.command || e
+    runs.push(argv)
+    if (argv[0] === 'sips' && argv[1] === '-g') return { value: { exitCode: 0, stdout: 'pixelWidth: 800\n  pixelHeight: 400\n', stderr: '' } }
+    if (argv[0] === 'sh') return { value: { exitCode: 1, stdout: '', stderr: '' } }
+    if (argv[0] === 'typst' || argv[0] === 'sips' || argv[0] === 'ffmpeg' || argv[0] === 'npx') return { value: { exitCode: 0, stdout: '', stderr: '' } }
+    return { value: { exitCode: 1, stdout: '', stderr: '' } }
+  })
+}
+
+const mountAnswer = async ($: any, text: string) => {
+  const ui = await $.ui.mount({ plugin: 'syafiqkit', component: 'AssistantMessage', requestId: 'answer-1', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: { text } })
+  for (let tries = 0; tries < 30 && (await ui.findAll({ type: 'Image' })).length < 4; tries += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    await ui.rerender?.()
+  }
+  return ui
+}
+
+test('an answer keeps its text and gains pictures for a diagram, display math, a local image and a video frame', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const ui = await mountAnswer($, ANSWER_TEXT)
+  expect((await ui.findAll({ type: 'Text', text: /drawn by Claude Code/ })).length).toBe(1)
+  expect((await ui.findAll({ type: 'Image' })).length).toBe(4)
+  expect(runs.some((run) => run[0] === 'npx')).toBe(true)
+  expect(runs.some((run) => run[0] === 'typst' && run[1] === 'compile')).toBe(true)
+  expect(runs.some((run) => run[0] === 'sips' && run.includes('/Users/test/out/chart.jpg'))).toBe(true)
+  expect(runs.some((run) => run[0] === 'ffmpeg' && run.includes('/Users/test/out/demo.mp4'))).toBe(true)
+  const madeFolder = runs.findIndex((run) => run[0] === 'write' && run[1] === '/Users/test/.claude/doc-pane-cache/answers/.keep')
+  expect(madeFolder).toBeGreaterThan(-1)
+  expect(madeFolder).toBeLessThan(runs.findIndex((run) => run[0] === 'ffmpeg'))
+  expect(await ui.find({ key: 'ap-3-open' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('an answer another mod already drew as pictures is left alone', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs)
+  on('ui.render', () => ({ type: 'Image', props: { source: { png: TYPESET_PNG }, columns: 10, rows: 2, alt: 'drawn elsewhere' } }))
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const ui = await $.ui.mount({ plugin: 'syafiqkit', component: 'AssistantMessage', requestId: 'answer-2', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: { text: ANSWER_TEXT } })
+  expect((await ui.findAll({ type: 'Image' })).length).toBe(1)
+  expect(runs.some((run) => run[0] === 'ffmpeg' || run[0] === 'npx')).toBe(false)
+  await ui.unmount()
+})
+
+test('format names in prose and paths to missing files get no picture and no Open button', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const text = 'Video paths: `.mp4`, `.mov`, `.webm` and similar get a preview. Also see /Users/test/gone/clip.mp4 and ![x](.png).'
+  const ui = await $.ui.mount({ plugin: 'syafiqkit', component: 'AssistantMessage', requestId: 'answer-3', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: { text } })
+  await new Promise((resolve) => setTimeout(resolve, 60))
+  await ui.rerender?.()
+  expect(runs.some((run) => run[0] === 'ffmpeg')).toBe(false)
+  expect((await ui.findAll({ type: 'Button' })).length).toBe(0)
+  expect((await ui.findAll({ type: 'Image' })).length).toBe(0)
+  await ui.unmount()
+})
+
+const composeBase = { sections: [{ id: 'intro', text: 'You are Claude.', scope: 'shared' }] }
+
+test('Claude is told about answer pictures in terminal sessions only, and not once they are switched off', async ($, on) => {
+  const runs: string[][] = []
+  const stored: Record<string, unknown> = {}
+  stubAnswerIo(on, runs)
+  stubRender(on)
+  on('store.get', (_$: any, e: any) => ({ value: stored[e.key] }))
+  on('store.set', (_$: any, e: any) => {
+    stored[e.key] = e.value
+    return { value: undefined }
+  })
+  on('prompt.compose', () => composeBase)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const ids = async (surfaces: string[]) => ((await $.prompt.compose({ surfaces, model: 'claude-test', promptModel: 'claude-test', tools: [], outputStyle: null, traits: [] })).sections as any[]).map((section) => section.id)
+  expect(await ids(['terminal'])).toContain('syafiqkit:answer-pictures')
+  expect(await ids(['desktop'])).not.toContain('syafiqkit:answer-pictures')
+  await $.command.run({ command: 'sk', args: '' })
+  const menu = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await menu.find({ key: 'answer-pictures' }))?.props.label).toBe('Answer pictures: on')
+  await menu.press({ key: 'answer-pictures' })
+  expect(stored.answerPicturesOff).toBe(true)
+  expect(await ids(['terminal'])).not.toContain('syafiqkit:answer-pictures')
+  await menu.unmount()
+  const answer = await $.ui.mount({ plugin: 'syafiqkit', component: 'AssistantMessage', requestId: 'answer-4', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: { text: ANSWER_TEXT } })
+  expect((await answer.findAll({ type: 'Image' })).length).toBe(0)
+  expect(runs.some((run) => run[0] === 'ffmpeg' || run[0] === 'npx')).toBe(false)
+  await answer.unmount()
+})
+
+test('rendered doc pages are sized to a narrow pane, not a default width', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openTypesetDoc($, on, runs, true, 40)
+  const compile = runs.find((run) => run[1] === 'compile')
+  expect(compile).toContain('width=' + 36 * 7)
+  const images = await ui.findAll({ type: 'Image' })
+  expect(images.length).toBeGreaterThan(0)
+  expect(images.every((image: any) => image.props.columns <= 38)).toBe(true)
+  await ui.unmount()
+})
+
+test('$$ written inside inline code is not drawn as math, while a video path in backticks still is', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const text = 'The `$$` blocks need Typst, so a `$$` equation without it stays text. The clip is at `/Users/test/out/demo.mp4`.'
+  const ui = await $.ui.mount({ plugin: 'syafiqkit', component: 'AssistantMessage', requestId: 'answer-5', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: { text } })
+  await new Promise((resolve) => setTimeout(resolve, 60))
+  await ui.rerender?.()
+  expect(runs.some((run) => run[0] === 'typst' && run[1] === 'compile')).toBe(false)
+  expect(runs.some((run) => run[0] === 'ffmpeg' && run.includes('/Users/test/out/demo.mp4'))).toBe(true)
+  await ui.unmount()
 })

@@ -1,8 +1,9 @@
 {
   "name": "syafiqkit",
   "description": "Personal workflow toolkit - commits, summaries, docs, invoicing, journals",
-  "version": "1.405.6",
+  "version": "1.405.7",
   "author": {
     "name": "Syafiq"
-  }
+  },
+  "types": "./types/index.d.ts"
 }

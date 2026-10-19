@@ -1,6 +1,19 @@
-const bandView = ($, e, next) => {
+import { hostUiResolve } from '../core/api.js'
+import { DESKTOP_TONE, RISKY } from '../core/constants.js'
+import { agoOf, clip } from '../core/format.js'
+import { state } from '../core/state.js'
+import { openImages, restoreGallery } from '../docs/gallery.js'
+import { send } from '../docs/reader.js'
+import { openChanges } from '../git/controller.js'
+import { gitState } from '../handoff/capture.js'
+import { claimAndSend, dismissHandoff, goalOf, resumeText } from '../handoff/store.js'
+import { enhanceRow, startEnhance } from '../prompt/enhance.js'
+import { confirmVerb, openPane, sendVerb } from './actions.js'
+import { isDesktop } from './ui.js'
+
+export async function bandView($, e, next) {
   if (state.disabled || (e.props && e.props.hasSurvey)) return next(e)
-  const { Box, Text, Button } = $.ui.resolve(e)
+  const { Box, Text, Button } = hostUiResolve($, e)
   const desktop = isDesktop(e)
   state.desktop = desktop
   restoreGallery($)
@@ -71,7 +84,7 @@ const bandView = ($, e, next) => {
       }),
     )
   }
-  const enhancing = enhanceRow($, e)
+  const enhancing = await enhanceRow($, e)
   if (enhancing) rows.push(enhancing)
   const record = state.handoff
   if (record) {

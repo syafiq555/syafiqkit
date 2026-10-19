@@ -1,6 +1,6 @@
 {
   "description": "Injects syafiqkit's output-style ruleset at session start, and loads the syafiqkit menu mod.",
-  "modules": ["./register.js"],
+  "modules": ["./src/mod.js"],
   "hooks": {
     "SessionStart": [
       {

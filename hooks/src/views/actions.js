@@ -1,4 +1,12 @@
-const openPane = async ($, view, fromBand = false) => {
+import { hostClockNow, hostClockSleep, hostCommandRegister, hostUiInvalidate, hostUiToast } from '../core/api.js'
+import { VERBS } from '../core/constants.js'
+import { messageOf } from '../core/format.js'
+import { openPaneWindow, state } from '../core/state.js'
+import { discover, measureHeavy, readDocMeta } from '../docs/discovery.js'
+import { loadDoc, stopWatch, submitPrompt } from '../docs/reader.js'
+import { saveHandoff } from '../handoff/store.js'
+
+export async function openPane($, view, fromBand = false) {
   const wasOpen = fromBand && state.isOpen
   if (wasOpen && state.view === view && view !== 'confirm') return
   stopWatch()
@@ -14,11 +22,11 @@ const openPane = async ($, view, fromBand = false) => {
   if (view === 'handoff') state.handoffNext = ''
   if (view !== 'confirm') state.confirm = null
   state.isOpen = true
-  $.ui.invalidate('ui.render')
-  await $.clock.sleep(200)
+  hostUiInvalidate($, 'ui.render')
+  await hostClockSleep($, 200)
   try {
     state.docs = await discover($)
-    state.now = await $.clock.now()
+    state.now = await hostClockNow($)
     await Promise.all([readDocMeta($), measureHeavy($)])
   } catch (error) {
     state.docs = []
@@ -29,18 +37,20 @@ const openPane = async ($, view, fromBand = false) => {
     state.reopen = null
     if (fresh) await loadDoc($, fresh)
   }
-  if (wasOpen) $.ui.invalidate('ui.render')
+  if (wasOpen) hostUiInvalidate($, 'ui.render')
   else await openPaneWindow($, view)
 }
 
-const verbOf = (label) => VERBS.find((item) => item.label === label)
+export function verbOf(label) {
+  return VERBS.find((item) => item.label === label)
+}
 
-const sendVerb = ($, label) => {
+export function sendVerb($, label) {
   const verb = verbOf(label)
   return submitPrompt($, verb.text, verb.toast)
 }
 
-const confirmVerb = ($, label) => {
+export function confirmVerb($, label) {
   const verb = verbOf(label)
   state.confirm = { title: verb.label, text: verb.text, effect: verb.effect, offerHandoff: true }
   state.alsoHandoff = false
@@ -48,29 +58,29 @@ const confirmVerb = ($, label) => {
   return openPane($, 'confirm', true)
 }
 
-const runHandoff = async ($, next) => {
+export async function runHandoff($, next) {
   if (state.saving) {
-    $.ui.toast('A handoff is already being saved')
+    hostUiToast($, 'A handoff is already being saved')
     return
   }
   state.saving = true
-  $.ui.invalidate('ui.render')
+  hostUiInvalidate($, 'ui.render')
   try {
     const record = await saveHandoff($, next)
-    $.ui.toast(
+    hostUiToast($, 
       'Handoff saved (' + (record.how === 'summary' ? 'summary' : 'digest only') + '). The next session offers it on start or /clear',
     )
   } catch (error) {
-    $.ui.toast('Handoff failed: ' + messageOf(error).slice(0, 120))
+    hostUiToast($, 'Handoff failed: ' + messageOf(error).slice(0, 120))
   }
   state.saving = false
-  $.ui.invalidate('ui.render')
+  hostUiInvalidate($, 'ui.render')
 }
 
-const registerCommand = async ($, name, description) => {
+export async function registerCommand($, name, description) {
   try {
-    await $.command.register({ name, description, immediate: true })
+    await hostCommandRegister($, { name, description, immediate: true })
   } catch {
-    $.ui.toast('/' + name + ' is taken; use the band button instead')
+    hostUiToast($, '/' + name + ' is taken; use the band button instead')
   }
 }

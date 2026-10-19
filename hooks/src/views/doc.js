@@ -1,4 +1,16 @@
-const docView = ($, c) => {
+import { ITEM_CAP_ROWS, TYPESET_WIDTH_STEP } from '../core/constants.js'
+import { CONDENSE_FILE_EFFECT, REFRESH_EFFECT, SHRINK_EFFECT, SPLIT_EFFECT, condenseFileRequest, isInstructionFile, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
+import { state } from '../core/state.js'
+import { copyDocFile, openInEditor } from '../docs/export.js'
+import { fitImage, hashOf, svgPicture } from '../docs/images.js'
+import { segments } from '../docs/markdown.js'
+import { typesetKeyOf, typesetSize, wantTypeset } from '../docs/typeset.js'
+import { send, stopWatch } from '../docs/reader.js'
+import { openDocDiff, returnFromDoc } from '../git/controller.js'
+import { paneColumns } from './changes.js'
+import { hoverScope, isDesktop, liveOnly, stickyTop } from './ui.js'
+
+export function docView($, c) {
   const { e, Box, Text, Button, Markdown, Image, goto, redraw, askFirst, openHandoff, openDecision } = c
   const parts = segments(state.text)
   const openItems = parts.filter((part) => part.kind === 'item' && !part.done)
@@ -127,8 +139,40 @@ const docView = ($, c) => {
       ]
     : []
 
+  const pictureColumns = Math.max(20, Math.floor((columns - 2) / TYPESET_WIDTH_STEP) * TYPESET_WIDTH_STEP)
+  const canTypeset = !isDesktop(e) && Boolean(Image) && state.typst !== ''
+  const typesetting = canTypeset && !state.textView
+  if (typesetting) {
+    wantTypeset($, parts.filter((part) => part.kind === 'md').map((part) => part.text), pictureColumns, state.current.path).catch(() => {})
+  }
+  const mdPart = (part, index) => {
+    const plain = Markdown({ key: 'm' + index, text: part.text })
+    if (!typesetting || !state.look) return plain
+    const entry = state.typeset[typesetKeyOf(part.text, pictureColumns, state.look)]
+    if (!entry || entry.status === 'rendering') return plain
+    if (entry.status === 'error') {
+      return Box({
+        key: 'm' + index,
+        flexDirection: 'column',
+        children: [Text({ dimColor: true, wrap: 'truncate-end', children: 'Rendered view failed: ' + entry.message }), Markdown({ key: 'mt' + index, text: part.text })],
+      })
+    }
+    return Box({
+      key: 'm' + index,
+      flexDirection: 'column',
+      children: entry.pages.map((page, at) =>
+        Image({
+          key: 'm' + index + 'p' + at,
+          source: { file: page.file, format: 'png' },
+          ...typesetSize(page, pictureColumns, state.look.cell),
+          alt: 'Rendered page not drawn here: press t for Text view',
+        }),
+      ),
+    })
+  }
+
   const body = parts.map((part, index) => {
-    if (part.kind === 'md') return Markdown({ key: 'm' + index, text: part.text })
+    if (part.kind === 'md') return mdPart(part, index)
     if (part.kind === 'item') {
       return Text({ key: 't' + index, dimColor: true, children: '   ' + (part.done ? '[x] ' : '[ ] ') + part.text })
     }
@@ -197,6 +241,14 @@ const docView = ($, c) => {
         action('changes', state.docBack ? 'Doc diff' : 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
         action('copy', 'Copy', { hotkey: 'y' }, (press) => copyDocFile($, state.current.path, 'the doc', press && press.surface)),
         action('open', 'Open in editor', { hotkey: 'o' }, () => openInEditor($, state.current.path)),
+        ...(canTypeset
+          ? [
+              action('view', state.textView ? 'Rendered view' : 'Text view', { hotkey: 't' }, () => {
+                state.textView = !state.textView
+                redraw()
+              }),
+            ]
+          : []),
         action('refresh', 'Refresh ⚠', { hotkey: 'r' }, () =>
           askFirst('Refresh ' + state.current.label, refreshRequest(state.current), REFRESH_EFFECT),
         ),
@@ -260,6 +312,9 @@ const docView = ($, c) => {
               ...doneBlock,
               ...decisionsBlock,
               Text({ dimColor: true, children: '─── the doc, for reading ───' }),
+              ...(!isDesktop(e) && Image && state.typst === ''
+                ? [Text({ key: 'typst-hint', dimColor: true, children: 'Rendered docs need Typst: brew install typst' })]
+                : []),
               ...body,
             ],
           }),
@@ -269,7 +324,7 @@ const docView = ($, c) => {
   })
 }
 
-const decisionView = ($, c) => {
+export function decisionView($, c) {
   const { Box, Text, Button, Markdown, goto, openDecision, askFirst } = c
   const files = state.current.decisions || []
   const index = files.findIndex((file) => file.path === state.decisionOpen)

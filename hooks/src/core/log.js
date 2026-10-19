@@ -1,9 +1,13 @@
-const MOD_INSTANCE = Math.random().toString(36).slice(2, 6)
-let modLogPath = ''
-let modLogLast = ''
-let modLogQueue = Promise.resolve()
+import { hostFsRead, hostFsWrite } from './api.js'
+import { MAX_HOVER_SCOPE, MOD_LOG_FILE, MOD_LOG_LINES } from './constants.js'
+import { homeOf } from './format.js'
 
-const appendModLog = async ($, entry) => {
+export const MOD_INSTANCE = Math.random().toString(36).slice(2, 6)
+export let modLogPath = ''
+export let modLogLast = ''
+export let modLogQueue = Promise.resolve()
+
+export async function appendModLog($, entry) {
   if (!modLogPath) {
     const home = await homeOf($)
     if (!home) return
@@ -11,15 +15,15 @@ const appendModLog = async ($, entry) => {
   }
   let previous = ''
   try {
-    previous = String((await $.fs.read(modLogPath)) || '')
+    previous = String((await hostFsRead($, modLogPath)) || '')
   } catch {
     previous = ''
   }
   const lines = [...previous.split('\n').filter(Boolean), entry].slice(-MOD_LOG_LINES)
-  await $.fs.write(modLogPath, lines.join('\n') + '\n')
+  await hostFsWrite($, modLogPath, lines.join('\n') + '\n')
 }
 
-const modLog = ($, line) => {
+export function modLog($, line) {
   if (line === modLogLast) return modLogQueue
   modLogLast = line
   const entry = new Date().toISOString() + ' [' + MOD_INSTANCE + '] ' + line
@@ -27,15 +31,17 @@ const modLog = ($, line) => {
   return modLogQueue
 }
 
-const childrenOf = (node) => {
+export function childrenOf(node) {
   if (!node || typeof node !== 'object') return []
   const kids = Array.isArray(node.children) ? node.children : node.props && Array.isArray(node.props.children) ? node.props.children : []
   return kids.filter((kid) => kid && typeof kid === 'object')
 }
 
-const keyOf = (node) => (node.props && node.props.key !== undefined ? node.props.key : node.key)
+export function keyOf(node) {
+  return (node.props && node.props.key !== undefined ? node.props.key : node.key)
+}
 
-const treeProblem = (node) => {
+export function treeProblem(node) {
   const kids = childrenOf(node)
   const seen = new Set()
   for (const kid of kids) {
@@ -52,7 +58,7 @@ const treeProblem = (node) => {
   return ''
 }
 
-const drawingSize = (tree) => {
+export function drawingSize(tree) {
   try {
     return JSON.stringify(tree).length
   } catch {

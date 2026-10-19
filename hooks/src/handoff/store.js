@@ -1,8 +1,17 @@
-const saveHandoff = async ($, next) => {
+import { hostClockNow, hostFsRead, hostFsWrite, hostSessionId, hostSessionMessages, hostUiInvalidate, hostUiToast } from '../core/api.js'
+import { HANDOFF_EXPIRES_MS } from '../core/constants.js'
+import { agoOf, lockDown } from '../core/format.js'
+import { state } from '../core/state.js'
+import { safeExists, safeList } from '../docs/discovery.js'
+import { hashOf } from '../docs/images.js'
+import { submitPrompt } from '../docs/reader.js'
+import { branchOf, ensurePaths, gitState, handoffDir, sessionGoalOf, summariseSession, taskDocsIn, touchedFiles } from './capture.js'
+
+export async function saveHandoff($, next) {
   await ensurePaths($)
   let messages = []
   try {
-    messages = await $.session.messages()
+    messages = await hostSessionMessages($)
   } catch {
     messages = []
   }
@@ -10,11 +19,11 @@ const saveHandoff = async ($, next) => {
     gitState($),
     branchOf($),
     summariseSession($, messages, next),
-    $.session.id().catch(() => ''),
+    hostSessionId($).catch(() => ''),
   ])
   const docs = taskDocsIn(messages)
   if (!docs.length && state.lastDoc && state.lastDoc.group === 'Task docs') docs.push(state.lastDoc.path)
-  const createdAt = await $.clock.now()
+  const createdAt = await hostClockNow($)
   const id = createdAt + '-' + hashOf(summary.text + next)
   const record = {
     id,
@@ -34,7 +43,7 @@ const saveHandoff = async ($, next) => {
     uncommitted: git.uncommitted,
   }
   const dir = handoffDir()
-  await $.fs.write(dir + '/' + id + '.json', JSON.stringify(record, null, 2))
+  await hostFsWrite($, dir + '/' + id + '.json', JSON.stringify(record, null, 2))
   await lockDown($, dir, '700')
   await lockDown($, dir + '/' + id + '.json', '600')
   if (state.ownHandoff) await writeMark($, state.ownHandoff, 'superseded')
@@ -42,28 +51,36 @@ const saveHandoff = async ($, next) => {
   return record
 }
 
-const markFile = (id) => handoffDir() + '/' + id + '.state'
+export function markFile(id) {
+  return handoffDir() + '/' + id + '.state'
+}
 
-const idOfFile = (name) => name.replace(/\.json$/, '')
+export function idOfFile(name) {
+  return name.replace(/\.json$/, '')
+}
 
-const writeMark = ($, id, value) => $.fs.write(markFile(id), value)
+export function writeMark($, id, value) {
+  return hostFsWrite($, markFile(id), value)
+}
 
-const readMark = async ($, id) => {
+export async function readMark($, id) {
   try {
-    return String(await $.fs.read(markFile(id))).trim()
+    return String(await hostFsRead($, markFile(id))).trim()
   } catch {
     return ''
   }
 }
 
-const isTaken = async ($, id) => {
+export async function isTaken($, id) {
   const mark = await readMark($, id)
   return mark !== '' && mark !== 'open'
 }
 
-const texts = (value) => (Array.isArray(value) ? value.filter((item) => typeof item === 'string') : [])
+export function texts(value) {
+  return (Array.isArray(value) ? value.filter((item) => typeof item === 'string') : [])
+}
 
-const cleanRecord = (raw, name) => {
+export function cleanRecord(raw, name) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw) || (typeof raw.summary !== 'string' && typeof raw.next !== 'string')) {
     throw new Error('not a handoff')
   }
@@ -91,10 +108,10 @@ const cleanRecord = (raw, name) => {
   }
 }
 
-const loadHandoff = async ($) => {
+export async function loadHandoff($) {
   try {
     await ensurePaths($)
-    const now = await $.clock.now()
+    const now = await hostClockNow($)
     const listed = (await safeList($, handoffDir()))
       .filter((entry) => entry.kind === 'file' && entry.name.endsWith('.json'))
       .filter((entry) => {
@@ -109,16 +126,16 @@ const loadHandoff = async ($) => {
     const older = Math.max(0, candidates.length - 1)
     if (older !== state.olderCount) {
       state.olderCount = older
-      $.ui.invalidate('ui.render')
+      hostUiInvalidate($, 'ui.render')
     }
     for (const entry of candidates) {
       if (state.handoff && state.handoff.name === entry.name) return
       try {
-        const record = cleanRecord(JSON.parse(await $.fs.read(handoffDir() + '/' + entry.name)), entry.name)
+        const record = cleanRecord(JSON.parse(await hostFsRead($, handoffDir() + '/' + entry.name)), entry.name)
         record.file = handoffDir() + '/' + entry.name
         record.docExists = await safeExists($, record.taskDocPath)
         state.handoff = record
-        $.ui.invalidate('ui.render')
+        hostUiInvalidate($, 'ui.render')
         return
       } catch {
         continue
@@ -126,14 +143,14 @@ const loadHandoff = async ($) => {
     }
     if (state.handoff) {
       state.handoff = null
-      $.ui.invalidate('ui.render')
+      hostUiInvalidate($, 'ui.render')
     }
   } catch {
     state.handoff = null
   }
 }
 
-const resumeText = (record, now) => {
+export function resumeText(record, now) {
   const docs = record.taskDocs && record.taskDocs.length ? record.taskDocs : record.taskDocPath ? [record.taskDocPath] : []
   const readFirst =
     docs.length && !record.next
@@ -163,40 +180,40 @@ const resumeText = (record, now) => {
     .join('\n')
 }
 
-const goalOf = (record) => {
+export function goalOf(record) {
   const hit = (record.summary || '').match(/Goal[:*\s]*([^\n]+)/i)
   return hit ? hit[1].replace(/[*_`]/g, '').trim() : ''
 }
 
-const claimHandoff = async ($, record) => {
+export async function claimHandoff($, record) {
   const id = idOfFile(record.name)
   if (await isTaken($, id)) return false
-  const mine = 'claimed:' + hashOf(String(await $.clock.now()) + Math.random())
+  const mine = 'claimed:' + hashOf(String(await hostClockNow($)) + Math.random())
   await writeMark($, id, mine)
   return (await readMark($, id)) === mine
 }
 
-const restoreHandoff = async ($, record) => {
+export async function restoreHandoff($, record) {
   await writeMark($, idOfFile(record.name), 'open')
   state.dismissed = ''
   await loadHandoff($)
 }
 
-const claimAndSend = async ($, record, text) => {
+export async function claimAndSend($, record, text) {
   const claimed = await claimHandoff($, record)
   state.handoff = null
   if (!claimed) {
-    $.ui.toast('Another session already took this handoff')
-    $.ui.invalidate('ui.render')
+    hostUiToast($, 'Another session already took this handoff')
+    hostUiInvalidate($, 'ui.render')
     return
   }
   const message = text || resumeText(record, await gitState($))
   await submitPrompt($, message, 'Resuming the handoff', () => restoreHandoff($, record))
 }
 
-const dismissHandoff = async ($, record) => {
+export async function dismissHandoff($, record) {
   state.dismissed = record.id
   state.handoff = null
   await writeMark($, idOfFile(record.name), 'dismissed')
-  $.ui.invalidate('ui.render')
+  hostUiInvalidate($, 'ui.render')
 }

@@ -1,4 +1,13 @@
-const runVerb = ($, c, verb) => {
+import { toggleAnswerPictures } from '../answers/pictures.js'
+import { DESKTOP_TONE, VERBS } from '../core/constants.js'
+import { state } from '../core/state.js'
+import { closePane, submitPrompt } from '../docs/reader.js'
+import { enterChanges } from '../git/controller.js'
+import { claimAndSend } from '../handoff/store.js'
+import { desktopMenuView } from './desktop.js'
+import { isDesktop } from './ui.js'
+
+export function runVerb($, c, verb) {
   const { goto, openHandoff, askFirst } = c
   if (verb.go === 'list') return goto('list')
   if (verb.go === 'heavy') {
@@ -18,7 +27,7 @@ const runVerb = ($, c, verb) => {
   return submitPrompt($, verb.text, verb.toast)
 }
 
-const menuView = ($, c) => {
+export function menuView($, c) {
   if (isDesktop(c.e)) return desktopMenuView($, c)
   const { Box, Text, Button } = c
   const rows = [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' })]
@@ -43,11 +52,22 @@ const menuView = ($, c) => {
     )
   })
   rows.push(Text({ key: 'menu-note', dimColor: true, children: '⚠ shows exactly what will be sent, then asks again' }))
-  rows.push(Text({ key: 'menu-version', dimColor: true, children: 'syafiqkit mod v' + MOD_VERSION }))
+  rows.push(
+    Button({
+      key: 'answer-pictures',
+      label: 'Answer pictures: ' + (state.answerPicturesOff ? 'off' : 'on'),
+      plain: true,
+      onPress: async () => {
+        await toggleAnswerPictures($)
+        c.redraw()
+      },
+    }),
+  )
+  rows.push(Text({ key: 'menu-version', dimColor: true, children: 'syafiqkit mod v' + state.version }))
   return Box({ flexDirection: 'column', children: rows })
 }
 
-const confirmView = ($, c) => {
+export function confirmView($, c) {
   const { Box, Text, Button, Input, redraw, goto, bindField } = c
   const confirm = state.confirm
   if (!confirm) return menuView($, c)
@@ -146,7 +166,7 @@ const confirmView = ($, c) => {
   })
 }
 
-const handoffView = ($, c) => {
+export function handoffView($, c) {
   const { Box, Text, Button, Input, goto, bindField, saveFromForm } = c
   const doc = state.current || state.lastDoc
   const carries = [

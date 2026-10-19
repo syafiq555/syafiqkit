@@ -1,6 +1,19 @@
-const registerImageTool = async ($) => {
+import { hostFsRead, hostFsStat, hostFsWrite, hostProcessRun, hostSessionId, hostToolRegister, hostUiOpen, hostUiToast } from '../core/api.js'
+import { DESKTOP_PICTURE_WIDTH, MAX_BASE64, MAX_GALLERY, MAX_GALLERY_BASE64, MAX_GALLERY_BYTES, PANE, PNG_PREFIX, PREVIEW_STEPS, PREVIEW_TIMEOUT_MS, SLICE_CHARS, SLICE_HEIGHT, SLICE_QUALITIES, SLICE_WIDTH } from '../core/constants.js'
+import { homeOf, messageOf } from '../core/format.js'
+import { modLog } from '../core/log.js'
+import { state } from '../core/state.js'
+import { systemOf } from './export.js'
+import { pngSize, svgOf, svgPicture } from './images.js'
+import { stopWatch } from './reader.js'
+import { redrawPane } from '../git/controller.js'
+import { jpegArgs, mediaDir, sipsRun } from '../git/media.js'
+import { nameOf } from '../git/status.js'
+import { hoverScope } from '../views/ui.js'
+
+export async function registerImageTool($) {
   try {
-    await $.tool.register({
+    await hostToolRegister($, {
       name: 'show_image',
       isDeferred: false,
       description:
@@ -19,14 +32,14 @@ const registerImageTool = async ($) => {
   }
 }
 
-const ABSOLUTE_PATH = /^(\/|[A-Za-z]:[\\/])/
+export const ABSOLUTE_PATH = /^(\/|[A-Za-z]:[\\/])/
 
-const readGalleryImage = async ($, path, caption) => {
+export async function readGalleryImage($, path, caption) {
   if (!ABSOLUTE_PATH.test(path)) return { refused: path + ' (not an absolute path)' }
   try {
-    const stat = await $.fs.stat(path)
+    const stat = await hostFsStat($, path)
     if (stat.size > MAX_GALLERY_BYTES) return { refused: path + ' (over 12 MiB)' }
-    const { base64 } = await $.fs.read(path, { as: 'bytes' })
+    const { base64 } = await hostFsRead($, path, { as: 'bytes' })
     if (!base64 || !base64.startsWith(PNG_PREFIX)) return { refused: path + ' (not a PNG; only PNG files can be drawn)' }
     if (base64.length > MAX_GALLERY_BASE64) return { refused: path + ' (over 16 MiB)' }
     const inline = base64.length <= MAX_BASE64
@@ -36,16 +49,16 @@ const readGalleryImage = async ($, path, caption) => {
   }
 }
 
-const shrinkForDesktop = async ($, image) => {
+export async function shrinkForDesktop($, image) {
   if (!state.desktop || !image.size || svgPicture(image)) return image
   try {
     const home = await homeOf($)
     if (!home) return image
     const dir = home + '/.claude/doc-pane-cache'
-    await $.fs.write(dir + '/.previews', 'ok')
+    await hostFsWrite($, dir + '/.previews', 'ok')
     for (const [side, quality] of PREVIEW_STEPS) {
       const out = dir + '/' + hoverScope(image.path) + '-' + side + '.jpg'
-      const ran = await $.process.run(
+      const ran = await hostProcessRun($, 
         ['sips', '-s', 'format', 'jpeg', '-s', 'formatOptions', String(quality), '-Z', String(side), image.path, '--out', out],
         { timeoutMs: PREVIEW_TIMEOUT_MS },
       )
@@ -53,7 +66,7 @@ const shrinkForDesktop = async ($, image) => {
         modLog($, 'picture ' + image.path + ': sips could not shrink it: ' + (ran.stderr || '').trim().slice(0, 200))
         return image
       }
-      const { base64 } = await $.fs.read(out, { as: 'bytes' })
+      const { base64 } = await hostFsRead($, out, { as: 'bytes' })
       const shrunk = { ...image, preview: base64 }
       if (svgPicture(shrunk)) return shrunk
     }
@@ -65,28 +78,28 @@ const shrinkForDesktop = async ($, image) => {
   return image
 }
 
-const galleryIndexPath = async ($) => {
-  const [home, id] = await Promise.all([homeOf($), $.session.id().catch(() => '')])
+export async function galleryIndexPath($) {
+  const [home, id] = await Promise.all([homeOf($), hostSessionId($).catch(() => '')])
   if (!home || !id) return ''
   return home + '/.claude/doc-pane-cache/gallery-' + id + '.json'
 }
 
-const saveGallery = async ($) => {
+export async function saveGallery($) {
   try {
     const path = await galleryIndexPath($)
-    if (path) await $.fs.write(path, JSON.stringify(state.images.map((image) => ({ path: image.path, caption: image.caption || '' }))))
+    if (path) await hostFsWrite($, path, JSON.stringify(state.images.map((image) => ({ path: image.path, caption: image.caption || '' }))))
   } catch (error) {
     modLog($, 'gallery: could not save the list: ' + messageOf(error).slice(0, 200))
   }
 }
 
-const restoreGallery = ($) => {
+export function restoreGallery($) {
   if (state.galleryRestore) return state.galleryRestore
   state.galleryRestore = (async () => {
     try {
       const path = await galleryIndexPath($)
       if (!path || state.images.length) return
-      const saved = JSON.parse(await $.fs.read(path))
+      const saved = JSON.parse(await hostFsRead($, path))
       if (!Array.isArray(saved)) return
       const entries = saved.filter((item) => item && typeof item.path === 'string').slice(-MAX_GALLERY)
       const read = await Promise.all(entries.map((item) => readGalleryImage($, item.path, typeof item.caption === 'string' ? item.caption : '')))
@@ -101,7 +114,7 @@ const restoreGallery = ($) => {
   return state.galleryRestore
 }
 
-const showImages = async ($, e) => {
+export async function showImages($, e) {
   await restoreGallery($)
   const raw = Array.isArray(e.paths) ? e.paths : typeof e.path === 'string' ? [e.path] : []
   const wanted = [...new Set(raw.filter((path) => typeof path === 'string' && path))]
@@ -118,7 +131,7 @@ const showImages = async ($, e) => {
     state.images = [...kept, ...added].slice(-MAX_GALLERY)
     await saveGallery($)
     const noun = added.length + (added.length === 1 ? ' image' : ' images')
-    $.ui.toast(noun + ' ready: press Images in the band')
+    hostUiToast($, noun + ' ready: press Images in the band')
     redrawPane($)
     lines.push(
       'Added ' + noun + ' to the syafiqkit gallery. ' +
@@ -132,23 +145,23 @@ const showImages = async ($, e) => {
   return lines.join('\n')
 }
 
-const viewerCommand = async ($, path) => {
+export async function viewerCommand($, path) {
   const system = await systemOf($)
   if (system === 'Darwin') return ['open', path]
   if (system === 'Linux') return ['xdg-open', path]
   return ['cmd', '/c', 'start', '', path]
 }
 
-const openInViewer = async ($, path) => {
+export async function openInViewer($, path) {
   try {
-    const ran = await $.process.run(await viewerCommand($, path))
-    if (ran.exitCode !== 0) $.ui.toast('Could not open the image: ' + (ran.stderr || 'viewer failed').trim().slice(0, 80))
+    const ran = await hostProcessRun($, await viewerCommand($, path))
+    if (ran.exitCode !== 0) hostUiToast($, 'Could not open the image: ' + (ran.stderr || 'viewer failed').trim().slice(0, 80))
   } catch (error) {
-    $.ui.toast('Could not open the image: ' + messageOf(error).slice(0, 80))
+    hostUiToast($, 'Could not open the image: ' + messageOf(error).slice(0, 80))
   }
 }
 
-const openImages = async ($, fromBand = false) => {
+export async function openImages($, fromBand = false) {
   const wasOpen = fromBand && state.isOpen
   if (wasOpen && state.view === 'images') return
   try {
@@ -158,22 +171,24 @@ const openImages = async ($, fromBand = false) => {
     state.isOpen = true
     redrawPane($)
     if (wasOpen) return
-    await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
+    await hostUiOpen($, { id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
   } catch {
     state.isOpen = false
     redrawPane($)
   }
 }
 
-const sliceGeometry = (size) => {
+export function sliceGeometry(size) {
   const width = Math.min(size.width, SLICE_WIDTH)
   const height = Math.round((size.height * width) / size.width)
   return { width, height, count: Math.max(1, Math.ceil(height / SLICE_HEIGHT)) }
 }
 
-const slicesWanted = (image) => Boolean(image.size) && (sliceGeometry(image.size).count > 1 || image.size.width > DESKTOP_PICTURE_WIDTH)
+export function slicesWanted(image) {
+  return Boolean(image.size) && (sliceGeometry(image.size).count > 1 || image.size.width > DESKTOP_PICTURE_WIDTH)
+}
 
-const ensureSlice = async ($, image, index) => {
+export async function ensureSlice($, image, index) {
   if (!state.desktop || !image.size) return
   image.slices = image.slices || {}
   if (index in image.slices || image.slicing) return
@@ -200,7 +215,7 @@ const ensureSlice = async ($, image, index) => {
     for (const quality of SLICE_QUALITIES) {
       const out = stem + '-' + index + '.jpg'
       await sipsRun($, ['-c', String(high), String(geo.width), '--cropOffset', String(top), '0', ...jpegArgs(quality), source, '--out', out])
-      const { base64 } = await $.fs.read(out, { as: 'bytes' })
+      const { base64 } = await hostFsRead($, out, { as: 'bytes' })
       drawn = svgOf(base64, 'jpeg', { width: geo.width, height: high }, SLICE_CHARS, SLICE_WIDTH)
       if (drawn) break
     }

@@ -1,9 +1,26 @@
-const CHANGE_VIEWS = new Set(['changes', 'change-file', 'change-all', 'discard'])
+import { hostClockEvery, hostSessionCwd, hostUiAsk, hostUiInvalidate, hostUiToast } from '../core/api.js'
+import { DIFF_BATCH, POLL_MS, REPO_COUNT_EVERY } from '../core/constants.js'
+import { messageOf, parentOf } from '../core/format.js'
+import { modLog } from '../core/log.js'
+import { invalidatePane, openPaneWindow, state } from '../core/state.js'
+import { discover, safeList } from '../docs/discovery.js'
+import { loadDoc, readDecision, stopWatch } from '../docs/reader.js'
+import { discardPath, stageAll, stagePaths, unstageAll, unstagePaths } from './actions.js'
+import { readDiff } from './diff.js'
+import { mediaStamp } from './media.js'
+import { countRepoChanges, discoverRepos, repoNameOf, resolveRepoPath, topLevelOf, visibleRepos } from './repos.js'
+import { entryInFocus, nameOf, numstatOf, readStatus, sectionEntries, signatureOf, splitFocus, treeRows } from './status.js'
+import { activeFocus, diffIsOpen } from '../views/changes.js'
 
-const redrawPane = ($) => $.ui.invalidate('ui.render')
+export const CHANGE_VIEWS = new Set(['changes', 'change-file', 'change-all'])
+export const DISCARD_YES = 'Discard'
 
-const loadChanges = async ($) => {
-  if (!state.cwd) state.cwd = await $.session.cwd()
+export function redrawPane($) {
+  return hostUiInvalidate($, 'ui.render')
+}
+
+export async function loadChanges($) {
+  if (!state.cwd) state.cwd = await hostSessionCwd($)
   const root = state.repoRoot
   if (!root && Object.keys(state.repoHidden).length) return false
   const next = await readStatus($, root || state.cwd, true)
@@ -15,25 +32,30 @@ const loadChanges = async ($) => {
   return !same
 }
 
-const countChanges = async ($) => {
+export async function countChanges($) {
   if (state.disabled || (state.isOpen && CHANGE_VIEWS.has(state.view))) return
-  if (!state.cwd) state.cwd = await $.session.cwd()
+  if (!state.cwd) state.cwd = await hostSessionCwd($)
   const next = await readStatus($, state.cwd, false)
   if (next.entries.length === state.changeCount) return
   state.changeCount = next.entries.length
   redrawPane($)
 }
 
-const fileTargets = (entry) => (entry.orig ? [entry.orig, entry.path] : [entry.path])
+export function fileTargets(entry) {
+  return (entry.orig ? [entry.orig, entry.path] : [entry.path])
+}
 
-const stageTargets = (entry) => [entry.path]
+export function stageTargets(entry) {
+  return [entry.path]
+}
 
-const orderedFiles = (plane) =>
-  treeRows(sectionEntries(state.changes.entries, plane), plane, {})
+export function orderedFiles(plane) {
+  return treeRows(sectionEntries(state.changes.entries, plane), plane, {})
     .filter((row) => row.kind === 'file')
     .map((row) => row.entry)
+}
 
-const loadAllDiffs = async ($, force = false) => {
+export async function loadAllDiffs($, force = false) {
   state.diffGen += 1
   const generation = state.diffGen
   const root = state.repoRoot
@@ -69,15 +91,17 @@ const loadAllDiffs = async ($, force = false) => {
   state.allLoaded = true
 }
 
-const defaultFocus = () => (sectionEntries(state.changes.entries, 'worktree').length ? 'worktree:' : '')
+export function defaultFocus() {
+  return (sectionEntries(state.changes.entries, 'worktree').length ? 'worktree:' : '')
+}
 
-const focusOn = ($, focus) => {
+export function focusOn($, focus) {
   state.changeFocus = focus
   redrawPane($)
   if (showsAllDiffs()) loadAllDiffs($, true).then(() => invalidatePane($), () => {})
 }
 
-const resetRepoView = () => {
+export function resetRepoView() {
   state.diffGen += 1
   state.changeFocus = ''
   state.changeFile = null
@@ -92,8 +116,8 @@ const resetRepoView = () => {
   state.changes = { ...state.changes, loaded: false }
 }
 
-const refreshRepoList = async ($) => {
-  if (!state.cwd) state.cwd = await $.session.cwd()
+export async function refreshRepoList($) {
+  if (!state.cwd) state.cwd = await hostSessionCwd($)
   state.repoFound = await discoverRepos($, state.cwd)
   const roots = visibleRepos()
   if (!state.repoRoot || !roots.includes(state.repoRoot)) {
@@ -103,7 +127,7 @@ const refreshRepoList = async ($) => {
   await countOtherRepos($)
 }
 
-const countOtherRepos = async ($) => {
+export async function countOtherRepos($) {
   const roots = visibleRepos().filter((root) => root !== state.repoRoot)
   const counts = await Promise.all(roots.map((root) => countRepoChanges($, root)))
   roots.forEach((root, index) => {
@@ -111,7 +135,7 @@ const countOtherRepos = async ($) => {
   })
 }
 
-const selectRepo = async ($, root) => {
+export async function selectRepo($, root) {
   if (root === state.repoRoot) {
     const key = 'repo:' + root
     state.changesCollapsed[key] = !state.changesCollapsed[key]
@@ -128,7 +152,7 @@ const selectRepo = async ($, root) => {
   redrawPane($)
 }
 
-const addRepo = async ($, typed) => {
+export async function addRepo($, typed) {
   const path = await resolveRepoPath($, typed)
   const root = await topLevelOf($, path)
   if (!typed.trim() || !root) {
@@ -144,7 +168,7 @@ const addRepo = async ($, typed) => {
   await selectRepo($, root)
 }
 
-const removeRepo = async ($, root) => {
+export async function removeRepo($, root) {
   state.repoHidden[root] = true
   delete state.repoCounts[root]
   if (root !== state.repoRoot) return redrawPane($)
@@ -156,7 +180,7 @@ const removeRepo = async ($, root) => {
   redrawPane($)
 }
 
-const showHiddenRepos = async ($) => {
+export async function showHiddenRepos($) {
   state.repoHidden = {}
   if (state.repoRoot) {
     await countOtherRepos($)
@@ -170,9 +194,11 @@ const showHiddenRepos = async ($) => {
   redrawPane($)
 }
 
-const showsAllDiffs = () => state.view === 'change-all' || state.view === 'changes'
+export function showsAllDiffs() {
+  return state.view === 'change-all' || state.view === 'changes'
+}
 
-const openChangeAll = ($, focus = '') => {
+export function openChangeAll($, focus = '') {
   state.view = 'change-all'
   state.changeFocus = focus
   state.allDiffs = {}
@@ -191,7 +217,7 @@ const openChangeAll = ($, focus = '') => {
   )
 }
 
-const refreshChanges = async ($) => {
+export async function refreshChanges($) {
   if (!CHANGE_VIEWS.has(state.view) || state.polling) return
   if (!state.repoRoot && Object.keys(state.repoHidden).length) return
   state.polling = true
@@ -220,12 +246,12 @@ const refreshChanges = async ($) => {
   }
 }
 
-const watchChanges = ($) => {
+export function watchChanges($) {
   stopWatch()
-  state.stop = $.clock.every(POLL_MS, () => refreshChanges($))
+  state.stop = hostClockEvery($, POLL_MS, () => refreshChanges($))
 }
 
-const enterChanges = async ($) => {
+export async function enterChanges($) {
   stopWatch()
   state.view = 'changes'
   state.allScroll = { view: '', offset: 0, body: state.allScroll.body }
@@ -233,7 +259,6 @@ const enterChanges = async ($) => {
   state.error = ''
   state.selected = []
   state.confirm = null
-  state.discard = null
   state.changeFile = null
   state.docBack = null
   state.changes = { ...state.changes, loaded: false }
@@ -252,7 +277,7 @@ const enterChanges = async ($) => {
   watchChanges($)
 }
 
-const openChanges = async ($, fromBand = false) => {
+export async function openChanges($, fromBand = false) {
   const wasOpen = fromBand && state.isOpen
   if (wasOpen && CHANGE_VIEWS.has(state.view)) return
   state.isOpen = true
@@ -260,7 +285,7 @@ const openChanges = async ($, fromBand = false) => {
   await enterChanges($)
 }
 
-const showFileDiff = async ($, file, back) => {
+export async function showFileDiff($, file, back) {
   state.changeFile = file
   state.changeDiff = null
   state.diffBack = back
@@ -273,23 +298,27 @@ const showFileDiff = async ($, file, back) => {
   redrawPane($)
 }
 
-const openChangeFile = ($, entry, plane, back) =>
-  showFileDiff($, { entry, plane, path: entry.path, paths: fileTargets(entry), cwd: state.changes.repo }, back)
+export function openChangeFile($, entry, plane, back) {
+  return showFileDiff($, { entry, plane, path: entry.path, paths: fileTargets(entry), cwd: state.changes.repo }, back)
+}
 
-const openDocDiff = ($, path, back) =>
-  showFileDiff($, { entry: null, plane: 'head', path, paths: [path], cwd: parentOf(path) }, back)
+export function openDocDiff($, path, back) {
+  return showFileDiff($, { entry: null, plane: 'head', path, paths: [path], cwd: parentOf(path) }, back)
+}
 
-const DOC_PATH = /(^|\/)(CLAUDE(\.local)?\.md|tasks\/(.+\/)?(current\.md|decisions\/[^/]+\.md)|docs\/[^/]+\.md|\.claude\/rules\/[^/]+\.md)$/
+export const DOC_PATH = /(^|\/)(CLAUDE(\.local)?\.md|tasks\/(.+\/)?(current\.md|decisions\/[^/]+\.md)|docs\/[^/]+\.md|\.claude\/rules\/[^/]+\.md)$/
 
-const isDocPath = (path) => DOC_PATH.test(path)
+export function isDocPath(path) {
+  return DOC_PATH.test(path)
+}
 
-const docGroupOf = (path) => {
+export function docGroupOf(path) {
   if (/(^|\/)tasks\//.test(path)) return 'Task docs'
   if (/CLAUDE(\.local)?\.md$/.test(path)) return 'CLAUDE.md chain'
   return /\.claude\/rules\//.test(path) ? 'Rules' : 'Project docs'
 }
 
-const docAt = async ($, owner, path) => {
+export async function docAt($, owner, path) {
   try {
     state.docs = await discover($)
   } catch {}
@@ -309,7 +338,7 @@ const docAt = async ($, owner, path) => {
   }
 }
 
-const openDocFromChanges = async ($, path, back) => {
+export async function openDocFromChanges($, path, back) {
   const absolute = state.changes.repo + '/' + path
   const decision = /\/decisions\/[^/]+\.md$/.test(absolute)
   const owner = decision ? absolute.replace(/\/decisions\/[^/]+$/, '/current.md') : absolute
@@ -326,7 +355,7 @@ const openDocFromChanges = async ($, path, back) => {
   redrawPane($)
 }
 
-const returnFromDoc = async ($) => {
+export async function returnFromDoc($) {
   const from = state.docBack
   state.docBack = null
   stopWatch()
@@ -341,33 +370,33 @@ const returnFromDoc = async ($) => {
   if (from) watchChanges($)
 }
 
-const afterGit = async ($) => {
+export async function afterGit($) {
   await loadChanges($)
   if (showsAllDiffs()) await loadAllDiffs($)
   redrawPane($)
 }
 
-const stageThese = async ($, paths) => {
+export async function stageThese($, paths) {
   await stagePaths($, paths)
   await afterGit($)
 }
 
-const unstageThese = async ($, paths) => {
+export async function unstageThese($, paths) {
   await unstagePaths($, paths)
   await afterGit($)
 }
 
-const stageEverything = async ($) => {
+export async function stageEverything($) {
   await stageAll($)
   await afterGit($)
 }
 
-const unstageEverything = async ($) => {
+export async function unstageEverything($) {
   await unstageAll($)
   await afterGit($)
 }
 
-const toggleStageOpenFile = async ($) => {
+export async function toggleStageOpenFile($) {
   const file = state.changeFile
   if (!file || !file.entry) return
   const staging = file.plane === 'worktree'
@@ -382,7 +411,7 @@ const toggleStageOpenFile = async ($) => {
   redrawPane($)
 }
 
-const toggleStageFocused = async ($) => {
+export async function toggleStageFocused($) {
   const focus = splitFocus(state.changeFocus)
   if (!focus) return
   const { plane, path } = focus
@@ -397,7 +426,7 @@ const toggleStageFocused = async ($) => {
   focusOn($, sectionEntries(state.changes.entries, other).some(covers) ? other + ':' + path : '')
 }
 
-const toggleStageFolder = async ($, plane, path) => {
+export async function toggleStageFolder($, plane, path) {
   const paths = sectionEntries(state.changes.entries, plane)
     .filter((entry) => entry.path.startsWith(path))
     .flatMap(plane === 'staged' ? fileTargets : stageTargets)
@@ -406,17 +435,26 @@ const toggleStageFolder = async ($, plane, path) => {
   else await stageThese($, paths)
 }
 
-const askDiscard = ($, entry) => {
-  state.discard = { entry, back: state.view }
-  state.view = 'discard'
-  redrawPane($)
+export function discardQuestion(entry) {
+  const effect =
+    entry.y === '?'
+      ? 'This deletes a new file that is not in git, so it cannot be recovered.'
+      : "This throws away the file's uncommitted edits in the working tree and cannot be undone." +
+        (entry.x !== ' ' ? ' Edits already staged stay.' : '')
+  const where = visibleRepos().length > 1 ? repoNameOf(state.changes.repo) + ' · ' : ''
+  return effect + ' Discard ' + where + entry.path + '?'
 }
 
-const confirmDiscard = async ($) => {
-  const pending = state.discard
-  state.discard = null
-  if (!pending) return
-  if (await discardPath($, pending.entry)) $.ui.toast('Discarded ' + pending.entry.path)
+export async function askDiscard($, entry) {
+  let answer = ''
+  try {
+    answer = await hostUiAsk($, discardQuestion(entry), { header: 'Discard', options: [DISCARD_YES, 'Cancel'] })
+  } catch (error) {
+    modLog($, 'discard question closed: ' + messageOf(error).slice(0, 200))
+    return
+  }
+  if (answer !== DISCARD_YES) return
+  if (await discardPath($, entry)) hostUiToast($, 'Discarded ' + entry.path)
   await loadChanges($)
   if (!CHANGE_VIEWS.has(state.view)) return
   state.view = 'changes'

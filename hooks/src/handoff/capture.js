@@ -1,4 +1,11 @@
-const gitState = async ($) => {
+import { hostModelComplete, hostSessionCwd } from '../core/api.js'
+import { EDIT_TOOLS } from '../core/constants.js'
+import { clip, homeOf } from '../core/format.js'
+import { gitRun } from '../core/run.js'
+import { state } from '../core/state.js'
+import { hashOf } from '../docs/images.js'
+
+export async function gitState($) {
   try {
     const status = await gitRun($, ['git', '--no-optional-locks', 'status', '--porcelain'])
     const head = await gitRun($, ['git', 'rev-parse', '--short', 'HEAD'])
@@ -8,21 +15,23 @@ const gitState = async ($) => {
   }
 }
 
-const handoffDir = () => state.home + '/.claude/handoffs/' + hashOf(state.cwd)
+export function handoffDir() {
+  return state.home + '/.claude/handoffs/' + hashOf(state.cwd)
+}
 
-const ensurePaths = async ($) => {
-  if (!state.cwd) state.cwd = await $.session.cwd()
+export async function ensurePaths($) {
+  if (!state.cwd) state.cwd = await hostSessionCwd($)
   if (!state.home) state.home = await homeOf($)
   if (!state.home) throw new Error('no home folder to save handoffs under')
 }
 
-const HANDOFF_PROMPT =
+export const HANDOFF_PROMPT =
   'Write a handoff for a fresh session that has none of this conversation. Plain text, under 220 words, with these headings: Goal (one line), Done (bullets: exact file paths, decisions, numbers), In flight (anything half-edited; background agents and tasks stop when this session ends, so name any still running as lost and the work that has to be redone, never as results to collect), Next (the first thing to do), Open decisions (questions I have not answered; write none if there are none). Use only what is in the conversation and invent nothing. Do not repeat these instructions.'
 
-const FILE_TOOLS = new Set([...EDIT_TOOLS, 'NotebookEdit'])
-const TASK_DOC_PATH = /\/tasks\/(?:.+\/)?current\.md$/
+export const FILE_TOOLS = new Set([...EDIT_TOOLS, 'NotebookEdit'])
+export const TASK_DOC_PATH = /\/tasks\/(?:.+\/)?current\.md$/
 
-const pathsFrom = (messages, pick) => {
+export function pathsFrom(messages, pick) {
   const seen = []
   for (const message of messages) {
     for (const use of message.toolUses || []) {
@@ -33,18 +42,20 @@ const pathsFrom = (messages, pick) => {
   return seen
 }
 
-const touchedFiles = (messages) =>
-  pathsFrom(messages, (use) => FILE_TOOLS.has(use.tool) && use.input && (use.input.file_path || use.input.notebook_path)).slice(-15)
+export function touchedFiles(messages) {
+  return pathsFrom(messages, (use) => FILE_TOOLS.has(use.tool) && use.input && (use.input.file_path || use.input.notebook_path)).slice(-15)
+}
 
-const taskDocsIn = (messages) =>
-  pathsFrom(messages, (use) => {
+export function taskDocsIn(messages) {
+  return pathsFrom(messages, (use) => {
     const path = use.input && (use.input.file_path || use.input.path)
     return typeof path === 'string' && TASK_DOC_PATH.test(path) ? path : null
   })
     .slice(-3)
     .reverse()
+}
 
-const digestOf = (messages) => {
+export function digestOf(messages) {
   const asks = messages
     .filter((message) => message.role === 'user' && message.text)
     .slice(-3)
@@ -55,12 +66,12 @@ const digestOf = (messages) => {
     .join('\n')
 }
 
-const SUMMARY_MODEL = 'haiku'
-const TRANSCRIPT_CAP = 60000
-const TURN_CAP = 1500
-const NOISE = /^(<system-reminder>|Base directory for this skill|\[SYSTEM NOTIFICATION)/
+export const SUMMARY_MODEL = 'haiku'
+export const TRANSCRIPT_CAP = 60000
+export const TURN_CAP = 1500
+export const NOISE = /^(<system-reminder>|Base directory for this skill|\[SYSTEM NOTIFICATION)/
 
-const transcriptOf = (messages) => {
+export function transcriptOf(messages) {
   const lines = messages
     .filter((message) => message.text && !NOISE.test(message.text.trimStart()))
     .map((message) => (message.role === 'user' ? 'User: ' : 'Claude: ') + clip(message.text.replace(/\s+/g, ' '), TURN_CAP))
@@ -74,7 +85,7 @@ const transcriptOf = (messages) => {
   return kept.join('\n')
 }
 
-const sessionGoalOf = (messages) => {
+export function sessionGoalOf(messages) {
   for (const message of messages) {
     if (message.role !== 'user' || !message.text || NOISE.test(message.text.trimStart())) continue
     const goal = message.text.match(/^Goal\b[:*\s]*([^\n]+)/im)
@@ -84,19 +95,20 @@ const sessionGoalOf = (messages) => {
   return ''
 }
 
-const nextNotePrompt = (next) =>
-  next
+export function nextNotePrompt(next) {
+  return next
     ? '\n\nThe user typed this as the next session\'s task: "' +
       next +
       '". Write Goal as that task. If the conversation did not work on it, say so in one line under Done and keep only the facts that bear on it; do not present the conversation\'s own goal as the next session\'s.'
     : ''
+}
 
-const summariseSession = async ($, messages, next) => {
+export async function summariseSession($, messages, next) {
   const transcript = transcriptOf(messages)
   const fallback = () => ({ text: digestOf(messages), how: 'digest' })
   if (!transcript) return fallback()
   try {
-    const reply = await $.model.complete({
+    const reply = await hostModelComplete($, {
       model: SUMMARY_MODEL,
       system: 'You write handoffs between coding sessions from a transcript. Use only what the transcript says.',
       prompt: 'Conversation, oldest first:\n' + transcript + '\n\n' + HANDOFF_PROMPT + nextNotePrompt(next),
@@ -108,7 +120,7 @@ const summariseSession = async ($, messages, next) => {
   return fallback()
 }
 
-const branchOf = async ($) => {
+export async function branchOf($) {
   try {
     return (await gitRun($, ['git', 'branch', '--show-current'])).stdout.trim()
   } catch {

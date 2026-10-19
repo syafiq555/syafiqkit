@@ -1,4 +1,6 @@
-const hashOf = (text) => {
+import { B64, DESKTOP_DRAW_CHARS, DESKTOP_PICTURE_WIDTH, MAX_IMAGE_ROWS } from '../core/constants.js'
+
+export function hashOf(text) {
   let hash = 5381
   for (let index = 0; index < text.length; index += 1) {
     hash = ((hash * 33) ^ text.charCodeAt(index)) >>> 0
@@ -6,7 +8,7 @@ const hashOf = (text) => {
   return hash.toString(16)
 }
 
-const pngSize = (base64) => {
+export function pngSize(base64) {
   const bytes = []
   let bits = 0
   let value = 0
@@ -26,7 +28,7 @@ const pngSize = (base64) => {
   return { width: read(16), height: read(20) }
 }
 
-const fitImage = (size, maxColumns) => {
+export function fitImage(size, maxColumns) {
   if (!size || !size.width || !size.height) return { columns: Math.min(maxColumns, 60), rows: 15 }
   const ratio = size.height / size.width
   let columns = Math.min(maxColumns, 255, Math.max(20, Math.ceil(size.width / 12)))
@@ -38,7 +40,7 @@ const fitImage = (size, maxColumns) => {
   return { columns, rows: Math.max(1, Math.min(rows, 255)) }
 }
 
-const svgOf = (data, mime, size, limit = DESKTOP_DRAW_CHARS, widest = DESKTOP_PICTURE_WIDTH) => {
+export function svgOf(data, mime, size, limit = DESKTOP_DRAW_CHARS, widest = DESKTOP_PICTURE_WIDTH) {
   const { width, height } = size || {}
   if (!data || !width || !height) return null
   const wide = Math.min(width, widest)
@@ -50,4 +52,6 @@ const svgOf = (data, mime, size, limit = DESKTOP_DRAW_CHARS, widest = DESKTOP_PI
   return { source, width: wide, height: high }
 }
 
-const svgPicture = (image) => svgOf(image.png, 'png', image.size) || (image.preview ? svgOf(image.preview, 'jpeg', image.size) : null)
+export function svgPicture(image) {
+  return svgOf(image.png, 'png', image.size) || (image.preview ? svgOf(image.preview, 'jpeg', image.size) : null)
+}

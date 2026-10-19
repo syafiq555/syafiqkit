@@ -1,22 +1,30 @@
-const readDecision = async ($, file) => {
+import { hostClockEvery, hostClockNow, hostFsRead, hostPromptSubmit, hostUiClose, hostUiToast } from '../core/api.js'
+import { PANE, POLL_MS } from '../core/constants.js'
+import { messageOf, statusLineOf } from '../core/format.js'
+import { modLog } from '../core/log.js'
+import { invalidatePane, redrawBandAfterClose, state } from '../core/state.js'
+import { wantDiagrams } from './diagrams.js'
+import { segments, shape } from './markdown.js'
+
+export async function readDecision($, file) {
   try {
-    return shape(await $.fs.read(file.path))
+    return shape(await hostFsRead($, file.path))
   } catch {
     return '_Could not read this file._'
   }
 }
 
-const stopWatch = () => {
+export function stopWatch() {
   const timer = state.stop
   state.stop = null
   if (timer && typeof timer.cancel === 'function') timer.cancel()
 }
 
-const refresh = async ($) => {
+export async function refresh($) {
   if (state.view !== 'doc' || !state.current) return
   const path = state.current.path
   try {
-    const raw = await $.fs.read(path)
+    const raw = await hostFsRead($, path)
     if (!state.current || state.current.path !== path) return
     const recovered = state.error !== ''
     if (raw === state.raw && !recovered) return
@@ -25,7 +33,7 @@ const refresh = async ($) => {
       state.raw = raw
       state.text = shape(raw)
       state.status = statusLineOf(raw)
-      const stamp = new Date(await $.clock.now()).toLocaleTimeString()
+      const stamp = new Date(await hostClockNow($)).toLocaleTimeString()
       if (!state.current || state.current.path !== path) return
       state.changedAt = stamp
       const stillOpen = segments(state.text)
@@ -43,12 +51,12 @@ const refresh = async ($) => {
   }
 }
 
-const watch = ($) => {
+export function watch($) {
   stopWatch()
-  state.stop = $.clock.every(POLL_MS, () => refresh($))
+  state.stop = hostClockEvery($, POLL_MS, () => refresh($))
 }
 
-const requestFor = (path, selected) => {
+export function requestFor(path, selected) {
   const first = 'Run /syafiqkit:read-summary on ' + path + ' first (the read-summary skill), '
   if (!selected.length) {
     return first + 'then tell me which items in it are buildable now and which are blocked.'
@@ -60,7 +68,7 @@ const requestFor = (path, selected) => {
   return first + 'then proceed with these ' + selected.length + ' items from it, in this order:\n' + list
 }
 
-const resetPane = () => {
+export function resetPane() {
   stopWatch()
   state.view = 'list'
   state.selected = []
@@ -71,9 +79,9 @@ const resetPane = () => {
   state.allScroll = { view: '', offset: 0, body: state.allScroll.body }
 }
 
-const closePane = async ($) => {
+export async function closePane($) {
   try {
-    await $.ui.close({ id: PANE })
+    await hostUiClose($, { id: PANE })
   } catch (error) {
     modLog($, 'close: ' + messageOf(error).slice(0, 200))
   }
@@ -82,21 +90,21 @@ const closePane = async ($) => {
   redrawBandAfterClose($)
 }
 
-const submitPrompt = async ($, text, note, onFail, handoffAfter) => {
+export async function submitPrompt($, text, note, onFail, handoffAfter) {
   await closePane($)
-  $.ui.toast(note)
-  const request = $.prompt.submit({ text })
+  hostUiToast($, note)
+  const request = hostPromptSubmit($, { text })
   if (handoffAfter) state.pendingHandoff = handoffAfter
   request.catch(async (error) => {
-    $.ui.toast('Send failed: ' + messageOf(error).slice(0, 100))
+    hostUiToast($, 'Send failed: ' + messageOf(error).slice(0, 100))
     if (handoffAfter) state.pendingHandoff = null
     if (onFail) await onFail()
   })
 }
 
-const loadDoc = async ($, doc) => {
+export async function loadDoc($, doc) {
   try {
-    state.raw = await $.fs.read(doc.path)
+    state.raw = await hostFsRead($, doc.path)
     state.text = shape(state.raw)
     state.status = statusLineOf(state.raw)
     state.error = ''
@@ -119,7 +127,7 @@ const loadDoc = async ($, doc) => {
   watch($)
 }
 
-const send = async ($) => {
+export async function send($) {
   if (!state.current || state.current.group !== 'Task docs') return
   state.reopen = state.current
   const count = state.selected.length

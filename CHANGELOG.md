@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.405.7
+
+**Task docs read typeset, and Claude's diagrams, equations and pictures appear under its answers.**
+- `/task-docs` draws the open doc as typeset pages in the terminal (headings, tables, code colours, math) when [Typst](https://typst.app) is installed (`brew install typst`). Press `t` for the plain text view, which is also what you get without Typst.
+- Pictures under answers (terminal, macOS-first): a mermaid block, a `$$` equation, a Markdown image of a local file or the full path of a local video now shows as a picture after the answer's text. The equation needs Typst and the video frame needs `ffmpeg`. Claude is told it can use this. Turn it off from `/sk` → Answer pictures; the choice is remembered.
+- If you also install the separate, optional Intelligent UI plugin, which draws whole answers as pictures, ours stands aside while it is on.
+- Discard in `/changes` now asks in Claude Code's own question box; closing the box discards nothing.
+- Mermaid diagrams draw dark on a dark theme.
+- The mod loads straight from its source files, with no build step. Nothing to do on your side beyond the update: `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.405.6
 
 **`ship` closes the tracker cards a release finished.**

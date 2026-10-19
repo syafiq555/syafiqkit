@@ -1,4 +1,10 @@
-const state = {
+import { atom, update } from 'claude-code'
+import { hostClockSleep, hostFsRead, hostPluginRoot, hostUiInvalidate, hostUiOpen } from './api.js'
+import { CLOSE_REDRAW_MS, PANE } from './constants.js'
+import { messageOf } from './format.js'
+import { modLog } from './log.js'
+
+export const state = {
   view: 'list',
   docs: [],
   cwd: '',
@@ -73,34 +79,52 @@ const state = {
   galleryRestore: null,
   changeFocus: '',
   wide: false,
-  discard: null,
   enhance: { phase: 'idle', original: '', filled: '', docs: [], pending: '', abort: null, stage: '' },
+  version: '',
+  typst: null,
+  look: null,
+  typeset: {},
+  textView: false,
+  answerPics: {},
+  answerPicturesOff: false,
 }
 
-let queue = []
-let busy = false
-
-const invalidatePane = ($) => {
-  if (state.isOpen) $.ui.invalidate('ui.render')
-}
-
-const openPaneWindow = async ($, label) => {
+export async function loadVersion($) {
   try {
-    const opened = await $.ui.open({ id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
+    const manifest = JSON.parse(await hostFsRead($, hostPluginRoot($) + '/.claude-plugin/plugin.json'))
+    state.version = String(manifest.version || '')
+  } catch (error) {
+    modLog($, 'version read failed: ' + messageOf(error).slice(0, 200))
+  }
+}
+
+export function invalidatePane($) {
+  if (state.isOpen) hostUiInvalidate($, 'ui.render')
+}
+
+export async function openPaneWindow($, label) {
+  try {
+    const opened = await hostUiOpen($, { id: PANE, title: 'syafiqkit', focus: true, closeOnEscape: true, columns: 110 })
     if (!opened || !opened.isPlaced) modLog($, 'open ' + label + ': not placed')
   } catch (error) {
     modLog($, 'open ' + label + ' failed: ' + messageOf(error).slice(0, 200))
     state.isOpen = false
-    $.ui.invalidate('ui.render')
+    hostUiInvalidate($, 'ui.render')
     throw error
   }
 }
 
-const redrawBandAfterClose = async ($) => {
+export async function redrawBandAfterClose($) {
   try {
-    await $.clock.sleep(CLOSE_REDRAW_MS)
-    if (!state.isOpen) $.ui.invalidate('ui.render')
+    await hostClockSleep($, CLOSE_REDRAW_MS)
+    if (!state.isOpen) hostUiInvalidate($, 'ui.render')
   } catch (error) {
     modLog($, 'close redraw failed: ' + messageOf(error).slice(0, 200))
   }
+}
+
+const picturesTick = atom({ plugin: 'syafiqkit', key: 'picturesTick' }, 0)
+
+export function bumpPictures($) {
+  update($, picturesTick, (tick) => (tick ?? 0) + 1).catch(() => {})
 }

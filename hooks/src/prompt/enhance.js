@@ -1,17 +1,27 @@
-const ENHANCE_MIN_CHARS = 8
-const ENHANCE_TIMEOUT_MS = 30000
-const ENHANCE_CATALOGUE_CHARS = 40000
-const ENHANCE_SKILLS_CHARS = 9000
-const ENHANCE_MAX_DOCS = 3
-const ENHANCE_MAX_SKILLS = 3
-const ENHANCE_MAX_OPEN = 3
-const ENHANCE_MAX_FACTS = 6
-const ENHANCE_DOC_CHARS = 40000
-const ENHANCE_READ_CHARS = 100000
-const ENHANCE_HEADLESS_TIMEOUT_MS = 180000
-const ENHANCE_STOP_POLL_MS = 300
+import { hostClockEvery, hostClockSleep, hostFsRead, hostModelComplete, hostProcessSpawn, hostPromptFill, hostPromptRead, hostSessionCwd, hostUiInvalidate, hostUiResolve, hostUiToast } from '../core/api.js'
+import { atom, read, update } from 'claude-code'
+import { DESKTOP_TONE } from '../core/constants.js'
+import { clip, homeOf, isDirectory, messageOf, statusLineOf } from '../core/format.js'
+import { modLog } from '../core/log.js'
+import { state } from '../core/state.js'
+import { findSkills, findTaskDocs, safeList } from '../docs/discovery.js'
+import { relativeTo } from '../git/media.js'
+import { chip, isDesktop } from '../views/ui.js'
 
-const ENHANCE_DIGEST = [
+export const ENHANCE_MIN_CHARS = 8
+export const ENHANCE_TIMEOUT_MS = 30000
+export const ENHANCE_CATALOGUE_CHARS = 40000
+export const ENHANCE_SKILLS_CHARS = 9000
+export const ENHANCE_MAX_DOCS = 3
+export const ENHANCE_MAX_SKILLS = 3
+export const ENHANCE_MAX_OPEN = 3
+export const ENHANCE_MAX_FACTS = 6
+export const ENHANCE_DOC_CHARS = 40000
+export const ENHANCE_READ_CHARS = 100000
+export const ENHANCE_HEADLESS_TIMEOUT_MS = 180000
+export const ENHANCE_STOP_POLL_MS = 300
+
+export const ENHANCE_DIGEST = [
   'You read a repository\'s task docs (each current.md with its decisions files) for a coding agent about to work on the ask below, so it starts informed without reading them itself.',
   'Return the 3 to 6 facts that bear on THIS ask, most specific first: earlier fixes, attempts or open findings about the same symptom or feature (with their version or date), decisions that constrain the fix, gotchas that will bite, and where the relevant code lives.',
   'Leave out general facts about the subsystem that would be true for any task in it (what the UI shows, how to build or test, which surfaces it runs on), unless the ask is about exactly that.',
@@ -20,7 +30,7 @@ const ENHANCE_DIGEST = [
   'Reply with JSON only, no fence: {"facts": ["...", "..."]}',
 ].join('\n')
 
-const ENHANCE_SYSTEM = [
+export const ENHANCE_SYSTEM = [
   'You turn a developer\'s rough draft into a clear prompt for a coding agent in their repository. You do not do the work and you do not answer the draft.',
   'The draft is short, lowercase and typo\'d English, sometimes Malay; read through that.',
   'Their past sessions show what goes wrong, so fill exactly these gaps when the draft leaves them open:',
@@ -37,73 +47,81 @@ const ENHANCE_SYSTEM = [
   'Reply with JSON only, no fence: {"goal": "", "docs": ["<task doc path as written>"], "skills": [{"name": "<skill name as written>", "why": "<5 to 10 words>"}], "scope": "", "outOfScope": "", "checkAgainst": "", "doneWhen": "", "open": []}. Leave a field empty rather than guess.',
 ].join('\n')
 
-const ENHANCE_SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
-const ENHANCE_TICK_MS = 160
+export const ENHANCE_SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+export const ENHANCE_TICK_MS = 160
 
-let enhanceTick = 0
-let stopEnhanceTicker = null
+export const enhanceTick = atom({ plugin: 'syafiqkit', key: 'enhanceTick' }, 0)
+export let stopEnhanceTicker = null
 
-const spinnerFrame = () => ENHANCE_SPINNER[enhanceTick % ENHANCE_SPINNER.length]
+export function spinnerFrame(tick) {
+  return ENHANCE_SPINNER[tick % ENHANCE_SPINNER.length]
+}
 
-const elapsedOf = (startedAt) => (startedAt ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) + 's' : '')
+export function elapsedOf(startedAt) {
+  return (startedAt ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) + 's' : '')
+}
 
-const clearEnhanceTicker = () => {
+export function clearEnhanceTicker() {
   const timer = stopEnhanceTicker
   stopEnhanceTicker = null
   if (typeof timer === 'function') timer()
   else if (timer && typeof timer.cancel === 'function') timer.cancel()
 }
 
-const startEnhanceTicker = ($) => {
+export function startEnhanceTicker($) {
   clearEnhanceTicker()
-  enhanceTick = 0
-  stopEnhanceTicker = $.clock.every(ENHANCE_TICK_MS, () => {
+  stopEnhanceTicker = hostClockEvery($, ENHANCE_TICK_MS, () => {
     if (state.enhance.phase !== 'running') {
       clearEnhanceTicker()
       return
     }
-    enhanceTick += 1
-    if (!state.isOpen) $.ui.invalidate('ui.render')
+    update($, enhanceTick, (tick) => (tick ?? 0) + 1).catch(() => {})
   })
 }
 
-const enhanceState = () => state.enhance
+export function enhanceState() {
+  return state.enhance
+}
 
-const setEnhance = (fields) => {
+export function setEnhance(fields) {
   state.enhance = { phase: 'idle', original: '', filled: '', docs: [], pending: '', abort: null, stage: '', ...fields }
 }
 
-const resetEnhance = () => setEnhance({})
+export function resetEnhance() {
+  return setEnhance({})
+}
 
-const failEnhance = ($, message) => {
+export function failEnhance($, message) {
   resetEnhance()
-  $.ui.toast(message)
+  hostUiToast($, message)
 }
 
-const redrawBand = ($) => {
-  $.ui.invalidate('ui.render')
+export function redrawBand($) {
+  hostUiInvalidate($, 'ui.render')
 }
 
-const docTitleOf = (text) => {
+export function docTitleOf(text) {
   const hit = text.match(/^#\s+(.+)$/m)
   return hit ? hit[1].trim() : ''
 }
 
-const docAboutOf = (text) => {
+export function docAboutOf(text) {
   const where = text.match(/\*\*Where we are\*\*\s*:?\s*(.+)/i)
   if (where) return where[1].replace(/[*`]/g, '').trim()
   const overview = text.match(/^##\s+Overview\s*\n+([^\n#].+)/im)
   return overview ? overview[1].replace(/[*`]/g, '').trim() : ''
 }
 
-const draftWordsOf = (draft) => [...new Set((draft.toLowerCase().match(/[a-z0-9][a-z0-9_-]{3,}/g) || []))]
+export function draftWordsOf(draft) {
+  return [...new Set((draft.toLowerCase().match(/[a-z0-9][a-z0-9_-]{3,}/g) || []))]
+}
 
-const matchScore = (line, words) => {
+export function matchScore(line, words) {
   const lower = line.toLowerCase()
   return words.reduce((score, word) => score + (lower.includes(word) ? 1 : 0), 0)
 }
 
-const buildCatalogue = async ($, cwd, draft) => {
+export async function buildCatalogue($, cwd, draft) {
   const docs = await findTaskDocs($, cwd)
   const words = draftWordsOf(draft)
   const entries = (
@@ -111,7 +129,7 @@ const buildCatalogue = async ($, cwd, draft) => {
       docs.map(async (doc) => {
         let text = ''
         try {
-          text = await $.fs.read(doc.path)
+          text = await hostFsRead($, doc.path)
         } catch {
           return null
         }
@@ -138,7 +156,7 @@ const buildCatalogue = async ($, cwd, draft) => {
   return { lines, total: entries.length }
 }
 
-const matchKnownDoc = (path, known, cwd) => {
+export function matchKnownDoc(path, known, cwd) {
   const bare = path.trim().replace(cwd + '/', '').replace(/^\.\//, '').replace(/^\/+/, '')
   if (known.has(bare)) return bare
   const asFolder = 'tasks/' + bare.replace(/^tasks\//, '').replace(/\/(current\.md)?$/, '') + '/current.md'
@@ -146,7 +164,7 @@ const matchKnownDoc = (path, known, cwd) => {
   return [...known].find((candidate) => bare.length > 8 && candidate.endsWith('/' + bare)) || ''
 }
 
-const skillDescriptionOf = (text) => {
+export function skillDescriptionOf(text) {
   const front = text.match(/^---\n([\s\S]*?)\n---/)
   if (!front) return ''
   const lines = front[1].split('\n')
@@ -162,7 +180,7 @@ const skillDescriptionOf = (text) => {
   return folded.join(' ')
 }
 
-const buildSkillList = async ($, cwd) => {
+export async function buildSkillList($, cwd) {
   const own = (await findSkills($)).map((skill) => ({ command: '/syafiqkit:' + skill.name, name: skill.name, path: skill.path }))
   const local = (await safeList($, cwd + '/.claude/skills'))
     .filter((entry) => isDirectory(entry))
@@ -174,7 +192,7 @@ const buildSkillList = async ($, cwd) => {
     if (skill.name === 'read-summary') continue
     let text = ''
     try {
-      text = await $.fs.read(skill.path)
+      text = await hostFsRead($, skill.path)
     } catch {
       continue
     }
@@ -187,19 +205,21 @@ const buildSkillList = async ($, cwd) => {
   return { lines, skills }
 }
 
-const textField = (value) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '')
+export function textField(value) {
+  return (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '')
+}
 
-const matchSkill = (name, skills) => {
+export function matchSkill(name, skills) {
   const bare = textField(name).replace(/^\//, '').replace(/^[\w-]+:/, '')
   return skills.find((skill) => skill.name === bare) || null
 }
 
-const looseDoc = (path, cwd) => {
+export function looseDoc(path, cwd) {
   const bare = textField(path).replace(cwd + '/', '').replace(/^\.\//, '')
   return /\.md$/.test(bare) && !bare.startsWith('/') ? bare : ''
 }
 
-const looseSkill = (name, skills) => {
+export function looseSkill(name, skills) {
   const bare = textField(name).replace(/^\//, '')
   if (!bare || /(^|:)read-summary$/.test(bare)) return null
   const known = matchSkill(bare, skills)
@@ -207,7 +227,7 @@ const looseSkill = (name, skills) => {
   return { command: '/' + bare, name: bare.replace(/^[\w-]+:/, '') }
 }
 
-const jsonObjectIn = (text) => {
+export function jsonObjectIn(text) {
   const start = text.indexOf('{')
   const end = text.lastIndexOf('}')
   if (start < 0 || end <= start) return null
@@ -218,9 +238,11 @@ const jsonObjectIn = (text) => {
   }
 }
 
-const listOf = (value, limit) => (Array.isArray(value) ? value : []).map(textField).filter(Boolean).slice(0, limit)
+export function listOf(value, limit) {
+  return (Array.isArray(value) ? value : []).map(textField).filter(Boolean).slice(0, limit)
+}
 
-const parseEnhanceReply = (text, known, cwd, skills, loose) => {
+export function parseEnhanceReply(text, known, cwd, skills, loose) {
   const reply = jsonObjectIn(text)
   if (!reply) return null
   const docs = (Array.isArray(reply.docs) ? reply.docs : [])
@@ -246,8 +268,8 @@ const parseEnhanceReply = (text, known, cwd, skills, loose) => {
   }
 }
 
-const headlessPromptOf = (draft) =>
-  [
+export function headlessPromptOf(draft) {
+  return [
     'Run /syafiqkit:read-summary for the developer\'s draft below and follow the skill fully: task docs and their decisions files, the docs/ set, the CLAUDE.md files on the path, and the pointers they make. Do not start the work, edit anything, or ask questions.',
     'Then turn the draft into a prompt for the coding agent that will do the work, by these rules, using the skills you have rather than a list:',
     ENHANCE_SYSTEM,
@@ -257,8 +279,9 @@ const headlessPromptOf = (draft) =>
     'Draft:',
     draft,
   ].join('\n')
+}
 
-const HEADLESS_ARGS = [
+export const HEADLESS_ARGS = [
   '-p',
   '--model',
   'haiku',
@@ -271,7 +294,7 @@ const HEADLESS_ARGS = [
   '--verbose',
 ]
 
-const stepOf = (name, input, cwd) => {
+export function stepOf(name, input, cwd) {
   const shown = (path) => relativeTo(cwd, String(path || ''))
   if (name === 'Skill') return 'running /' + String(input.skill || input.command || 'skill').replace(/^\//, '')
   if (name === 'Read') return 'reading ' + readableDocPath(shown(input.file_path))
@@ -283,7 +306,7 @@ const stepOf = (name, input, cwd) => {
   return detail ? name + ' ' + clip(shown(detail), 70) : name
 }
 
-const readableDocPath = (path) => {
+export function readableDocPath(path) {
   const task = path.match(/^tasks\/(?:.*\/)?([^/]+)\/current\.md$/)
   if (task) return task[1] + ' task doc'
   const decision = path.match(/^tasks\/(?:.*\/)?([^/]+)\/decisions\/([^/]+)$/)
@@ -292,37 +315,38 @@ const readableDocPath = (path) => {
   return parts.length > 2 ? '…/' + parts.slice(-2).join('/') : path
 }
 
-const narrationOf = (text) =>
-  clip(
+export function narrationOf(text) {
+  return clip(
     String(text || '')
       .replace(/[#*`>]+/g, '')
       .replace(/\s+/g, ' ')
       .trim(),
     90,
   )
+}
 
-const STREAM_STOPPED = { stopped: true }
+export const STREAM_STOPPED = { stopped: true }
 
-const stopWatcher = ($, isStale, deadline) => {
+export function stopWatcher($, isStale, deadline) {
   let live = true
   const promise = (async () => {
     while (live) {
       if (isStale() || Date.now() > deadline) return STREAM_STOPPED
-      await $.clock.sleep(ENHANCE_STOP_POLL_MS)
+      await hostClockSleep($, ENHANCE_STOP_POLL_MS)
     }
     return null
   })()
   return { promise, end: () => (live = false) }
 }
 
-const streamClaude = async ($, cwd, prompt, onStep, isStale) => {
+export async function streamClaude($, cwd, prompt, onStep, isStale) {
   for (const bin of ['claude', (await homeOf($)) + '/.local/bin/claude']) {
     let pending = ''
     let outcome = null
     let child = null
     const watcher = stopWatcher($, isStale, Date.now() + ENHANCE_HEADLESS_TIMEOUT_MS)
     try {
-      child = $.process.spawn({ argv: [bin, ...HEADLESS_ARGS, prompt], cwd, env: { SYAFIQKIT_MOD: '0' } })
+      child = hostProcessSpawn($, { argv: [bin, ...HEADLESS_ARGS, prompt], cwd, env: { SYAFIQKIT_MOD: '0' } })
       while (true) {
         const pulled = await Promise.race([child.next(), watcher.promise])
         if (pulled === STREAM_STOPPED) {
@@ -366,7 +390,7 @@ const streamClaude = async ($, cwd, prompt, onStep, isStale) => {
   return null
 }
 
-const headlessEnhance = async ($, cwd, draft, skills, abort) => {
+export async function headlessEnhance($, cwd, draft, skills, abort) {
   const onStep = (step) => {
     if (enhanceState().abort !== abort) return
     state.enhance.stage = step
@@ -396,7 +420,7 @@ const headlessEnhance = async ($, cwd, draft, skills, abort) => {
   return parseEnhanceReply(outcome.result, null, cwd, skills, true)
 }
 
-const docSetOf = async ($, cwd, doc) => {
+export async function docSetOf($, cwd, doc) {
   const folder = doc.replace(/\/current\.md$/, '')
   const decisions = (await safeList($, cwd + '/' + folder + '/decisions'))
     .filter((entry) => entry.kind === 'file' && entry.name.endsWith('.md'))
@@ -404,14 +428,14 @@ const docSetOf = async ($, cwd, doc) => {
   return [doc, ...decisions]
 }
 
-const readPickedDocs = async ($, cwd, docs) => {
+export async function readPickedDocs($, cwd, docs) {
   const paths = (await Promise.all(docs.map((doc) => docSetOf($, cwd, doc)))).flat()
   const texts = []
   let size = 0
   for (const path of paths) {
     let text = ''
     try {
-      text = (await $.fs.read(cwd + '/' + path)).slice(0, ENHANCE_DOC_CHARS)
+      text = (await hostFsRead($, cwd + '/' + path)).slice(0, ENHANCE_DOC_CHARS)
     } catch {
       continue
     }
@@ -423,13 +447,13 @@ const readPickedDocs = async ($, cwd, docs) => {
   return texts
 }
 
-const parseFacts = (text) => {
+export function parseFacts(text) {
   const reply = jsonObjectIn(text)
   return reply ? listOf(reply.facts, ENHANCE_MAX_FACTS) : []
 }
 
-const digestDocs = async ($, draft, goal, texts, signal) => {
-  const result = await $.model.complete(
+export async function digestDocs($, draft, goal, texts, signal) {
+  const result = await hostModelComplete($, 
     {
       model: 'haiku',
       system: ENHANCE_DIGEST,
@@ -448,7 +472,7 @@ const digestDocs = async ($, draft, goal, texts, signal) => {
   return parseFacts(result.text)
 }
 
-const composeEnhanced = (draft, parsed) => {
+export function composeEnhanced(draft, parsed) {
   const lines = []
   const facts = parsed.facts || []
   if (facts.length) lines.push('Context' + (parsed.docs.length ? ' from ' + parsed.docs.join(' and ') : '') + ':\n' + facts.map((fact) => '- ' + fact).join('\n') + '\n')
@@ -463,29 +487,33 @@ const composeEnhanced = (draft, parsed) => {
   return (parsed.goal || draft.trim()) + body + open
 }
 
-const docLabelOf = (path) => path.replace(/^tasks\//, '').replace(/\/current\.md$/, '')
+export function docLabelOf(path) {
+  return path.replace(/^tasks\//, '').replace(/\/current\.md$/, '')
+}
 
-const enhanceSummary = (parsed) => [
+export function enhanceSummary(parsed) {
+  return [
   ...(parsed.quick ? ['quick read'] : []),
   ...parsed.docs.map(docLabelOf),
   ...parsed.skills.map(({ skill }) => skill.command),
 ]
+}
 
-const startEnhance = async ($) => {
+export async function startEnhance($) {
   if (enhanceState().phase === 'running') {
-    $.ui.toast('Enhance is already running; Cancel it to start again')
+    hostUiToast($, 'Enhance is already running; Cancel it to start again')
     return
   }
-  const box = await $.prompt.read()
+  const box = await hostPromptRead($)
   if (enhanceState().phase === 'running') return
   const draft = (box && box.text) || ''
   const trimmed = draft.trim()
   if (trimmed.length < ENHANCE_MIN_CHARS || /^[/!]/.test(trimmed)) {
-    $.ui.toast(trimmed ? 'Enhance needs a few words, or a prompt that is not a /command' : 'Type a prompt first, then press Enhance')
+    hostUiToast($, trimmed ? 'Enhance needs a few words, or a prompt that is not a /command' : 'Type a prompt first, then press Enhance')
     return
   }
   if (/\n(Context( from [^\n]*)?:|Start with \/syafiqkit:read-summary on )/.test(draft)) {
-    $.ui.toast('This prompt is already enhanced; Undo or edit it instead')
+    hostUiToast($, 'This prompt is already enhanced; Undo or edit it instead')
     return
   }
   const abort = new AbortController()
@@ -493,7 +521,7 @@ const startEnhance = async ($) => {
   startEnhanceTicker($)
   redrawBand($)
   try {
-    const cwd = await $.session.cwd()
+    const cwd = await hostSessionCwd($)
     if (enhanceState().abort !== abort) return
     state.enhance.stage = 'starting read-summary on haiku'
     redrawBand($)
@@ -508,7 +536,7 @@ const startEnhance = async ($) => {
       failEnhance($, 'Nothing to add, your prompt is unchanged')
       return
     }
-    const now = await $.prompt.read()
+    const now = await hostPromptRead($)
     if (enhanceState().abort !== abort) return
     if (((now && now.text) || '') !== draft) {
       state.enhance = { ...state.enhance, phase: 'ready', pending: enhanced, docs: enhanceSummary(parsed), abort: null }
@@ -524,7 +552,7 @@ const startEnhance = async ($) => {
   }
 }
 
-const quickEnhance = async ($, cwd, draft, abort, skillList) => {
+export async function quickEnhance($, cwd, draft, abort, skillList) {
   state.enhance.stage = 'read-summary run failed, using the quick read'
   redrawBand($)
   const listed = await buildCatalogue($, cwd, draft)
@@ -532,7 +560,7 @@ const quickEnhance = async ($, cwd, draft, abort, skillList) => {
   state.enhance.stage = 'choosing from ' + listed.total + ' task docs'
   redrawBand($)
   const known = new Set(catalogue.map((line) => line.split(' | ')[0]))
-  const result = await $.model.complete(
+  const result = await hostModelComplete($, 
     {
       model: 'haiku',
       system:
@@ -576,11 +604,11 @@ const quickEnhance = async ($, cwd, draft, abort, skillList) => {
   return parsed
 }
 
-const fillEnhanced = async ($, original, enhanced, docs) => {
-  const filled = await $.prompt.fill({ text: enhanced, mode: 'replace' })
+export async function fillEnhanced($, original, enhanced, docs) {
+  const filled = await hostPromptFill($, { text: enhanced, mode: 'replace' })
   if (!filled || !filled.isFilled) {
     setEnhance({ phase: 'ready', pending: enhanced, docs })
-    $.ui.toast('The prompt box is busy; press Use it when it is free')
+    hostUiToast($, 'The prompt box is busy; press Use it when it is free')
     redrawBand($)
     return
   }
@@ -588,62 +616,63 @@ const fillEnhanced = async ($, original, enhanced, docs) => {
   redrawBand($)
 }
 
-const useReadyEnhance = async ($) => {
+export async function useReadyEnhance($) {
   const current = enhanceState()
   if (current.phase !== 'ready') return
-  const box = await $.prompt.read()
+  const box = await hostPromptRead($)
   await fillEnhanced($, (box && box.text) || '', current.pending, current.docs)
 }
 
-const cancelEnhance = ($) => {
+export function cancelEnhance($) {
   const current = enhanceState()
   if (current.abort) current.abort.abort()
   resetEnhance()
-  $.ui.toast('Enhance cancelled, your prompt is unchanged')
+  hostUiToast($, 'Enhance cancelled, your prompt is unchanged')
   redrawBand($)
 }
 
-const undoEnhance = async ($) => {
+export async function undoEnhance($) {
   const current = enhanceState()
   if (current.phase !== 'done') return
-  const box = await $.prompt.read()
+  const box = await hostPromptRead($)
   if (((box && box.text) || '') !== current.filled) {
     failEnhance($, 'The prompt changed since Enhance, nothing to undo')
     redrawBand($)
     return
   }
-  const restored = await $.prompt.fill({ text: current.original, mode: 'replace' })
+  const restored = await hostPromptFill($, { text: current.original, mode: 'replace' })
   if (!restored || !restored.isFilled) {
-    $.ui.toast('The prompt box is busy; press Undo again when it is free')
+    hostUiToast($, 'The prompt box is busy; press Undo again when it is free')
     return
   }
   resetEnhance()
   redrawBand($)
 }
 
-const enhanceOwnsSubmit = (text) => {
+export function enhanceOwnsSubmit(text) {
   const current = enhanceState()
   if (current.phase === 'idle') return false
   const sent = String(text || '').trim()
   return Boolean(sent) && [current.original, current.filled, current.pending].some((own) => own && own.trim() === sent)
 }
 
-const discardEnhance = ($) => {
+export function discardEnhance($) {
   resetEnhance()
   redrawBand($)
 }
 
-const dropEnhanceOnEdit = ($) => {
+export function dropEnhanceOnEdit($) {
   if (enhanceState().phase === 'done') discardEnhance($)
 }
 
-const enhanceRow = ($, e) => {
-  const { Box, Text, Button } = $.ui.resolve(e)
+export async function enhanceRow($, e) {
+  const { Box, Text, Button } = hostUiResolve($, e)
   const current = enhanceState()
   const row = (children) => Box({ key: 'enhance-row', flexDirection: 'row', flexWrap: 'wrap', columnGap: 2, paddingX: 1, children })
   if (current.phase === 'running') {
     const desktop = isDesktop(e)
     const elapsed = elapsedOf(current.startedAt)
+    const tick = await read($, enhanceTick)
     return Box({
       key: 'enhance-row',
       flexDirection: 'row',
@@ -651,7 +680,7 @@ const enhanceRow = ($, e) => {
       paddingX: 1,
       ...(desktop ? { backgroundColor: DESKTOP_TONE.strip, alignItems: 'center' } : {}),
       children: [
-        Text({ color: 'cyan', bold: true, children: spinnerFrame() + ' Enhancing' }),
+        Text({ color: 'cyan', bold: true, children: spinnerFrame(tick) + ' Enhancing' }),
         desktop ? chip({ Text }, 'enhance-elapsed', elapsed, 'muted') : Text({ dimColor: true, children: elapsed }),
         Text({ dimColor: true, wrap: 'truncate-end', children: current.stage || '' }),
         Button({ key: 'enhance-cancel', label: 'Cancel', onPress: () => cancelEnhance($) }),

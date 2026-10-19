@@ -1,21 +1,36 @@
-const parentOf = (path) => {
+import { hostEnvGet, hostProcessRun } from './api.js'
+import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DECISION_MAX_BYTES, TASK_DOC_MAX_LINES } from './constants.js'
+
+export function parentOf(path) {
   const cut = path.lastIndexOf('/')
   return cut > 0 ? path.slice(0, cut) : ''
 }
 
-const isDirectory = (entry) => entry.kind !== 'file' && !entry.isLink && !entry.name.startsWith('.')
+export function isDirectory(entry) {
+  return entry.kind !== 'file' && !entry.isLink && !entry.name.startsWith('.')
+}
 
-const kb = (bytes) => (typeof bytes === 'number' ? (bytes / 1024).toFixed(1) + ' KB' : '')
+export function kb(bytes) {
+  return (typeof bytes === 'number' ? (bytes / 1024).toFixed(1) + ' KB' : '')
+}
 
-const clip = (text, width) => (text.length > width ? text.slice(0, width - 1) + '…' : text)
+export function clip(text, width) {
+  return (text.length > width ? text.slice(0, width - 1) + '…' : text)
+}
 
-const clipStart = (text, width) => (text.length > width ? '…' + text.slice(text.length - width + 1) : text)
+export function clipStart(text, width) {
+  return (text.length > width ? '…' + text.slice(text.length - width + 1) : text)
+}
 
-const cellWidth = (char) => (/\p{Extended_Pictographic}/u.test(char) ? 2 : 1)
+export function cellWidth(char) {
+  return (/\p{Extended_Pictographic}/u.test(char) ? 2 : 1)
+}
 
-const cellsOf = (chars) => chars.reduce((sum, char) => sum + cellWidth(char), 0)
+export function cellsOf(chars) {
+  return chars.reduce((sum, char) => sum + cellWidth(char), 0)
+}
 
-const wrapWords = (text, width) => {
+export function wrapWords(text, width) {
   const lines = []
   let line = ''
   let used = 0
@@ -42,34 +57,38 @@ const wrapWords = (text, width) => {
   return lines.length ? lines : ['']
 }
 
-const docLabel = (doc, width) => (doc.listName ? clipStart(doc.listName, width) : doc.name || doc.label)
+export function docLabel(doc, width) {
+  return (doc.listName ? clipStart(doc.listName, width) : doc.name || doc.label)
+}
 
-const messageOf =(error) => String(error && error.message ? error.message : error)
+export function messageOf(error) {
+  return String(error && error.message ? error.message : error)
+}
 
-const homeOf = async ($) => {
+export async function homeOf($) {
   let home = ''
   try {
-    home = (await $.env.get('HOME')) || ''
+    home = (await hostEnvGet($, 'HOME')) || ''
   } catch {
     home = ''
   }
   if (home) return home
   try {
-    return (await $.env.get('USERPROFILE')) || ''
+    return (await hostEnvGet($, 'USERPROFILE')) || ''
   } catch {
     return ''
   }
 }
 
-const lockDown = async ($, path, mode) => {
+export async function lockDown($, path, mode) {
   try {
-    await $.process.run(['chmod', mode, path])
+    await hostProcessRun($, ['chmod', mode, path])
   } catch {
     return
   }
 }
 
-const agoOf = (now, ms) => {
+export function agoOf(now, ms) {
   if (typeof ms !== 'number' || !now) return ''
   const minutes = Math.max(0, Math.round((now - ms) / 60000))
   if (minutes < 1) return 'just now'
@@ -80,17 +99,17 @@ const agoOf = (now, ms) => {
   return days === 1 ? 'yesterday' : days + ' d ago'
 }
 
-const statusLineOf = (text) => {
+export function statusLineOf(text) {
   const hit = text.match(/^\W*Status\b.*$/im)
   return hit ? hit[0].trim() : ''
 }
 
-const isHubText = (text) => {
+export function isHubText(text) {
   const hit = text.match(/^\W*Domain\s*:.*$/im)
   return Boolean(hit && /\(\s*hub\s*[:;,)]/i.test(hit[0]))
 }
 
-const summaryOf = (line) => {
+export function summaryOf(line) {
   if (!line) return ''
   const body = line.replace(/^\W*Status\b[:\s*]*/i, '').trim()
   const icon = (body.match(/^(\p{Extended_Pictographic}️?)/u) || [])[1] || '·'
@@ -99,20 +118,26 @@ const summaryOf = (line) => {
   return icon + ' ' + head.slice(0, 24)
 }
 
-const isInstructionFile = (doc) => doc.group === 'CLAUDE.md chain'
+export function isInstructionFile(doc) {
+  return doc.group === 'CLAUDE.md chain'
+}
 
-const isOversizedDecision = (file) => (file.size || 0) > DECISION_MAX_BYTES
+export function isOversizedDecision(file) {
+  return (file.size || 0) > DECISION_MAX_BYTES
+}
 
-const oversizedDecisions = (doc) => (doc.decisions || []).filter(isOversizedDecision)
+export function oversizedDecisions(doc) {
+  return (doc.decisions || []).filter(isOversizedDecision)
+}
 
-const isHeavy = (doc) => {
+export function isHeavy(doc) {
   if (doc.group === 'Task docs' && oversizedDecisions(doc).length) return true
   if (typeof doc.lines !== 'number') return false
   if (isInstructionFile(doc)) return doc.lines > CLAUDE_MD_MAX_LINES || (doc.size || 0) > CLAUDE_MD_MAX_BYTES
   return doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES
 }
 
-const heavyNote = (doc) => {
+export function heavyNote(doc) {
   const big = oversizedDecisions(doc).sort((a, b) => (b.size || 0) - (a.size || 0))
   const parts = []
   if (big.length) parts.push(big.length > 1 ? big.length + ' decisions, max ' + kb(big[0].size) : 'decisions ' + kb(big[0].size))
@@ -121,29 +146,35 @@ const heavyNote = (doc) => {
   return '⚠ ' + parts.join(' · ')
 }
 
-const heaviness = (doc) =>
-  isInstructionFile(doc)
+export function heaviness(doc) {
+  return isInstructionFile(doc)
     ? doc.size || 0
     : oversizedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
+}
 
-const REFRESH_EFFECT = 'Rewrites the doc in place with three passes (restructure, shorten, loosen over-strict rules).'
-const SHRINK_EFFECT =
+export const REFRESH_EFFECT = 'Rewrites the doc in place with three passes (restructure, shorten, loosen over-strict rules).'
+export const SHRINK_EFFECT =
   'Task doc: the task-summary skill judges each file over the limit (index over 300 lines, decisions file over 40 KB) and condenses, splits, does both, or proposes a better structure first. CLAUDE.md: condensed in place on haiku and verified.'
 
-const refreshRequest = (doc) => 'Use the refresh-instructions skill on ' + doc.path + '.'
+export function refreshRequest(doc) {
+  return 'Use the refresh-instructions skill on ' + doc.path + '.'
+}
 
-const haikuRequest = (skill, path, ask) =>
-  'Use the haiku skill to run the ' +
+export function haikuRequest(skill, path, ask) {
+  return 'Use the haiku skill to run the ' +
   skill +
   ' skill on ' +
   path +
   ask +
   ' Then verify the result, and restore any fact, figure or quote the agent dropped or changed the meaning of, rather than reverting its work.'
+}
 
-const decisionLabel = (file) => 'decisions/' + file.name + ' (' + kb(file.size) + ')'
+export function decisionLabel(file) {
+  return 'decisions/' + file.name + ' (' + kb(file.size) + ')'
+}
 
-const decisionFileRequest = (doc, file, verb, ask) =>
-  haikuRequest(
+export function decisionFileRequest(doc, file, verb, ask) {
+  return haikuRequest(
     'condense-task-doc',
     file.path,
     ' to ' +
@@ -155,30 +186,33 @@ const decisionFileRequest = (doc, file, verb, ask) =>
       doc.path +
       ' and the other decisions files alone, except routing rows and links that must change.',
   )
+}
 
-const SPLIT_EFFECT =
+export const SPLIT_EFFECT =
   'A haiku agent splits one decisions file into smaller ones by topic, moving the text word for word, and makes current.md the router that says which file holds what. Links to the old file are repointed, and the result is checked before it is reported.'
 
-const splitRequest = (doc, file) =>
-  decisionFileRequest(
+export function splitRequest(doc, file) {
+  return decisionFileRequest(
     doc,
     file,
     'split',
     ' by topic into smaller decisions files. Move the text word for word and count its headings and table rows before and after, make current.md the router that says which file holds what, and repoint every link to the old file.',
   )
+}
 
-const CONDENSE_FILE_EFFECT =
+export const CONDENSE_FILE_EFFECT =
   'A haiku agent condenses one decisions file in place: drops superseded and repeated text, keeps every decision, figure, name and quote, and checks the result before it is reported.'
 
-const condenseFileRequest = (doc, file) =>
-  decisionFileRequest(
+export function condenseFileRequest(doc, file) {
+  return decisionFileRequest(
     doc,
     file,
     'condense',
     ' in place. Remove superseded and repeated text, and keep every decision, figure, name and quoted line. If the file is the only copy of an outside source (a spec, a transcript, client notes), do not cut it: only remove repeats, and split it if it is over 40 KB. If it is still over 40 KB afterwards, say so.',
   )
+}
 
-const taskDocShrinkRequest = (doc) => {
+export function taskDocShrinkRequest(doc) {
   const sizes = []
   if (typeof doc.lines === 'number' && doc.lines > TASK_DOC_MAX_LINES) sizes.push('current.md is ' + doc.lines + ' lines (index limit 300)')
   const big = oversizedDecisions(doc)
@@ -192,5 +226,6 @@ const taskDocShrinkRequest = (doc) => {
   )
 }
 
-const shrinkRequest = (doc) =>
-  isInstructionFile(doc) ? haikuRequest('condense-claude-md', doc.path, '.') : taskDocShrinkRequest(doc)
+export function shrinkRequest(doc) {
+  return isInstructionFile(doc) ? haikuRequest('condense-claude-md', doc.path, '.') : taskDocShrinkRequest(doc)
+}

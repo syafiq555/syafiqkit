@@ -1,20 +1,25 @@
-const safeList = async ($, dir) => {
+import { hostFsExists, hostFsList, hostFsRead, hostFsStat, hostPluginRoot, hostSessionCwd } from '../core/api.js'
+import { MAX_ENTRIES, MEASURE_FROM_BYTES, NESTED_SCAN_DEPTH, NESTED_SCAN_FOLDERS, NESTED_SCAN_SKIP, RECENT_COUNT } from '../core/constants.js'
+import { heaviness, homeOf, isDirectory, isHeavy, isHubText, isInstructionFile, parentOf, statusLineOf, summaryOf } from '../core/format.js'
+import { state } from '../core/state.js'
+
+export async function safeList($, dir) {
   try {
-    return await $.fs.list(dir)
+    return await hostFsList($, dir)
   } catch {
     return []
   }
 }
 
-const safeExists = async ($, path) => {
+export async function safeExists($, path) {
   try {
-    return await $.fs.exists(path)
+    return await hostFsExists($, path)
   } catch {
     return false
   }
 }
 
-const findTaskDocs = async ($, root) => {
+export async function findTaskDocs($, root) {
   const found = []
   const walk = async (dir, depth) => {
     if (depth > 3 || found.length >= MAX_ENTRIES * 3) return
@@ -46,7 +51,7 @@ const findTaskDocs = async ($, root) => {
   return found
 }
 
-const scopeOfInstruction = (path, cwd, home) => {
+export function scopeOfInstruction(path, cwd, home) {
   const folder = parentOf(path)
   const base = folder.endsWith('/.claude') ? parentOf(folder) : folder
   if (folder === home + '/.claude') return 'your global'
@@ -55,13 +60,13 @@ const scopeOfInstruction = (path, cwd, home) => {
   return 'parent: ' + (base.split('/').pop() || '/')
 }
 
-const instructionDoc = (path, cwd, home) => {
+export function instructionDoc(path, cwd, home) {
   const name = path.split('/').pop()
   const scope = scopeOfInstruction(path, cwd, home)
   return { group: 'CLAUDE.md chain', label: name + ' · ' + scope, name, scope, path }
 }
 
-const findInstructionFiles = async ($, cwd, home) => {
+export async function findInstructionFiles($, cwd, home) {
   const found = []
   const names = ['CLAUDE.md', 'CLAUDE.local.md', '.claude/CLAUDE.md']
   let dir = cwd
@@ -81,7 +86,7 @@ const findInstructionFiles = async ($, cwd, home) => {
   return Promise.all(
     found.map(async (doc) => {
       try {
-        const stat = await $.fs.stat(doc.path)
+        const stat = await hostFsStat($, doc.path)
         return { ...doc, size: stat.size, mtime: stat.mtimeMs }
       } catch {
         return doc
@@ -90,7 +95,7 @@ const findInstructionFiles = async ($, cwd, home) => {
   )
 }
 
-const findNestedInstructionFiles = async ($, cwd, home) => {
+export async function findNestedInstructionFiles($, cwd, home) {
   const found = []
   let visited = 0
   const walk = async (dir, depth) => {
@@ -112,7 +117,7 @@ const findNestedInstructionFiles = async ($, cwd, home) => {
   return found.sort((a, b) => a.path.localeCompare(b.path))
 }
 
-const findCompanionFiles = async ($, cwd, home) => {
+export async function findCompanionFiles($, cwd, home) {
   const folders = [
     { dir: home + '/.claude/.claude-companions/shared', scope: 'companion' },
     { dir: cwd + '/.claude-companions/shared', scope: 'companion (this project)' },
@@ -135,9 +140,11 @@ const findCompanionFiles = async ($, cwd, home) => {
   return lists.flat()
 }
 
-const uniqueByPath = (docs) => docs.filter((doc, index) => docs.findIndex((other) => other.path === doc.path) === index)
+export function uniqueByPath(docs) {
+  return docs.filter((doc, index) => docs.findIndex((other) => other.path === doc.path) === index)
+}
 
-const findMarkdownIn = async ($, group, dir) => {
+export async function findMarkdownIn($, group, dir) {
   const entries = await safeList($, dir)
   return entries
     .filter((entry) => entry.kind === 'file' && entry.name.endsWith('.md'))
@@ -152,15 +159,15 @@ const findMarkdownIn = async ($, group, dir) => {
     }))
 }
 
-const findSkills = async ($) => {
-  const root = $.plugin.root
+export async function findSkills($) {
+  const root = hostPluginRoot($)
   if (!root) return []
   const folders = (await safeList($, root + '/skills')).filter((entry) => isDirectory(entry) && !entry.name.startsWith('_'))
   const found = await Promise.all(
     folders.map(async (folder) => {
       const path = root + '/skills/' + folder.name + '/SKILL.md'
       try {
-        const stat = await $.fs.stat(path)
+        const stat = await hostFsStat($, path)
         return { group: 'Skills', label: folder.name, name: folder.name, scope: 'skill', path, size: stat.size, mtime: stat.mtimeMs }
       } catch {
         return null
@@ -170,8 +177,8 @@ const findSkills = async ($) => {
   return found.filter(Boolean).sort((a, b) => a.name.localeCompare(b.name))
 }
 
-const discover = async ($) => {
-  const cwd = await $.session.cwd()
+export async function discover($) {
+  const cwd = await hostSessionCwd($)
   state.cwd = cwd
   const home = await homeOf($)
   const groups = await Promise.all([
@@ -186,13 +193,13 @@ const discover = async ($) => {
   return groups.flat()
 }
 
-const measureHeavy = async ($) => {
+export async function measureHeavy($) {
   await Promise.all(
     state.docs
       .filter((doc) => (doc.size || 0) >= MEASURE_FROM_BYTES || isInstructionFile(doc))
       .map(async (doc) => {
         try {
-          doc.lines = (await $.fs.read(doc.path)).split('\n').length
+          doc.lines = (await hostFsRead($, doc.path)).split('\n').length
         } catch {
           doc.lines = undefined
         }
@@ -200,22 +207,25 @@ const measureHeavy = async ($) => {
   )
 }
 
-const heavyDocs = () => state.docs.filter(isHeavy).sort((a, b) => heaviness(b) - heaviness(a))
+export function heavyDocs() {
+  return state.docs.filter(isHeavy).sort((a, b) => heaviness(b) - heaviness(a))
+}
 
-const recentDocs = () =>
-  state.docs
+export function recentDocs() {
+  return state.docs
     .filter((doc) => doc.group === 'Task docs' && typeof doc.mtime === 'number')
     .sort((a, b) => b.mtime - a.mtime)
     .slice(0, RECENT_COUNT)
+}
 
-const readDocMeta = async ($) => {
+export async function readDocMeta($) {
   const recent = recentDocs()
   await Promise.all(
     state.docs
       .filter((doc) => doc.group === 'Task docs')
       .map(async (doc) => {
         try {
-          const text = await $.fs.read(doc.path)
+          const text = await hostFsRead($, doc.path)
           doc.hub = isHubText(text)
           if (recent.includes(doc)) doc.status = summaryOf(statusLineOf(text))
         } catch {

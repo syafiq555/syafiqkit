@@ -1,4 +1,7 @@
-const parseStatus = (stdout) => {
+import { messageOf } from '../core/format.js'
+import { gitRun } from '../core/run.js'
+
+export function parseStatus(stdout) {
   const parts = stdout.split('\0')
   const entries = []
   for (let at = 0; at < parts.length; at++) {
@@ -16,35 +19,37 @@ const parseStatus = (stdout) => {
   return entries
 }
 
-const isConflict = (entry) =>
-  entry.x === 'U' || entry.y === 'U' || (entry.x === 'A' && entry.y === 'A') || (entry.x === 'D' && entry.y === 'D')
+export function isConflict(entry) {
+  return entry.x === 'U' || entry.y === 'U' || (entry.x === 'A' && entry.y === 'A') || (entry.x === 'D' && entry.y === 'D')
+}
 
-const letterOf = (entry, section) => {
+export function letterOf(entry, section) {
   if (isConflict(entry)) return 'C'
   const letter = section === 'staged' ? entry.x : entry.y
   return letter === '?' ? 'U' : letter
 }
 
-const sectionEntries = (entries, section) =>
-  entries.filter((entry) => {
+export function sectionEntries(entries, section) {
+  return entries.filter((entry) => {
     if (section === 'staged') return !isConflict(entry) && entry.x !== ' ' && entry.x !== '?'
     return isConflict(entry) || entry.y !== ' '
   })
+}
 
-const STATUS_COLOR = { M: 'yellow', A: 'green', U: 'green', D: 'red', R: 'cyan', C: 'red' }
+export const STATUS_COLOR = { M: 'yellow', A: 'green', U: 'green', D: 'red', R: 'cyan', C: 'red' }
 
-const splitFocus = (focus) => {
+export function splitFocus(focus) {
   const cut = focus.indexOf(':')
   return cut < 0 ? null : { plane: focus.slice(0, cut), path: focus.slice(cut + 1) }
 }
 
-const entryInFocus = (focus, plane, entry) => {
+export function entryInFocus(focus, plane, entry) {
   if (!focus) return true
   if (focus === plane + ':' || focus === plane + ':' + entry.path) return true
   return focus.endsWith('/') && focus.startsWith(plane + ':') && entry.path.startsWith(focus.slice(plane.length + 1))
 }
 
-const numstatOf = (raw) => {
+export function numstatOf(raw) {
   const sizes = {}
   const at = raw.indexOf('\n')
   for (const row of (at < 0 ? '' : raw.slice(at + 1)).split('\0')) {
@@ -54,11 +59,15 @@ const numstatOf = (raw) => {
   return sizes
 }
 
-const signatureOf = (entry, sizes) => (sizes[entry.path] ? entry.x + entry.y + '|' + entry.orig + '|' + sizes[entry.path] : '')
+export function signatureOf(entry, sizes) {
+  return (sizes[entry.path] ? entry.x + entry.y + '|' + entry.orig + '|' + sizes[entry.path] : '')
+}
 
-const nameOf = (path) => path.slice(path.lastIndexOf('/') + 1)
+export function nameOf(path) {
+  return path.slice(path.lastIndexOf('/') + 1)
+}
 
-const treeRows = (entries, section, collapsed) => {
+export function treeRows(entries, section, collapsed) {
   const root = { dirs: new Map(), files: [] }
   for (const entry of entries) {
     const parts = entry.path.split('/')
@@ -95,7 +104,7 @@ const treeRows = (entries, section, collapsed) => {
   return rows
 }
 
-const readStatus = async ($, cwd, untracked) => {
+export async function readStatus($, cwd, untracked) {
   try {
     const top = await gitRun($, ['git', 'rev-parse', '--show-toplevel'], { cwd })
     if (top.exitCode !== 0) return { repo: '', entries: [], hasHead: false, error: 'This folder is not a git repository.', raw: '' }

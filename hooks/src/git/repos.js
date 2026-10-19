@@ -1,9 +1,17 @@
-const SKIP_REPO_FOLDERS = new Set(['node_modules', 'vendor'])
-const MAX_REPO_FOLDERS = 200
+import { homeOf, isDirectory } from '../core/format.js'
+import { gitRun } from '../core/run.js'
+import { state } from '../core/state.js'
+import { safeList } from '../docs/discovery.js'
+import { parseStatus } from './status.js'
 
-const repoNameOf = (root) => root.slice(root.lastIndexOf('/') + 1) || root
+export const SKIP_REPO_FOLDERS = new Set(['node_modules', 'vendor'])
+export const MAX_REPO_FOLDERS = 200
 
-const topLevelOf = async ($, cwd) => {
+export function repoNameOf(root) {
+  return root.slice(root.lastIndexOf('/') + 1) || root
+}
+
+export async function topLevelOf($, cwd) {
   try {
     const ran = await gitRun($, ['git', 'rev-parse', '--show-toplevel'], { cwd })
     return ran.exitCode === 0 ? ran.stdout.trim() : ''
@@ -12,7 +20,7 @@ const topLevelOf = async ($, cwd) => {
   }
 }
 
-const discoverRepos = async ($, cwd) => {
+export async function discoverRepos($, cwd) {
   const roots = []
   const top = await topLevelOf($, cwd)
   if (top) roots.push(top)
@@ -26,10 +34,11 @@ const discoverRepos = async ($, cwd) => {
   return roots
 }
 
-const visibleRepos = () =>
-  [...state.repoFound, ...state.repoManual.filter((root) => !state.repoFound.includes(root))].filter((root) => !state.repoHidden[root])
+export function visibleRepos() {
+  return [...state.repoFound, ...state.repoManual.filter((root) => !state.repoFound.includes(root))].filter((root) => !state.repoHidden[root])
+}
 
-const countRepoChanges = async ($, root) => {
+export async function countRepoChanges($, root) {
   try {
     const ran = await gitRun($, ['git', '--no-optional-locks', 'status', '--porcelain=v1', '-z', '-unormal'], { cwd: root })
     return ran.exitCode === 0 ? parseStatus(ran.stdout).length : 0
@@ -38,7 +47,7 @@ const countRepoChanges = async ($, root) => {
   }
 }
 
-const resolveRepoPath = async ($, typed) => {
+export async function resolveRepoPath($, typed) {
   const path = typed.trim().replace(/\/+$/, '')
   if (path === '~' || path.startsWith('~/')) {
     if (!state.home) state.home = await homeOf($)

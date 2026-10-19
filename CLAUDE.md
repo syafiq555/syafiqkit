@@ -208,7 +208,7 @@ Subagents **can** spawn subagents, three layers deep. The no-redelegation rule i
 
 ### The Mod
 
-`hooks/register.js` is a Claude Code mod: the band above the prompt, the `/sk` menu, the `/task-docs` reader, the `/changes` source-control view, the image gallery and session handoffs. Its rules, host-API traps, permissions and debugging steps (`~/.claude/doc-pane-cache/mod.log`) live in `hooks/CLAUDE.md`. Read it before planning, editing or debugging the mod, including from a task doc or a log; its automatic load on reading a `hooks/` file is not yet verified.
+`hooks/src/mod.js` is a Claude Code mod: the band above the prompt, the `/sk` menu, the `/task-docs` reader, the `/changes` source-control view, the image gallery, session handoffs and pictures under Claude's terminal answers. Its rules, host-API traps, permissions and debugging steps (`~/.claude/doc-pane-cache/mod.log`) live in `hooks/CLAUDE.md`. Read it before planning, editing or debugging the mod, including from a task doc or a log; its automatic load on reading a `hooks/` file is not yet verified.
 
 📖 `hooks/CLAUDE.md`
 

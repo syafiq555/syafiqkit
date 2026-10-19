@@ -1,4 +1,12 @@
-const galleryPicture = (c, image, desktop, columns) => {
+import { state } from '../core/state.js'
+import { openInViewer, saveGallery } from '../docs/gallery.js'
+import { fitImage, svgPicture } from '../docs/images.js'
+import { closePane } from '../docs/reader.js'
+import { paneColumns } from './changes.js'
+import { desktopImagesView } from './desktop.js'
+import { isDesktop } from './ui.js'
+
+export function galleryPicture(c, image, desktop, columns) {
   const { Box, Text, Image, Svg } = c
   const note = (message) => Text({ dimColor: true, children: message })
   const tooLarge = desktop
@@ -21,7 +29,7 @@ const galleryPicture = (c, image, desktop, columns) => {
   })
 }
 
-const imagesView = ($, c) => {
+export function imagesView($, c) {
   if (isDesktop(c.e) && c.Svg) return desktopImagesView($, c)
   const { e, Box, Text, Button, redraw } = c
   const list = state.images
