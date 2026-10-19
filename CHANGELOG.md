@@ -8,6 +8,17 @@
 - `_shared/references/diff-ownership.md`: `git commit-tree` writes an empty commit without complaint, and zsh doesn't word-split a path list held in one variable. Hold the paths in an array, and refuse to move the branch on an empty tree.
 - It came up on 19/10/2026. A fix for a ClickUp card was committed, and a ship from a fresh session would have had no way to find the card. The same session's first temporary-index commit came out empty because zsh passed the whole path list as one path.
 
+## 1.405.5
+
+**`motion-clip` web captures come out right the first time.**
+- A new `references/capture-web-ui.md` covers four things that spoil a web capture without any error:
+  - A local site with no dev server running can serve an old build, so you film retired screens.
+  - Dev-only overlays (a framework's devtools pill) show in every shot. Matching them by text can miss them, so hide them by position.
+  - Seeded test names read as fake. Rename them for the shoot, and restore them in a `finally` block.
+  - Tap points should be recorded from the real buttons' positions into `taps.json`, not guessed.
+- The web capture step in SKILL.md names these traps and points at the new reference.
+- It came up filming a billing tutorial on 16/10/2026. The first capture showed an old build, and every frame carried a devtools pill and test names.
+
 ## 1.405.4
 
 **`uiux` research always includes real-world case studies.**

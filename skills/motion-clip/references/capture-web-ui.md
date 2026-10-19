@@ -1,0 +1,12 @@
+# Capturing a web app's real screens
+
+A throwaway Playwright spec in the product repo gives the truest pictures. It drives the real flow on the local dev site, signs in through the suite's own storageState, and builds its starting state through the suite's API helpers. Keep a copy in the clip folder so the shots can be re-taken, and delete it from the repo when you're done.
+
+Four things make a capture wrong without any error:
+
+- **The site can serve an old build.** A local site whose dev server isn't running often falls back to the last production build sitting on disk. You get retired screens, and the spec fails on selectors that exist in the source but not on the page, which looks like a broken spec. Before capturing, check that the dev server is up (the framework's own marker, such as Laravel's `public/hot`). Also check that one screen you know changed recently renders the new way.
+- **Dev overlays get into every shot.** Framework devtools (Refine's DevTools pill, React Query devtools, the Next.js indicator) only show in dev mode, sit in a fixed position, and often render inside a shadow root or a canvas. Matching them by text then finds nothing, while they still appear in every frame. Before each screenshot, hide them by position: any `position: fixed` element touching the bottom edge and narrower than a toolbar. Then zoom into one capture to confirm they're gone.
+- **Test fixtures look fake.** Seeded rows carry names like `e2e-assign-6-…@app.test`, `E2E Worker 6 Project`, or a worker name in the sidebar footer. Rename the rows the shots will show (tenant, unit, project, the account's own name) to plausible demo names, straight in the local database. Put the restore in a `finally` block, because other specs look those rows up by their seeded names. Read them back afterwards. Never use a real customer's data.
+- **Hand-guessed tap points miss.** In the spec, record each clicked element's bounding box before the click, as a fraction of the viewport (`(box.x + box.width / 2) / vw`). Write them to `taps.json` and copy them into the story's `taps[].to`. A target scrolled off-screen shows up as a value above 1, which also tells you the shot needs a scroll first.
+
+Shoot at the frame's size from the table in SKILL.md (1440x900 at `deviceScaleFactor: 2` for `browser`). Wait for toasts and transitions to settle before each shot (about 700 ms). A toast that's still on screen in the next shot is fine, but a half-faded one isn't.
