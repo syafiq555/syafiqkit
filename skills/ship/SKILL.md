@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Ship code to production — commit, changelog, push, verify CI/CD deploy, generate release note. Use when the user says "ship", "ship it", "deploy", "push to prod", "send it", or after /done is complete and code is ready to go live. Works with single repos and multi-repo setups (root + sub-repos). Assumes /done (or /quick-done for a small session) was already run.
+description: Ship code to production — commit, changelog, push, verify CI/CD deploy, generate release note, close the tracker cards the shipped commits name. Use when the user says "ship", "ship it", "deploy", "push to prod", "send it", or after /done is complete and code is ready to go live. Works with single repos and multi-repo setups (root + sub-repos). Assumes /done (or /quick-done for a small session) was already run.
 ---
 
 # Ship
@@ -112,8 +112,9 @@ Scope the note to everything the push carried. Find the last-deployed version in
 5. **If a tracker is documented, open its most recent existing entry NOW, before formatting.** A list that has carried release notes before has already settled their length, structure and voice, and that convention beats any default — read the latest one and match it. Doing this at step 6, once a draft exists, is too late: the draft is written and what you find becomes a rejection rather than an input.
 6. Format using `gchat-format` skill, then copy the result to the clipboard (`pbcopy`) so it's ready to paste.
 7. If the project documents an issue tracker (check `CLAUDE.md`/`CLAUDE.local.md`), post there in the same run — a release note that only exists in the reply doesn't get read. Search for an existing entry for this release first and update it rather than duplicate. Multi-repo ships need one entry per repo. No tracker documented → skip silently. A tracker's MCP server is often project-scoped (a repo's `.mcp.json`), so a session started in a sibling repo has no such tools even though the docs name the tracker; then start a session in the repo whose `.mcp.json` declares it and hand it the post, rather than reporting the tracker unreachable.
-8. Render as its own fenced block after the Ship Summary table, labelled and distinct — a release note buried in a table reads as one the user can't copy. See the Output template below.
-9. **Operator commentary goes ABOVE the fence, never below it.** Commentary (open items, offers, next-steps) addressed to the user goes above the label. Caveats for Chat readers ("Note: bulk export still deferred") go inside the fence. The fence's closing backticks are the end of the output.
+8. **Close the tracker cards this release finished, when the shipped commits name any.** Read the bodies of the commits this push newly released (`git log <pre-push-SHA>..<pushed-SHA> --format=%B`) for `Task:` lines, which `commit` writes when a session worked a card. Most ships carry none: then this step does nothing and says nothing. For each one, flip the card to its done status only once Prod Verify passed (a card closed on a staging-only deploy tells the requester it is live), read its status back, and leave a parent or project card open because one child shipped. A session started after `/clear` knows the card only through these lines, so a card named only in conversation is invisible here. Report each card in the Ship Summary's Cards row.
+9. Render as its own fenced block after the Ship Summary table, labelled and distinct — a release note buried in a table reads as one the user can't copy. See the Output template below.
+10. **Operator commentary goes ABOVE the fence, never below it.** Commentary (open items, offers, next-steps) addressed to the user goes above the label. Caveats for Chat readers ("Note: bulk export still deferred") go inside the fence. The fence's closing backticks are the end of the output.
 
 ## Output
 
@@ -134,6 +135,7 @@ Scope the note to everything the push carried. Find the last-deployed version in
 | CI/CD | ✅ | [deploy status per repo] |
 | Prod Verify | ✅ | [what you observed on the server — HEAD match, or the shipped behavior itself] |
 | Release Note | ✅ | See below |
+| Cards | ✅ | [cards flipped to done, from `Task:` lines; omit the row when the range named none] |
 
 [Operator commentary — open items, caveats, offers, status the user should know. Omit if none. This is the ONLY place commentary goes; a choice they have to make goes in the Decisions block above instead, since anything parked down here is something they can read past.]
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.405.6
+
+**`ship` closes the tracker cards a release finished.**
+- `commit` now ends the body with `Task: <card URL or id>` when the session worked a ClickUp, Jira or Linear card.
+- `ship` Step 5 reads those lines from the commits a push released. It flips each card to done once the production check passes, reads the status back, and leaves a parent card open when only one child shipped. Ships with no `Task:` lines do nothing new. The Ship Summary gains a Cards row.
+- `_shared/references/diff-ownership.md`: `git commit-tree` writes an empty commit without complaint, and zsh doesn't word-split a path list held in one variable. Hold the paths in an array, and refuse to move the branch on an empty tree.
+- It came up on 19/10/2026. A fix for a ClickUp card was committed, and a ship from a fresh session would have had no way to find the card. The same session's first temporary-index commit came out empty because zsh passed the whole path list as one path.
+
 ## 1.405.4
 
 **`uiux` research always includes real-world case studies.**
