@@ -9,7 +9,7 @@ Fewest tokens for the same or better meaning, never fewer at the cost of meaning
 
 **This skill owns CLAUDE.md size policy — thresholds and split decisions.** No other skill or agent carries its own number. `claude-md-pruner` delegates here for staleness/duplication; `condense-task-doc` owns task docs by the same principle.
 
-**Target: ≤200 lines, ≤40KB bytes** for root CLAUDE.md. Non-root layers have more slack but same logic. A file declaring its own budget (📖 `../_shared/references/declared-budget.md`) defers to that. A pre-existing `.claude-companions/<shared|local>/CLAUDE-*.md` is a condense target in its own right — on a bare invocation, `Glob .claude-companions/**/*.md` alongside `**/CLAUDE.md`.
+**Target: ≤200 lines, ≤40KB bytes** for root CLAUDE.md, and for every `CLAUDE.local.md` too: it is appended to CLAUDE.md and loads every session, so "local memory file, overage expected" is the reading that leaves a 55 KB file untouched (measured 2026-10-19: a pass declined at 418 lines / 55 KB, the user rejected it, and the fix was a router of about 230 lines, still over and due another trim toward 200, with a "when you are about to X, open Y" table plus verbatim moves into the gitignored `.claude-companions/local/`, where credentials can follow). Subdirectory CLAUDE.md layers have more slack but same logic. A file declaring its own budget (📖 `../_shared/references/declared-budget.md`) defers to that. A pre-existing `.claude-companions/<shared|local>/CLAUDE-*.md` is a condense target in its own right: on a bare invocation, `Glob .claude-companions/**/*.md` alongside `**/CLAUDE.md`.
 
 ## Before You Start {#ownership-gate}
 

@@ -1,5 +1,5 @@
-import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DIFF, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, VERBS, WINDOW_ROWS } from '../core/constants.js'
-import { agoOf, docLabel, isHeavy, isInstructionFile, kb, oversizedDecisions } from '../core/format.js'
+import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DIFF, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, NEAR_LIMIT_SHARE, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, VERBS, WINDOW_ROWS } from '../core/constants.js'
+import { docAgeOf, docLabel, isHeavy, isInstructionFile, kb, oversizedDecisions } from '../core/format.js'
 import { invalidatePane, state } from '../core/state.js'
 import { ensureSlice, openInViewer, saveGallery, sliceGeometry, slicesWanted } from '../docs/gallery.js'
 import { svgPicture } from '../docs/images.js'
@@ -632,14 +632,18 @@ export function desktopChangeFileView($, c) {
 }
 
 export function docGauge(doc) {
+  const size = doc.size || 0
   if (typeof doc.lines === 'number') {
     const max = isInstructionFile(doc) ? CLAUDE_MD_MAX_LINES : TASK_DOC_MAX_LINES
-    return { value: doc.lines, max, label: doc.lines + '/' + max }
+    const linesNear = doc.lines >= max * NEAR_LIMIT_SHARE
+    const bytesNear = isInstructionFile(doc) && size >= CLAUDE_MD_MAX_BYTES * NEAR_LIMIT_SHARE
+    if (bytesNear && !linesNear) return { value: size, max: CLAUDE_MD_MAX_BYTES, label: kb(size), near: true }
+    return { value: doc.lines, max, label: doc.lines + '/' + max, near: isHeavy(doc) || linesNear }
   }
-  return { value: doc.size || 0, max: CLAUDE_MD_MAX_BYTES, label: kb(doc.size || 0) }
+  return { value: size, max: CLAUDE_MD_MAX_BYTES, label: kb(size), near: isHeavy(doc) || size >= CLAUDE_MD_MAX_BYTES * NEAR_LIMIT_SHARE }
 }
 
-export function desktopDocRow(c, doc, key, withScope, indent) {
+export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
   const { Box, Text, Button, pickAction } = c
   const heavy = isHeavy(doc)
   const gauge = docGauge(doc)
@@ -661,17 +665,17 @@ export function desktopDocRow(c, doc, key, withScope, indent) {
         overflow: 'hidden',
         children: [Button({ key: key + 'b', label: docLabel(doc, indent ? 22 : 24), plain: true, onPress: () => pickAction(doc) })],
       }),
-      Box({ key: key + 'g', width: 9, flexShrink: 4, minWidth: 0, overflow: 'hidden', children: [meter(c, key + 'm', gauge.value, gauge.max, 8)] }),
       Box({
         key: key + 'l',
-        width: 10,
+        width: 9,
         flexShrink: 4,
         minWidth: 0,
         overflow: 'hidden',
-        paddingLeft: 1,
-        children: [Text({ key: key + 'lt', color: heavy ? 'warning' : undefined, dimColor: !heavy, children: gauge.label })],
+        justifyContent: 'flex-end',
+        children: [Text({ key: key + 'lt', color: heavy ? 'warning' : undefined, dimColor: !gauge.near, children: gauge.label })],
       }),
-      Box({ key: key + 'a', width: 9, flexShrink: 2, minWidth: 0, overflow: 'hidden', children: [Text({ dimColor: true, children: agoOf(state.now, doc.mtime) })] }),
+      Box({ key: key + 'g', width: 9, flexShrink: 4, minWidth: 0, overflow: 'hidden', paddingLeft: 1, children: gauge.near ? [meter(c, key + 'm', gauge.value, gauge.max, 8)] : [] }),
+      Box({ key: key + 'a', width: 9, flexShrink: 2, minWidth: 0, overflow: 'hidden', children: [Text({ dimColor: true, children: docAgeOf(state.now, doc.mtime, fullAge) })] }),
       Box({
         key: key + 't',
         flexGrow: 1,

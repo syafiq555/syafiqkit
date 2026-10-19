@@ -1,5 +1,5 @@
 import { hostEnvGet, hostProcessRun } from './api.js'
-import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DECISION_MAX_BYTES, TASK_DOC_MAX_LINES } from './constants.js'
+import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DECISION_MAX_BYTES, RECENT_AGE_DAYS, TASK_DOC_MAX_LINES } from './constants.js'
 
 export function parentOf(path) {
   const cut = path.lastIndexOf('/')
@@ -57,8 +57,23 @@ export function wrapWords(text, width) {
   return lines.length ? lines : ['']
 }
 
+export function clipMiddle(text, width) {
+  if (text.length <= width) return text
+  const tail = Math.ceil((width - 1) / 2)
+  return text.slice(0, width - 1 - tail) + '…' + text.slice(text.length - tail)
+}
+
+export function shortName(doc) {
+  const name = doc.name || doc.label
+  return doc.companion ? name.replace(/^CLAUDE-/, '').replace(/\.md$/, '') : name
+}
+
 export function docLabel(doc, width) {
-  return (doc.listName ? clipStart(doc.listName, width) : doc.name || doc.label)
+  return (doc.listName ? clipStart(doc.listName, width) : clipMiddle(shortName(doc), width))
+}
+
+export function docAgeOf(now, ms, fullAge) {
+  return (fullAge || (typeof ms === 'number' && now - ms < RECENT_AGE_DAYS * 86400000) ? agoOf(now, ms) : '')
 }
 
 export function messageOf(error) {

@@ -18,6 +18,7 @@ This skill sequences the three; all mechanics live in `syafiqkit:haiku` (snapsho
 | File is already well-structured AND tight | Run only `unhobble-instructions` |
 | File is bloated OR misordered | Run all three |
 | File is structured but density unknown | Check bytes per line (`wc -c` ÷ `wc -l`): above roughly 120–150 is dense, so run condense |
+| File is over its size budget | Bloated, however tidy. `condense-claude-md` owns the number for CLAUDE.md and CLAUDE.local.md alike; quote it in the condense prompt rather than inventing a landing range, since a range written above the budget reads as permission to stop there |
 
 **Don't use "the invocation added work" or "it ran earlier" as reason to skip.** Check per-file tightness via `wc -l` and `wc -c`, independent of what invoked the skill or prior sessions.
 

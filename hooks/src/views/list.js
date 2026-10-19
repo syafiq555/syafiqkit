@@ -1,21 +1,22 @@
 import { DESKTOP_STRIP_ROWS, GROUPS, LIST_FOLD_FROM, LIST_TOP_ROWS, NAME_WIDTH, NARROW_COLUMNS, SCOPE_WIDTH } from '../core/constants.js'
-import { agoOf, clip, clipStart, heavyNote, isHeavy } from '../core/format.js'
+import { clip, docAgeOf, docLabel, heavyNote, isHeavy } from '../core/format.js'
 import { state } from '../core/state.js'
 import { heavyDocs, recentDocs } from '../docs/discovery.js'
 import { paneColumns } from './changes.js'
 import { desktopDocRow, docGauge, windowedRows } from './desktop.js'
 import { chip, isDesktop, liveOnly, strip, textMeter } from './ui.js'
 
-export function docRow(c, doc, key, withScope, indent) {
-  if (isDesktop(c.e)) return desktopDocRow(c, doc, key, withScope, indent)
+export function docRow(c, doc, key, withScope, indent, fullAge) {
+  if (isDesktop(c.e)) return desktopDocRow(c, doc, key, withScope, indent, fullAge)
   const { Box, Text, Button, pickAction } = c
   const heavy = isHeavy(doc)
   const pad = indent ? '  ' : ''
   const columns = paneColumns(c.e)
   const narrow = columns < NARROW_COLUMNS
   const nameWidth = Math.max(8, (narrow ? Math.min(NAME_WIDTH, Math.floor(columns * 0.45)) : NAME_WIDTH) - pad.length)
-  const head = (withScope ? clip(doc.scope || '', SCOPE_WIDTH - 1).padEnd(SCOPE_WIDTH) : '') + agoOf(state.now, doc.mtime).padEnd(11)
   const gauge = docGauge(doc)
+  const head = (withScope ? clip(doc.scope || '', SCOPE_WIDTH - 1).padEnd(SCOPE_WIDTH) : '') + gauge.label.padStart(8) + ' '
+  const age = docAgeOf(state.now, doc.mtime, fullAge)
   const tail = [narrow && withScope ? doc.scope : '', doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status].filter(Boolean).join('  ')
   return Box({
     key,
@@ -24,20 +25,16 @@ export function docRow(c, doc, key, withScope, indent) {
     children: [
       Button({
         key: key + 'b',
-        label: pad + (doc.listName ? clipStart(doc.listName, nameWidth) : clip(doc.name || doc.label, nameWidth)).padEnd(nameWidth),
+        label: pad + docLabel(doc, nameWidth).padEnd(nameWidth),
         plain: true,
         onPress: () => pickAction(doc),
       }),
       ...(narrow
         ? []
         : [
-            Text({ key: key + 'a', dimColor: true, wrap: 'truncate-end', children: head }),
-            Text({
-              key: key + 'g',
-              dimColor: !heavy,
-              color: heavy ? 'yellow' : undefined,
-              children: textMeter(gauge.value, gauge.max, 6) + ' ' + gauge.label.padEnd(8),
-            }),
+            Text({ key: key + 'a', dimColor: !gauge.near, color: heavy ? 'yellow' : undefined, wrap: 'truncate-end', children: head }),
+            Text({ key: key + 'g', color: heavy ? 'yellow' : undefined, children: gauge.near ? textMeter(gauge.value, gauge.max, 6) : ' '.repeat(6) }),
+            Text({ key: key + 'w', dimColor: true, children: age.padEnd(10) }),
           ]),
       Text({ key: key + 'm', dimColor: !heavy, color: heavy ? 'yellow' : undefined, wrap: 'truncate-end', children: tail }),
     ],
@@ -63,14 +60,23 @@ export function taskFolders(docs) {
 }
 
 export const CHAIN_SECTIONS = [
-  { name: 'Loaded every session', showScope: true, has: (doc) => !doc.scope.startsWith('nested:') && !doc.scope.startsWith('companion') },
+  { name: 'Loaded every session', showScope: true, has: (doc) => !doc.scope.startsWith('nested:') && !doc.companion },
   { name: 'Nested · load when touched', has: (doc) => doc.scope.startsWith('nested:') },
-  { name: 'Global companions · on demand', has: (doc) => doc.scope === 'companion' },
-  { name: 'Project companions · on demand', has: (doc) => doc.scope === 'companion (this project)' },
+  { name: 'Global companions · on demand', ranked: true, has: (doc) => doc.scope === 'companion' },
+  { name: 'Project companions · on demand', ranked: true, has: (doc) => doc.scope === 'project companion' },
+  { name: 'Global local companions · this machine only', ranked: true, has: (doc) => doc.scope === 'local companion' },
+  { name: 'Project local companions · this machine only', ranked: true, has: (doc) => doc.scope === 'local project companion' },
 ]
 
+export function attentionRank(doc) {
+  return isHeavy(doc) ? 0 : docGauge(doc).near ? 1 : 2
+}
+
 export function chainSections(docs) {
-  return CHAIN_SECTIONS.map((section) => ({ ...section, docs: docs.filter((doc) => section.has(doc)) })).filter((section) => section.docs.length)
+  return CHAIN_SECTIONS.map((section) => {
+    const own = docs.filter((doc) => section.has(doc))
+    return { ...section, docs: section.ranked ? own.sort((a, b) => attentionRank(a) - attentionRank(b)) : own }
+  }).filter((section) => section.docs.length)
 }
 
 export function listView(c) {
@@ -121,14 +127,14 @@ export function listView(c) {
       .filter((doc) => (doc.label + ' ' + doc.group + ' ' + (doc.scope || '')).toLowerCase().includes(needle))
       .slice(0, 40)
     rows.push(header('h-match', 'MATCHES (' + matches.length + ')'))
-    matches.forEach((doc) => rows.push(docRow(c, doc, 'f' + state.docs.indexOf(doc), true)))
+    matches.forEach((doc) => rows.push(docRow(c, doc, 'f' + state.docs.indexOf(doc), true, false, true)))
     if (!matches.length) rows.push(Text({ dimColor: true, children: 'No doc matches that.' }))
     return Box({ flexDirection: 'column', children: rows })
   }
   const heavy = heavyDocs()
   if (state.heavyOnly) {
     rows.push(header('h-heavy', 'DOCS OVER THE SIZE LIMIT (' + heavy.length + ')'))
-    heavy.forEach((doc) => rows.push(docRow(c, doc, 'y' + state.docs.indexOf(doc), true)))
+    heavy.forEach((doc) => rows.push(docRow(c, doc, 'y' + state.docs.indexOf(doc), true, false, true)))
     if (!heavy.length) rows.push(Text({ dimColor: true, children: 'Nothing is over the limit.' }))
     rows.push(
       Button({
@@ -153,7 +159,7 @@ export function listView(c) {
   const recent = recentDocs()
   if (recent.length) {
     pushHeader(header('h-recent', 'CHANGED LATELY'))
-    recent.forEach((doc) => push(docRow(c, doc, 'r' + state.docs.indexOf(doc), true)))
+    recent.forEach((doc) => push(docRow(c, doc, 'r' + state.docs.indexOf(doc), true, false, true)))
   }
   if (heavy.length) {
     push(gap('heavy'))

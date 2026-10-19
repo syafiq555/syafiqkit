@@ -120,7 +120,9 @@ export async function findNestedInstructionFiles($, cwd, home) {
 export async function findCompanionFiles($, cwd, home) {
   const folders = [
     { dir: home + '/.claude/.claude-companions/shared', scope: 'companion' },
-    { dir: cwd + '/.claude-companions/shared', scope: 'companion (this project)' },
+    { dir: cwd + '/.claude-companions/shared', scope: 'project companion' },
+    { dir: home + '/.claude/.claude-companions/local', scope: 'local companion' },
+    { dir: cwd + '/.claude-companions/local', scope: 'local project companion' },
   ]
   const lists = await Promise.all(
     folders.map(async ({ dir, scope }) =>
@@ -131,6 +133,7 @@ export async function findCompanionFiles($, cwd, home) {
           label: entry.name + ' · ' + scope,
           name: entry.name,
           scope,
+          companion: true,
           path: dir + '/' + entry.name,
           size: entry.size,
           mtime: entry.mtimeMs,
