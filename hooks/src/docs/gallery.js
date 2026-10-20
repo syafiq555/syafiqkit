@@ -1,10 +1,10 @@
 import { hostFsRead, hostFsStat, hostFsWrite, hostProcessRun, hostSessionId, hostToolRegister, hostUiOpen, hostUiToast } from '../core/api.js'
-import { DESKTOP_PICTURE_WIDTH, MAX_BASE64, MAX_GALLERY, MAX_GALLERY_BASE64, MAX_GALLERY_BYTES, PANE, PNG_PREFIX, PREVIEW_STEPS, PREVIEW_TIMEOUT_MS, SLICE_CHARS, SLICE_HEIGHT, SLICE_QUALITIES, SLICE_WIDTH } from '../core/constants.js'
+import { DESKTOP_PICTURE_WIDTH, MAX_GALLERY, MAX_GALLERY_BASE64, MAX_GALLERY_BYTES, MAX_TREE_IMAGE_SOURCE, PANE, PNG_PREFIX, PREVIEW_STEPS, PREVIEW_TIMEOUT_MS, SLICE_CHARS, SLICE_HEIGHT, SLICE_QUALITIES, SLICE_WIDTH } from '../core/constants.js'
 import { homeOf, messageOf } from '../core/format.js'
 import { modLog } from '../core/log.js'
 import { state } from '../core/state.js'
 import { systemOf } from './export.js'
-import { pngSize, svgOf, svgPicture } from './images.js'
+import { overBudgetPaths, pngSize, svgOf, svgPicture, terminalFault } from './images.js'
 import { stopWatch } from './reader.js'
 import { redrawPane } from '../git/controller.js'
 import { jpegArgs, mediaDir, sipsRun } from '../git/media.js'
@@ -17,7 +17,7 @@ export async function registerImageTool($) {
       name: 'show_image',
       isDeferred: false,
       description:
-        "Show PNG images to the user in the syafiqkit side pane instead of reporting a file path. Use it for e2e or Playwright screenshots saved under /tmp, rendered charts, and any picture the user should look at. Paths must be absolute and PNG; pass several to open them as a gallery. On Desktop a picture over about 65 KB is shown as a smaller copy on macOS (full size in the system viewer); a picture that still cannot be drawn, or one over 2 MiB in a terminal, shows a button that opens it in the system viewer instead; nothing draws in the VS Code panel, so report the file path there.",
+        "Show PNG images to the user in the syafiqkit side pane instead of reporting a file path. Use it for e2e or Playwright screenshots saved under /tmp, rendered charts, and any picture the user should look at. Paths must be absolute and PNG; pass several to open them as a gallery. On Desktop a picture over about 65 KB is shown as a smaller copy on macOS (full size in the system viewer); a picture that still cannot be drawn, or one over about 1.5 MiB or 4096 pixels on a side in a terminal (a tall full-page screenshot), shows a button that opens it in the system viewer instead; nothing draws in the VS Code panel, so report the file path there.",
       inputSchema: {
         type: 'object',
         properties: {
@@ -42,8 +42,8 @@ export async function readGalleryImage($, path, caption) {
     const { base64 } = await hostFsRead($, path, { as: 'bytes' })
     if (!base64 || !base64.startsWith(PNG_PREFIX)) return { refused: path + ' (not a PNG; only PNG files can be drawn)' }
     if (base64.length > MAX_GALLERY_BASE64) return { refused: path + ' (over 16 MiB)' }
-    const inline = base64.length <= MAX_BASE64
-    return { image: { path, name: nameOf(path), size: pngSize(base64), caption, png: inline ? base64 : '' } }
+    const inline = base64.length <= MAX_TREE_IMAGE_SOURCE
+    return { image: { path, name: nameOf(path), size: pngSize(base64), caption, bytes: stat.size, png: inline ? base64 : '' } }
   } catch {
     return { refused: path + ' (could not be read)' }
   }
@@ -137,8 +137,17 @@ export async function showImages($, e) {
       'Added ' + noun + ' to the syafiqkit gallery. ' +
         'The pane does not open by itself; the user opens it with the Images button in the band.',
     )
-    const undrawn = added.filter((image) => (state.desktop ? !svgPicture(image) : !image.png)).length
-    if (undrawn) lines.push(undrawn + ' of them are too large to draw in the pane; the user opens them with Open in viewer')
+    if (state.desktop) {
+      const undrawn = added.filter((image) => !svgPicture(image)).length
+      if (undrawn) lines.push(undrawn + ' of them are too large to draw in the pane; the user opens them with Open in viewer.')
+    } else {
+      const tooBig = added.filter((image) => terminalFault(image) === 'large').length
+      const tooTall = added.filter((image) => terminalFault(image) === 'tall').length
+      const hidden = overBudgetPaths([...state.images].reverse()).size
+      if (tooBig) lines.push(tooBig + ' of them are over about 1.5 MiB and will not draw in the pane; the user opens them with Open in viewer.')
+      if (tooTall) lines.push(tooTall + ' of them are over 4096 pixels on a side and will not draw; send viewport-sized screenshots instead of full-page ones.')
+      if (hidden) lines.push(hidden + ' older pictures in the gallery are not drawn because the pane holds at most 2 MiB of pictures; Clear empties the gallery.')
+    }
   }
   if (wanted.length > paths.length) lines.push(wanted.length - paths.length + ' more paths were not added (limit ' + MAX_GALLERY + ' per call)')
   if (refused.length) lines.push('Not shown: ' + refused.join('; '))

@@ -1,4 +1,4 @@
-import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DIFF, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, NEAR_LIMIT_SHARE, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, VERBS, WINDOW_ROWS } from '../core/constants.js'
+import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, NEAR_LIMIT_SHARE, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, VERBS, WINDOW_ROWS } from '../core/constants.js'
 import { docAgeOf, docLabel, isHeavy, isInstructionFile, kb, oversizedDecisions } from '../core/format.js'
 import { invalidatePane, state } from '../core/state.js'
 import { ensureSlice, openInViewer, saveGallery, sliceGeometry, slicesWanted } from '../docs/gallery.js'
@@ -9,7 +9,7 @@ import { readDiff } from '../git/diff.js'
 import { mediaCaption } from '../git/media.js'
 import { repoNameOf, visibleRepos } from '../git/repos.js'
 import { entryInFocus, letterOf, nameOf, numstatOf, sectionEntries, splitFocus, treeRows } from '../git/status.js'
-import { highlightLines, syntaxSegmentStyle, syntaxSegments } from '../git/syntax.js'
+import { diffPalette, highlightLines, syntaxSegmentStyle, syntaxSegments } from '../git/syntax.js'
 import { PLANE_LABEL, activeFocus, diffBodyItems, diffIsOpen, focusTitle, lineNumberWidth, moreLinesItem, noDiffsText, shownLines } from './changes.js'
 import { galleryPicture } from './images.js'
 import { runVerb } from './menu.js'
@@ -307,7 +307,8 @@ export function desktopDiffRow(c, line, key, width, tokens) {
   const { Box, Text } = c
   const isAdd = line.kind === 'add'
   const isDel = line.kind === 'del'
-  const word = isAdd ? DESKTOP_DIFF.addedWord : DESKTOP_DIFF.removedWord
+  const palette = diffPalette(state.look)
+  const word = isAdd ? palette.addedWord : palette.removedWord
   const segments = syntaxSegments(line.text.length, tokens, line.span)
   const body = line.text
     ? Text({
@@ -323,7 +324,7 @@ export function desktopDiffRow(c, line, key, width, tokens) {
     flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    ...(isAdd || isDel ? { backgroundColor: isAdd ? DESKTOP_DIFF.added : DESKTOP_DIFF.removed } : {}),
+    ...(isAdd || isDel ? { backgroundColor: isAdd ? palette.added : palette.removed } : {}),
     children: [
       Text({
         key: key + 'g',
@@ -747,7 +748,7 @@ export function desktopMenuView($, c) {
 export let galleryPick = ''
 
 export function pngBytes(image) {
-  return (image.png ? Math.floor((image.png.length * 3) / 4) : 0)
+  return image.bytes || (image.png ? Math.floor((image.png.length * 3) / 4) : 0)
 }
 
 export function desktopImagesView($, c) {

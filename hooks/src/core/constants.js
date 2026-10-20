@@ -48,7 +48,10 @@ export const PNG_PREFIX = 'iVBORw0KGgo'
 export const SPLIT_MIN_COLUMNS = 100
 export const TREE_COLUMNS = 42
 export const COUNTS_WIDTH = 11
-export const DESKTOP_DIFF = { added: '#1b3a2a', removed: '#40232a', addedWord: '#2e6b49', removedWord: '#7c3340' }
+export const DIFF_PALETTE = {
+  dark: { added: '#1b3a2a', removed: '#40232a', addedWord: '#215932', removedWord: '#773133', header: '#1f2633' },
+  light: { added: '#d0ffd0', removed: '#ffe0e0', addedWord: '#a0efa0', removedWord: '#ffc0c0', header: '#e6eaf0' },
+}
 export const SYNTAX_MAX_CHARS = 400
 export const SYNTAX_TONE = {
   keyword: '#c678dd',
@@ -94,6 +97,8 @@ export const RISKY = /\b(ship|push|merge|delete|deploy|drop|reset)\b/i
 export const MERMAID_PACKAGE = '@mermaid-js/mermaid-cli@12.0.0'
 export const MERMAID_TIMEOUT_MS = 240000
 export const MAX_IMAGE_ROWS = 60
+export const MAX_IMAGE_SIDE = 4096
+export const MAX_TREE_IMAGE_SOURCE = 2 * 1024 * 1024
 export const MAX_BASE64 = Math.floor((2 * 1024 * 1024 * 4) / 3)
 export const TYPST_CANDIDATES = ['typst', '/opt/homebrew/bin/typst', '/usr/local/bin/typst']
 export const TYPESET_CHUNK_LINES = 40

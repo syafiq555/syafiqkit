@@ -1,4 +1,4 @@
-import { SYNTAX_MAX_CHARS, SYNTAX_TONE } from '../core/constants.js'
+import { DIFF_PALETTE, SYNTAX_MAX_CHARS, SYNTAX_TONE } from '../core/constants.js'
 
 export const SYNTAX_LANGS = {
   php: 'php',
@@ -161,10 +161,12 @@ export function syntaxSegments(length, tokens, span) {
 }
 
 export function syntaxSegmentStyle(segment, wordColor) {
-  return ({
-  ...(segment.tone ? { color: SYNTAX_TONE[segment.tone] } : {}),
-  ...(segment.mark ? { backgroundColor: wordColor } : {}),
-})
+  if (segment.mark) return { backgroundColor: wordColor }
+  return segment.tone ? { color: SYNTAX_TONE[segment.tone] } : {}
+}
+
+export function diffPalette(look) {
+  return DIFF_PALETTE[look?.mode === 'light' ? 'light' : 'dark']
 }
 
 export function highlightLines(lines, path) {

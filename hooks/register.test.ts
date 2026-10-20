@@ -1177,6 +1177,17 @@ test('the terminal reads the diff of every file past 40, never folds files to sa
   await ui.unmount()
 })
 
+test('terminal All diffs sets each file apart: a blank row before every file but the first, and the header on the file strip', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE, ' M f0.md\0 M f1.md\0')
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  expect((await ui.find({ key: 'worktree:f0.md#hd' }))?.props.backgroundColor).toBe('#1f2633')
+  expect((await ui.find({ key: 'worktree:f1.md#hd' }))?.props.backgroundColor).toBe('#1f2633')
+  expect(await ui.find({ key: 'worktree:f1.md#gap' })).toBeDefined()
+  expect(await ui.find({ key: 'worktree:f0.md#gap' })).toBeUndefined()
+  await ui.unmount()
+})
+
 test('show_image puts PNG screenshots in the pane, names the files it refused, and the gallery draws the picture', async ($, on) => {
   const specs: any[] = []
   const opened: string[] = []
@@ -1206,6 +1217,66 @@ test('show_image puts PNG screenshots in the pane, names the files it refused, a
   await ui.press({ key: 'img-clear' })
   expect(await ui.find({ key: 'img-clear' })).toBeUndefined()
   await ui.unmount()
+})
+
+test('a picture over 4096 pixels on a side does not blank the terminal gallery: the pane still draws, the tall one offers the viewer', async ($, on) => {
+  const tall = 'iVBORw0KGgoAAAANSUhEUgAAAAEAABOICAYAAABwnAfKAAAAPklEQVR42u3EQREAAAwCIPuX1uXYwYP0RJIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIk6X8D4R7WZNqnhEAAAAAASUVORK5CYII='
+  const small = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+  stubSession(on, [], [])
+  on('fs.stat', () => ({ value: { size: 100, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', (_$: any, e: any) => ({ value: { base64: String(e.path).endsWith('tall.png') ? tall : small } }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const out: any = await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/tall.png', '/tmp/small.png'] })
+  expect(String(out.result)).toContain('4096 pixels on a side')
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'open-images' })
+  await band.unmount()
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ key: 'img-close' })).toBeDefined()
+  expect(await pane.find({ key: 'gallery-img-/tmp/small.png' })).toBeDefined()
+  expect(await pane.find({ key: 'gallery-img-/tmp/tall.png' })).toBeUndefined()
+  await pane.unmount()
+})
+
+test('a terminal gallery past 2 MiB of picture data still draws: the newest pictures draw, the older ones wait behind a note', async ($, on) => {
+  const big = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJgggAA' + 'A'.repeat(900_000)
+  stubSession(on, [], [])
+  on('fs.stat', () => ({ value: { size: 700_000, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', () => ({ value: { base64: big } }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const out: any = await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/1.png', '/tmp/2.png', '/tmp/3.png'] })
+  expect(String(out.result)).toContain('1 older pictures in the gallery are not drawn')
+  expect(String(out.result)).not.toContain('4096')
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'open-images' })
+  await band.unmount()
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ key: 'img-close' })).toBeDefined()
+  expect(await pane.find({ key: 'gallery-img-/tmp/3.png' })).toBeDefined()
+  expect(await pane.find({ key: 'gallery-img-/tmp/2.png' })).toBeDefined()
+  expect(await pane.find({ key: 'gallery-img-/tmp/1.png' })).toBeUndefined()
+  await pane.unmount()
+})
+
+test('one picture past the pane budget on its own is called too large, never an older picture', async ($, on) => {
+  const big = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJgggAA' + 'A'.repeat(2_400_000)
+  stubSession(on, [], [])
+  on('fs.stat', () => ({ value: { size: 1_800_000, mtimeMs: 0, isLink: false, kind: 'file' } }))
+  on('fs.read', () => ({ value: { base64: big } }))
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const out: any = await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/solo.png'] })
+  expect(String(out.result)).toContain('1 of them are over about 1.5 MiB')
+  expect(String(out.result)).not.toContain('older pictures')
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'open-images' })
+  await band.unmount()
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ key: 'img-close' })).toBeDefined()
+  expect(await pane.find({ key: 'gallery-img-/tmp/solo.png' })).toBeUndefined()
+  await pane.unmount()
 })
 
 test('a render that arrives after the pane closed draws nothing of ours, so an expanded pane cannot be left redrawing the docs list', async ($, on) => {
@@ -1737,7 +1808,7 @@ const PHP_DIFF = [
 
 const coloured = async (ui: any, text: RegExp) => (await ui.findAll({ type: 'Text', text })).map((node: any) => node.props.color).filter(Boolean)
 
-test('Desktop diff rows colour code by language on flat rows and still mark the changed words', async ($, on) => {
+test('Desktop diff rows colour code by language on flat rows and mark changed words in plain text', async ($, on) => {
   stubSession(on, [], [])
   on('process.run', fakeDesktopGit(' M src/Plan.php\0', PHP_DIFF))
   stubRender(on)
@@ -1747,9 +1818,9 @@ test('Desktop diff rows colour code by language on flat rows and still mark the 
   await desk.press({ key: 'map-worktree:src/Plan.php-b' })
   expect(await desk.find({ type: 'Code' })).toBeUndefined()
   expect(await coloured(desk, /^return$/)).toEqual(['#c678dd', '#c678dd'])
-  expect(await coloured(desk, /^startOfDay$/)).toEqual(['#61afef'])
+  expect(await coloured(desk, /^startOfDay$/)).toEqual([])
   expect(await coloured(desk, /^\/\/ keep 'this'$/)).toEqual(['#7f848e'])
-  expect((await desk.find({ type: 'Text', text: /^startOfDay$/ }))?.props.backgroundColor).toBe('#2e6b49')
+  expect((await desk.find({ type: 'Text', text: /^startOfDay$/ }))?.props.backgroundColor).toBe('#215932')
   await desk.unmount()
 })
 
@@ -1767,7 +1838,7 @@ test('markdown diffs colour headings and code spans', async ($, on) => {
   await ui.unmount()
 })
 
-test('terminal diff rows colour code by language and keep the changed-word mark', async ($, on) => {
+test('terminal diff rows colour code by language and mark changed words in plain text on the shared palette', async ($, on) => {
   stubSession(on, [], [])
   on('process.run', fakeGit([], ' M src/Plan.php\0', PHP_DIFF))
   stubRender(on)
@@ -1778,7 +1849,9 @@ test('terminal diff rows colour code by language and keep the changed-word mark'
   expect(await ui.find({ key: 'cf-back' })).toBeDefined()
   expect(await ui.find({ type: 'Code' })).toBeUndefined()
   expect(await coloured(ui, /^return$/)).toEqual(['#c678dd', '#c678dd'])
-  expect((await ui.find({ type: 'Text', text: /^startOfDay$/ }))?.props.backgroundColor).toBe('diffAddedWord')
+  const word = await ui.find({ type: 'Text', text: /^startOfDay$/ })
+  expect(word?.props.backgroundColor).toBe('#215932')
+  expect(word?.props.color).toBeUndefined()
   await ui.unmount()
 })
 

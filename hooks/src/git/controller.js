@@ -5,6 +5,7 @@ import { modLog } from '../core/log.js'
 import { invalidatePane, openPaneWindow, state } from '../core/state.js'
 import { discover, safeList } from '../docs/discovery.js'
 import { loadDoc, readDecision, stopWatch } from '../docs/reader.js'
+import { readLook } from '../docs/typeset.js'
 import { discardPath, stageAll, stagePaths, unstageAll, unstagePaths } from './actions.js'
 import { readDiff } from './diff.js'
 import { mediaStamp } from './media.js'
@@ -21,6 +22,7 @@ export function redrawPane($) {
 
 export async function loadChanges($) {
   if (!state.cwd) state.cwd = await hostSessionCwd($)
+  if (!state.look) await readLook($)
   const root = state.repoRoot
   if (!root && Object.keys(state.repoHidden).length) return false
   const next = await readStatus($, root || state.cwd, true)

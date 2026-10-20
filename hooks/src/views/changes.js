@@ -8,7 +8,7 @@ import { addRepo, askDiscard, fileTargets, focusOn, isDocPath, openChangeAll, op
 import { extOf, mediaCaption } from '../git/media.js'
 import { repoNameOf, visibleRepos } from '../git/repos.js'
 import { STATUS_COLOR, entryInFocus, letterOf, nameOf, sectionEntries, splitFocus, treeRows } from '../git/status.js'
-import { highlightLines, syntaxSegmentStyle, syntaxSegments } from '../git/syntax.js'
+import { diffPalette, highlightLines, syntaxSegmentStyle, syntaxSegments } from '../git/syntax.js'
 import { desktopMediaItems, loadOneDiff, windowedRows } from './desktop.js'
 
 export const PLANE_LABEL = { staged: 'staged', worktree: 'working tree', head: 'since the last commit' }
@@ -501,6 +501,7 @@ export function fileHeader($, c, entry, plane, open, pathWidth) {
     key: key + '#hd',
     flexDirection: 'row',
     columnGap: 1,
+    backgroundColor: diffPalette(state.look).header,
     children: [
       Button({
         key: key + '#h',
@@ -545,7 +546,8 @@ export function terminalLineItems(c, line, key, numWidth, bodyWidth, tokens) {
   const text = line.text
   const width = Math.max(10, bodyWidth)
   const gutter = String(isDel ? line.oldNo : line.newNo).padStart(numWidth) + ' ' + (isAdd ? '+' : isDel ? '−' : ' ') + ' '
-  const background = isAdd || isDel ? { backgroundColor: isAdd ? 'diffAdded' : 'diffRemoved' } : {}
+  const palette = diffPalette(state.look)
+  const background = isAdd || isDel ? { backgroundColor: isAdd ? palette.added : palette.removed } : {}
   const segments = syntaxSegments(text.length, tokens, line.span)
   const pieces = (from, to) =>
     segments
@@ -553,7 +555,7 @@ export function terminalLineItems(c, line, key, numWidth, bodyWidth, tokens) {
       .map((segment, index) =>
         Text({
           key: 'p' + index,
-          ...syntaxSegmentStyle(segment, isAdd ? 'diffAddedWord' : 'diffRemovedWord'),
+          ...syntaxSegmentStyle(segment, isAdd ? palette.addedWord : palette.removedWord),
           children: text.slice(Math.max(segment.from, from), Math.min(segment.to, to)),
         }),
       )
@@ -607,10 +609,11 @@ export function allDiffItems($, c, only, beside) {
         }),
       )
     }
-    for (const entry of closed ? [] : files) {
+    for (const [index, entry] of (closed ? [] : files).entries()) {
       const key = plane + ':' + entry.path
       const diff = state.allDiffs[key]
       const open = diffIsOpen(key)
+      if (index > 0) add(() => c.Box({ key: key + '#gap', height: 1, flexShrink: 0 }))
       add(() => fileHeader($, c, entry, plane, open, pathWidth))
       if (!open) continue
       if (!diff) {

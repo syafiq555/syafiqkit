@@ -1,4 +1,4 @@
-import { B64, DESKTOP_DRAW_CHARS, DESKTOP_PICTURE_WIDTH, MAX_IMAGE_ROWS } from '../core/constants.js'
+import { B64, DESKTOP_DRAW_CHARS, DESKTOP_PICTURE_WIDTH, MAX_IMAGE_ROWS, MAX_IMAGE_SIDE, MAX_TREE_IMAGE_SOURCE } from '../core/constants.js'
 
 export function hashOf(text) {
   let hash = 5381
@@ -26,6 +26,26 @@ export function pngSize(base64) {
   const read = (offset) =>
     ((bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0
   return { width: read(16), height: read(20) }
+}
+
+function isOversized(size) {
+  return Boolean(size) && (size.width > MAX_IMAGE_SIDE || size.height > MAX_IMAGE_SIDE)
+}
+
+export function terminalFault(image) {
+  if (!image.png) return 'large'
+  return isOversized(image.size) ? 'tall' : null
+}
+
+export function overBudgetPaths(newestFirst) {
+  const over = new Set()
+  let left = MAX_TREE_IMAGE_SOURCE
+  for (const image of newestFirst) {
+    if (terminalFault(image)) continue
+    if (image.png.length > left) over.add(image.path)
+    else left -= image.png.length
+  }
+  return over
 }
 
 export function fitImage(size, maxColumns) {
