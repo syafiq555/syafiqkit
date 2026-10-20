@@ -49,6 +49,8 @@ The half that's easy to miss is that **the tag needs both a `grep` and a `grepIn
 
 Verify by running each project separately and checking the counts differ — a tag typo yields a mobile project that silently matches nothing, which reports as a pass.
 
+A device descriptor fixes the height too, and Pixel 7's 839px is taller than most phones. Where a layout is sized to the screen (a pinned scroll scene, a sticky stage, a `100svh` hero), add specs that call `page.setViewportSize` to 375×667 and 320×568 inside the mobile project and assert the key element and action still fit; the descriptor alone passes while a shorter phone clips.
+
 ### The cross-file race
 
 The signature: two spec files that each pass alone fail together, on assertions unrelated to what either one mutates.

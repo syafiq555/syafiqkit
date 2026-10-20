@@ -7,7 +7,7 @@ Related:
   - ../agent-architecture/current.md (sibling feature — agent delegation + verification rigor)
   - ../madr-structure/current.md (sibling feature — the MADR format itself)
   - ../output-style-hook/current.md (sibling feature — the ayghri/i-have-adhd source: findings adopted, structure rejected)
-Last updated: 2026-10-10 — `applying-verdicts.md` split by topic into four files (routing table under Key Technical Decisions). Before that, 2026-10-09 — source #11, `impeccable` and `taste-skill` graded into a fifth pass on `uiux` (1.373.0: critique mode, generic-look list, design read, stop rule). Before that, 2026-10-08 — source #10, whole-plugin comparables survey (decisions/skill-survey-2026-10.md); found the hook-output cap breach. Before that, 2026-09-15 — source #9, `superdesign` graded per capability into a fourth pass on `uiux`: a mostly-unusable source can still carry four adoptable judgements, and a pointer naming an external plugin is a dependency rather than a citation
+Last updated: 2026-10-20: source #11 vendored whole as `taste` and `impeccable`, design-request routing decided (`decisions/source-11-design-skills.md#vendored`). Before that, 2026-10-10 — `applying-verdicts.md` split by topic into four files (routing table under Key Technical Decisions). Before that, 2026-10-09 — source #11, `impeccable` and `taste-skill` graded into a fifth pass on `uiux` (1.373.0: critique mode, generic-look list, design read, stop rule). Before that, 2026-10-08 — source #10, whole-plugin comparables survey (decisions/skill-survey-2026-10.md); found the hook-output cap breach. Before that, 2026-09-15 — source #9, `superdesign` graded per capability into a fourth pass on `uiux`: a mostly-unusable source can still carry four adoptable judgements, and a pointer naming an external plugin is a dependency rather than a citation
 -->
 
 # Plugin Maintenance — Evaluating External Guidance
@@ -18,7 +18,7 @@ Last updated: 2026-10-10 — `applying-verdicts.md` split by topic into four fil
 
 Source #6 (2026-08-20) was the first of a different kind: Anthropic's live reference docs for CLAUDE.md, skills and subagents. **A mechanism source cannot be rejected on local evidence** — when the harness changes, a correct rule becomes wrong with no edit, no diff and no failing check. 10 of 12 local statements were wrong or silent; two came back already-correct and are the control proving the pass wasn't confirmation-shaped.
 
-Source #11 (2026-10-09) was two design skills, `impeccable` and `taste-skill`, adopted into `uiux` as 1.373.0 (a critique mode, a generic-look list, a design read, a stop rule, a marketing-page reference). The full verdicts are in `decisions/source-11-design-skills.md`. Open: critique mode has not been run on a real screen.
+Source #11 (2026-10-09) was two design skills, `impeccable` and `taste-skill`, adopted into `uiux` as 1.373.0 (a critique mode, a generic-look list, a design read, a stop rule, a marketing-page reference). The full verdicts are in `decisions/source-11-design-skills.md`. Both were then vendored whole as `taste` and `impeccable` (1.406.9), and the user settled who owns which design request (same file, `#vendored`). Open: critique mode has not been run on a real screen, and neither vendored skill has been trigger-tested in a fresh session.
 
 Source #7 (2026-09-05) was a survey rather than a single document: eight published UI/UX skills and a set of primary design references, retrieved by two haiku research agents and graded per capability into a second pass on `uiux` (D-second-pass-on-uiux). Every cited URL resolved, and five of the agents' figures were still wrong — a real page about the subject carrying a different number.
 
@@ -109,7 +109,7 @@ Which file holds which decision (split by topic on 2026-10-10; each decision liv
 | `decisions/agent-and-edit-traps.md` | Traps in trusting a check, an agent or a scripted edit: D-agent-broke-its-own-pointer-check, D-scripted-anchor-matched-the-wrong-occurrence, D-a-model-that-declines-a-rule-reports-it-as-absent |
 | `decisions/house-style-ownership.md` | Whose CLAUDE.md shape the skills enforce: D-rewrite-skills-branch-on-file-ownership, D-house-style-applies-everywhere |
 | `decisions/skill-survey-2026-10.md` | Source #10, a whole-plugin comparables survey: the hook-cap finding, verified figures, borrowable candidates |
-| `decisions/source-11-design-skills.md` | Source #11, `impeccable` and `taste-skill`: what was adopted into `uiux` 1.373.0, what was rejected, what two review rounds changed |
+| `decisions/source-11-design-skills.md` | Source #11, `impeccable` and `taste-skill`: what was adopted into `uiux` 1.373.0, what was rejected, what two review rounds changed; the later whole vendoring and the uiux/taste/impeccable routing table |
 
 ---
 

@@ -45,6 +45,8 @@ These skills accept explicit user command:
 | `motion-clip` | Short designed video for a product or brand (launch clip, promo, explainer) as code: brief, real captured screens, photos and logo in a phone, browser or frameless layout, engine driven by `story.js`, automatic consistency check plus contact-sheet self-review, 9:16/1:1/16:9 renders, numpy music bed at -14 LUFS, optional voice-over. Test-run recordings are `setup-playwright` |
 | `user-manual` | END-USER manual: scope from user tasks, Diátaxis shape, screenshots from an E2E capture spec, `.docx`/`.pdf` editions. Distinct from `md-to-pdf`, which converts settled content |
 | `design-handoff` | Brief for someone ELSE to design a screen (external designer, Claude Design, contractor): purpose, audience, business rules, measured failures; layout decisions withheld. Designing it yourself is `uiux` |
+| `taste` | Build, redesign, restyle, polish or improve a public-facing page (any verb, even when `uiux` was named) with real art direction: deals 3 of 20 researched directions, finds real pictures in open collections, builds, then gates on a real-browser inspector and a scored look-and-fix loop. Vendored from tasteskill v2 (MIT); `skills/taste/SOURCE.md` records the commit and changes. Needs Node 22+ and Chrome |
+| `impeccable` | Named by the user, alone or with a command (`/impeccable polish`, `audit`, `critique`, `bolder`, `overdrive`…); a bare "polish" or "critique" is `uiux`'s: design-director toolkit with modes, a craft floor and per-command playbooks. Vendored from impeccable 4.7.0 (Apache-2.0); its launcher downloads a binary on first use and falls back to reading PRODUCT.md and DESIGN.md without it |
 | `gchat-format` | Convert Markdown to Google Chat message format: a document posted to a thread. A message in the sender's own voice to a named person is `casual-message` |
 | `casual-message` | Write a casual 1:1 message in the sender's own voice: a WhatsApp reply, a colleague DM, "tell X that…". Register is inferred, not asked; no fence, no headers. A document being converted for Chat is `gchat-format` |
 | `continue-session` | Copy-paste prompt that starts a fresh session where this one stopped: task doc path, next goal, uncommitted state |
@@ -78,7 +80,8 @@ These skills accept explicit user command:
 | `sweep-doc-overlaps` | Fleet-wide scan across ALL `tasks/` domains for CROSS-domain merge candidates a single-domain call would miss; hands confirmed groups to `merge-task-docs` |
 | `ci-ssh-deploy-timeout` | On "deploy keeps timing out" or SSH intermittency in CI |
 | `setup-playwright` | On "e2e tests are flaky", "specs pass alone but fail together" |
-| `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, greenfield or existing app; mobile-first; scored critique of a screen (no edits); landing pages. Also fires on a screenshot, on what someone *saw* without naming UI, or on how real products solve a pattern (case studies through `haiku`) |
+| `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, greenfield or existing app; mobile-first; scored critique of a screen (no edits). Hands any look change to a public-facing page to `taste`, whatever the verb. Also fires on a screenshot, on what someone *saw* without naming UI, or on how real products solve a pattern (case studies through `haiku`) |
+| `taste` | Asked to build, redesign, restyle, polish or improve a public-facing page (landing page, marketing site, portfolio, one-pager), or told a page looks generic, cheap, "AI-made" or not powerful enough. Vendored tasteskill v2 (MIT): dealt directions from a 247-site library, real-picture search, browser inspector |
 | `design-handoff` | About to volunteer a layout, component list or step breakdown for a screen someone else is designing, or asked for "the prompt" / "business side only" for another designer |
 | `gchat-format` | Asked to send, post or format anything for Google Chat: a release note, a status update, an announcement going to a thread |
 | `casual-message` | Asked to reply to, text, or tell a NAMED person something; runs before drafting, so register isn't inherited from a document-shaped default |
@@ -298,7 +301,7 @@ Version lives in two files and must match:
 | `.claude-plugin/plugin.json` | `"version"` |
 | `.claude-plugin/marketplace.json` | `plugins[0].version` |
 
-Before editing, re-read both files, since working copies may disagree from an uncommitted bump. Take the highest value claimed. Bump and CHANGELOG entry are one atomic change; if the entry isn't ready, leave the version at baseline so its writer takes the number. Parallel agents each re-read before bumping. Run `claude plugin update syafiqkit@syafiqkit` once after all changes land, not mid-batch.
+Before editing, re-read both files, since working copies may disagree from an uncommitted bump. Take the highest value claimed, and re-number an uncommitted entry that a later commit has overtaken: `ship` scopes its release note from the last shipped version, so an entry left below it never reaches colleagues (2026-10-20: a 1.406.3 holding two new skills sat under a pushed 1.406.4). Bump and CHANGELOG entry are one atomic change; if the entry isn't ready, leave the version at baseline so its writer takes the number. Parallel agents each re-read before bumping. Run `claude plugin update syafiqkit@syafiqkit` once after all changes land, not mid-batch.
 
 ### Release Notes
 

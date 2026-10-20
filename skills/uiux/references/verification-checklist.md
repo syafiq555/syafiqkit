@@ -8,6 +8,8 @@ Take the looks in one batched round, confirm fixes in at most one more, then sto
 
 Look at 375px (phone), 768px (tablet) and 1280px (desktop) at minimum. At each: no horizontal overflow, no text truncated unexpectedly, images scale without stretching, navigation reflows (bottom tabs on the phone), touch targets stay at 44px, and long-form text stays within about 65 to 75 characters a line rather than running the width of a wide screen. On the phone, also look in landscape and at the largest system text size — both reflow the layout in ways portrait at default size never shows.
 
+**A layout sized to the screen is judged by height as well as width.** A pinned scroll scene, a sticky stage or a `100svh` hero holds a fixed amount of content in a box that shrinks with the viewport, and `overflow: hidden` on it clips the excess silently, so a tall test phone (Pixel 7 is 839px) passes while a 667px iPhone loses the top of the price and buries the link under a fixed bar. Look at 375×667 and 320×568 on the phone and 1366×650 on a laptop, and have a spec assert there that the key element sits below the header and the action is hit-testable. Measured 2026-10-20: a cinematic hero passed every width check and clipped its price at 375×667.
+
 ## Interaction states
 
 Every interactive element shows, visibly and distinctly:
