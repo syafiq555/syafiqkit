@@ -106,7 +106,7 @@ A closed gotcha with nothing worth promoting is deleted outright rather than kep
 
 #### 4b. Task-doc branch
 
-**Your job is staleness only.** Whether to cut a section, collapse a narrative, or demote an entry is `condense-task-doc`'s decision, not this agent's. Read `condense-task-doc`'s `## What to cut` / `## What to keep` / `## Section-by-section rules` for those cases; this agent handles only rows whose referenced thing has demonstrably ceased to exist.
+**Your job is staleness only.** Whether to cut a section, collapse a narrative, or demote an entry is `condense-task-doc`'s decision, not this agent's. Read `condense-task-doc`'s `## What Gets Cut vs. What Stays` / `## Section-by-Section Rules` for those cases; this agent handles only rows whose referenced thing has demonstrably ceased to exist.
 
 | Type | Action |
 |------|--------|
