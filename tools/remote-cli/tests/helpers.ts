@@ -148,9 +148,28 @@ export function runCliLive(
   timeoutMs: number,
   ...args: string[]
 ): CliResult {
+  return runCliLiveWithHome(undefined, knownHostsPath, timeoutMs, ...args);
+}
+
+/**
+ * runCliLive with HOME redirected, so ~/.ssh/config aliases come from a fixture.
+ *
+ * @param home Directory holding the fixture `.ssh/config`; undefined keeps HOME
+ */
+export function runCliLiveWithHome(
+  home: string | undefined,
+  knownHostsPath: string,
+  timeoutMs: number,
+  ...args: string[]
+): CliResult {
   return spawnCli(
     args,
-    { REMOTE_CLI_CONFIG_DIR: FIXTURE_DIR, REMOTE_CLI_KNOWN_HOSTS: knownHostsPath, NO_COLOR: "1" },
+    {
+      REMOTE_CLI_CONFIG_DIR: FIXTURE_DIR,
+      REMOTE_CLI_KNOWN_HOSTS: knownHostsPath,
+      NO_COLOR: "1",
+      ...(home ? { HOME: home } : {}),
+    },
     timeoutMs
   );
 }

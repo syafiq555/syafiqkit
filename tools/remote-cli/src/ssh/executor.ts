@@ -1,11 +1,7 @@
 import { Client } from "ssh2";
 import type { ConnectionInfo } from "../types.ts";
-import {
-  colors,
-  validatePath,
-  SSH_KEEPALIVE_INTERVAL_MS,
-  SSH_KEEPALIVE_COUNT_MAX,
-} from "../utils/index.ts";
+import { colors, validatePath } from "../utils/index.ts";
+import { dial } from "./dial.ts";
 
 /**
  * Execute a command on a remote server via SSH
@@ -112,11 +108,6 @@ export function executeCommand(
       resolve(1);
     });
 
-    conn.connect({
-      ...connInfo.config,
-      readyTimeout: 30000,
-      keepaliveInterval: SSH_KEEPALIVE_INTERVAL_MS,
-      keepaliveCountMax: SSH_KEEPALIVE_COUNT_MAX,
-    });
+    dial(conn, connInfo);
   });
 }

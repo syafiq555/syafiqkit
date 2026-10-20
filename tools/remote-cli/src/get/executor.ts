@@ -2,14 +2,9 @@ import { Client, type SFTPWrapper } from "ssh2";
 import { existsSync, renameSync, rmSync, statSync } from "fs";
 import { basename, isAbsolute, join, resolve } from "path";
 import type { ConnectionInfo } from "../types.ts";
-import {
-  colors,
-  formatBytes,
-  validatePath,
-  SSH_KEEPALIVE_INTERVAL_MS,
-  SSH_KEEPALIVE_COUNT_MAX,
-} from "../utils/index.ts";
+import { colors, formatBytes, validatePath } from "../utils/index.ts";
 import { SSHConnectionError } from "../errors.ts";
+import { dial } from "../ssh/dial.ts";
 
 export interface GetOptions {
   remotePath: string;
@@ -54,12 +49,7 @@ function openSftp(connInfo: ConnectionInfo): Promise<{ conn: Client; sftp: SFTPW
     });
     conn.on("error", reject);
     conn.on("timeout", () => reject(new SSHConnectionError("Connection timed out")));
-    conn.connect({
-      ...connInfo.config,
-      readyTimeout: 30000,
-      keepaliveInterval: SSH_KEEPALIVE_INTERVAL_MS,
-      keepaliveCountMax: SSH_KEEPALIVE_COUNT_MAX,
-    });
+    dial(conn, connInfo);
   });
 }
 

@@ -188,6 +188,12 @@ Both live in `CONFIG_DIR` (`~/.config/remote-cli` by default). **`REMOTE_CLI_CON
 - `appPath` is required and validated for safe characters
 - All secrets values must be strings
 
+### Jump hosts (`ProxyJump`) {#proxy-jump}
+
+**`remote` does not run OpenSSH for commands or `--get`; it reads `~/.ssh/config` itself (`src/ssh/parser.ts`) and dials with ssh2.** So an alias setting works only if the parser reads it: `HostName`, `User`, `Port`, `IdentityFile` and `ProxyJump`, matched case-sensitively, with `Host *`, `Match` and `Include` ignored. An alias block with no `HostName` uses its own name as the host, as OpenSSH does. Anything else is dropped without a warning, which is how `ProxyJump` was ignored until 1.406.4: plain `ssh <alias>` went through the hop while `remote` dialled the whitelisted server directly and timed out.
+
+With `ProxyJump`, `src/ssh/dial.ts` connects to the jump host and opens a `forwardOut` channel to the target, which becomes the target connection's `sock`; `--sync`/`--scp` get the same route as an `ssh -W` `ProxyCommand`. A hop that drops mid-session is reported as an error on the target connection, so a cut-off command exits 1 instead of 0. The value is an alias or `[user@]host[:port]`, one hop only, and the jump host needs an `IdentityFile` (passwords in `secrets.json` belong to the final server). `tests/live-jump.spec.ts` points a fixture `HOME` at a throwaway `.ssh/config` and proves the hop with a dead jump in front of a reachable target.
+
 ---
 
 ## Security Patterns {#security}

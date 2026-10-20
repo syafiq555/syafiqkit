@@ -25,8 +25,8 @@ export function parseSSHConfig(alias: string): SSHAliasConfig | null {
 
     if (trimmed.startsWith("Host ")) {
       // Save previous if we were building one and it matches
-      if (currentHost === alias && config.host) {
-        return config as SSHAliasConfig;
+      if (currentHost === alias) {
+        return { ...config, host: config.host ?? alias } as SSHAliasConfig;
       }
       // Handle "Host alias1 alias2" - take first alias
       currentHost = trimmed.substring(5).trim().split(/\s+/)[0] ?? null;
@@ -50,14 +50,17 @@ export function parseSSHConfig(alias: string): SSHAliasConfig | null {
           case "IdentityFile":
             config.keyPath = expandPath(value ?? "");
             break;
+          case "ProxyJump":
+            config.proxyJump = value?.toLowerCase() === "none" ? undefined : value;
+            break;
         }
       }
     }
   }
 
   // Check last entry in file
-  if (currentHost === alias && config.host) {
-    return config as SSHAliasConfig;
+  if (currentHost === alias) {
+    return { ...config, host: config.host ?? alias } as SSHAliasConfig;
   }
 
   return null;

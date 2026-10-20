@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import { existsSync, statSync } from "fs";
 import { dirname, isAbsolute, resolve } from "path";
-import type { ConnectionInfo } from "../types.ts";
+import type { ConnectionInfo, JumpHost } from "../types.ts";
 import {
   colors,
   validatePath,
@@ -93,19 +93,44 @@ function validateLocalPath(localPath: string): void {
   }
 }
 
-function buildSSHCommand(connInfo: ConnectionInfo): string {
+function sshBaseParts(keyPath: string | undefined, port: number): string[] {
   const parts = ["ssh"];
 
-  if (connInfo.keyPath) {
-    parts.push(`-i "${toPosixPath(connInfo.keyPath)}"`);
+  if (keyPath) {
+    parts.push(`-i "${toPosixPath(keyPath)}"`);
   }
-  if (connInfo.config.port !== 22) {
-    parts.push(`-p ${connInfo.config.port}`);
+  if (port !== 22) {
+    parts.push(`-p ${port}`);
   }
   parts.push(hostKeyOptionsString());
+  return parts;
+}
+
+function buildSSHCommand(connInfo: ConnectionInfo): string {
+  const parts = sshBaseParts(connInfo.keyPath, connInfo.config.port);
   parts.push(`-o ServerAliveInterval=${SSH_KEEPALIVE_INTERVAL_SEC}`);
   parts.push(`-o ServerAliveCountMax=${SSH_KEEPALIVE_COUNT_MAX}`);
+  if (connInfo.jump) {
+    parts.push(`-o 'ProxyCommand=${buildJumpCommand(connInfo.jump)}'`);
+  }
 
+  return parts.join(" ");
+}
+
+function buildJumpCommand(jump: JumpHost): string {
+  for (const field of [jump.keyPath ?? "", jump.config.host, jump.config.username]) {
+    if (hasUnsafeShellChars(field)) throw new PathValidationError(field, "Jump host setting");
+  }
+  for (const field of [jump.config.host, jump.config.username]) {
+    if (!/^[\w.@:\[\]-]+$/.test(field) || field.startsWith("-")) {
+      throw new PathValidationError(field, "Jump host or user");
+    }
+  }
+
+  const parts = sshBaseParts(jump.keyPath, jump.config.port);
+  parts.push("-o IdentitiesOnly=yes");
+  parts.push("-W %h:%p");
+  parts.push(`${jump.config.username}@${jump.config.host}`);
   return parts.join(" ");
 }
 

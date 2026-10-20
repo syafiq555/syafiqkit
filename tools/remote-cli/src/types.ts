@@ -74,22 +74,34 @@ export interface SSHAliasConfig {
   user?: string;
   port?: number;
   keyPath?: string;
+  proxyJump?: string;
+}
+
+export interface SSHEndpoint {
+  host: string;
+  port: number;
+  username: string;
+  privateKey?: Buffer;
+  password?: string;
+}
+
+/**
+ * Hop every connection to the target passes through (ssh's ProxyJump)
+ */
+export interface JumpHost {
+  config: SSHEndpoint;
+  keyPath?: string;
 }
 
 /**
  * Resolved connection info ready for SSH client
  */
 export interface ConnectionInfo {
-  config: {
-    host: string;
-    port: number;
-    username: string;
-    privateKey?: Buffer;
-    password?: string;
-  };
+  config: SSHEndpoint;
   displayHost: string;
   appPath: string;
   keyPath?: string; // Original key path for rsync -i flag
+  jump?: JumpHost;
 }
 
 // ─────────────────────────────────────────────────────────────

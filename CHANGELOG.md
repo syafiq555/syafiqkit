@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.406.4
+
+**`remote` now reaches servers that only accept SSH from a whitelisted IP, through a jump host.**
+- A server alias in `~/.ssh/config` with `ProxyJump <alias>` (or `ProxyJump user@host:port`) now goes through that hop for commands, `--get`, `--sync` and `--scp`. The banner shows the route, e.g. `client → dourr → 1.9.109.225`.
+- Before this, `remote` read only `HostName`, `User`, `Port` and `IdentityFile` from the alias and dialled the server directly. `ProxyJump` was ignored without a warning, so a whitelisted server just timed out while plain `ssh` worked.
+- If the jump host can't reach the server (a firewall silently dropping the connection), `remote` stops after 30 seconds with "got no answer from host:port (firewall or IP whitelist?)" instead of hanging for minutes.
+- If the jump host drops in the middle of a command, `remote` reports it and exits 1, so a cut-off run never reads as success. A jump alias with no `HostName` now keeps its own user and key, the hop's `ssh` offers only its configured key (`IdentitiesOnly=yes`), and `ProxyJump None` is honoured in any case.
+- One hop only: a comma-separated chain, or a jump host that has its own `ProxyJump`, stops with a config error. The jump host needs an `IdentityFile`; passwords from `secrets.json` apply only to the final server.
+- Nothing to do beyond `claude plugin update syafiqkit@syafiqkit`. Servers without `ProxyJump` connect exactly as before.
+
 ## 1.406.2
 
 **Rendered task docs scroll smoothly in the terminal.**
