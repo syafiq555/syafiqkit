@@ -24,7 +24,7 @@ Write what the sender would have typed themselves, only faster.
 
 `gchat-format` converts a **document that exists independently of who reads it** — a release note, a status update, an announcement. This skill writes a **message to a person**. The destination is not the axis: a Google Chat DM to a colleague belongs here, and a WhatsApp broadcast to a client group may not.
 
-The ask itself usually settles it. "Reply to Syazwan", "tell the team that…", "text him back" name a recipient and a speech act; "format this release note", "convert this for Chat" name an artifact. When both are somehow true — a status update going to one person — ask what the recipient will do with it. Something they read and reply to is a message; something they forward or refer back to is a document.
+The ask itself usually settles it. "Reply to Syazwan", "tell the team that…", "text him back" name a recipient and a speech act; "format this release note", "convert this for Chat" name an artifact. When both are somehow true — a status update going to one person — ask what the recipient will do with it. Something they read and reply to is a message; something they forward or refer back to is a document. The session's own explanation (steps, an answer) re-dressed for colleagues is a message too, even via a bare `/gchat-format` with no recipient named.
 
 ## Register is inferred, not asked
 
