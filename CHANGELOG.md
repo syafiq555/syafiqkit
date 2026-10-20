@@ -1,5 +1,59 @@
 # Changelog
 
+## 1.406.9
+
+**Two new design skills, `taste` and `impeccable`, for pages that need to look powerful, not just correct.**
+- `taste` builds, redesigns or polishes a landing page, marketing site or portfolio. It deals three of twenty researched directions from a library of 247 gallery sites, finds real pictures in open collections (Openverse, Wikimedia, the Met, the Art Institute of Chicago; commercial licences only), builds, then gates the page on a real-browser inspector and a scored look-and-fix loop. Vendored from tasteskill v2 (MIT); it needs Node 22+ and Chrome.
+- `impeccable` runs only when you name it, alone or with a command (`/impeccable polish`, `audit`, `critique`, `bolder`, `overdrive`, `animate` and more): modes for persuade, operate, read and experience surfaces, a craft floor of bans, and a playbook per command. Vendored from impeccable 4.7.0 (Apache-2.0). Its launcher downloads a platform binary from impeccable's GitHub on first use; without it, the skill reads PRODUCT.md and DESIGN.md directly. A bare "polish" or "critique" still goes to `uiux`.
+- `uiux` now hands any look change to a public-facing page to `taste`, whatever the verb (build, redesign, polish, improve, "make it wow"), even when you asked for `uiux` by name. It keeps critiques with no edits, research, small named fixes, and all work inside existing apps. Measured 2026-10-19: a marketing-site redesign asked for "through the uiux skill" stayed in `uiux` through several rounds of "more extravagant" and "bump more looks wow", and its judgement, built for restraint inside apps, kept settling on the category default.
+- Footage and photos with a credit line (CC BY, CC BY-SA) are fine on a client site when the credit goes in the footer; `uiux`'s material check now agrees with `taste`, whose picture rules own the credits.
+- Each skill's `SOURCE.md` records the upstream commit, the licence and the local changes (the routing `description`, and in `taste` a line telling a session to re-read the file's later sections after a compaction, since its gate and fallbacks sit past what survives one).
+
+**The Images pane no longer opens blank in the terminal when it holds a tall screenshot or a lot of pictures.**
+- Claude Code refuses a whole pane if any picture in it is over 4096 pixels on a side, or if all its pictures together pass 2 MiB, so the gallery used to open empty with no Close or Clear button.
+- A picture that is too tall or wide now shows a short note with its size and an Open in viewer button. A single picture over about 1.5 MiB of file does the same. `show_image` tells Claude when this happens, suggesting viewport-sized screenshots instead.
+- When the pictures together pass the limit, the newest ones draw and the older ones show a note with Open in viewer; Clear makes room.
+
+**Diffs in `/changes` are easier to read, and follow a light theme.**
+- Terminal and Desktop diff rows now use the same colours, with a light set when Claude Code's theme is a light one (the host's own diff colours were too bright to read on both).
+- Changed words inside a line show as plain text on a darker tint instead of keeping their syntax colour, which fell to hard-to-read contrast on the tint.
+- In the terminal's All diffs view, each file's header sits on a shaded bar and a blank row separates files. `/changes` now reads the theme and terminal cell size the first time it opens, as rendered docs already did.
+
+**Smaller fixes.**
+- `uiux` checks a short height (375×667, 1366×650) wherever a stage is pinned or sized to the screen, not only the 375/768/1280 widths: a tall test phone passes while a 667px iPhone clips the price. `setup-playwright` notes that a device descriptor fixes the height too (Pixel 7 is 839px) and adds `setViewportSize` specs at 375×667 and 320×568.
+- `uiux`'s marketing-pages reference gains a Material section: a bold or cinematic page is carried by real photography or footage, not CSS shapes animated harder, with per-clip licence checks (Pexels, Mixkit Free vs Restricted, Uppbeat) and the encoding a scroll-scrubbed video needs.
+- The `claude-md-pruner` agent template now points at `condense-task-doc`'s real section names; it named two headings that don't exist. Projects generated earlier keep the old names until `/agent-setup` runs there again.
+- `ship`'s version check also confirms each new CHANGELOG entry sits above the last shipped version. An entry written as 1.406.3 while a peer pushed 1.406.4 sat below it, and the release note's version range would have skipped the two new skills.
+- Nothing to do beyond `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or a new session.
+
+## 1.406.8
+
+**A motion clip can carry a real music track and keep its sound effects; the invoice generator asks what was already billed.**
+- Measured 2026-10-20: the three generated moods (bright, calm, dark) were sent for comparison and came back as "all seems the same". They share instruments and rhythm. The user then picked a Pixabay track, whose page carried "Content ID registered".
+- `motion-clip/scripts/score.py` (writer): `--sfx-only` writes the taps, whooshes and chimes without the music bed, so a bought track keeps them. Without the flag the output is byte-identical to before.
+- `motion-clip` §5 (reader): offer the moods as one option; a real-track route covering the Pixabay licence (commercial use, no credit), the Content ID label (a risk for paid ads, not WhatsApp status), Pixabay's 403 on scripted downloads, cutting so the track's drop lands on `device.enter`, and the mix and loudness commands. §4 gains a working command for the 12-frame strip; `-frames:v 12` with `tile` errors after one image.
+- `commit-invoice-generator`: before restating an unbilled total, ask which "pending" entries have been invoiced since, and keep a separately priced job (a fixed-price site) out of the hourly total unless the user says otherwise. The same session summed three already-billed entries into a 13.00h total, and first drafted a fixed-price site as an hourly line.
+
+## 1.406.7
+
+**A bare `/gchat-format` on the session's own how-to now writes a message in your voice, not a document.**
+- Measured 2026-10-20: tester-joining steps Claude had just explained were run through `/gchat-format` with no argument. With no recipient named, the existing "reply to a colleague" boundary didn't apply, so the steps came back with bold headers and numbered sections. The sender answered with `/casual-message too formal`, and the message was in fact for one colleague.
+- `gchat-format` (writer): a bare invocation converting your own last answer, not an artifact that existed before the session, is a message to colleagues. Its voice comes from the sender's messages in the session, its shape from `casual-message`.
+- `casual-message` (reader): the same case is named on its side of the boundary.
+
+## 1.406.6
+
+**`ship` and `gchat-format` match the newest release note at the destination, not the newest one with the expected title.**
+- Both already said to read the latest existing entry before drafting. A search by the documented name pattern ("DD-MM-YYYY: Release Notes") skipped the two newest cards, which had been renamed ("Production Release (…)", a dated suffix), and returned one from five weeks earlier. The note then copied a retired layout: no one-line summary on top, no "Verified at the destination" section.
+- "Latest" now means newest by date: list the newest few and read the top one, plus the one before it when they differ.
+
+## 1.406.5
+
+**`motion-clip` writes the call to action as it reads after launch, and its capture notes cover five more silent traps.**
+- The brief rule no longer says to put an unfixed launch date in as a placeholder. A clip outlives its launch, so "coming soon", a date or a limited offer means re-rendering later; the closing line is written as it will read once live ("on iOS and Android"), unless the team asks for a dated one. The Autorentic example story no longer ships "coming soon", which got copied into new films.
+- Flutter capture: a keyboard "done" can submit the form, so a golden shows the next step and the run looks one step late (dismiss with `unfocus()` instead); and a tap that calls the network needs polling before its golden.
+- Web capture: swap fixture names in the API responses rather than the database (every handler that fulfils from its own fetch needs the swap); stub the write-back a stubbed row triggers, or a red error toast lands in the shot; open your own 2x context with the suite's `storageState`, since the suite's `page` shoots at half size; scroll each subject to mid-viewport, because the camera can't push past the picture's edge.
+
 ## 1.406.4
 
 **`remote` now reaches servers that only accept SSH from a whitelisted IP, through a jump host.**
