@@ -9,3 +9,4 @@
 - [A wrong measurement method can be fixed in its outputs without fixing its source](root-cause-fix-vs-symptom-fix.md) — grep the CHANGELOG for the exact broken value; a prior entry documenting the same bug is evidence the fix-the-symptom pattern already failed once
 - [New content can reintroduce a settled dependency decision](new-content-vs-settled-dependency-decision.md) — a "load plugin X" pointer added by ordinary editing (not just unhobble) needs a Dependencies-table + decisions/*.md check
 - [Adoption: agent rows added but template capabilities missing](docs-adoption-agent-rows-vs-template-drift.md) — grep the generated agent for what the row promises; essentials-vs-CLAUDE.md precedence lived only in the task doc
+- [Vendored skill review checks](vendored-skill-review-checks.md) — desc cap on neighbour, compaction ceiling, changelog order, stale build rules after handoff
