@@ -53,5 +53,5 @@ window.STORY = {
       { text: 'one payment.', color: 'accent', scale: 1.25, in: 16.05, out: 17.05 },
     ],
   },
-  lockup: { at: 17.15, name: 'Autorentic', line: 'Tenant app · coming soon to iOS and Android' },
+  lockup: { at: 17.15, name: 'Autorentic', line: 'Tenant app · on iOS and Android' },
 };

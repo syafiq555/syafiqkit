@@ -29,6 +29,8 @@ When the target is an existing invoice-tracking doc with prior dated `## INV-YYY
 
 ⚠️ **A shared date is not a shared invoice — check whose commits the existing entry bills before appending to it.** On a repo with several contributors, an entry covering today can belong to someone else's workstream entirely, and the date test alone routes straight into merging two people's billing under one total. Settle it by commits, not dates: list the SHAs the existing entry names and check whether any of the ones you are about to bill appear there. No overlap means a separate entry on the same date, however strongly the dates suggest a continuation. When two same-date entries do end up side by side, say in each that the other exists and why they are distinct — that pairing is exactly what gets read as an accidental duplicate later and quietly reconciled away.
 
+**The doc knows only what was recorded in it, and billing happens outside it.** An entry still headed "pending" may have been invoiced since, and a total summed from those headings then re-bills work. Before restating an unbilled total, ask which pending entries have gone out, and mark them with the doc's own billed convention. Commits from a separately priced job (a fixed-price site, a quoted add-on) don't join the hourly total unless the user says so: size them by the same clock method, set them beside the agreed price, and let the user choose. Measured 2026-10-20: three entries were summed into a 13.00h "unbilled" status the user then corrected with "all others already billed"; a fixed-price site's 1.15h was first drafted as an hourly line until the user asked to compare it against the RM1k price.
+
 ## Hour Estimation
 
 ### Step 1: Start with the Clock

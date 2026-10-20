@@ -28,7 +28,7 @@ Confirm before writing anything: `node -v`, `ffmpeg -version`, `python3 -c "impo
 
 Make a folder for the clip outside any product repo, and write `docs/brief.md` there: the one idea a viewer should leave with, the feeling, the visual rules (brand colours, fonts, what's banned), a timed story table, and an "open" list. Twenty seconds is about five beats: a hook in a few large words, the product appearing, two or three things it does shown as real actions or real images, one number, then the logo and call to action.
 
-Every claim on screen has to be true. The number beat is the trap: a session wants a metric and invents one. Use a fact you can cite (a limit in the code, a figure on the product's own site, a number someone gives you) and write its source in the brief. A launch date or offer the team hasn't fixed goes in as a marked placeholder.
+Every claim on screen has to be true. The number beat is the trap: a session wants a metric and invents one. Use a fact you can cite (a limit in the code, a figure on the product's own site, a number someone gives you) and write its source in the brief. A claim must stay true while the clip circulates, not just on render day: "coming soon", a date or a time-limited offer forces a re-render once it passes. Write the call to action as it will read after launch ("on iOS and Android", the product's address); if the team wants a dated line, note in the brief when it goes stale.
 
 The five beats are a starting shape; followed blindly they make every film look the same. Before writing the story, ask whether this film could belong to another company with the logo swapped. A hook, caption or number that would fit any product is filler: replace it with something only this product can say or show. Write the answer as one line in the brief, so the next session can see it was asked.
 
@@ -91,7 +91,7 @@ ffmpeg -pattern_type glob -i 'out/stills/1080x1920_*.png' -vf "scale=270:-1,tile
 
 Make one sheet per size (change `1080x1920` in the glob), since frames of different shapes distort when tiled together, and because each layout fails in its own way: a clean vertical cut says nothing about the square one. Judge it like a harsh motion director: is the hook readable in the first two seconds, is text inside the pictures legible at the size viewers will watch, does something new happen every two to four seconds, do captions and pictures collide, is the brand right. Fix the worst three problems and re-render the sheet.
 
-Then render the videos (about a minute each for 20 seconds at 30 fps; run them in the background). A background run tells you only that it exited, not that the video is right, so before calling one done, `ffprobe` it for the right size and frame count, and pull a 12-frame strip around the fastest action to check for jumps.
+Then render the videos (about a minute each for 20 seconds at 30 fps; run them in the background). A background run tells you only that it exited, not that the video is right, so before calling one done, `ffprobe` it for the right size and frame count, and pull a 12-frame strip around the fastest action to check for jumps: `ffmpeg -ss <start> -t 0.8 -i out/clip_9x16.mp4 -vf "select='not(mod(n\,2))',scale=180:-1,tile=12x1" -frames:v 1 -update 1 out/strip.png` (the `-frames:v 1` counts tiled images, not source frames; set it to 12 and ffmpeg errors after writing one).
 
 ## 5. Music and sound
 
@@ -108,7 +108,12 @@ for f in 9x16 1x1 16x9; do ffmpeg -i out/clip_$f.mp4 -i score.wav -map 0:v -map 
 
 The `check` here is the one that measures `score.wav`'s loudness, which the first check in §4 could not. A `score.wav` left from an earlier round gets measured as if it were current, so make it fresh each time. `ffprobe` each muxed file for an audio stream and the full length.
 
-Run it with plain `python3`, not `python3 -I`: isolated mode drops the user site-packages where numpy usually lives. The bed runs at the story's `music.bpm` (120 by default, so 0.5 s per beat), and `music.mood` picks its character: `bright` (default, upbeat), `calm` (half-time kick, no clap) or `dark` (minor chords), matched to the feeling in the brief. A bought track at the same tempo can replace `score.wav` later.
+Run it with plain `python3`, not `python3 -I`: isolated mode drops the user site-packages where numpy usually lives. The bed runs at the story's `music.bpm` (120 by default, so 0.5 s per beat), and `music.mood` picks its character: `bright` (default, upbeat), `calm` (half-time kick, no clap) or `dark` (minor chords), matched to the feeling in the brief. The three moods share their instruments and rhythm, so they sound alike: offer them as one generated option, not three. Measured 2026-10-20: all three were sent for comparison and came back as "all seems the same".
+
+**A real track** is the route when someone wants a genuinely different sound:
+- **Licence**: Pixabay Music's Content License allows commercial use with no credit and allows editing; its own summary page says so, and the YouTube Audio Library does not cover ads off YouTube. On each track page, look for "Content ID registered": such a track can be flagged or muted on Facebook, Instagram and YouTube, which matters for paid ads but not WhatsApp status. Pixabay answers scripted downloads with 403, so the user downloads the file.
+- **Tempo**: the track need not match `music.bpm`. Find its drop (an energy step in a per-50 ms RMS read) and start the cut so the drop lands on `device.enter`.
+- **Mix**: keep the taps, whooshes and chimes with `python3 score.py cues.json sfx.wav --sfx-only`, then `ffmpeg -ss <offset> -t <duration> -i track.mp3 -ar 48000 -ac 2 -af "afade=t=in:d=0.15,afade=t=out:st=<duration-1.5>:d=1.5" music.wav` and `ffmpeg -i music.wav -i sfx.wav -filter_complex "[1]volume=0.55[s];[0][s]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-14:TP=-1.5:LRA=11" -ar 48000 -y score.wav`. `check` measures that `score.wav` like a generated one. Record the track, its page, the label check and the cut offset in the README.
 
 You cannot hear the result. Check what you can (a waveform image showing the beat starting where the film says, the loudness figure, no clipping) and say plainly that the sound itself still needs a human ear.
 

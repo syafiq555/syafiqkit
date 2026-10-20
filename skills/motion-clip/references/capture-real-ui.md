@@ -48,4 +48,11 @@ void main() {
 
 Run it with `flutter test test/launch_capture_test.dart --update-goldens`; the PNGs land beside the test in `launch_shots/`. Copy them to the clip folder.
 
+Two driving mistakes produce goldens that look like captures landing one step late:
+
+- **A keyboard "done" can submit the form.** `testTextInput.receiveAction(TextInputAction.done)` after typing fires the field's submit, which may open the next step (a confirm sheet). The golden meant for the filled-in field then shows the sheet, and the next tap closes it, so the sequence reads shifted. Dismiss the keyboard with `FocusManager.instance.primaryFocus?.unfocus()` instead.
+- **`pumpAndSettle` doesn't wait for real async work.** After a tap that calls the network (even a stub), poll until the expected text appears (`runAsync` a short delay, `pump`, repeat) before the golden, or it captures the screen before the result.
+
+Look at each golden next to its name before going on; identical checksums for two different steps mean one of them caught the wrong moment.
+
 The screens carry no status bar. The film template draws one (time, signal, battery) in the colour of each screen's top edge, so give it that colour per screen.

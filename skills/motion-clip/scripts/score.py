@@ -1,6 +1,6 @@
 """Original music bed and sound effects for a motion clip.
 
-Usage: python3 score.py cues.json out.wav
+Usage: python3 score.py cues.json out.wav [--sfx-only]
 """
 import json
 import os
@@ -9,11 +9,13 @@ import wave
 
 import numpy as np
 
-if len(sys.argv) < 2:
-    sys.exit('usage: python3 score.py cues.json [out.wav]')
-with open(sys.argv[1]) as fh:
+SFX_ONLY = '--sfx-only' in sys.argv
+args = [a for a in sys.argv[1:] if a != '--sfx-only']
+if not args:
+    sys.exit('usage: python3 score.py cues.json [out.wav] [--sfx-only]')
+with open(args[0]) as fh:
     cues = json.load(fh)
-OUT = sys.argv[2] if len(sys.argv) > 2 else 'score_raw.wav'
+OUT = args[1] if len(args) > 1 else 'score_raw.wav'
 
 SR = 48000
 VOICE_DUCK = 0.35
@@ -36,6 +38,11 @@ def place(start, sig, gain=1.0, pan=0.0):
     left, right = np.cos((pan + 1) * np.pi / 4), np.sin((pan + 1) * np.pi / 4)
     mix[i : i + len(sig), 0] += sig * gain * left
     mix[i : i + len(sig), 1] += sig * gain * right
+
+
+def music(start, sig, gain=1.0, pan=0.0):
+    if not SFX_ONLY:
+        place(start, sig, gain, pan)
 
 
 def env(n, attack, release):
@@ -152,28 +159,28 @@ bar = 0
 while bar * bar_len < ending - 0.1:
     start = bar * bar_len
     root, notes = CHORDS[bar % 4]
-    place(start, pad(notes, min(bar_len + 0.4, ending - start + 0.4)), 0.05)
+    music(start, pad(notes, min(bar_len + 0.4, ending - start + 0.4)), 0.05)
     if groove_start <= start < groove_end:
         for b in range(4):
-            place(start + b * BEAT, bass(root - 12, BEAT * 0.95), 0.35)
+            music(start + b * BEAT, bass(root - 12, BEAT * 0.95), 0.35)
     arp = notes + [notes[1] + 12]
     if start < groove_end:
         for step in range(8):
             if start < groove_start and step % 2:
                 continue
-            place(start + step * BEAT / 2, pluck(arp[step % len(arp)] + 12), 0.09, 0.35 if step % 2 else -0.35)
+            music(start + step * BEAT / 2, pluck(arp[step % len(arp)] + 12), 0.09, 0.35 if step % 2 else -0.35)
     bar += 1
 
 for b in range(int(groove_end / BEAT)):
     t = b * BEAT
     if t >= groove_start:
         if b % MOOD['kick_every'] == 0:
-            place(t, kick(), MOOD['kick'])
-        place(t + BEAT / 2, hat(), MOOD['hat'], 0.2)
+            music(t, kick(), MOOD['kick'])
+        music(t + BEAT / 2, hat(), MOOD['hat'], 0.2)
         if b % 2 and MOOD['clap']:
-            place(t, clap(), MOOD['clap'])
+            music(t, clap(), MOOD['clap'])
     elif t >= cues.get('hats_from', groove_start):
-        place(t + BEAT / 2, hat(), 0.05, 0.2)
+        music(t + BEAT / 2, hat(), 0.05, 0.2)
 
 if 'ticks' in cues:
     tk = cues['ticks']
@@ -181,14 +188,14 @@ if 'ticks' in cues:
         place(tk.get('from', 0) + i * tk.get('every', 0.05), pluck(72 + (i % 5) * 2, 0.2), 0.06, (i % 5 - 2) * 0.3)
 
 if 'hit' in cues:
-    place(cues['hit'], kick(), 0.5)
-    place(cues['hit'], pad(MOOD['hit_pad'], 1.3), 0.05)
+    music(cues['hit'], kick(), 0.5)
+    music(cues['hit'], pad(MOOD['hit_pad'], 1.3), 0.05)
 
 tail = max(DUR - ending, 0.1)
-place(ending, bass(MOOD['end_bass'], tail - 0.05), 0.4)
-place(ending, pad(MOOD['end_pad'], tail - 0.05), 0.06)
+music(ending, bass(MOOD['end_bass'], tail - 0.05), 0.4)
+music(ending, pad(MOOD['end_pad'], tail - 0.05), 0.06)
 for k, m in enumerate(MOOD['end_arp']):
-    place(ending + k * BEAT / 2, pluck(m + 12, 1.2), 0.08, (k - 1.5) * 0.3)
+    music(ending + k * BEAT / 2, pluck(m + 12, 1.2), 0.08, (k - 1.5) * 0.3)
 place(ending, bell(89, min(2.4, tail)), 0.07)
 
 if 'intro_bell' in cues:
@@ -209,7 +216,7 @@ if peak > 0:
 
 voice_lines = cues.get('voice', [])
 if voice_lines:
-    base = os.path.dirname(os.path.abspath(sys.argv[1]))
+    base = os.path.dirname(os.path.abspath(args[0]))
     duck = np.ones(N)
     voice = np.zeros(N)
     ramp_in, ramp_out = int(0.12 * SR), int(0.3 * SR)
