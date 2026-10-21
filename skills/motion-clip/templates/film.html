@@ -18,6 +18,8 @@ const g = canvas.getContext('2d');
 
 let STORY, C, L;
 const img = {};
+let spoken = [];
+const DRAFT = params.has('draft');
 
 window.ready = new Promise((resolve, reject) => {
   const script = document.createElement('script');
@@ -76,6 +78,13 @@ function start() {
   if (!Array.isArray(STORY.voice) || STORY.voice.some((v) => !v || !Number.isFinite(Number(v.at)) || !String(v.text || '').trim())) {
     throw new Error('STORY.voice must be a list of { at, text } lines, each with a numeric at and some text');
   }
+  STORY.backdrops = STORY.backdrops || [];
+  STORY.backdrops.forEach((b, i) => {
+    if (!b || !(b.name || b.file) || !Number.isFinite(Number(b.from)) || !Number.isFinite(Number(b.to)) || Number(b.to) <= Number(b.from)) {
+      throw new Error(`STORY.backdrops[${i}] needs a name or file, and numeric from and to with to after from`);
+    }
+  });
+  if (STORY.subtitles === true) STORY.subtitles = {};
   STORY.fonts = STORY.fonts || {};
   STORY.fonts.heading = { family: 'Helvetica Neue', weight: 800, ...STORY.fonts.heading };
   STORY.fonts.body = { family: 'Helvetica Neue', weight: 600, ...STORY.fonts.body };
@@ -93,7 +102,27 @@ function start() {
     loadFont(STORY.fonts.body),
   ];
   if (STORY.logo) loads.push(load('logo', STORY.logo));
+  STORY.backdrops.forEach((b, i) => {
+    const file = backdropFile(b);
+    loads.push(load(`backdrop${i}`, file));
+    if (b.depth) loads.push(load(`depth${i}`, typeof b.depth === 'string' ? b.depth : file.replace(/\.[^./]+$/, '.depth.png')));
+  });
+  if (STORY.subtitles) loads.push(loadWords(STORY.subtitles.file || 'assets/voice/words.json'));
   return Promise.all(loads).then(() => { resolveShot(); draw(0); });
+}
+
+function backdropFile(b) {
+  return b.file || `assets/screens/${b.name}.png`;
+}
+
+function loadWords(src) {
+  return fetch(src).then((r) => (r.ok ? r.json() : null)).then((lines) => {
+    if (!lines) {
+      console.warn(`subtitles are on but ${src} does not exist yet: run voice.mjs, then words.py`);
+      return;
+    }
+    spoken = lines.map((line) => line.words.filter((w) => w.text.trim()));
+  });
 }
 
 function resolveShot() {
@@ -524,16 +553,195 @@ function statScene(t) {
     { ...opts, heading: false });
 }
 
+let depthGL = null;
+function depthRenderer() {
+  if (depthGL !== null) return depthGL;
+  const surface = document.createElement('canvas');
+  surface.width = W; surface.height = H;
+  const gl = surface.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false });
+  if (!gl) {
+    console.warn('WebGL is not available: backdrops draw without depth');
+    return (depthGL = false);
+  }
+  const shader = (type, src) => {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(`depth shader: ${gl.getShaderInfoLog(s)}`);
+    return s;
+  };
+  const program = gl.createProgram();
+  gl.attachShader(program, shader(gl.VERTEX_SHADER, `
+    attribute vec2 p; varying vec2 uv;
+    void main() { uv = vec2(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5); gl_Position = vec4(p, 0.0, 1.0); }`));
+  gl.attachShader(program, shader(gl.FRAGMENT_SHADER, `
+    precision highp float;
+    varying vec2 uv;
+    uniform sampler2D picture, depth;
+    uniform vec2 cover, offset, pan;
+    uniform float zoom;
+    void main() {
+      vec2 base = 0.5 + (uv - 0.5) * cover / zoom + pan;
+      vec2 q = base;
+      for (int i = 0; i < 8; i++) q = base - offset * (texture2D(depth, q).r - 0.5);
+      gl_FragColor = texture2D(picture, clamp(q, 0.001, 0.999));
+    }`));
+  gl.linkProgram(program);
+  gl.useProgram(program);
+  const quad = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const at = gl.getAttribLocation(program, 'p');
+  gl.enableVertexAttribArray(at);
+  gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
+  const textures = new Map();
+  const texture = (picture, unit) => {
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    if (!textures.has(picture)) {
+      const tx = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tx);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, picture);
+      textures.set(picture, tx);
+    }
+    gl.bindTexture(gl.TEXTURE_2D, textures.get(picture));
+  };
+  const uniform = (name) => gl.getUniformLocation(program, name);
+  depthGL = (picture, depthMap, view) => {
+    texture(picture, 0);
+    texture(depthMap, 1);
+    gl.uniform1i(uniform('picture'), 0);
+    gl.uniform1i(uniform('depth'), 1);
+    gl.uniform2f(uniform('cover'), view.cover[0], view.cover[1]);
+    gl.uniform2f(uniform('offset'), view.offset[0], view.offset[1]);
+    gl.uniform2f(uniform('pan'), view.pan[0], view.pan[1]);
+    gl.uniform1f(uniform('zoom'), view.zoom);
+    gl.viewport(0, 0, W, H);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    return surface;
+  };
+  return depthGL;
+}
+
+function backdrops(t) {
+  STORY.backdrops.forEach((b, i) => {
+    const from = Number(b.from), to = Number(b.to);
+    const fade = b.fade ?? 0.5;
+    if (t < from || t > to) return;
+    const a = Math.min(from <= 0 ? 1 : clamp((t - from) / fade), to >= STORY.duration ? 1 : clamp((to - t) / fade));
+    const picture = img[`backdrop${i}`];
+    g.save();
+    g.globalAlpha = a;
+    if (!picture) {
+      placeholder(0, 0, W, H, b.name || b.file);
+      g.restore();
+      return;
+    }
+    const p = easeInOut((t - from) / (to - from));
+    const [z0, z1] = b.zoom || [1.04, 1.14];
+    const zoom = lerp(z0, z1, p);
+    const [dx, dy] = b.drift || [0.03, 0.012];
+    const ia = picture.naturalWidth / picture.naturalHeight, fa = W / H;
+    const cover = ia > fa ? [fa / ia, 1] : [1, ia / fa];
+    const depthMap = img[`depth${i}`];
+    const draw3d = b.depth && depthMap && depthRenderer();
+    if (draw3d) {
+      const strength = b.strength ?? 0.05;
+      const view = { cover, zoom, pan: [0, 0], offset: [(p - 0.5) * strength * Math.sign(dx || 1), (p - 0.5) * strength * 0.4 * Math.sign(dy || 1)] };
+      g.drawImage(draw3d(picture, depthMap, view), 0, 0, W, H);
+    } else {
+      const cw = picture.naturalWidth * cover[0] / zoom, ch = picture.naturalHeight * cover[1] / zoom;
+      const sx = (picture.naturalWidth - cw) / 2 + (p - 0.5) * dx * picture.naturalWidth;
+      const sy = (picture.naturalHeight - ch) / 2 + (p - 0.5) * dy * picture.naturalHeight;
+      g.drawImage(picture, clamp(sx, 0, picture.naturalWidth - cw), clamp(sy, 0, picture.naturalHeight - ch), cw, ch, 0, 0, W, H);
+    }
+    const dim = b.dim ?? 0.3;
+    if (dim > 0) {
+      g.fillStyle = rgba(color(b.dimColor || 'page'), dim);
+      g.fillRect(0, 0, W, H);
+    }
+    g.restore();
+  });
+}
+
+function subtitleGroups(words, per) {
+  const groups = [];
+  for (let k = 0; k < words.length; k += per) {
+    const take = per > 1 && words.length - k === per + 1 ? per + 1 : per;
+    groups.push(words.slice(k, k + take));
+    if (take > per) break;
+  }
+  return groups;
+}
+
+function subtitles(t) {
+  const s = STORY.subtitles;
+  if (!s || !spoken.length) return;
+  const per = s.words || 3;
+  for (const words of spoken) {
+    if (!words.length || t < words[0].start - 0.05 || t > words[words.length - 1].end + 0.4) continue;
+    const groups = subtitleGroups(words, per);
+    let k = 0;
+    while (k + 1 < groups.length && t >= groups[k + 1][0].start - 0.05) k++;
+    const group = groups[k];
+    const size = s.size ? L.cap * s.size : L.cap * (L.vertical ? 0.78 : 0.62);
+    g.save();
+    g.font = font(size);
+    g.textBaseline = 'middle';
+    g.textAlign = 'left';
+    const space = g.measureText(' ').width;
+    const widths = group.map((w) => g.measureText(w.text).width);
+    let total = widths.reduce((x, y) => x + y, 0) + space * (group.length - 1);
+    const padX = size * 0.45, padY = size * 0.3;
+    const fit = (L.vertical ? W * 0.86 : W * 0.44 - L.textX) - padX * 2;
+    const scale = total > fit ? fit / total : 1;
+    const y = H * (s.y ?? (L.vertical ? 0.8 : 0.72));
+    const pop = 0.94 + 0.06 * snappy(t - group[0].start + 0.05);
+    g.translate(L.vertical ? W / 2 : L.textX + padX * scale + total * scale / 2, y);
+    g.scale(scale * pop, scale * pop);
+    g.fillStyle = rgba(color(s.background || 'surface'), s.backgroundAlpha ?? 0.92);
+    roundRect(-total / 2 - padX, -size / 2 - padY, total + padX * 2, size + padY * 2, size * 0.35);
+    g.fill();
+    let x = -total / 2;
+    group.forEach((w, j) => {
+      g.fillStyle = color(t >= w.start ? (s.highlight || 'accent') : (s.color || 'ink'));
+      g.fillText(w.text, x, size * 0.04);
+      x += widths[j] + space;
+    });
+    g.restore();
+  }
+}
+
+function draftStamp(t) {
+  const size = Math.round(Math.min(W, H) * 0.035);
+  g.save();
+  g.font = `600 ${size}px monospace`;
+  g.textBaseline = 'top';
+  g.textAlign = 'left';
+  const label = `DRAFT  ${t.toFixed(2)} s`;
+  g.fillStyle = 'rgba(0,0,0,0.6)';
+  g.fillRect(size * 0.5, size * 0.5, g.measureText(label).width + size, size * 1.6);
+  g.fillStyle = '#FFFFFF';
+  g.fillText(label, size, size * 0.8);
+  g.restore();
+}
+
 function draw(t) {
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.fillStyle = C.page;
   g.fillRect(0, 0, W, H);
+  backdrops(t);
   hook(t);
   drawDevice(t);
   captions(t);
   numberScene(t);
   statScene(t);
   lockup(t);
+  subtitles(t);
+  if (DRAFT) draftStamp(t);
 }
 
 function buildCues() {
