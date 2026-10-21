@@ -1,6 +1,6 @@
 ---
 name: excalidraw-board
-description: Turn a task doc, backlog or worklist into a black-and-white Excalidraw discussion board the team can read cold and doodle on later — columns for now / gated on our own build / waiting on someone else, thick-bordered GATE cards with arrows to what they unblock, a PARKED table with a revive trigger per row, and a right-hand strip for decisions, open questions and actions filled in live. Use when the user says "excalidraw", "whiteboard", "let's draw the plan", "board for the meeting", "something to discuss with KL/HL", "what's on hand, what's deferred", or asks how best to lay out tasks for a discussion. Not for charts or dashboards (that is `dataviz`), not for architecture or sequence diagrams (draw those directly with the Excalidraw MCP), and not for deciding what to build (that is `plan-worklist`; this skill draws a worklist that already exists).
+description: Turn a task doc, backlog or worklist into a black-and-white Excalidraw discussion board the team can read cold and doodle on later, and read back or tidy a board the team has already drawn on (a `.excalidraw` path with "check this latest", "what changed on the board", "use the excalidraw mcp" on that file). Columns for now / gated on our own build / waiting on someone else, thick-bordered GATE cards with arrows to what they unblock, a PARKED table with a revive trigger per row, and a right-hand strip for decisions, open questions and actions filled in live. Use when the user says "excalidraw", "whiteboard", "let's draw the plan", "board for the meeting", "something to discuss with KL/HL", "what's on hand, what's deferred", or asks how best to lay out tasks for a discussion. Not for charts or dashboards (that is `dataviz`), not for architecture or sequence diagrams (draw those directly with the Excalidraw MCP), and not for deciding what to build (that is `plan-worklist`; this skill draws a worklist that already exists).
 ---
 
 # Excalidraw discussion board
@@ -30,6 +30,10 @@ These lanes are confidence horizons rather than dates, which is the Now/Next/Lat
 **Self-contained.** Spell things out as the reader would say them: "letter of demand" not LOD, "super admin" not SA, "registering with MyDigital ID" not RP registration. A briefing's section numbers or area letters mean nothing to someone who has not read the briefing; describe the area in words and put the letter mapping in the task doc instead. The subtitle names the attendees and what any tag like `#n` means.
 
 **Room to doodle.** The user will draw on it in the meeting. Generous gaps, no background zones, nothing decorative.
+
+## Reading one back
+
+A board that came back from a meeting is a record of decisions nobody typed up. Compare its text with the last committed copy (`scripts/preview_board.py <file> --text` on both, with the old one from `git show HEAD:<path>`), then look for what text can't show: lines and arrows the spec never generated, usually a strike through a card. Report additions, removals, rewordings and strikes, and ask what a strike means before writing it anywhere. To show the board, draw `scripts/preview_board.py <file> out.png` and show that PNG. The Excalidraw MCP's `create_view` returns a checkpoint id and paints nothing in Claude Code, so a reply saying the board is "rendered above" after calling it is a claim the user can't see. When the user asks for that MCP, say why the preview stands in for it.
 
 ## Building it
 
