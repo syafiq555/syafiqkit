@@ -24,7 +24,7 @@ Read by artifact — Process step 1 decides which branch you are on. Always read
 
 | File | When | Why |
 |------|------|-----|
-| `~/.claude/CLAUDE.md` § CLAUDE.md Maintenance | Always | Authoritative pruning rules, gotcha condensation criteria |
+| `~/.claude/CLAUDE.md` § Instruction Maintenance (`{#structural-decisions}`) | Always | Where content belongs, and the pointer to the maintenance companion it names. Verify the heading exists in the user's file before keeping the row; a user without it drops the row |
 | `CLAUDE.md` | CLAUDE.md branch | Root project conventions — the source of truth |
 | The task doc + every `decisions/*.md` sibling | Task-doc branch | Invoke `Skill(read-summary)` for discovery — the canonical method; do not hand-roll a Glob sweep. The unit is the feature's whole doc SET, not one file: an index can be small while its `decisions/` subdir dwarfs it |
 <!-- Add rows for each CLAUDE.md in the hierarchy:
