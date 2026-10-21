@@ -69,7 +69,7 @@ CLI scan:
 - Pass markup files/directories as `[target]`; do not pass CSS-only files.
 - For URLs, skip CLI scan and use browser visualization.
 - For very large trees (500+ scannable files), narrow scope or ask.
-- Exit code 0 = clean; 2 = findings.
+- Exit code 0 = no findings; 2 = findings. On component source (`.tsx`, `.jsx`, `.vue`, `.svelte`) only the regex rules run, and contrast, tiny-text and other rules that need a parsed page do not. Text mode says so ("findings are an undercount, not a clean bill of health"); `--json` drops that line, so a `[]` there is a partial scan, not a clean one. Report it as regex-only, and for the rendered rules scan the dev-server URL (`--cdp` against a logged-in browser when the page sits behind a login).
 - If the detector entrypoint is missing or fails to load, report deterministic scan unavailable and continue with browser/manual review.
 
 Browser visualization is required for a viewable target when browser automation is available. Use a localhost dev/static URL for local files; avoid `file://` unless the available browser explicitly supports this workflow. Overlay flow:
@@ -139,7 +139,7 @@ Be honest with scores. A 4 means genuinely excellent. Most real interfaces score
 
 **LLM assessment**: Your unanchored evaluation of design specificity. Cover overall coherence, structural sameness, category-interchangeable choices, and missed opportunities for product character.
 
-**Deterministic scan**: Summarize what the automated detector found, with counts and file locations. Note any additional issues the detector caught that you missed, and flag any false positives. On a native platform, write `not applicable (native platform)` instead.
+**Deterministic scan**: Summarize what the automated detector found, with counts and file locations, and say whether it scanned a rendered page or component source (regex rules only). Note any additional issues the detector caught that you missed, and flag any false positives. On a native platform, write `not applicable (native platform)` instead.
 
 **Visual overlays** (if injection succeeded): Tell the user that overlays are now visible in the **[Human]** tab in their browser, highlighting the detected issues. Summarize what the console output reported. If browser visualization was attempted but injection failed, say that no reliable user-visible overlay is available and report the fallback signal instead.
 
