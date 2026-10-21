@@ -33,6 +33,8 @@ Check files, docs, recent commits to understand current state.
 ### 2. Ask clarifying questions
 Use the `AskUserQuestion` tool for every question. One question per message, focus on purpose, constraints, and success criteria. Prefer multiple-choice options over open-ended questions.
 
+A question about what a screen shows or where something sits on it ("where is it bought", "how does the user get there") is a design question, not a requirement. Invoke `uiux` to produce directions with previews from the app's real surfaces, and put those in the question instead of options drafted from memory. Measured 2026-10-20: a "where is it bought" question went out with hand-written options, and the user answered "can use uiux skill to give suggestions?". **Tell: your option descriptions name screens or placements, and no `uiux` call came before them.**
+
 ### 3. Propose 2-3 approaches
 Use `AskUserQuestion` to present the approaches as options. Lead with your recommendation and include trade-offs in the option descriptions.
 
