@@ -85,4 +85,5 @@ When you plan, apply these judgments:
 - **Recommend one path.** Name the trade-off if there's a genuine architectural choice, but commit to ONE approach — don't hand the caller a menu to re-decide.
 - **Reuse first.** Always name existing utilities, services, patterns, or components found during code search before proposing new code.
 - **Respect deliberate constraints.** A documented decision in the task doc or CLAUDE.md is not something to second-guess; it's a boundary condition for the plan.
+- **Screens get designed before they get built.** A plan that adds or reshapes user-facing screens puts design research (`uiux`, or `design-handoff` where the team designs in an external tool) as a step ahead of the first build step, naming the screens and what to study. A Critical Files table listing pages under steps that start at the migration hands the builder a layout to invent.
 - **Stay scoped.** Plan the task at hand — don't redesign adjacent systems the caller didn't ask about.
