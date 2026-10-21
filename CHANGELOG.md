@@ -1,5 +1,62 @@
 # Changelog
 
+## 1.406.17
+
+**`motion-clip` can now speak, caption and set a scene for free, and checks a clip against what viewers and the app stores need.**
+- Two approval points before the full render: a storyboard (a timed table of every beat, caption, voice line and number) and a half-size draft with sound. Nothing long renders until you have seen and heard the plan.
+- A free natural voice-over (Kokoro) running on your machine, nothing sent anywhere. Paid ElevenLabs or OpenAI voices still run only when you name them.
+- Captions timed to the spoken words, a few words at a time; a lone last word joins the group before it instead of flashing on its own.
+- Full-frame backgrounds behind the opening and closing beats, from stock footage or a generated image (Cloudflare, your own keys), that move gently in depth.
+- The automatic check now warns when text is on screen too briefly to read, when the voice speaks too fast to follow, and when the product first appears too late (after 3 seconds; 10 for Google Play).
+- App Store and Google Play presets (`PRESET=app-store` or `google-play`) apply each store's rules to the check and the render.
+- A four-lens review of the contact sheet (design, readability, pacing, brand) before delivery.
+- Voice timing ignores the silence a voice leaves at the end of a line, so it no longer warns that a line is still speaking after its caption.
+- To use the local voice, captions or depth backgrounds, run `sh setup-local.sh voice captions depth` (or just the parts you want) from the skill's `scripts/` folder once; it needs Python 3.10 to 3.12, and `espeak-ng` for the voice. Then `claude plugin update syafiqkit@syafiqkit` and start a new session.
+
+## 1.406.16
+
+**`gchat-format` keeps a colleague reply's points readable as well as short.** "One line a point" was read as "a label a point", and a 25-point reply came back as needing elaboration; each line now carries what it means for the reader.
+
+## 1.406.15
+
+**`read-summary` checks a doc's Related docs before asking the user an open question from it.** An "ask me the open decisions first" instruction sent a question to the user that the owning domain had already answered the other way the same day; the rule now sits in the decision-first section, where the question is composed, with a Tell.
+
+## 1.406.14
+
+**`task-summary` measures the index the way `condense-task-doc` does before sending a doc to be condensed.**
+- `task-summary` "Check doc size, per file": the ~300-line index budget now counts without the Next Steps section, matching `condense-task-doc` step 8, which owns the measure. A plain `wc -l` overstates the index by its open backlog. Measured 2026-10-21: a ledger index at 305 lines (290 before Next Steps) was handed to `condense-task-doc`, which found it within budget, so the invocation bought nothing.
+
+## 1.406.13
+
+**An impeccable detector scan of component source no longer reads as a clean result.**
+- `impeccable` critique (Assessment B, the "Deterministic scan" report line) and new-work's pre-review step: on `.tsx`, `.jsx`, `.vue` or `.svelte` source the detector runs regex rules only, and the warning that says so appears in text mode but not with `--json`. An empty JSON result is now reported as a partial, regex-only scan, with the dev-server URL (or `--cdp` on a logged-in browser) named as the way to run contrast and text-size rules. Measured 2026-10-21: a critique of five React ledger pages returned `[]`, and only a re-run in text mode showed that half the rules never ran. Recorded in the vendored skill's `SOURCE.md` change list.
+
+## 1.406.12
+
+**Terms, policies and contracts handed over as a source are now kept word for word in the task docs.**
+- `task-summary`: when the source's exact wording is the deliverable (terms, a privacy policy, a contract or quotation the team publishes or signs), the capture is a verbatim converted copy in `decisions/`, split by clause under ~40 KB, headed "do not edit, replace whole on revision" so the next version shows up in `git diff`. What the text requires of the system goes in `current.md`. A spec you build from stays a compact capture, as decided on 2026-09-25. Measured 2026-10-21: Terms and Privacy drafts were captured only as a gaps table, and the user asked "we dont need 1:1 term in task docs??".
+- `condense-task-doc`: a file marked as a verbatim copy is never edited, not even to dedupe.
+
+## 1.406.11
+
+**UI questions in a brainstorm get real design directions, and a proposed flow gets critiqued before approval.**
+- `brainstorming` Step 2: a question about what a screen shows or where something sits on it goes through `uiux` first, so the options are directions with previews drawn from the app's real screens rather than options written from memory. Measured 2026-10-20: the user answered a hand-written "where is it bought" question with "can use uiux skill to give suggestions?".
+- `uiux` Scope: before a proposed new flow or page direction goes for approval, an `impeccable` critique runs on it, even before it is built. The routing line only sends work to `impeccable` when it is named, so an add-on purchase flow reached approval uncritiqued until the user asked. The critique then changed its payment and after-purchase steps.
+
+## 1.406.10
+
+**Handoffs now create the missing task doc instead of pointing the next session at a plan file.**
+- `continue-session`: when no task doc exists, it creates one through `task-summary` (leaving plan mode first) and points the paste at it. A paste pointing at a file in `~/.claude/plans/` gave the next session a plan nothing keeps up to date, and the user had to run `task-summary` by hand.
+- `continue-session`: a follow-up after the paste is shown ("it needs X too, right?") is added to the doc's Quick Start and the paste, not started in the current session. Measured 2026-10-20: "needs uiux/haiku research" launched two research agents in the old session when the user meant the next one.
+- `continue-session` and the `Plan` agent template: work that adds or changes screens gets a design-research step (`uiux`, or `design-handoff`) before its first build step. A ledger plan listing four new pages started at the migration, and the user had to ask for the research.
+- `continue-session`: when the doc's next steps span more than one repo or product, it asks which one comes first before writing the paste. The doc's step order shows what is unblocked, not what the user is focusing on.
+- Projects generated earlier keep their old `Plan` agent until `/agent-setup` runs there again. Otherwise run `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or start a new session.
+
+**`excalidraw-board` now covers reading back a board the team drew on, and can preview a board without a browser.**
+- The trigger includes handing over an existing `.excalidraw` file to check or tidy. A new "Reading one back" step compares the board with its last committed copy, looks for strikes and hand-added cards, and asks what a strike means before writing it down. Measured 2026-10-20: a "check this board latest, use the MCP" request went through the Excalidraw MCP's `create_view`, which paints nothing in Claude Code, and the reply told the user the board was rendered above.
+- New `scripts/preview_board.py`: draws a PNG of a board and reports overlapping boxes and overflowing text, or with `--text` prints every label for a diff. It stands in when the browser route fails.
+- New trap: in the excalidraw.com tab, `cmd+v` from the browser extension can paste unrelated text while the clipboard holds the scene. Stop after two tries and use the preview.
+
 ## 1.406.9
 
 **Two new design skills, `taste` and `impeccable`, for pages that need to look powerful, not just correct.**
