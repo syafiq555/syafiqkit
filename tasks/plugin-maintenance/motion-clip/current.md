@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔄 approval gates, local voice, word captions, depth backdrops, then reading-time/first-seconds/store checks and a four-lens review, all built 2026-10-21, uncommitted (no version or CHANGELOG yet); OpenFilm rework dropped
+Status: 🔄 approval gates, local voice, word captions, depth backdrops, then reading-time/first-seconds/store checks and a four-lens review, all shipped in 1.406.17 (pushed 0da7044, 2026-10-21); OpenFilm rework dropped
 Domain: plugin-maintenance / motion-clip skill
 Gotchas (critical; full list in ## Critical Gotchas below):
   - A trigger test only means something in a session started after the skill was written
@@ -14,12 +14,11 @@ Last updated: 2026-10-21
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: `/motion-clip` makes 15 to 30 second promo videos for any product (app, website, physical product, brand) from real pictures, as code, in three formats, with an original music bed and an optional voice-over. Built from one real run (the Autorentic tenant-app launch clip). Every `~/herd/...` folder named in this doc exists only on Syafiq's machine; another reader has the facts recorded here, not the folders. On 2026-10-21 four upgrades were built and verified but not committed: storyboard and sound-draft approvals, a free local Kokoro voice, captions timed to the spoken words, and full-frame backgrounds (stock or Cloudflare-generated) that move in depth (decisions/media-and-approvals.md). The user dropped the OpenFilm move the same day; our engine is the only path. A second research round the same day added, also uncommitted: `check` warnings for text on screen too briefly to read, a fast voice and a product first seen after 3 s; App Store and Google Play presets (`PRESET`); a four-lens contact-sheet review (decisions/media-and-approvals.md D-text-store-checks).
+**Where we are**: `/motion-clip` makes 15 to 30 second promo videos for any product (app, website, physical product, brand) from real pictures, as code, in three formats, with an original music bed and an optional voice-over. Built from one real run (the Autorentic tenant-app launch clip). Every `~/herd/...` folder named in this doc exists only on Syafiq's machine; another reader has the facts recorded here, not the folders. On 2026-10-21 four upgrades were built, verified and shipped in 1.406.17: storyboard and sound-draft approvals, a free local Kokoro voice, captions timed to the spoken words, and full-frame backgrounds (stock or Cloudflare-generated) that move in depth (decisions/media-and-approvals.md). The user dropped the OpenFilm move the same day; our engine is the only path. A second research round the same day added, in the same release: `check` warnings for text on screen too briefly to read, a fast voice and a product first seen after 3 s; App Store and Google Play presets (`PRESET`); a four-lens contact-sheet review (decisions/media-and-approvals.md D-text-store-checks).
 
 **Immediate next actions (in order)**:
-1. Ship everything uncommitted with `/ship` (as of 2026-10-21: 35 files at `37797cb`, nothing unpushed; other sessions' entries 1.406.10 to 1.406.16 already in CHANGELOG with the version staged at 1.406.16). Check `ListAgents` first for a live session still editing this checkout. Today's motion-clip work has no entry yet: add it as 1.406.17 (approval gates, Kokoro voice, word captions, depth backdrops and Cloudflare images, reading-time and first-seconds checks, App Store and Google Play presets, four-lens review, the voice timing and lone-word caption fixes), telling colleagues to run `sh scripts/setup-local.sh <parts>` for the local voice, captions or depth.
-2. The Autorentic re-cut is in `~/herd/autorentic-launch-clips-1406` (Syafiq's machine; the 19/10 version kept in `v1/`, details in its `docs/brief.md`). Its App Store cut is not upload-ready: the captured screens show "RM 1,649.91" and due dates, so recapture with demo data that has neither.
-3. In a new session, run the trigger test ("make a promo video for <product>" without the skill name).
+1. The Autorentic re-cut is in `~/herd/autorentic-launch-clips-1406` (Syafiq's machine; the 19/10 version kept in `v1/`, details in its `docs/brief.md`). Its App Store cut is not upload-ready: the captured screens show "RM 1,649.91" and due dates, so recapture with demo data that has neither.
+2. In a new session, run the trigger test ("make a promo video for <product>" without the skill name).
 
 **Key facts for cold start**:
 - Files: `skills/motion-clip/` with `SKILL.md`, `scripts/render.mjs`, `scripts/score.py`, `templates/film.html` (engine), `templates/story.js` (starter), `templates/examples/autorentic.story.js`, `references/capture-real-ui.md`.
@@ -208,7 +207,7 @@ Superseded on 2026-10-21 by the user ("Keep own engine, drop OpenFilm"), after t
 ## Next Steps
 
 ### Blocking release to colleagues
-- [ ] 🔴 Commit and ship the 2026-10-21 upgrades after the other session's staged version/CHANGELOG work lands; changelog tells colleagues to run `setup-local.sh <parts>`
+- [x] Shipped the 2026-10-21 upgrades as 1.406.17 (`0da7044` on origin/master; installed copy reports 1.406.17); changelog tells colleagues to run `setup-local.sh <parts>`
 - [ ] 🔴 Trigger test in a session started after the upgrades ship ("make a launch clip for X" without the skill name)
 
 ### Next build

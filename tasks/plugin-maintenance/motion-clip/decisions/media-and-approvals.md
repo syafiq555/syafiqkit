@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: built 2026-10-21, uncommitted; Cloudflare image path verified with a real token
+Status: shipped in 1.406.17 (2026-10-21); Cloudflare image path verified with a real token
 Domain: plugin-maintenance / motion-clip (free media sources, approval gates)
 Gotchas (critical):
   - SKILL.md sits at 4,994 of the 5,000 tokens re-attached after compaction; any addition needs a matching cut or a move to references/
