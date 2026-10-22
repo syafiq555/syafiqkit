@@ -3,6 +3,7 @@ import { PANE, POLL_MS } from '../core/constants.js'
 import { messageOf, statusLineOf } from '../core/format.js'
 import { modLog } from '../core/log.js'
 import { invalidatePane, redrawBandAfterClose, state } from '../core/state.js'
+import { noteSubmit, noteSubmitFailed } from '../git/wrapup.js'
 import { wantDiagrams } from './diagrams.js'
 import { segments, shape } from './markdown.js'
 
@@ -93,10 +94,12 @@ export async function closePane($) {
 export async function submitPrompt($, text, note, onFail, handoffAfter) {
   await closePane($)
   hostUiToast($, note)
+  noteSubmit($, text)
   const request = hostPromptSubmit($, { text })
   if (handoffAfter) state.pendingHandoff = handoffAfter
   request.catch(async (error) => {
     hostUiToast($, 'Send failed: ' + messageOf(error).slice(0, 100))
+    noteSubmitFailed($, text)
     if (handoffAfter) state.pendingHandoff = null
     if (onFail) await onFail()
   })

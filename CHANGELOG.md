@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.407.2
+
+**The band now shows where the session is in its wrap-up: done, commit and push as one strip of chips.**
+- Each chip is grey `○` until that step happens, blue `◌` while it runs, green `✓` once it has, and amber `↻` when files were edited after it. An edit after push turns every finished step amber. Done stays blue until its background review agents finish, and their edits don't turn it amber.
+- The chips replace the old Commit and Done buttons; the keys are the same. Pressing one runs that step: `w` done (asks first), `c` commit (one press), `p` push (new, asks first, sets the branch's upstream if it has none). Push is also in the `/sk` menu: last in the terminal list so the number keys stay the same, and under Ship work in Desktop.
+- The chips are a best guess from this session's own steps plus git, not a record. A pull or branch switch doesn't count as a commit; a commit or push made outside Claude can still move them, and edits made only through shell commands may not turn them amber.
+- New read-only git calls every 5 seconds and after each turn: `rev-parse`, `rev-list --count @{u}..HEAD`, plus `merge-base` and `log -1` when HEAD moves.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.406.17
 
 **`motion-clip` can now speak, caption and set a scene for free, and checks a clip against what viewers and the app stores need.**

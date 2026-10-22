@@ -89,6 +89,25 @@ export const state = {
   textView: false,
   answerPics: {},
   answerPicturesOff: false,
+  wrapup: {
+    asked: [],
+    active: [],
+    running: [],
+    agents: [],
+    startedAt: 0,
+    branch: '',
+    pushedAt: 0,
+    resyncCount: false,
+    doneAt: 0,
+    doneEditAt: 0,
+    editAt: 0,
+    commitAt: 0,
+    startHead: null,
+    head: null,
+    upstream: false,
+    ahead: 0,
+    lastCount: 0,
+  },
 }
 
 export async function loadVersion($) {

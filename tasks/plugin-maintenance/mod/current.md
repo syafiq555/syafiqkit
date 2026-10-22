@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: ✅ 1.406.9 pushed to master 2026-10-20 (`689a4a0`; mod commit `5d6835a`: Images pane past host picture limits, theme-aware diff palette; origin/master read back at `689a4a0`, 121 kit tests pass). Before that 1.406.2 on 2026-10-19 (`0966b20`; local companions and doc-list readability row 35, rendered-doc scrolling row 36): ES-module source with no build step, Discard via Claude Code's question box, Typst-rendered `/task-docs`, pictures under terminal answers (decisions/pictures.md). 117 kit tests pass; spinner beside a pane and answer pictures (diagram, math, PNG) seen live, the rest not. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
+Status: 🔧 1.407.2 built, uncommitted 2026-10-22: the band's done/commit/push chips (row 37), 127 kit tests pass; running-from-Skill seen live, the rest unseen. Before that ✅ 1.406.9 pushed to master 2026-10-20 (`689a4a0`; mod commit `5d6835a`: Images pane past host picture limits, theme-aware diff palette; origin/master read back at `689a4a0`, 121 kit tests pass). Before that 1.406.2 on 2026-10-19 (`0966b20`; local companions and doc-list readability row 35, rendered-doc scrolling row 36): ES-module source with no build step, Discard via Claude Code's question box, Typst-rendered `/task-docs`, pictures under terminal answers (decisions/pictures.md). 117 kit tests pass; spinner beside a pane and answer pictures (diagram, math, PNG) seen live, the rest not. Desktop pages seen working 2026-10-11 (overview, All diffs, file page, gallery); most later builds not yet seen live (decisions/live-checks.md). Not yet used by colleagues.
 Domain: plugin-maintenance/mod
 Gotchas (critical; full list in ## Gotchas below):
   - The host loads `hooks/src/mod.js` and follows its imports; past an import `$` goes only into a `function name($)` declaration, `$` is never put in an object, and a save that fails to load keeps the OLD module running
@@ -8,7 +8,7 @@ Gotchas (critical; full list in ## Gotchas below):
 Related:
   - ../project-docs/current.md (ESSENTIALS entry `{#mod-one-file}` extracts The Mod)
   - ../output-style-hook/current.md (shares `hooks/hooks.json`)
-Last updated: 2026-10-19 (1.406.1 doc list: local companions, flag-only rows)
+Last updated: 2026-10-22 (1.407.2 wrap-up chips)
 -->
 
 # Plugin Maintenance: The Mod
@@ -18,8 +18,9 @@ Last updated: 2026-10-19 (1.406.1 doc list: local companions, flag-only rows)
 **Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, session handoffs and an Enhance button that rewrites the draft prompt after a headless haiku read-summary run, Typst-rendered task docs and pictures under Claude's terminal answers. The host loads `hooks/src/mod.js` and its imports (folders `core`, `docs`, `git`, `handoff`, `prompt`, `views`, `answers`); every `$` call goes through `core/api.js`. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
 
 **Immediate next actions (in order)**:
-1. Live-check the 2026-10-19 work in iTerm2 (the first block of § Next Steps → Verify): `/task-docs` draws pictures after the file-path fix, the video preview, dark Mermaid, the Answer pictures switch, Discard's question box. These shipped in 1.405.7 before being seen (user's call, 2026-10-19); a fix found there ships as a new version.
-2. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify; a fix found there ships as a new version.
+1. Live-check the wrap-up chips (row 37; § Next Steps → Verify, first item), then commit 1.407.2.
+2. Live-check the 2026-10-19 work in iTerm2 (the third block of § Next Steps → Verify): `/task-docs` draws pictures after the file-path fix, the video preview, dark Mermaid, the Answer pictures switch, Discard's question box. These shipped in 1.405.7 before being seen (user's call, 2026-10-19); a fix found there ships as a new version.
+3. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify; a fix found there ships as a new version.
 
 | Read | When |
 |------|------|
@@ -51,7 +52,7 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
 
 | Piece | What it does | Notes |
 |-------|--------------|-------|
-| Band above the prompt | Menu, Enhance, Docs, `Changes (N)`, `Images (N)` (only when the gallery has images), Commit, Done, Hand off; a handoff row with Resume and Dismiss; an Enhance row while a run is going or done | Stays drawn beside an open pane but drops its hotkeys then, because the pane owns `c`, `d`, `g`; `redrawBandAfterClose` brings them back after close (1.405.0; replaces the 2026-10-12 Desktop-only variant, reverted over the same key clash). "N selected / Send to Claude" is its own row (key `selected-row`). The Changes count excludes untracked files (cheap `-uno` status every 5 s); the pane lists them |
+| Band above the prompt | Menu, Enhance, Docs, `Changes (N)`, `Images (N)` (only when the gallery has images), the done/commit/push chips (row 37, `git/wrapup.js`), Hand off; a handoff row with Resume and Dismiss; an Enhance row while a run is going or done | Stays drawn beside an open pane but drops its hotkeys then, because the pane owns `c`, `d`, `g`; `redrawBandAfterClose` brings them back after close (1.405.0; replaces the 2026-10-12 Desktop-only variant, reverted over the same key clash). "N selected / Send to Claude" is its own row (key `selected-row`). The Changes count excludes untracked files (cheap `-uno` status every 5 s); the pane lists them |
 | Pane views | `menu`, `list`, `doc`, `decision`, `confirm`, `handoff`, `changes`, `change-file`, `change-all`, `discard`, `images` | One pane id (`doc-pane`), state in module variables |
 | Changes pane | From 100 body columns: left a fixed-width tree (Staged first, Changes second; chevron collapses, title or folder name selects) under one toolbar, right the diffs of everything, Changes first | Below 100 columns the tree is a list, a file press opens its own page, and `All changes` is a separate screen with no toolbar. Status is re-read every 2 s, never overlapping (`state.polling`); `git diff HEAD --numstat --no-renames -z` is appended to the signature so a re-edit of a modified file redraws and doubles as the per-file diff cache key (`state.allSig`). Every open file covered by the focus is read, with no cap, one git call at a time through the serial `gitRun` queue (15 s timeout each). A finished read is stored even when a newer load overtakes it. Pages draw only about two screens around the scroll position (`windowedRows`, `state.allScroll` from the `ui.scroll` hook). Files over 400 lines end in `… N more lines · show` |
 | Repos | `git/repos.js`: the session folder's repo plus subfolders one level down holding `.git` (skipping `node_modules`, `vendor`, dot folders), each normalised through `rev-parse --show-toplevel`; `Add repo` takes any path (`~/` works); `✕` hides, `N hidden · show` restores | Shown only when more than one repo is visible: one header per repo with its change count, and only the active repo's tree opens under its header (press another to switch, press the active one to fold). `state.changes` is always the ACTIVE repo's data; other repos' counts come from `-unormal` status every 10 s. Added and hidden state lives in module variables for the session only |
@@ -76,7 +77,7 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
   - `core/`: constants (the only hex values, `DESKTOP_TONE`/`DESKTOP_DIFF`/`SYNTAX_TONE`), state, format, `run.js` (the serial `gitRun` queue) and `log.js` (`modLog`, `treeProblem`, `drawingSize`).
   - `docs/`: discovery, markdown, images, diagrams, reader, gallery, `typeset.js` (Typst pages).
   - `core/api.js`: the `host*` wrappers, the only place `$.noun.method` is spelled.
-  - `git/`: status parse and tree, diff parse with word marks, `syntax.js` (the diff colourer), actions, repos, controller.
+  - `git/`: status parse and tree, diff parse with word marks, `syntax.js` (the diff colourer), actions, repos, controller, `wrapup.js` (the band chips' state: steps asked, running, done, HEAD and upstream poll).
   - `handoff/`: capture, store.
   - `prompt/`: `enhance.js` (the Enhance button: prompts, catalogue, headless stream, quick fallback, band row).
   - `views/`: band, pane (the tree checks and `refusedView`), pane-context, menu, list, doc, actions, changes (terminal, with `terminalDiffItems`/`allDiffItems`), images, plus `ui.js` (Desktop parts: chip, strip, meter, pageBar, mapBlock, `hoverScope`) and `desktop.js` (Desktop pages and `windowedRows`).
@@ -132,13 +133,14 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 | 33 | Typst-rendered `/task-docs`, Text view toggle | ✅ built; first try drew blank, file-path and page-name fixes since; ⏳ unseen |
 | 34 | Pictures under answers: mermaid, `$$`, images, video frames; dark Mermaid; prompt section; on/off switch | ✅ diagram, math, PNG seen live 2026-10-19; ⏳ video frame, dark Mermaid, switch, prompt section unseen |
 | 35 | Local companions in the CLAUDE.md chain; doc rows flag only near or over-limit files, sorted first | ✅ built, 116 kit tests; ⏳ redesign unseen live (local section seen in iTerm2 2026-10-19) |
+| 37 | Wrap-up chips replace Commit and Done (1.407.2): `○ done ○ commit ○ push`, grey not yet, blue `◌` running, green `✓` done, amber `↻` edited since; press runs the step (`w` asks, `c` one press, new `p` push asks); new Push verb last in VERBS | ✅ built, 127 kit tests; running from a `Skill(done)` call seen live 2026-10-22 (`mod.log`); ⏳ done staying blue through its agents, commit/push turning green, Desktop unseen |
 | 36 | Rendered doc scrolls smoothly (1.406.2): once every page is ready, pages draw through `windowedRows`; no floating ↑ Top there (`state.noTopFloat`), `u` or the end-row ↑ Top instead | ✅ built, 117 kit tests; ⏳ unseen live (user reported the lag 2026-10-19) |
 
 ---
 
 ## Key Technical Decisions
 
-| — | see `decisions/design-calls.md` (33 calls: mod placement, main-doc marker, handoff storage and claims, Resume rules, button-vs-confirm, docs list layout, one bundled source tree, `/changes` toolbar, orders, discard, gallery, `sips` copies, windowing, diff caching, `Doc` button, Desktop colours and tokenizer, Desktop design, tree checks, multi-repo, CLAUDE.md chain, doc list rows) |
+| — | see `decisions/design-calls.md` (34 calls: wrap-up chips, mod placement, main-doc marker, handoff storage and claims, Resume rules, button-vs-confirm, docs list layout, one bundled source tree, `/changes` toolbar, orders, discard, gallery, `sips` copies, windowing, diff caching, `Doc` button, Desktop colours and tokenizer, Desktop design, tree checks, multi-repo, CLAUDE.md chain, doc list rows) |
 
 ---
 
@@ -167,6 +169,8 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 | Long diff lines overlap the next row in Desktop | A row of fixed height 1 holding a line that wraps; nested `Text` ignores `wrap: 'truncate'` | Desktop rows have no fixed height and an estimated one (`DESKTOP_WRAP_CHARS`); the terminal hard-wraps into one-row pieces |
 | Mod seems dead anywhere | A refused or failed load leaves no trace in the chat | Read `~/.claude/doc-pane-cache/mod.log` first (refused pages, git failures, `ui.fault`). Then `claude plugin test` from a folder with no mod (can mods load at all), the `mods active` line in `/plugin`, `claude --debug` for `hooks module <name> not loaded:` with the reason |
 | No way to drive the Desktop pane from Playwright | Claude Desktop ships with the `EnableNodeCliInspectArguments` fuse off, so no inspector attaches (judged 2026-10-11) | Test Desktop by eye in a New session, with `mod.log` for the silent failures |
+| Done chip stays grey through a band-pressed done | The mod's own `$.prompt.submit` apparently does not pass back through its `prompt.submit` hook (unmeasured why; seen 2026-10-22) | `submitPrompt` notes the step itself, and the `Skill` tool call (`skill: 'syafiqkit:done'`, top-level field, confirmed in `mod.log`) marks it running |
+| Done chip goes green, then amber, while `/done` is still working | `/done` ends its first turn while its review agents run; the simplifier's later edits counted as "edited since" | A step finishes only on a main `turn.complete` with no subagent turns open and no closing question; whether the host raises subagent turns with `agentId` live is unverified (`mod.log`: `wrap-up still running`) |
 | Test fails `no implementation for turn.start` | A stub is needed for every host call; `turn.start` must return `{ turnId }`, `prompt.submit` must return `{ text }` | See `docs/ARCHITECTURE.md` §8 |
 
 ---
@@ -174,6 +178,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 ## Next Steps
 
 **Verify**
+- [ ] Row 37 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.407.2`): press done, the chip turns blue at once and stays blue while review agents run (if it goes green early, `mod.log` lacks `wrap-up still running … agents open`, meaning subagent turns carry no `agentId` and the hold needs another signal); green when the last turn ends; edit a file, amber. Commit through the chip: green within 5 s; push: green; edit after: all amber. `git pull` and a branch switch must not light commit. In Desktop **New**: chips keep their tint, labels readable, a narrow pane wraps the strip.
 - [ ] Row 36 in iTerm2 (`/sk` reads `mod v1.406.2`): scroll a long rendered doc with the wheel and PageDown for ten seconds; smooth, no blank band, no flicker when the window shifts (if pages stutter at each shift, the terminal re-sends a picture on remount and the window needs to stay put longer); `u` mid-doc jumps to the top; a doc with 15+ open items scrolled to the middle shows the right page; `t` round trip brings the float back in Text view. A narrow pane wraps the toolbar past the 4 rows `DOC_TOP_ROWS` assumes, a small offset error the half-screen margin absorbs.
 - [ ] Row 35 in iTerm2 after `/reload-plugins`: in the CLAUDE.md chain only near or over-limit rows carry a bar (CLAUDE.local.md at 239/200 should be yellow and first among its peers), the bar does not touch the figure, companion names read without `CLAUDE-`, and search shows `local project companion` in full. If rows with no bar read as missing data, a near-limit count in the section header is the next step.
 - [ ] 2026-10-19 work in iTerm2 after `/reload-plugins` (rows 31 to 34): `/sk` reads `mod v` plus the `plugin.json` version; `/task-docs` on a long task doc draws pictures, not a blank pane (if blank, press `t`, then a `claude --debug` session's `ui.render (Pane)` line names the refusal); text size matches the terminal (sized from the `/dev/tty` cell read) and a ~40-column pane keeps pictures inside it; the video frame under an answer naming a real `.mp4` path; Mermaid draws dark; `/sk` → Answer pictures off removes them and the prompt section, and stays off in a new session; Discard shows Claude Code's question box, Cancel and closing it discard nothing.
@@ -244,6 +249,6 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ---
 
-## Last Session (2026-10-19)
+## Last Session (2026-10-22)
 
-From a Dourr session that split its CLAUDE.local.md into `.claude-companions/local/`, the user saw the pane list none of those files, then called the chain list hard to read (row 35, call in `decisions/design-calls.md`). Two haiku research passes (disk-usage tools, design guidance) shaped the redesign. The `/done` review added flagged-first sorting, a bar on byte-only over-limit files, shorter scope names and a gap before the bar; each new test was proven by turning the fix off. 116 tests pass; shipped as 1.406.1 in `0605203`, pushed 2026-10-19 with 1.406.2.
+The user sent a mockup with three wrap-up designs (three chips, a joined pipeline, one summary chip) beside a model · folder · branch · ctx line. They picked the pipeline and had the chips replace the Commit and Done buttons; an edit turns every finished step amber. The model/ctx line stays in their own status line script. Research and calls are in `decisions/design-calls.md`. Live testing found two faults the kit could not: the chip stayed grey through a band-pressed done, and went green then amber while `/done`'s agents ran (both in § Gotchas). The `/done` reviewers' fixes (commit vs pull, push without a session commit, a reply clearing the running chip, Desktop label colour) are in. Uncommitted at 1.407.2.

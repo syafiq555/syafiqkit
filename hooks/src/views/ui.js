@@ -1,4 +1,4 @@
-import { DESKTOP_TONE } from '../core/constants.js'
+import { DESKTOP_TONE, PIPE_MARK, PIPE_TONE } from '../core/constants.js'
 import { state } from '../core/state.js'
 
 export function isDesktop(e) {
@@ -13,6 +13,35 @@ export function hoverScope(text) {
 
 export function chip(c, key, text, tone) {
   return c.Text({ key, backgroundColor: DESKTOP_TONE[tone + 'Chip'] || DESKTOP_TONE.mutedChip, children: ' ' + text + ' ' })
+}
+
+export function pipeStrip(c, chips) {
+  const tones = PIPE_TONE[state.look?.mode === 'light' ? 'light' : 'dark']
+  return c.Box({
+    key: 'pipe',
+    flexDirection: 'row',
+    flexShrink: 0,
+    columnGap: 0,
+    children: chips.map(({ key, label, phase, hotkey, onPress }) =>
+      c.Box({
+        key: key + '-chip',
+        flexShrink: 0,
+        paddingX: 1,
+        backgroundColor: tones[phase].bg,
+        children: [
+          c.Button({
+            key,
+            plain: true,
+            ...(hotkey ? { hotkey } : {}),
+            onPress,
+            ...(state.desktop
+              ? { label: PIPE_MARK[phase] + ' ' + label }
+              : { children: [c.Text({ color: tones[phase].fg, children: PIPE_MARK[phase] + ' ' + label })] }),
+          }),
+        ],
+      }),
+    ),
+  })
 }
 
 export function counts(c, key, added, removed) {

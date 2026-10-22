@@ -1,11 +1,12 @@
 import { hostClockEvery, hostEnvGet, hostUiInvalidate, hostUiToast } from './core/api.js'
-import { CHANGES_COMMAND, CHANGES_POLL_MS, COMMAND, EDIT_TOOLS, HANDOFF_POLL_MS, MAX_HANDOFF_DEFERRALS, MENU_COMMAND, PANE, SHOW_IMAGE_TOOL, STICKY_AFTER, TOP_BUTTON_AFTER } from './core/constants.js'
+import { CHANGES_COMMAND, CHANGES_POLL_MS, COMMAND, EDIT_TOOLS, HANDOFF_POLL_MS, MAX_HANDOFF_DEFERRALS, MENU_COMMAND, PANE, SHOW_IMAGE_TOOL, STICKY_AFTER, TOP_BUTTON_AFTER, WRAPUP_EDIT_TOOLS } from './core/constants.js'
 import { messageOf } from './core/format.js'
 import { modLog } from './core/log.js'
 import { loadVersion, redrawBandAfterClose, state } from './core/state.js'
 import { registerImageTool, showImages } from './docs/gallery.js'
 import { refresh, resetPane } from './docs/reader.js'
 import { countChanges, openChanges } from './git/controller.js'
+import { noteEdit, noteSubmit, noteToolCall, noteTurnComplete, noteTurnStart, pollWrapup, resetWrapup } from './git/wrapup.js'
 import { loadHandoff } from './handoff/store.js'
 import { dropEnhanceOnEdit, enhanceOwnsSubmit, redrawBand, resetEnhance } from './prompt/enhance.js'
 import { openPane, registerCommand, runHandoff } from './views/actions.js'
@@ -33,8 +34,8 @@ export function register(on) {
     await loadAnswerPictures($)
     await loadHandoff($)
     hostClockEvery($, HANDOFF_POLL_MS, () => loadHandoff($))
-    hostClockEvery($, CHANGES_POLL_MS, () => countChanges($).catch(() => {}))
-    countChanges($).catch(() => {})
+    hostClockEvery($, CHANGES_POLL_MS, () => countChanges($).then(() => pollWrapup($)).catch(() => {}))
+    countChanges($).then(() => pollWrapup($)).catch(() => {})
     return next(e)
   })
 
@@ -48,6 +49,7 @@ export function register(on) {
       state.pendingHandoff = null
       state.confirm = null
       state.alsoHandoff = false
+      resetWrapup()
     }
     await loadHandoff($)
     return next(e)
@@ -82,6 +84,7 @@ export function register(on) {
   })
 
   on('prompt.submit', ($, e, next) => {
+    noteSubmit($, e.text)
     if (enhanceOwnsSubmit(e.text)) {
       if (state.enhance.abort) state.enhance.abort.abort()
       resetEnhance()
@@ -92,11 +95,14 @@ export function register(on) {
 
   on('turn.start', (_$, e, next) => {
     if (state.pendingHandoff && !e.agentId) state.pendingHandoff.armed = true
+    noteTurnStart(e)
     return next(e)
   })
 
   on('turn.complete', async ($, e, next) => {
     const ran = await next(e)
+    noteTurnComplete($, e)
+    if (!e.agentId) countChanges($).then(() => pollWrapup($)).catch(() => {})
     if (state.pendingHandoff && state.pendingHandoff.armed && !e.agentId) {
       const answer = typeof e.answer === 'string' ? e.answer.trim() : ''
       const asking = !e.isAborted && (!answer || answer.endsWith('?'))
@@ -114,7 +120,9 @@ export function register(on) {
   })
 
   on('tool.call', async ($, e, next) => {
+    noteToolCall($, e)
     const ran = await next(e)
+    if (WRAPUP_EDIT_TOOLS.has(e.tool)) noteEdit($)
     if (state.view === 'doc' && state.current && EDIT_TOOLS.has(e.tool) && e.file_path === state.current.path) {
       await refresh($)
     }

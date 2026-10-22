@@ -5,11 +5,12 @@ import { state } from '../core/state.js'
 import { openImages, restoreGallery } from '../docs/gallery.js'
 import { send } from '../docs/reader.js'
 import { openChanges } from '../git/controller.js'
+import { wrapupStates } from '../git/wrapup.js'
 import { gitState } from '../handoff/capture.js'
 import { claimAndSend, dismissHandoff, goalOf, resumeText } from '../handoff/store.js'
 import { enhanceRow, startEnhance } from '../prompt/enhance.js'
 import { confirmVerb, openPane, sendVerb } from './actions.js'
-import { isDesktop } from './ui.js'
+import { isDesktop, pipeStrip } from './ui.js'
 
 export async function bandView($, e, next) {
   if (state.disabled || (e.props && e.props.hasSurvey)) return next(e)
@@ -19,6 +20,7 @@ export async function bandView($, e, next) {
   restoreGallery($)
   const paneOpen = state.isOpen
   const key = (letter) => (paneOpen ? {} : { hotkey: letter })
+  const phases = wrapupStates()
   const rows = [
     Box({
       key: 'launch-row',
@@ -59,8 +61,11 @@ export async function bandView($, e, next) {
             ]
           : []),
         Text({ dimColor: true, children: '│' }),
-        Button({ key: 'band-commit', label: 'Commit', ...key('c'), ...(desktop ? { variant: 'primary' } : {}), onPress: () => sendVerb($, 'Commit') }),
-        Button({ key: 'band-wrap', label: 'Done', ...key('w'), onPress: () => confirmVerb($, 'Done') }),
+        pipeStrip({ Box, Text, Button }, [
+          { key: 'band-done', label: 'done', phase: phases.done, ...key('w'), onPress: () => confirmVerb($, 'Done') },
+          { key: 'band-commit', label: 'commit', phase: phases.commit, ...key('c'), onPress: () => sendVerb($, 'Commit') },
+          { key: 'band-push', label: 'push', phase: phases.push, ...key('p'), onPress: () => confirmVerb($, 'Push') },
+        ]),
         state.saving
           ? Text({ color: 'cyan', children: 'Summarising…' })
           : Button({ key: 'band-handoff', label: 'Hand off', ...key('h'), onPress: () => openPane($, 'handoff', true) }),

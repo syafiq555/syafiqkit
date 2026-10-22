@@ -84,12 +84,28 @@ export const DESKTOP_TONE = {
   gapRow: '#1a1d23',
   page: '#1e1e1e',
 }
+export const PIPE_TONE = {
+  dark: {
+    pending: { bg: '#2c2f36', fg: '#9aa0a6' },
+    complete: { bg: '#1e4a2e', fg: '#7ee2a0' },
+    stale: { bg: '#4a3a12', fg: '#f0c060' },
+    running: { bg: '#1f2f45', fg: '#7fb4f0' },
+  },
+  light: {
+    pending: { bg: '#ebedf0', fg: '#57606a' },
+    complete: { bg: '#d6f5df', fg: '#1a7f37' },
+    stale: { bg: '#fdeec8', fg: '#9a6700' },
+    running: { bg: '#ddeafb', fg: '#0969da' },
+  },
+}
+export const PIPE_MARK = { pending: '○', complete: '✓', stale: '↻', running: '◌' }
 export const DESKTOP_MAP_CELLS = 64
 export const LITERAL_PATHS = { GIT_LITERAL_PATHSPECS: '1' }
 export const REPO_COUNT_EVERY = 5
 export const DIFF_BATCH = 8
 export const MAX_UNTRACKED_BYTES = 256 * 1024
 export const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])
+export const WRAPUP_EDIT_TOOLS = new Set([...EDIT_TOOLS, 'NotebookEdit'])
 export const ITEM = /^\s*[-*]\s+\[( |x|X)\]\s+(.+)$/
 export const FENCE = /^\s*```(\S*)\s*$/
 export const HEADING = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/
@@ -165,6 +181,14 @@ export const VERBS = [
   { label: 'Hand off', hint: 'save where you stopped for the next session', go: 'handoff' },
   { label: 'Changes', hint: 'review diffs, stage, unstage, discard', go: 'changes' },
   { label: 'Images', hint: 'screenshots Claude showed you', go: 'images' },
+  {
+    label: 'Push',
+    hint: 'pushes the branch, commits nothing',
+    text: 'Push this branch to its remote, setting its upstream if it has none.',
+    effect: "Pushes the current branch's commits to its remote; nothing is committed.",
+    danger: true,
+    toast: 'Sent: push',
+  },
 ]
 export const ANSWER_IMAGE_EXT = /\.(png|jpe?g|gif|webp)$/i
 export const ANSWER_VIDEO_EXT = /\.(mp4|mov|webm|mkv|m4v)$/i
