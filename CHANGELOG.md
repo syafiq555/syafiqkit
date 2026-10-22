@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.407.3
+
+**Team messages from `casual-message` now check "it works now" claims on the live system and quote what a client or vendor actually said.**
+- A line saying production does something is read back on that environment first. Where the feature waits on data that hasn't arrived (an import not yet run), the line says what it waits on instead of claiming it works.
+- A relayed answer carries the source's own line as a quote above the one-line reading of it, so colleagues can check the reading without asking for the email.
+
+**`uiux` now researches before offering a new kind of control, even when nobody said "research".** A polish that brings in a control the app doesn't have yet (a picker, a suggestion pattern) runs the case-study dispatch before its options reach the user. A category-picker proposal had gone out citing only the app's own components, and the research afterwards changed its starter list and option order.
+
 ## 1.407.2
 
 **The band now shows where the session is in its wrap-up: done, commit and push as one strip of chips.**

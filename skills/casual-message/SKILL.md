@@ -60,13 +60,15 @@ Two failures read as not having listened. **Restating their point to them** — 
 
 ## Speaking for the sender
 
-A reply posted under the sender's name commits them to what it says, and the draft is where that commitment gets made. When the reply carries dates, estimates or a split of work, length follows the content rather than the short default, and four defaults hold until the sender overrides them:
+A reply posted under the sender's name commits them to what it says, and the draft is where that commitment gets made. When the reply carries dates, estimates or a split of work, length follows the content rather than the short default, and these defaults hold until the sender overrides them:
 
 - **Work this session can do now is done before the draft, not promised in it.** "I will mark these in the next version" commits the sender to a second round the recipient waits for, when the edit takes this session minutes. Do it, then write what was done. Promise only what needs the recipient's answer or someone else's input first. Measured 2026-10-14: a draft promised a document revision "in the next version" and the sender asked why it was not simply updated before sending. **Tell: the draft says "I will" about something no reply is needed for.**
 
 - **Estimates stay estimates.** Name the assumptions they rest on (inputs arriving on time, an external system behaving as documented) and say when they will firm up. How confident to sound is the sender's to add, not yours. Keep the deadline an outside party was given apart from the internal target, because they are different numbers with different owners.
 - **A colleague's earlier version in the same thread is the baseline.** Diff yours against it before drafting, carry over whatever yours dropped, and frame the reply as building on theirs. A replacement posted without that reads as overriding them in front of everyone else on the thread.
 - **Split the work by owner, and estimate only the sender's share.** A teammate's duration is theirs to give, so mark it for them to confirm.
+- **"It does X now" is checked against the live system, not the build.** Code that is deployed and tested can still do nothing yet, because the data, record or import it acts on has not arrived. Read the state on the environment the message names before the line goes in, and where the precondition is missing, say what it waits on ("once the import runs"). Measured 2026-10-22: a team note said typed old codes "credit" a partner, while that partner's record did not exist on either server yet; the sender caught it only by asking "show evidence of ur claims?". **Tell: a present-tense line about production that you verified only with unit tests or a deploy log.**
+- **What a third party said travels as their words.** When the message relays a client's or vendor's answer, quote the line it rests on (a `>` quote in Chat) above your one-line reading of it, so colleagues can check the reading without asking for the source. A paraphrase alone reads as your interpretation. Measured 2026-10-22: a note relaying a client's two answers came back as "give evidence from their replies".
 
 ## Language
 
