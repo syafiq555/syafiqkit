@@ -1,7 +1,7 @@
 import { hostUiResolve } from '../core/api.js'
 import { REFRESH_EFFECT, SHRINK_EFFECT, refreshRequest, shrinkRequest } from '../core/format.js'
 import { invalidatePane, state } from '../core/state.js'
-import { closePane, loadDoc, readDecision } from '../docs/reader.js'
+import { loadDoc, readDecision } from '../docs/reader.js'
 import { runHandoff } from './actions.js'
 
 export function paneContext($, e) {
@@ -52,7 +52,6 @@ export function paneContext($, e) {
 
   const saveFromForm = async (message) => {
     await runHandoff($, message.trim())
-    if (state.handoffFromBand) return closePane($)
     return goto('menu')
   }
 

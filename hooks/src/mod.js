@@ -1,5 +1,5 @@
-import { hostClockEvery, hostEnvGet, hostUiInvalidate, hostUiToast } from './core/api.js'
-import { CHANGES_COMMAND, CHANGES_POLL_MS, COMMAND, EDIT_TOOLS, HANDOFF_POLL_MS, MAX_HANDOFF_DEFERRALS, MENU_COMMAND, PANE, SHOW_IMAGE_TOOL, STICKY_AFTER, TOP_BUTTON_AFTER, WRAPUP_EDIT_TOOLS } from './core/constants.js'
+import { hostClockEvery, hostEnvGet, hostStoreGet, hostStoreSet, hostUiInvalidate, hostUiToast } from './core/api.js'
+import { BAND_MOVED_NOTICE, CHANGES_COMMAND, CHANGES_POLL_MS, COMMAND, EDIT_TOOLS, HANDOFF_POLL_MS, MAX_HANDOFF_DEFERRALS, MENU_COMMAND, PANE, SHOW_IMAGE_TOOL, STICKY_AFTER, TOP_BUTTON_AFTER, WRAPUP_EDIT_TOOLS } from './core/constants.js'
 import { messageOf } from './core/format.js'
 import { modLog } from './core/log.js'
 import { loadVersion, redrawBandAfterClose, state } from './core/state.js'
@@ -13,6 +13,16 @@ import { openPane, registerCommand, runHandoff } from './views/actions.js'
 import { answerPicturesPrompt, answerPicturesView, loadAnswerPictures } from './answers/pictures.js'
 import { bandView } from './views/band.js'
 import { paneView } from './views/pane.js'
+
+async function noticeBandMoved($) {
+  try {
+    if ((await hostStoreGet($, BAND_MOVED_NOTICE)) === true) return
+    await hostUiToast($, 'Menu and Hand off moved off the line: type /sk')
+    await hostStoreSet($, BAND_MOVED_NOTICE, true)
+  } catch {
+    return
+  }
+}
 
 export function register(on) {
   on('session.start', async ($, e, next) => {
@@ -33,6 +43,7 @@ export function register(on) {
     await loadVersion($)
     await loadAnswerPictures($)
     await loadHandoff($)
+    await noticeBandMoved($)
     hostClockEvery($, HANDOFF_POLL_MS, () => loadHandoff($))
     hostClockEvery($, CHANGES_POLL_MS, () => countChanges($).then(() => pollWrapup($)).catch(() => {}))
     countChanges($).then(() => pollWrapup($)).catch(() => {})

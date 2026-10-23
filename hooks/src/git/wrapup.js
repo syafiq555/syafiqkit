@@ -1,5 +1,5 @@
 import { hostSessionCwd, hostUiInvalidate } from '../core/api.js'
-import { VERBS } from '../core/constants.js'
+import { CHANGES_POLL_MS, VERBS } from '../core/constants.js'
 import { modLog } from '../core/log.js'
 import { gitRun } from '../core/run.js'
 import { state } from '../core/state.js'
@@ -8,12 +8,16 @@ import { readLook } from '../docs/typeset.js'
 const DONE_COMMAND = /^\s*\/(syafiqkit:)?(quick-)?done\b/
 const COMMIT_COMMAND = /^\/(syafiqkit:)?commit\b/
 const PUSH_COMMAND = /^\/(syafiqkit:)?(commit\s+push|ship)\b/
+const SHIP_COMMAND = /^\/(syafiqkit:)?ship\b/
 const AGENT_HOLD_MS = 30 * 60 * 1000
 const GIT_PUSH = /(^|[;&|(]\s*)git\s+(-C\s+\S+\s+)?push\b/
+const GIT_COMMIT =
+  /(^|[;&|(]\s*)(\w+=("[^"]*"|'[^']*'|\S*)\s+)*git(\s+(-[cC]\s+("[^"]*"|'[^']*'|\S+)|--[\w-]+(=\S+)?))*\s+(commit|cherry-pick|revert)\b/
 const verbText = (label) => (VERBS.find((verb) => verb.label === label) || {}).text
 const DONE_TEXT = verbText('Done')
 const COMMIT_TEXTS = [verbText('Commit'), verbText('Commit and push'), verbText('Ship')]
 const PUSH_TEXTS = [verbText('Push'), verbText('Commit and push'), verbText('Ship')]
+const SHIP_TEXT = verbText('Ship')
 
 function stepsAsked(text) {
   const typed = String(text || '').trim()
@@ -21,6 +25,7 @@ function stepsAsked(text) {
   if (DONE_COMMAND.test(typed) || typed === DONE_TEXT) steps.push('done')
   if (COMMIT_COMMAND.test(typed) || COMMIT_TEXTS.includes(typed)) steps.push('commit')
   if (PUSH_COMMAND.test(typed) || PUSH_TEXTS.includes(typed)) steps.push('push')
+  if (SHIP_COMMAND.test(typed) || typed === SHIP_TEXT) steps.push('ship')
   return steps
 }
 
@@ -29,7 +34,7 @@ function stepsFromTool(e) {
     const name = String(e.skill || '').replace(/^syafiqkit:/, '')
     if (name === 'done' || name === 'quick-done') return ['done']
     if (name === 'commit') return /\bpush\b/.test(String(e.args || '')) ? ['commit', 'push'] : ['commit']
-    if (name === 'ship') return ['commit', 'push']
+    if (name === 'ship') return ['commit', 'push', 'ship']
     return []
   }
   if (e.tool === 'Bash' && GIT_PUSH.test(String(e.command || ''))) return ['push']
@@ -43,8 +48,15 @@ export function wrapupStates() {
   const commit = !committed ? 'pending' : w.editAt > w.commitAt ? 'stale' : 'complete'
   const pushed = w.upstream && w.ahead === 0 && (committed || w.pushedAt > 0)
   const push = !pushed ? 'pending' : w.editAt > Math.max(w.commitAt, w.pushedAt) ? 'stale' : 'complete'
+  const shipStale = w.editAt > w.shipAt || w.commitAt > w.shipAt + CHANGES_POLL_MS
+  const ship = !w.shipAt ? 'pending' : shipStale ? 'stale' : 'complete'
   const running = (step, phase) => (w.running.includes(step) ? 'running' : phase)
-  return { done: running('done', done), commit: running('commit', commit), push: running('push', push) }
+  return {
+    done: running('done', done),
+    commit: running('commit', commit),
+    push: running('push', push),
+    ship: running('ship', ship),
+  }
 }
 
 function signature() {
@@ -70,6 +82,10 @@ export function resetWrapup() {
   w.editAt = 0
   w.commitAt = 0
   w.pushedAt = 0
+  w.shipAt = 0
+  w.background = false
+  w.commitIntents = 0
+  w.commitIntentUntil = 0
   w.startedAt = Date.now()
   w.startHead = w.head
 }
@@ -99,6 +115,7 @@ export function noteTurnStart(e) {
     w.agents = [...w.agents.filter((agent) => agent.id !== e.agentId), { id: e.agentId, at: Date.now() }]
     return
   }
+  w.turnOpen = true
   w.active = union(w.active, w.asked)
   w.asked = []
 }
@@ -112,22 +129,30 @@ export function noteTurnComplete($, e) {
   }
   const answer = typeof e.answer === 'string' ? e.answer.trim() : ''
   const now = Date.now()
+  w.turnOpen = false
+  if (w.commitIntents) w.commitIntentUntil = now + 2 * CHANGES_POLL_MS
   w.agents = e.isAborted ? [] : w.agents.filter((agent) => now - agent.at < AGENT_HOLD_MS)
   const unfinished = !e.isAborted && (w.agents.length > 0 || !answer || answer.endsWith('?'))
   if (unfinished && w.active.length) {
     modLog($, 'wrap-up still running: ' + w.active.join(', ') + ' (' + w.agents.length + ' agents open)')
     return
   }
+  const shipWaits = w.active.includes('ship') && w.background && !e.isAborted
+  w.background = false
   if (w.active.includes('done') && !e.isAborted) w.doneAt = now
   if (w.active.includes('push') && !e.isAborted) w.pushedAt = now
+  if (w.active.includes('ship') && !e.isAborted && !shipWaits) w.shipAt = now
+  if (shipWaits) modLog($, 'wrap-up still running: ship (a background check is open)')
   w.resyncCount = w.active.length > 0
-  w.active = []
-  w.running = w.asked
+  w.active = shipWaits ? ['ship'] : []
+  w.running = shipWaits ? union(w.asked, ['ship']) : w.asked
   redrawIfMoved($, before)
 }
 
 export function noteToolCall($, e) {
   if (e.agentId) return
+  if ((e.tool === 'Bash' && e.run_in_background === true) || e.tool === 'Monitor') state.wrapup.background = true
+  if (e.tool === 'Bash' && GIT_COMMIT.test(String(e.command || ''))) state.wrapup.commitIntents += 1
   const steps = stepsFromTool(e)
   if (!steps.length) return
   const w = state.wrapup
@@ -172,9 +197,14 @@ export async function pollWrapup($) {
     w.startHead = sha
     w.commitAt = 0
   } else if (sha !== w.head) {
+    const own = w.commitIntents > 0 && (w.turnOpen || Date.now() <= w.commitIntentUntil)
     if (sha === w.startHead) w.commitAt = 0
-    else if (await isCommit($, w.head, sha, ahead, aheadText !== null)) w.commitAt = Date.now()
+    else if (own && (await isCommit($, w.head, sha, ahead, aheadText !== null))) {
+      w.commitAt = Date.now()
+      w.commitIntents -= 1
+    } else if (!own) modLog($, 'wrap-up: HEAD moved without a commit from this session (another session or a pull)')
   }
+  if (w.commitIntents && !w.turnOpen && Date.now() > w.commitIntentUntil) w.commitIntents = 0
   w.head = sha
   w.branch = branch
   w.upstream = aheadText !== null

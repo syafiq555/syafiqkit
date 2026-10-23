@@ -23,6 +23,15 @@ const BAND = {
   props: {},
 } as const
 
+const HANDOFF_VERB = 'vb8'
+
+const openHandoffFromMenu = async ($: any) => {
+  await $.command.run({ command: 'sk', args: '' })
+  const menu = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await menu.press({ key: HANDOFF_VERB })
+  await menu.unmount()
+}
+
 const stubSession = (on: any, sent: string[], opened: string[], names: string[] = [], skip: string[] = []) => {
   on('session.start', () => ({ cwd: '/work' }))
   on('command.register', (_$: any, e: any) => {
@@ -96,18 +105,25 @@ test('the menu shows the version read from plugin.json at session start', async 
   await ui.unmount()
 })
 
-test('the band offers the menu and the docs while the pane is closed', async ($, on) => {
+test('the band offers quiet tools and the wrap-up chips, with no Menu or Hand off button', async ($, on) => {
   stubSession(on, [], [])
   stubRender(on)
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  expect(await ui.find({ key: 'open-menu' })).toBeDefined()
-  expect(await ui.find({ key: 'open-docs' })).toBeDefined()
-  expect(await ui.find({ key: 'band-commit' })).toBeDefined()
-  expect(await ui.find({ key: 'band-done' })).toBeDefined()
-  expect(await ui.find({ key: 'band-handoff' })).toBeDefined()
-  expect((await ui.find({ key: 'open-menu' }))?.props.hotkey).toBe('m')
+  expect(await ui.find({ key: 'open-menu' })).toBeUndefined()
+  expect(await ui.find({ key: 'band-handoff' })).toBeUndefined()
+  const keys = { 'band-enhance': 'e', 'open-docs': 'd', 'open-changes': 'g', 'band-done': 'w', 'band-commit': 'c', 'band-push': 'p', 'band-ship': 's' }
+  for (const [key, hotkey] of Object.entries(keys)) {
+    const button = await ui.find({ key })
+    expect(button?.props.plain).toBe(true)
+    expect(button?.props.hotkey).toBe(hotkey)
+  }
+  expect((await ui.findAll({ type: 'Text', text: /^ › $/ })).length).toBe(3)
   expect((await ui.findAll({ type: 'Text', text: /keys go to the pane/ })).length).toBe(0)
   await ui.unmount()
+  const desktop = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  expect((await desktop.findAll({ type: 'Text', text: /^ › $/ })).length).toBe(0)
+  expect((await desktop.find({ key: 'band-ship' }))?.props.label).toBe('○ ship')
+  await desktop.unmount()
 })
 
 test('the band stays beside an open pane, without hotkeys so the pane keeps its letters', async ($, on) => {
@@ -116,7 +132,7 @@ test('the band stays beside an open pane, without hotkeys so the pane keeps its 
   await $.command.run({ command: 'task-docs', args: '' })
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...BAND, surface })
-    for (const key of ['open-menu', 'open-docs', 'open-changes', 'band-commit', 'band-done', 'band-handoff']) {
+    for (const key of ['band-enhance', 'open-docs', 'open-changes', 'band-commit', 'band-done', 'band-ship']) {
       const button = await ui.find({ key })
       expect(button).toBeDefined()
       expect(button?.props.hotkey).toBeUndefined()
@@ -135,7 +151,7 @@ test('band presses beside an open pane switch the view in place, while a typed c
   const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
   await band.press({ key: 'open-docs' })
   await band.press({ key: 'open-changes' })
-  await band.press({ key: 'open-menu' })
+  await band.press({ key: 'open-docs' })
   expect(opened.length).toBe(1)
   await $.command.run({ command: 'task-docs', args: '' })
   expect(opened.length).toBe(2)
@@ -156,7 +172,7 @@ test('the band hotkeys come back once the pane closes', async ($, on) => {
   await pane.press({ key: 'img-close' })
   await pane.unmount()
   const after = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  expect((await after.find({ key: 'open-menu' }))?.props.hotkey).toBe('m')
+  expect((await after.find({ key: 'open-docs' }))?.props.hotkey).toBe('d')
   await after.unmount()
 })
 
@@ -165,7 +181,7 @@ test('the band yields to a survey, so a notice such as Heads up is never covered
   stubRender(on)
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...BAND, surface, props: { hasSurvey: true } })
-    expect(await ui.find({ key: 'open-menu' })).toBeUndefined()
+    expect(await ui.find({ key: 'open-docs' })).toBeUndefined()
     await ui.unmount()
   }
 })
@@ -270,6 +286,7 @@ test('commit and push chips follow HEAD and the upstream, and an edit after push
     await $.turn.complete({ turnId: 't' + turn, answer: 'ok', durationMs: 5, isAborted: false, usage: null } as any)
   }
   await settle()
+  await $.tool.call({ tool: 'Bash', command: 'git commit -m "feat: x"' } as any)
   git.head = 'bbb'
   await poll()
   await settle()
@@ -289,6 +306,47 @@ test('commit and push chips follow HEAD and the upstream, and an edit after push
   expect(await chipText(edited, /^↻ commit$/)).toBe(1)
   expect(await chipText(edited, /^↻ push$/)).toBe(1)
   await edited.unmount()
+})
+
+test('a commit and push made by another session in the same checkout leave this session\'s chips grey', async ($, on) => {
+  const git = { head: 'aaa', ahead: '0' }
+  stubSession(on, [], [])
+  stubRender(on)
+  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: '' }))
+  on('config.list', () => ({ value: [] }))
+  on('tool.call', () => ({ result: 'ok' }))
+  on('process.run', (_$: any, e: any) => {
+    const argv = e.argv ?? e.command ?? []
+    if (argv.includes('rev-list')) return { value: { exitCode: 0, stdout: git.ahead + '\n', stderr: '' } }
+    if (argv.includes('--abbrev-ref')) return { value: { exitCode: 0, stdout: 'master\n', stderr: '' } }
+    if (argv.includes('merge-base')) return { value: { exitCode: 0, stdout: '', stderr: '' } }
+    if (argv.includes('--format=%ct')) return { value: { exitCode: 0, stdout: String(Math.floor(Date.now() / 1000) + 60) + '\n', stderr: '' } }
+    if (argv.includes('HEAD') && argv.includes('rev-parse')) return { value: { exitCode: 0, stdout: git.head + '\n', stderr: '' } }
+    if (argv.includes('--show-toplevel')) return { value: { exitCode: 0, stdout: '/work\n', stderr: '' } }
+    return { value: { exitCode: 0, stdout: '', stderr: '' } }
+  })
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 50))
+  await settle()
+  await $.turn.start({ turnId: 't1' } as any)
+  await $.tool.call({ tool: 'Agent', description: 'Inventory a report' } as any)
+  git.head = 'bbb'
+  await $.turn.complete({ turnId: 't1', answer: 'Agents started.', durationMs: 5, isAborted: false, usage: null } as any)
+  await settle()
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(band, /^○ commit$/)).toBe(1)
+  expect(await chipText(band, /^○ push$/)).toBe(1)
+  await band.unmount()
+  await $.turn.start({ turnId: 't2' } as any)
+  await $.tool.call({ tool: 'Bash', command: 'git commit -m "fix: ours"' } as any)
+  git.head = 'ccc'
+  git.ahead = '1'
+  await $.turn.complete({ turnId: 't2', answer: 'Committed.', durationMs: 5, isAborted: false, usage: null } as any)
+  await settle()
+  const ours = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(ours, /^✓ commit$/)).toBe(1)
+  await ours.unmount()
 })
 
 test('a done skill call marks the done chip running even without a band press', async ($, on) => {
@@ -360,6 +418,129 @@ test('the push chip asks before pushing', async ($, on) => {
   expect(sent).toEqual(['Push this branch to its remote, setting its upstream if it has none.'])
   await pane.unmount()
   await ui.unmount()
+})
+
+test('the ship chip asks first, runs with the ship skill, and turns amber after a later edit', async ($, on) => {
+  const sent: string[] = []
+  const opened: string[] = []
+  stubSession(on, sent, opened)
+  stubRender(on)
+  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: '' }))
+  on('tool.call', () => ({ result: 'ok' }))
+  const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(ui, /^○ ship$/)).toBe(1)
+  expect((await ui.find({ key: 'band-ship' }))?.props.hotkey).toBe('s')
+  await ui.press({ key: 'band-ship' })
+  expect(sent.length).toBe(0)
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.press({ key: 'confirm-send' })
+  expect(sent).toEqual(['Use the ship skill.'])
+  await pane.unmount()
+  await ui.unmount()
+  await $.turn.start({ turnId: 't1' } as any)
+  await $.tool.call({ tool: 'Skill', skill: 'syafiqkit:ship' } as any)
+  const running = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(running, /^◌ ship$/)).toBe(1)
+  await running.unmount()
+  await $.turn.complete({ turnId: 't1', answer: 'Shipped.', durationMs: 5, isAborted: false, usage: null } as any)
+  const shipped = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(shipped, /^✓ ship$/)).toBe(1)
+  await shipped.unmount()
+  await new Promise((resolve) => setTimeout(resolve, 5))
+  await $.tool.call({ tool: 'Edit', file_path: '/work/src/a.js' } as any)
+  const edited = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(edited, /^↻ ship$/)).toBe(1)
+  await edited.unmount()
+})
+
+test('the ship chip stays running while a background check is open, and turns green on the turn that confirms', async ($, on) => {
+  stubSession(on, [], [])
+  stubRender(on)
+  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: '' }))
+  on('tool.call', () => ({ result: 'ok' }))
+  await $.turn.start({ turnId: 't1' } as any)
+  await $.tool.call({ tool: 'Skill', skill: 'ship' } as any)
+  await $.tool.call({ tool: 'Bash', command: 'gh run watch', run_in_background: true } as any)
+  await $.turn.complete({ turnId: 't1', answer: 'CI is running.', durationMs: 5, isAborted: false, usage: null } as any)
+  const waiting = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(waiting, /^◌ ship$/)).toBe(1)
+  await waiting.unmount()
+  await $.turn.start({ turnId: 't2' } as any)
+  await $.turn.complete({ turnId: 't2', answer: 'Deployed and live.', durationMs: 5, isAborted: false, usage: null } as any)
+  const shipped = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(shipped, /^✓ ship$/)).toBe(1)
+  await shipped.unmount()
+})
+
+test('a ship that asks a question while its background check runs stays blue until a later turn finishes', async ($, on) => {
+  stubSession(on, [], [])
+  stubRender(on)
+  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: '' }))
+  on('tool.call', () => ({ result: 'ok' }))
+  await $.turn.start({ turnId: 't1' } as any)
+  await $.tool.call({ tool: 'Skill', skill: 'ship' } as any)
+  await $.tool.call({ tool: 'Bash', command: 'gh run watch', run_in_background: true } as any)
+  await $.turn.complete({ turnId: 't1', answer: 'CI is running. Post the release note to Chat?', durationMs: 5, isAborted: false, usage: null } as any)
+  await $.turn.start({ turnId: 't2' } as any)
+  await $.turn.complete({ turnId: 't2', answer: 'Noted, CI still running.', durationMs: 5, isAborted: false, usage: null } as any)
+  const waiting = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(waiting, /^◌ ship$/)).toBe(1)
+  await waiting.unmount()
+  await $.turn.start({ turnId: 't3' } as any)
+  await $.turn.complete({ turnId: 't3', answer: 'Deployed and live.', durationMs: 5, isAborted: false, usage: null } as any)
+  const shipped = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(shipped, /^✓ ship$/)).toBe(1)
+  await shipped.unmount()
+})
+
+test('a refused toast does not stop the session from starting', async ($, on) => {
+  const names: string[] = []
+  stubSession(on, [], [], names, ['ui.toast'])
+  stubRender(on)
+  on('ui.toast', () => {
+    throw new Error('toasts are not allowed here')
+  })
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  expect(names.length).toBeGreaterThan(0)
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await band.find({ key: 'band-ship' })).toBeDefined()
+  await band.unmount()
+})
+
+test('the moved-buttons notice shows once, then never again', async ($, on) => {
+  const toasts: string[] = []
+  const stored: Record<string, unknown> = {}
+  stubSession(on, [], [], [], ['ui.toast'])
+  stubRender(on)
+  on('ui.toast', (_$: any, e: any) => {
+    toasts.push(e.text)
+    return { value: undefined }
+  })
+  on('store.get', (_$: any, e: any) => ({ value: stored[e.key] }))
+  on('store.set', (_$: any, e: any) => {
+    stored[e.key] = e.value
+    return { value: undefined }
+  })
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  expect(toasts.filter((text) => text.includes('/sk'))).toEqual(['Menu and Hand off moved off the line: type /sk'])
+})
+
+test('a commit-and-push skill call leaves the ship chip alone', async ($, on) => {
+  stubSession(on, [], [])
+  stubRender(on)
+  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: '' }))
+  on('tool.call', () => ({ result: 'ok' }))
+  await $.turn.start({ turnId: 't1' } as any)
+  await $.tool.call({ tool: 'Skill', skill: 'syafiqkit:commit', args: 'push' } as any)
+  const running = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect(await chipText(running, /^◌ push$/)).toBe(1)
+  expect(await chipText(running, /^○ ship$/)).toBe(1)
+  await running.unmount()
 })
 
 test('the wrap-up confirm can also hand off once the wrap-up turn finishes', async ($, on) => {
@@ -466,7 +647,7 @@ test('the band hands off the session and writes the summary, files and git state
   stubSummary(on, 'Goal\nBuild the pane')
   stubRender(on)
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await ui.press({ key: 'band-handoff' })
+  await openHandoffFromMenu($)
   expect(writes.length).toBe(0)
   const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await pane.find({ key: 'handoff-next' })).toBeDefined()
@@ -646,7 +827,7 @@ test('a handoff saved in this session is offered again after /clear, not before'
   await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
 
   const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await band.press({ key: 'band-handoff' })
+  await openHandoffFromMenu($)
   const form = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await form.press({ key: 'handoff-save' })
   expect(writes.length).toBe(1)
@@ -1098,7 +1279,7 @@ test('a handoff note reaches the summary prompt, and the record names the sessio
   on('session.id', () => ({ value: 'sess-billing' }))
   stubRender(on)
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await ui.press({ key: 'band-handoff' })
+  await openHandoffFromMenu($)
   const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await pane.input({ key: 'handoff-next', text: 'refresh the uiux skill' })
   expect(prompts[0]).toContain('"refresh the uiux skill"')
@@ -1584,7 +1765,8 @@ test('a reloaded mod brings back the session gallery from its saved list and kee
   await $.tool.call({ tool: 'mcp__syafiqkit__show_image', paths: ['/tmp/new.png'] })
   const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
   const images: any = await band.find({ key: 'open-images' })
-  expect(JSON.stringify(images)).toContain('Images (2)')
+  expect(images).toBeDefined()
+  expect((await band.findAll({ type: 'Text', text: /^ 2$/ })).length).toBe(1)
   await band.unmount()
   const saved = writes.filter((w) => w.path.endsWith('/gallery-sess-1.json')).pop()
   expect(JSON.parse(saved.content ?? saved.text ?? saved.data).map((i: any) => i.path)).toEqual(['/tmp/old.png', '/tmp/new.png'])

@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.410.0
+
+**A calmer line above your prompt: `▤  e: enhance  d: docs  g: changes 3  │  w: ○ done › c: ○ commit › p: ○ push › s: ○ ship`.** The tools are quiet grey words with their key shown, and the wrap-up steps read as one pipeline whose colours tell you how far you have got.
+- The Menu and Hand off buttons are gone. Type `/sk` for the menu; Hand off is in it. A one-time notice says so the first time you start a session after updating.
+- The commit and push chips no longer tick when another Claude session in the same folder commits or pushes. They count only commits this session made.
+- The ship chip now waits for the release to be confirmed: while ship's CI or deploy check runs in the background the chip stays blue, and it turns green on the turn that reports back.
+
+## 1.409.0
+
+**The line above your prompt now has a ship chip: `○ done ○ commit ○ push ○ ship`.** Press it (or `s`) to run the ship skill (changelog, push, CI check, release note) after a confirm.
+- It turns green only when a ship run finishes, so pushing alone leaves it grey: on a project that deploys from its branch, a push is not yet a release.
+- Like the other chips it turns amber when files are edited or a new commit lands after the ship.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session (or `/reload-plugins` where it says "re-read from its folder").
+
 ## 1.408.0
 
 **New `/reclaim-disk` skill: frees space on a developer's Mac without touching your data.** It finds what's using the disk, shows one plan, then clears what you confirm of what rebuilds itself (npm, pnpm, Gradle, Playwright and Flutter build output, Docker build cache and unused images, Xcode leftovers, old installers), and lists databases, uploads and personal files for you to decide on. On its first run it took a laptop from 44 GB free to 146 GB.

@@ -18,7 +18,6 @@ export async function openPane($, view, fromBand = false) {
   state.filter = ''
   state.heavyOnly = false
   state.pick = null
-  state.handoffFromBand = view === 'handoff'
   if (view === 'handoff') state.handoffNext = ''
   if (view !== 'confirm') state.confirm = null
   state.isOpen = true

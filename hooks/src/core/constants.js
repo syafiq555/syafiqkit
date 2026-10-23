@@ -40,6 +40,7 @@ export const LIST_TOP_ROWS = 3
 export const DESKTOP_WRAP_CHARS = 140
 export const DESKTOP_MAP_ROWS = 3
 export const CHANGES_POLL_MS = 5000
+export const BAND_MOVED_NOTICE = 'bandMovedNoticeShown'
 export const SHOW_IMAGE_TOOL = 'mcp__syafiqkit__show_image'
 export const MAX_GALLERY = 12
 export const MAX_GALLERY_BYTES = 12 * 1024 * 1024

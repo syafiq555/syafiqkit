@@ -10,7 +10,7 @@ import { gitState } from '../handoff/capture.js'
 import { claimAndSend, dismissHandoff, goalOf, resumeText } from '../handoff/store.js'
 import { enhanceRow, startEnhance } from '../prompt/enhance.js'
 import { confirmVerb, openPane, sendVerb } from './actions.js'
-import { isDesktop, pipeStrip } from './ui.js'
+import { isDesktop, pipeStrip, toolStrip } from './ui.js'
 
 export async function bandView($, e, next) {
   if (state.disabled || (e.props && e.props.hasSurvey)) return next(e)
@@ -29,46 +29,28 @@ export async function bandView($, e, next) {
       columnGap: 2,
       paddingX: 1,
       children: [
-        Text({ color: 'cyan', bold: true, children: '▤ syafiqkit' }),
-        Button({ key: 'open-menu', label: 'Menu', ...key('m'), onPress: () => openPane($, 'menu', true) }),
-        Button({
-          key: 'band-enhance',
-          label: 'Enhance',
-          ...key('e'),
-          ...(state.enhance.phase === 'running' ? { dimColor: true } : {}),
-          onPress: () => startEnhance($),
-        }),
-        Button({
-          key: 'open-docs',
-          label: state.reopen ? 'Docs ↩' : 'Docs',
-          ...key('d'),
-          onPress: () => openPane($, 'list', true),
-        }),
-        Button({
-          key: 'open-changes',
-          label: state.changeCount ? 'Changes (' + state.changeCount + ')' : 'Changes',
-          ...key('g'),
-          onPress: () => openChanges($, true),
-        }),
-        ...(state.images.length
-          ? [
-              Button({
-                key: 'open-images',
-                label: 'Images (' + state.images.length + ')',
-                ...key('i'),
-                onPress: () => openImages($, true),
-              }),
-            ]
-          : []),
-        Text({ dimColor: true, children: '│' }),
+        Text({ key: 'mark', color: 'cyan', bold: true, children: '▤' }),
+        toolStrip({ Box, Text, Button }, [
+          {
+            key: 'band-enhance',
+            label: state.enhance.phase === 'running' ? 'enhance…' : 'enhance',
+            ...key('e'),
+            onPress: () => startEnhance($),
+          },
+          { key: 'open-docs', label: state.reopen ? 'docs ↩' : 'docs', ...key('d'), onPress: () => openPane($, 'list', true) },
+          { key: 'open-changes', label: 'changes', count: state.changeCount, ...key('g'), onPress: () => openChanges($, true) },
+          ...(state.images.length
+            ? [{ key: 'open-images', label: 'images', count: state.images.length, ...key('i'), onPress: () => openImages($, true) }]
+            : []),
+        ]),
+        Text({ key: 'divider', dimColor: true, children: '│' }),
         pipeStrip({ Box, Text, Button }, [
           { key: 'band-done', label: 'done', phase: phases.done, ...key('w'), onPress: () => confirmVerb($, 'Done') },
           { key: 'band-commit', label: 'commit', phase: phases.commit, ...key('c'), onPress: () => sendVerb($, 'Commit') },
           { key: 'band-push', label: 'push', phase: phases.push, ...key('p'), onPress: () => confirmVerb($, 'Push') },
+          { key: 'band-ship', label: 'ship', phase: phases.ship, ...key('s'), onPress: () => confirmVerb($, 'Ship') },
         ]),
-        state.saving
-          ? Text({ color: 'cyan', children: 'Summarising…' })
-          : Button({ key: 'band-handoff', label: 'Hand off', ...key('h'), onPress: () => openPane($, 'handoff', true) }),
+        ...(state.saving ? [Text({ key: 'saving', color: 'cyan', children: 'Summarising…' })] : []),
         ...(paneOpen ? [Text({ key: 'keys-paused', dimColor: true, children: 'keys go to the pane' })] : []),
       ],
     }),

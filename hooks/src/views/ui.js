@@ -17,17 +17,14 @@ export function chip(c, key, text, tone) {
 
 export function pipeStrip(c, chips) {
   const tones = PIPE_TONE[state.look?.mode === 'light' ? 'light' : 'dark']
-  return c.Box({
-    key: 'pipe',
-    flexDirection: 'row',
-    flexShrink: 0,
-    columnGap: 0,
-    children: chips.map(({ key, label, phase, hotkey, onPress }) =>
+  const children = []
+  chips.forEach(({ key, label, phase, hotkey, onPress }, at) => {
+    if (at > 0 && !state.desktop) children.push(c.Text({ key: key + '-sep', dimColor: true, children: ' › ' }))
+    children.push(
       c.Box({
         key: key + '-chip',
         flexShrink: 0,
-        paddingX: 1,
-        backgroundColor: tones[phase].bg,
+        ...(state.desktop ? { paddingX: 1, backgroundColor: tones[phase].bg } : {}),
         children: [
           c.Button({
             key,
@@ -39,6 +36,32 @@ export function pipeStrip(c, chips) {
               : { children: [c.Text({ color: tones[phase].fg, children: PIPE_MARK[phase] + ' ' + label })] }),
           }),
         ],
+      }),
+    )
+  })
+  return c.Box({ key: 'pipe', flexDirection: 'row', flexShrink: 0, columnGap: 0, children })
+}
+
+export function toolStrip(c, tools) {
+  return c.Box({
+    key: 'tools',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: 2,
+    children: tools.map(({ key, label, count, hotkey, onPress }) =>
+      c.Button({
+        key,
+        plain: true,
+        ...(hotkey ? { hotkey } : {}),
+        onPress,
+        ...(state.desktop
+          ? { label: count ? label + ' ' + count : label }
+          : {
+              children: [
+                c.Text({ key: key + '-label', dimColor: true, children: label }),
+                ...(count ? [c.Text({ key: key + '-count', children: ' ' + count })] : []),
+              ],
+            }),
       }),
     ),
   })

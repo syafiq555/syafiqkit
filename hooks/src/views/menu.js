@@ -1,7 +1,7 @@
 import { toggleAnswerPictures } from '../answers/pictures.js'
 import { DESKTOP_TONE, VERBS } from '../core/constants.js'
 import { state } from '../core/state.js'
-import { closePane, submitPrompt } from '../docs/reader.js'
+import { submitPrompt } from '../docs/reader.js'
 import { enterChanges } from '../git/controller.js'
 import { claimAndSend } from '../handoff/store.js'
 import { desktopMenuView } from './desktop.js'
@@ -213,7 +213,7 @@ export function handoffView($, c) {
                 label: 'Cancel',
                 hotkey: 'x',
                 ...(isDesktop(c.e) ? { role: 'dismiss' } : {}),
-                onPress: () => (state.handoffFromBand ? closePane($) : goto(state.current ? 'doc' : 'menu')),
+                onPress: () => goto(state.current ? 'doc' : 'menu'),
               }),
             ],
           }),
