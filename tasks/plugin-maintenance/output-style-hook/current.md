@@ -7,7 +7,7 @@ Related:
   - ../external-guidance/current.md (sibling feature — grading outside guidance against local evidence)
   - ../../../hooks/RULESET.md (the injected payload)
   - ../mod/current.md (sibling — the mod now shares `hooks/hooks.json` with this hook; older-client behaviour of the `modules` key is unverified)
-Last updated: 2026-09-29 — doc hygiene only (Last Session stack collapsed to Prior, pass count and withdrawn-hook instruction reconciled)
+Last updated: 2026-10-23: D-prune-hook added (second SessionStart entry pruning stale plugin versions and mod caches)
 -->
 
 # Plugin Maintenance — Output-Style Hook
@@ -41,6 +41,7 @@ A `SessionStart` hook fires once before anything else, which makes it the only h
 ```
 hooks/hooks.json     exec form → cat + ${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md
 hooks/RULESET.md     the injected payload, plain markdown, no frontmatter
+hooks/prune-caches.sh  second SessionStart entry (matcher startup), silent cache pruning (D-prune-hook)
 ```
 
 Auto-discovered by well-known path; neither manifest declares a `hooks` field. Matchers `startup|resume|clear|compact`. **Hard ceiling: 10,000 characters** of hook stdout (`code.claude.com/docs/en/hooks.md`, read 2026-10-08) — over it, Claude gets a file path and a 2,000-char preview, and the session-start banner shows "Output too large". `.githooks/pre-commit` fails a commit whose staged `RULESET.md` is ≥10,000 chars (`wc -m` under a UTF-8 locale). Size history in chars: 5,261 (08-17) → 8,248 (09-15) → 10,521 (09-17, first over) → 13,240 (10-07) → 8,149 (10-08). The same docs page advises "factual statements rather than imperative system instructions", since command-framed injected text can trip prompt-injection defences — not yet acted on. The payload is appended after the cached prefix so it pays full rate once and cache-reads after. Measure with a tokenizer, never `bytes ÷ 4` — this file's prose runs 4.78 bytes/token, so the divisor over-reports by ~20%. The cost recurs per session rather than per read, which is the argument to weigh against any future growth.
@@ -80,6 +81,14 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 **Decision**: Do not build a `UserPromptSubmit` hook for this. Asked directly; user declined, no reason attached, and pushed back on the framing that it was the only candidate — correctly: `PreToolUse`/`PostToolUse` matched on the `Skill` tool were never evaluated anywhere in this task doc or `update-plugin`'s CHANGELOG history, and are arguably the more precise fix for THIS failure specifically (fires exactly when a skill invocation displaces register, not on every turn regardless of relevance). `Stop` was also unexamined but fires after the reply is generated, too late to prevent it.
 **Rejected**: Any per-turn or per-tool-call re-injection hook (`UserPromptSubmit`, and by the same user decision, `PreToolUse`/`PostToolUse` on `Skill`) — the user declined building new hook machinery for this problem, not specifically `UserPromptSubmit` over its alternatives.
 **Consequences**: The carrier stays `SessionStart`-only, so the measured decay (rule read once, unchecked at reply time, worse at longer sessions) remains open and unaddressed by design rather than by oversight. The sixth wording pass (1.311.0, rule 2's register callout) is done and unverified; a seventh on `RULESET.md` is the only remaining lever without new hook machinery, despite six priors not moving the rate. If this is revisited, evaluate `PreToolUse` on `Skill` on its own merits rather than reusing the `UserPromptSubmit` analysis — it is a different mechanism with a different trigger surface, not a synonym for it.
+
+### D-prune-hook: a second SessionStart entry that deletes stale caches
+
+**Status**: built 2026-10-23 (1.407.7), installed locally, not committed
+**Context**: Claude Code marks an old plugin version with `.orphaned_at` but did not delete it: on 2026-10-23 versions orphaned 14 days earlier were still cached, 79 copies and 2.9 GB, each 63 MB because a `directory` marketplace copies the gitignored `tools/remote-cli/node_modules` too. The mod's `doc-pane-cache/typeset` held 1.4 GB of pages from under a week, with nothing pruning it.
+**Decision**: `/bin/sh hooks/prune-caches.sh ${CLAUDE_PLUGIN_ROOT}` on matcher `startup` only, printing nothing. It deletes version folders whose marker is over 7 days old, never the running one and only under `plugins/cache/syafiqkit/syafiqkit`. It also deletes typeset keys, answer previews and `sips` copies untouched for 7 days. It runs for colleagues and has no off-switch; the owner chose both on 2026-10-23.
+**Rejected**: 3 days, because a session left open over a weekend would lose the version its skills and Typst templates load from. Pruning inside the mod, which has no delete call and would add a new host API to what colleagues run. Moving remote-cli's `node_modules` out of the plugin, because with pruning only a handful of copies remain.
+**Consequences**: Unlike the ruleset entry this is a script, so it takes the plugin root as an argument (the variable does not expand inside a script) and calls `/usr/bin/find` and `/bin/rm` by absolute path. A doc page read daily still re-renders weekly, since a cache hit does not touch the file's mtime.
 
 ---
 

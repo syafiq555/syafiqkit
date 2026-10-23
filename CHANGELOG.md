@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.407.7
+
+**syafiqkit no longer fills your disk: old plugin copies and old rendered doc pages are now cleared automatically when a session starts.** On one laptop they had reached 4.3 GB in two weeks: 79 cached plugin versions at 2.9 GB, plus 1.4 GB of doc pages rendered in under a week.
+- Plugin versions Claude Code marked unused more than 7 days ago are deleted. The version you are running, and any from the last 7 days, stay, so a session left open for up to a week keeps working.
+- Rendered doc pages, answer previews and smaller picture copies untouched for 7 days are deleted, and drawn again the next time they are needed.
+- The cleanup prints nothing and only touches syafiqkit's own folders. Update with `claude plugin update syafiqkit@syafiqkit`; the first cleanup runs in your next new session.
+
 ## 1.407.6
 
 **Three wrap-up skills now check before they report: a reviewer's claim before it becomes your question, the doc before the handoff, and production before "nothing to announce".** All three came from one session on 23/10/2026, each caught by the user.
