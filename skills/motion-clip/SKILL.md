@@ -66,6 +66,8 @@ Two scenes carry the number beat. `stat` counts up to a figure with a label and 
 
 `backdrops` (`{ name, from, to, depth: true, dim }`) fill the frame behind everything with a slow push-in; `depth: true` with a map from `$PY depth.py <picture>` slides near things against far ones.
 
+When a device beside captions reads as basic, the engine also has `spotlights`, a browser `cursor`, `tilt`, `motionBlur`, `ambient`, `softText`, full-frame `photos` and a `products` row. 📖 `references/premium-motion.md` before using them: which help a viewer follow the screen and which only decorate.
+
 `screens`, `number`, `stat`, `success`, `taps`, `music`, `voice`, `subtitles`, `backdrops` and `lockup` are all optional; a film without `lockup` ends with no logo, which the brief should mean on purpose. The logo is blended with `multiply`, which suits a logo on white; on a dark page set `logoBlend: 'source-over'` and use a transparent PNG.
 
 Run one stills render straight after copying, to catch a missing file before anything else. The renderer serves the folder over local HTTP (fonts loaded from `file://` are unreliable) and logs any file it could not load. The fourth argument is the output path, which stills ignore, hence the `x`; the times are examples, so take them from your own story's beats, and clear `out/stills` between rounds or old frames mix into the sheet. Set `STORY=<path>` to render a story file other than `story.js`. To watch the film while writing it, serve the clip folder (`python3 -m http.server` in it) and open `film.html?story=story.js&w=1080&h=1920`: in an ordinary browser it plays on a loop, and when the story or a font can't load it says why on the page. Opened straight from disk, brand fonts may not load.

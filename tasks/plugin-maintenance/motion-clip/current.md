@@ -192,6 +192,7 @@ Chosen by the user on 2026-10-23, after watching both clips ("seems like no chan
 | Decision | Rationale |
 |----------|-----------|
 | Original music synthesized in numpy | Nothing to license; Claude can't hear it, so loudness, waveform timing and clipping are checked and the sound itself goes to a human ear |
+| Richer motion lives in the engine as opt-in story fields, not in OpenFilm (2026-10-22, 1.407.5) | Syafiq called the CRP45 training clips "basic" and chose upgrading our engine over reopening OpenFilm. A research pass ranked the moves for training films: spotlight, zoom re-aim, smoothed cursor and springs help viewers follow; tilt and ambient only decorate, so tilt is limited to entry and exit. Every field defaults off and a story using none renders byte-identical (stills compared old vs new). A licensed track goes through `score.py --track` so the voice dip applies to it too |
 | A missing picture draws a "missing" card instead of failing | Lets a story be blocked out before capture; the card is loud on a contact sheet and the renderer logs the 404 |
 | Pictures whose shape differs from `shot` are cropped to fill, with a warning | Product photos arrive in mixed shapes; stretching distorted them silently |
 | Text that would overflow shrinks to fit; text that fits is untouched | A longer hook ran off a vertical frame; the shrink only fires on overflow, so the Autorentic frames stayed byte-identical |

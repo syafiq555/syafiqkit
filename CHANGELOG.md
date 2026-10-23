@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.407.5
+
+**`motion-clip` films can now look produced rather than basic: a spotlight on each step, a real cursor, a 3D entrance, motion blur, photos and a product row, plus a licensed track mixed under the voice.** Every new option is off unless a story turns it on, so existing films render exactly as before (checked frame by frame).
+- **Spotlight** dims the screen except the control a step is about and lifts it slightly, the move with the strongest evidence for helping viewers follow a training video.
+- **Cursor** draws an arrow on a curve that arrives just before a click on browser films; **tilt** swings the phone or browser in and out in 3D, entry and exit only, since a tilted screen can't be read mid-step.
+- **Motion blur**, **ambient** brand gradients and a **soft** blur-to-sharp caption entrance take away the slide-show feel. Motion blur makes a render about four times slower.
+- **Photos** open full-frame from a card with white captions over a dark gradient, and can carry the hook; **products** pops packshots in one by one under the logo.
+- **Licensed tracks**: `score.py --track=music.wav` now lays the sound effects and voice over a downloaded track and dips it under each spoken line, replacing the hand-mixed ffmpeg recipe.
+- The option reference, how to read a spotlight rectangle off a screenshot, and where product and stock photos come from are in `references/premium-motion.md`.
+- No action needed; update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.407.4
 
 **`motion-clip` renders about twice as fast: a 20-second 1080x1920 clip now takes about 1.5 minutes instead of 3.** The renderer splits the frames across several browser pages (half your cores, at most 4) and writes them to the video in order. The output is frame for frame the same as before.
