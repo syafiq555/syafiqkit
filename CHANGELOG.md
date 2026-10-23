@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.407.6
+
+**Three wrap-up skills now check before they report: a reviewer's claim before it becomes your question, the doc before the handoff, and production before "nothing to announce".** All three came from one session on 23/10/2026, each caught by the user.
+- **`done`** checks the code behind each product-reviewer question before asking it. A reviewer's "Not now still gets pushes on older Android" was put to the user unchecked, the user chose a fix, and the code showed the screen never appears there, so the question had to be asked again. **`plan-worklist`** gets the same check before presenting a plan whose verdicts rest on what the code does today.
+- **`continue-session`** fixes a stale Quick Start through a scoped `task-summary`, not by hand, and inside an unfinished `/done` it waits for `/done`'s Steps 3 and 4. A hand edit there let `/done` report its Knowledge and Task docs rows with neither skill invoked; the user asked "i think u didnt run task summary and update-claude-docs ?".
+- **`ship`** scopes the release note to what the session changed on production outside git as well as the commit range. Production push was switched on by an `.env` change while the range held only docs, so the note, CHANGELOG entry and tracker post were all skipped as "no user-facing change".
+
 ## 1.407.5
 
 **`motion-clip` films can now look produced rather than basic: a spotlight on each step, a real cursor, a 3D entrance, motion blur, photos and a product row, plus a licensed track mixed under the voice.** Every new option is off unless a story turns it on, so existing films render exactly as before (checked frame by frame).

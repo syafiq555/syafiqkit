@@ -101,7 +101,7 @@ Reconcile agents against each other and the work. Agents have bounded visibility
 
 Cross-agent findings (agent A's result needs a change in agent B's file) are applied *after* both return, by you or a fresh dispatch with the finding in its brief. Messaging a still-running agent reads as an out-of-brief instruction; a well-built agent refuses it (two did 2026-09-05, and the finding nearly lost while every report read complete).
 
-Questions the product reviewer raises are asked through one `AskUserQuestion` call now, before Step 4, so the task doc records answers rather than open questions. On a brief to finish everything, build the answers first.
+Questions the product reviewer raises are asked through one `AskUserQuestion` call now, before Step 4, so the task doc records answers rather than open questions. On a brief to finish everything, build the answers first. Before asking, open the code each question's premise rests on: a reviewer's "this flow does X" is read from the files it happened to open, and a question built on a false premise gets a real answer to an unreal problem. Measured 2026-10-23: "Not now still gets pushes on older Android" went out unchecked, the user chose a fix, and the permission code showed that screen never appears there, so the question was asked again. **Tell: an option repeats a reviewer's claim about behaviour and you have not opened the file that decides it.**
 
 ## Step 2: Clean up temp code
 
