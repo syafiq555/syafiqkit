@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.408.0
+
+**New `/reclaim-disk` skill: frees space on a developer's Mac without touching your data.** It finds what's using the disk, shows one plan, then clears what you confirm of what rebuilds itself (npm, pnpm, Gradle, Playwright and Flutter build output, Docker build cache and unused images, Xcode leftovers, old installers), and lists databases, uploads and personal files for you to decide on. On its first run it took a laptop from 44 GB free to 146 GB.
+- It never prunes Docker volumes, where local databases live, and leaves Docker running or stopped as it found it.
+- When a web app's temp folder has grown because its scheduled cleanup never runs on a laptop, it runs the app's own cleanup job once instead of deleting files itself.
+- Also fires on "disk is full", "free up space", "clean my mac" and similar. Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.407.7
 
 **syafiqkit no longer fills your disk: old plugin copies and old rendered doc pages are now cleared automatically when a session starts.** On one laptop they had reached 4.3 GB in two weeks: 79 cached plugin versions at 2.9 GB, plus 1.4 GB of doc pages rendered in under a week.

@@ -51,6 +51,7 @@ These skills accept explicit user command:
 | `casual-message` | Write a casual 1:1 message in the sender's own voice: a WhatsApp reply, a colleague DM, "tell X that…". Register is inferred, not asked; no fence, no headers. A document being converted for Chat is `gchat-format` |
 | `continue-session` | Copy-paste prompt that starts a fresh session where this one stopped: task doc path, next goal, uncommitted state |
 | `pull-db` | Transfer MySQL/MariaDB database from remote server to local dev |
+| `reclaim-disk` | Free disk space on a developer's Mac: measure, show one plan, then clear the confirmed caches and build output and run an app's own temp cleanup once; data (Docker volumes, uploads, dumps) is asked item by item |
 | `notes-summary` | Create/update/read a personal session journal outside the repo (`~/.claude/notes/`) for boss/team/career/strategy conversations; powers the `read-notes`/`update-notes` commands |
 | `skill-creator` | Create a new skill: judges whether it should be one, drafts SKILL.md, registers it |
 | `update-plugin` | Capture plugin learnings and patch SKILL.md files after authoring work |
@@ -73,6 +74,7 @@ These skills accept explicit user command:
 | `brainstorming` | Before creative or architectural design work |
 | `judgement` | About to send an unmeasured either/or ("should I fold this in", "is this in scope"), or about to stay silent on a real finding found mid-task |
 | `pull-db` | When session involves remote database work |
+| `reclaim-disk` | Laptop storage is low or full, "free up space", "what's eating my disk", Docker or System Data too large |
 | `hobby-review` | After user reports finishing a book, game, show, or hobby item |
 | `motion-clip` | Asked for a launch clip, promo or demo video, explainer or reel for a product, app, website or brand, or to add music to one, without naming the skill |
 | `function-parameter-limits` | On "too many parameters" or parameter count concerns |
