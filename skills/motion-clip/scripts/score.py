@@ -1,6 +1,9 @@
 """Original music bed and sound effects for a motion clip.
 
-Usage: python3 score.py cues.json out.wav [--sfx-only]
+Usage: python3 score.py cues.json out.wav [--sfx-only] [--track=music.wav]
+
+--track replaces the generated bed with an already cut 48 kHz 16-bit track; the
+sound effects, the voice and the dip under each voice line work as with the bed.
 """
 import json
 import os
@@ -9,10 +12,11 @@ import wave
 
 import numpy as np
 
-SFX_ONLY = '--sfx-only' in sys.argv
-args = [a for a in sys.argv[1:] if a != '--sfx-only']
+TRACK = next((a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('--track=')), None)
+SFX_ONLY = '--sfx-only' in sys.argv or TRACK is not None
+args = [a for a in sys.argv[1:] if a != '--sfx-only' and not a.startswith('--track=')]
 if not args:
-    sys.exit('usage: python3 score.py cues.json [out.wav] [--sfx-only]')
+    sys.exit('usage: python3 score.py cues.json [out.wav] [--sfx-only] [--track=music.wav]')
 with open(args[0]) as fh:
     cues = json.load(fh)
 OUT = args[1] if len(args) > 1 else 'score_raw.wav'
@@ -206,6 +210,19 @@ for w in cues.get('whooshes', []):
     place(w['at'], whoosh(w.get('length', 0.4), w.get('rising', True)), w.get('gain', 0.08), w.get('pan', 0.0))
 for c in cues.get('chimes', []):
     place(c['at'], bell(c['note'], c.get('length', 1.6)), c.get('gain', 0.1), c.get('pan', 0.0))
+
+if TRACK:
+    with wave.open(TRACK) as w:
+        if w.getframerate() != SR or w.getsampwidth() != 2:
+            sys.exit(f'{TRACK} must be 48 kHz 16-bit: cut it with ffmpeg -ar 48000 -ac 2')
+        data = np.frombuffer(w.readframes(w.getnframes()), '<i2').astype(float) / 32768
+        data = data.reshape(-1, w.getnchannels())
+        if data.shape[1] == 1:
+            data = np.repeat(data, 2, axis=1)
+    data = data[:N, :2]
+    tpeak = np.max(np.abs(data)) if len(data) else 0.0
+    if tpeak > 0:
+        mix[: len(data)] += data / tpeak * 0.8
 
 fade = min(int(1.2 * SR), N)
 if fade:

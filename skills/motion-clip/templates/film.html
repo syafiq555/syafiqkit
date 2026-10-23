@@ -14,7 +14,14 @@ const params = new URLSearchParams(location.search);
 const W = +(params.get('w') || 1080), H = +(params.get('h') || 1920);
 const canvas = document.getElementById('c');
 canvas.width = W; canvas.height = H;
-const g = canvas.getContext('2d');
+const main = canvas.getContext('2d');
+let g = main;
+const offscreen = () => {
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  return c;
+};
+const deviceLayer = offscreen(), blurLayer = offscreen(), frameLayer = offscreen();
 
 let STORY, C, L;
 const img = {};
@@ -78,6 +85,11 @@ function start() {
   if (!Array.isArray(STORY.voice) || STORY.voice.some((v) => !v || !Number.isFinite(Number(v.at)) || !String(v.text || '').trim())) {
     throw new Error('STORY.voice must be a list of { at, text } lines, each with a numeric at and some text');
   }
+  STORY.spotlights = STORY.spotlights || [];
+  STORY.photos = STORY.photos || [];
+  STORY.photos.forEach((p, i) => {
+    if (!p || !p.file || !(Number(p.to) > Number(p.from))) throw new Error(`STORY.photos[${i}] needs a file, and numeric from and to with to after from`);
+  });
   STORY.backdrops = STORY.backdrops || [];
   STORY.backdrops.forEach((b, i) => {
     if (!b || !(b.name || b.file) || !Number.isFinite(Number(b.from)) || !Number.isFinite(Number(b.to)) || Number(b.to) <= Number(b.from)) {
@@ -107,6 +119,8 @@ function start() {
     loads.push(load(`backdrop${i}`, file));
     if (b.depth) loads.push(load(`depth${i}`, typeof b.depth === 'string' ? b.depth : file.replace(/\.[^./]+$/, '.depth.png')));
   });
+  STORY.photos.forEach((p, i) => loads.push(load(`photo${i}`, p.file)));
+  if (STORY.products) STORY.products.files.forEach((f, i) => loads.push(load(`product${i}`, f)));
   if (STORY.subtitles) loads.push(loadWords(STORY.subtitles.file || 'assets/voice/words.json'));
   return Promise.all(loads).then(() => { resolveShot(); draw(0); });
 }
@@ -232,20 +246,27 @@ function revealLine(text, x, y, size, fill, t0, t1, t, opts = {}) {
   g.rect(left - size, y - size * 1.05, m.width + size * 2, size * 1.35);
   g.clip();
   const dy = (1 - enter) * size * 1.2 - leave * size * 1.3;
+  const soft = STORY.softText ? Math.max(1 - clamp(enter), leave) : 0;
+  if (soft > 0.01) g.filter = `blur(${(soft * size * 0.14).toFixed(2)}px)`;
+  if (opts.shadow) { g.shadowColor = 'rgba(0,0,0,0.45)'; g.shadowBlur = size * 0.35; g.shadowOffsetY = size * 0.04; }
   g.fillStyle = fill;
   g.fillText(text, x, y + dy);
   g.restore();
 }
 
-function lines(rows, t0, t1, t, size, startY) {
+function lines(rows, t0, t1, t, size, startY, opts = {}) {
   rows.forEach((row, i) => {
     const [text, fill] = Array.isArray(row) ? row : [row, 'ink'];
-    revealLine(text, L.textX, startY + i * size * 1.12, size, color(fill), t0 + i * 0.12, t1 == null ? null : t1 + i * 0.05, t);
+    revealLine(text, opts.x ?? L.textX, startY + i * size * 1.12, size, color(opts.fill ? opts.fill(fill) : fill), t0 + i * 0.12, t1 == null ? null : t1 + i * 0.05, t, opts);
   });
 }
 
 function roundRect(x, y, w, h, r) {
   g.beginPath();
+  roundRectPath(x, y, w, h, r);
+}
+
+function roundRectPath(x, y, w, h, r) {
   g.moveTo(x + r, y);
   g.arcTo(x + w, y, x + w, y + h, r);
   g.arcTo(x + w, y + h, x, y + h, r);
@@ -344,18 +365,122 @@ function camera(t) {
   return c;
 }
 
-function drawCover(picture, x, y, w, h) {
+function coverCrop(picture, w, h) {
   const pw = picture.naturalWidth, ph = picture.naturalHeight;
-  if (Math.abs((pw / ph) / (w / h) - 1) <= 0.01) {
-    g.drawImage(picture, x, y, w, h);
-    return;
-  }
+  if (Math.abs((pw / ph) / (w / h) - 1) <= 0.01) return { sx: 0, sy: 0, k: pw / w, ky: ph / h };
   const scale = Math.max(w / pw, h / ph);
-  const cw = w / scale, ch = h / scale;
-  g.drawImage(picture, (pw - cw) / 2, (ph - ch) / 2, cw, ch, x, y, w, h);
+  return { sx: (pw - w / scale) / 2, sy: (ph - h / scale) / 2, k: 1 / scale, ky: 1 / scale };
+}
+
+function drawCover(picture, x, y, w, h) {
+  const c = coverCrop(picture, w, h);
+  g.drawImage(picture, c.sx, c.sy, w * c.k, h * c.ky, x, y, w, h);
+}
+
+function tiltAt(t) {
+  const tl = STORY.tilt;
+  if (!tl) return { y: 0, x: 0 };
+  const enter = 1 - clamp(spring(t - STORY.device.enter, 90, 17), 0, 1.2);
+  const leave = easeIn((t - STORY.device.leave) / 0.5);
+  const tx = tl.x ?? 0.18;
+  return {
+    y: enter * (tl.enter ?? 0.55) + leave * (tl.leave ?? -0.45),
+    x: enter * tx + leave * tx * 0.6,
+  };
+}
+
+function glProgram(gl, label, vertex, fragment) {
+  const shader = (type, src) => {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(`${label} shader: ${gl.getShaderInfoLog(s)}`);
+    return s;
+  };
+  const program = gl.createProgram();
+  gl.attachShader(program, shader(gl.VERTEX_SHADER, vertex));
+  gl.attachShader(program, shader(gl.FRAGMENT_SHADER, fragment));
+  gl.linkProgram(program);
+  gl.useProgram(program);
+  return program;
+}
+
+function glTexture(gl) {
+  const tx = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tx);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return tx;
+}
+
+let tiltGL = null;
+function tiltRenderer() {
+  if (tiltGL !== null) return tiltGL;
+  const surface = document.createElement('canvas');
+  surface.width = W; surface.height = H;
+  const gl = surface.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: true, alpha: true });
+  if (!gl) return (tiltGL = false);
+  const program = glProgram(gl, 'tilt', `
+    attribute vec2 p; varying vec2 uv;
+    uniform vec2 size, pivot, angle; uniform float dist;
+    void main() {
+      uv = p;
+      vec3 q = vec3(p * size - pivot, 0.0);
+      float cy = cos(angle.x), sy = sin(angle.x), cx = cos(angle.y), sx = sin(angle.y);
+      q = vec3(q.x * cy + q.z * sy, q.y, -q.x * sy + q.z * cy);
+      q = vec3(q.x, q.y * cx - q.z * sx, q.y * sx + q.z * cx);
+      float w = (dist + q.z) / dist;
+      vec2 s = (q.xy / w + pivot) / size;
+      gl_Position = vec4(vec2(s.x * 2.0 - 1.0, 1.0 - s.y * 2.0) * w, 0.0, w);
+    }`, `
+    precision highp float; varying vec2 uv; uniform sampler2D layer;
+    void main() { gl_FragColor = texture2D(layer, uv); }`);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  const n = 24, verts = [];
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const a = i / n, b = j / n, c = (i + 1) / n, d = (j + 1) / n;
+    verts.push(a, b, c, b, a, d, c, b, c, d, a, d);
+  }
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+  const at = gl.getAttribLocation(program, 'p');
+  gl.enableVertexAttribArray(at);
+  gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
+  glTexture(gl);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+  const u = (name) => gl.getUniformLocation(program, name);
+  tiltGL = (source, pivot, angle) => {
+    gl.viewport(0, 0, W, H);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+    gl.uniform2f(u('size'), W, H);
+    gl.uniform2f(u('pivot'), pivot[0], pivot[1]);
+    gl.uniform2f(u('angle'), angle.y, angle.x);
+    gl.uniform1f(u('dist'), Math.max(W, H) * 1.6);
+    gl.drawArrays(gl.TRIANGLES, 0, verts.length / 2);
+    return surface;
+  };
+  return tiltGL;
 }
 
 function drawDevice(t) {
+  const angle = tiltAt(t);
+  const tilted = Math.abs(angle.y) > 0.002 || Math.abs(angle.x) > 0.002;
+  const warp = tilted && tiltRenderer();
+  if (!warp) { drawDeviceFlat(t); return; }
+  const dg = deviceLayer.getContext('2d');
+  dg.setTransform(1, 0, 0, 1, 0, 0);
+  dg.clearRect(0, 0, W, H);
+  const keep = g;
+  g = dg;
+  try { drawDeviceFlat(t); } finally { g = keep; }
+  g.drawImage(warp(deviceLayer, [L.cx, L.cy], angle), 0, 0);
+}
+
+function drawDeviceFlat(t) {
   const enter = smooth(t - STORY.device.enter);
   const leave = easeIn((t - STORY.device.leave) / 0.45);
   if (!STORY.screens.length || enter <= 0 || leave >= 1) return;
@@ -402,6 +527,8 @@ function drawDevice(t) {
     g.globalAlpha = 1;
   }
 
+  spotlight(t, sx, sy + geo.topH, geo.screenW, imgH);
+
   const ok = STORY.success;
   if (ok && t > ok.at && t < ok.until) {
     const p = clamp((t - ok.at) / 0.7);
@@ -416,6 +543,26 @@ function drawDevice(t) {
   const pointer = STORY.frame === 'phone' ? 0.065 : 0.022;
   for (const tap of STORY.taps) {
     if (t < tap.show || t > tap.hide) continue;
+    if (STORY.cursor || tap.cursor) {
+      const travel = Math.max(0.2, tap.at - 0.15 - tap.show);
+      const m = easeInOut((t - tap.show) / travel);
+      const [ax, ay] = tap.from, [bx, by] = tap.to;
+      const kx = (ax + bx) / 2 + (by - ay) * 0.25, ky = (ay + by) / 2 - (bx - ax) * 0.25;
+      const fx = (1 - m) * (1 - m) * ax + 2 * (1 - m) * m * kx + m * m * bx;
+      const fy = (1 - m) * (1 - m) * ay + 2 * (1 - m) * m * ky + m * m * by;
+      const px = sx + fx * geo.screenW, py = sy + geo.topH + fy * imgH;
+      const press = t >= tap.at ? clamp(1 - (t - tap.at) / 0.18) : 0;
+      if (t >= tap.at) {
+        const q = clamp((t - tap.at) / 0.5);
+        g.fillStyle = rgba(C.accent, 0.22 * (1 - q));
+        g.beginPath(); g.arc(px, py, geo.screenW * (0.012 + 0.03 * easeInOut(q)), 0, Math.PI * 2); g.fill();
+      }
+      const fade = Math.min(clamp((t - tap.show) / 0.15), clamp((tap.hide - t) / 0.15));
+      g.globalAlpha = fade;
+      cursorArrow(px, py, geo.screenW * 0.0016 * (STORY.cursorScale ?? 1.3), press);
+      g.globalAlpha = 1;
+      continue;
+    }
     const move = smooth(t - tap.show);
     const fx = lerp(tap.from[0], tap.to[0], move), fy = lerp(tap.from[1], tap.to[1], move);
     const px = sx + fx * geo.screenW, py = sy + geo.topH + fy * imgH;
@@ -434,6 +581,69 @@ function drawDevice(t) {
     }
   }
   g.restore();
+  g.restore();
+}
+
+function spotlightLevel(s, t) {
+  const inFor = Math.max(s.ease ?? 0.4, 1e-3), outFor = 0.25;
+  if (t < s.from || t > s.to + outFor) return 0;
+  return Math.min(easeInOut((t - s.from) / inFor), 1 - easeInOut((t - s.to) / outFor));
+}
+
+function spotlight(t, x, y, w, h) {
+  for (const s of STORY.spotlights) {
+    const a = spotlightLevel(s, t);
+    if (a <= 0) continue;
+    const [fx, fy, fw, fh] = s.rect;
+    const pad = w * 0.012;
+    const rx = x + fx * w - pad, ry = y + fy * h - pad, rw = fw * w + pad * 2, rh = fh * h + pad * 2;
+    const r = Math.min(rw, rh) * 0.18;
+    g.save();
+    g.beginPath();
+    g.rect(x - w, y - h, w * 3, h * 3);
+    roundRectPath(rx, ry, rw, rh, r);
+    g.fillStyle = rgba(C.ink, (s.dim ?? (STORY.frame === 'browser' ? 0.4 : 0.55)) * a);
+    g.fill('evenodd');
+    const picture = img[screenAt(t).slice(-1)[0].screen.name];
+    const lift = 1 + (s.lift ?? 0.05) * a;
+    if (picture) {
+      const cx = rx + rw / 2, cy = ry + rh / 2;
+      g.translate(cx, cy);
+      g.scale(lift, lift);
+      g.shadowColor = rgba(C.ink, 0.35 * a);
+      g.shadowBlur = w * 0.05;
+      g.shadowOffsetY = w * 0.015;
+      const card = () => roundRect(-rw / 2, -rh / 2, rw, rh, r);
+      card();
+      g.fillStyle = C.surface;
+      g.fill();
+      g.shadowColor = 'transparent';
+      g.save();
+      card();
+      g.clip();
+      const c = coverCrop(picture, w, h);
+      g.drawImage(picture, c.sx + (rx - x) * c.k, c.sy + (ry - y) * c.ky, rw * c.k, rh * c.ky, -rw / 2, -rh / 2, rw, rh);
+      g.restore();
+      g.strokeStyle = rgba(C.accent, 0.9 * a);
+      g.lineWidth = w * 0.006;
+      card();
+      g.stroke();
+    }
+    g.restore();
+  }
+}
+
+function cursorArrow(x, y, size, press) {
+  g.save();
+  g.translate(x, y);
+  g.scale(size * (1 - 0.12 * press), size * (1 - 0.12 * press));
+  g.beginPath();
+  g.moveTo(0, 0); g.lineTo(0, 17); g.lineTo(4.2, 13.2); g.lineTo(7.2, 20); g.lineTo(10, 18.8);
+  g.lineTo(7.1, 12.2); g.lineTo(12.6, 12.2); g.closePath();
+  g.shadowColor = 'rgba(0,0,0,0.3)'; g.shadowBlur = 3; g.shadowOffsetY = 1.2;
+  g.fillStyle = '#111111'; g.fill();
+  g.shadowColor = 'transparent';
+  g.lineWidth = 1.3; g.strokeStyle = '#FFFFFF'; g.stroke();
   g.restore();
 }
 
@@ -563,18 +773,9 @@ function depthRenderer() {
     console.warn('WebGL is not available: backdrops draw without depth');
     return (depthGL = false);
   }
-  const shader = (type, src) => {
-    const s = gl.createShader(type);
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(`depth shader: ${gl.getShaderInfoLog(s)}`);
-    return s;
-  };
-  const program = gl.createProgram();
-  gl.attachShader(program, shader(gl.VERTEX_SHADER, `
+  const program = glProgram(gl, 'depth', `
     attribute vec2 p; varying vec2 uv;
-    void main() { uv = vec2(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5); gl_Position = vec4(p, 0.0, 1.0); }`));
-  gl.attachShader(program, shader(gl.FRAGMENT_SHADER, `
+    void main() { uv = vec2(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5); gl_Position = vec4(p, 0.0, 1.0); }`, `
     precision highp float;
     varying vec2 uv;
     uniform sampler2D picture, depth;
@@ -585,9 +786,7 @@ function depthRenderer() {
       vec2 q = base;
       for (int i = 0; i < 8; i++) q = base - offset * (texture2D(depth, q).r - 0.5);
       gl_FragColor = texture2D(picture, clamp(q, 0.001, 0.999));
-    }`));
-  gl.linkProgram(program);
-  gl.useProgram(program);
+    }`);
   const quad = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, quad);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
@@ -598,12 +797,7 @@ function depthRenderer() {
   const texture = (picture, unit) => {
     gl.activeTexture(gl.TEXTURE0 + unit);
     if (!textures.has(picture)) {
-      const tx = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, tx);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const tx = glTexture(gl);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, picture);
       textures.set(picture, tx);
     }
@@ -715,6 +909,121 @@ function subtitles(t) {
   }
 }
 
+function ambient(t) {
+  const a = STORY.ambient;
+  if (!a) return;
+  const alpha = a.alpha ?? 0.9;
+  const blobs = [
+    { c: a.colors?.[0] || 'accentSoft', alpha, r: 0.75, x: 0.15, y: 0.2, sx: 0.07, sy: 0.05, f: 0.11 },
+    { c: a.colors?.[1] || 'highlight', alpha: alpha * 0.28, r: 0.6, x: 0.9, y: 0.85, sx: 0.06, sy: 0.07, f: 0.08 },
+    { c: a.colors?.[2] || 'accent', alpha: alpha * 0.1, r: 0.5, x: 0.85, y: 0.1, sx: 0.05, sy: 0.04, f: 0.13 },
+  ];
+  const m = Math.max(W, H);
+  for (const b of blobs) {
+    const x = W * (b.x + b.sx * Math.sin(t * b.f * Math.PI * 2 / 3)), y = H * (b.y + b.sy * Math.cos(t * b.f * Math.PI * 2 / 4));
+    const grad = g.createRadialGradient(x, y, 0, x, y, m * b.r);
+    grad.addColorStop(0, rgba(color(b.c), b.alpha));
+    grad.addColorStop(1, rgba(color(b.c), 0));
+    g.fillStyle = grad;
+    g.fillRect(0, 0, W, H);
+  }
+}
+
+function photos(t) {
+  STORY.photos.forEach((p, i) => {
+    const from = Number(p.from), to = Number(p.to);
+    if (t < from || t > to + 0.45) return;
+    const picture = img[`photo${i}`];
+    const open = spring(t - from, 120, 22);
+    const close = easeInOut((t - to) / 0.45);
+    const k = clamp(open);
+    if (k * (1 - close) <= 0) return;
+    g.save();
+    const cw = lerp(W * 0.35, W * 1.02, k), ch = lerp(H * 0.25, H * 1.02, k);
+    const ox = (p.origin?.[0] ?? 0.5) * W, oy = (p.origin?.[1] ?? 0.5) * H;
+    const cx = lerp(ox, W / 2, k), cy = lerp(oy, H / 2, k);
+    roundRect(cx - cw / 2, cy - ch / 2, cw, ch, Math.min(W, H) * 0.06 * (1 - k));
+    g.clip();
+    g.globalAlpha = clamp(open * 3) * (1 - close);
+    if (picture) {
+      const prog = (t - from) / (to - from + 0.45);
+      const [z0, z1] = p.zoom || [1.12, 1.0];
+      const z = lerp(z0, z1, easeInOut(prog));
+      const ia = picture.naturalWidth / picture.naturalHeight, fa = W / H;
+      const sw = ia > fa ? picture.naturalHeight * fa : picture.naturalWidth;
+      const sh = ia > fa ? picture.naturalHeight : picture.naturalWidth / fa;
+      const fx = p.focus?.[0] ?? 0.5, fy = p.focus?.[1] ?? 0.5;
+      const vw = sw / z, vh = sh / z;
+      const vx = clamp(fx * picture.naturalWidth - vw / 2 + (prog - 0.5) * (p.drift ?? 0.02) * picture.naturalWidth, 0, picture.naturalWidth - vw);
+      const vy = clamp(fy * picture.naturalHeight - vh / 2, 0, picture.naturalHeight - vh);
+      g.drawImage(picture, vx, vy, vw, vh, 0, 0, W, H);
+    } else placeholder(0, 0, W, H, p.file);
+    if (p.rows) {
+      const grad = g.createLinearGradient(0, H * 0.3, 0, H);
+      grad.addColorStop(0, 'rgba(0,0,0,0)');
+      grad.addColorStop(0.55, `rgba(0,0,0,${(p.scrim ?? 0.75) * 0.7})`);
+      grad.addColorStop(1, `rgba(0,0,0,${p.scrim ?? 0.75})`);
+      g.fillStyle = grad;
+      g.fillRect(0, 0, W, H);
+    }
+    g.restore();
+    if (p.rows) {
+      const size = L.vertical ? W * 0.085 : H * 0.085;
+      const startY = H * (L.vertical ? 0.8 : 0.76);
+      lines(p.rows, from + 0.35, to, t, size, startY, {
+        x: L.vertical ? W / 2 : W * 0.07, align: L.vertical ? 'center' : 'left', shadow: true,
+        maxWidth: W * (L.vertical ? 0.9 : 0.8), fill: (f) => (f === 'accent' ? (p.accent || 'highlight') : '#FFFFFF'),
+      });
+    }
+  });
+}
+
+function products(t) {
+  const pr = STORY.products;
+  if (!pr || t < pr.from || t > pr.to + 0.4) return;
+  const n = pr.files.length;
+  const span = L.vertical ? W * 0.94 : W * 0.86;
+  const cell = span / n;
+  const card = Math.min(cell * 0.88, (L.vertical ? H * 0.16 : H * 0.2));
+  const y = H * (pr.y ?? (L.vertical ? 0.72 : 0.83));
+  const leave = easeIn((t - pr.to) / 0.4);
+  pr.files.forEach((f, i) => {
+    const p = playful(t - pr.from - i * (pr.every ?? 0.09));
+    if (p <= 0) return;
+    const x = W / 2 - span / 2 + cell * (i + 0.5);
+    const s = clamp(p, 0, 1.2) * (1 - leave);
+    g.save();
+    g.translate(x, y + (1 - clamp(p)) * card * 0.6);
+    g.scale(s, s);
+    g.shadowColor = rgba(C.ink, 0.16);
+    g.shadowBlur = card * 0.18;
+    g.shadowOffsetY = card * 0.06;
+    g.fillStyle = C.surface;
+    roundRect(-card / 2, -card / 2, card, card, card * 0.16);
+    g.fill();
+    g.shadowColor = 'transparent';
+    const picture = img[`product${i}`];
+    if (picture) {
+      const pad = card * 0.1, box = card - pad * 2;
+      const r = Math.min(box / picture.naturalWidth, box / picture.naturalHeight);
+      const dw = picture.naturalWidth * r, dh = picture.naturalHeight * r;
+      g.drawImage(picture, -dw / 2, -dh / 2, dw, dh);
+    }
+    g.restore();
+  });
+}
+
+function motionAt(t) {
+  const d = 1 / 60;
+  const a = camera(t), b = camera(t + d);
+  let m = Math.abs(a.z - b.z) * 2 + Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  for (const s of STORY.screens.slice(1)) if (s.via !== 'fade' && t > s.from && t < s.from + 0.6) m += Math.abs(snappy(t + d - s.from) - snappy(t - s.from));
+  m += Math.abs(smooth(t + d - STORY.device.enter) - smooth(t - STORY.device.enter));
+  m += Math.abs(easeIn((t + d - STORY.device.leave) / 0.45) - easeIn((t - STORY.device.leave) / 0.45));
+  for (const p of STORY.photos) if (t > p.from && t < p.from + 0.8) m += Math.abs(spring(t + d - p.from, 120, 22) - spring(t - p.from, 120, 22));
+  return m;
+}
+
 function draftStamp(t) {
   const size = Math.round(Math.min(W, H) * 0.035);
   g.save();
@@ -729,18 +1038,50 @@ function draftStamp(t) {
   g.restore();
 }
 
-function draw(t) {
+function drawFrame(t) {
   g.setTransform(1, 0, 0, 1, 0, 0);
+  g.filter = 'none';
   g.fillStyle = C.page;
   g.fillRect(0, 0, W, H);
+  ambient(t);
   backdrops(t);
   hook(t);
   drawDevice(t);
   captions(t);
+  photos(t);
   numberScene(t);
   statScene(t);
+  products(t);
   lockup(t);
   subtitles(t);
+}
+
+function draw(t) {
+  const mb = STORY.motionBlur;
+  const samples = mb ? (mb.samples ?? 8) : 1;
+  if (samples > 1 && motionAt(t) > (mb.threshold ?? 0.004)) {
+    const shutter = (mb.shutter ?? 0.5) / 30;
+    const fg = frameLayer.getContext('2d'), bg = blurLayer.getContext('2d');
+    bg.setTransform(1, 0, 0, 1, 0, 0);
+    bg.globalAlpha = 1;
+    bg.clearRect(0, 0, W, H);
+    try {
+      for (let k = 0; k < samples; k++) {
+        g = fg;
+        drawFrame(t - shutter / 2 + (shutter * k) / (samples - 1));
+        bg.globalAlpha = 1 / (k + 1);
+        bg.drawImage(frameLayer, 0, 0);
+      }
+    } finally {
+      g = main;
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalAlpha = 1;
+    g.drawImage(blurLayer, 0, 0);
+  } else {
+    g = main;
+    drawFrame(t);
+  }
   if (DRAFT) draftStamp(t);
 }
 
