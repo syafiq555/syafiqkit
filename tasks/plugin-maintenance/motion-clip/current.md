@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🔄 approval gates, local voice, word captions, depth backdrops, then reading-time/first-seconds/store checks and a four-lens review, all shipped in 1.406.17 (pushed 0da7044, 2026-10-21); OpenFilm rework dropped
+Status: 🔄 approval gates, local voice, word captions, depth backdrops, then reading-time/first-seconds/store checks and a four-lens review, all shipped in 1.406.17 (pushed 0da7044, 2026-10-21); OpenFilm rework dropped; HyperFrames trial 2026-10-22: own engine kept, parallel render shipped in 1.407.4 (D-hyperframes-trial)
 Domain: plugin-maintenance / motion-clip skill
 Gotchas (critical; full list in ## Critical Gotchas below):
   - A trigger test only means something in a session started after the skill was written
@@ -17,8 +17,9 @@ Last updated: 2026-10-21
 **Where we are**: `/motion-clip` makes 15 to 30 second promo videos for any product (app, website, physical product, brand) from real pictures, as code, in three formats, with an original music bed and an optional voice-over. Built from one real run (the Autorentic tenant-app launch clip). Every `~/herd/...` folder named in this doc exists only on Syafiq's machine; another reader has the facts recorded here, not the folders. On 2026-10-21 four upgrades were built, verified and shipped in 1.406.17: storyboard and sound-draft approvals, a free local Kokoro voice, captions timed to the spoken words, and full-frame backgrounds (stock or Cloudflare-generated) that move in depth (decisions/media-and-approvals.md). The user dropped the OpenFilm move the same day; our engine is the only path. A second research round the same day added, in the same release: `check` warnings for text on screen too briefly to read, a fast voice and a product first seen after 3 s; App Store and Google Play presets (`PRESET`); a four-lens contact-sheet review (decisions/media-and-approvals.md D-text-store-checks).
 
 **Immediate next actions (in order)**:
-1. The Autorentic re-cut is in `~/herd/autorentic-launch-clips-1406` (Syafiq's machine; the 19/10 version kept in `v1/`, details in its `docs/brief.md`). Its App Store cut is not upload-ready: the captured screens show "RM 1,649.91" and due dates, so recapture with demo data that has neither.
-2. In a new session, run the trigger test ("make a promo video for <product>" without the skill name).
+1. `film.html` and `score.py` carry another session's uncommitted work (spotlights, photos, tilt, cursor, `--track`); leave it to that session.
+2. The Autorentic re-cut is in `~/herd/autorentic-launch-clips-1406` (Syafiq's machine; the 19/10 version kept in `v1/`, details in its `docs/brief.md`). Its App Store cut is not upload-ready: the captured screens show "RM 1,649.91" and due dates, so recapture with demo data that has neither.
+3. In a new session, run the trigger test ("make a promo video for <product>" without the skill name).
 
 **Key facts for cold start**:
 - Files: `skills/motion-clip/` with `SKILL.md`, `scripts/render.mjs`, `scripts/score.py`, `templates/film.html` (engine), `templates/story.js` (starter), `templates/examples/autorentic.story.js`, `references/capture-real-ui.md`.
@@ -43,7 +44,7 @@ Came from a third-party PDF playbook ("the prompt is 10%, the harness is 90%": a
 - `skills/motion-clip/templates/film.html`: the engine. Loads `story.js` (or `?story=`), defaults every optional field and fails fast with a named error on a bad story, springs, masked text reveals that shrink to fit, phone / browser / frameless frames, pictures cropped to fill, camera, layouts per aspect ratio, a "missing" card for uncaptured pictures, `number` and `stat` scenes, `window.cues`. A film with no `screens` runs on hook, stat and lockup alone.
 - `skills/motion-clip/templates/story.js`: starter, a 15-second browser film with placeholder words and system fonts.
 - `skills/motion-clip/templates/examples/autorentic.story.js`: the finished 20-second phone film.
-- `skills/motion-clip/scripts/render.mjs`: serves the folder over HTTP, drives Chromium; modes `stills`, `video` (PNG frames into ffmpeg, H.264 yuv420p CRF 16, tagged BT.709), `cues` and `check` (D-openfilm-borrow); `STORY` env picks the story file, `AUDIO` the sound `check` measures (default `score.wav`), `PRESET` the App Store or Google Play rules.
+- `skills/motion-clip/scripts/render.mjs`: serves the folder over HTTP, drives Chromium; modes `stills`, `video` (PNG frames into ffmpeg, H.264 yuv420p CRF 16, tagged BT.709), `cues` and `check` (D-openfilm-borrow); `STORY` env picks the story file, `AUDIO` the sound `check` measures (default `score.wav`), `PRESET` the App Store or Google Play rules, `WORKERS` the number of pages rendering `video`/`draft` in parallel (D-hyperframes-trial).
 - `skills/motion-clip/scripts/score.py`: numpy music bed plus taps, whooshes, chimes from a cues JSON; `mood` picks `bright` (Fmaj7, Am7, Bbmaj7, C6, the original), `calm` (half-time kick, no clap) or `dark` (Dm7, Bbmaj7, Gm7, A7sus). With `cues.voice`, ducks the whole mix to 0.35 under each line (0.12 s in, 0.3 s out), adds the voice at peak 0.85, renormalises to 0.89; stops if a voice file is missing.
 - `skills/motion-clip/scripts/voice.mjs`: text to `assets/voice/NN.wav` (48 kHz mono s16) for each `cues.voice` line; Kokoro by default when installed, through `kokoro_tts.py`; D-voice-over, D-local-voice-captions.
 - `skills/motion-clip/scripts/words.py`, `depth.py`, `image.mjs`, `setup-local.sh`: word timing, depth maps, Cloudflare images, the local-tools installer (decisions/media-and-approvals.md). `render.mjs` also has `draft` and `board` modes, and `film.html` `backdrops`, `subtitles` and the `?draft=1` stamp.
@@ -162,6 +163,32 @@ Superseded on 2026-10-21 by the user ("Keep own engine, drop OpenFilm"), after t
 
 **Status**: superseded · **Reversible**: yes
 
+### D-hyperframes-trial: keep our engine after a HyperFrames trial, take its parallel render [committed] · 2026-10-22
+
+**Problem**
+HyperFrames (github.com/heygen-com/hyperframes, Apache-2.0, v0.8.185 on npm, HeyGen's own production renderer, read at commit 2ef60f3) has the same core as ours: a page seeked frame by frame in headless Chrome, frames piped to ffmpeg. Unlike OpenFilm it is mature, so the 2026-10-21 "keep own engine" call was re-tested on evidence. What it has around that core: a film is HTML with `data-start`/`data-duration` clips and a paused GSAP timeline on `window.__timelines`; a `check` (133 lint codes plus runtime, layout, contrast and reading-time checks); `snapshot --review` contact sheets; a Studio editor and desktop app; about 450 ready-made blocks and components; 14 WebGL transitions; parallel browser workers; MP4, WebM, ProRes 4444 with alpha, GIF, HLS, GPU encoders; footage frames pre-extracted by ffmpeg and swapped in; Lambda and Cloud Run rendering; Kokoro TTS and Whisper in its CLI; music from the HeyGen catalog (account) or local MusicGen. Its agent skill already runs our loop: three storylines first, check after each edit, contact-sheet review, render only after approval, "show real things from their source".
+
+**Trial (verified)**
+- The Autorentic 9:16 cut rebuilt at `~/herd/hyperframes-trial/autorentic` (Syafiq's machine) as one `index.html` of 207 lines, against our `story.js` of 69. It reuses our screens, Kokoro voice files, `words.json`, and a voice-free numpy bed (loudnorm -16); the bed is ducked to 0.35 under each line with a `data-automation` volume lane.
+- `check`: 2 errors on first run (tap cursor moved with `left`/`top`, fixed with x/y), then it passed. It also caught a real defect, a caption hidden under the zoomed phone at 7.8 s (fixed with a page-coloured caption band above the device, as ours does), and a 1.03 s subtitle under its 1.4 s reading floor. 11 warnings remain because it wants one sub-composition file per scene.
+- Render: 49 s wall for 20 s at 1080x1920 (4 workers, screenshot capture on macOS), against 177 s for our serial `render.mjs` on the same cut (ours also draws WebGL depth backdrops). Two renders were frame-identical (`framemd5`, 600 of 600). Output H.264 High, BT.709 tagged, AAC 195k; integrated -18.9 LUFS against our final -14.5.
+- `render --resolution landscape` on the portrait composition stops with "does not match the aspect ratio of the composition", so 1:1 and 16:9 are separate compositions; ours makes all three from one story.
+- Not ported: depth backdrops, the success tick, word-highlight captions, status-bar icons; camera keyframes approximated (the phone sits differently around 10 s).
+
+**Decision**
+Chosen by the user on 2026-10-23, after watching both clips ("seems like no change"): keep our engine and add parallel rendering. Ours makes three aspect ratios and the store presets from one 69-line story, where HyperFrames would need three compositions and new checks. Still to borrow if a film needs it: footage through frame extraction, and WebM/ProRes/GIF output.
+
+**Rejected**
+- Moving to HyperFrames. Why not: a viewer sees the same clip. Its gains are speed (now taken) and a hand editor, which the user did not choose.
+- Its lint rules as a port. Why not: they check DOM and GSAP authoring; our film is drawn on a canvas.
+
+**Consequences**
+`render.mjs` `video` and `draft` now split frames across `WORKERS` pages of one Chromium. The default is half the cores, at most 4. Pages take interleaved frames and the writer feeds ffmpeg in order, with at most two frames per page waiting. Autorentic 9:16 went from 177 s to 87 s. Five full 4-page and 8-page renders matched the serial render frame for frame (`framemd5`); 8 pages were no faster than 4 (82 s). Peak memory was 881 MB.
+- One early 4-page run differed: one page drew the depth backdrop in a different place (all 40 of its backdrop frames, PSNR down to 18 dB), and later runs never repeated it. The cause is unproven; the likeliest is that WebGL failed on that page and `film.html` fell back to the flat backdrop, whose only signal is a console warning, which extra pages did not report then. So two guards now stop the render: a warning raised by an extra page that the first page did not raise, and any page drawing differently from the first page at probe times every 2 s before capture starts. Both fired in 3 of 3 controls (an injected warning, and a backdrop strength changed on random pages). The probes also cover the last frame. A warning the first page also raises, at any time, does not count.
+- A missing or dead ffmpeg now stops the render with "could not run ffmpeg". The first parallel version hung silently there, because every page returned and the writer waited for a frame that never came (checked both ways: the old code ran until a 60 s alarm). A bad `WORKERS` only stops `video` and `draft`.
+
+**Status**: committed · **Reversible**: yes (`WORKERS=1` gives the serial path)
+
 | Decision | Rationale |
 |----------|-----------|
 | Original music synthesized in numpy | Nothing to license; Claude can't hear it, so loudness, waveform timing and clipping are checked and the sound itself goes to a human ear |
@@ -170,7 +197,7 @@ Superseded on 2026-10-21 by the user ("Keep own engine, drop OpenFilm"), after t
 | Text that would overflow shrinks to fit; text that fits is untouched | A longer hook ran off a vertical frame; the shrink only fires on overflow, so the Autorentic frames stayed byte-identical |
 | `stat` count-up scene beside the `number` merge scene; no citable number means no number beat | The common promo figure ("99.9%", "3x faster") isn't a many-into-one fact |
 | Side-layout camera zoom 60% for `browser` and `none`, 25% for `phone` | Desktop UI text in a widescreen frame was too small at a quarter of the zoom |
-| 30 fps, no motion-blur subframes | 20 s renders in about a minute per format; the playbook's 60 fps with 4 subframes was not needed for UI motion |
+| 30 fps, no motion-blur subframes | 20 s at 1080x1920 renders in about 1.5 minutes per format with parallel pages (3 serial, D-hyperframes-trial); the playbook's 60 fps with 4 subframes was not needed for UI motion |
 
 ---
 
@@ -197,6 +224,7 @@ Superseded on 2026-10-21 by the user ("Keep own engine, drop OpenFilm"), after t
 
 ## Last Session
 
+- 2026-10-22/23: HyperFrames studied (five haiku agents over a clone, a dozen citations re-read) and trialled on the Autorentic 9:16 cut. The user kept our engine and took its parallel render, shipped in 1.407.4 after `/done` review fixed a silent hang on a dead ffmpeg and a warning-guard race (D-hyperframes-trial).
 - Second research round (four haiku research agents, three haiku claim-checkers on the source pages): ranked five improvements, the user chose four and they were built (decisions/media-and-approvals.md#research-round-two, D-text-store-checks).
 - Verified: Autorentic passes every new check and its stills and cues are byte-identical to the previous engine; a deliberately bad story (phone at 5.5 s, a 0.4 s caption, "Best deal: RM 30/mo from March 2027.") fires every new warning; a logo-only story gets the information line; backdrops error under the App Store preset; an 886x1920 App Store encode probes as High 4.0, 30 fps, BT.709; a hidden ffprobe warns rather than passing.
 - `/done` reviews: the product reviewer moved the store rules into the brief step, set the music mux to 256k stereo, made logo-only films informational, measured voice pace without subtitles, and found App Review 2.3.4 (screen captures only). The code reviewers tightened the price and date patterns, skipped captions with no `out`, matched the board's threshold to the preset, and surfaced a missing ffprobe.

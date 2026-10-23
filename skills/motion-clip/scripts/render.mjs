@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { extname, join, dirname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { availableParallelism } from 'node:os';
 
 const die = (msg) => { console.error(msg); process.exit(1); };
 
@@ -29,6 +30,7 @@ const out = outArg ?? { cues: 'cues.json', board: 'out/storyboard.md', draft: `o
 const FPS = +(process.env.FPS || (draft ? 15 : 30));
 const DUR = +(process.env.DUR || 20);
 const FILM = process.env.FILM || 'film.html';
+const WORKERS = +(process.env.WORKERS || Math.max(1, Math.min(4, Math.floor(availableParallelism() / 2))));
 const PRESET = process.env.PRESET || '';
 const APP_STORE_SIZES = ['886x1920', '1920x886', '1080x1920', '1920x1080', '750x1334', '1334x750', '1200x1600', '1600x1200', '900x1200', '1200x900'];
 if (PRESET && !['app-store', 'google-play'].includes(PRESET)) die(`PRESET must be "app-store" or "google-play", got "${PRESET}"`);
@@ -42,6 +44,7 @@ const types = {
 if (!['video', 'draft', 'stills', 'cues', 'check', 'board'].includes(mode)) die(`mode must be "video", "draft", "stills", "cues", "check" or "board", got "${mode}"`);
 if (!Number.isInteger(+fullW) || !Number.isInteger(+fullH) || +fullW <= 0 || +fullH <= 0) die(`width and height must be positive integers, got ${fullW} ${fullH}`);
 if (!(FPS > 0) || !(DUR > 0) || !Number.isFinite(FPS * DUR)) die(`FPS and DUR must be positive numbers, got FPS=${process.env.FPS} DUR=${process.env.DUR}`);
+if ((mode === 'video' || draft) && (!Number.isInteger(WORKERS) || WORKERS < 1)) die(`WORKERS must be a whole number of 1 or more, got ${process.env.WORKERS}`);
 if (mode === 'video' && (+w % 2 || +h % 2)) die(`video needs even dimensions for yuv420p, got ${w}x${h}`);
 const stillTimes = rest.map(Number);
 if (mode === 'stills' && (!stillTimes.length || stillTimes.some(Number.isNaN))) die(`still times must be numbers, got: ${rest.join(' ') || '(none)'}`);
@@ -106,19 +109,28 @@ let browser;
 let ff;
 try {
   browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: +w, height: +h } });
   const pageErrors = [];
   const filmWarnings = [];
-  page.on('pageerror', (e) => { pageErrors.push(e.message); console.error('page error:', e.message); });
-  page.on('console', (m) => { if (m.type() === 'warning' && !m.text().includes('GL Driver Message')) { filmWarnings.push(m.text()); console.error('film:', m.text()); } });
-  page.on('response', (r) => { if (r.status() >= 400) { filmWarnings.push(`${r.status()} ${r.url()}`); console.error(`${r.status()} ${r.url()}`); } });
+  const workerWarnings = [];
   const story = process.env.STORY ? `&story=${encodeURIComponent(process.env.STORY)}` : '';
-  await page.goto(`http://127.0.0.1:${port}/${FILM}?w=${w}&h=${h}${story}${draft ? '&draft=1' : ''}`);
-  let readyTimer;
-  await Promise.race([
-    page.evaluate(() => window.ready),
-    new Promise((_, no) => { readyTimer = setTimeout(() => no(new Error('the film was not ready after 60 s: check the story file and the page errors above')), 60000); }),
-  ]).finally(() => clearTimeout(readyTimer));
+  const openPage = async (first) => {
+    const page = await browser.newPage({ viewport: { width: +w, height: +h } });
+    page.on('pageerror', (e) => { pageErrors.push(e.message); console.error('page error:', e.message); });
+    page.on('console', (m) => {
+      if (m.type() !== 'warning' || m.text().includes('GL Driver Message')) return;
+      if (first) { filmWarnings.push(m.text()); console.error('film:', m.text()); }
+      else if (!filmWarnings.includes(m.text())) workerWarnings.push(m.text());
+    });
+    if (first) page.on('response', (r) => { if (r.status() >= 400) { filmWarnings.push(`${r.status()} ${r.url()}`); console.error(`${r.status()} ${r.url()}`); } });
+    await page.goto(`http://127.0.0.1:${port}/${FILM}?w=${w}&h=${h}${story}${draft ? '&draft=1' : ''}`);
+    let readyTimer;
+    await Promise.race([
+      page.evaluate(() => window.ready),
+      new Promise((_, no) => { readyTimer = setTimeout(() => no(new Error('the film was not ready after 60 s: check the story file and the page errors above')), 60000); }),
+    ]).finally(() => clearTimeout(readyTimer));
+    return page;
+  };
+  const page = await openPage(true);
   const canvas = page.locator('canvas').first();
 
   if (mode === 'cues') {
@@ -320,12 +332,44 @@ try {
     };
     const filmDuration = await page.evaluate(() => window.cues?.duration);
     const frames = Math.round(FPS * (process.env.DUR || !(filmDuration > 0) ? DUR : filmDuration));
-    for (let f = 0; f < frames; f++) {
-      if (ffClosed) throw new Error(await ffFailure());
-      await page.evaluate((t) => window.seek(t), f / FPS);
-      const png = await canvas.screenshot();
-      if (!ff.stdin.write(png)) await Promise.race([new Promise((r) => ff.stdin.once('drain', r)), ffDone]);
+    const pages = [page, ...await Promise.all(Array.from({ length: Math.min(WORKERS, frames) - 1 }, () => openPage(false)))];
+    const frameAt = async (worker, t) => {
+      await worker.evaluate((t) => window.seek(t), t);
+      return worker.locator('canvas').first().screenshot();
+    };
+    if (pages.length > 1) {
+      const probes = [...new Set([...Array.from({ length: Math.ceil(frames / FPS / 2) }, (_, i) => i * 2), (frames - 1) / FPS])];
+      const drawn = await Promise.all(pages.map(async (worker) => {
+        const hashes = [];
+        for (const t of probes) hashes.push(createHash('sha256').update(await frameAt(worker, t)).digest('hex'));
+        return hashes;
+      }));
+      const odd = drawn.findIndex((hashes) => hashes.some((x, j) => x !== drawn[0][j]));
+      if (odd > 0) throw new Error(`render page ${odd + 1} drew ${probes.filter((_, j) => drawn[odd][j] !== drawn[0][j]).join(', ')} s differently from the first page, so its frames would not match: render again, or with WORKERS=1`);
     }
+    const shots = Array.from({ length: frames }, () => { let resolve; const ready = new Promise((r) => { resolve = r; }); return { ready, resolve }; });
+    let written = 0;
+    const waiting = [];
+    const capture = async (worker, k) => {
+      for (let f = k; f < frames; f += pages.length) {
+        while (f >= written + 2 * pages.length) await new Promise((r) => waiting.push(r));
+        if (ffClosed) throw new Error(await ffFailure());
+        const unexplained = workerWarnings.filter((x) => !filmWarnings.includes(x));
+        if (unexplained.length) throw new Error(`a render page warned where the first one did not, so its frames may not match (${[...new Set(unexplained)].join('; ')}): render again, or with WORKERS=1`);
+        shots[f].resolve(await frameAt(worker, f / FPS));
+      }
+    };
+    const write = async () => {
+      for (let f = 0; f < frames; f++) {
+        const png = await shots[f].ready;
+        shots[f] = null;
+        if (ffClosed) throw new Error(await ffFailure());
+        if (!ff.stdin.write(png)) await Promise.race([new Promise((r) => ff.stdin.once('drain', r)), ffDone]);
+        written = f + 1;
+        waiting.splice(0).forEach((r) => r());
+      }
+    };
+    await Promise.all([write(), ...pages.map(capture)]);
     ff.stdin.end();
     const code = await ffDone;
     if (spawnError || code !== 0) throw new Error(spawnError ? await ffFailure() : `ffmpeg exited ${code}`);

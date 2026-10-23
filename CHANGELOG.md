@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.407.4
+
+**`motion-clip` renders about twice as fast: a 20-second 1080x1920 clip now takes about 1.5 minutes instead of 3.** The renderer splits the frames across several browser pages (half your cores, at most 4) and writes them to the video in order. The output is frame for frame the same as before.
+- If the pages ever disagree, the render stops with an error rather than mixing them: it compares what every page draws at a few moments before starting, and stops if a page warns where the first one did not. `WORKERS=1` gives the old one-page render.
+- A missing ffmpeg now stops the render with "could not run ffmpeg" instead of hanging.
+- No action needed; update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.407.3
 
 **Team messages from `casual-message` now check "it works now" claims on the live system and quote what a client or vendor actually said.**
