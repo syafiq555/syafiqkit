@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.415.2
+
+**`gchat-format` now writes plain text when the message is going out by email.** Asked to format a client review email, it has a rule for the case: Outlook shows Chat's `*bold*` and `_italic_` as literal symbols, so headings become plain lines, lists keep `-` or numbers, links stay bare, and a line above the fence says it is plain text for email. The fence, the no-em-dash rule and the shape rules still apply.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.415.1
 
 **A session told to wait for another session now asks that session itself.** When a handoff paste or the user says another session's builder or test run must finish first, `read-summary` has the new session find it with `ListAgents`, tell it what it will touch, and subscribe for one idle notice, instead of ending its turn on "tell me when it has finished". `continue-session`'s `Running:` line now names the live session so the next one can reach it, and the cross-session reference covers waiting as the one case where a peer gates you. Prompted when the user had to say "communicate with the session"; the peer's first reply carried a change that would have broken the waiting session's screenshots.

@@ -171,6 +171,8 @@ After a bold label: replace with `:`. In flowing prose: use a comma, full stop, 
 
 ## Output Format
 
+**When the destination is an email, not Chat, drop the Chat syntax and write plain text.** Outlook and most mail clients show `*bold*` and `_italic_` as literal symbols, so headings become plain lines, lists keep `-` or `1.`, and links stay bare URLs; the fence, the em-dash ban and the shape rules above still apply. Say in one line above the fence that it is plain text for email (2026-10-27: this skill was invoked for a client review email).
+
 Wrap the entire output in a triple-backtick code fence by default, regardless of copy method — this is the default state; only omit it if the user explicitly asks for no fence. A prior version of this skill defaulted to no fence, reasoning that `/copy` reads raw source, but the user reverted that — don't reintroduce it. The fence is your final output container — anything you want to say to the user (caveats, "I trimmed the wide table", offers to reformat) goes above it, and nothing follows the closing backticks. Text after the fence reads as part of the message to paste, because the fenced content often ends on its own `Note:` line and the boundary is invisible to the reader. Label the fence so its extent is explicit ("copy everything inside the fence below, nothing outside it").
 
 Within the fence:
