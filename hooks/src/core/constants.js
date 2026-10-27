@@ -6,9 +6,6 @@ export const MAX_ENTRIES = 60
 export const MAX_CHARS = 90000
 export const POLL_MS = 2000
 export const GIT_TIMEOUT_MS = 15000
-export const HANDOFF_POLL_MS = 4000
-export const MAX_HANDOFF_DEFERRALS = 3
-export const HANDOFF_EXPIRES_MS = 24 * 60 * 60 * 1000
 export const RECENT_COUNT = 5
 export const RECENT_AGE_DAYS = 7
 export const NEAR_LIMIT_SHARE = 0.8
@@ -110,7 +107,6 @@ export const WRAPUP_EDIT_TOOLS = new Set([...EDIT_TOOLS, 'NotebookEdit'])
 export const ITEM = /^\s*[-*]\s+\[( |x|X)\]\s+(.+)$/
 export const FENCE = /^\s*```(\S*)\s*$/
 export const HEADING = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/
-export const RISKY = /\b(ship|push|merge|delete|deploy|drop|reset)\b/i
 export const MERMAID_PACKAGE = '@mermaid-js/mermaid-cli@12.0.0'
 export const MERMAID_TIMEOUT_MS = 240000
 export const MAX_IMAGE_ROWS = 60
@@ -156,8 +152,6 @@ export const VERBS = [
     label: 'Done',
     hint: 'review, tidy, update docs',
     text: 'Use the done skill to wrap up this session.',
-    effect: 'Runs the done skill: reviews the diff, may edit docs and start reviewer agents. It does not commit.',
-    danger: true,
     toast: 'Sent: done',
   },
   { label: 'Read a task doc', hint: 'pick a doc, then act on its open items', go: 'list' },
@@ -170,7 +164,7 @@ export const VERBS = [
     toast: 'Sent: ship',
   },
   { label: 'Shrink a doc', hint: 'condense or split, docs over the limit first', go: 'heavy' },
-  { label: 'Refresh a doc', hint: 'full tidy: restructure, shorten, drop over-strict rules', go: 'refresh', danger: true },
+  { label: 'Refresh a doc', hint: 'full tidy: restructure, shorten, drop over-strict rules', go: 'refresh' },
   {
     label: 'Merge docs',
     hint: 'fold related task docs into one',
@@ -179,7 +173,6 @@ export const VERBS = [
     danger: true,
     toast: 'Sent: merge docs',
   },
-  { label: 'Hand off', hint: 'save where you stopped for the next session', go: 'handoff' },
   { label: 'Changes', hint: 'review diffs, stage, unstage, discard', go: 'changes' },
   { label: 'Images', hint: 'screenshots Claude showed you', go: 'images' },
   {

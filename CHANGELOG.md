@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.414.0
+
+**Hand off is gone from the mod.** The `/sk` menu, the doc reader's toolbar and the Done, Push and Ship confirms no longer offer to save a handoff, and no `↪ Handoff … Resume` row appears above the prompt. The mod no longer makes a haiku call to summarise a session or writes to `~/.claude/handoffs/`; any files left there are no longer read; open one first if you want its text, then delete the folder. To start a fresh session where one stopped, use `/continue-session`, which writes a prompt to paste into the new session.
+
+**Done, Refresh, Shrink, Condense and Split no longer ask first.** They publish nothing, so the confirm page was one click too many: the band's done chip and those buttons now send straight away. The doc rewrites snapshot each file before changing it, but a doc with uncommitted edits has no git copy to fall back on, so commit first if that matters. Commit and push, Push, Ship and Merge docs still show the message and ask, since they publish or delete docs.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.413.0
+
+**`casual-message` drafts now greet people by the name you actually use, and stop where you would.**
+- The greeting takes the name from your own messages or from how you talk about the person ("mad"), not the name your docs file them under ("Ahmad"). When neither shows it, it asks together with the aku/saya question.
+- No closing line you don't write yourself: no "reply by number is fine", no parting emoji. Numbered questions already tell the recipient how to answer.
+
+**`reverse-engineer` catches history the app's list hides, and reads notes and forms properly.**
+- An app's list count is what its default filter shows, usually this year. The skill now checks every receipt's invoice number lands in what was captured, and switches the year with the app's own dropdown. In its first full run this found 150 invoices where the list said 111.
+- It reads a notes field in full before treating it as a copy. In that run, invoice remarks held the only record of how each payment split between two licences.
+- Customer profiles that open as forms are read from the form fields, without saving. When the app has no product list, items are rebuilt from the typed invoice lines.
+- On a repeat visit it opens the saved browser profile itself and only asks you to log in if it finds a login page.
+- It tries every piece of evidence (dates, the client's tick marks, totals that must balance) before handing you anything to sort. In that run a 37-row sheet came down to one question for the client.
+
+**`update-plugin`'s report now opens with the session scan and the four-role table.** Both checks had been written into Steps 1 and 2 and still got skipped (the role table a sixth time), because the report was composed from the Output section, which only asked for the patches. Output now lists three required parts in order, and Steps 1 and 2 point to it instead of restating the rule. The scan also treats a signal passed in the invocation's arguments as one row rather than the whole scope, and counts pushbacks on work that a skill owns even when that skill was never invoked.
+
+**`read-summary` checks the related docs before reporting a bug as new**, as it already did before asking an open question. In this session a stale receipt balance was reported as a finding when the payments doc already recorded it and the decision on it.
+
+**`motion-clip` captions no longer run into the phone in square videos.** In the side-by-side layouts a long caption could be as wide as 60% of the frame, while a square video's phone starts at about 56%, so a two-line caption overlapped the screen. Captions now stop just before the device, measured from its actual width, so square and widescreen both keep a gap.
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+
+## 1.412.0
+
+**New `/reverse-engineer` skill: rebuild what your client does in another web app (their accounting, booking or POS system) inside your own app, without touching their records.**
+- It opens the app in a separate browser window that you log in to yourself, then reads it only through the app's own list and view functions, so nothing is created, sent or submitted. Some of these apps send e-invoices to the tax office on their own.
+- It uses REA (Reverse Engineer Anything) to pull the app's scripts, and a small built-in script to open pages where REA's clicks can't reach.
+- It studies how the client actually works: numbering, backdating, notes typed twice, what their customers receive, and what they still write by hand. In its first run that last question found the main new requirement.
+- Findings go into a task doc that keeps what was seen, what you decided and what is only proposed apart. A second reviewer re-checks every claim and scores readability until it reaches 9/10, before any design starts.
+- Fires on "reverse engineer X", "build the same as the app my client uses" and "utilize REA". Update with `claude plugin update syafiqkit@syafiqkit`.
+
+## 1.411.0
+
+**New `/understanding-guide` skill: turns several long reports, specs or legal drafts into one offline page you can actually read, before you are asked to decide anything.** Each topic is three plain questions (what is true today, does it hold, the right way to get what you want), and the short answers are always visible. Each answer says whether the sources agree, and its proof is one tap away.
+- Every claim behind an answer is checked against its primary source (the regulator's or vendor's own page) and against your own code and live pages, and labelled with what was actually checked. In the run it came from, that check corrected four answers the reports had wrong.
+- Built for slow readers and small working memory, and shaped by reading research: one topic per screen, about 70 characters per line, dark and light modes, a recall question at the start of the next topic, "Later" topics returning first, and an optional Listen button.
+- Each answer shows a second tag for what was actually checked. Questions are numbered like 3.2, so you can ask about one. The end and reference screens have "Back to where I was", and the end screen lists the topics you haven't marked "Got it".
+- A sample topic is shown for your approval before the rest is built. One script takes screenshots of every view at three widths in dark and light, and fails on sideways scroll, lines over 80 characters, page errors or broken search.
+- Questions you ask after reading are answered in the guide itself and the page is rebuilt, so the answer stays where you read. Decisions start only once every topic is marked "Got it".
+- Fires on "help me understand these reports", "I can't read all of this" and "how would you present this to me". Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.410.0
 
 **A calmer line above your prompt: `▤  e: enhance  d: docs  g: changes 3  │  w: ○ done › c: ○ commit › p: ○ push › s: ○ ship`.** The tools are quiet grey words with their key shown, and the wrap-up steps read as one pipeline whose colours tell you how far you have got.

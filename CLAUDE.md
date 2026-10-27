@@ -43,6 +43,8 @@ These skills accept explicit user command:
 | `doc-to-md` | Convert .docx, .pdf or .xlsx into Markdown so each version is a readable git diff |
 | `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw discussion board (now / gated / waiting, GATE cards, PARKED table, decisions strip), verified by screenshot. Charts are `dataviz`; deciding what to build is `plan-worklist` |
 | `motion-clip` | Short designed video for a product or brand (launch clip, promo, explainer) as code: brief, real captured screens, photos and logo in a phone, browser or frameless layout, engine driven by `story.js`, storyboard and sound draft approved before the full render, automatic check (consistency, reading time of text, product on screen by 3 s, loudness) plus a four-lens contact-sheet review, 9:16/1:1/16:9 renders plus App Store and Google Play presets, numpy music bed at -14 LUFS, optional voice-over (free local Kokoro voice) with word-timed captions, full-frame backgrounds (stock or Cloudflare-generated) that move in depth. Test-run recordings are `setup-playwright` |
+| `understanding-guide` | Large text the user must understand (several reports, a spec set, legal drafts, a transcript) → offline question-and-answer page: haiku inventory, topic tags, three questions per topic, every claim checked against its primary source and our own code, sample topic approved before the rest, decisions held until the reader understands |
+| `reverse-engineer` | Rebuild the mechanism of a web app the client already uses (accounting, booking, POS) inside our app: read their live records read-only through REA and a whitelisted DevTools script, learn their habits and what their customers receive, land it in a task doc a sonnet reviewer verifies to 9/10 before design |
 | `user-manual` | END-USER manual: scope from user tasks, Diátaxis shape, screenshots from an E2E capture spec, `.docx`/`.pdf` editions. Distinct from `md-to-pdf`, which converts settled content |
 | `design-handoff` | Brief for someone ELSE to design a screen (external designer, Claude Design, contractor): purpose, audience, business rules, measured failures; layout decisions withheld. Designing it yourself is `uiux` |
 | `taste` | Build, redesign, restyle, polish or improve a public-facing page (any verb, even when `uiux` was named) with real art direction: deals 3 of 20 researched directions, finds real pictures in open collections, builds, then gates on a real-browser inspector and a scored look-and-fix loop. Vendored from tasteskill v2 (MIT); `skills/taste/SOURCE.md` records the commit and changes. Needs Node 22+ and Chrome |
@@ -77,6 +79,8 @@ These skills accept explicit user command:
 | `reclaim-disk` | Laptop storage is low or full, "free up space", "what's eating my disk", Docker or System Data too large |
 | `hobby-review` | After user reports finishing a book, game, show, or hobby item |
 | `motion-clip` | Asked for a launch clip, promo or demo video, explainer or reel for a product, app, website or brand, or to add music to one, without naming the skill |
+| `understanding-guide` | The user faces more text than one sitting holds and says they can't read it all, are a slow reader, or asks how it should be presented to them |
+| `reverse-engineer` | The user wants "the same as <app> my client/friend uses" built in our app, or says "reverse engineer" or "utilize REA" about a web app someone is logged into |
 | `function-parameter-limits` | On "too many parameters" or parameter count concerns |
 | `merge-task-docs` | Find related task docs in a domain, classify by subsystem boundary (not keyword), merge into fewer docs, delete sources, reconcile all back-references |
 | `sweep-doc-overlaps` | Fleet-wide scan across ALL `tasks/` domains for CROSS-domain merge candidates a single-domain call would miss; hands confirmed groups to `merge-task-docs` |
@@ -215,7 +219,7 @@ Subagents **can** spawn subagents, three layers deep. The no-redelegation rule i
 
 ### The Mod
 
-`hooks/src/mod.js` is a Claude Code mod: the band above the prompt, the `/sk` menu, the `/task-docs` reader, the `/changes` source-control view, the image gallery, session handoffs and pictures under Claude's terminal answers. Its rules, host-API traps, permissions and debugging steps (`~/.claude/doc-pane-cache/mod.log`) live in `hooks/CLAUDE.md`. Read it before planning, editing or debugging the mod, including from a task doc or a log; its automatic load on reading a `hooks/` file is not yet verified.
+`hooks/src/mod.js` is a Claude Code mod: the band above the prompt, the `/sk` menu, the `/task-docs` reader, the `/changes` source-control view, the image gallery and pictures under Claude's terminal answers. Its rules, host-API traps, permissions and debugging steps (`~/.claude/doc-pane-cache/mod.log`) live in `hooks/CLAUDE.md`. Read it before planning, editing or debugging the mod, including from a task doc or a log; its automatic load on reading a `hooks/` file is not yet verified.
 
 📖 `hooks/CLAUDE.md`
 

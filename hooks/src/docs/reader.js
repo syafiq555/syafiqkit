@@ -74,7 +74,6 @@ export function resetPane() {
   state.view = 'list'
   state.selected = []
   state.confirm = null
-  state.alsoHandoff = false
   state.diffGen += 1
   state.allScroll = { view: '', offset: 0, body: state.allScroll.body }
 }
@@ -90,17 +89,14 @@ export async function closePane($) {
   redrawBandAfterClose($)
 }
 
-export async function submitPrompt($, text, note, onFail, handoffAfter) {
+export async function submitPrompt($, text, note) {
   await closePane($)
   hostUiToast($, note)
   noteSubmit($, text)
   const request = hostPromptSubmit($, { text })
-  if (handoffAfter) state.pendingHandoff = handoffAfter
-  request.catch(async (error) => {
+  request.catch((error) => {
     hostUiToast($, 'Send failed: ' + messageOf(error).slice(0, 100))
     noteSubmitFailed($, text)
-    if (handoffAfter) state.pendingHandoff = null
-    if (onFail) await onFail()
   })
 }
 

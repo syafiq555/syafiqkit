@@ -23,15 +23,6 @@ const BAND = {
   props: {},
 } as const
 
-const HANDOFF_VERB = 'vb8'
-
-const openHandoffFromMenu = async ($: any) => {
-  await $.command.run({ command: 'sk', args: '' })
-  const menu = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await menu.press({ key: HANDOFF_VERB })
-  await menu.unmount()
-}
-
 const stubSession = (on: any, sent: string[], opened: string[], names: string[] = [], skip: string[] = []) => {
   on('session.start', () => ({ cwd: '/work' }))
   on('command.register', (_$: any, e: any) => {
@@ -59,28 +50,7 @@ const stubSession = (on: any, sent: string[], opened: string[], names: string[] 
 
 const stubRender = (on: any) => on('ui.render', () => ({ type: 'Text', props: {}, children: ['drawn by Claude Code'] }))
 
-const stubSummary = (on: any, text: string) =>
-  on('model.complete', () => ({
-    value: {
-      isAnswered: true,
-      text,
-      usage: { input_tokens: 10, output_tokens: 5, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
-    },
-  }))
-
-const stubHandoffIo = (on: any, writes: any[], messages: any[]) => {
-  on('session.messages', () => ({ value: messages }))
-  on('process.run', () => ({ value: { exitCode: 0, stdout: 'main\n', stderr: '' } }))
-  on('fs.write', (_$: any, e: any) => {
-    if (!String(e.path).endsWith('mod.log')) writes.push(e)
-    return { value: undefined }
-  })
-}
-
 const stubTree = (on: any, tree: Record<string, any[]>) => on('fs.list', (_$: any, e: any) => ({ value: tree[e.path] ?? [] }))
-
-const writtenValue = (write: any, accepts: (value: string) => boolean) =>
-  Object.values(write).find((value: any) => typeof value === 'string' && accepts(value)) as string
 
 test('session start registers the menu and docs commands', async ($, on) => {
   const names: string[] = []
@@ -105,12 +75,11 @@ test('the menu shows the version read from plugin.json at session start', async 
   await ui.unmount()
 })
 
-test('the band offers quiet tools and the wrap-up chips, with no Menu or Hand off button', async ($, on) => {
+test('the band offers quiet tools and the wrap-up chips, with no Menu button', async ($, on) => {
   stubSession(on, [], [])
   stubRender(on)
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
   expect(await ui.find({ key: 'open-menu' })).toBeUndefined()
-  expect(await ui.find({ key: 'band-handoff' })).toBeUndefined()
   const keys = { 'band-enhance': 'e', 'open-docs': 'd', 'open-changes': 'g', 'band-done': 'w', 'band-commit': 'c', 'band-push': 'p', 'band-ship': 's' }
   for (const [key, hotkey] of Object.entries(keys)) {
     const button = await ui.find({ key })
@@ -211,7 +180,7 @@ test('closing the pane brings the band back: a redraw is asked for once the pane
   }
 })
 
-test('the band sends commit in one press and wrap-up only after the confirm', async ($, on) => {
+test('the band sends commit and done in one press, and push only after the confirm', async ($, on) => {
   const sent: string[] = []
   const opened: string[] = []
   stubSession(on, sent, opened)
@@ -220,11 +189,14 @@ test('the band sends commit in one press and wrap-up only after the confirm', as
   await ui.press({ key: 'band-commit' })
   expect(sent).toEqual(['Use the commit skill to commit the staged changes.'])
   await ui.press({ key: 'band-done' })
-  expect(sent.length).toBe(1)
+  expect(sent[1]).toBe('Use the done skill to wrap up this session.')
+  expect(opened).toEqual([])
+  await ui.press({ key: 'band-push' })
+  expect(sent.length).toBe(2)
   expect(opened).toEqual(['doc-pane'])
   const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await pane.press({ key: 'confirm-send' })
-  expect(sent[1]).toBe('Use the done skill to wrap up this session.')
+  expect(sent[2]).toContain('Push this branch')
   await pane.unmount()
   await ui.unmount()
 })
@@ -526,7 +498,7 @@ test('the moved-buttons notice shows once, then never again', async ($, on) => {
   })
   await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
   await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-  expect(toasts.filter((text) => text.includes('/sk'))).toEqual(['Menu and Hand off moved off the line: type /sk'])
+  expect(toasts.filter((text) => text.includes('/sk'))).toEqual(['The menu moved off the line: type /sk'])
 })
 
 test('a commit-and-push skill call leaves the ship chip alone', async ($, on) => {
@@ -541,148 +513,6 @@ test('a commit-and-push skill call leaves the ship chip alone', async ($, on) =>
   expect(await chipText(running, /^◌ push$/)).toBe(1)
   expect(await chipText(running, /^○ ship$/)).toBe(1)
   await running.unmount()
-})
-
-test('the wrap-up confirm can also hand off once the wrap-up turn finishes', async ($, on) => {
-  const sent: string[] = []
-  const writes: any[] = []
-  stubSession(on, sent, [])
-  stubHandoffIo(on, writes, [{ role: 'user', text: 'finish the pane', toolUses: [] }])
-  stubSummary(on, 'Goal\nFinish the pane')
-  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
-  on('turn.complete', () => ({ text: '' }))
-  stubRender(on)
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await band.press({ key: 'band-done' })
-  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await pane.press({ key: 'also-handoff' })
-  await pane.press({ key: 'confirm-send' })
-  expect(sent).toEqual(['Use the done skill to wrap up this session.'])
-  expect(writes.length).toBe(0)
-  await $.turn.start({ turnId: 't1' } as any)
-  await $.turn.complete({ turnId: 't1', answer: 'done', durationMs: 5, isAborted: false, usage: null } as any)
-  for (let waited = 0; waited < 50 && writes.length === 0; waited += 1) await new Promise((resolve) => setTimeout(resolve, 10))
-  expect(writes.length).toBe(1)
-  await pane.unmount()
-  await band.unmount()
-})
-
-test('a message typed in the wrap-up confirm survives Enter and reaches the saved handoff', async ($, on) => {
-  const writes: any[] = []
-  stubSession(on, [], [])
-  stubHandoffIo(on, writes, [{ role: 'user', text: 'finish the pane', toolUses: [] }])
-  stubSummary(on, 'Goal\nFinish the pane')
-  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
-  on('turn.complete', () => ({ text: '' }))
-  stubRender(on)
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await band.press({ key: 'band-done' })
-  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await pane.press({ key: 'also-handoff' })
-  await pane.input({ key: 'handoff-message', text: 'review the band first' })
-  await pane.input({ key: 'handoff-message', text: '' })
-  await pane.press({ key: 'confirm-send' })
-  await $.turn.start({ turnId: 't1' } as any)
-  await $.turn.complete({ turnId: 't1', answer: 'done', durationMs: 5, isAborted: false, usage: null } as any)
-  for (let waited = 0; waited < 50 && writes.length === 0; waited += 1) await new Promise((resolve) => setTimeout(resolve, 10))
-  const saved = JSON.parse(writtenValue(writes[0], (value) => value.startsWith('{')))
-  expect(saved.next).toBe('review the band first')
-  await pane.unmount()
-  await band.unmount()
-})
-
-test('a wrap-up turn that ends on a question waits: the handoff saves at the turn that finishes', async ($, on) => {
-  const writes: any[] = []
-  stubSession(on, [], [])
-  stubHandoffIo(on, writes, [{ role: 'user', text: 'finish the pane', toolUses: [] }])
-  stubSummary(on, 'Goal\nFinish the pane')
-  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
-  on('turn.complete', () => ({ text: '' }))
-  stubRender(on)
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await band.press({ key: 'band-done' })
-  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await pane.press({ key: 'also-handoff' })
-  await pane.press({ key: 'confirm-send' })
-  await $.turn.start({ turnId: 't1' } as any)
-  await $.turn.complete({ turnId: 't1', answer: 'Which one do you want?', durationMs: 5, isAborted: false, usage: null } as any)
-  await new Promise((resolve) => setTimeout(resolve, 100))
-  expect(writes.length).toBe(0)
-  await $.turn.start({ turnId: 't2' } as any)
-  await $.turn.complete({ turnId: 't2', answer: 'All done', durationMs: 5, isAborted: false, usage: null } as any)
-  for (let waited = 0; waited < 50 && writes.length === 0; waited += 1) await new Promise((resolve) => setTimeout(resolve, 10))
-  expect(writes.length).toBe(1)
-  await pane.unmount()
-  await band.unmount()
-})
-
-test('an Esc-aborted wrap-up turn saves the handoff even when it ends on a question', async ($, on) => {
-  const writes: any[] = []
-  stubSession(on, [], [])
-  stubHandoffIo(on, writes, [{ role: 'user', text: 'x', toolUses: [] }])
-  stubSummary(on, 'Goal\nFinish the pane')
-  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
-  on('turn.complete', () => ({ text: '' }))
-  stubRender(on)
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await band.press({ key: 'band-done' })
-  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await pane.press({ key: 'also-handoff' })
-  await pane.press({ key: 'confirm-send' })
-  await $.turn.start({ turnId: 't1' } as any)
-  await $.turn.complete({ turnId: 't1', answer: 'Which one?', durationMs: 5, isAborted: true, usage: null } as any)
-  for (let waited = 0; waited < 50 && writes.length === 0; waited += 1) await new Promise((resolve) => setTimeout(resolve, 10))
-  expect(writes.length).toBe(1)
-  await pane.unmount()
-  await band.unmount()
-})
-
-test('the band hands off the session and writes the summary, files and git state', async ($, on) => {
-  const writes: any[] = []
-  stubSession(on, [], [])
-  stubHandoffIo(on, writes, [
-    { role: 'user', text: 'build the pane', toolUses: [] },
-    { role: 'assistant', text: 'Built it', toolUses: [{ tool_use_id: 't1', tool: 'Edit', input: { file_path: '/work/a.js' } }] },
-  ])
-  stubSummary(on, 'Goal\nBuild the pane')
-  stubRender(on)
-  const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await openHandoffFromMenu($)
-  expect(writes.length).toBe(0)
-  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  expect(await pane.find({ key: 'handoff-next' })).toBeDefined()
-  await pane.input({ key: 'handoff-next', text: '  review the band first ' })
-  expect(writes.length).toBe(1)
-  const saved = JSON.parse(writtenValue(writes[0], (value) => value.startsWith('{')))
-  expect(saved.summary).toBe('Goal\nBuild the pane')
-  expect(saved.how).toBe('summary')
-  expect(saved.files).toEqual(['/work/a.js'])
-  expect(saved.branch).toBe('main')
-  expect(saved.next).toBe('review the band first')
-  await pane.unmount()
-  await ui.unmount()
-})
-
-test('a pending wrap-up handoff is dropped by /clear, so it never summarises the new conversation', async ($, on) => {
-  const writes: any[] = []
-  stubSession(on, [], [])
-  stubHandoffIo(on, writes, [{ role: 'user', text: 'finish the pane', toolUses: [] }])
-  on('turn.start', (_$: any, e: any) => ({ turnId: e.turnId }))
-  on('turn.complete', () => ({ text: '' }))
-  on('classic.SessionStart', () => ({}))
-  stubRender(on)
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await band.press({ key: 'band-done' })
-  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await pane.press({ key: 'also-handoff' })
-  await pane.press({ key: 'confirm-send' })
-  await pane.unmount()
-  await band.unmount()
-  await $.classic.SessionStart({ source: 'clear' })
-  await $.turn.start({ turnId: 't2' } as any)
-  await $.turn.complete({ turnId: 't2', answer: 'hi', durationMs: 5, isAborted: false, usage: null } as any)
-  await new Promise((resolve) => setTimeout(resolve, 100))
-  expect(writes.length).toBe(0)
 })
 
 test('after sending items the docs button returns to that doc, not the list', async ($, on) => {
@@ -811,92 +641,6 @@ test('SYAFIQKIT_MOD=0 turns the mod off: no commands and no band', async ($, on)
   await ui.unmount()
 })
 
-test('a handoff saved in this session is offered again after /clear, not before', async ($, on) => {
-  const writes: any[] = []
-  stubSession(on, [], [], [], ['fs.list'])
-  const written = () => writtenValue(writes[0], (value) => value.startsWith('{'))
-  const pathOf = () => writtenValue(writes[0], (value) => value.endsWith('.json'))
-  stubHandoffIo(on, writes, [{ role: 'user', text: 'finish the pane', toolUses: [] }])
-  stubSummary(on, 'Goal\nFinish the pane')
-  on('fs.list', () => ({
-    value: writes.length ? [{ name: pathOf().split('/').pop(), kind: 'file', size: 1, mtimeMs: 999_500, isLink: false }] : [],
-  }))
-  on('fs.read', (_$: any, e: any) => ({ value: e.path.endsWith('.state') ? '' : written() }))
-  on('classic.SessionStart', () => ({}))
-  stubRender(on)
-  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await openHandoffFromMenu($)
-  const form = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await form.press({ key: 'handoff-save' })
-  expect(writes.length).toBe(1)
-  await form.unmount()
-  await band.unmount()
-  await $.classic.SessionStart({ source: 'startup' })
-  const same = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  expect(await same.find({ key: 'resume' })).toBeUndefined()
-  await same.unmount()
-
-  await $.classic.SessionStart({ source: 'clear' })
-  const cleared = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  expect(await cleared.find({ key: 'resume' })).toBeDefined()
-  await cleared.unmount()
-})
-
-test('resuming a handoff always starts with read-summary, even with no task doc', async ($, on) => {
-  const sent: string[] = []
-  stubSession(on, sent, [], [], ['fs.list'])
-  const record = {
-    id: '999000-abc',
-    createdAt: 999_000,
-    cwd: '/work',
-    summary: 'Goal\nBuild the pane\nDone\n- wrote it\nNext\nTry it',
-    how: 'summary',
-    next: '',
-    selected: [],
-    taskDocPath: '',
-    taskDocs: [],
-    files: [],
-    branch: 'main',
-    sha: 'abc1234',
-    uncommitted: 2,
-  }
-  on('fs.list', () => ({ value: [{ name: '999000-abc.json', kind: 'file', size: 400, mtimeMs: 999_000, isLink: false }] }))
-  const marks: Record<string, string> = {}
-  on('fs.write', (_$: any, e: any) => {
-    marks[e.path] = e.text
-    return { value: undefined }
-  })
-  on('fs.read', (_$: any, e: any) => ({ value: e.path.endsWith('.state') ? marks[e.path] ?? '' : JSON.stringify(record) }))
-  on('process.run', () => ({ value: { exitCode: 0, stdout: '', stderr: '' } }))
-  stubRender(on)
-  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await band.press({ key: 'resume' })
-  expect(sent.length).toBe(1)
-  expect(sent[0].split('\n')[0]).toBe(
-    'Before anything else, run /syafiqkit:read-summary on the Goal below (the read-summary skill; it finds the task docs by content).',
-  )
-  expect(sent[0]).toContain('2 files uncommitted at abc1234 on main')
-  await band.unmount()
-})
-
-test('a handoff another session already claimed is not offered', async ($, on) => {
-  stubSession(on, [], [], [], ['fs.list'])
-  const record = { id: '999000-abc', createdAt: 999_000, cwd: '/work', summary: 'Goal\nBuild the pane', how: 'summary', next: '' }
-  on('fs.list', () => ({ value: [{ name: '999000-abc.json', kind: 'file', size: 400, mtimeMs: 999_000, isLink: false }] }))
-  on('fs.read', (_$: any, e: any) => ({ value: e.path.endsWith('.state') ? 'claimed:other' : JSON.stringify(record) }))
-  on('process.run', () => ({ value: { exitCode: 0, stdout: '', stderr: '' } }))
-  stubRender(on)
-  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await expect(band.press({ key: 'resume' })).rejects.toThrow()
-  await band.unmount()
-})
-
 test('the reader folds a doc\'s decisions in on demand, and the list shows only current.md', async ($, on) => {
   const reads: string[] = []
   stubSession(on, [], [], [], ['fs.list'])
@@ -984,7 +728,6 @@ test('a short task doc with a decisions file over 40 KB is listed for shrinking,
   await ui.press({ key: 'vb5' })
   expect(await ui.find({ key: 'y0b' })).toBeDefined()
   await ui.press({ key: 'y0b' })
-  await ui.press({ key: 'confirm-send' })
   expect(sent.length).toBe(1)
   expect(sent[0]).toContain('decisions/requirements.md')
   expect(sent[0]).not.toContain('small.md')
@@ -993,13 +736,11 @@ test('a short task doc with a decisions file over 40 KB is listed for shrinking,
   await ui.unmount()
 })
 
-test('a decisions page offers Split, which asks first and names that one file', async ($, on) => {
+test('a decisions page offers Split, which sends in one press and names that one file', async ($, on) => {
   const sent: string[] = []
   const ui = await openBigDecision($, on, sent)
   expect(await ui.find({ key: 'dec-split' })).toBeDefined()
   await ui.press({ key: 'dec-split' })
-  expect(sent.length).toBe(0)
-  await ui.press({ key: 'confirm-send' })
   expect(sent.length).toBe(1)
   expect(sent[0]).toContain('split decisions/plan.md')
   expect(sent[0]).toContain('Use the haiku skill')
@@ -1008,14 +749,11 @@ test('a decisions page offers Split, which asks first and names that one file', 
   await ui.unmount()
 })
 
-test('cancelling Split returns to the decisions page, and sending it brings the doc back on the next Docs press', async ($, on) => {
+test('sending Split brings the doc back on the next Docs press', async ($, on) => {
   const sent: string[] = []
   const ui = await openBigDecision($, on, sent)
   await ui.press({ key: 'dec-split' })
-  await ui.press({ key: 'confirm-cancel' })
-  expect(await ui.find({ key: 'dec-split' })).toBeDefined()
-  await ui.press({ key: 'dec-split' })
-  await ui.press({ key: 'confirm-send' })
+  expect(sent.length).toBe(1)
   await ui.unmount()
   await $.command.run({ command: 'task-docs', args: '' })
   const again = await $.ui.mount({ ...PANE, surface: 'terminal' })
@@ -1078,12 +816,10 @@ test('Copy takes the file as written, not the reader\'s reshaped text, and a ref
   await ui.unmount()
 })
 
-test('a decisions page offers Condense, which asks first and condenses that one file on haiku', async ($, on) => {
+test('a decisions page offers Condense, which sends in one press and condenses that one file on haiku', async ($, on) => {
   const sent: string[] = []
   const ui = await openBigDecision($, on, sent)
   await ui.press({ key: 'dec-condense' })
-  expect(sent.length).toBe(0)
-  await ui.press({ key: 'confirm-send' })
   expect(sent.length).toBe(1)
   expect(sent[0]).toContain('condense decisions/plan.md')
   expect(sent[0]).toContain('Use the haiku skill')
@@ -1256,79 +992,6 @@ test('a safe menu verb sends its prompt and a risky one asks first', async ($, o
   await again.press({ key: 'confirm-send' })
   expect(sent[1]).toBe('Use the commit skill to commit the staged changes, and push.')
   await again.unmount()
-})
-
-test('a handoff note reaches the summary prompt, and the record names the session it came from', async ($, on) => {
-  const writes: any[] = []
-  const prompts: string[] = []
-  stubSession(on, [], [])
-  stubHandoffIo(on, writes, [
-    { role: 'user', text: 'fix the billing groups', toolUses: [] },
-    { role: 'assistant', text: 'Fixed', toolUses: [] },
-  ])
-  on('model.complete', (_$: any, e: any) => {
-    prompts.push(e.prompt)
-    return {
-      value: {
-        isAnswered: true,
-        text: 'Goal\nRefresh the uiux skill',
-        usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
-      },
-    }
-  })
-  on('session.id', () => ({ value: 'sess-billing' }))
-  stubRender(on)
-  const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  await openHandoffFromMenu($)
-  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await pane.input({ key: 'handoff-next', text: 'refresh the uiux skill' })
-  expect(prompts[0]).toContain('"refresh the uiux skill"')
-  const saved = JSON.parse(writtenValue(writes[0], (value) => value.startsWith('{')))
-  expect(saved.sessionId).toBe('sess-billing')
-  expect(saved.sessionGoal).toBe('fix the billing groups')
-  await pane.unmount()
-  await ui.unmount()
-})
-
-test('resuming a handoff with a note leads with the note and shows which session saved it', async ($, on) => {
-  const sent: string[] = []
-  stubSession(on, sent, [], [], ['fs.list', 'fs.exists'])
-  const record = {
-    id: '999000-abc',
-    createdAt: 999_000,
-    cwd: '/work',
-    sessionGoal: 'fix the billing groups',
-    summary: 'Goal\nRefresh the uiux skill',
-    how: 'summary',
-    next: 'refresh the uiux skill',
-    selected: [],
-    taskDocPath: '/work/tasks/billing/current.md',
-    taskDocs: ['/work/tasks/billing/current.md'],
-    files: [],
-    branch: 'main',
-    sha: 'abc1234',
-    uncommitted: 0,
-  }
-  on('fs.exists', () => ({ value: true }))
-  on('fs.list', () => ({ value: [{ name: '999000-abc.json', kind: 'file', size: 400, mtimeMs: 999_000, isLink: false }] }))
-  const marks: Record<string, string> = {}
-  on('fs.write', (_$: any, e: any) => {
-    marks[e.path] = e.text
-    return { value: undefined }
-  })
-  on('fs.read', (_$: any, e: any) => ({ value: e.path.endsWith('.state') ? marks[e.path] ?? '' : JSON.stringify(record) }))
-  on('process.run', () => ({ value: { exitCode: 0, stdout: '', stderr: '' } }))
-  stubRender(on)
-  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-
-  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  expect(await band.find({ type: 'Text', text: /from: fix the billing groups/ })).toBeDefined()
-  await band.press({ key: 'resume' })
-  const lines = sent[0].split('\n')
-  expect(lines[0]).toBe('My task for this session: refresh the uiux skill')
-  expect(lines[1]).toContain('read-summary on this topic: refresh the uiux skill')
-  expect(sent[0]).toContain('Task docs the previous session touched: /work/tasks/billing/current.md')
-  await band.unmount()
 })
 
 test('the docs list shows the plugin skills, each opening its SKILL.md', async ($, on) => {
@@ -2411,7 +2074,7 @@ test('the doc toolbar wraps onto more lines in a narrow pane instead of running 
   const ui = await $.ui.mount({ ...PANE, surface: 'desktop', props: { ...PANE.props, bodyColumns: 40 } })
   await ui.press({ key: 'r0b' })
   const rows = (await ui.findAll({ type: 'Box' })).filter((box: any) =>
-    JSON.stringify(box.children ?? []).includes('"handoff"'),
+    JSON.stringify(box.children ?? []).includes('"copy"'),
   )
   const toolbar = rows[rows.length - 1]
   expect(toolbar).toBeDefined()

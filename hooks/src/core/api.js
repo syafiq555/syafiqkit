@@ -91,10 +91,6 @@ export function hostSessionId($, ...args) {
   return $.session.id(...args)
 }
 
-export function hostSessionMessages($, ...args) {
-  return $.session.messages(...args)
-}
-
 export function hostToolRegister($, ...args) {
   return $.tool.register(...args)
 }

@@ -15,7 +15,7 @@ Last updated: 2026-10-22 (1.407.2 wrap-up chips)
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, session handoffs and an Enhance button that rewrites the draft prompt after a headless haiku read-summary run, Typst-rendered task docs and pictures under Claude's terminal answers. The host loads `hooks/src/mod.js` and its imports (folders `core`, `docs`, `git`, `handoff`, `prompt`, `views`, `answers`); every `$` call goes through `core/api.js`. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
+**Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery and an Enhance button that rewrites the draft prompt after a headless haiku read-summary run, Typst-rendered task docs and pictures under Claude's terminal answers. The host loads `hooks/src/mod.js` and its imports (folders `core`, `docs`, `git`, `prompt`, `views`, `answers`); every `$` call goes through `core/api.js`. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
 
 **Immediate next actions (in order)**:
 1. Live-check the wrap-up chips (row 37; § Next Steps → Verify, first item); shipped in 1.407.2 before being seen, so a fix found there ships as a new version.
@@ -44,7 +44,7 @@ Last updated: 2026-10-22 (1.407.2 wrap-up chips)
 
 ## Overview
 
-The user wanted the plugin's daily jobs (commit, commit and push, done, read a task doc, ship, shrink, refresh, merge, hand off) one press away, a rendered task-doc browser that costs the model no tokens, and a handoff that carries the whole session instead of one task doc. They later asked to stop opening VS Code only to review what Claude changed (a changed-files tree beside stacked diffs, with stage, unstage and discard) and to have e2e screenshots Claude takes show up in the pane instead of as a `/tmp` path. A mod is the only mechanism that can draw in the interface, so the plugin ships one. It runs with the user's permissions, which is why anything that acts for the user is a button and the risky ones show the exact message first.
+The user wanted the plugin's daily jobs (commit, commit and push, done, read a task doc, ship, shrink, refresh, merge) one press away and a rendered task-doc browser that costs the model no tokens. A session handoff (haiku summary, Resume in the next session) was built too and removed in 1.414.0 (27/10/2026): the user didn't use or like it; `/continue-session` stays for that job. They later asked to stop opening VS Code only to review what Claude changed (a changed-files tree beside stacked diffs, with stage, unstage and discard) and to have e2e screenshots Claude takes show up in the pane instead of as a `/tmp` path. A mod is the only mechanism that can draw in the interface, so the plugin ships one. It runs with the user's permissions, which is why anything that acts for the user is a button and the risky ones show the exact message first.
 
 ---
 
@@ -52,8 +52,8 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
 
 | Piece | What it does | Notes |
 |-------|--------------|-------|
-| Band above the prompt | `▤`, then quiet `plain` tools `e: enhance`, `d: docs`, `g: changes N`, `i: images N` (only when the gallery has images), then the done › commit › push › ship chips (rows 37 to 39, `git/wrapup.js`); no Menu or Hand off button since 1.410.0 (`/sk` and its Hand off verb); a handoff row with Resume and Dismiss; an Enhance row while a run is going or done | Stays drawn beside an open pane but drops its hotkeys then, because the pane owns `c`, `d`, `g`; `redrawBandAfterClose` brings them back after close (1.405.0; replaces the 2026-10-12 Desktop-only variant, reverted over the same key clash). "N selected / Send to Claude" is its own row (key `selected-row`). The Changes count excludes untracked files (cheap `-uno` status every 5 s); the pane lists them |
-| Pane views | `menu`, `list`, `doc`, `decision`, `confirm`, `handoff`, `changes`, `change-file`, `change-all`, `discard`, `images` | One pane id (`doc-pane`), state in module variables |
+| Band above the prompt | `▤`, then quiet `plain` tools `e: enhance`, `d: docs`, `g: changes N`, `i: images N` (only when the gallery has images), then the done › commit › push › ship chips (rows 37 to 39, `git/wrapup.js`); no Menu button since 1.410.0 (`/sk`); an Enhance row while a run is going or done | Stays drawn beside an open pane but drops its hotkeys then, because the pane owns `c`, `d`, `g`; `redrawBandAfterClose` brings them back after close (1.405.0; replaces the 2026-10-12 Desktop-only variant, reverted over the same key clash). "N selected / Send to Claude" is its own row (key `selected-row`). The Changes count excludes untracked files (cheap `-uno` status every 5 s); the pane lists them |
+| Pane views | `menu`, `list`, `doc`, `decision`, `confirm`, `changes`, `change-file`, `change-all`, `discard`, `images` | One pane id (`doc-pane`), state in module variables |
 | Changes pane | From 100 body columns: left a fixed-width tree (Staged first, Changes second; chevron collapses, title or folder name selects) under one toolbar, right the diffs of everything, Changes first | Below 100 columns the tree is a list, a file press opens its own page, and `All changes` is a separate screen with no toolbar. Status is re-read every 2 s, never overlapping (`state.polling`); `git diff HEAD --numstat --no-renames -z` is appended to the signature so a re-edit of a modified file redraws and doubles as the per-file diff cache key (`state.allSig`). Every open file covered by the focus is read, with no cap, one git call at a time through the serial `gitRun` queue (15 s timeout each). A finished read is stored even when a newer load overtakes it. Pages draw only about two screens around the scroll position (`windowedRows`, `state.allScroll` from the `ui.scroll` hook). Files over 400 lines end in `… N more lines · show` |
 | Repos | `git/repos.js`: the session folder's repo plus subfolders one level down holding `.git` (skipping `node_modules`, `vendor`, dot folders), each normalised through `rev-parse --show-toplevel`; `Add repo` takes any path (`~/` works); `✕` hides, `N hidden · show` restores | Shown only when more than one repo is visible: one header per repo with its change count, and only the active repo's tree opens under its header (press another to switch, press the active one to fold). `state.changes` is always the ACTIVE repo's data; other repos' counts come from `-unormal` status every 10 s. Added and hidden state lives in module variables for the session only |
 | Gallery | `show_image` tool (`$.tool.register`, `isDeferred: false`) adds absolute PNG paths under 12 MiB; the pane never opens by itself | 12 images at most, all stacked in one scrollable pane, newest first, each with its own Open in viewer (`uname` then `open`, `xdg-open` or `start`). Terminal: `Image` from `{ png: base64 }` up to 2 MiB. Desktop (`e.surface === 'desktop'` and `Svg` resolves): the PNG inside an `<image>` in an `Svg`.
@@ -62,7 +62,6 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
   - Without `sips`, or if still too big, it shows the viewer button.
   - `All` stops drawing when the page is full, and each picture left over gets a "press to show it alone" button. The `show_image` description and return string say which pictures will not draw |
 | Commands | `/sk` opens the menu, `/task-docs` the list, `/changes` the source-control view | Registered with `immediate: true`, so no model turn; all return `{}` |
-| Handoff record | `<id>.json` per save under `~/.claude/handoffs/<hash of cwd>/`, with a `<id>.state` marker file (`claimed:<nonce>`, `dismissed`, `superseded`, `open`) | chmod 700 dir, 600 files, best effort; expires after 24 hours |
 | Enhance | `prompt/enhance.js`: `$.prompt.read` → headless `claude -p --model haiku --permission-mode auto --disallowedTools Edit,Write,NotebookEdit --output-format stream-json --verbose` via `$.process.spawn` running `/syafiqkit:read-summary` → JSON → `$.prompt.fill`; fallback is two `$.model.complete` haiku calls (catalogue, then digest) marked `quick read` | `state.enhance.phase`: `idle`, `running`, `ready` (draft typed into meanwhile; Use it / Discard), `done` (Undo until the box changes). Each pull of the stream races a 300 ms watcher so Cancel and the 3-minute stop don't wait on output. Only a submit whose text is the draft, the filled text or the pending text ends a run. Spinner ticks the `enhanceTick` atom every 160 ms (`$.clock.every`, handle `{ cancel }`), which redraws the band alone, so it turns beside an open pane. Evidence and calls: `decisions/enhance.md` |
 | Diagram cache | `~/.claude/doc-pane-cache/<hash>[-dark].png`, valid once its `.ok` exists | PNG rendered by a pinned `@mermaid-js/mermaid-cli@12.0.0` through `npx` (`-t dark -b transparent` on a dark theme), read back with `$.fs.read({ as: 'bytes' })` |
 | Rendered docs | `docs/typeset.js`: each Markdown part of a doc becomes Typst pages (`hooks/render/md.typ`, chunks at headings or 40 lines) cached in `doc-pane-cache/typeset/<key>-{p}.png`, drawn as `Image` `{ file, format: 'png' }` | Terminal only, `t` toggles Text view; Typst found on PATH or Homebrew paths, else plain text with a hint; key carries `TYPESET_RENDER_VERSION`, width, theme and cell size. Pages average about 320 KB, so with every page ready the body is windowed (row 36) and scroll ticks redraw only when the window moves; parse and keys are cached per text in `state.docParse` |
@@ -78,14 +77,13 @@ The user wanted the plugin's daily jobs (commit, commit and push, done, read a t
   - `docs/`: discovery, markdown, images, diagrams, reader, gallery, `typeset.js` (Typst pages).
   - `core/api.js`: the `host*` wrappers, the only place `$.noun.method` is spelled.
   - `git/`: status parse and tree, diff parse with word marks, `syntax.js` (the diff colourer), actions, repos, controller, `wrapup.js` (the band chips' state: steps asked, running, done, HEAD and upstream poll).
-  - `handoff/`: capture, store.
   - `prompt/`: `enhance.js` (the Enhance button: prompts, catalogue, headless stream, quick fallback, band row).
   - `views/`: band, pane (the tree checks and `refusedView`), pane-context, menu, list, doc, actions, changes (terminal, with `terminalDiffItems`/`allDiffItems`), images, plus `ui.js` (Desktop parts: chip, strip, meter, pageBar, mapBlock, `hoverScope`) and `desktop.js` (Desktop pages and `windowedRows`).
   - `answers/`: `pictures.js` (pictures under answers, the prompt section, the on/off switch).
   - `mod.js`: the `register` wiring and the module entry.
 - `hooks/render/`: vendored Typst template and packages (`NOTICE.md` lists licences)
 - `types/index.d.ts`: the state contract for the two atoms
-- `hooks/register.test.ts` — kit tests for commands, band, menu, confirm, handoff save/resume, /clear, off switch, decisions, reopen
+- `hooks/register.test.ts` — kit tests for commands, band, menu, confirm, /clear, off switch, decisions, reopen
 - `hooks/hooks.json`: `modules: ["./src/mod.js"]` beside the ruleset `hooks`
 - `hooks/CLAUDE.md`: the mod's rules, host traps, debugging and what it runs (moved out of the root `CLAUDE.md` 2026-10-16; read it before mod work, since its automatic load on reading a `hooks/` file is unverified)
 - `docs/ARCHITECTURE.md` §8: host-API traps; `docs/ARCHITECTURE-ESSENTIALS.md` `{#mod-one-file}`
@@ -98,14 +96,14 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 | # | Task | Status |
 |---|------|--------|
-| 1 | Menu and band: one-press Commit, Hand off form, Done confirm | ✅ |
+| 1 | Menu and band: one-press Commit and Done (Done confirm and Hand off form removed in 1.414.0) | ✅ |
 | 2 | Task-doc browser: filter, recents, size badges, pickable open items, decisions pages | ✅ |
 | 3 | Mermaid as pictures | ✅ needs `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1` in iTerm2 |
-| 4 | Session handoff (haiku summary), Resume starts with `/syafiqkit:read-summary` | ✅ |
-| 5 | Done confirm with optional hand-off afterwards | ✅ |
+| 4 | Session handoff (haiku summary), Resume starts with `/syafiqkit:read-summary` | ❌ removed in 1.414.0 (user, 27/10/2026) |
+| 5 | Done confirm with optional hand-off afterwards | ❌ removed in 1.414.0: Done sends in one press |
 | 6 | README front door and `/commit push` wording | ✅ |
 | 7 | Source split into `hooks/src/` and bundled; Wrap up renamed Done | ✅ |
-| 8 | Handoffs and diagrams without `mkdir`/`mv`/`openssl` (Windows) | ✅ built, untested on Windows |
+| 8 | Diagrams without `mkdir`/`mv`/`openssl` (Windows; handoffs removed in 1.414.0) | ✅ built, untested on Windows |
 | 9 | Real-session soak, older-client check, `SYAFIQKIT_MOD=0` via shell and via settings.json | ⏳ |
 | 10 | Decisions file over 40 KB flags its doc; Condense and Split on decisions pages | ✅ |
 | 11 | Docs list under folder headers, five recents on top, over-limit flags | ✅ seen on an 8-doc repo only |
@@ -114,7 +112,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 | 14 | `/changes` on big and multi-repo change sets | ✅ built; ⏳ not seen live |
 | 15 | `/changes` hidden-staged hint and `Doc` / `Open doc` | ✅ built; ⏳ not seen live |
 | 16 | `/changes` in Claude Desktop (narrow layout, `view` per group) | ✅ seen in Desktop |
-| 17 | Desktop redesign of every pane | ✅ partly seen; ⏳ light theme, doc reader, handoff, confirm |
+| 17 | Desktop redesign of every pane | ✅ partly seen; ⏳ light theme, doc reader, confirm |
 | 18 | Long pages draw only rows near the scroll position | ✅ Desktop seen; ⏳ real terminal |
 | 19 | `mod.log` and tree checks | ✅ |
 | 20 | Main-doc tag in `/task-docs` (1.389.0) | ✅ built; ⏳ not seen live |
@@ -133,16 +131,17 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 | 33 | Typst-rendered `/task-docs`, Text view toggle | ✅ built; first try drew blank, file-path and page-name fixes since; ⏳ unseen |
 | 34 | Pictures under answers: mermaid, `$$`, images, video frames; dark Mermaid; prompt section; on/off switch | ✅ diagram, math, PNG seen live 2026-10-19; ⏳ video frame, dark Mermaid, switch, prompt section unseen |
 | 35 | Local companions in the CLAUDE.md chain; doc rows flag only near or over-limit files, sorted first | ✅ built, 116 kit tests; ⏳ redesign unseen live (local section seen in iTerm2 2026-10-19) |
-| 37 | Wrap-up chips replace Commit and Done (1.407.2): `○ done ○ commit ○ push`, grey not yet, blue `◌` running, green `✓` done, amber `↻` edited since; press runs the step (`w` asks, `c` one press, new `p` push asks); new Push verb last in VERBS | ✅ built, 127 kit tests; running from a `Skill(done)` call seen live 2026-10-22 (`mod.log`); ⏳ done staying blue through its agents, commit/push turning green, Desktop unseen |
+| 37 | Wrap-up chips replace Commit and Done (1.407.2): `○ done ○ commit ○ push`, grey not yet, blue `◌` running, green `✓` done, amber `↻` edited since; press runs the step (`w` and `c` one press since 1.414.0, new `p` push asks); new Push verb last in VERBS | ✅ built, 127 kit tests; running from a `Skill(done)` call seen live 2026-10-22 (`mod.log`); ⏳ done staying blue through its agents, commit/push turning green, Desktop unseen |
 | 36 | Rendered doc scrolls smoothly (1.406.2): once every page is ready, pages draw through `windowedRows`; no floating ↑ Top there (`state.noTopFloat`), `u` or the end-row ↑ Top instead | ✅ built, 117 kit tests; ⏳ unseen live (user reported the lag 2026-10-19) |
 | 38 | Ship chip after push (1.409.0): `○ ship`, `s` asks then sends the Ship verb; running from `/ship`, the Ship verb or a `Skill(ship)` call; green only when that turn finishes, amber after a later edit or commit. A `/commit push` lights push, never ship (reasoning: `decisions/design-calls.md`) | ✅ built; seen live in iTerm2 2026-10-23 (`s: ○ ship` drew after `/reload-plugins`) |
-| 39 | Band revamp (1.410.0): layout in the Surfaces table, rules in `hooks/CLAUDE.md#drawing`; chips joined by ` › ` with no background in the terminal (tints kept in Desktop), wordmark cut to `▤`; a one-time toast "Menu and Hand off moved off the line: type /sk" (`$.store` key `bandMovedNoticeShown`); ship holds blue past a turn that started a background `Bash` or `Monitor` and goes green on the next finished turn (owner's call 2026-10-23: green means confirmed); a turn ending on a question keeps the hold, since the check is still open; the notice swallows any store or toast failure so session start never stops | ✅ built, 133 kit tests; ⏳ iTerm2 and Desktop **New** unseen, narrow-window wrap unseen, and whether a live `tool.call` carries `run_in_background` unverified |
+| 39 | Band revamp (1.410.0): layout in the Surfaces table, rules in `hooks/CLAUDE.md#drawing`; chips joined by ` › ` with no background in the terminal (tints kept in Desktop), wordmark cut to `▤`; a one-time toast "The menu moved off the line: type /sk" (reworded in 1.414.0) (`$.store` key `bandMovedNoticeShown`); ship holds blue past a turn that started a background `Bash` or `Monitor` and goes green on the next finished turn (owner's call 2026-10-23: green means confirmed); a turn ending on a question keeps the hold, since the check is still open; the notice swallows any store or toast failure so session start never stops | ✅ built, 133 kit tests; ⏳ iTerm2 and Desktop **New** unseen, narrow-window wrap unseen, and whether a live `tool.call` carries `run_in_background` unverified |
+| 40 | Hand off removed and fewer confirms (1.414.0): `hooks/src/handoff/` deleted with its menu verb, toolbar button, confirm tickbox and band row; Done, Refresh, Shrink, Condense and Split send in one press through `sendNow` (`views/pane-context.js`); Commit and push, Push, Ship and Merge docs still ask; Desktop menu group SESSION renamed REVIEW | ✅ built, 123 kit tests; ⏳ live in iTerm2 |
 
 ---
 
 ## Key Technical Decisions
 
-| — | see `decisions/design-calls.md` (34 calls: wrap-up chips, mod placement, main-doc marker, handoff storage and claims, Resume rules, button-vs-confirm, docs list layout, one bundled source tree, `/changes` toolbar, orders, discard, gallery, `sips` copies, windowing, diff caching, `Doc` button, Desktop colours and tokenizer, Desktop design, tree checks, multi-repo, CLAUDE.md chain, doc list rows) |
+| — | see `decisions/design-calls.md` (34 calls: wrap-up chips, mod placement, main-doc marker, handoff storage and claims (removed), Resume rules (removed), button-vs-confirm, docs list layout, one bundled source tree, `/changes` toolbar, orders, discard, gallery, `sips` copies, windowing, diff caching, `Doc` button, Desktop colours and tokenizer, Desktop design, tree checks, multi-repo, CLAUDE.md chain, doc list rows) |
 
 ---
 
@@ -156,7 +155,6 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 | `state.stop is not a function` | `$.clock.every` returns `{ cancel }` | Call `timer.cancel()` |
 | `"/docs" refused: it is the user's /anthropic-skills:docs` | A command name collides with a skill, and that throw skips the rest of `session.start` | Named `task-docs`; `registerCommand` catches the refusal |
 | `reload failed, the previous version stays loaded: $ is passed to "openPane", which is not a function declared at the top of this file` | An edit sequence referenced a function before it was written | Declare helpers above `register`; save the file whole |
-| Handoff not offered after `/clear` | The session's own handoff is excluded and module state survives `/clear` | `classic.SessionStart` with source clear/resume/fork resets it |
 | Pictures show `Diagram not drawn here` in iTerm2 | Claude Code classes iTerm2 3.7.3 as `kittyGraphics=no` though it answers the query | Start with `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1` |
 | Every test fails with `hooks module did not load … $ itself is put in an object` or `$.env.get takes a literal name` | A context object holding `$`, or `$.env.get(name)` with a variable | Pass `$` as its own argument; spell each variable name out |
 | Pane draws for a second then goes blank with real data, kit green | A drawn tree the host refuses or fails on (thousands of rows, or two elements sharing a `key` such as the tree's and the diff column's `staged-gap`); the kit validates the tree but did not reproduce it. Desktop also refuses a hover scope over 64 characters | Window long lists (`windowedRows`) rather than capping them. Keep every key unique among siblings. Hash long names into hover scopes (`hoverScope`). `views/pane.js` now catches the key and scope cases and says so on screen; `mod.log` has the reason |
@@ -181,6 +179,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 ## Next Steps
 
 **Verify**
+- [ ] Row 40 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.414.0`): `/sk` has no Hand off and goes Merge docs → Changes; `w` sends done with no pane; Refresh and Shrink from a doc send at once and Docs reopens that doc; Push and Ship still show the confirm; no `↪ Handoff` row after `/clear`.
 - [ ] Row 37 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.407.2`): press done, the chip turns blue at once and stays blue while review agents run (if it goes green early, `mod.log` lacks `wrap-up still running … agents open`, meaning subagent turns carry no `agentId` and the hold needs another signal); green when the last turn ends; edit a file, amber. Commit through the chip: green within 5 s; push: green; edit after: all amber. `git pull` and a branch switch must not light commit. In Desktop **New**: chips keep their tint, labels readable, a narrow pane wraps the strip.
 - [ ] Row 36 in iTerm2 (`/sk` reads `mod v1.406.2`): scroll a long rendered doc with the wheel and PageDown for ten seconds; smooth, no blank band, no flicker when the window shifts (if pages stutter at each shift, the terminal re-sends a picture on remount and the window needs to stay put longer); `u` mid-doc jumps to the top; a doc with 15+ open items scrolled to the middle shows the right page; `t` round trip brings the float back in Text view. A narrow pane wraps the toolbar past the 4 rows `DOC_TOP_ROWS` assumes, a small offset error the half-screen margin absorbs.
 - [ ] Row 35 in iTerm2 after `/reload-plugins`: in the CLAUDE.md chain only near or over-limit rows carry a bar (CLAUDE.local.md at 239/200 should be yellow and first among its peers), the bar does not touch the figure, companion names read without `CLAUDE-`, and search shows `local project companion` in full. If rows with no bar read as missing data, a near-limit count in the section header is the next step.
@@ -204,24 +203,21 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 - [ ] Desktop `/changes` still unseen: the folder `view`, a fully staged tree, an empty new file, a new file over 256 KB, light-theme contrast for `DIFF_PALETTE.light` and `DESKTOP_TONE`, a wide window with long markdown lines (estimate blank band), and the `sips` copy of a big gallery picture
 - [ ] Linux: `sips` absent, so the gallery shows the viewer button and `mod.log` says "no smaller copy"; never run
 - [ ] The docs list in autorentic (106 task docs, Desktop): it drew blank in 1.388.0–1.389.0 (`mod.log`: "pane list (desktop): about 240k characters", about 1.45k per row). 1.390.0 folds folders when there are over 40 task docs (`LIST_FOLD_FROM`), folds Skills on Desktop, and windows the list (`LIST_TOP_ROWS`). Check it draws, a folder opens, and opening several folders stays under the limit. The filter and over-limit pages are still unwindowed (filter caps at 40)
-- [ ] Other panes in Desktop, ranked by the product review's risk: the gallery (12 `Svg` pictures), the doc reader's long `Markdown`, the handoff form and confirm pages (their `autoFocus` sits on an Input or on Cancel, so the first click on Send or Discard may be lost)
+- [ ] Other panes in Desktop, ranked by the product review's risk: the gallery (12 `Svg` pictures), the doc reader's long `Markdown`, the confirm pages (their `autoFocus` sits on Cancel, so the first click on Send or Discard may be lost)
 - [ ] The gallery stack in iTerm2: does the pane scroll with 12 tall pictures, do Close and Clear stay reachable after scrolling (Esc closes), and does Clear want a confirm
 - [ ] Per-image captions: one caption per call is stored on every image in it, and a later call without a caption replaces it
 - [ ] Resume under bypass permissions, band hotkeys while typing, a draft overwritten by `prompt.submit`, a submit that lands mid-turn
 - [ ] One Claude Code older than 2.1.287 against the shared `hooks.json`; the ruleset hook is the first thing to check if a colleague reports it missing
 - [ ] `SYAFIQKIT_MOD=0` under `env` in `settings.json`: does it hide the band? The shell route did (checked live 2026-10-10, session started from the home folder; the band showed in a normal session from the plugin folder, so the mod loads)
-- [ ] Windows run: handoff save, Resume, diagrams (`npx` must be on PATH); written without shell calls but never run there; `nameOf` in `git/status.js` splits on `/` only, so a Windows path shows whole
+- [ ] Windows run: diagrams (`npx` must be on PATH); written without shell calls but never run there; `nameOf` in `git/status.js` splits on `/` only, so a Windows path shows whole
 - [ ] `/changes` last fix round live: folder select then `+ Stage folder`, unstaging a staged rename (both paths now passed), and `-uall` status cost in a repo with many untracked files
 - [ ] Whether Claude Code asks the user to allow `mcp__syafiqkit__show_image` on its first call (it did not on 2026-10-10 in a bypass-permissions session), and the Open in viewer button on the user's Mac
 - [ ] `/changes` hidden-staged hint (section, folder and file focus) and `Doc` / `Open doc` (also on the collapsed one-line rows; reader's diff button reads `Doc diff` when opened from `/changes`) live: not seen. Unbuilt: a deleted doc shows the button and opens an unreadable page; no 'Opening…' state on a slow doc
 - [ ] `unstagePaths` before a first commit (`git rm -r --cached`) for a file that is staged and then modified again (`AM`): not run
 - [ ] Editor-free diagnostics (the user opened VS Code for errors; 2026-10-10): with VS Code quit, a Read of a scratch `.js` file returned TypeScript errors, but PHP after the quit and an Edit that adds an error were not retried (the first run's edit error was not reported), and an undefined function call was never flagged. If errors should be visible to the user, the Changes pane has no diagnostics view and the mod host API has no language-server call
 
-- [ ] Wrap-up handoff Message live (built 2026-10-10, unseen): Done → tick the box → type a Message → Enter. The dim line should keep showing 'Next session starts with: …' after the box clears. Also that a Done turn ending on a question defers the save (at most 3 times, any answer ending in `?` or empty) and an Esc-aborted turn still saves
-- [ ] Handoff Message cause not reproduced: the kit cannot clear an `Input` on Enter, so which callbacks the real host fires on Enter (`onInput('')` before `onSubmit`?) is unknown; if the dim line shows 'No message' after typing, `onInput` is clearing state
 
 **Decide**
-- [x] Handoff after Done: an aborted turn saves anyway; a turn that ends on a question waits for the one that finishes (user, 2026-10-10)
 - [x] Commit as three commits by version (1.373.0 is the other session's `uiux` work); ship after the live checks above. 2026-10-16: the user chose to ship 1.405.2 and 1.405.3 before the live checks (commits b287c9d, e1e0385, d948fad, fad768c)
 
 **Later**
@@ -235,7 +231,6 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 - [ ] Count a doc's decisions bytes toward the size badge (the shrink skill treats the set as one thing)
 - [ ] Re-read open decision pages on change, as the main doc already is
 - [ ] Dart and Vue have no Claude Code language-server plugin (only `php-lsp` and `typescript-lsp` are installed), though `dart` and `vue-language-server` exist on this machine
-- [ ] Optional automatic digest-only handoff on `/clear` (declined for now: it writes files unasked)
 - [ ] An edit to a file that is only untracked (`??`) changes neither the status line nor `numstat`, so the poll sees no change and its diff stays old until you press it (a press forces a re-read); folding `$.fs.stat` size and mtime of `??` entries into the status signature would catch it
 - [ ] The band's `Changes (N)` still counts only the repo at the session folder; sum `repoCounts` once repos are known, or label it
 - [ ] One `git diff` for many paths per batch, and backing the poll off while a diff load runs, were planned for 1.386.0 and not built; measure on a 200+ file tree first
@@ -252,6 +247,6 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ---
 
-## Last Session (2026-10-22)
+## Last Session (2026-10-27)
 
-The user sent a mockup with three wrap-up designs (three chips, a joined pipeline, one summary chip) beside a model · folder · branch · ctx line. They picked the pipeline and had the chips replace the Commit and Done buttons; an edit turns every finished step amber. The model/ctx line stays in their own status line script. Research and calls are in `decisions/design-calls.md`. Live testing found two faults the kit could not: the chip stayed grey through a band-pressed done, and went green then amber while `/done`'s agents ran (both in § Gotchas). The `/done` reviewers' fixes (commit vs pull, push without a session commit, a reply clearing the running chip, Desktop label colour) are in. Shipped as 1.407.2 in `abab4d0`.
+The user removed Hand off ("i dont really use and like it"; `/continue-session` stays, `~/.claude/handoffs/` deleted on this Mac), then, seeing the Done confirm, asked to drop every confirm that isn't needed. The line drawn: confirm only what publishes (push, ship) or deletes source docs (merge, discard); the product review noted a dirty or untracked doc has no git copy under Refresh or Shrink and recommended no confirm there either, with the README and changelog saying so. Row 40; reviewer, simplifier and product reviewer ran, 123 kit tests pass. Committed together with another session's 1.411 to 1.413 work, at the user's choice.

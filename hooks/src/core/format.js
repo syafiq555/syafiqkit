@@ -167,10 +167,6 @@ export function heaviness(doc) {
     : oversizedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
 }
 
-export const REFRESH_EFFECT = 'Rewrites the doc in place with three passes (restructure, shorten, loosen over-strict rules).'
-export const SHRINK_EFFECT =
-  'Task doc: the task-summary skill judges each file over the limit (index over 300 lines, decisions file over 40 KB) and condenses, splits, does both, or proposes a better structure first. CLAUDE.md: condensed in place on haiku and verified.'
-
 export function refreshRequest(doc) {
   return 'Use the refresh-instructions skill on ' + doc.path + '.'
 }
@@ -203,9 +199,6 @@ export function decisionFileRequest(doc, file, verb, ask) {
   )
 }
 
-export const SPLIT_EFFECT =
-  'A haiku agent splits one decisions file into smaller ones by topic, moving the text word for word, and makes current.md the router that says which file holds what. Links to the old file are repointed, and the result is checked before it is reported.'
-
 export function splitRequest(doc, file) {
   return decisionFileRequest(
     doc,
@@ -214,9 +207,6 @@ export function splitRequest(doc, file) {
     ' by topic into smaller decisions files. Move the text word for word and count its headings and table rows before and after, make current.md the router that says which file holds what, and repoint every link to the old file.',
   )
 }
-
-export const CONDENSE_FILE_EFFECT =
-  'A haiku agent condenses one decisions file in place: drops superseded and repeated text, keeps every decision, figure, name and quote, and checks the result before it is reported.'
 
 export function condenseFileRequest(doc, file) {
   return decisionFileRequest(

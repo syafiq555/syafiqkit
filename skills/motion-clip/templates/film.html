@@ -235,7 +235,7 @@ function revealLine(text, x, y, size, fill, t0, t1, t, opts = {}) {
   g.textAlign = opts.align || L.align;
   g.textBaseline = 'alphabetic';
   let m = g.measureText(text);
-  const fit = opts.maxWidth ?? (L.vertical ? W * 0.9 : W * 0.6 - L.textX);
+  const fit = opts.maxWidth ?? (L.vertical ? W * 0.9 : L.cx - deviceGeometry().w / 2 - L.textX - W * 0.03);
   if (m.width > fit) {
     size *= fit / m.width;
     g.font = font(size, opts.heading !== false);

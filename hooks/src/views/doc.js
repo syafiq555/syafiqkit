@@ -1,6 +1,6 @@
 import { hostUiInvalidate, hostUiScroll } from '../core/api.js'
 import { ITEM_CAP_ROWS, PANE, TYPESET_WIDTH_STEP } from '../core/constants.js'
-import { CONDENSE_FILE_EFFECT, REFRESH_EFFECT, SHRINK_EFFECT, SPLIT_EFFECT, condenseFileRequest, isInstructionFile, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
+import { condenseFileRequest, isInstructionFile, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
 import { state } from '../core/state.js'
 import { copyDocFile, openInEditor } from '../docs/export.js'
 import { fitImage, hashOf, svgPicture } from '../docs/images.js'
@@ -30,7 +30,7 @@ function wrappedRows(text, columns) {
 }
 
 export function docView($, c) {
-  const { e, Box, Text, Button, Markdown, Image, goto, redraw, askFirst, openHandoff, openDecision } = c
+  const { e, Box, Text, Button, Markdown, Image, goto, redraw, sendNow, openDecision } = c
   const parsed = parsedDoc(state.text)
   const parts = parsed.parts
   const openItems = parts.filter((part) => part.kind === 'item' && !part.done)
@@ -281,7 +281,6 @@ export function docView($, c) {
                 { hotkey: 'g' },
                 () => send($),
               ),
-              action('handoff', 'Hand off', { hotkey: 'h' }, openHandoff),
             ]
           : []),
         action('changes', state.docBack ? 'Doc diff' : 'Changes', { hotkey: 'd' }, () => openDocDiff($, state.current.path, 'doc')),
@@ -295,13 +294,13 @@ export function docView($, c) {
               }),
             ]
           : []),
-        action('refresh', 'Refresh ⚠', { hotkey: 'r' }, () =>
-          askFirst('Refresh ' + state.current.label, refreshRequest(state.current), REFRESH_EFFECT),
+        action('refresh', 'Refresh', { hotkey: 'r' }, () =>
+          sendNow('Refresh ' + state.current.label, refreshRequest(state.current)),
         ),
         ...(state.current.group === 'Task docs' || isInstructionFile(state.current)
           ? [
-              action('shrink', 'Shrink ⚠', { hotkey: 'k' }, () =>
-                askFirst('Shrink ' + state.current.label, shrinkRequest(state.current), SHRINK_EFFECT),
+              action('shrink', 'Shrink', { hotkey: 'k' }, () =>
+                sendNow('Shrink ' + state.current.label, shrinkRequest(state.current)),
               ),
             ]
           : []),
@@ -372,7 +371,7 @@ export function docView($, c) {
 }
 
 export function decisionView($, c) {
-  const { Box, Text, Button, Markdown, goto, openDecision, askFirst } = c
+  const { Box, Text, Button, Markdown, goto, openDecision, sendNow } = c
   const files = state.current.decisions || []
   const index = files.findIndex((file) => file.path === state.decisionOpen)
   if (index < 0) return docView($, c)
@@ -416,16 +415,16 @@ export function decisionView($, c) {
         }),
         Button({
           key: prefix + 'dec-condense',
-          label: 'Condense ⚠',
+          label: 'Condense',
           ...liveOnly(prefix, { hotkey: 'k' }),
           onPress: () =>
-            askFirst('Condense ' + file.name, condenseFileRequest(state.current, file), CONDENSE_FILE_EFFECT, false, state.current),
+            sendNow('Condense ' + file.name, condenseFileRequest(state.current, file), state.current),
         }),
         Button({
           key: prefix + 'dec-split',
-          label: 'Split ⚠',
+          label: 'Split',
           ...liveOnly(prefix, { hotkey: 't' }),
-          onPress: () => askFirst('Split ' + file.name, splitRequest(state.current, file), SPLIT_EFFECT, false, state.current),
+          onPress: () => sendNow('Split ' + file.name, splitRequest(state.current, file), state.current),
         }),
       ],
     })

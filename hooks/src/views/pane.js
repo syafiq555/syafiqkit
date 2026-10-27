@@ -9,7 +9,7 @@ import { desktopChangeAllView, desktopChangeFileView, desktopChangesView } from 
 import { decisionView, docView } from './doc.js'
 import { imagesView } from './images.js'
 import { listView } from './list.js'
-import { confirmView, handoffView, menuView } from './menu.js'
+import { confirmView, menuView } from './menu.js'
 import { paneContext } from './pane-context.js'
 import { isDesktop, pageBar } from './ui.js'
 
@@ -100,7 +100,6 @@ export async function paneTree($, c) {
   const e = c.e
   if (state.view === 'menu') return menuView($, c)
   if (state.view === 'confirm') return confirmView($, c)
-  if (state.view === 'handoff') return handoffView($, c)
   if (state.view === 'images') return imagesView($, c)
   if (state.view === 'changes' && isDesktop(e)) return desktopChangesView($, c)
   if (state.view === 'change-file' && isDesktop(e)) return desktopChangeFileView($, c)

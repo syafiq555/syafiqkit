@@ -4,7 +4,6 @@ import { messageOf } from '../core/format.js'
 import { openPaneWindow, state } from '../core/state.js'
 import { discover, measureHeavy, readDocMeta } from '../docs/discovery.js'
 import { loadDoc, stopWatch, submitPrompt } from '../docs/reader.js'
-import { saveHandoff } from '../handoff/store.js'
 
 export async function openPane($, view, fromBand = false) {
   const wasOpen = fromBand && state.isOpen
@@ -18,7 +17,6 @@ export async function openPane($, view, fromBand = false) {
   state.filter = ''
   state.heavyOnly = false
   state.pick = null
-  if (view === 'handoff') state.handoffNext = ''
   if (view !== 'confirm') state.confirm = null
   state.isOpen = true
   hostUiInvalidate($, 'ui.render')
@@ -51,29 +49,8 @@ export function sendVerb($, label) {
 
 export function confirmVerb($, label) {
   const verb = verbOf(label)
-  state.confirm = { title: verb.label, text: verb.text, effect: verb.effect, offerHandoff: true }
-  state.alsoHandoff = false
-  state.handoffNext = ''
+  state.confirm = { title: verb.label, text: verb.text, effect: verb.effect }
   return openPane($, 'confirm', true)
-}
-
-export async function runHandoff($, next) {
-  if (state.saving) {
-    hostUiToast($, 'A handoff is already being saved')
-    return
-  }
-  state.saving = true
-  hostUiInvalidate($, 'ui.render')
-  try {
-    const record = await saveHandoff($, next)
-    hostUiToast($, 
-      'Handoff saved (' + (record.how === 'summary' ? 'summary' : 'digest only') + '). The next session offers it on start or /clear',
-    )
-  } catch (error) {
-    hostUiToast($, 'Handoff failed: ' + messageOf(error).slice(0, 120))
-  }
-  state.saving = false
-  hostUiInvalidate($, 'ui.render')
 }
 
 export async function registerCommand($, name, description) {

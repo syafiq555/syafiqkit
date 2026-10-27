@@ -30,7 +30,7 @@ Upstreaming means filing a GitHub issue under the user's own identity, which rea
 
 ## Step 1 — Scan: What happened involving the plugin?
 
-Read the whole session, not just the recent turns — a correction that landed three turns ago still hasn't patched the skill. A scan that finds one strong recent signal feels finished, which is why this goes wrong without anyone choosing to skip. So before routing, **walk the session from its first turn and list every skill invocation and every user pushback, correction or confusion** ("I don't understand", "not my concern", a re-ask), each with a disposition: patched, routed to a project doc, or skipped and why. Put the list in the output, so the user can see what the scan covered and spot what it missed. If invoked with no defect (a session hand-edited a file and nothing misfired — `/done`'s Gate B), skip straight to Step 4.
+Read the whole session, not just the recent turns: a scan that finds one strong signal feels finished. The inventory this produces is the first table of the report (see Output), so build it from the first turn. Two kinds of signal slip out of it. **A signal handed in the invocation's arguments** (a pasted rewrite, "fix X") is the first row, not the scope. **A pushback during work no skill was invoked for** still counts when a skill owns that mechanism; the skill not being invoked may be the defect. If invoked with no defect (a session hand-edited a file and nothing misfired, `/done`'s Gate B), skip straight to Step 4.
 
 Capture gaps, not presence of working code. Trigger misfires, wrong steps, missing rules, and workarounds all ask for fixes. A working skill adds nothing. Specifically:
 
@@ -77,9 +77,9 @@ Verify your diagnosis by opening the file: a plausible story about why a rule di
 
 Read the target before writing, and check whether the fix already exists.
 
-The right target is whichever file actually owns the fact, not where the session discovered the gap. **Grep the other skills for the mechanism before writing** — a defect surfaces in whichever skill happened to run, but the same mechanism is typically *created* in one skill, *consumed* by another, and *maintained* by a third. Fixing the discovery site leaves the other two intact and the next session repeats the failure through a different door. One signal, four files; a first report naming one is incomplete.
+The right target is whichever file actually owns the fact, not where the session discovered the gap. **Grep the other skills for the mechanism before writing** — a defect surfaces in whichever skill happened to run, but the same mechanism is typically *written* by one skill, *read* by another, *maintained* by a third and *verified* by a fourth. Fixing the discovery site leaves the others intact and the next session repeats the failure through a different door. One signal, four files; a first report naming one is incomplete.
 
-⚠️ **"Ask which skill... then check each" is satisfied by thinking about it, and thinking about it is exactly what a sweep that's about to be too narrow feels like from inside.** This recurred four times before being reframed as this lifecycle question in 1.219.0, and it recurred a fifth time after that fix, because a mental question and a mental "yes I checked" resolve identically — nothing forces the four roles to actually be named. **Before writing the patch report, write out the four roles as an explicit table — writer / reader / maintainer / verifier, the skill file for each, and either its line number or "n/a, no such role exists here"** — not as narrative, as a literal short table in scratch output. A role landing on "n/a" needs a reason stated, not silence; "the same skill" is a valid but explicit answer. The discovery-site skill is the likeliest to get skipped in this table specifically *because* it's the one already open — treat it as a role like the other three, not as already covered by having been read. If the user names an additional skill afterward, that is not new information about that skill; it is proof this table was never actually written.
+Thinking "I checked the other roles" and actually checking them feel identical, so the four roles are written out as the report's second table (see Output), never answered in your head.
 
 📖 **`references/grep-for-sharing.md`** — search strategy and when to route to `_shared/references/` instead of one skill. 📖 **`references/routing-gotchas.md`** — contested files and generated agent copies.
 
@@ -136,6 +136,12 @@ Project-specific gotchas belong in `update-claude-docs`, not here. Vague observa
 
 ## Output
 
-**Owner** — tell the user which files were patched and what changed, whether `plugin-maintenance/current.md` or `CHANGELOG.md` moved, and any signals found but skipped and why. A signal you skipped on a judgement call rather than a clear non-issue is theirs to overrule, so ask it as a question above this report rather than filing it in the list (`../_shared/references/decision-first-output.md`).
+**Owner.** The report has three parts, in this order, and is not done without the first two. The one exception is the no-defect path (Step 1's Gate B case, which skips to Step 4): it reports the patches alone. Both checks below kept being skipped while they lived only in Steps 1 and 2, because the report was written from this section, which named only the patches.
+
+1. **Scan inventory** (Step 1): a table of every skill invocation and every pushback, correction or confusion from the first turn, each with its disposition (patched, routed to a project doc, or skipped and why).
+2. **Roles** (Step 2): for each mechanism you patched, one row naming the skill file and line that writes it, reads it, maintains it and verifies it, or "n/a" with a reason. The skill where the defect showed up counts as one of the four; it is the one most often left out because it is already open. If the user later names a skill this table missed, the table was not really filled in.
+3. **Patches**: which files changed and how, and whether `CHANGELOG.md` or `plugin-maintenance/current.md` moved.
+
+A signal you skipped on a judgement call rather than a clear non-issue is theirs to overrule, so ask it as a question above the report (`../_shared/references/decision-first-output.md`).
 
 **Consumer** — no files touched; report per the upstreaming flow in Step 0.

@@ -699,7 +699,7 @@ export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
 export const MENU_GROUPS = [
   { title: 'SHIP WORK', labels: ['Commit', 'Commit and push', 'Push', 'Done', 'Ship'] },
   { title: 'DOCS', labels: ['Read a task doc', 'Shrink a doc', 'Refresh a doc', 'Merge docs'] },
-  { title: 'SESSION', labels: ['Hand off', 'Changes', 'Images'] },
+  { title: 'REVIEW', labels: ['Changes', 'Images'] },
 ]
 
 export function desktopMenuView($, c) {

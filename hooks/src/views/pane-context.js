@@ -1,8 +1,7 @@
 import { hostUiResolve } from '../core/api.js'
-import { REFRESH_EFFECT, SHRINK_EFFECT, refreshRequest, shrinkRequest } from '../core/format.js'
+import { refreshRequest, shrinkRequest } from '../core/format.js'
 import { invalidatePane, state } from '../core/state.js'
-import { loadDoc, readDecision } from '../docs/reader.js'
-import { runHandoff } from './actions.js'
+import { loadDoc, readDecision, submitPrompt } from '../docs/reader.js'
 
 export function paneContext($, e) {
   const atoms = hostUiResolve($, e)
@@ -32,27 +31,20 @@ export function paneContext($, e) {
     }
   }
 
-  const askFirst = (title, text, effect, offerHandoff, reopen) => {
-    state.confirm = { title, text, effect, offerHandoff: Boolean(offerHandoff), back: state.view, reopen: reopen || null }
-    state.alsoHandoff = false
-    state.handoffNext = ''
+  const askFirst = (title, text, effect) => {
+    state.confirm = { title, text, effect }
     goto('confirm')
   }
 
+  const sendNow = (title, text, reopen) => {
+    if (reopen) state.reopen = reopen
+    return submitPrompt($, text, 'Sent: ' + title.toLowerCase())
+  }
+
   const pickAction = (doc) => {
-    if (state.pick === 'refresh') return askFirst('Refresh ' + doc.label, refreshRequest(doc), REFRESH_EFFECT)
-    if (state.pick === 'shrink') return askFirst('Shrink ' + doc.label, shrinkRequest(doc), SHRINK_EFFECT)
+    if (state.pick === 'refresh') return sendNow('Refresh ' + doc.label, refreshRequest(doc))
+    if (state.pick === 'shrink') return sendNow('Shrink ' + doc.label, shrinkRequest(doc))
     return open(doc)
-  }
-
-  const openHandoff = () => {
-    state.handoffNext = ''
-    goto('handoff')
-  }
-
-  const saveFromForm = async (message) => {
-    await runHandoff($, message.trim())
-    return goto('menu')
   }
 
   const bindField = (field) => (value) => {
@@ -60,5 +52,5 @@ export function paneContext($, e) {
     redraw()
   }
 
-  return { e, ...atoms, redraw, goto, open, openDecision, askFirst, pickAction, openHandoff, saveFromForm, bindField }
+  return { e, ...atoms, redraw, goto, open, openDecision, askFirst, sendNow, pickAction, bindField }
 }
