@@ -32,6 +32,7 @@ These skills accept explicit user command:
 | `task-summary` | Create/update task summaries with full machinery |
 | `ship` | End-to-end release: commit → changelog → push → CI verify → release note |
 | `plan-worklist` | A pre-scoped list (findings, backlog, ClickUp paste) → `product-reviewer` sizes and sequences each against product intent → present the plan and stop, don't build |
+| `score-loop` | "Score it out of 20 and keep improving until 80%": a frozen rubric, a fresh judge each round, the user's calls asked, one build per round, stop on target band, plateau, round cap or work needing the user. A single review with no loop is `done`/`uiux`/`impeccable` |
 | `done` | Post-task cleanup orchestrator |
 | `quick-done` | Fast cleanup for sessions known to be small and low-risk |
 | `read-summary` | Read task docs or project CLAUDE.md before answering, investigating, or implementing; judges Explore/Plan delegation vs continuing inline |

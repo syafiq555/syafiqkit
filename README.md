@@ -74,6 +74,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/read-summary` | Load existing task summary for context |
 | `/tackle` | Vague multi-item doc continuation only — reads the doc, judges what's buildable, builds it (use `/read-summary` for a specific ask) |
 | `/plan-worklist` | Turn a pre-scoped list of items (findings, backlog, ClickUp paste) into a build plan — dispatches `product-reviewer` to size/sequence them, then stops before writing code |
+| `/score-loop` | Score work against a fixed rubric out of N (default 10 criteria, N/20), fix the gaps, re-score with a fresh reviewer, and repeat until it reaches your target band or stops improving |
 | `/judgement` | Something came up mid-task that may not be yours to decide — measure who the change newly affects, then decide it yourself or escalate with the number attached |
 | `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |
 | `/update-summary` | Append findings to existing summary (thin pointer → `task-summary`) |

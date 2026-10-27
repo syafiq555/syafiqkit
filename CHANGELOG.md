@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.415.0
+
+**Creating or changing a skill now starts with research into how others do it.** `skill-creator` gains a "Research before drafting" step and `update-plugin` a research pass before any new rule or changed workflow step: one `haiku` dispatch for the vendor's own guidance, named patterns and published skills in the same territory, with a URL against every claim, then two or three cited pages opened by hand and the quoted line found before it shapes the skill. Moving a trigger word or repositioning a rule still needs only the read of neighbouring skills. Prompted when a score-and-iterate skill was about to be drafted from one session's run and the user had to ask for the research; it added a plateau stop, an iteration cap and judge-independence rules the session had not used (sources: Anthropic's "Harness design for long-running apps" and "Demystifying evals for AI agents", the Claude Code `/goal` docs).
+
+**New skill: `score-loop`.** Ask "score it out of 20 and keep improving until 80%" and it runs the evaluator-optimizer loop: a rubric written once from the brief (default ten criteria at 0/1/2) with scoring conventions fixed before the first score, a fresh report-only judge each round that scores from its own evidence, judge claims checked before acting, the user's calls asked in one question, one build per round, and a stop on the target band, a plateau, a four-round cap or gaps that need the user. Each round prints `Round N: X/20` so a `/goal` evaluator can see it, and the rubric and score history are saved to the task doc so a fresh session can carry on. A criterion the judge could not check scores 0 and is named beside the total. First used on a storefront that went from 12/20 to 16/20 in two rounds.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.414.0
 
 **Hand off is gone from the mod.** The `/sk` menu, the doc reader's toolbar and the Done, Push and Ship confirms no longer offer to save a handoff, and no `↪ Handoff … Resume` row appears above the prompt. The mod no longer makes a haiku call to summarise a session or writes to `~/.claude/handoffs/`; any files left there are no longer read; open one first if you want its text, then delete the folder. To start a fresh session where one stopped, use `/continue-session`, which writes a prompt to paste into the new session.
