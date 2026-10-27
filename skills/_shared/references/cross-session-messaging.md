@@ -36,6 +36,8 @@ So silence is ambiguous between "no objection", "never read it", and "never arri
 
 Two further limits worth knowing before building on this: a message cannot approve anything on the receiver's behalf or change its configuration, and asking a peer to run what your own permissions forbid is off-limits — route that back to the user instead.
 
+**Waiting is the one case where a peer is a gate, and it has its own instrument.** When your next step genuinely needs a peer's run to end (a test suite against a shared site, a builder editing files you will read), don't wait on a reply and don't ask the user to relay: send what you need confirmed with `notify_when_idle: true`. That delivers one idle notice when the peer next finishes its turn, so nothing is polled and silence still ends. Idle means the turn ended, not that the work is done, so read the peer's reply (or check the process) before acting on the notice.
+
 ## What this does not fix
 
 Subagents spawned inside one session — a fan-out of build agents, `/done`'s simultaneous simplifier and reviewer, parallel version bumps — are not a cross-session problem, and messaging is the wrong tool reached for by name similarity. Those races are handled where they occur: disjoint file partitions, and re-reading a value immediately before writing it rather than trusting a read from the start of the turn.

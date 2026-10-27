@@ -14,7 +14,8 @@ Give each pass the sheets for every size, the brief, and one lens below. Where t
 - Is the hook readable in the first two seconds, at the size someone sees it on a phone?
 - Is text inside the pictures legible at that size, not just the captions?
 - Does every caption stand out against what's behind it, including a moving or generated background?
-- Does `render.mjs check` list text that is on screen too briefly? Fix those first; the sheet can't show time.
+- Does `render.mjs check` list text that is on screen too briefly, or a caption shrinking to clear the picture? Fix those first; the sheet can't show time.
+- Does the camera hold still while a caption or a screen is being read? A push or slide during the read makes both the caption and the UI hard to follow; move between beats, not inside one. A client who calls the clip hard to read usually means this (2026-10-27: a storefront clip was redone with a voice-over and 3.5 to 5 s still holds per screen).
 
 ## Pacing {#pacing}
 - Does something new happen every two to four seconds?
@@ -25,5 +26,6 @@ Give each pass the sheets for every size, the brief, and one lens below. Where t
 ## Brand {#brand}
 - Are the colours, fonts and logo the brand's own, with nothing the brief bans?
 - Is every claim on screen true, and does the number carry its source?
+- Does each line speak from the user's side ("Shop by product, or by what you need"), not to the client as the approver ("your brief", "as you asked")? A showcase of a client's own site still speaks as their shopper; proof of what the brief asked for belongs in the handover notes. Measured 2026-10-27: a storefront script written as a checklist to the client read as "weird" and was rewritten after research into agency case studies, Shopify theme pages and brands' own launch posts, which narrate from the shopper's side.
 - Is the call to action written as it will read after launch, with no date that will go stale?
 - Does any frame show something private (real emails, phone numbers, notifications, other tabs)?

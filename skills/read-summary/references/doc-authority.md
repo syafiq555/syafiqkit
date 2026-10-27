@@ -34,6 +34,14 @@ A MADR-style ID (`D8`, `R2`, `D-gateway-fee-cap`) is handy for internal cross-re
 
 Numeric IDs are especially risky because they're not unique across split doc sets. Older docs number chronologically per feature (`D-1`, `D-2`, ...), so once split, the same `D-3` names a different decision in each file. Always qualify with the feature or file when the set is split. Newer decisions use a topic slug instead (`D-gateway-fee-cap`), which is self-describing and collides only when two decisions in the same domain genuinely share a topic.
 
+## A doc header's shorthand is not its architecture
+
+"React" in a header might mean the library, an SDK, or one layer of a larger stack: the *surface* of the technology the project actually uses. Stopping at the shorthand leaves you wrong about the layer. When a doc's architecture matters to your next step, read past the tables to the prose and confirm against something on disk before building on it.
+
+## A doc that records both an ask and a conclusion
+
+A doc that records both what someone ASKED FOR and what a session CONCLUDED can misdirect. Both are decisions, so both read as authoritative, but a conclusion that resolved one premise is often written as though it settled the whole request, and it is the later, narrower sentence a reader scopes from. So scope from the ask and treat the conclusion as one input to re-check, particularly where its stated reason resolved a *premise* (a cost, a constraint, a feasibility question) rather than the request itself. **Tell: the sentence you are scoping from begins "the work is therefore".**
+
 ## Telling a router from a decisions file
 
 A `decisions/` file can be pure routing — an index with no ADRs — and treating its summary as a decision re-opens a settled question. A router can carry Quick Start and prose that makes it read as substantive. The mechanical check: `grep -cE "^### D([0-9]|-[a-z0-9])" <file>` returning 0 means there are no decisions in it, whatever it looks like. The pattern covers variant ID formats (`D-1`, `D66`, `D-gateway-fee-cap`) but doesn't match unrelated headers like `### Deferred` — so verify which convention a project uses before trusting a 0 as "this is a router."

@@ -41,3 +41,15 @@ Measured 2026-09-11, dispatching `unhobble-instructions` on a frontend `CLAUDE.m
 Two rules follow. **Protect instances, not patterns**: an entry belongs on the list when you can state what a reader loses without that specific thing. **Where you want a class treated carefully, say what it is for** and let the agent judge each member — "a Tell names the moment a reader is in, which is usually not what the rule's headline states; keep the ones that add a moment, cut the ones that restate it" gives the agent something to apply and something to disagree with. Cross-file contracts are the real exception: `{#anchor}`s and `📖` pointers are referenced by files outside the agent's view and are machine-checkable afterwards, so blanket protection there costs no judgement.
 
 **Tell: an entry on your must-survive list quantifies over a pattern rather than naming one thing.**
+
+## Partitioning by source versus destination
+
+Agents that each draft additions for their own slice of a source (one spec section each) cannot see what the others wrote for the same place in the target. The placed drafts repeat and contradict each other and the text already there. Regroup the drafts by where they land and run one edit pass per destination section against its existing text. Measured 2026-10-14: about 190 sentences drafted per requirement area went into a quotation as duplicated bullets and a promise beside its own exclusion; a per-module pass merged them to 158 and marked 10 as already said.
+
+## Content whose home lies outside the scope
+
+A scoped write that deletes content whose real home is outside its scope loses that content. Name it in the report and leave it where it is. Measured 2026-09-25: an agent-memory pass deleted another repo's notes as "belongs in that repo's memory" and never put them there.
+
+## Offering a reading as an observation
+
+Where you hold a reading of the target, offer it as an observation to test. "This file needs little of what you do, and here is why" is a legitimate result. A prompt that describes the expected finding as the job invites an agent to manufacture reshapes to look thorough.

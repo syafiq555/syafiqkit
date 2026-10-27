@@ -5,65 +5,53 @@ description: Post-task cleanup - simplify code, review changes, update docs, cap
 
 # Post-Task Workflow
 
-Execute all steps in sequence. The skill is designed to run steps in a single turn without pausing — if you find yourself naming a remaining step rather than invoking it, that's a pause.
+Run the steps in one turn. If you find yourself naming a remaining step rather than invoking it, that is a pause; the only legitimate one is waiting for agents in Step 1.
 
-Subagents run in the background by default, so what arrives is a `<task-notification>` — check Step 1 for what that means in practice. A notification says an agent finished; it does not carry what the agent found. An agent spawned with `name:` is an addressable teammate whose plain-text output never reaches you, so its prompt must tell it to report via `SendMessage` or the findings are silently absent while every agent shows complete.
+**User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User args** row of the Output's Session table. If no args were passed, omit that row.
 
-**User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User Instructions** table of the Output. If no args were passed, omit that table.
+**The contract.** A long session usually compacts before reaching `/done`, and only this skill's opening survives that, so read it now rather than trusting that the steps below will still be in view. You owe six rows: Simplify · Review · Product · Knowledge · Task docs · Plugin. Every row is a claim that a step actually ran: an agent you dispatched with the right kind of prompt, or a skill you invoked *and then confirmed changed something on disk*. Invoking is not updating. A row you cannot substantiate is a step you skipped, so go run it rather than writing `✅`. Then check that anything the user must decide is the first thing they read, not buried under a report.
 
-**The contract.** A long session usually compacts before reaching `/done`, and only a skill's opening survives that — so read this now rather than expecting the steps below to still be here.
-
-You owe six rows: Simplify · Review · Product · Knowledge · Task docs · Plugin. **Every row is a claim that a step actually ran** — an agent you dispatched with the right kind of prompt, or a skill you invoked *and then confirmed changed something on disk*. Invoking is not updating. A row you cannot substantiate is a step you skipped, so go run it rather than writing `✅`. Then check that anything the user must decide is the first thing they read, not buried under a report.
-
-If you reach the end of this file and the exit gate is missing from your context, that is the compaction — re-read this skill before writing the Output.
+Re-read this file whenever its body is no longer in view: after a compaction, after agents return (the body is not re-attached), or after an interrupted turn. Recalled steps read as `✅` without having run.
 
 ## Mode selection (decide first)
 
-Read `git status --short` and recent commits, then match the session to a mode. Different modes run different agents and apply different verification checks.
+Read `git status --short` and recent commits, then match the session to a mode. Each mode runs different agents and verifies differently.
 
 | Mode | When | Step 1 runs | Verification |
 |------|------|------------|--------------|
 | **Full** (default) | Multi-file features, multi-domain work, or anything with external inputs | Three agents + partition | Agent reports |
-| **Docs-only** | Diff is entirely markdown (task docs, CLAUDE.md, SKILL.md, commands/, agents/, references/, a `docs/` project set) | Reviewers + simplifiers per the count table below, without the product reviewer (full mode only) + referential-integrity check | Agent reports + pointer resolution, anchor uniqueness, link validity, no wedged table rows. Where the diff touches `docs/ARCHITECTURE*.md`, also open each `file:line` anchor it cites and re-derive any count it states — both are claims about the codebase that a markdown-only diff gives a reviewer no reason to doubt |
+| **Docs-only** | Diff is entirely markdown (task docs, CLAUDE.md, SKILL.md, commands/, agents/, references/, a `docs/` project set) | Reviewers + simplifiers per the count table below, without the product reviewer (full mode only), + referential-integrity check | Agent reports + pointer resolution, anchor uniqueness, link validity, no wedged table rows |
 | **Infra-only** | Entirely configuration code (CI, Dockerfile, nginx/env config, provisioning scripts); no application code | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 | **Ops-only** | System changes applied out-of-band (deploy, backfill, config flip); no repo diff, no commit | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 
-**Docs-only:** Count changed files from `git show --stat <this-session's commit>` PLUS the uncommitted diff — agent review covers both, since code committed earlier this session was never reviewed.
+**Docs-only:** Count changed files from `git show --stat <this-session's commit>` plus the uncommitted diff, since agent review covers both: code committed earlier this session was never reviewed. If the diff touches `docs/ARCHITECTURE*.md`, open each cited `file:line` and re-derive any count it states. Those are claims about the codebase, and a markdown-only diff gives a reviewer no reason to doubt them.
 
-⚠️ **The referential-integrity check is the one this mode adds, and a hand-rolled sweep for it reports the corpus broken when the bug is in your extractor.** A `📖` lives inside the backticks and is not part of the path; `${CLAUDE_SKILL_DIR}` must be expanded, not stripped; and the syntax is shared by relative paths, bare skill names (`syafiqkit:haiku`) and prose *about* pointers, only the first of which is testable with `[ -e ]`. So a sweep returns a pile of confident false positives, and the failure rate is the tell — a defect that common in a maintained corpus would have surfaced already. Resolve one pointer you know is good and one you know is bad before believing any run, print the extracted paths rather than only the verdicts, and classify each hit by kind before counting it. 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/editing-skills-checklist.md` owns the method.
+⚠️ **The referential-integrity check is the one this mode adds, and a hand-rolled sweep for it reports the corpus broken when the bug is in your extractor.** A defect that common would already have surfaced in a maintained corpus, so when a sweep flags many pointers, suspect the extractor first, and resolve a known-good and a known-bad pointer before trusting a run. 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/editing-skills-checklist.md` owns the method.
 
 **Ambiguous signal:** Empty `git status --short` means work already committed, another writer's tree, or no changes at all. When git errors (no repo, no first commit), run **full mode** with substitutes per 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/verifying-a-write-landed.md`.
-
 
 ## Step 1: Simplify + Review + Product Review (parallel)
 
 The three roles see the diff through different lenses:
-- **Simplifier** — is the code *clean*? (duplication, readability, consistency)
-- **Reviewer** — is the code *correct*? (bugs, security, logic errors, conventions)
-- **Product reviewer** — is the *feature* complete and valuable? (missing journeys, dead-end flows, UX/business gaps — the class of miss a line-level diff structurally cannot catch). Runs in full mode only, and only if a project `.claude/agents/product-reviewer.md` exists (skip silently if absent).
+- **Simplifier**: is the code *clean*? (duplication, readability, consistency)
+- **Reviewer**: is the code *correct*? (bugs, security, logic errors, conventions)
+- **Product reviewer**: is the *feature* complete and valuable? (missing journeys, dead-end flows, UX and business gaps, the class of miss a line-level diff cannot catch). Full mode only, and only if a project `.claude/agents/product-reviewer.md` exists (skip silently if absent).
 
 ### Ownership & Partition
 
 Judge file ownership by diff *content*, since the harness auto-stages your own writes identically to a peer's. Read the diff before spawning agents.
 
-**Ban these verbs in every agent prompt: `stash`, `checkout -- .`, `reset`, `clean`, `restore`, `commit`, `push`.** A file partition scopes reads, never git commands — one agent reaching for a clean baseline collides with your uncommitted work or a peer's. Naming the verbs is the guard. A report-only brief also names the project's build and generator scripts as writes: an agent checking whether a generated file is stale will otherwise run the generator and rewrite it, so tell it to use the tool's own check mode or build into a scratch path.
+**Ban these verbs in every agent prompt: `stash`, `checkout -- .`, `reset`, `clean`, `restore`, `commit`, `push`.** A file partition scopes reads, never git commands: one agent reaching for a clean baseline collides with your uncommitted work or a peer's, so naming the verbs is the guard. A report-only brief also names the project's build and generator scripts as writes. An agent checking whether a generated file is stale will otherwise run the generator and rewrite it, so tell it to use the tool's check mode or a scratch path.
 
-**One agent per file for writes, and you are in the partition too.** Simplifier and reviewer both carry `Edit`; handing both the same list races them. Overlapping reads are fine; overlapping writes produce transient diagnostics the post-fan-out re-read cannot detect. The case the partition misses is your own: having granted a file to an agent, you keep editing it yourself, because a partition reads as a rule about *them*. Your context for that file then goes stale the moment the agent writes, and an `Edit` against remembered text still applies cleanly — it anchors on a string that survived the rewrite while the surrounding paragraphs moved. Measured 2026-09-15: an edit restoring a figure landed beside a paragraph the simplifier had already refolded, leaving the entry describing a dependency two paragraphs before the one explaining its removal; the harness's "modified on disk since you last read it" notice was the only signal, and it arrives *after* the write. So either hold your own edits to a granted file until the agent returns, or re-read before each one — never edit from context you held before dispatch.
+**One agent per file for writes, and you are in the partition too.** Simplifier and reviewer both carry `Edit`, so handing both the same list races them. Overlapping reads are fine; overlapping writes are not, because the post-fan-out re-read cannot see the transient diagnostics they leave. Your own edits count as well: a partition reads as a rule about *them*, but an `Edit` against remembered text still applies cleanly to a string that survived a rewrite while its paragraph moved. Hold your edits to a granted file until the agent returns, or re-read before each one. Measured 2026-09-15: a restored figure landed beside a paragraph the simplifier had refolded, and only the harness's "modified on disk" notice showed it, after the write.
 
-**Multi-repo sessions:** Partition by repo first. Count changed files per repo (📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`) and sum for agent scaling. Mark the *other* repo's paths out of bounds — a partition listing paths reads as advisory once an agent notices a sibling file.
+**Multi-repo sessions:** Partition by repo first. Count changed files per repo (📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`) and sum for agent scaling. Mark the *other* repo's paths out of bounds: a partition listing paths reads as advisory once an agent notices a sibling file.
 
 Read 📖 `${CLAUDE_SKILL_DIR}/references/owner-and-partition.md` for the ownership decision process and contested-file handling.
 
-All agents go out in **ONE message** — the shape rule is restated at the dispatch itself, below, because that is where it has repeatedly failed.
-
 ### Agents to run
 
-**Check for project agents first** by globbing:
-```
-Glob: .claude/agents/code-simplifier.md
-Glob: .claude/agents/code-reviewer.md
-Glob: .claude/agents/product-reviewer.md
-```
+**Check for project agents first** by globbing `.claude/agents/code-simplifier.md`, `.claude/agents/code-reviewer.md` and `.claude/agents/product-reviewer.md`.
 
 | Agent | When found | Type to dispatch |
 |-------|-----------|------------------|
@@ -75,6 +63,8 @@ Glob: .claude/agents/product-reviewer.md
 
 **Runtime behaviour is a Playwright spec's job, not an agent's.** A UI diff with no spec covering it is a finding: write or extend the spec (`setup-playwright`) and run it, rather than reviewing the running app by eye.
 
+Subagents run in the background by default, so what arrives is a `<task-notification>`: it says an agent finished, not what it found. An agent spawned with `name:` is an addressable teammate whose plain-text output never reaches you, so its prompt must tell it to report via `SendMessage`, or the findings are silently absent while every agent shows complete.
+
 ### Agent Count & Prompting
 
 Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/git-variants-by-state.md`, then scale **per role**:
@@ -85,91 +75,75 @@ Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/g
 | 31–80 | 2 | 2 | 1 | **5** |
 | 81+ | 3 (cap) | 3 (cap) | 1 | **7** |
 
-⚠️ **The count is inlined because a pointer loses it.** It was a `📖` away until 1.291.0, and the paragraph that follows this one is a loud "dispatch NOW, no prose first" — which pulls attention past the pointer, so the reference goes unopened and three agents feel like the whole batch whatever the diff size. Measured 2026-09-22: a 110-file diff (81+ band, seven agents) got three, and the shortfall surfaced only because the user asked. Nothing in the dispatch reads as wrong — three agents is the *correct* answer for the band you never checked, and every report comes back clean because each agent reviewed what it was handed. **Tell: you are about to emit a batch without having named which band the file count put you in.**
+**Name the band before the batch.** The 81+ band is seven agents, not three: a 110-file diff given three on 2026-09-22 reported clean, because each agent reviewed only what it was handed. The table is inlined rather than behind a pointer because the dispatch paragraph below pulls attention past one and the reference goes unopened. The reasoning is in 📖 `${CLAUDE_SKILL_DIR}/references/emission-and-agent-counts.md` § Count Rationale and Dispatch History. **Tell: you are about to emit a batch without having named which band the file count put you in.**
 
-Then read 📖 `${CLAUDE_SKILL_DIR}/references/emission-and-agent-counts.md` for partitioning rules and what each agent prompt needs — role-specific prompting, and how to supply the high-value details (unsure judgement calls, what you've already verified, what you did NOT check and want hunted).
+Then read 📖 `${CLAUDE_SKILL_DIR}/references/emission-and-agent-counts.md` for partitioning rules and how to brief each agent (the calls you are unsure of, what you verified, what you did not check).
 
-**Now dispatch — and this is the message the one-message rule governs.** Everything above was preparation; what you write next is the batch. Your first token is an `Agent` call, not a sentence about `Agent` calls: whatever you were about to say (which agent gets which files, what you already verified) goes in the message *after* the last call, or it goes in the partition message *before* this one. This paragraph is last on purpose — the rule has now failed eight recorded times, every one of them a session that read it correctly ~40 lines earlier and then composed the dispatch from memory once the partition reasoning had absorbed its attention (2026-09-18 is the latest; the sixth and seventh both came after this paragraph was moved here for exactly this reason, which is why 1.288.0 ruled that restating it again makes it less followed, not more). **Tell: you are writing a sentence and the next thing after it is an `Agent` call.** ⚠️ The eighth failure hid inside the carve-out above: the sentence written before call #1 was *about the partition*, which this paragraph explicitly permits — so it read as the allowed preamble rather than as narration, and the Tell never fired. The carve-out means a partition message sent **before** the batch, not a partition sentence sharing the message with it.
+**Now dispatch.** Your first token is an `Agent` call, not a sentence about `Agent` calls. Send every agent in ONE message so they run concurrently. Anything about partitioning goes in a message *before* the batch, never in a sentence sharing it. The rule has failed eight recorded times (latest 2026-09-18), each once partition reasoning had absorbed attention. **Tell: you are writing a sentence and the next thing after it is an `Agent` call.** Failure record: 📖 `${CLAUDE_SKILL_DIR}/references/emission-and-agent-counts.md` § Count Rationale and Dispatch History.
 
-**While they run:** Start the verification agenda below — reading agent blind spots, preparing your re-reads of git state, deciding output structure. Don't duplicate the agents' work by previewing changes in parallel; that destroys the check that makes delegation safe. **When that agenda is done, end the turn rather than waiting** — the harness re-invokes you when the agents finish, and a `sleep` or re-fired status check buys nothing. Polling reads as the diligent alternative to previewing. **Tell: your previous identical call returned nothing new and you have no other work queued.** 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/explore-delegation.md` § The Waiting Game
+**While they run:** work the verification agenda below (agent blind spots, git re-reads, output structure). Don't preview changes in parallel, since that destroys the check that makes delegation safe. When the agenda is done, **end the turn**: the harness re-invokes you when agents finish, and polling buys nothing. **Tell: your previous identical call returned nothing new and you have no other work queued.** 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/explore-delegation.md` § The Waiting Game
 
-**After all agents complete:**
-
-Re-read `git rev-parse HEAD` and `git status -sb` — an agent that committed or pushed shifts every check that follows. Re-read this skill's remaining steps from the file at the same time: the body entered context before the fan-out and is not re-attached when agents return, so the steps below are being recalled rather than read. The six rows and exit gate are most often satisfied from memory, which is what makes a row readable as `✅` without the step behind it having run.
+**After all agents complete:** re-read `git rev-parse HEAD` and `git status -sb`, since an agent that committed or pushed shifts every later check, and re-read this file's remaining steps: the body is not re-attached when agents return, so a recalled step reads as `✅` without having run.
 
 Reconcile agents against each other and the work. Agents have bounded visibility (one repo, one domain, one layer), so universal "clean" verdicts don't prove the codebase is clean. Read 📖 `${CLAUDE_SKILL_DIR}/references/agent-blind-spots.md` for the nine blindness patterns and how to settle contradictions.
 
-Cross-agent findings (agent A's result needs a change in agent B's file) are applied *after* both return, by you or a fresh dispatch with the finding in its brief. Messaging a still-running agent reads as an out-of-brief instruction; a well-built agent refuses it (two did 2026-09-05, and the finding nearly lost while every report read complete).
+Cross-agent findings (agent A's result needs a change in agent B's file) are applied *after* both return, by you or a fresh dispatch carrying the finding in its brief. Messaging a still-running agent reads as an out-of-brief instruction, and a well-built agent refuses it (2026-09-05).
 
-Questions the product reviewer raises are asked through one `AskUserQuestion` call now, before Step 4, so the task doc records answers rather than open questions. On a brief to finish everything, build the answers first. Before asking, open the code each question's premise rests on: a reviewer's "this flow does X" is read from the files it happened to open, and a question built on a false premise gets a real answer to an unreal problem. Measured 2026-10-23: "Not now still gets pushes on older Android" went out unchecked, the user chose a fix, and the permission code showed that screen never appears there, so the question was asked again. **Tell: an option repeats a reviewer's claim about behaviour and you have not opened the file that decides it.**
+Product-reviewer questions go through one `AskUserQuestion` call before Step 4, so the task doc records answers, not open questions. Before asking, open the code each question's premise rests on: a reviewer's "this flow does X" comes from the files it happened to open. Measured 2026-10-23: "Not now still gets pushes on older Android" went out unchecked, and the permission code showed that screen never appears there. **Tell: an option repeats a reviewer's claim about behaviour and you have not opened the file that decides it.**
 
 ## Step 2: Clean up temp code
 
-Scan the session for temporary artifacts — debug UI, logging, commented-out migration code — and remove or ask before keeping. Skip if none found.
+Scan the session for temporary artifacts (debug UI, logging, commented-out migration code) and remove them or ask before keeping. Skip if none found.
 
-⚠️ **"Nothing depends on this" is a claim about consumers, and the entry point tells you where a feature GOES, not what it NEEDS.** Stopping calling a seeder, a fixture builder or a setup routine is the same act as deleting it, minus the grep that deleting would have prompted — so the check gets skipped precisely because nothing was removed. Following the button that reaches the feature is not that check either: it resolves the route and reads as verification while answering a different question. What settles it is grepping the *data* the routine produces and opening whatever renders it, since the dependent is usually a page or job that fetches those rows rather than anything naming the function. Measured 2026-09-17: a test-mode seeder was stopped after confirming its entry point merely navigated elsewhere; five sub-pages fetched those rows and a summary card hardcoded their contents, so the whole surface silently advertised data that no longer existed. **Tell: you are about to call something dead because you followed its entry point rather than its output.**
+⚠️ **"Nothing depends on this" is a claim about consumers, and an entry point shows where a feature goes, not what it needs.** Stopping a seeder, fixture builder or setup routine is deleting it without the grep that deleting would prompt. Grep the *data* the routine produces and open whatever renders it, since the dependent is usually a page or job fetching those rows. Measured 2026-09-17: a test-mode seeder was stopped after its entry point merely navigated elsewhere, and five sub-pages still fetched its rows. **Tell: you are about to call something dead because you followed its entry point rather than its output.**
 
-⚠️ **A component published to a design system has a second home, and editing the first one silently retires the copy everyone else builds against.** Where a repo mirrors components out to a published system (Claude Design, a Storybook deploy, a released package), the source file is the only one your diff, your tests and your reviewers can see; the published copy keeps serving the version it was last built from, and nothing errors — designs and downstream consumers keep rendering, just from code that no longer exists here. The drift is therefore invisible at exactly the moment it is created, and it compounds per session. Establish whether the files you touched are mirrored (the sync's own config or build manifest enumerates them — that list is the authority, never the directory name), and when they are, say so in Output with the count and offer the re-sync rather than running it: a sync is long, it publishes, and whether it happens now is the user's call. Measured 2026-09-16: eleven mirrored files across four published components were edited and committed while the published system still served the prior build. **Tell: you are wrapping up a session whose diff touched a component directory, and you have not checked whether anything republishes it.**
+⚠️ **A component published to a design system has a second home.** If the repo mirrors components out (Claude Design, a Storybook deploy, a released package), the published copy keeps serving the old build and nothing errors. The sync's own config or manifest is the authority for what is mirrored, not the directory name. If mirrored, state the count in Output and offer the re-sync rather than running it, since publishing is the user's call. Measured 2026-09-16: eleven mirrored files across four components were committed while the published system served the prior build. **Tell: your diff touched a component directory and you have not checked whether anything republishes it.**
 
-## Steps 3 + 4: Capture Knowledge + Update Task Docs (sequential — Step 3, then Step 4)
+## Steps 3 + 4: Capture Knowledge + Update Task Docs (sequential: Step 3, then Step 4)
 
-Run Step 3 before Step 4. Both skills scan the same conversation for the same class of signal and independently decide routing (CLAUDE.md vs. task doc). Parallel dispatch risks the same fact landing in both files or neither — `update-claude-docs` decides what's broadly reusable, and `task-summary`'s own rule ("only patterns that apply broadly go in CLAUDE.md") depends on that decision already being made. Step 4 reads Step 3's result.
+Run Step 3 before Step 4. Both skills scan the same conversation and decide routing (CLAUDE.md vs. task doc). Run in parallel, the same fact can land in both files or neither. `task-summary`'s rule ("only patterns that apply broadly go in CLAUDE.md") depends on Step 3's decision already being made.
 
-**Step 3 — Capture Session Knowledge:**
+**Step 3, Capture Session Knowledge:** Invoke `syafiqkit:update-claude-docs` bare (no arg), or with only a hint. Pre-written args that list only code facts silently drop the early-session behavioural insights, which are the highest-value captures. Do not draft CLAUDE.md entries here: a summary drafted here reads complete and gets Step 4 skipped, so the next thing after the skill returns is task-summary, not a reply about what was written.
 
-Invoke `syafiqkit:update-claude-docs` bare (no arg), or pass only a HINT if you must. The skill scans the FULL conversation for signals (corrections, preferences, misses) and code patterns (env surprises, tool misuse), then routes to the narrowest scope. Pre-written args listing only code facts silently drop early-session behavioral insights — the highest-value captures.
+**Step 4, Update Task Docs:** Invoke `syafiqkit:task-summary` bare for a multi-domain scan. An explicit path skips the scan and misses related docs. If the skill already ran this session, invoke it scoped to only what's NEW. A scoped invoke still counts as running the step; skipping it does not.
 
-Delegate capture to the skill. Do not draft CLAUDE.md entries in `/done` — a summary reads complete and makes Step 4 get skipped. The next thing after this skill returns is task-summary, not a reply about what was written.
+**Before leaving this step, measure what it wrote.** Read 📖 `${CLAUDE_SKILL_DIR}/references/task-doc-measurement.md` for the three core rules and the measurement command. Over budget: run `condense-task-doc` in the same turn, or state in the Output that it was skipped.
 
-**Step 4 — Update Task Docs:**
+## Step 5: Capture plugin learnings (optional, only if a gate fires)
 
-Invoke `syafiqkit:task-summary` bare for a multi-domain scan. An explicit path skips the scan and misses related docs. If the skill already ran THIS session, invoke scoped to only what's NEW — a scoped invoke still counts as running the step; skipping it does not.
+Steps 3+4 write to the *project*; this writes to the *plugin*, a global artifact shared across every project.
 
-The skill auto-detects create vs update and handles path resolution and cross-references.
+Two gates. **Gate B** fires when this session wrote to `skills/**/*.md`, `commands/*.md` or `.claude/agents/*.md`, defect or no. **Gate A** fires on a real skill signal: something misfired, a step was wrong, you worked around an instruction.
 
-**Before leaving this step, measure what it wrote.** Read 📖 `${CLAUDE_SKILL_DIR}/references/task-doc-measurement.md` for the three core rules and measurement command. Over budget → run `condense-task-doc` in the same turn or state in Output that it was skipped. Once measured, proceed to Step 5 check.
-
-> Agent files no longer contain injected CLAUDE.md content — they read it dynamically. No agent syncing needed.
-
-## Step 5: Capture plugin learnings (optional — only if a gate fires)
-
-Steps 3+4 write to the *project*; this writes to the *plugin* — a global artifact shared across every project.
-
-Two gates. **Gate B** fires when this session wrote to `skills/**/*.md`, `commands/*.md` or `.claude/agents/*.md`, defect or no. **Gate A** fires on a real skill signal — something misfired, a step was wrong, you worked around an instruction.
-
-**Gate B is a *file-modification* test and cannot answer whether a skill misled you — it only says the plugin tree changed.** Reverting a bad edit erases exactly the evidence Gate B looks for, so better defect handling makes the gate likelier to report nothing. Measured 2026-09-03: a session was sent wrong, reverted its own and template edits, saw empty status, reported "gate did not fire" — two invocations later the same signal patched five files. **Gate A is answered by recalling the session, not by status command.** Did a skill send you somewhere wrong? Did you correct a step mid-execution? Did you work around an instruction? A `git status` cannot answer these. On any session where you fixed something, treat Gate A as likelier.
+**Gate B only says the plugin tree changed, so it cannot tell you whether a skill misled you**, and reverting a bad edit erases the evidence it looks for. **Gate A is answered by recalling the session** (did a skill send you somewhere wrong, or did you correct or work around a step?), not by a status command. Measured 2026-09-03: a session reverted its own edits, saw empty status, and reported the gate silent; two invocations later the same signal patched five files.
 
 Check the plugin tree with:
 ```bash
 cd ~/.claude/plugins/syafiqkit && git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
 ```
-Use `cd`, not `git -C` — the latter walks up to an enclosing repo. Any hit: check its mtime against session start (shared checkouts carry another session's work). Read 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` for ownership and "replaced/routed/grew" meanings.
+Use `cd`, not `git -C`: the latter walks up to an enclosing repo. Any hit: check its mtime against session start, since shared checkouts carry another session's work. Read 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` for ownership and "replaced/routed/grew" meanings.
 
-**Gate B re-fires on work already routed.** Once files land in a session commit they stay in `git show --stat` for every later `/done`. A second run sees the same hit with nothing new — which reads as unrouted. Ask what changed since the last `update-plugin` run: nothing new means the gate is satisfied. A genuinely new signal means invoking scoped to it. Also read the CHANGELOG head — your signal may already be captured there, and two version bumps in one afternoon is a collision to avoid.
+**Gate B re-fires on work already routed.** Committed files stay in `git show --stat` for later `/done` runs. Ask what changed since the last `update-plugin` run: nothing new means the gate is satisfied, and a new signal means invoking scoped to it. Check the CHANGELOG head too, since two bumps in one afternoon is a collision.
 
-Invoke `syafiqkit:update-plugin` once ownership is settled — it owns everything downstream (patch files + version + CHANGELOG for owner, or draft GitHub issue for consumer).
+Invoke `syafiqkit:update-plugin` once ownership is settled. It owns everything downstream (patch files + version + CHANGELOG for owner, or draft GitHub issue for consumer).
 
 ## Exit Gate — Verify Steps Ran Before Writing Output
 
-Confirm the WORK is done, not just this skill's steps — verify against the approved plan that every part was built; part-done means finish the work first.
+Confirm the WORK is done, not just this skill's steps: verify against the approved plan that every part was built. Part-done means finish the work first.
 
-**Code written after the Step 1 fan-out has had no review.** The agents read the diff as it stood when you dispatched them. Fixes for their findings, builds from a product gap, and anything the user asked for mid-`/done` all came later. List the files changed since dispatch. If that delta is more than a few one-line patches, send it through a reviewer (and a product reviewer where it changed what a user sees) before writing Output, scaled to the delta and not to the whole diff. **Tell: your Review row lists fixes, and no agent was dispatched after they were written.**
+**Code written after the Step 1 fan-out has had no review.** The agents saw the diff as it stood at dispatch. List the files changed since then. More than a few one-line patches goes through a reviewer (and a product reviewer where a user sees the change), scaled to that delta. **Tell: your Review row lists fixes, and no agent was dispatched after they were written.**
 
-⚠️ **A red test suite blocks the exit, whoever caused it.** A failure you proved pre-existing is still a failure, and fixing it is part of `/done`. A baseline run at HEAD tells you WHAT to fix (the code or an outdated test), never WHETHER to fix it. "Not caused by this diff" is a finding to state beside the fix, not a reason to stop at a report. Fix the code when it's wrong. Fix the test when it's stale or its fixture is date- or order-dependent. Where the right behaviour is a genuinely open product call, fix the test's determinism and record the product question. Measured 2026-09-29: a `/done` proved 7 billing failures pre-existing and wrote them up as not its concern, and the user had to ask for the fix. Keep the full runner output, never a `tail`: the failure names are what a fix needs, and dropping them costs a whole re-run. **Tell: your Output says a test fails "on master too" and no row says it was fixed.** Every Output row is a claim that a step ran — verify each before writing. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for fillability tests, verification methods for Knowledge/Task docs, and failed agent handling.
+⚠️ **A red test suite blocks the exit, whoever caused it.** A failure proved pre-existing is still a failure to fix in `/done`. A HEAD baseline tells you what to fix, never whether. Fix the code when it's wrong, the test when it's stale or date- or order-dependent, and where the behaviour is a real product call, fix the test's determinism and record the question. Keep the full runner output, never a `tail`: the failure names are what a fix needs, and dropping them costs a whole re-run. Measured 2026-09-29: seven billing failures were proved pre-existing and written up as not this skill's concern, and the user had to ask for the fix. **Tell: your Output says a test fails "on master too" and no row says it was fixed.** Verify each Output row before writing it. Read 📖 `${CLAUDE_SKILL_DIR}/references/exit-gate-rules.md` for fillability tests, verification methods and failed-agent handling.
 
-**Read the session from the top, asking two things:** First, what would a reader need that exists only in this conversation — a plan in prose, a rule about what to stop doing, anything parked or waiting? A doc step passes every check having written findings without reasoning. Grep the docs for the specific fact: a diff proves bytes moved, never that the right fact moved. Missing → go back to Step 4.
+**Read the session from the top, asking two things.** First, what would a reader need that exists only in this conversation (a plan in prose, a rule about what to stop doing, anything parked or waiting)? Grep the docs for that specific fact: a diff proves bytes moved, not that the right fact moved. Missing → back to Step 4. Second, is anything the user must decide placed first in the Output? Open questions go above the Summary, and ✅ on a change with an open question is valid only if the question sits before it. Six filled rows read as thorough, which makes skipping this check likelier (2026-08-28: a decision block was written and a sequencing plan stayed in the conversation). Structure that looks complete is not evidence a check ran.
 
-Second, is anything the user must decide placed first in Output? Open questions must be asked above — `✅` on a change with an unresolved question only if the question sits before the Summary section.
-
-**Six rows to fill reads as thorough and makes skipping this check likelier.** Measured 2026-08-28: `/done` wrote a decision block and stopped while a sequencing plan stayed in the conversation; the next `/quick-done` caught it. Structure that looks complete is not evidence a check ran.
-
-⚠️ **If new work arrived from the user while this skill was running, the wrap-up is the thing most likely to have been lost — and nothing will remind you.** A bug report mid-`/done` is real and urgent, so attending to it is right; what makes it costly is that fixing it produces its own endpoint (tests green, a screenshot) which then gets written up as the turn's conclusion, because at that moment it is the only outstanding thing in view. The steps still owed are not contradicted by anything — they are simply no longer present, having entered context before several rounds of file edits. Measured 2026-09-17: five interrupting reports landed during a `/done`; all five were fixed and verified, and the reply that followed carried no Knowledge, Task-docs or Plugin row and never mentioned `/done` had run. **Before writing Output, ask whether this turn was interrupted; if it was, resume at the step you left and re-read this file rather than recalling it.** 📖 `../_shared/references/one-turn-chain.md` for the involuntary-severance cases and why an honest summary of the remaining step still evades every guard.
+⚠️ **Interrupted turn.** If new work arrived from the user mid-`/done`, the wrap-up is the step most likely lost, because fixing the request produces its own endpoint (green tests, a screenshot) that reads as the conclusion, and the steps still owed have scrolled out of view. Measured 2026-09-17: five interrupting reports landed during a `/done`; all were fixed, and the reply carried no Knowledge, Task-docs or Plugin row. **Before writing Output, ask whether this turn was interrupted; if so, resume at the step you left and re-read this file rather than recalling it.** 📖 `../_shared/references/one-turn-chain.md` for why an honest summary of the remaining step still evades every guard.
 
 ## Output
 
 Lead with what the user has to decide; report what was built underneath it. Group by **what was built** (features/changes), not by workflow step (agents/skills). Read 📖 `${CLAUDE_SKILL_DIR}/references/output-structure-rules.md` for the full structure, ordering rules, and template.
 
-**Where the session is ending with work deferred rather than finished** — something parked for lack of room, an explicit "next session", or a visible compaction — offer a continuation prompt via `syafiqkit:continue-session` after the Summary. One line; it's an offer, not a step. Don't estimate your remaining context to decide: that number is unmeasurable from the inside, and the signals above are observable without it.
+**If the session ends with work deferred** (parked for room, an explicit "next session", or a visible compaction), offer a continuation prompt via `syafiqkit:continue-session` after the Summary, as one line. Judge by those visible signals, not an estimate of remaining context, which can't be measured from inside.
 
 **Quick rules:**
 - One to four open questions: one `AskUserQuestion` call. Five or more: `## Decisions` as well. If the session's brief was to finish everything, ask them before wrapping up and build the answers. Don't park them in the task doc (📖 `../_shared/references/decision-first-output.md` § Where it goes).

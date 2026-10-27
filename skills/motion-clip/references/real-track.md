@@ -1,6 +1,8 @@
 # Cutting a real track to the film {#real-track}
 
-SKILL.md §5 covers the licence check. Once the user has downloaded the chosen track:
+**Licence first.** Pixabay Music's Content License allows commercial use with no credit and allows editing; its own summary page says so, and the YouTube Audio Library does not cover ads off YouTube. On each track page, look for "Content ID registered": such a track can be flagged or muted on Facebook, Instagram and YouTube, which matters for paid ads and Google Play but not WhatsApp status. Pixabay answers scripted downloads with 403, so the user downloads the file.
+
+Once the user has downloaded the chosen track:
 
 - **Tempo**: the track need not match `music.bpm`. Find its drop (an energy step in a per-50 ms RMS read) and start the cut so the drop lands on `device.enter`.
 - **Mix**: cut the track, then let `score.py` lay the taps, whooshes, chimes and any voice over it, dipping the music under each voice line as it does the generated bed:

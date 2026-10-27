@@ -52,3 +52,9 @@ Invoke `syafiqkit:update-plugin` once both gates are checked:
 - **Consumer** → draft and offer to file as a GitHub issue upstream
 
 Either way the finding survives.
+
+## Gate Rationale
+
+**Gate B is a *file-modification* test and cannot answer whether a skill misled you, it only says the plugin tree changed.** Reverting a bad edit erases exactly the evidence Gate B looks for, so better defect handling makes the gate likelier to report nothing. Measured 2026-09-03: a session was sent wrong, reverted its own and template edits, saw empty status, reported "gate did not fire", two invocations later the same signal patched five files. **Gate A is answered by recalling the session, not by status command.** Did a skill send you somewhere wrong? Did you correct a step mid-execution? Did you work around an instruction? A `git status` cannot answer these. On any session where you fixed something, treat Gate A as likelier.
+
+**Gate B re-fires on work already routed.** Once files land in a session commit they stay in `git show --stat` for every later `/done`. A second run sees the same hit with nothing new, which reads as unrouted. Ask what changed since the last `update-plugin` run: nothing new means the gate is satisfied. A genuinely new signal means invoking scoped to it. Also read the CHANGELOG head, your signal may already be captured there, and two version bumps in one afternoon is a collision to avoid.

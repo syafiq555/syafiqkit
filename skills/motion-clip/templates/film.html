@@ -218,7 +218,34 @@ function layout() {
   const square = W / H < 1.2;
   return { vertical, align: 'left', textX: W * (square ? 0.07 : 0.09), capY: H * 0.42, cap: square ? W * 0.046 : H * 0.068,
     hook: square ? W * 0.1 : H * 0.15, phoneH: H * 0.84, cx: W * (square ? 0.75 : 0.72), cy: H * 0.53,
-    boxW: W * (square ? 0.46 : 0.5), boxH: H * 0.84 };
+    boxW: W * (square ? 0.46 : 0.5), boxH: H * 0.84, pictureX: W * 0.46 };
+}
+
+const shrunkLines = new Set();
+
+function sideZoom() {
+  return STORY.frame === 'phone' ? 0.25 : 0.6;
+}
+
+const pictureLefts = new Map();
+
+function pictureLeft(t0, t1) {
+  const key = `${t0}:${t1}`;
+  if (!pictureLefts.has(key)) {
+    const geo = deviceGeometry();
+    const side = sideZoom();
+    const start = Number(t0) || 0;
+    const end = (t1 ?? STORY.duration) + 0.35;
+    let left = L.cx - geo.w / 2;
+    for (let s = start; ; s = Math.min(s + 0.1, end)) {
+      const c = camera(s);
+      const zoom = 1 + ((c.z || 1) - 1) * side;
+      left = Math.min(left, L.cx - zoom * (geo.w / 2 + (c.x - 0.5) * geo.screenW * side));
+      if (s >= end) break;
+    }
+    pictureLefts.set(key, Math.max(L.pictureX, left));
+  }
+  return pictureLefts.get(key);
 }
 
 function font(size, heading = true) {
@@ -235,9 +262,16 @@ function revealLine(text, x, y, size, fill, t0, t1, t, opts = {}) {
   g.textAlign = opts.align || L.align;
   g.textBaseline = 'alphabetic';
   let m = g.measureText(text);
-  const fit = opts.maxWidth ?? (L.vertical ? W * 0.9 : L.cx - deviceGeometry().w / 2 - L.textX - W * 0.03);
+  const [w0, w1] = opts.caption || [t0, t1];
+  const fit = opts.maxWidth ?? (L.vertical ? W * 0.9 : pictureLeft(w0, w1) - L.textX - W * 0.03);
   if (m.width > fit) {
-    size *= fit / m.width;
+    const ratio = fit / m.width;
+    const besidePicture = opts.caption && opts.maxWidth == null && !L.vertical && STORY.screens.length > 0;
+    if (besidePicture && ratio < 0.8 && !shrunkLines.has(text)) {
+      shrunkLines.add(text);
+      console.warn(`caption at ${(Number(w0) || 0).toFixed(1)} s "${text}" shrinks to ${Math.round(ratio * 100)}% at ${W}x${H} to clear the picture: split it into rows of about ${Math.floor(text.length * ratio)} characters`);
+    }
+    size *= ratio;
     g.font = font(size, opts.heading !== false);
     m = g.measureText(text);
   }
@@ -486,18 +520,18 @@ function drawDeviceFlat(t) {
   if (!STORY.screens.length || enter <= 0 || leave >= 1) return;
   const geo = deviceGeometry();
   const cam = camera(t);
-  const sideZoom = STORY.frame === 'phone' ? 0.25 : 0.6;
-  const zoom = L.vertical ? cam.z : 1 + (cam.z - 1) * sideZoom;
+  const side = sideZoom();
+  const zoom = L.vertical ? cam.z : 1 + (cam.z - 1) * side;
   const cy = L.cy + (1 - enter) * H * 0.9 + leave * H;
   const rot = (1 - enter) * 0.08 - leave * 0.05;
   g.save();
   g.beginPath();
-  if (L.vertical) g.rect(0, H * 0.2, W, H); else g.rect(W * 0.46, 0, W, H);
+  if (L.vertical) g.rect(0, H * 0.2, W, H); else g.rect(L.pictureX, 0, W, H);
   g.clip();
   g.translate(L.cx, cy);
   g.rotate(rot);
   g.scale(zoom, zoom);
-  g.translate(-(cam.x - 0.5) * geo.screenW * (L.vertical ? 1 : sideZoom), -(cam.y - 0.5) * geo.screenH * (L.vertical ? 1 : sideZoom));
+  g.translate(-(cam.x - 0.5) * geo.screenW * (L.vertical ? 1 : side), -(cam.y - 0.5) * geo.screenH * (L.vertical ? 1 : side));
   g.shadowColor = rgba(C.ink, 0.18);
   g.shadowBlur = geo.h * 0.05;
   g.shadowOffsetY = geo.h * 0.02;
@@ -648,7 +682,7 @@ function cursorArrow(x, y, size, press) {
 }
 
 function captions(t) {
-  for (const c of STORY.captions) lines(c.rows, c.in, c.out, t, L.cap, L.capY);
+  for (const c of STORY.captions) lines(c.rows, c.in, c.out, t, L.cap, L.capY, { caption: [c.in, c.out] });
 }
 
 function hook(t) {

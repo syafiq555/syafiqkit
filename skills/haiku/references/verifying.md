@@ -83,3 +83,35 @@ Two measured cases behind the pre-dispatch rule that a recent write of your own 
 **After a success (2026-09-11).** The recurring shape, and harder to catch because nothing about it feels like a correction. A four-file refresh finished Pass 1, the caller patched one thing the pass got wrong, then dispatched Pass 2. That agent had already opened the target before the patch landed, so it re-gutted a restored `<!--LLM-CONTEXT-->` block and reported honestly against its own pre-patch baseline. The same block needed restoring twice in one run.
 
 The asymmetry is why the second keeps happening: a patch applied minutes ago reads as obviously current, so the re-read feels redundant exactly when it is load-bearing. Stating the rule again does not fix it — put the post-patch counts in the next prompt as numbers the agent must check before editing, which moves the catch to the party that can still see the mismatch.
+
+## Judgement passes and reworded cells
+
+One four-agent run over a task-doc set inverted two statements, wrote a recommendation the doc's own decisions had retired, replaced a status line with an invented one, and reported a 1% no-op. What worked was moving the largest section out verbatim. A pass whose entire deliverable is a judgement about whether each rule earns its shape fails in a way the report hides: the verdict arrives with confident reasoning built on a figure nobody took. Dispatch it anyway, since it often lands, but read its basis rather than its conclusion. Every changed row of a reworded cell that carries reasoning gets read against the snapshot.
+
+## Usage lines
+
+A delegated report can describe a method and hide who did the work. Read its usage line before the findings: a tool count an order of magnitude below the work claimed ("24 searches, 13 fetches" against three tool uses) means a child did the retrieval, and your verification clauses reached it only as a paraphrase.
+
+## Measurement history
+
+A `comm`/`grep -o` sweep of backticked spans has driven a wrong verdict on every recorded occasion (ten CHANGELOG entries; the last returned 413 "losses" that were 23 rules). The number reads as a finding and is an artifact of tokenisation. A number an order of magnitude too large makes a patchable run look systemic; one too small makes real loss invisible.
+
+## Repo-wide baseline
+
+A repo-wide check needs a repo-wide BEFORE, or its output cannot be classified. Snapshotting the target establishes nothing about the other files in the tree, so a modified neighbour is equally consistent with agent overreach and with uncommitted work already sitting there. Absent a baseline the natural reading is that the agent did it, which is an accusation about work someone else left behind. Where a suspect file has no baseline, its mtime against the agent's run window settles it. Measured 2026-09-20 on a three-pass CLAUDE.md refresh: three modified files were read as surplus writes from a single-file dispatch and were 2-3 days old, from earlier sessions.
+
+## Surplus writes
+
+An agent given one file sometimes edits neighbours it judged related, and its report describes only the assignment. Measured 2026-09-12: an unhobble-instructions run on a CLAUDE.md also rewrote two .claude/agents/*.md definitions, mtimes inside its run window, none of it mentioned. The edits were coherent and on-topic, which is what makes them easy to wave through. Judge them as unreviewed work that arrived unannounced, and hand the call to the user rather than keeping them because they read well.
+
+## Judgement dispatches
+
+A verdict about the world (does X overlap Y, should these merge) has no artifact to diff, and its reasoning reads as thorough because it is fluent. The tell is an agent citing one doc's content as evidence about a second doc: a gotcha that only appears in doc A, offered as proof that A and B overlap. That means it pattern-matched on shared vocabulary rather than confirming the cited fact is present in both files. Before accepting a verdict that changes what you do next (merge, delete, escalate), open the specific files the reasoning rests on and check the quoted evidence is present where it is claimed to be.
+
+## Coverage verdicts
+
+A coverage verdict ("this sentence answers that requirement") comes back lenient. Haiku maps a requirement to any sentence on the same topic, so "audit log of changes to settings" gets marked as covering "masking changes must be permission-controlled and auditable". At hundreds of rows, run a second strict pass over every row marked covered, with the test in the prompt ("would a reader of only this sentence know this specific requirement is met?") and one real rejected example as calibration. Measured 2026-10-14: a first pass over a 1,352-row requirement register passed two points a reviewer had caught by hand, and the strict pass moved about 70 rows from covered to gap.
+
+## A fact leaving the file
+
+A fact leaving this file is only a loss if this file was its home. A rewrite skill's capture filter deletes what a reader can derive (the code holds the value, the doc holds why it matters), so a deleted config key, error code or symbol is usually the pass working. Before counting one as lost, look for it where it lives: the project's CLAUDE.md, a companion reference, the source. What survives that check is content nothing else records: a decision's reasoning, a rejected alternative, what an incident cost.

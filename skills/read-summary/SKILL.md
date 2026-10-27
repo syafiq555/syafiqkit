@@ -7,132 +7,124 @@ description: Read task summary context and project instructions before answering
 
 Task docs carry decisions and gotchas that aren't derivable from the code alone. Reading them before investigating or implementing prevents confident-but-wrong answers grounded in incomplete information.
 
-When scope changes — a new domain enters mid-conversation, a second repo touches the question, or work spans multiple files — reread the docs relevant to that new scope before proceeding. The docs you loaded at session start are scoped to their domain; a domain shift needs its own discovery.
+When scope changes (a new domain, a second repo touching the question, or a claim that shifts mid-conversation), reread the docs for that scope before proceeding; the docs loaded at session start are scoped to their domain. A regression starts fresh discovery rather than pivoting from prior findings, since the doc that explained the original behaviour rarely owns the reason it broke.
 
-⚠️ **Answering from live measurement is the case that evades the rule above, because measuring is not a scope change and feels like the rigorous option.** Querying the DB, reading the controller, grepping the column — each returns a true fact, so a run of them reads as a well-researched answer while the domain's decisions were never opened. Nothing in the session says "new domain": the work still looks like the one you started on, and a question someone else asked (a designer's, a reviewer's, a stakeholder's) arrives as a request for facts rather than as a scope shift. Measured 2026-09-20: several turns of answering a designer's questions about a ledger were sourced entirely from SQL and controllers; the domain's companion then contradicted two of them — direction there comes from the amounts, never the transaction type, and a "running balance" is account-wide rather than per-unit, both unguessable from the schema. The tell is not what you touched but what sourced your answer. **Before sending facts about a domain whose docs you have not opened this session, open them — and treat a SQL result or a file read as the thing needing corroboration, not as the corroboration.** **Tell: you are answering questions about a subsystem and every citation in your reply is a query or a line number.**
+⚠️ **Answering from live measurement is the case that evades the rule above, because measuring is not a scope change and feels like the rigorous option.** Querying the DB, reading the controller, grepping the column each returns a true fact, so a run of them reads as a well-researched answer while the domain's decisions were never opened. Nothing in the session says "new domain", and the tell is what sourced your answer, not what you touched. Measured 2026-09-20: a designer's ledger questions were answered from SQL and controllers alone, and the domain's companion then contradicted two of them: direction comes from the amounts (never the transaction type), and a "running balance" is account-wide. Neither is guessable from the schema. **Before sending facts about a domain whose docs you have not opened this session, open them; a SQL result or file read needs corroborating, it is not the corroboration.** **Tell: you are answering questions about a subsystem and every citation in your reply is a query or a line number.**
 
-Before writing to a doc, one `ListAgents` call shows whether another session is live and might be editing the same `current.md`. Presence alone doesn't say which checkout they're in, so it narrows the question rather than settling it — 📖 `../_shared/references/cross-session-messaging.md` covers what a peer's presence does and doesn't tell you.
+Before writing to a doc, one `ListAgents` call shows whether another session is live and might be editing the same `current.md`. Presence narrows the question without settling which checkout they're in; 📖 `../_shared/references/cross-session-messaging.md` covers what it does and doesn't tell you.
 
-⚠️ **A live peer also makes `git stash` unsafe for the whole session that follows, and that rule lives only in references the implementing skills never open.** The ban is written down thoroughly (📖 `../_shared/references/diff-ownership.md`), but it is reachable only from wrap-up and doc skills — so a session that reads docs, then builds for two hours, meets the command with nothing loaded. Hold the operative half here, where a session starts: **`git stash` answers no QUESTION.** Whatever a stash is being reached for — what a file used to contain, whether a failure predates your edits, which session wrote a line — is answered by `git show HEAD:<path>`, `git diff HEAD -- <path>`, `git log -S`, or a second worktree at HEAD, none of which move a byte. Reserve it for a merge that genuinely needs one path parked. Note `--keep-index` is not the careful variant it appears to be: it protects your staged copies while still taking every *unstaged* file in the tree, which on a shared checkout is exactly a peer's in-flight work plus any of your own edits made since the last auto-stage. **Tell: you are about to stash for any reason other than an in-progress merge.**
+⚠️ **When another session's work must finish first ("don't run X until I tell you"), the wait is yours to arrange, not the user's to relay.** Find the peer with `ListAgents`, tell it what you will touch and what you need confirmed, and subscribe with `SendMessage` `notify_when_idle: true` so the harness wakes you. Idle means its turn ended, not that the work is done, so act on its reply, not on the notice. Ending the turn on "tell me when it has finished" makes the user a courier between two sessions they can both see. Measured 2026-10-27: a clip session waited on the user while its builder sat one `ListAgents` call away; the user had to say "communicate with the session", and the peer's first reply carried a selector change that would have broken the capture. **Tell: your closing line asks the user to report another session's progress.**
+
+⚠️ **A live peer also makes `git stash` unsafe for the whole session that follows.** The full ban is in 📖 `../_shared/references/diff-ownership.md`, reachable only from wrap-up and doc skills, so a session that reads docs and then builds for two hours meets the command with nothing loaded. Its operative half belongs here, where a session starts: **`git stash` answers no QUESTION.** Whatever a stash is reached for (what a file used to contain, whether a failure predates your edits, which session wrote a line) is answered by `git show HEAD:<path>`, `git diff HEAD -- <path>`, `git log -S`, or a second worktree at HEAD, none of which move a byte. Reserve it for a merge that genuinely needs one path parked. `--keep-index` is not the careful variant it appears to be: it protects your staged copies while still taking every *unstaged* file, which on a shared checkout is a peer's in-flight work plus any of your own edits since the last auto-stage. **Tell: you are about to stash for any reason other than an in-progress merge.**
 
 ---
 
 ## Discovery: Finding the Right Doc {#finding-docs}
 
-Folder names are domain-scoped and rarely match how a user phrases a request — `payout` might own "refund" work, `upload-redesign` might own "QC delete child question." Discover by content using the Explore agent to search doc bodies and headers across `tasks/`. The agent's report delivers raw hits only — file paths and matched lines — never a ranked judgment. Your job is the judgment: skim the top hits until you're confident you've found the right topic, then read the full doc.
+Folder names are domain-scoped and rarely match how a user phrases a request (`payout` may own "refund" work). Search doc bodies and headers under `tasks/` by content, delegating the search as the Agents section describes. The hits are raw; your judgment ranks them. Skim the top hits until you have the right topic, then read the full doc.
 
-The mechanical parts of discovery — grep setup, search retries, recursion — run in the agent's context and stay there. This split (gathering vs. judgment) is what makes delegating safe, and it only works if both halves stay separate; see the Agents section below for what to do while it runs.
+Once a doc lands, restate the user's claim and confirm the doc addresses that symptom, not a nearby topic mentioned in passing. An empty search is usually a search error (bad flag, typo, gitignored dir): search for something you know is there before concluding no doc exists. That control can't catch a checkout behind its remote, so when a doc *points at* a file you can't find, run `git fetch` and check the upstream (`git log --oneline HEAD..@{u}`, `git ls-tree -r --name-only @{u} -- <dir>`) before reporting it missing. Measured 2026-10-12: a task doc's `decisions/` siblings were reported absent while they sat one commit ahead on `origin`.
 
-Once a doc lands, restate the user's claim and confirm the doc actually addresses that symptom, not a nearby topic mentioned in passing. An empty search result is usually a search error (bad flag, typo, gitignored dir), not a missing doc — before concluding no doc exists, search for something you know is there and confirm you find it. That control can't catch a checkout that is behind its remote, because everything you already know about is present locally. So when a doc *points at* a file you can't find, run `git fetch` and look on the upstream branch (`git log --oneline HEAD..@{u}`, `git ls-tree -r --name-only @{u} -- <dir>`) before reporting it missing. A teammate who pushes docs and code together leaves exactly that gap. Measured 2026-10-12: a task doc's sibling `decisions/` files were reported to the user as absent while they sat one commit ahead on `origin`.
-
-⚠️ **A matched line that answers your question is the strongest reason to open its file, and it reads as the reason you no longer need to.** A hit arrives already shaped like a finding — it names the entity you asked about and states something true — so the search feels concluded rather than started, and the file goes unopened while its own conclusion is that you read it. What the surrounding page holds is the part that changes your reading: the prior occurrence that makes this the second one, the procedure someone already worked out, the instruction to check the whole platform rather than the one case you asked about. Each of those is invisible from the matched line and each reframes it. The tell is a grep whose output you then reasoned from — treat every file the search named as unread until you have opened it, and note that this fires hardest on a hit you were not looking for, since an unexpected match gets classified as a coincidence and dismissed rather than followed.
-
-When a claim shifts mid-conversation, start a fresh discovery pass rather than pivoting within prior findings — a regression investigation in particular starts fresh, since the doc that explained the original behaviour rarely owns the reason it broke.
-
----
-
-## Reading Order & Authority {#read-order}
-
-Follow every pointer you encounter in sequence. Each layer — a `docs/` set, task docs, decisions, CLAUDE.md files, sibling repos, journal — holds facts the previous one didn't reach, so skipping or reordering has a cost.
-
-**Pointer chain (in sequence):**
-
-- A project doc set under `docs/`, where one exists — `ARCHITECTURE-ESSENTIALS.md` first and **whole**, then `ARCHITECTURE.md` when the work spans subsystems and `PRD.md` when scope is in question. This layer sits first rather than last because nothing points at it: an essentials file is written to be read *before* a change, so a session that only follows pointers from a task doc never arrives, and the file's whole value is that it was read early. It is deliberately short — reading it entire costs less than the one constraint it exists to stop you violating. `PRD.md` earns its read whenever you are about to report something as missing, since a "gap" is often a documented deliberate exclusion.
-- Task doc (`current.md`) — if explicitly redirected (Merged into, Supersedes, top-level pointer), follow to the live doc.
-- Decisions and related files — follow `📖` pointers to external files and `Related:` sections.
-- CLAUDE.md files — auto-load additively by directory: root, layer, domain, subdir; also check for `.claude/rules/*.md` (loaded every session, not discovered by walk). Check `/context` to see what actually loaded rather than reasoning about what should have.
-- Sibling repos — if the question spans repos, read their `CLAUDE.md` and `CLAUDE.local.md`.
-- Private journal — grep `~/.claude/notes/` when the answer hinges on interpersonal or commercial context not in code or docs.
-
-⚠️ **Companion files are discovered by following pointers, not by search.** Grep results omit `📖` references and external files — when you encounter a pointer to `.claude-companions/` or a reference folder, verify the path with `ls` before trusting it. The resolved file is authoritative; a broken pointer or typo reads silently as a missing fact.
-
-⚠️ **A doc header or tech mention in shorthand is not the same as its architecture.** "React" in a header might mean the library, an SDK, or one layer of a larger stack — the *surface* of the technology the project actually uses. Stopping at the shorthand leaves you wrong about the layer. When a doc's architecture matters to your next step, read past the tables to the prose and confirm against something on disk before building on it.
-
-⚠️ **Confirm against what LOADS the technology, not against what declares it.** An installed package and a manifest entry are the same weak evidence: a dependency is declared once and unwired silently, because nobody removes it when they stop importing it. Measured 2026-09-01 — `vite`, `tailwindcss` and `alpinejs` were all installed and declared in a Laravel app that ships Bootstrap 5 and jQuery from static files, with no `@vite` directive in any of its 518 views, no `tailwind.config.js`, and no build output; the project's own frontend doc had recorded half of it while its scope header still named Alpine. Nothing errors in that state — a Tailwind class or an `x-data` directive simply does nothing — so there is no symptom to notice and the wrong answer propagates into whatever you write next. The load-bearing artifact is the entry point: the layout or template that emits the script tags, the DI container or service registration, the actual import sites. Read one of those.
-
----
-
-## What Task Docs Are and Aren't {#doc-authority}
-
-Task docs are authoritative for **decisions and gotchas** — why the code works this way, what will bite you, rejected alternatives. They are **not** live-state oracles; anything about a running system (prod's DB, a flag, whether an "open" bug is still open) decays the moment anyone touches a server. If the answer depends on current state, go measure it — and where doc and live system disagree, the live system wins.
-
-⚠️ **"The live system wins" assumes your measurement caught a settled state, and a system mid-reaction will hand you a value that is true and about to stop being true.** This is the expensive direction of the rule: a doc that disagrees with a live read looks stale by definition, so the read licenses rewriting it, and the rewrite lands in a doc that then reads as authoritative. Where something is in flight — a restart, a deploy, a retry, a refresh — check the artifact's mtime against when that event began before treating one read as ground truth, and prefer two reads far enough apart to disagree. Measured 2026-09-03: a credentials file read three minutes into a container start showed intact tokens, was used to declare an incident write-up wrong, and the write-up had been right. 📖 `../ship/references/ship-deploy-verification.md` § Reading a Destination That Is Still Reacting.
-
-**Three authority boundaries matter:**
-
-- **Schema vocabulary doesn't decay** — column names, enum values, table shapes, and header names stay stable. Before querying a table, read its column names from the docs.
-
-- **Claims about external APIs are neither decided fact nor live-state.** "The vendor requires X" is a claim about someone else's system. Nothing updates it when the vendor changes, and its cost is distinctive: a false constraint makes the correct fix look unavailable. When an external API claim rules out an approach, spend the one call to check it before believing it, and correct the doc afterwards.
-
-- **Claims about your own code that are blocking-shaped matter most.** "This is impossible", "this must come first", or "we have no way to do this" reorder work and produce no failure to notice — only a plan bent around them. Read the code a blocker rests on before planning around it. Where a blocker is true for one case and false for another, say which — a blocker narrowed is more useful than one deleted.
-
-  ⚠️ **But reading the code is the wrong instrument when the blocker rests on a CONFIG VALUE, and that is the case where it stays wrong longest.** The adapter, the client, the credential path all still exist and read as healthy, so opening them confirms the blocker rather than testing it — what decides is which value the environment actually resolves. Measured 2026-09-11: `tasks/credit/engine/current.md` carried "Request 2C2P production credentials" as a 🔴 blocker along with a cutover checklist and a whole reference section, while `config('services.payment_gateway.driver')` had defaulted to `'curlec'` all along and production resolved `curlec` in both `printenv` and `config()`. The 2C2P adapter is real, in-tree and unbound; one `printenv` in the environment the blocker claimed to block settled it. **Resolve the value, in that environment, before treating the blocker as real** — and a superseded integration that keeps its docs (fair, the code is still there) needs the section labelled dead at its heading, or the next reader debugging a live payment lands in it and debugs the wrong adapter.
-
-**A doc that records both what someone ASKED FOR and what a session CONCLUDED can misdirect.** Both are decisions, so both read as authoritative — but a conclusion that resolved one premise is often written as though it settled the whole request, and it is the later, narrower sentence a reader scopes from. So when a doc contains both, scope from the ask and treat the conclusion as one input to re-check, particularly where the conclusion's stated reason resolved a *premise* (a cost, a constraint, a feasibility question) rather than the request itself. **Tell: the sentence you are scoping from begins "the work is therefore".**
-
-Reading a doc is also auditing it. Sweep the fields written once and checked least — `Quick Start`, `Status:`, `Immediate next actions` — since those carry the costliest staleness, and route what you find in the same turn to the `task-summary` skill (project facts) or `update-plugin` (skill defects). An offer parked on the user's reply isn't routing: they act on your answer, often never respond, and the finding dies with the conversation.
-
-📖 `../read-summary/references/doc-authority.md` — edge cases and troubleshooting when a doc's claim contradicts live state, when external-system claims go stale, and how to handle blockers that are true for some paths and false for others.
-
----
-
-## After Reading Docs {#what-comes-next}
-
-Once the docs are read, three patterns determine what happens next:
-
-⚠️ **This skill is the preamble, so the rest of the request still belongs to whichever skill owns it.** Arguments often name a second job, or carry its trigger: "research uiux", "study X and research how others do it", "then brief the designer". Read in this skill's frame, that job looks like more investigation, so it gets a hand-rolled agent that does roughly the same thing minus the owning skill's brief, evidence rules and verification. Nothing errors, and the result looks like research. Measured 2026-10-07: "research uiux" in this skill's arguments got a general web agent, and `uiux` ran only after the user asked "u didnt use the uiux skill for research?". Before dispatching any agent of your own, check the request against the skill list. A named skill, or a request matching a skill's trigger (research on a UI question → `uiux`, a designer brief → `design-handoff`, "how should you present these reports to me" or "I can't read all of this" → `understanding-guide`), is invoked as the next step, and the docs you just read are its context. **Tell: the request names a skill or a trigger word, and the next call you are about to make is `Agent` rather than `Skill`.**
-
-- **Doc path only** — user supplied a path to a doc or named a domain without an action → you've read the docs; stop here. If they ask you to "now do X", the doc is context for work, not the endpoint. If X involves a tool the doc merely researched, read that tool's own source before running it — and the same holds for a SKILL you are about to tell the user to invoke, where the cost lands on them rather than you. A skill's name and one-line description state its subject, never the shape of input it requires, so one whose subject matches the request can still be built for a repo shape this one isn't; recommending it on the name spends a user invocation to discover that. Open it first and check what it assumes it is pointed at.
-
-- **Investigation** — a question about current state → read docs first, then investigate. When a user shows you screenshots or images as evidence of a problem, identify what each one is evidence *of* before answering. Before you send your conclusion, verify you answered the question the user asked, not an adjacent one. A finished investigation that found defects: report the finding and blast radius, then stop. Deciding which findings matter and when to fix them is the user's call.
-
-- **Task description** — a bug report, feature request, or work description → read the relevant docs (infer domain from keywords), then proceed to implement.
-
----
-
-## Plan Mode {#plan-mode}
-
-After reading docs, if the next step is clear (answer a question, investigate, implement), proceed. If the approach isn't yet clear — you need to know where a surface lives in the codebase or how to design a solution — delegate that search before proposing. Use `Explore` for "where does X live" and `Plan` for "how should I build this."
-
-Plan mode's own workflow restricts its first phase to `Explore` agents. That limit is about code search: it does not cancel a skill the request names. A `uiux` research pass or a `design-handoff` read is read-only and runs inside plan mode, and skipping it there is the same miss as above.
-
-⚠️ **A question a delegated agent hands back is still the user's question, and writing it into the plan as a default is not asking it.** A `Plan` agent often ends with "decisions for you" and a recommended answer for each. Copying those into the plan as "defaults, overridable at approval" feels like disclosure. But approving a long plan approves every line in it unread, so the defaults become decisions nobody made. Put each one through `AskUserQuestion` before `ExitPlanMode`, or say in the reply above the plan that they need an answer. Measured 2026-10-07: six part-payment rules from a Plan agent went into an approved plan this way, including a payment fee that could be charged twice, and only a side note surfaced them. **Tell: your plan contains "overridable", "default unless", or an agent's question with its answer filled in.**
-
-A doc's silence about something doesn't mean it's incomplete; it means nobody's needed that path yet. The absence of a doc entry isn't a blocker for design — it means you're in genuinely new territory, which is fine. Delegate only when exploration answers a question your design depends on.
-
-⚠️ **A subagent inherits plan mode, so one dispatched to MEASURE returns a plan to measure — searching and reading work normally here, which is why the limit goes unnoticed, since the delegation this section endorses is the safe kind.** Exit plan mode first, or defer the measurement to after approval and say which. 📖 `../_shared/references/explore-delegation.md` § How to Spawn for the mechanism and the 2026-09-18 measured incident. **Tell: you are about to spawn an agent to find out a fact about the world while the session cannot act on the world.**
-
----
-
-## Decision-First on Every Turn After {#decision-first}
-
-This skill runs at the start of most sessions, establishing a rule that carries forward into every turn: **any turn that ends on a question states the decision needed before the report.** A build incomplete, a next step you don't own, two paths open with one for the user to pick — all need a decision frame. This isn't a separate wrapper; it's part of your answer shape. The decision tells them what's actually unresolved; the report shows them what you've built.
-
-The same rule applies to the wrap-up skills (`done`, `quick-done`, `ship`) on their final turns — don't end on pending questions without naming them. One to four open questions go through one `AskUserQuestion` call; on a brief to finish everything, ask a question raised mid-work before the turn ends and build the answer rather than parking it in the task doc.
-
-⚠️ **What goes first is the QUESTION, not your planning.** Because this rule is read once at session start and then applied from memory for dozens of turns, it degrades into narrating working state — what you still need to read, which calls are blocked, which are independent, the plan restated. That is not a decision: the reader cannot answer it, and choosing what to do next is what they delegated. It reads as diligence, so nothing stops it, and it compounds once the shape is in your own transcript to copy. Measured 2026-09-14: ~12 consecutive replies opened that way before the user asked what the spam was. **Tell: your reply opens by describing what you are about to do.** Most turns carry no decision at all and should open with the answer. 📖 `../_shared/references/decision-first-output.md` for the full carve-out.
-
-⚠️ **A question a doc lists as open may already be answered in a sibling doc, and the user's "ask me first" makes asking feel like step one.** Before putting a doc's open item to the user, grep its `Related:` docs and the domain that owns the subject (a storage rule belongs to the storage domain even when a compliance doc lists it) for a recorded decision. If one exists, quote it inside the option. Otherwise the user answers again from a different frame, and two contradictory decisions land in two docs on the same day. Measured 2026-10-21: a "build or reword" question went out while the owning domain already held the opposite answer, given hours earlier; only a peer session building the same files caught it. The same holds for a defect you are about to report as found: the sibling may already record it and the decision on it. Measured 2026-10-26: a stale receipt balance went to the user as a new finding while the `Related:` payments doc held the bug and the user's decision from two weeks before. **Tell: you are about to ask a question, or report a defect as new, from a doc whose `Related:` docs you have not opened.**
-
-**Decision shapes** — not every question mark is a real decision point. When multiple paths are open:
-- **One path** — name it, and explain why it's the one. "We should X because Y" is a complete decision.
-- **Several paths** — list them with a trade-off ("X costs time, Y costs money, Z is reversible"), then either pick the best-fit (if the trade-off points one way) or state which dimension the user should decide on.
-- **A missing fact** — if the decision hinges on something unmeasured, say what to measure and how it would change the decision.
-
-📖 `../_shared/references/decision-first-output.md` — the full test logic for when a question-mark ending does or doesn't require a decision frame.
+⚠️ **A matched line that answers your question is the strongest reason to open its file, and it reads as the reason you no longer need to.** A hit arrives shaped like a finding, so the search feels concluded and the file goes unopened. The surrounding page holds what reframes it: the prior occurrence, the procedure already worked out, the instruction to check the whole platform. This fires hardest on an unexpected match, which gets dismissed as coincidence rather than followed. **Tell: you reasoned from a grep's output, and the files it named are still unread.**
 
 ---
 
 ## Agents
 
-For doc discovery, dispatch the `Explore` agent to search task docs by content. The agent returns raw hits; your judgment ranks them and picks the right doc. While the agent runs, do other work or think — don't re-read or re-grep the same files yourself. That duplication costs context for a fact you'll see again in the agent's report, and the check that makes delegation safe is verification *after* the report, not before.
+For doc discovery, dispatch the `Explore` agent to search task docs by content. Tell it in the prompt to batch its searches into few calls rather than one per pattern. Its hits are raw and your judgment ranks them. While it runs, do other work; don't re-read or re-grep the same files, since verification happens *after* the report. 📖 `../_shared/references/explore-delegation.md` covers the rest of the mechanics, including what separates delegable gathering from judgment you keep.
 
-⚠️ **If there is no other work, end the turn — do not manufacture the wait.** The harness re-invokes you when the agent finishes; a `sleep`, or a `ReadNotifications` fired again after it returned nothing, buys nothing. It evades the rule above because it doesn't duplicate the agent's work, so polling feels diligent. **Tell: you are about to make a call whose previous identical call returned nothing new, with no other work queued** — whatever it's named. 📖 `../_shared/references/explore-delegation.md` § The Waiting Game
+⚠️ **If there is no other work, end the turn; do not manufacture the wait.** The harness re-invokes you when the agent finishes, so a `sleep` or a repeated `ReadNotifications` buys nothing. It feels diligent because it doesn't duplicate the agent's work. **Tell: you are about to make a call whose previous identical call returned nothing new, with no other work queued.** 📖 `../_shared/references/explore-delegation.md` § The Waiting Game
 
-One clause belongs in the prompt itself, since it isn't derivable from the agent's side: tell it to batch its searches into few calls instead of one per pattern. 📖 `../_shared/references/explore-delegation.md` has the rest of the mechanics, including what separates delegable gathering from judgment you keep.
+**Open the files a report names before concluding anything from it.** The hits are an index, not the answer. A report reads like a deliverable rather than a search result, which is why this form evades the matched-line rule above. Read `explore-delegation.md`'s ⚠️ on the returning report before telling the user a cause.
 
-**When the report lands, open the files it names before concluding anything from it.** The hits are an index, not the answer — the Discovery rule above is about grep output you ran yourself, and it applies identically to output an agent ran for you, which is the form that evades it because a report looks like a deliverable rather than a search result. Read `explore-delegation.md`'s ⚠️ on the returning report if you are about to tell the user a cause.
+**Generated agents can drift from their templates.** An agent's `.md` holds only what its template had on generation day, so a safety constraint or tool grant added since is missing, and a stale agent still returns a normal-looking report. Validate the safety-critical constraints the first time a session dispatches a project agent. 📖 `references/validating-generated-agents.md` has the checks.
 
-For implementing work after docs are read, the project's CLAUDE.md determines whether to use `Explore` (locating code), `Plan` (designing an approach), or work inline. This skill prescribes only the agent for its own discovery step.
+---
 
-**Generated agents can drift from their templates.** An agent's `.md` file holds only what its template had on generation day — if the template gained a safety constraint or a tool permission since then, the agent won't have it. Dispatching a stale agent looks normal (returns a report just fine) but may violate a safety rule or skip a check. The first time a session dispatches a project agent, validate the safety-critical constraints. 📖 `references/validating-generated-agents.md` has the checks.
+## Reading Order {#read-order}
+
+Follow every pointer you encounter in sequence. Each layer (a `docs/` set, task docs, decisions, CLAUDE.md files, sibling repos, journal) holds facts the previous one didn't reach, so skipping or reordering has a cost.
+
+**Pointer chain (in sequence):**
+
+- A project doc set under `docs/`, where one exists: `ARCHITECTURE-ESSENTIALS.md` first and **whole**, then `ARCHITECTURE.md` when the work spans subsystems and `PRD.md` when scope is in question. This layer comes first because nothing points at it, and an essentials file is written to be read *before* a change. It is short on purpose: reading it whole costs less than the one constraint it exists to stop you violating. `PRD.md` earns its read whenever you are about to report something as missing, since a "gap" is often a documented exclusion.
+- Task doc (`current.md`): if explicitly redirected (Merged into, Supersedes, top-level pointer), follow to the live doc.
+- Decisions and related files: follow `📖` pointers to external files and `Related:` sections.
+- CLAUDE.md files: auto-load additively by directory: root, layer, domain, subdir; also check for `.claude/rules/*.md` (loaded every session, not discovered by walk). Check `/context` to see what actually loaded rather than reasoning about what should have.
+- Sibling repos: if the question spans repos, read their `CLAUDE.md` and `CLAUDE.local.md`.
+- Private journal: grep `~/.claude/notes/` when the answer hinges on interpersonal or commercial context not in code or docs.
+
+⚠️ **Companion files are discovered by following pointers, not by search.** Grep results omit `📖` references and external files. When you encounter a pointer to `.claude-companions/` or a reference folder, verify the path with `ls` before trusting it. The resolved file is authoritative; a broken pointer or typo reads silently as a missing fact.
+
+---
+
+## What Task Docs Are and Aren't {#doc-authority}
+
+Task docs are authoritative for **decisions and gotchas**: why the code works this way, what will bite you, rejected alternatives. They are **not** live-state oracles; anything about a running system (prod's DB, a flag, whether an "open" bug is still open) decays the moment anyone touches a server. If the answer depends on current state, go measure it. Where doc and live system disagree, the live system wins.
+
+⚠️ **"The live system wins" assumes your measurement caught a settled state, and a system mid-reaction hands you a value that is true and about to stop being true.** A doc that disagrees with a live read looks stale by definition, so the read seems to license a rewrite, and the rewrite then reads as authoritative. Where something is in flight (a restart, deploy, retry, refresh), check the artifact's mtime against when the event began, or prefer two reads far enough apart to disagree. Measured 2026-09-03: a credentials file read three minutes into a container start showed intact tokens, was used to declare an incident write-up wrong, and the write-up had been right. 📖 `../ship/references/ship-deploy-verification.md` § Reading a Destination That Is Still Reacting.
+
+**Three authority boundaries matter:**
+
+- **Schema vocabulary doesn't decay**: column names, enum values, table shapes, and header names stay stable. Before querying a table, read its column names from the docs.
+
+- **Claims about external APIs are neither decided fact nor live-state.** "The vendor requires X" describes someone else's system, and nothing updates it when the vendor changes. A false constraint makes the correct fix look unavailable, so spend the one call to check it, then correct the doc.
+
+- **Claims about your own code that are blocking-shaped matter most.** "This is impossible", "this must come first" or "we have no way to do this" reorder work and produce no failure to notice. Read the code a blocker rests on before planning around it, and say where a blocker is true for one case and false for another: a narrowed blocker is more useful than a deleted one.
+
+  ⚠️ **Reading the code is the wrong instrument when a blocker rests on a CONFIG VALUE, and that is where it stays wrong longest.** The adapter, client and credential path all still exist and read as healthy, so opening them confirms the blocker rather than testing it. Measured 2026-09-11: `tasks/credit/engine/current.md` carried "Request 2C2P production credentials" as a 🔴 blocker, while `config('services.payment_gateway.driver')` had defaulted to `'curlec'` and production resolved `curlec` in both `printenv` and `config()`. **Resolve the value in that environment before treating the blocker as real.** A superseded integration that keeps its docs needs its section labelled dead at its heading, or the next reader debugging a live payment lands in the wrong adapter.
+
+⚠️ **Confirm against what LOADS the technology, not what declares it.** An installed package or manifest entry is weak evidence, since a dependency is declared once and left unwired. Measured 2026-09-01: `vite`, `tailwindcss` and `alpinejs` were installed and declared in a Laravel app that ships Bootstrap 5 and jQuery from static files, with no `@vite` directive in any of its 518 views and no build output, and its frontend doc had recorded half of it. Nothing errors, so the wrong answer propagates. Read the entry point: the layout that emits the script tags, the container registration, the actual import sites.
+
+Reading a doc is also auditing it. Sweep the fields written once and checked least (`Quick Start`, `Status:`, `Immediate next actions`), since those carry the costliest staleness, and route what you find in the same turn to `task-summary` (project facts) or `update-plugin` (skill defects). An offer parked on the user's reply isn't routing: the finding dies with the conversation.
+
+📖 `../read-summary/references/doc-authority.md`: edge cases when a doc's claim contradicts live state, when external-system claims go stale, blockers true for some paths and false for others, shorthand headers, and docs that record both an ask and a conclusion.
+
+---
+
+## After Reading Docs {#what-comes-next}
+
+Once the docs are read, the request decides what happens next, in one of three shapes:
+
+- **Doc path only**: the user supplied a doc path or named a domain without an action. You've read the docs; stop here. If they then ask you to "now do X", the doc is context for work. If X uses a tool the doc researched, read that tool's own source before running it, and the same holds for a skill you are about to recommend. A skill's name states its subject, never the input shape it needs, so open it and check what it assumes it is pointed at.
+
+- **Investigation**: a question about current state. Read docs first, then investigate. For screenshots shown as evidence, identify what each one is evidence *of* before answering. Verify you answered the question asked, not an adjacent one. A finished investigation that found defects reports the finding and blast radius, then stops; deciding which findings matter and when to fix them is the user's call.
+
+- **Task description**: a bug report, feature request, or work description. Read the relevant docs (infer domain from keywords), then proceed to implement.
+
+⚠️ **This skill is the preamble, so the rest of the request still belongs to whichever skill owns it.** Arguments often name a second job or carry its trigger ("research uiux", "then brief the designer"). Read in this skill's frame, that job looks like more investigation and gets a hand-rolled agent without the owning skill's brief, evidence rules or verification. Measured 2026-10-07: "research uiux" went to a general web agent, and `uiux` ran only after the user asked "u didnt use the uiux skill for research?". Before dispatching any agent, check the request against the skill list. A named skill, or a trigger match (UI research → `uiux`, designer brief → `design-handoff`, "I can't read all of this" → `understanding-guide`), is invoked as the next step, with these docs as its context. **Tell: the request names a skill or trigger word, and your next call is `Agent` rather than `Skill`.**
+
+---
+
+## Plan Mode {#plan-mode}
+
+After reading docs, if the next step is clear (answer a question, investigate, implement), proceed. If the approach isn't yet clear (you need to know where a surface lives in the codebase or how to design a solution), delegate that search before proposing. Use `Explore` for "where does X live" and `Plan` for "how should I build this."
+
+Plan mode's own workflow restricts its first phase to `Explore` agents. That limit is about code search: it does not cancel a skill the request names. A `uiux` research pass or a `design-handoff` read is read-only and runs inside plan mode, and skipping it there is the same miss as above.
+
+For implementing work after docs are read, the project's CLAUDE.md decides between `Explore` (locating code), `Plan` (designing an approach) and inline work.
+
+⚠️ **A question a delegated agent hands back is still the user's question, and writing it into the plan as a default is not asking it.** A `Plan` agent often ends with "decisions for you" and a recommended answer for each. Copied in as "defaults, overridable at approval", they become decisions nobody made, since approving a long plan approves every line unread. Put each through `AskUserQuestion` before `ExitPlanMode`. Measured 2026-10-07: six part-payment rules from a Plan agent went into an approved plan this way, including a fee that could be charged twice. **Tell: your plan contains "overridable", "default unless", or an agent's question with its answer filled in.**
+
+A doc's silence about something doesn't make it incomplete; nobody has needed that path yet. Delegate only when exploration answers a question your design depends on.
+
+⚠️ **A subagent inherits plan mode, so one dispatched to MEASURE returns a plan to measure.** Searching and reading still work, which is why the limit goes unnoticed. Exit plan mode first, or defer the measurement until after approval and say which. 📖 `../_shared/references/explore-delegation.md` § How to Spawn (the 2026-09-18 measured incident). **Tell: you are about to spawn an agent to find out a fact about the world while the session cannot act on the world.**
+
+---
+
+## Decision-First on Every Turn After {#decision-first}
+
+This skill runs at the start of most sessions and sets a rule for every later turn: **any turn that ends on a question states the decision needed before the report.** A build incomplete, a next step you don't own, or two paths open for the user to pick all need that frame. It is part of the answer's shape, not a separate wrapper: the decision says what is unresolved, and the report shows what you built.
+
+The same rule applies to the wrap-up skills (`done`, `quick-done`, `ship`) on their final turns. Don't end on pending questions without naming them. One to four open questions go through one `AskUserQuestion` call; on a brief to finish everything, ask a question raised mid-work before the turn ends and build the answer rather than parking it in the task doc.
+
+⚠️ **What goes first is the QUESTION, not your planning.** Read once at session start and applied from memory for dozens of turns, the rule degrades into narrating working state: what you still need to read, which calls are blocked, the plan restated. That is not a decision, and it reads as diligence, so nothing stops it. Measured 2026-09-14: ~12 consecutive replies opened that way before the user asked what the spam was. **Tell: your reply opens by describing what you are about to do.** Most turns carry no decision and should open with the answer. 📖 `../_shared/references/decision-first-output.md` for the full carve-out.
+
+⚠️ **A question a doc lists as open may already be answered in a sibling doc, and "ask me first" makes asking feel like step one.** Before putting an open item to the user, grep its `Related:` docs and the domain that owns the subject (a storage rule belongs to the storage domain even when a compliance doc lists it) for a recorded decision. If one exists, quote it inside the option, or the user answers again from another frame and two contradictory decisions land on one day. Measured 2026-10-21: a "build or reword" question went out while the owning domain held the opposite answer. The same holds for a defect reported as new: measured 2026-10-26, a stale receipt balance went out as a finding while the `Related:` payments doc held the bug and the user's decision from two weeks before. **Tell: you are about to ask a question, or report a defect as new, from a doc whose `Related:` docs you have not opened.**
+
+**Decision shapes**: not every question mark is a real decision point. When multiple paths are open:
+- **One path**: name it, and explain why it's the one. "We should X because Y" is a complete decision.
+- **Several paths**: list them with a trade-off ("X costs time, Y costs money, Z is reversible"), then either pick the best-fit (if the trade-off points one way) or state which dimension the user should decide on.
+- **A missing fact**: if the decision hinges on something unmeasured, say what to measure and how it would change the decision.
+
+📖 `../_shared/references/decision-first-output.md` for the full test logic on when a question-mark ending does or doesn't require a decision frame.
