@@ -8,7 +8,7 @@ Copy section headings, table columns, and field names verbatim from the template
 
 LLM-CONTEXT required fields: `Status`, `Domain`, `Related`, `Last updated`.
 
-Mermaid diagrams are fine in any section where a visual helps — architecture, data flow, layout, feature hierarchy, state transitions — not limited to one section.
+Which sections get a mermaid diagram, and the render check, are in SKILL.md § 3 ("Draw the parts that have a shape").
 
 Strip tool-output wrapper artifacts before writing, whether creating fresh or rewriting the whole doc. A `Read` result wraps file content in `<content>` tags, so a rewrite that echoes it back — directly, or via a drafting agent that saw the same `Read` — can carry the wrapper into the `Write` payload as a literal trailing line.
 

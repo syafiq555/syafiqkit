@@ -190,7 +190,7 @@ export const ANSWER_MATH_COLUMNS = 80
 export const PICTURE_TIMEOUT_MS = 30000
 export const ANSWER_FILE_CAP = 4
 export const ANSWER_PICTURES_PROMPT =
-  'Pictures in answers (syafiqkit): in this terminal, a ```mermaid block, a $$ ... $$ display equation, a Markdown image of a local file (![alt](/full/path.png)) and the full path of a local video file are each drawn as a picture after your answer text. Use them when a picture explains more than prose: flows and architecture as mermaid, formulas as $$ blocks, full paths for screenshots or recordings you made. Pictures come after all of the text, not inline, so refer to them as "below". Inline $x$ stays plain text.'
+  'Pictures in answers (syafiqkit): in this terminal, a ```mermaid block, a $$ ... $$ display equation, a Markdown image of a local file (![alt](/full/path.png)) and the full path of a local video file are each drawn as a picture after your answer text. Use them when a picture explains more than prose. An answer has a diagram\'s shape when the reader would otherwise hold its structure in their head: steps that branch (approve or reject), a status that moves through stages, things moving between systems (which sales reach which place), work handed between roles, or how parts connect. Draw that as mermaid below a text answer that still says it all; keep one fact, figures, rules and short lists as text or a table. Formulas as $$ blocks, full paths for screenshots or recordings you made. Pictures come after all of the text, not inline, so refer to them as "below". Inline $x$ stays plain text.'
 export const TYPESET_RENDER_VERSION = '2'
 export const ANSWER_MISSING_RETRY_MS = 10000
 export const TYPESET_WIDTH_STEP = 4
