@@ -1,4 +1,15 @@
-# Enhance button: evidence, decisions and measurements
+<!--LLM-CONTEXT
+Status: ✅ built and shipped to master 2026-10-16; two unmeasured checks and the deferred ideas remain (see Open)
+Domain: plugin-maintenance/mod (enhance)
+Gotchas (critical):
+  - `prompt.submit` also fires for the mod's own prompts, which once cancelled a run mid-way (fixed 1.405.1; see Measured)
+  - Whether the host fires `prompt.edit` for the mod's own fill, which decides if Undo survives, is unmeasured (see Open)
+  - `claude -p` replays load the repo's CLAUDE.md, so a fact can come from there rather than the docs passed in (see Measured)
+Related: `../current.md` (index)
+Last updated: 2026-11-04
+-->
+
+# The Mod: Enhance button
 
 Theme file for row 29 of `../current.md`. Built 2026-10-16 across 1.400.0 to 1.405.1 (one consolidated CHANGELOG entry, 1.405.2, shipped to master 2026-10-16 in 1.405.3).
 
@@ -12,7 +23,7 @@ The user's friend showed a mod with `[Enhance] [Send]` above the prompt. The use
 
 ## Evidence used {#evidence}
 
-Researched 2026-10-16 with haiku agents; the key sources were opened and quoted.
+Researched 2026-10-16 with haiku agents; key sources opened and quoted.
 
 | Source | What it showed |
 |---|---|
@@ -43,14 +54,14 @@ Agreed rules across sources: never auto-send; original one press away; fail open
 
 Language: mostly lowercase typo'd English ("u", "ure", "ya"); Malay rare; misreads came from ambiguous intent, never spelling.
 
-## User decisions {#decisions}
+## Key Technical Decisions {#decisions}
 
 | Date | Decision |
 |---|---|
 | 2026-10-16 | Full rewrite (goal, skills, scope, questions), not only a doc pointer; asked to study past sessions with 10 haikus first |
-| 2026-10-16 | The rewriter must run the real read-summary skill "like the main agent does", not an imitation (replaced the two-call version, which stays as the fallback) |
+| 2026-10-16 | The rewriter runs the real read-summary skill "like the main agent does", not an imitation (replaced the two-call version as the primary path, which stays as the fallback) |
 | 2026-10-16 | Show what the haiku run is doing live, not static text |
-| 2026-10-16 | Tool reach: chose "Everything", then "maybe auto mode better" → `--permission-mode auto`. After review, Edit/Write/NotebookEdit are disallowed (read-summary never needs them); Bash and Explore agents stay |
+| 2026-10-16 | Tool reach: chose "Everything", then "maybe auto mode better" → `--permission-mode auto`. Edit, Write and NotebookEdit disallowed after review (read-summary never needs them); Bash and Explore agents stay |
 | 2026-10-16 | Short prompts such as `what to do now ?` must work (minimum lowered from 20 to 8 characters) |
 | 2026-10-16 | A run must not stop when another message arrives (only sending the draft itself ends it) |
 

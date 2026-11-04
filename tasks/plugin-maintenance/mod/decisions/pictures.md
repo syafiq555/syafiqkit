@@ -1,22 +1,34 @@
-# Pictures: rendered docs, answer pictures, and the module layout
+<!--LLM-CONTEXT
+Status: 🔨 Decided 2026-10-19; live checks for the picture fixes are open (see Measurements).
+Domain: plugin-maintenance (mod, pictures)
+Gotchas (critical; full list in the sections named):
+  - Past an import, `$` reaches only a `function name($)` declaration (What cc-intelligent-ui is, What it taught this mod)
+  - A picture path needs a `/` and a file name before the extension (Measurements)
+Related: `../current.md` (index)
+Last updated: 2026-11-04
+-->
 
-Decisions and measurements from 2026-10-19, when the user asked to study `razorback16/cc-intelligent-ui` (commit `ec796e7`, 18/10) and then to take what was useful.
+# The Mod: Pictures
+
+Covers rendered docs, answer pictures and the module layout. Decisions and measurements from 2026-10-19: the user asked to study `razorback16/cc-intelligent-ui` (commit `ec796e7`, 18/10), then to take what was useful.
 
 ## What cc-intelligent-ui is {#study}
 
-A Claude Code mod (MIT, v0.2.0, about 6,600 lines of TypeScript in `hooks/lib/*.ts`, 373 kit tests) that redraws every Claude answer as Typst-typeset PNG pictures in the terminal: Markdown, LaTeX via the `mitex` package, live Typst drawings (CeTZ, fletcher), links and commands as clickable rows under the pictures, a rendered plan-approval flow, and a Perl clipboard watcher that turns a mouse copy of picture cells back into text. macOS only; pictures draw in kitty, Ghostty, cmux and iTerm2 (after `/iui setup` adds a shell line), not tmux, Warp, Terminal.app or VS Code. It reads each terminal's config to tell light from dark, because a mod cannot see the OSC 11 answer. Commands: `/iui on|off|theme|size|grid|updates|details|setup`. It is all or nothing: there is no mode that keeps answers as text and draws only diagrams.
+A Claude Code mod (MIT, v0.2.0, about 6,600 lines of TypeScript in `hooks/lib/*.ts`) that redraws every Claude answer as Typst-typeset PNG pictures in the terminal: Markdown, LaTeX via the `mitex` package, live Typst drawings (CeTZ, fletcher), links and commands as clickable rows under the pictures, a rendered plan-approval flow, and a Perl clipboard watcher that turns a mouse copy of picture cells back into text. macOS only; pictures draw in kitty, Ghostty, cmux and iTerm2 (after `/iui setup` adds a shell line), not tmux, Warp, Terminal.app or VS Code. It reads each terminal's config to tell light from dark, because a mod cannot see the OSC 11 answer. It is all or nothing: there is no mode that keeps answers as text and draws only diagrams.
 
 What it taught this mod (each verified here, not taken from its docs):
 
 | Finding | How it was checked |
 |---|---|
-| A mod can be many ES modules; the host follows `import`s from the `modules` entry | Their mod validated and passed 373 tests on Claude Code 2.1.303; ours then loaded from `hooks/src/mod.js` with all tests green |
+| A mod can be many ES modules; the host follows `import`s from the `modules` entry | Their mod validated and its 373 tests passed on Claude Code 2.1.303; ours loaded from `hooks/src/mod.js` with all tests green |
 | Past an import, `$` goes only into a `function name($)` declaration | The host's own refusal text: "$ is passed to "registerCommand", a name bound to a function expression, outside the hook's own file" |
 | One wrapper per `$` method keeps `validate`'s `calls:` line complete | Our line went from cut off to listing all 27 calls `(via hostX)` |
 | State atoms redraw only their readers | Plugin-authoring reference; the band's spinner kept turning beside an open pane (user, live) |
 | `$.ui.ask` shows Claude Code's own question box; tests answer it through `tool.call` on `AskUserQuestion` | Their `tests/plan.test.ts`, then ours |
 
-## User calls {#calls}
+## Key Technical Decisions {#decisions}
+
+### User calls {#calls}
 
 | Call | Choice | Why |
 |---|---|---|
