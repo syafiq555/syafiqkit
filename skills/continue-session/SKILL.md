@@ -52,7 +52,7 @@ Fence it, and put nothing after the closing backticks — text below a fence rea
 
 Next: <the goal> — follow the Quick Start order. First ask me the open product decisions in the doc with AskUserQuestion.
 State: <N files uncommitted / all committed at <sha>> — don't commit unless asked.
-Running: <only when this session is still live: what it has in flight and this session's ListAgents name, e.g. "session beacon-mart-9e's PHPUnit run: message it and wait for its idle notice before your own">
+Running: <only when this session is still live: what it has in flight and this session's ListAgents name, e.g. "session checkout-app-9e's PHPUnit run: message it and wait for its idle notice before your own">
 ```
 
 Keep it to what a fresh session cannot recover on its own. Everything else is in the doc it will read first, and duplicating it here means two copies that drift.

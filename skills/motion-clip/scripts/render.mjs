@@ -55,9 +55,10 @@ function productMoment() {
   const named = name && s.hook.find((x) => String(x.text).toLowerCase().includes(name));
   const seen = [];
   if (s.screens.length) seen.push({ at: +s.device.enter, what: s.frame === 'none' ? 'the first picture' : `the ${s.frame}` });
+  if (s.photos.length) seen.push({ at: Math.min(...s.photos.map((p) => +p.from)), what: 'the first full-frame photo' });
   if (s.lockup) seen.push({ at: +s.lockup.at, what: 'the logo' });
   if (named) seen.push({ at: +named.in, what: 'its name in the hook' });
-  return { first: seen.sort((a, b) => a.at - b.at)[0] || null, pictures: s.screens.length > 0 };
+  return { first: seen.sort((a, b) => a.at - b.at)[0] || null, pictures: s.screens.length + s.photos.length > 0 };
 }
 
 function productLine(p, by) {
@@ -72,6 +73,7 @@ function onScreenText() {
   const items = [];
   s.hook.forEach((x) => { if (x.out != null) items.push({ what: 'hook', text: String(x.text), from: +x.in, to: +x.out }); });
   s.captions.forEach((c) => { if (c.out != null) items.push({ what: 'caption', text: plain(c.rows), from: +c.in, to: +c.out }); });
+  s.photos.forEach((p) => { if (p.rows) items.push({ what: 'photo caption', text: plain(p.rows), from: +p.from + 0.35, to: +p.to }); });
   const per = s.subtitles ? s.subtitles.words || 3 : 0;
   if (per) spoken.forEach((words) => {
     const groups = subtitleGroups(words, per);
@@ -148,6 +150,7 @@ try {
       if (s.hook.length) list.push([+s.hook[0].in, span(s.hook[0].in, Math.max(...s.hook.map((x) => x.out ?? 0))), 'Hook', s.hook.map((x) => x.text).join(' ')]);
       if (s.screens.length) list.push([+s.device.enter, span(s.device.enter, s.device.leave), `${s.frame === 'none' ? 'Picture' : s.frame} on screen`, s.screens.map((x) => x.name).join(', ')]);
       s.screens.forEach((x, i) => { if (i) list.push([+x.from, span(x.from), 'Cut to', `${x.name} (${x.via || 'push'})`]); });
+      s.photos.forEach((p) => list.push([+p.from, span(p.from, p.to), 'Photo', `${p.file}${p.rows ? `: ${words(p.rows)}` : ''}`]));
       s.taps.forEach((x) => list.push([+x.at, span(x.at), 'Tap', `at ${x.to.map((v) => v.toFixed(2)).join(', ')} of the screen`]));
       s.captions.forEach((c) => list.push([+c.in, span(c.in, c.out), 'Caption', words(c.rows)]));
       s.voice.forEach((v) => list.push([+v.at, span(v.at), 'Voice', v.text]));

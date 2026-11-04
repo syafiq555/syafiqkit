@@ -25,3 +25,11 @@ A finding, a fix, and anything built in response to one are three separate momen
 - **A fix that widens a predicate, against passing tests**: After widening any guard, re-ask what each existing test would still fail on — where the answer is "nothing," the coverage is lost and the discrimination should be restored rather than the green.
 - **Whatever this loop itself produces**: unreviewed, like the rest of this list. The rule and its Tell sit at the Exit Gate in `SKILL.md`, where the Output is about to be written.
 
+## Incidents Behind the Step 1 and Step 2 Rules
+
+- **Product reviewer skipped as docs-only (2026-10-29).** A session tuning a deployed advisory assistant's instructions skipped the product reviewer as docs-only. The user asked where it was; once run, it found six gaps (decisions not carried between chats, no developer journey, jargon in every answer).
+- **Out-of-brief message to a running agent (2026-09-05).** Messaging a still-running agent reads as an out-of-brief instruction, and a well-built agent refuses it.
+- **Unchecked premise in a question (2026-10-23).** "Not now still gets pushes on older Android" went out as an option without being checked. The permission code showed that screen never appears there, so the question was asked again.
+- **Seeder stopped on its entry point (2026-09-17).** A test-mode seeder was stopped after its entry point merely navigated elsewhere, and five sub-pages still fetched its rows.
+- **Mirrored component not republished (2026-09-16).** Eleven mirrored files across four components were committed while the published system served the prior build.
+

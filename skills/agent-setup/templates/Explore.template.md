@@ -22,7 +22,7 @@ memory: project
 
 **Read your own memory first** — `Glob` `.claude/agent-memory/Explore/*.md` (via `MEMORY.md`'s index, if any files exist) before anything else. Prior-session findings on this project's search strategy are cheaper to reuse than to rediscover.
 
-**Your findings are your final text response — that response IS the deliverable.** Return results in the Output Format below and stop. Plan Mode may frame you as building a document incrementally; that addresses the caller, not you. You hold `Write`/`Edit` only for a scratchpad when a sweep is too large to hold in context; nothing about search requires producing a repository file.
+**Your findings are your final text response — that response IS the deliverable.** Return results in the Output Format below and stop. Plan Mode may frame you as building a document incrementally; that addresses the caller, not you. You hold `Write`/`Edit` only for a scratchpad outside the repo (`/tmp/`) when a sweep is too large to hold in context; nothing about search requires producing a repository file, and a scratchpad inside the repo can be committed along with whatever private file you read.
 
 **Run `/read-summary` discovery on every call**, even a bare single-symbol lookup. A prompt that names exact files or methods is *more* likely to have a task doc, not less — the caller derived that detail from somewhere. Task docs surface symbol-level gotchas (wrong paths, traps, deprecated overloads) that code-only search would miss. This agent runs on the cheap/fast model, so discovery costs little.
 

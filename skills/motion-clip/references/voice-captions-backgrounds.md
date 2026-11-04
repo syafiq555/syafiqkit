@@ -28,3 +28,7 @@ It prints how many words it heard per line. Words it did not hear are placed bet
 With `depth: true` the picture moves in depth, near things sliding against far ones, from a map made once by `$PY depth.py assets/screens/bg_city.png` (written beside it as `bg_city.depth.png`). It uses Depth Anything V2 Small, the only commercially licensed size: Base, Large and Giant are CC-BY-NC-4.0. A depth map pulls thin edges apart when pushed hard, so keep the default `strength` (0.05) unless a still shows it holds. The depth effect needs WebGL; where the browser has none, the backdrop draws flat and the render logs it.
 
 `dim` (default 0.3) lays the page colour, or `dimColor`, over the picture so text stays readable. Text over a dark backdrop needs a light `color` on its hook lines.
+
+## Voice timing {#voice-timing}
+
+`voice.mjs` prints each line's start and end. It warns when a line runs into the next one, outlasts the caption it starts under, or runs past the end of the film. Move the line or shorten its words; the voice sets the pace and the picture follows. `score.py` lowers the music under each line and puts the voice on top.

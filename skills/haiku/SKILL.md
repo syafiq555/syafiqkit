@@ -26,7 +26,7 @@ For any task that writes files, take a baseline before dispatch:
 1. **Read the targets' uncommitted diff.** Work from another session would freeze into your baseline as if it were committed, so name contested files in the prompt as context. 📖 `../_shared/references/diff-ownership.md` distinguishes what to attribute to whom. Your own recent write is the same hazard: a patch applied after a pass you judged successful is invisible to the next agent, which reverts it while reporting honestly against its own baseline (📖 `references/verifying.md` § Your own write as baseline).
 
 Confirm the file matches the baseline immediately before dispatching (`git status` clean, or `wc -c` against the committed blob), and **state the expected counts in the prompt** so the agent can catch a mismatch itself. A count in the prompt survives the recall gap that a discretionary re-read does not. **Tell: you patched something between two dispatches and the next prompt names no numbers.**
-2. **Snapshot the targets to scratchpad** and record `wc -c`. This preserves what the files WERE; if verification later points toward a patch or revert, snapshot what the agent MADE afterward as well.
+2. **Snapshot the targets to a path unique to this dispatch** (agents back up to `/tmp` unasked, possibly onto yours: 📖 `references/verifying.md` § Surplus writes) and record `wc -c`. This preserves what the files WERE; if verification later points toward a patch or revert, snapshot what the agent MADE afterward as well.
 
 ⚠️ **A repo-wide baseline is a separate snapshot from the target's.** Snapshotting the target feels like the baseline, but a modified neighbour found afterwards fits agent overreach and someone else's uncommitted work equally well, and attributing it to the agent is an accusation. Take one `git status --short` of the whole repo before dispatching; where a suspect file has no baseline, its mtime against the run window settles it (📖 `references/verifying.md` § Repo-wide baseline). **Tell: you are about to attribute a file to an agent, and your baseline covered only the file you dispatched about.**
 
@@ -38,7 +38,7 @@ Dispatch independently when work is genuinely disjoint: no two agents touch the 
 
 Agents with non-overlapping targets go out together in one message. Anything waiting on another agent's output serializes; say which run in parallel and why.
 
-**Partitioning by source and writing by destination are two different partitions.** Drafts split by source cannot see each other's destination text, so regroup them by landing section and run one edit pass per destination (📖 `references/writing-the-prompt.md` § Partitioning by source versus destination).
+**Partitioning by source and writing by destination are two different partitions.** Drafts split by source cannot see each other's destination text, so regroup them by landing section and run one edit pass per destination (📖 `references/writing-the-prompt.md` § Partitioning by source versus destination). A machine resource the agents would queue for (one test runner, one seeded fixture) is not partitioned at all: they write, you run it after they return (📖 same file § A shared resource the agents queue for).
 
 📖 `../_shared/references/explore-delegation.md` → "Spawning multiple agents" for batching mechanics.
 

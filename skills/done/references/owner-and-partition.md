@@ -28,4 +28,8 @@ A file partition doesn't scope repo-wide commands — the protection is the verb
 
 Once the partition is decided, move to Emission shape and emit every agent from the partition in a single message.
 
+## Edits Against a Partitioned File
+
+Measured 2026-09-15: a restored figure landed beside a paragraph the simplifier had refolded, and only the harness's "modified on disk" notice showed it, after the write.
+
 **Mismatch between role and subagent_type goes undetected** — match the prompt's content to the subagent_type you're calling.

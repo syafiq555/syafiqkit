@@ -20,6 +20,8 @@ When an addressable peer exists, say so rather than acting on it silently, and s
 
 ⚠️ **Discovery is weaker than it looks, and the failure is a confident wrong answer.** The two surfaces differ: the `/list-agents` command prints each local session's working directory (`dourr-a2 · /Users/…/Herd/dourr`), while the `ListAgents` **tool** returns name, kind, status and ref with no directory at all. So a session driving this itself sees less than a user running the command does, and cannot answer "who else is in this project" from the tool alone. The cwd it does add is also thin cover — it appears only for local rows, whose names usually identify them anyway (names default to the folder; `/rename` makes it explicit), and never for the Remote Control majority. Where a name doesn't identify a peer you know only that *someone* is live, which is still worth knowing and is the whole of what you know. Do not infer a peer is safe to ignore because you cannot see where it is working.
 
+**A peer's name can change between your messages; its `[ref]` does not.** A session renamed after your first send (its own `/rename`, or a title set from its task) answers the old name with "No agent named … is reachable", which reads as the peer having exited. Re-run `ListAgents` and match the row by the ref you noted the first time, then send to the name it now shows. Measured 03/11/2026: `checkout-app-3b [fc6e4f]` became `staff-pages-fix [fc6e4f]` between a heads-up and the commit notice.
+
 ## Why a reply cannot be a gate
 
 Delivery is best-effort in ways that are invisible from the sending side:

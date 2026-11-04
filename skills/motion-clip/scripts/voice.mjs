@@ -117,7 +117,8 @@ made.sort((a, b) => a.at - b.at);
 for (const [i, m] of made.entries()) {
   console.log(`${String(m.n).padStart(2)}  ${m.at.toFixed(2)}-${m.end.toFixed(2)} s  ${m.file}  "${m.text}"`);
   const next = made[i + 1];
-  if (next && m.end > next.at - 0.2) warnings.push(`line ${m.n} runs until ${m.end.toFixed(2)} s, into line ${next.n} at ${next.at} s: shorten it or move line ${next.n}`);
+  if (next && m.end > next.at) warnings.push(`line ${m.n} runs until ${m.end.toFixed(2)} s, into line ${next.n} at ${next.at} s: shorten it or move line ${next.n}`);
+  else if (next && m.end > next.at - 0.2) warnings.push(`line ${m.n} ends ${(next.at - m.end).toFixed(2)} s before line ${next.n}, too short a breath: move line ${next.n} a little later`);
   if (m.captionOut != null && m.end > m.captionOut) warnings.push(`line ${m.n} is still speaking at ${m.end.toFixed(2)} s, after its caption leaves at ${m.captionOut} s: lengthen the caption or shorten the line`);
   if (cues.duration && m.end > cues.duration - 0.3) warnings.push(`line ${m.n} ends at ${m.end.toFixed(2)} s, past the film's ${cues.duration} s less the fade: shorten it or start it earlier`);
 }

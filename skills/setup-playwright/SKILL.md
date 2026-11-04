@@ -1,13 +1,13 @@
 ---
 name: setup-playwright
-description: Set up or harden a Playwright E2E suite in any project — first-time scaffolding (config, auth storageState, first spec) or fixing an existing suite that is flaky, races between spec files, depends on hand-made local DB rows, or has no CI story. Use when the user says "set up playwright", "add e2e tests", "set up e2e", "set up browser tests", "scaffold browser tests", "we need integration tests for the frontend", "our e2e tests are flaky", "the test suite is flaky", "specs pass alone but fail together", "e2e breaks after a db reset", "tests only pass on my machine", "make the e2e suite parallel-safe", or names Playwright while describing a suite that isn't trustworthy. Covers per-worker fixture partitioning, login-throttle-safe auth, the seeder that makes a suite survive `migrate:fresh`, adding a mobile/small-viewport project to a suite that only ever runs desktop ("the e2e never tests mobile", "add a mobile viewport project", "our tests only run at desktop width"), and recording the suite as video ("record the e2e run", "video of the tests", "watch the flows") so the flows can be reviewed by eye. ⚠️ The recording half fires on a bare request for footage against a suite that ALREADY works — "give me the videos", "record these specs", "show me the flows", "can I see it running" — which reads as merely running an existing suite and therefore as needing no skill at all. It does: the traps live in what the recording SHOWS versus what the run reports, so a session that skips straight to the runner ships green footage of the wrong half of the page. NOT for writing one more spec in a suite that already works (just write it), NOT for backend/unit test setup, and NOT for diagnosing a CI runner that can't reach a server (that's ci-ssh-deploy-timeout).
+description: Set up or harden a Playwright E2E suite in any project, either first-time scaffolding (config, auth storageState, first spec) or fixing one that is flaky, times out more as workers rise, races between spec files, depends on hand-made local DB rows, or has no CI story. Use when the user says "set up playwright", "add e2e tests", "set up e2e", "set up browser tests", "scaffold browser tests", "we need integration tests for the frontend", "our e2e tests are flaky", "the test suite is flaky", "why do the e2e tests time out", "the e2e run takes too long", "it only passes with one worker", "specs pass alone but fail together", "e2e breaks after a db reset", "tests only pass on my machine", "make the e2e suite parallel-safe", "the e2e never tests mobile", "add a mobile viewport project", "record the e2e run", "video of the tests", "watch the flows", or names Playwright while describing an untrustworthy suite. NOT for writing one more spec in a suite that already works, NOT for backend/unit test setup, NOT for a CI runner that cannot reach a server (ci-ssh-deploy-timeout), NOT for a designed promo video (motion-clip). Bare footage requests against a working suite ("give me the videos", "record these specs", "show me the flows", "can I see it running") belong here too, because the traps are in what the recording shows.
 ---
 
 # Set Up / Harden a Playwright E2E Suite
 
 Two entry points, same file. **Scaffolding** a suite that doesn't exist yet, or **hardening** one that exists and isn't trusted. Read the section you need.
 
-The hardening half matters more. A suite that passes locally and nowhere else is the common state, and the causes are almost always one of four: workers sharing rows, fixture data nobody seeds, auth that trips a rate limit, or the browser/environment itself differing from wherever it's failing.
+The hardening half matters more. A suite that passes locally and nowhere else is the common state, and the causes are almost always one of five: workers sharing rows, fixture data nobody seeds, auth that trips a rate limit, a local server that can't serve the requests parallel browsers make, or the browser/environment itself differing from wherever it's failing.
 
 ## Establish first
 
@@ -17,8 +17,8 @@ Before either path, these facts decide most of what follows:
 |---|---|---|
 | Is a dev server already running? | Check the project's own docs/CLAUDE.md for a local URL before adding a `webServer` block | Herd/Valet/Docker setups already serve the app; adding `webServer` there makes Playwright fight the running one |
 | What creates test data? | Look for a seeder/factory layer; ask if there's none | Decides whether fixtures come from a seeder or from hardcoded rows you'll have to replace later |
-| Is the login endpoint throttled? | Grep the route's middleware for a throttle/rate-limit | Decides whether auth can drive the UI form at all — see Auth below |
-| Does the failure reproduce with no data race, no missing fixture, and no throttle? | Rule out the other three first | Points at environment/browser drift — see below |
+| Is the login endpoint throttled? | Grep the route's middleware for a throttle/rate-limit | Decides whether auth can drive the UI form at all, see Auth below |
+| Does the failure reproduce with no data race, no missing fixture, and no throttle? | Rule out the other three first | Points at environment/browser drift, see below |
 
 Read the app's own conventions rather than assuming a stack. A test suite that ignores them produces specs nobody maintains.
 
@@ -30,50 +30,58 @@ Set these explicitly even where they match Playwright's defaults, because they'r
 
 Keep local `retries` at 0. A retry re-runs a whole `describe.serial` block from the start, so it converts exactly the fixture races this skill exists to remove into intermittent passes.
 
-Write the first spec against a flow the user actually cares about, and follow the assertion rules below from the start — they're much cheaper to adopt now than to retrofit.
+Write the first spec against a flow the user actually cares about, and follow the assertion rules below from the start, since they are much cheaper to adopt now than to retrofit.
 
 ## Hardening an existing suite
 
 ### One browser project covers one viewport
 
-A suite with a single desktop project silently has no coverage of any layout that changes below a breakpoint — a tab strip that replaces a two-column grid, a card list that replaces a table, a drawer that replaces a sidebar. The suite goes green because it never renders that branch, so a mobile-only break ships looking tested, and the gap doesn't announce itself: nothing fails, and the spec names give no hint that they only ever ran wide.
+A suite with a single desktop project silently has no coverage of any layout that changes below a breakpoint, so a mobile-only break ships looking tested. 📖 `references/hardening-incidents.md#viewport-coverage` for the examples and why the gap stays quiet.
 
-Add a second project with a device descriptor when the app has responsive layout swaps, and tag the specs that assert them rather than re-running everything at a second viewport — most specs assert data, not layout, and doubling the suite to re-check them buys nothing.
+Add a second project with a device descriptor when the app has responsive layout swaps, and tag only the specs that assert them. Most specs assert data, not layout, so re-running everything at a second viewport buys nothing.
 
-The half that's easy to miss is that **the tag needs both a `grep` and a `grepInvert`**. Restricting the mobile project alone leaves the desktop project still matching those files, so it runs them at desktop width where the mobile-only markup doesn't exist and they fail correctly for the wrong reason — a red suite that looks like the new specs are broken:
+The half that's easy to miss: **the tag needs both a `grep` and a `grepInvert`.** Restricting the mobile project alone leaves desktop still matching those files, so they run at desktop width, where the mobile-only markup does not exist, and fail for the wrong reason. The result is a red suite that looks like the new specs are broken:
 
 ```ts
 { name: 'chromium', use: { ...devices['Desktop Chrome'] }, grepInvert: /@mobile/, dependencies: ['setup'] },
 { name: 'mobile',   use: { ...devices['Pixel 7'] },        grep:       /@mobile/, dependencies: ['setup'] },
 ```
 
-Verify by running each project separately and checking the counts differ — a tag typo yields a mobile project that silently matches nothing, which reports as a pass.
+Verify by running each project separately and checking the counts differ, since a tag typo yields a mobile project that silently matches nothing and reports as a pass.
 
-A device descriptor fixes the height too, and Pixel 7's 839px is taller than most phones. Where a layout is sized to the screen (a pinned scroll scene, a sticky stage, a `100svh` hero), add specs that call `page.setViewportSize` to 375×667 and 320×568 inside the mobile project and assert the key element and action still fit; the descriptor alone passes while a shorter phone clips.
+A device descriptor fixes the height too, and that height is taller than most phones. Where a layout is sized to the screen (a pinned scroll scene, a sticky stage, a `100svh` hero), add specs inside the mobile project that call `page.setViewportSize` to 375×667 and 320×568 and assert the key element and action still fit. The descriptor alone passes while a shorter phone clips. 📖 `references/hardening-incidents.md#viewport-coverage` for the Pixel 7 measurement.
+
+### Failures that grow with the worker count
+
+The signature: element-not-found and page-load timeouts spread across unrelated specs, rare at one worker and common at several. Before changing any setting, **load one page the way a spec does and count its requests by host and path** (a short script with `page.on('request')`, grouped). That count names the mechanism in half a minute; a theory tested by a full-suite run costs an hour per guess and returns timeouts that fit every theory. Measured: a suite blamed in turn on the PHP pool size, the socket queue and a static-file rule turned out to load about 950 modules a page from a dev server the local tooling had restarted mid-run, against about 35 from the built bundle.
+
+What a count usually shows, largest first: a dev server (Vite and the like) answering instead of the build, which some local hosts start by themselves; static files routed through the app runtime rather than served from disk; console-log or analytics beacons the specs never assert on. Stub what no spec reads in the shared fixture, serve static files from disk, and pick the worker count from a measured pass rate rather than the core count.
+
+⚠️ **A fix that consists of stopping a process is not a fix until you know what starts it.** Re-check before every run that it is still stopped (port listener, the hot file it writes), or guard the run with a watchdog, because a process restarted mid-run turns the second half of the suite into noise that reads as fresh failures. **Tell: you stopped something earlier in the session and the current run never checked it is still down.**
+
+Make each failure carry its cause, so the next diagnosis reads rather than guesses: a shared fixture that fails a test the moment the app shows its crash screen (a page binding plus `page.close({ reason })` interrupts the pending wait with that message), attaches the same-origin failed and 5xx requests, and `trace: 'retain-on-failure'` (`'on-first-retry'` with local retries at 0 never saves one).
 
 ### The cross-file race
 
 The signature: two spec files that each pass alone fail together, on assertions unrelated to what either one mutates.
 
-`test.describe.serial` orders tests only *within* one file. Under `fullyParallel`, two files touching the same rows land on different workers and interleave, and no Playwright construct serialises them — the database is external to the runner and workers are separate processes.
+`test.describe.serial` orders tests only *within* one file. Under `fullyParallel`, two files touching the same rows land on different workers and interleave, and no Playwright construct serialises them, because the database is external to the runner and workers are separate processes.
 
-Reproduce it before fixing it, or you can't tell the fix worked — and the number to establish is the failure RATE, not one captured instance. A single failure supports a plausible story every time, and that story survives the fix because the next run was going to pass anyway; take a baseline over enough runs that the failure appears more than once, then require the fix to move that same number.
+Reproduce it before fixing it, or you cannot tell the fix worked. Establish the failure RATE, not one captured instance: a single failure supports a plausible story that survives the fix, so take a baseline over enough runs that the failure appears more than once, then require the fix to move that same number.
 
-`--repeat-each` does not give you that number on a `describe.serial` file: the first failure aborts the block's remaining repeats, so the run reports "N did not run" and yields no rate at all. Loop whole runs instead and count. Confirm the two files actually collide with `--reporter=json` — compare `parallelIndex` (per the rule below, not `workerIndex`) and start times rather than inferring it, since two specs on *different* slots hold different fixtures and never touched the same rows however alike their failures look.
-
-Write the JSON to a file rather than piping it: with a second reporter configured, the streams interleave and `jq` dies on the non-JSON lines, which reads as "no failures found" when it means the parse failed.
+`--repeat-each` does not give that number on a `describe.serial` file, since the first failure aborts the remaining repeats. Loop whole runs and count. Confirm a collision with `--reporter=json` by comparing `parallelIndex` (not `workerIndex`) and start times, and write the JSON to a file rather than piping it. 📖 `references/hardening-incidents.md#race-repro` for why `--repeat-each` fails and why piping breaks `jq`.
 
 Establish the mechanism, not just the correlation. Before acting on any "X fails because Y", run the one command that would come out differently if Y were false.
 
-**Fix by partitioning, not locking.** Give each worker its own data — its own account/tenant/org and everything hanging off it — so no two can collide. A lockfile mutex is the tempting alternative and it does work, but it becomes a global bottleneck, and it fails in ways that read as unrelated bugs: a killed worker leaves a stale lock that wedges every later run, and if the lock's acquire timeout exceeds the hook timeout, the hook dies first and reports a bare `"beforeAll" hook timeout` while the lock's own diagnostic never prints.
+**Fix by partitioning, not locking.** Give each worker its own data (its own account/tenant/org and everything hanging off it) so no two can collide. A lockfile mutex does work, but it becomes a global bottleneck and fails in ways that read as unrelated bugs. 📖 `references/hardening-incidents.md#partition-not-lock` for the stale-lock and hook-timeout failures.
 
-Partition on `workerInfo.parallelIndex`, **not** `workerIndex`. `workerIndex` keeps incrementing as Playwright spawns replacement workers after a failure, so a modulo on it maps two *concurrent* workers onto one fixture — measured at `--workers=10`, raw indexes 4 and 10 resolved to the same account. `parallelIndex` is the slot number: bounded by the live worker count, reused only after its holder exits.
+Partition on `workerInfo.parallelIndex`, **not** `workerIndex`, which keeps climbing as replacement workers spawn after a failure and can map two *concurrent* workers onto one fixture. `parallelIndex` is the slot number, bounded by the live worker count and reused only after its holder exits. 📖 `references/hardening-incidents.md#parallel-index` for the measured collision.
 
-Then cap `workers` at the number of fixture sets you seeded, and assert it — a machine with more cores silently re-creates the race otherwise:
+Then cap `workers` at the number of fixture sets you seeded, and assert it, since a machine with more cores silently re-creates the race:
 
 ```ts
 if (workerInfo.parallelIndex >= FIXTURE_COUNT) {
-  throw new Error(`${workerInfo.parallelIndex + 1}+ workers but only ${FIXTURE_COUNT} fixture sets — workers would share rows.`)
+  throw new Error(`${workerInfo.parallelIndex + 1}+ workers but only ${FIXTURE_COUNT} fixture sets; workers would share rows.`)
 }
 ```
 
@@ -81,9 +89,9 @@ if (workerInfo.parallelIndex >= FIXTURE_COUNT) {
 
 Specs that hardcode local row ids work on one machine until someone resets the database, then fail as confusing assertion errors far from the cause.
 
-Write a seeder that builds N self-contained fixture sets, one per worker, idempotent so a re-run repairs a partial wipe. Guard it to local/dev/test environments — it writes known-password accounts and would be destructive against real data. Verify that guard with an actual negative control (run it with the env var flipped and confirm it refuses); an unproven guard on a destructive script is worth little.
+Write a seeder that builds N self-contained fixture sets, one per worker, idempotent so a re-run repairs a partial wipe. Guard it to local/dev/test environments, since it writes known-password accounts and would be destructive against real data. Verify that guard with a negative control (run it with the env var flipped and confirm it refuses). An unproven guard on a destructive script is worth little.
 
-**`firstOrCreate`-style helpers apply their defaults only on insert.** Re-running never touches an existing row — including the exact columns specs mutate and a killed worker leaves un-restored. Re-assert those fields explicitly after the create, or the seeder's "just re-run it" recovery silently does nothing. Scope the match key to the parent FK too, so a stale child under a deleted parent can't shadow the real one.
+**`firstOrCreate`-style helpers apply their defaults only on insert.** Re-running never touches an existing row, including the columns specs mutate that a killed worker left un-restored. Re-assert those fields explicitly after the create, or the seeder's "just re-run it" recovery silently does nothing. Scope the match key to the parent FK too, so a stale child under a deleted parent cannot shadow the real one.
 
 Seed the untidy shapes real data holds, not only the tidy ones: an empty JSON column, a legacy row missing a foreign key a newer table now carries, a record with no optional children. Tidy fixtures are why a form passes every spec and fails on the first old record a user opens.
 
@@ -93,63 +101,61 @@ Pair it with a precondition check that fails naming the missing rows and the exa
 
 ### Auth, and the throttle that breaks it
 
-Driving the login **form** once per identity is the obvious approach and it stops working as soon as the suite needs more than a handful, because login routes are commonly rate-limited per IP. The failure is badly disguised: the SPA swallows the 429 and the spec hangs on a login page that never navigates, so it reads as a broken selector.
+Driving the login **form** once per identity is the obvious approach, and it stops working once the suite needs more than a handful, because login routes are commonly rate-limited per IP. The SPA swallows the 429, so the spec hangs on a login page that never navigates and reads as a broken selector.
 
-Grep the login route's middleware for a throttle before choosing. If there is one, authenticate through the API — one request per identity — and write `storageState` by hand, then reuse a still-fresh state file instead of re-authenticating every run.
+Grep the login route's middleware for a throttle before choosing. If there is one, authenticate through the API (one request per identity) and write `storageState` by hand, then reuse a still-fresh state file instead of re-authenticating every run.
 
-⚠️ **A throttle applied as route middleware counts successful logins too, so caching state does not save the specs that log in through the form on purpose** — a landing-after-login test, a wrong-password test. Laravel's `throttle:<name>` (Fortify adds it when `fortify.limiters.login` is set, as Jetstream and the starter kits do) counts every request to the route, not only failures, so each such spec spends attempts on its account on every run, and rapid reruns hit the limit within the limiter's per-minute budget. It looks like a flake that worsens the more you iterate, and the 429 often surfaces only as an error modal over the login page. Resetting the counters for the fixture accounts before each run fixes it, from the idempotent seeder or whatever step runs before the suite (`globalSetup`, a setup project). Clear the key exactly as the limiter builds it (Laravel's named limiters store `md5(name . key)`, the app's own limiter the raw key), and prove it by looping rapid runs until the baseline fails twice, then confirming zero after.
+⚠️ **A throttle applied as route middleware counts successful logins too, so caching state does not save the specs that log in through the form on purpose** (a landing-after-login test, a wrong-password test). Reset the counters for the fixture accounts before each run, from the idempotent seeder or whatever runs before the suite (`globalSetup`, a setup project). 📖 `references/hardening-incidents.md#throttle` for the limiter's key format and how to prove the reset works.
 
-Building that state by hand means reading what the app actually persists rather than assuming: log in once through the UI, dump `storageState`, and mirror those keys. Two things reliably differ from expectation — the token often sits at a different level of the response than the user object, and permission/role values may not be in the login payload at all, needing a separate read. A missing key usually renders a blank page with no error.
+Build that state from what the app actually persists, not from assumption: log in once through the UI, dump `storageState`, and mirror those keys. A missing key usually renders a blank page with no error. 📖 `references/hardening-incidents.md#persisted-state` for the token-level and role-payload traps.
 
-Cap the setup project's parallelism (`fullyParallel: false` on that project — `workers` is not a per-project option) so a cold start doesn't burst.
+Cap the setup project's parallelism (`fullyParallel: false` on that project, since `workers` is not a per-project option) so a cold start doesn't burst.
 
-⚠️ **Caching the state and still paying for it every run is the common end state — `dependencies: [setup]` re-runs the whole setup project whether or not the cached state is fresh.** So a suite built exactly as above, with `storageState` correctly written and reused, still re-authenticates every identity × every worker before a single test starts, and the cost scales with both. Measured: one spec file took **70 s with the dependency and 7 s with `--no-deps`**, the entire difference being logins re-establishing sessions that were already valid. Nothing looks wrong — the run passes, just slowly — so it gets absorbed as "E2E is slow" and silently taxes every verification loop in a session, which is what makes a session stop verifying. When iterating, run with `--no-deps` and drop it when auth genuinely changed (a seeded reset, an expired token, a login failing at the app layer) or when a failure implicates the session rather than the diff. **Tell: you are waiting on a login you already have on disk.**
+⚠️ **Caching the state and still paying for it every run is the common end state: `dependencies: [setup]` re-runs the whole setup project whether or not the cached state is fresh.** Nothing looks wrong, the run just passes slowly. When iterating, run with `--no-deps`, and drop it when auth genuinely changed (a seeded reset, an expired token, a login failing at the app layer) or when a failure implicates the session. 📖 `references/hardening-incidents.md#no-deps` for the measured cost. **Tell: you are waiting on a login you already have on disk.**
 
 ### Environment and browser drift
 
-The signature: "works on my machine," with no data race, no missing fixture, and no throttle — the three checks above all come back clean.
+The signature: "works on my machine," with no data race, no missing fixture, and no throttle. The three checks above all come back clean.
 
-Confirm the installed browser binary matches what's failing elsewhere: `npx playwright install --with-deps` pins the exact Chromium/WebKit/Firefox build the test was written against, so a machine that ran `playwright install` at a different time can silently diverge from CI or a teammate's machine. Also check timezone/locale (date and currency assertions), and installed system fonts (layout-sensitive screenshot/pixel assertions) — both differ by machine and neither shows up as a Playwright error, just a wrong value or a failed visual diff.
+Confirm the installed browser binary matches what's failing elsewhere: `npx playwright install --with-deps` pins the exact Chromium/WebKit/Firefox build the test was written against, so a machine that ran `playwright install` at a different time can silently diverge from CI or a teammate's machine. Also check timezone/locale (date and currency assertions), and installed system fonts (layout-sensitive screenshot/pixel assertions). Both differ by machine, and neither shows up as a Playwright error, just a wrong value or a failed visual diff.
 
 ### Recording the run as video
 
-Worth wiring even when nothing is failing. A recorded pass is the cheapest way to *see* the product: a reviewer watches the flows and catches spacing, truncation, clipped modals and copy problems that no assertion encodes, because a spec asserts what someone thought to assert. Offer it once a suite covers real user journeys; the flows are already written, so the marginal cost is a flag. A designed launch or promo video is a different job: `motion-clip`.
+Worth wiring even when nothing is failing: a recorded pass shows spacing, truncation, clipped modals and copy problems that no assertion encodes. Offer it once a suite covers real user journeys, since the flows already exist. A designed launch or promo video is `motion-clip`. 📖 `references/recording-video.md#why-record`.
 
-Video is a **context-creation** option, which is the whole difficulty. `use.video` reaches only the contexts the runner builds for its own `page` fixture, and files them under the per-test output dir. Specs that build contexts by hand — any multi-party flow holding two sessions open at once — need the context-level `recordVideo` option instead. Set one and half the suite silently records nothing while the config reads as done; set both and the halves land in two directories, so gather them afterwards or the missing half reads as "that spec didn't record."
+Video is a **context-creation** option, which is the whole difficulty. `use.video` reaches only the contexts the runner builds for its own `page` fixture. Specs that build contexts by hand, such as a multi-party flow with two sessions open, need the context-level `recordVideo` option, and setting only one leaves half the suite silently unrecorded. 📖 `references/recording-video.md#context-creation` for the two-directory gather.
 
-Two things make the difference between a useful recording and a confusing one:
+⚠️ **Verify a recording by looking at a frame, not by the run being green.** Extract a frame near the end and view it before sending. A green suite masks stale dev-server code, stale build output, encoding cut off by an early context close, and a recording of the wrong half of the page. Rebuild before grading, since a built-asset app serves the last `build` rather than your edit. Do the check before the file reaches the user, because the moment of sending is where a green count makes an unwatched file look verified. 📖 `references/recording-video.md#verify-frame` for the ffmpeg command and each trap.
 
-⚠️ **Verify a recording by looking at a frame, not by the run being green.** Extract a frame near the end (`ffmpeg -sseof -0.6 -i video.webm -frames:v 1 out.png`) and actually view it before sending. A green suite masks several invisible failures: the dev server serving stale code, or an app that serves built assets (no Vite dev server running) serving the last `build` rather than your edit. That is the same trap `uiux`'s "Verify by Looking" covers, and it reaches a spec's screenshots exactly as it reaches a recording, so rebuild before grading either; encoding stopping when a context closes before the subject lands on screen; a recording capturing the wrong half of the page because assertions resolve below the fold while locators stay off-camera. A still frame catches all of these where a pass count does not. Do that before the file reaches the user, not after — the moment of sending is where a green count makes an unwatched file look verified.
+- **Encoding stops the moment a context closes**, and a spec ends on its last assertion, so hold each context open briefly before closing, behind the recording flag, so a normal run pays nothing.
+- **Name the file after the test.** A hand-built context's video lands under a content hash, so record its path inside the test while the page is open, keyed to the test title, and route every context through one close helper. A context closing by itself skips naming and the tail wait. 📖 `references/recording-video.md#encoding-naming`.
 
-- **Encoding stops the moment a context closes**, and a spec ends on its last assertion — so a fast test records its loading state and nothing else. Hold each context open briefly before closing, behind the same flag that turns recording on, so a normal run pays nothing.
-- **Name the file after the test.** A hand-built context's video lands under a content hash the runner reports nowhere, so number-by-creation-time makes every video anonymous. The mapping is only recoverable from inside the test while the page is still open, where the video handle resolves to its path — record it there, keyed to the test title, and rename during collection. Route every context through one close helper so naming and the tail wait have a single home; a context closing by itself skips both, and the missing name is the visible symptom of a truncated recording.
+Config placement is a trap: `test.use({launchOptions: {slowMo}})` cannot sit inside a `describe` block, since it forces a new worker. Put it at file top level, gated by the recording flag. A per-test timeout raise is legal inside the block via `describe.configure`. 📖 `references/recording-video.md#placement` for the exact error text.
 
-Config placement itself is a trap: Slowing the run down and widening the viewport are per-*worker* settings, so `test.use({launchOptions: {slowMo}})` cannot sit inside a `describe` block — Playwright rejects it with `Cannot use({ launchOptions }) in a describe group, because it forces a new worker`. Put that `test.use` at file top level, gated by the recording flag; a per-test timeout raise, which the slowed run also needs, is legal inside the block via `describe.configure`. The general shape: anything the worker is launched with is file-scoped, anything about how a test executes can be block-scoped.
+**Gate the framing, never the claim.** Reveal, pace and hold are camera-only and belong behind the flag; an `expect` does not, since gated it runs only when someone records. Hoist an `expect` out of a recording-only block and leave only the framing. An API read verifies state, but the *rendering* of it is different code and needs its own assertion.
 
-**Gate the framing, never the claim.** Reveal, pace and hold are camera-only and belong behind the flag; an `expect` does not, because gated it runs only when someone happens to record and the ordinary suite never exercises it. When a recording-only block contains an `expect`, hoist it out and leave only the framing behind — the state may be verified by an API read, but the *rendering* of it is different code and needs its own assertion.
-
-A recording is a viewport, not the page: content below the fold is absent, and a modal taller than the viewport looks cropped. Scroll the subject into shot before the hold, behind the same recording flag, and make it a no-op otherwise. Where the subject only populates after an interaction the spec skips (a grid that stays empty until a date is picked), the recording path has to perform that interaction too, guarded the same way — scrolling alone still films an empty element.
+A recording is a viewport, not the page. Scroll the subject into shot behind the recording flag, and perform any interaction the spec skips (a grid that stays empty until a date is picked) under the same guard. Scrolling alone still films an empty element. 📖 `references/recording-video.md#viewport-framing` for the cropped-modal case.
 
 ### Assertion and locator conventions
 
 Worth adopting early; retrofitting is tedious.
 
-Prefer role/label/text locators over CSS. Use web-first assertions (`await expect(locator).toBeVisible()`), never `expect(await locator.isVisible()).toBe(true)` — the latter doesn't retry. Never `waitForTimeout` as a substitute for waiting on a condition.
+Prefer role/label/text locators over CSS. Use web-first assertions (`await expect(locator).toBeVisible()`), never `expect(await locator.isVisible()).toBe(true)`, since the latter does not retry. Never `waitForTimeout` as a substitute for waiting on a condition.
 
 Two that repeatedly catch real bugs:
 
-- Assert absence with `toHaveCount(0)`, not `not.toBeVisible()` — something rendered off-screen or inside a collapsed section passes a visibility check while still being in the DOM.
+- Assert absence with `toHaveCount(0)`, not `not.toBeVisible()`, since something rendered off-screen or inside a collapsed section passes a visibility check while still in the DOM.
 - Before any absence assertion, assert something that *must* be present. A blank or errored page satisfies every `toHaveCount(0)` in the file, so an absence-only spec passes hardest exactly when the app is most broken.
-- A save is proven by reloading and reading the value back, never by the success toast. A form can serialise a field away (an empty object arriving as `[]`, a field the payload builder drops) while the server answers 200, so the toast fires on a write that stored nothing. A spec that stubs the API with `page.route` proves only that the screen renders a given reply; keep at least one unstubbed round-trip per write path.
+- A save is proven by reloading and reading the value back, never by the success toast, since a form can serialise a field away while the server answers 200. 📖 `references/hardening-incidents.md#save-proof`. A spec that stubs the API with `page.route` proves only that the screen renders a given reply; keep at least one unstubbed round-trip per write path.
 
-**A spec that asserts state it never establishes is the highest-value thing to check for, because it passes.** Prove a spec is not vacuous by inverting its fixture in the database and re-running: it must fail. This is also how you check a gate is live — remove the guard and confirm something goes red. When a probe still passes, confirm the mutation is real (re-grep and check the count moved, or diff it) before concluding the spec is vacuous — a `sed` misfire or a cached view both produce a green run while the mutation never landed.
+**A spec that asserts state it never establishes is the highest-value thing to check for, because it passes.** Prove a spec is not vacuous by inverting its fixture in the database and re-running: it must fail. This is also how you check a gate is live: remove the guard and confirm something goes red. When a probe still passes, confirm the mutation landed before concluding the spec is vacuous. 📖 `references/hardening-incidents.md#vacuity`.
 
 ## CI
 
-Wiring CI is often the stated goal and is frequently the wrong next step. Check what the pipeline's triggers actually are: if it only runs on deploy branches, an E2E step there gates *after* merge, which is not what anyone wants from a test suite. And CI needs an environment with the fixture rows — the seeder is a prerequisite for CI being possible at all, not a parallel task.
+Wiring CI is often the stated goal and is frequently the wrong next step. Check what the pipeline's triggers actually are: if it only runs on deploy branches, an E2E step there gates *after* merge, which is not what anyone wants from a test suite. And CI needs an environment with the fixture rows. The seeder is a prerequisite for CI being possible at all, not a parallel task.
 
 Say plainly when CI should stay deferred and why, rather than adding a step that runs in the wrong place.
 
 ## Report
 
-Give the user the numbers, not adjectives: tests passing before and after, the race reproduced at N/8 before and 0/8 after, and the exact command to run the suite including any seeding step. If something was deliberately not done — CI, a fix that fought the framework — say so and why, so it doesn't read as an oversight.
+Give the user the numbers, not adjectives: tests passing before and after, the race reproduced at N/8 before and 0/8 after, and the exact command to run the suite including any seeding step. If something was deliberately not done (CI, a fix that fought the framework), say so and why, so it does not read as an oversight.

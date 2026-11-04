@@ -27,3 +27,15 @@ A spotlight `rect` is in fractions of the screenshot. Overlay a grid on the shot
 - **Stock**: Pexels serves photo files to scripts at `https://images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?auto=compress&cs=tinysrgb&w=2400`; find ids through search. Mood only, never presented as the client's customers or staff, and listed in the README.
 - **Voice**: `VOICE_SPEED=0.85` read about 3 words a second with `af_heart`. Spell a product code the way it is said ("C.R.P. forty-five"). Nobody in the session can hear the mix, so transcribe `score.wav` with the local Whisper (`mlx_whisper`) and check every line comes back right at its time.
 - **A licensed track**: 📖 `real-track.md`; `score.py --track` mixes it.
+
+## Camera size and layouts {#camera-size}
+
+A whole screen shown at two-thirds of a 9:16 frame leaves its UI unreadable on a real phone, and a desktop screenshot in a vertical frame is smaller still, so zoom to the part the caption is about. Side-by-side layouts use smaller captions and less camera zoom (a quarter for `phone`, 60% for the wider frames), or the text runs into the picture. A browser shot in widescreen still needs a strong push-in for its UI text to read.
+
+## Room presentations {#room-presentation}
+
+A film played in a room while someone presents (a pitch, tender or keynote) reads best as full-frame `photos` with a `focus` and `zoom` push-in per screen and short labels. Side by side in 16:9, the screen takes half the frame and the camera zoom is damped, so UI text is unreadable from the back of a room. Keep a `rows` subject above the caption band: a strong `scrim`, and a `focus` that puts the subject in the upper 60% of the frame.
+
+## Number beat examples {#number-examples}
+
+`stat` examples: "99.9%", "3x faster". `number` examples: twenty bills merged into one payment, twelve tools merged into one app.

@@ -41,7 +41,7 @@ Give the agent the topic's rows (all sources), the source files, and the project
   ],
   "why": "why it matters to us, one sentence",
   "feeds": ["D1"],
-  "recall": {"q": "asked at the start of the NEXT topic", "a": "one sentence"},
+  "recall": {"q": "about THIS topic; the page asks it at the start of the next one", "a": "one sentence"},
   "takeaway": "max 15 words, for the end screen",
   "status": "settled | contested",
   "also": ["up to 3 lines, max 20 words each"],
@@ -59,7 +59,7 @@ Read every write-up. The two failures seen: an answer resting on a claim nobody 
 
 Merge all topics' claims into `build/claims.json` and group by family (each rule-maker, each vendor, "our code and live pages", and "a source's own view"). Brief per family: fetch the PRIMARY text (the regulator's or vendor's own page or official PDF, not a law-firm summary and not the research report), find the exact sentence, return per claim `{"status": "confirmed | differs | not_confirmed", "quote": "verbatim, ≤ 50 words", "url": "the page fetched", "note": "≤ 25 plain words when differs or not_confirmed", "reached_via": "search | typed"}`. A failed fetch is evidence about that URL only: retry with a browser user agent, try one other official address, then `not_confirmed` with "COULD NOT RETRIEVE: <url>, <what happened>". Large pages: `curl` and grep the text rather than reading them whole. PDFs: download, `pdftotext`.
 
-Claims about the reader's own system (code, config, live pages, task docs) the orchestrator checks itself with grep and file reads, status `code`, recording the exact line. Claims that are a source's recommendation or reasoning get status `report` with a note saying whose view it is. Corrections go in `verified-overrides.json`, which the generator loads last and merges field by field, so an override carrying only a new `status` and `note` keeps the original quote and URL.
+Claims about the reader's own system (code, config, live pages, task docs) the orchestrator checks itself with grep and file reads, status `code`, recording the exact line. A fact the reader's records only relay from a person (a figure a banker gave, written into a task doc) is not a document check: its note names whose word it is, or the label tells the reader a document was read when none says it. Claims that are a source's recommendation or reasoning get status `report` with a note saying whose view it is. Corrections go in `verified-overrides.json`, which the generator loads last and merges field by field, so an override carrying only a new `status` and `note` keeps the original quote and URL.
 
 Each `verified-<family>.json` is one object keyed by claim ID: `{"C1-4": {"status": …, "quote": …, "url": …, "note": …}}`.
 

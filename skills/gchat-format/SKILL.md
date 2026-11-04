@@ -96,6 +96,8 @@ _text_     ->  _text_    (unchanged)
 + item     ->  * item
 ```
 
+When the destination is WhatsApp, bullets are `- item` instead; every other conversion here holds there (`casual-message` § Syntax).
+
 Numbered lists (`1.`, `2.`) stay as-is.
 
 ### Inline code & code blocks

@@ -22,6 +22,10 @@ Scope the write, not the mechanism: *extract if the file calls for it; `ls` the 
 
 **Tell: your partition is disjoint by file, and the mechanism you are banning is one the dispatched skill names as central.**
 
+### A shared resource the agents queue for: run it yourself
+
+Disjoint files do not make a shared *machine* resource safe: one test runner, one seeded fixture, one dev server. A lock directory the agents take in turn (`mkdir` as the mutex) looks like the fix and fails differently: an agent that takes the lock and then stops, waiting on its own monitor or killed mid-run, leaves it held, and nothing in any agent's brief lets it clear a lock it did not create. Measured 2026-10-27: eight guide-writing agents shared one Playwright lock; it was orphaned twice for about 20 minutes each, two agents gave up without running their specs, and four of the five specs that never ran in their agent's session failed on first run in the orchestrator's. Have the agents write and list (compile-only) the thing that needs the resource, and run it yourself after they return, serially, where a failure is yours to read. The same briefs also met a harness guard that refuses a subagent's `Write` of a `.md` file it judges to be a report ("Subagents should return findings as text"), even when the file is the assigned deliverable: two of fourteen agents hit it. Say in the brief that a refused write is answered by returning the full text for the orchestrator to write, not by a shell workaround.
+
 ## Vouching for a fact instead of checking it
 
 A fact you list as "must survive" is a fact you are vouching for, and the agent will promote it, not check it. The natural source for that list is the file being rewritten, and a doc's claim about code is exactly the kind of thing that has drifted.

@@ -188,6 +188,10 @@ function rgba(c, a) {
   const [red, green, blue] = rgbOf(c);
   return `rgba(${red},${green},${blue},${a})`;
 }
+function shade() {
+  const light = (c) => rgbOf(c).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+  return light(C.ink) <= light(C.page) ? C.ink : C.page;
+}
 
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const lerp = (a, b, p) => a + (b - a) * p;
@@ -636,7 +640,7 @@ function spotlight(t, x, y, w, h) {
     g.beginPath();
     g.rect(x - w, y - h, w * 3, h * 3);
     roundRectPath(rx, ry, rw, rh, r);
-    g.fillStyle = rgba(C.ink, (s.dim ?? (STORY.frame === 'browser' ? 0.4 : 0.55)) * a);
+    g.fillStyle = rgba(shade(), (s.dim ?? (STORY.frame === 'browser' ? 0.4 : 0.55)) * a);
     g.fill('evenodd');
     const picture = img[screenAt(t).slice(-1)[0].screen.name];
     const lift = 1 + (s.lift ?? 0.05) * a;
@@ -644,7 +648,7 @@ function spotlight(t, x, y, w, h) {
       const cx = rx + rw / 2, cy = ry + rh / 2;
       g.translate(cx, cy);
       g.scale(lift, lift);
-      g.shadowColor = rgba(C.ink, 0.35 * a);
+      g.shadowColor = rgba(shade(), 0.35 * a);
       g.shadowBlur = w * 0.05;
       g.shadowOffsetY = w * 0.015;
       const card = () => roundRect(-rw / 2, -rh / 2, rw, rh, r);

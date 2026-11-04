@@ -29,3 +29,18 @@ Give each pass the sheets for every size, the brief, and one lens below. Where t
 - Does each line speak from the user's side ("Shop by product, or by what you need"), not to the client as the approver ("your brief", "as you asked")? A showcase of a client's own site still speaks as their shopper; proof of what the brief asked for belongs in the handover notes. Measured 2026-10-27: a storefront script written as a checklist to the client read as "weird" and was rewritten after research into agency case studies, Shopify theme pages and brands' own launch posts, which narrate from the shopper's side.
 - Is the call to action written as it will read after launch, with no date that will go stale?
 - Does any frame show something private (real emails, phone numbers, notifications, other tabs)?
+
+## Approval gates {#approval-gates}
+
+Each change to a finished film costs a full re-render. Two gates before the expensive render (the storyboard, then the draft with sound) took Lago from about twelve feedback rounds to one.
+
+## Check warnings {#check-warnings}
+
+`node render.mjs check` warns about: a font that isn't on the machine and has no file (the browser silently draws a fallback), flat-colour frames, missing pictures, text on screen too briefly to read (under 5/6 s or 0.3 s a word, over 20 characters a second: Netflix's and the BBC's subtitle rules), a voice over 3 words a second, a product first seen after 3 s, and, once `score.wav` exists, loudness off -14 LUFS or a true peak above -1 dBTP.
+
+## Render pitfalls {#render-pitfalls}
+
+- **Stills**: the fourth argument is the output path, which stills ignore, hence the `x`. The times are examples, so take them from your own story's beats. `STORY=<path>` renders a story file other than `story.js`.
+- **Watching while writing**: serve the clip folder (`python3 -m http.server` in it) and open `film.html?story=story.js&w=1080&h=1920`. In an ordinary browser it plays on a loop; when the story or a font can't load it says why on the page. Opened straight from disk, brand fonts may not load, because the renderer serves over local HTTP (fonts from `file://` are unreliable).
+- **Laptop sleep**: a sleep mid-render shows as `locator.screenshot: Timeout -<N>ms` (a negative timeout), and Low Power Mode or a closed lid as 30-second canvas timeouts. `caffeinate -i` does not stop lid-close sleep; `WORKERS=1` eases a throttled CPU.
+- **Motion check strip**: `ffmpeg -ss <start> -t 0.8 -i out/clip_9x16.mp4 -vf "select='not(mod(n\,2))',scale=180:-1,tile=12x1" -frames:v 1 -update 1 out/strip.png` (the `-frames:v 1` counts tiled images, not source frames; set it to 12 and ffmpeg errors after writing one).

@@ -31,7 +31,7 @@ Seven agents with distinct responsibilities:
 
 | Agent | Purpose | Writes | Must NOT | Model |
 |-------|---------|--------|----------|-------|
-| **Explore** | Locate files/symbols/callers. Project-aware built-in agent. Answers location questions; findings are its text response. | Scratchpad only (`~temp/`) | Edit application source; append to caller's plan | haiku |
+| **Explore** | Locate files/symbols/callers. Project-aware built-in agent. Answers location questions; findings are its text response. | Scratchpad only, outside the repo (`/tmp/`) | Edit application source; append to caller's plan | haiku |
 | **Plan** | Design approach, identify critical files, trade-offs, blast radius. Project-aware built-in agent. | `~/.claude/plans/` only | Edit application source or task docs | sonnet |
 | **task-builder** | Implements one file-partitioned slice of already-triaged work. The only agent writing new feature code. Spawned in parallel when a task splits by file. | Owned files only (from partition spec) | Files outside the partition; files shared with other spawned agents | sonnet |
 | **code-reviewer** | Hunts bugs, security issues, convention violations. Reads task doc and gathers all changes before reviewing. | None (read-only) | Make changes; assume task intent without reading the doc | sonnet |
@@ -65,6 +65,8 @@ Project/
 Find what already exists: the agent files under `.claude/agents/`, and every `CLAUDE.md` in the project at any depth.
 
 If no agents exist, create `.claude/agents/` and generate all seven from templates. If no CLAUDE.md exists, generate with the base template only (no project-specific inline rules to extract yet).
+
+⚠️ **Decide where the agents' memory goes before the first one runs.** `memory: project` makes each agent write notes into `.claude/agent-memory/<agent>/` inside the repo, and nothing ignores that folder by default. Those notes hold whatever the agent read, including a gitignored `CLAUDE.local.md` or private file the Bootstrap table points it at, so one `git add .` commits them. On a public repo (`gh repo view --json visibility`), or any repo whose agents read a private file, add `.claude/agent-memory/` to `.gitignore` in this pass and say so in the report. Elsewhere, ask whether the team wants shared memory before choosing. A scratchpad path an agent is told to use must also sit outside the repo. Measured 2026-11-04: a public personal repo's reviewers were pointed at a private notes file, and the memory folder sat unignored until the session noticed it.
 
 If agents already exist, run Step 5 in full against every one of them regardless of how established they look, and read each against its `templates/<name>.template.md` asking what the template's agent can do that this one can't — a structurally sound agent can still lack a capability the template gained since it was generated. Run a full `diff` against the template first (Step 5's reference file explains why: a prose read-through anchors on the reworded lines and reads past what's actually missing), then triage the output into "reworded, ignore" versus "capability absent, real finding" — the two files wording the same rule differently is expected and not itself a finding. Also enumerate the template names against the generated ones: a template with no counterpart is a missing agent rather than drift, and gets created in the same pass. What a check flags is a finding to judge, not a defect to fix — decide which side is right before changing either.
 

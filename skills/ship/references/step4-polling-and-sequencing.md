@@ -6,7 +6,7 @@ Before verifying deployed artifacts, resolve the CI/deploy and check for sequenc
 
 **Non-CI deploy paths:** Some projects document rsync hotfixes or manual sync that bypass CI. Check `CLAUDE.local.md` for a non-CI path and follow it if documented, still verifying at destination the same way.
 
-**Match the run to YOUR commit.** A poll on "most recent run" will return the *previous* commit's run if it completed — CI goes green, loop exits, and your deploy is still queued unnoticed. Key the wait on the SHA or commit subject you just pushed, not on position in the list. Treat "green" as a starting point, not the answer — verify the artifact at destination (Step 4b).
+**Match the run to YOUR commit.** A poll on "most recent run" will return the *previous* commit's run if it completed — CI goes green, loop exits, and your deploy is still queued unnoticed. Key the wait on the SHA or commit subject you just pushed, not on position in the list; the full SHA (`git rev-parse HEAD`), since `gh run list --commit` silently matches nothing for a short one. Treat "green" as a starting point, not the answer — verify the artifact at destination (Step 4b).
 
 📖 `ci-provider-polling.md` for per-provider commands and sibling-run traps.
 

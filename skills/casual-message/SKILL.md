@@ -80,7 +80,7 @@ Casual Malay has its own register, and it is not formal Malay made shorter: part
 
 ## Syntax
 
-`*bold*`, `_italic_`, `~strike~`, bullets and links are the same characters on WhatsApp as in Google Chat — WhatsApp renders this markdown natively, which is why one skill covers both destinations.
+`*bold*`, `_italic_`, `~strike~` and links are the same characters on WhatsApp as in Google Chat, which is why one skill covers both destinations. Bullets are the exception: on WhatsApp start each one with `- `, not Chat's `* `, since a line opening with `*` sits beside `*bold*` headers and reads to the sender as Chat syntax. Measured 03/11/2026: a client-group WhatsApp drafted with `* ` bullets came back as "change to whatsapp format", and the accepted copy changed only the bullets.
 
 `gchat-format`'s `## Key Rules` section holds the details, but read it knowing what it is: a table for converting a *document* into Chat's dialect, written before WhatsApp was in scope, so it never names WhatsApp and much of it is about structures a casual message shouldn't contain. Take the inline syntax above from it; ignore the header, table and fence conversions.
 

@@ -1,5 +1,68 @@
 # Changelog
 
+## 1.416.7
+
+**Agents no longer leak private notes into a public repo.**
+- `agent-setup` now decides where agent memory goes before the first agent runs. `memory: project` writes notes into `.claude/agent-memory/` inside the repo, and nothing ignored that folder, so one `git add .` could commit whatever an agent had read, private files included. On a public repo, or one whose agents read a private file, the folder is now added to `.gitignore`, and the setup check confirms it with `git check-ignore`.
+- The generated `Explore` agent now keeps its scratchpad in `/tmp/`, not in the repo. **Action: re-run `/agent-setup` in each project, or change your existing `Explore` agent's scratchpad line to `/tmp/`.**
+- `setup-project-docs` checks whether the repo is public before writing a PRD or task docs, since open questions and cited commit messages there are readable by anyone.
+
+**`ship` no longer waits forever on a short commit id.** `gh run list --commit` matches nothing for a short SHA, so a wait loop given one could report "queued" for good. The polling guide now says to use the full SHA.
+
+**`haiku` catches three more ways an agent's work goes wrong.**
+- Agents sometimes back up files to `/tmp` unasked, onto your own snapshot path. Snapshots now go to a path unique to each dispatch.
+- A pass that reshapes tables into entries can run two bullets together, or put the wrong content under a label like "Who decided", while every version, date and hash survives. The checks now look for both.
+- A note overturned by a newer measurement in another file survives passes that each read one file. On a set of files, the reviewer is pointed at files that make claims about the same subject.
+
+**Four skills fit the compaction limit again.** `done`, `read-summary`, `setup-playwright` and `motion-clip` had grown past the 5,000 tokens that come back after a long chat is compacted, so their last steps were lost. Worked examples moved into their reference files, and every rule stayed in place. `setup-playwright`'s trigger description is back under its length cap too, so its "not for" list is read again.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.416.6
+
+**`motion-clip`: dark films no longer wash out the spotlight, and films shown in a pitch room get full-frame screens.**
+- Spotlights now dim with whichever of the page and ink colours is darker. On a dark film they used to wash the screen grey. Light films render as before.
+- `board` now lists each full-frame photo and its caption, and `check` times photo captions for reading. A film built only from photos used to show an almost empty storyboard and count two pieces of text.
+- The 3-second product rule now counts the first full-frame photo as the product appearing.
+- `voice.mjs` says "too short a breath" for a gap under 0.2 s, instead of claiming the line runs into the next one.
+- The skill now starts the story with case-study research. It points a film played during a pitch or keynote to full-frame screens with a push-in each, rather than a half-frame device that is unreadable from the back of a room.
+- It also names the laptop failure signatures, so a render isn't retried blind: a negative screenshot timeout means the Mac slept; repeated 30-second canvas timeouts mean Low Power Mode or a closed lid. It warns that a mux chained with `;` turns a failed render into a half-second file.
+
+Found on a tender-pitch film for a dark-themed web app.
+
+## 1.416.5
+
+**`understanding-guide` now ends with "your next moves" when the material asks you to act, and scales down for a short letter.** A guide to a bank offer spread its five questions for the banker across four topics, and never said when the reader's own application had to go in or what doing nothing costs. A review after rendering caught it. Material with a deadline or a reply now gets a last topic carrying the exact message to send, the reader's real deadline and the do-nothing outcome. One or two short sources skip the haiku fan-outs and the design re-run, but keep the claim check and sample gate. A fact a person relayed (a banker's figure in a task doc) now names whose word it is instead of reading as a document check. Recall questions are about their own topic, since the page shows them at the start of the next one.
+
+## 1.416.4
+
+**WhatsApp bullets are `- `, not Google Chat's `* `.** `casual-message` used to say every markdown character is the same on both, and a client-group WhatsApp drafted with `* ` bullets came back as "change to whatsapp format". It and `gchat-format`'s bullet rule now name the WhatsApp form. The cross-session messaging reference also says a peer can be renamed between messages: match it again by its `[ref]`, since a send to the old name reads as the peer having exited.
+
+## 1.416.3
+
+**`/done` now shows the before and after of every sentence its simplifier rewords, so a tightened rule that quietly reversed is caught.** Tightening a sentence that carries a rule can flip its meaning while keeping the words a search would look for, and the pair is where that shows. `task-summary`'s diagram rule is now also pointed to from its "When updating" step, since most passes are updates.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.416.2
+
+**Answers and task docs now draw a diagram when the content has a shape, without being asked.** The terminal's "pictures in answers" note used to say only "flows and architecture as mermaid", so questions about a status moving through stages, an approve-or-reject path, or which sales reach which system were answered in prose lists. It now names those shapes, and says the diagram goes below a text answer that still says it all, while figures, rules and short lists stay text or a table. `task-summary` gets the same rule where docs are written, plus a step to render each mermaid block before finishing, since a syntax slip reaches the reader as an error box. Before this, a doc's diagrams were the ones the user asked for by name. The text-beside-diagram rule follows GitHub Docs' diagram guidance.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.416.1
+
+**`/done` now runs the product reviewer on markdown that is itself the product.** Docs-only mode used to skip it for every markdown diff, so instructions for an assistant people talk to, a user guide or public docs got no check on whether they serve their readers. Internal docs (task docs, CLAUDE.md, skill files) still skip it. The reviewer can also be a user-level agent now, not only a project one. A session tuning an advisory assistant's instructions skipped it, and once run it found six gaps.
+
+## 1.416.0
+
+**A second guess now means stop and research, in any task.** `read-summary` sets this for the whole session: when a fix fails and another theory follows, search the docs for the symptom (a `haiku` agent can do the search), check the skill list, then run one direct check instead of a full rerun. A suite that failed under parallel load got two hours of guessed fixes, one of which the project's own diagnosis doc already recorded as not working.
+
+**`setup-playwright` covers suites that fail more the more workers run.** Count one page load's requests by host and path before changing any setting. The usual culprits are a dev server answering instead of the build, static files routed through the app runtime, and beacons no spec reads. A process you stopped stays suspect until you find what starts it, and a shared fixture can fail a test the moment the app shows its crash screen. Its trigger now also fires on "why do the e2e tests time out" and "it only passes with one worker".
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
+## 1.415.3
+
+**`haiku` no longer has dispatched agents queue for a shared test runner.** When several agents each need the same machine resource (one Playwright suite, one seeded fixture), the prompt guide now says to let them write and compile-check, then run the resource yourself after they return. A lock directory they take in turn was orphaned twice in one session for about 20 minutes each, and most specs that never ran in their agent's session failed on first run. The same section notes that the harness can refuse a subagent's write of a `.md` deliverable as a "report file", and that the brief should ask for the full text back when that happens.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.415.2
 
 **`gchat-format` now writes plain text when the message is going out by email.** Asked to format a client review email, it has a rule for the case: Outlook shows Chat's `*bold*` and `_italic_` as literal symbols, so headings become plain lines, lists keep `-` or numbers, links stay bare, and a line above the fence says it is plain text for email. The fence, the no-em-dash rule and the shape rules still apply.
