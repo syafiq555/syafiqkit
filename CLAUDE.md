@@ -31,75 +31,75 @@ These skills accept explicit user command:
 | `update-summary` | Update an existing task summary |
 | `task-summary` | Create/update task summaries with full machinery |
 | `ship` | End-to-end release: commit → changelog → push → CI verify → release note |
-| `plan-worklist` | A pre-scoped list (findings, backlog, ClickUp paste) → `product-reviewer` sizes and sequences each against product intent → present the plan and stop, don't build |
-| `score-loop` | "Score it out of 20 and keep improving until 80%": a frozen rubric, a fresh judge each round, the user's calls asked, one build per round, stop on target band, plateau, round cap or work needing the user. A single review with no loop is `done`/`uiux`/`impeccable` |
+| `plan-worklist` | Pre-scoped list (findings, backlog, ClickUp paste) → `product-reviewer` sizes and sequences each → present the plan, don't build |
+| `score-loop` | "Score it out of 20 and keep improving": frozen rubric, fresh judge per round, stops on target, plateau, round cap or a need for the user. A single review is `done`/`uiux`/`impeccable` |
 | `done` | Post-task cleanup orchestrator |
 | `quick-done` | Fast cleanup for sessions known to be small and low-risk |
-| `read-summary` | Read task docs or project CLAUDE.md before answering, investigating, or implementing; judges Explore/Plan delegation vs continuing inline |
-| `tackle` | Vague multi-item doc continuation ("let's continue") → `read-summary`, judge what's buildable vs blocked, build, `done`. A specific ask is `read-summary`'s job, not this |
-| `judgement` | Mid-task finding that may not be yours to decide (adjacent defect, scope question) → measure who it newly affects, then decide or escalate. Shaping a decided question is `decision-first-output.md` |
+| `read-summary` | Read task docs or project CLAUDE.md before answering, investigating or implementing |
+| `tackle` | Vague multi-item continuation ("let's continue"): `read-summary`, build what's buildable, `done`. A specific ask is `read-summary`'s |
+| `judgement` | Mid-task finding not yet yours to decide: measure who it affects, then decide or escalate. Shaping a decided question is `decision-first-output.md` |
 | `brainstorming` | Design exploration before creative or architectural work |
-| `commit-invoice-generator` | Generate invoice line items from git commits |
-| `md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
-| `doc-to-md` | Convert .docx, .pdf or .xlsx into Markdown so each version is a readable git diff |
-| `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw discussion board (now / gated / waiting, GATE cards, PARKED table, decisions strip), verified by screenshot. Charts are `dataviz`; deciding what to build is `plan-worklist` |
-| `motion-clip` | Short designed video for a product or brand (launch clip, promo, explainer) as code: brief, real captured screens, photos and logo in a phone, browser or frameless layout, engine driven by `story.js`, storyboard and sound draft approved before the full render, automatic check (consistency, reading time of text, product on screen by 3 s, loudness) plus a four-lens contact-sheet review, 9:16/1:1/16:9 renders plus App Store and Google Play presets, numpy music bed at -14 LUFS, optional voice-over (free local Kokoro voice) with word-timed captions, full-frame backgrounds (stock or Cloudflare-generated) that move in depth. Test-run recordings are `setup-playwright` |
-| `understanding-guide` | Large text the user must understand (several reports, a spec set, legal drafts, a transcript) → offline question-and-answer page: haiku inventory, topic tags, three questions per topic, every claim checked against its primary source and our own code, sample topic approved before the rest, decisions held until the reader understands |
-| `reverse-engineer` | Rebuild the mechanism of a web app the client already uses (accounting, booking, POS) inside our app: read their live records read-only through REA and a whitelisted DevTools script, learn their habits and what their customers receive, land it in a task doc a sonnet reviewer verifies to 9/10 before design |
-| `user-manual` | END-USER manual: scope from user tasks, Diátaxis shape, screenshots from an E2E capture spec, `.docx`/`.pdf` editions. Distinct from `md-to-pdf`, which converts settled content |
-| `design-handoff` | Brief for someone ELSE to design a screen (external designer, Claude Design, contractor): purpose, audience, business rules, measured failures; layout decisions withheld. Designing it yourself is `uiux` |
-| `taste` | Build, redesign, restyle, polish or improve a public-facing page (any verb, even when `uiux` was named) with real art direction: deals 3 of 20 researched directions, finds real pictures in open collections, builds, then gates on a real-browser inspector and a scored look-and-fix loop. Vendored from tasteskill v2 (MIT); `skills/taste/SOURCE.md` records the commit and changes. Needs Node 22+ and Chrome |
-| `impeccable` | Named by the user, alone or with a command (`/impeccable polish`, `audit`, `critique`, `bolder`, `overdrive`…); a bare "polish" or "critique" is `uiux`'s: design-director toolkit with modes, a craft floor and per-command playbooks. Vendored from impeccable 4.7.0 (Apache-2.0); its launcher downloads a binary on first use and falls back to reading PRODUCT.md and DESIGN.md without it |
-| `gchat-format` | Convert Markdown to Google Chat message format: a document posted to a thread. A message in the sender's own voice to a named person is `casual-message` |
-| `casual-message` | Write a casual 1:1 message in the sender's own voice: a WhatsApp reply, a colleague DM, "tell X that…". Register is inferred, not asked; no fence, no headers. A document being converted for Chat is `gchat-format` |
-| `continue-session` | Copy-paste prompt that starts a fresh session where this one stopped: task doc path, next goal, uncommitted state |
-| `pull-db` | Transfer MySQL/MariaDB database from remote server to local dev |
-| `reclaim-disk` | Free disk space on a developer's Mac: measure, show one plan, then clear the confirmed caches and build output and run an app's own temp cleanup once; data (Docker volumes, uploads, dumps) is asked item by item |
-| `notes-summary` | Create/update/read a personal session journal outside the repo (`~/.claude/notes/`) for boss/team/career/strategy conversations; powers the `read-notes`/`update-notes` commands |
-| `skill-creator` | Create a new skill: judges whether it should be one, drafts SKILL.md, registers it |
-| `update-plugin` | Capture plugin learnings and patch SKILL.md files after authoring work |
-| `setup-project-docs` | Establish a project's core doc set (PRD, ARCHITECTURE.md, ARCHITECTURE-ESSENTIALS.md, CLAUDE.md/AGENTS.md): greenfield by derivation, or by archaeology on an existing codebase |
-| `extract-shared-package` | Pull a module two or more apps need into a shared Composer or npm package: boundary first, then shape, hosting read off how consumers install, exact pins, multi-version proof, strangler rollout |
-| `update-claude-docs` | Create, rewrite, or condense CLAUDE.md files |
-| `condense-task-doc` | Aggressively condense a bloated task doc; splits >300 lines, or a decisions file >40 KB, into a routing index + decisions |
-| `condense-claude-md` | Aggressively condense a bloated CLAUDE.md (removes excess, not the analog that adds content) |
-| `agent-setup` | Create or update project-local agents using Bootstrap pattern |
-| `haiku` | Run a task or named skill on haiku agents instead of this session, then verify the result: snapshot, identifier/number survival, reworded-claim check |
-| `unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint (rigid imperatives, "Tell:" trip-wires, mechanical thresholds). The lens is judgement vs constraint, not byte count |
-| `refresh-instructions` | Three-pass refresh of any living doc (restructure → condense → unhobble), each on `haiku` and verified before the next. One pass alone: invoke that skill directly; a SKILL.md or agent file wants `unhobble-instructions` alone |
-| `self-organize-agent-memory` | A project agent's bloated inline reference table crowds out its procedural steps: dispatch that same agent onto its own file to decide what moves to `.claude/agent-memory/<agent>/`. Verify with an identifier sweep, not the migration summary |
+| `commit-invoice-generator` | Invoice line items from git commits |
+| `md-to-pdf` | Markdown to PDF with rendered Mermaid diagrams |
+| `doc-to-md` | `.docx`, `.pdf` or `.xlsx` to Markdown, so each version is a readable diff |
+| `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw discussion board, verified by screenshot. Charts are `dataviz`; deciding what to build is `plan-worklist` |
+| `motion-clip` | Designed launch, promo or explainer video as code: real captured screens, storyboard and sound approved before the full render, automatic and contact-sheet checks, 9:16/1:1/16:9 plus store presets, music bed, optional voice-over. Test-run recordings are `setup-playwright` |
+| `understanding-guide` | Large text the user must understand → offline question-and-answer page, every claim checked against its source; decisions wait until the reader understands |
+| `reverse-engineer` | Rebuild a web app's mechanism that the client already uses, read through REA, into a task doc a sonnet reviewer verifies before design |
+| `user-manual` | End-user manual from user tasks, Diátaxis shape, screenshots from an E2E capture spec. Distinct from `md-to-pdf` |
+| `design-handoff` | Brief for someone ELSE to design a screen, layout decisions withheld. Designing it yourself is `uiux` |
+| `taste` | Build, redesign or polish a public-facing page, any verb, with art direction and a browser-inspected look-and-fix loop. Vendored tasteskill v2 (MIT), source in `skills/taste/SOURCE.md`; needs Node 22+ and Chrome |
+| `impeccable` | Only when the user names it (`/impeccable polish`, `audit`, `critique`…): design-director toolkit vendored from impeccable 4.7.0 (Apache-2.0). A bare "polish" or "critique" is `uiux`'s |
+| `gchat-format` | Document posted to a Chat thread. A message to a named person is `casual-message` |
+| `casual-message` | Casual 1:1 message in the sender's own voice. A document for Chat is `gchat-format` |
+| `continue-session` | Copy-paste prompt that starts a fresh session: task doc path, next goal, uncommitted state |
+| `pull-db` | MySQL/MariaDB transfer from a remote server to local dev |
+| `reclaim-disk` | Free disk on a developer's Mac: measure, one plan, confirmed caches cleared; data asked item by item |
+| `notes-summary` | Personal session journal in `~/.claude/notes/`; powers `read-notes`/`update-notes` |
+| `skill-creator` | New skill: judges whether it should be one, drafts SKILL.md, registers it |
+| `update-plugin` | Capture plugin learnings and patch SKILL.md files |
+| `setup-project-docs` | Core doc set (PRD, ARCHITECTURE, ARCHITECTURE-ESSENTIALS, CLAUDE/AGENTS), greenfield or by archaeology |
+| `extract-shared-package` | Module two or more apps need → shared Composer or npm package, strangler rollout |
+| `update-claude-docs` | Create, rewrite or condense CLAUDE.md files |
+| `condense-task-doc` | Condense a bloated task doc; splits over 300 lines or a decisions file over 40 KB |
+| `condense-claude-md` | Condense a bloated CLAUDE.md; removes excess |
+| `agent-setup` | Project-local agents, Bootstrap pattern |
+| `haiku` | Run a task or skill on haiku agents, then verify the result |
+| `unhobble-instructions` | Audit and rewrite a SKILL.md, agent or CLAUDE.md for overconstraint. The lens is judgement vs constraint, not length |
+| `refresh-instructions` | Three-pass refresh (restructure → condense → unhobble) on haiku. One pass alone: invoke that skill directly; a SKILL.md or agent wants `unhobble-instructions` alone |
+| `self-organize-agent-memory` | Bloated inline table in a project agent moves to `.claude/agent-memory/<agent>/`; verify with an identifier sweep |
 
 ### Proactive invocation (model auto-fires on symptom match)
 
 | Skill | Trigger |
 |-------|---------|
-| `read-summary` | Before answering architectural/investigative/project-context questions |
+| `read-summary` | Before answering architectural, investigative or project-context questions |
 | `brainstorming` | Before creative or architectural design work |
-| `judgement` | About to send an unmeasured either/or ("should I fold this in", "is this in scope"), or about to stay silent on a real finding found mid-task |
-| `pull-db` | When session involves remote database work |
-| `reclaim-disk` | Laptop storage is low or full, "free up space", "what's eating my disk", Docker or System Data too large |
-| `hobby-review` | After user reports finishing a book, game, show, or hobby item |
-| `motion-clip` | Asked for a launch clip, promo or demo video, explainer or reel for a product, app, website or brand, or to add music to one, without naming the skill |
-| `understanding-guide` | The user faces more text than one sitting holds and says they can't read it all, are a slow reader, or asks how it should be presented to them |
-| `reverse-engineer` | The user wants "the same as <app> my client/friend uses" built in our app, or says "reverse engineer" or "utilize REA" about a web app someone is logged into |
-| `function-parameter-limits` | On "too many parameters" or parameter count concerns |
-| `merge-task-docs` | Find related task docs in a domain, classify by subsystem boundary (not keyword), merge into fewer docs, delete sources, reconcile all back-references |
-| `sweep-doc-overlaps` | Fleet-wide scan across ALL `tasks/` domains for CROSS-domain merge candidates a single-domain call would miss; hands confirmed groups to `merge-task-docs` |
-| `ci-ssh-deploy-timeout` | On "deploy keeps timing out" or SSH intermittency in CI |
-| `setup-playwright` | On "e2e tests are flaky", "specs pass alone but fail together" |
-| `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, greenfield or existing app; mobile-first; scored critique of a screen (no edits). Hands any look change to a public-facing page to `taste`, whatever the verb. Also fires on a screenshot, on what someone *saw* without naming UI, or on how real products solve a pattern (case studies through `haiku`) |
-| `taste` | Asked to build, redesign, restyle, polish or improve a public-facing page (landing page, marketing site, portfolio, one-pager), or told a page looks generic, cheap, "AI-made" or not powerful enough. Vendored tasteskill v2 (MIT): dealt directions from a 247-site library, real-picture search, browser inspector |
-| `design-handoff` | About to volunteer a layout, component list or step breakdown for a screen someone else is designing, or asked for "the prompt" / "business side only" for another designer |
-| `gchat-format` | Asked to send, post or format anything for Google Chat: a release note, a status update, an announcement going to a thread |
-| `casual-message` | Asked to reply to, text, or tell a NAMED person something; runs before drafting, so register isn't inherited from a document-shaped default |
-| `continue-session` | A session is ending with work deferred rather than finished, or the user says they're running low on context / starting fresh |
+| `judgement` | About to send an unmeasured either/or ("should I fold this in", "is this in scope"), or about to stay silent on a real finding |
+| `pull-db` | Session involves remote database work |
+| `reclaim-disk` | Laptop storage low or full, "free up space", "what's eating my disk", Docker or System Data too large |
+| `hobby-review` | User reports finishing a book, game, show or hobby item |
+| `motion-clip` | Asked for a launch clip, promo, explainer or reel, or to add music to one, without naming the skill |
+| `understanding-guide` | User faces more text than one sitting holds, or asks how it should be presented |
+| `reverse-engineer` | "The same as <app> my client uses" built in our app, or "reverse engineer" / "utilize REA" about a web app someone is logged into |
+| `function-parameter-limits` | "Too many parameters" or parameter count concerns |
+| `merge-task-docs` | Related task docs in a domain: classify by subsystem boundary, merge, delete sources, reconcile back-references |
+| `sweep-doc-overlaps` | Fleet-wide scan of all `tasks/` domains for cross-domain merge candidates; hands groups to `merge-task-docs` |
+| `ci-ssh-deploy-timeout` | "Deploy keeps timing out" or SSH intermittency in CI |
+| `setup-playwright` | "E2E tests are flaky", "specs pass alone but fail together" |
+| `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, critique a screen (no edits), research. Public-facing page looks go to `taste`, whatever the verb. Also fires on a screenshot or a report of what someone saw |
+| `taste` | Asked to build, redesign or polish a public-facing page, or told one looks generic, cheap or "AI-made" |
+| `design-handoff` | About to volunteer a layout or component list for a screen someone else designs, or asked for "the prompt" for another designer |
+| `gchat-format` | Asked to send, post or format anything for Google Chat |
+| `casual-message` | Asked to reply to, text or tell a NAMED person something; runs before drafting |
+| `continue-session` | Session ending with work deferred, or the user is low on context or starting fresh |
 
 ### Sub-skills (spawned from other skills)
 
 | Skill | Spawned by |
 |-------|-----------|
 | `task-summary` | `/write-summary`, `/update-summary`, `/done` |
-| `read-summary` | `/tackle` (`/done` no longer reads task docs itself; its steps are review agents, cleanup, `update-claude-docs`, `task-summary`, `update-plugin`) |
+| `read-summary` | `/tackle` (`/done` no longer reads task docs itself) |
 | `brainstorming` | Invoked directly; `skills/done/SKILL.md` does not call it |
 
 ### Commands
@@ -111,51 +111,38 @@ These skills accept explicit user command:
 
 ## Typical Workflow Sequences
 
-These skills compose but are invoked as separate commands, not chained:
+Invoked as separate commands, not chained:
 
-1. **Commit + release**: `/commit` + `/ship`, usually given as one instruction; `/ship` includes its own commit step.
-2. **Post-ship documentation**: `/update-summary` (delegates to `task-summary`), then `/update-claude-docs`, as separate invocations.
-3. **Plugin maintenance**: `/update-plugin` invoked standalone, sometimes much later. Mid-skill "extend this too" instructions widen the CURRENT run's scope, not a cue to re-invoke.
-4. **Small sessions**: `/quick-done` is an alternative to `/done`, never both, for sessions already known to be low-risk. `/done` is the default.
+1. **Commit + release**: `/commit` + `/ship`, usually one instruction; `/ship` has its own commit step.
+2. **Post-ship docs**: `/update-summary` (delegates to `task-summary`), then `/update-claude-docs`.
+3. **Plugin maintenance**: `/update-plugin` standalone, sometimes much later. "Extend this too" mid-skill widens the current run, not a cue to re-invoke.
+4. **Small sessions**: `/quick-done` or `/done`, never both. `/done` is the default.
 
 ## Plugin Architecture
 
 ### Skill and Command Structure
 
-**Commands** (`commands/*.md`) are invocation prompts with metadata:
-```yaml
----
-description: Short description for skill list
-argument-hint: "[optional hint]"        # Shows in autocomplete
----
-```
+**Commands** (`commands/*.md`) take `description:` (skill list) and `argument-hint:` (autocomplete) frontmatter.
 
-**Skills** (`skills/<name>/SKILL.md`) are prompted executions:
+**Skills** (`skills/<name>/SKILL.md`) are prompted executions. Plugin-relevant frontmatter:
 ```yaml
 ---
 name: skill-name                        # Optional, defaults to the directory name
 description: Description for matching and invocation
 when_to_use: extra trigger phrases      # Appended to description; the two share a 1,536-char cap
-allowed-tools: Bash(git:*), Read, Grep  # Pre-approves these for one turn, see below
+allowed-tools: Bash(git:*), Read        # Pre-approves for one turn; never restricts
 disallowed-tools: WebFetch              # Removes tools while the skill is active
-user-invocable: false                   # Default is true; set false to hide from /menu
 disable-model-invocation: true          # Only the user may invoke; never add without a request
-context: fork                           # Optional: run in isolated subagent
-agent: Explore                          # Which subagent type, when context: fork
-background: false                       # With context: fork, wait for the result in this turn
-model: sonnet                           # Optional: override model
-effort: high                            # low | medium | high | xhigh | max
-paths: ["src/**/*.ts"]                  # Auto-activate only when touching matching files
 ---
 ```
 
-The full set is 20 fields (also `arguments`, `argument-hint`, `hooks`, `shell`, `metadata`, `license`, `compatibility`). Only `description` is meaningfully required. Three facts about how a skill is *read* and *registered*, none derivable from the file:
+Only `description` is meaningfully required. Three facts about how a skill is *read* and *registered*, none derivable from the file:
 
-- **The body enters context once and is never re-read**, so guidance meant to hold for a whole task must be written as a standing instruction.
-- **A mid-session reload registers a new skill's NAME but not its `description`, so it is invocable and cannot auto-fire.** `/reload-skills` makes a skill written this session resolve by name, while its listing shows an empty description, and the description is what the model matches a request against. Measured 2026-09-17 on two skills created in-session; four others on disk showed the same blank, and `hobby-review` went blank→populated across the same reload. The reload output reads like confirmation, so a trigger test done then measures the registry, not the description. **A trigger test is only meaningful in a session started after the file was written.**
-- **After a compaction, only the first 5,000 tokens of each skill are re-attached** (25,000 shared, most-recently-invoked first). The rest silently stops existing while the skill still reports as invoked. Count in tokens with a tokenizer, never `bytes ÷ 4`: this corpus runs 4.46 bytes per token, so the divisor over-reports by ~12% (17% on dense files). On 2026-09-12 `cl100k_base` put all 38 skills under the ceiling while the divisor flagged three. Five skills were over by 2026-09-29 (`haiku`, `done`, `refresh-instructions`, `condense-task-doc`, `uiux`), so re-measure rather than trust a recorded count. An inflated count reads as a breach to fix, so it buys an extraction pass against an imaginary overage. 📖 `skills/update-plugin/references/harness-constraints.md` holds the count command and measured figures.
+- **The body enters context once and is never re-read**, so guidance meant to hold for a whole task must be a standing instruction.
+- **A mid-session reload registers a new skill's name but not its `description`**, so it is invocable but cannot auto-fire: after `/reload-skills` its listing shows an empty description, and the description is what a request is matched against. The reload output reads like confirmation (measured 2026-09-17 on two skills created in-session). **A trigger test is only meaningful in a session started after the file was written.**
+- **After compaction only each skill's first 5,000 tokens re-attach** (25,000 shared, most recently invoked first); the rest silently stops existing. Count in tokens with a tokenizer, never `bytes ÷ 4`: this corpus runs 4.46 bytes per token, so the divisor over-reports by ~12% (17% on dense files), and an inflated count buys an extraction pass against an imaginary overage. Count command and figures: `skills/update-plugin/references/harness-constraints.md`.
 
-**That divisor is a RECURRENCE: the first fix corrected the figures and left the method.** 1.261.0 quantified the bug and patched the figures, but `harness-constraints.md` kept prescribing `bytes ÷ 4` for ten more versions, until a re-derivation on 2026-09-12. A corrected number reads as a closed case, so **after disproving a figure, fix the method that computed it.** **Tell: your changelog entry lists corrected values and names no method.**
+**That divisor is a RECURRENCE: the first fix corrected the figures and left the method.** 1.261.0 patched the numbers while `harness-constraints.md` kept prescribing `bytes ÷ 4` for ten more versions. After disproving a figure, fix the method that computed it. **Tell: your changelog entry lists corrected values and names no method.**
 
 ### Where a rule goes, by when it must fire {#rule-placement}
 
@@ -163,78 +150,73 @@ Every mechanism loads at a *moment*, and a rule in the wrong one is correct, pre
 
 | Must fire | Put it in | Loads |
 |---|---|---|
-| Every turn, no exceptions | A `UserPromptSubmit` hook's stdout | Once per turn; the harness injects it |
+| Every turn, no exceptions | A `UserPromptSubmit` hook's stdout | Once per turn, injected by the harness |
 | Every session, surviving compaction | `hooks/RULESET.md` via the SessionStart hook, or a project-root `CLAUDE.md` | Session start and `compact` (context pressure, not turn count, so a session that never fills its window never re-fires) |
 | When a matching file is touched | `.claude/rules/*.md` with `paths:` frontmatter | On read of a matching path |
 | When a named task starts | A skill body, first 5,000 tokens | On invoke |
 | Only if the reader chooses to look | A `📖` reference | Never, unless opened |
 
-**A rule that failed twice cannot be fixed by rewording it; move it to another row of the table above.** Skill bodies and CLAUDE.md are read once, so a verdict reached many turns later is answered from recall, which keeps the parts that matched the situation and drops the one that applied. Measured 2026-09-10 and at least eight times before it (`grep -i "never reached\|re-attach" CHANGELOG.md`): each reword restated the rule or moved it nearer the act, and the next session failed through another door. Moving it within an equally unread file changes nothing.
+**A rule that failed twice cannot be fixed by rewording it; move it to another row.** Skill bodies and CLAUDE.md are read once, so a verdict reached many turns later is answered from recall, which keeps the parts that matched the situation and drops the one that applied. Failed at least eight times before 2026-09-10 (`grep -i "never reached\|re-attach" CHANGELOG.md`): each reword restated the rule or moved it nearer the act, and the next session failed through another door. Moving it within an equally unread file changes nothing.
 
-Two consequences. A `📖` pointer defers a rule and never delivers one, so the sentence telling a reader they *have* a problem stays inline and only the fix procedure moves. A rule that must hold on every turn has one home, a hook, because it is the only mechanism the harness executes rather than the model choosing to consult. **Tell: you are about to reword a rule for the second time.**
+Two consequences. A `📖` pointer defers a rule and never delivers one, so the sentence telling a reader they *have* a problem stays inline and only the fix procedure moves. A rule that must hold every turn has one home, a hook, the only mechanism the harness executes rather than the model choosing to consult. **Tell: you are about to reword a rule for the second time.**
 
-**`allowed-tools:` pre-approves; it never restricts.** Unlisted tools stay callable. The field only waives the prompt for what it names, until the user's next message. `disallowed-tools:` is the field that removes a tool. A skill that spawns agents needs no `Agent` entry (`done`, `ship`, `agent-setup` omit the line). Reading the grant as a whitelist makes an unlisted tool look blocked when it isn't. Skills use hyphenated `disallowed-tools:`, subagents camelCase `disallowedTools:`, and each is inert in the other's file. *(Verified against `code.claude.com/docs/en/skills.md`, 2026-08-20.)*
+**`allowed-tools:` pre-approves; it never restricts.** Unlisted tools stay callable. The grant only waives the prompt for what it names, until the user's next message. Use `disallowed-tools:` to remove a tool. A skill that spawns agents needs no `Agent` entry (`done`, `ship`, `agent-setup` omit the line). Read as a whitelist, the grant makes an unlisted tool look blocked when it isn't. Skills use hyphenated `disallowed-tools:`, subagents camelCase `disallowedTools:`, and each is inert in the other's file. *(Verified against `code.claude.com/docs/en/skills.md`, 2026-08-20.)*
 
-**Agent templates** (`skills/agent-setup/templates/*.template.md`) define project-local agents that read CLAUDE.md at runtime:
+**Agent templates** (`skills/agent-setup/templates/*.template.md`) define project-local agents that read CLAUDE.md at runtime. Plugin-relevant frontmatter:
 ```yaml
 ---
 name: agent-name
 description: When to invoke
-tools: Read, Grep, Glob, Edit           # An allowlist. Omit the line to inherit every tool
-disallowedTools: [Write, Edit]          # camelCase here; resolved BEFORE tools
-model: sonnet
-color: red
-memory: project                         # user | project | local; its own MEMORY.md, not the session's
+tools: Read, Grep, Glob, Edit           # Allowlist; omit the line to inherit every tool
+disallowedTools: [Write, Edit]          # camelCase; resolved BEFORE tools
+memory: project                         # user | project | local; its own MEMORY.md
 skills: [api-conventions]               # Preloads the skill's FULL text at spawn
 permissionMode: default                 # Ignored for plugin subagents
-maxTurns: 20
-isolation: worktree                     # Run in a throwaway git worktree
 ---
 ```
-
-Agent frontmatter is a **different namespace from skill frontmatter**. `disallowedTools:` is camelCase for an agent, `disallowed-tools:` hyphenated for a skill, and a misspelling fails silently. So verify a read-only agent by whether the enforcing line exists, never by whether the file looks read-only. When both fields are set, `disallowedTools` resolves first and `tools` narrows against what remains.
+Agent frontmatter is a **different namespace from skill frontmatter**: `disallowedTools:` for agents, `disallowed-tools:` for skills, and a misspelling fails silently. So verify a read-only agent by whether the enforcing line exists, never by how the file looks. When both are set, `disallowedTools` resolves first and `tools` narrows what remains. Other fields (model, color, maxTurns, isolation): `code.claude.com/docs/en/sub-agents.md`.
 
 A subagent inherits the CLAUDE.md hierarchy and a git-status snapshot, never the parent's conversation, output style or auto memory; a `fork` inherits everything. Built-in `Explore` and `Plan` skip CLAUDE.md inheritance, which is why the Bootstrap pattern has them read it at runtime.
 
-Subagents **can** spawn subagents, three layers deep. The no-redelegation rule is a policy choice, and the only mechanical enforcement is omitting `Agent` from `tools:`. *(Verified against `code.claude.com/docs/en/sub-agents.md`, 2026-08-20.)*
+Subagents **can** spawn subagents, three layers deep; the no-redelegation rule is policy, and the only mechanical enforcement is omitting `Agent` from `tools:`. *(Verified against `sub-agents.md`, 2026-08-20.)*
 
-**Passing `name:` to `Agent` makes the agent an addressable teammate whose plain-text final output never reaches the caller.** The caller gets a completion notification with no findings, so a prompt that doesn't ask for `SendMessage` yields a run where every agent completes and the reports are simply absent, indistinguishable from a fan-out that worked. It is non-deterministic: six identically spawned agents split one reporting against five not (#27), so a run whose reports arrived proves nothing. Either tell every named agent to report via `SendMessage`, or omit `name:`. Keep naming only when mid-flight addressability matters (correcting an agent, claiming a file back before editing it).
+**Passing `name:` to `Agent` makes the agent an addressable teammate whose plain-text final output never reaches the caller.** A prompt without a `SendMessage` instruction yields completions with no reports, indistinguishable from a fan-out that worked, and non-deterministically (six identical spawns, one reporting, five not: #27), so a run whose reports arrived proves nothing. Either tell every named agent to report via `SendMessage`, or omit `name:`. Keep naming only when mid-flight addressability matters, such as correcting an agent or reclaiming a file before editing it.
 
 ### The SessionStart Hook
 
-`hooks/hooks.json` `cat`s `hooks/RULESET.md` into a session at startup, on matchers `startup|resume|clear|compact`. It is auto-discovered by well-known path; neither manifest declares a `hooks` field.
+`hooks/hooks.json` `cat`s `hooks/RULESET.md` into a session on matchers `startup|resume|clear|compact`, auto-discovered by well-known path; neither manifest declares `hooks`.
 
-**`fork` is the fifth documented matcher and is deliberately absent.** A session forked via `--fork-session`, `/fork` or `/branch` gets no ruleset. Its behaviour was never verified, and an unverified matcher was the worse trade against a bounded gap. Adding it is a one-token change once someone confirms what a forked session does with hook output; then the "every session" wording in `README.md` and the changelog can drop its carve-out.
+**`fork`, the fifth documented matcher, is deliberately absent**, so a session forked via `--fork-session`, `/fork` or `/branch` gets no ruleset. Its behaviour was never verified, and an unverified matcher was the worse trade against a bounded gap. Adding it is a one-token change once someone confirms what a forked session does with hook output; then drop the "every session" carve-out from `README.md` and the changelog.
 
-**There is no script, deliberately.** `${CLAUDE_PLUGIN_ROOT}` expands in `hooks.json` but not in a script body, so a script would have to find the ruleset from `$0`. A frontmatter-bearing ruleset would also need strip logic, whose edge cases are what the upstream reference suite exists to catch. `cat` needs neither.
+**No script, deliberately.** `${CLAUDE_PLUGIN_ROOT}` expands in `hooks.json` but not in a script body, and a frontmatter-bearing ruleset would need strip logic. `cat` needs neither.
 
-**Hook stdout is capped at 10,000 characters; past it the session gets a file path and a 2,000-character preview.** Nothing fails: the hook reports success and the preview opens with rule 1. The only trace is "Output too large" in the start banner. `RULESET.md` sat over the cap from 2026-09-17 to 2026-10-08, so every rule past the first was missing for three weeks. Measure with `wc -m` (UTF-8 locale) before any pass lands. `.githooks/pre-commit` blocks a commit at the cap where `core.hooksPath` is set.
+**Hook stdout is capped at 10,000 characters**; past it the session gets a file path and a 2,000-character preview, and the hook still reports success. The only trace is "Output too large" in the start banner. `RULESET.md` sat over the cap from 2026-09-17 to 2026-10-08, so every rule past the first was missing for three weeks. Measure with `wc -m` (UTF-8 locale) before any pass lands. `.githooks/pre-commit` blocks a commit at the cap where `core.hooksPath` is set.
 
-**`cat` rather than `node`, because Claude Code no longer guarantees Node.** The CLI is a native binary, and a version-managed `node` lives only in the shell profile, which an exec-form hook never sources. Check reachability with `env -i PATH="/usr/bin:/bin" sh -c 'command -v node'`; `/bin/cat` passes. Bare Windows without Git Bash gets a silent no-op.
+**`cat` rather than `node`**: Claude Code is a native binary with no guaranteed Node, and a version-managed `node` lives in the shell profile, which an exec-form hook never sources. Check with `env -i PATH="/usr/bin:/bin" sh -c 'command -v node'`; `/bin/cat` passes. Bare Windows without Git Bash gets a silent no-op.
 
-**A missing ruleset is expected to degrade rather than block, but that is untested end-to-end.** `cat` exits 1 on ENOENT (verified); the hook docs say only exit 2 blocks and leave ENOENT undocumented. So the conclusion rests on a table, not a session started without the file. If a session fails to start, or `RULESET.md` moves behind a wrapper, suspect this first: rename the file, start a fresh session, see whether it comes up.
+**A missing ruleset is expected to degrade rather than block, but that is untested end-to-end.** `cat` exits 1 on ENOENT (verified), and the docs say only exit 2 blocks. So the conclusion rests on a table, not on a session started without the file. If a session fails to start, or `RULESET.md` moves behind a wrapper, suspect this first: rename the file, start a fresh session, see whether it comes up.
 
-**A second SessionStart entry, matcher `startup` only, runs `hooks/prune-caches.sh` and prints nothing.** It takes `${CLAUDE_PLUGIN_ROOT}` as its argument, since the variable does not expand inside a script. It deletes this plugin's own cached versions whose `.orphaned_at` marker is over 7 days old (never the running version, even if it carries a stale marker), plus stale mod cache files (`hooks/CLAUDE.md#what-it-runs`). Claude Code was meant to sweep orphaned versions itself, but on 2026-10-23 versions orphaned 14 days earlier were still there: 79 copies, 2.9 GB, each carrying the gitignored `tools/remote-cli/node_modules`, because a `directory` marketplace copies the working tree regardless of `.gitignore`. The 7 days keep a version that a long-running session still has loaded, since a deleted version breaks that session's hooks, skills and Typst templates until restart; it runs for colleagues too and has no off-switch, both by the owner's call on 2026-10-23 (3 days was rejected as too short for a session left open over a weekend). A typeset `.png` or `.json` is deleted only once no `<key>.ok` remains, because `typeset.js` writes pages before the marker and a blanket age cut could leave a fresh marker over deleted pages. The version-folder delete runs only when the plugin root's parent ends in `plugins/cache/syafiqkit/syafiqkit`, so a root that points at the source checkout deletes nothing. The script calls `/usr/bin/find` and `/bin/rm` by absolute path because a hook gets no shell profile.
+**A second `startup` entry runs `hooks/prune-caches.sh`** (silent; takes `${CLAUDE_PLUGIN_ROOT}` as its argument). It deletes this plugin's cached versions whose `.orphaned_at` marker is over 7 days old, never the running version even with a stale marker, plus stale mod cache files (`hooks/CLAUDE.md#what-it-runs`). Claude Code's own orphan sweep left versions 14 days old in place on 2026-10-23: 79 copies, 2.9 GB, each carrying the gitignored `tools/remote-cli/node_modules`, because a `directory` marketplace copies the working tree regardless of `.gitignore`. The 7 days keep a version a long-running session still has loaded, since deleting it breaks that session's hooks, skills and Typst templates until restart; 3 days was rejected as too short for a session left open over a weekend. The 7-day window and the lack of an off-switch are both the owner's call (2026-10-23), and the script runs for colleagues too. A typeset `.png` or `.json` is deleted only once no `<key>.ok` remains, because `typeset.js` writes pages before the marker and a blanket age cut could leave a fresh marker over deleted pages. The version-folder delete runs only when the plugin root's parent ends in `plugins/cache/syafiqkit/syafiqkit`, so a source-checkout root deletes nothing. It calls `/usr/bin/find` and `/bin/rm` by absolute path, since a hook gets no shell profile.
 
-**There is no off-switch, and that was a decision rather than an oversight.** `cat` cannot read an env var, and adding a guard means adding a script back. Any future request to make it optional is a request to reopen the shape, not a small patch.
+**No off-switch, by decision.** `cat` cannot read an env var, and a guard means adding a script back. A request to make it optional reopens the shape rather than making a small patch.
 
 ### The Mod
 
-`hooks/src/mod.js` is a Claude Code mod: the band above the prompt, the `/sk` menu, the `/task-docs` reader, the `/changes` source-control view, the image gallery and pictures under Claude's terminal answers. Its rules, host-API traps, permissions and debugging steps (`~/.claude/doc-pane-cache/mod.log`) live in `hooks/CLAUDE.md`. Read it before planning, editing or debugging the mod, including from a task doc or a log; its automatic load on reading a `hooks/` file is not yet verified.
+`hooks/src/mod.js` is a Claude Code mod: the band above the prompt, the `/sk` menu, the `/task-docs` reader, the `/changes` view, the image gallery and pictures under Claude's terminal answers. Its rules, host-API traps, permissions and debugging (`~/.claude/doc-pane-cache/mod.log`) live in `hooks/CLAUDE.md`.
 
-📖 `hooks/CLAUDE.md`
+📖 `hooks/CLAUDE.md`: read before planning, editing or debugging the mod, including from a task doc or log. Its automatic load on reading a `hooks/` file is not yet verified.
 
 ### Agent Definition Parity
 
-Generated `.claude/agents/<name>.md` files must stay in sync with their source `skills/agent-setup/templates/<name>.template.md`. Patch the template in the same change, or the next `/agent-setup` run regenerates the old behavior. When fixing an agent, grep both locations and update every hit. Drift is silent: a spawn failure with `effort 'xhigh'/'max' not supported` is worth diffing against the template before treating it as an environment fault.
+Generated `.claude/agents/<name>.md` must match `skills/agent-setup/templates/<name>.template.md`. Patch the template in the same change, or the next `/agent-setup` regenerates the old behaviour. When fixing an agent, grep both locations. Drift is silent: a spawn error `effort 'xhigh'/'max' not supported` is worth diffing against the template before blaming the environment.
 
-**Parity proves the two files agree, never that either is right.** An edit touching both leaves them matching whatever it did, so a regression in one pass is invisible to every later parity check. The frontmatter's own claims catch it: an agent whose `description:` says read-only while `tools:` grants `Write`/`Edit`, or a `disallowedTools` block a checklist demands and no template produces. Treat a checklist item no generated file can satisfy as a defect. A reviewer's "word-for-word identical" verdict was once contradicted by a three-line comparison that found two adapted constraint texts, so run the comparison yourself.
+**Parity proves the two files agree, never that either is right.** An edit touching both leaves them matching whatever it did, so a regression in one pass is invisible to every later parity check. Check the frontmatter's own claims: a `description:` saying read-only beside a `Write`/`Edit` grant, or a `disallowedTools` block a checklist demands and no template produces, is a defect. A reviewer's "word-for-word identical" verdict was once contradicted by a three-line comparison, so run the comparison yourself.
 
-A safety-relevant grant is stated twice: once in frontmatter, once in the body prose that scopes it. A density or `unhobble-instructions` pass reads a YAML guard as prohibition-shaped and can strip it with the sentence explaining it. Where only body text scopes a grant, say so where the checklist verifies it.
+A safety-relevant grant is stated twice, in frontmatter and in the body prose that scopes it. A density or `unhobble-instructions` pass reads a YAML guard as prohibition-shaped and strips it with the sentence explaining it. Where only body text scopes a grant, say so where the checklist verifies it.
 
-**A YAML comment beside the grant is not that second statement.** `- Agent  # lets this agent spawn Explore agents` reads as a scoped grant but reaches the agent as nothing: the tool arrives with its generic description. Checking means reading the body for what the agent is told to spawn. `grep '^  - Agent'` also misses `task-builder`, which omits `tools:` to receive the full set. 📖 `skills/_shared/references/agent-may-not-redelegate.md`: the constraint every Agent-holding template states in body prose because of this.
+**A YAML comment beside a grant is not the second statement**: `- Agent  # lets this agent spawn Explore agents` reaches the agent as nothing. Read the body for what it is told to spawn. `grep '^  - Agent'` also misses `task-builder`, which omits `tools:` to receive the full set. 📖 `skills/_shared/references/agent-may-not-redelegate.md`: the constraint every Agent-holding template states in body prose.
 
-**Drift is not always one file being behind.** Different passes edit each side (an unhobbling run rewrites the template's prose while a live fix moves a guard in the generated file), so each can lead on different axes. A wholesale copy in either direction discards the other side's improvement, and copying toward the template ships repo-specific text upstream. Decide per hunk. A `diff` whose changes cluster into distinct topics signals independent edits.
+**Drift is not always one file being behind.** Each side can lead on different axes (an unhobbling run rewrites the template's prose while a live fix moves a guard in the generated file), so a wholesale copy either way discards the other's improvement and can ship repo-specific text upstream. Decide per hunk; a diff whose changes cluster into distinct topics signals independent edits.
 
 ## Authoring Skills and Commands
 
@@ -256,44 +238,44 @@ Find the group for the moment you are in:
 
 #### Writing a skill's procedure {#checklist-writing}
 
-- **Git probes**: `git -C <plugin-dir>` walks up to an enclosing repo and can answer about the wrong one; use `git rev-parse --show-toplevel`. A git-reading step must say what happens when git *errors*: unversioned projects and repos with no first commit make `git status` succeed while every `git diff HEAD` fails. `rev-parse --git-dir` asks whether a repo exists; `rev-parse HEAD` asks whether a commit exists. `skills/_shared/references/verifying-a-write-landed.md` owns the substitutes; cite it.
-- **State what to establish, not which command establishes it.** `stat -f '%Sm'` works on macOS and fails on Linux, and each variant is one more command to rot. Colleagues run this on their own setups, so a baked-in environment is imposed on them. The failures are quiet (a BSD flag meaning something else, an unmatched glob reporting `0`), and a confident wrong answer cannot be recovered from. Keep a literal invocation only where the exact invocation is the knowledge (a `mysqldump` flag set that took debugging, an SSH retry scoped to exit 255), and keep facts about how a tool behaves (`git diff` without `HEAD` misses the staged plane).
-- **Prompting style**: Constitutional constraints (`❌ Never / ✅ Always` tables) for routing decisions. Validation loops (numbered checks) for file writes. A skill writing formatted output should re-read its own output against its style rule.
-- **A guard belongs at the step that acts, and sibling sweeps key on the destructive act, not on how the actor is reached.** A condition settled early is not consulted by a later step, so re-derive it where the write, spawn or delete happens. A search for `subagent_type` finds skills that dispatch an agent and misses those that reach the same operation by a direct `Skill()` call or by telling the reader to delete a file. Grep for the dangerous operation (a whole-file rewrite, an `rm -rf`, an `Edit`) and check each hit for the guard. A caller-side gate does not cover its callee, which needs its own check, since a peer can start editing between the two writes. Issue #24 had two siblings (an ungated folder delete, an unguarded whole-file condense) that the dispatch-shaped grep reported clean.
-- **A shell snippet in a SKILL.md is untested code, so run it before landing it.** Its failure is a wrong number, not an error. Run it against a real doc and check the output against a manual read, especially when restoring one from a bug report. A control must be able to fail in the direction you worry about: `grep -Ll` means `-l` on BSD (the later flag wins), so a coverage sweep listed every compliant file as non-compliant, while a file matching neither pattern vanished from both lists. Where a flag inverts a result, check one file on each side. Issue #22 restored a size check that undercounted every doc whose `## Next Steps` wasn't the last section.
+- **Git probes**: `git -C <plugin-dir>` walks up to an enclosing repo and can answer about the wrong one; use `git rev-parse --show-toplevel`. A git-reading step must say what happens when git *errors*: unversioned projects and repos with no first commit make `git status` succeed while every `git diff HEAD` fails. `rev-parse --git-dir` asks whether a repo exists; `rev-parse HEAD` asks whether a commit does. Substitutes: `skills/_shared/references/verifying-a-write-landed.md`.
+- **State what to establish, not which command establishes it.** `stat -f '%Sm'` works on macOS and fails on Linux, and colleagues run these skills on their own setups. The failures are quiet (a BSD flag meaning something else, an unmatched glob reporting `0`), and a confident wrong answer cannot be recovered from. Keep a literal invocation only where the exact invocation is the knowledge (a `mysqldump` flag set that took debugging, an SSH retry scoped to exit 255), and keep facts about how a tool behaves (`git diff` without `HEAD` misses the staged plane).
+- **Prompting style**: constitutional constraints (`❌ Never / ✅ Always` tables) for routing decisions; numbered validation loops for file writes. A skill writing formatted output re-reads its own output against its style rule.
+- **A guard belongs at the step that acts.** A condition settled early is not consulted by a later step, so re-derive it where the write, spawn or delete happens. Sibling sweeps key on the destructive act: grep for `rm -rf`, whole-file rewrites or `Edit`, not `subagent_type`, which misses direct `Skill()` calls and prose telling the reader to delete a file. A caller-side gate does not cover its callee, since a peer can edit between the two writes. Issue #24 had two siblings (an ungated folder delete, an unguarded whole-file condense) that the dispatch-shaped grep reported clean.
+- **A shell snippet in a SKILL.md is untested code**, and its failure is a wrong number, not an error. Run it on a real doc and check against a manual read. A control must be able to fail in the direction you worry about: `grep -Ll` means `-l` on BSD (the later flag wins), so a coverage sweep listed every compliant file as non-compliant, while a file matching neither pattern vanished from both lists. Where a flag inverts a result, check one file on each side. Issue #22 restored a size check that undercounted every doc whose `## Next Steps` wasn't last.
 
 #### Placing a rule or extracting shared machinery {#checklist-placement}
 
-- **Shared rules**: a rule in 3+ skills moves to `skills/_shared/references/`. Paths resolve against the citing file: `../` from `skills/<name>/SKILL.md`, `../../` from `skills/<name>/references/*.md`. A wrong depth reads correctly in review and never 404s at authoring time, so `ls` the target from the citing file's own directory.
-- **Extracting to a reference defers a rule; it does not deliver one.** Nothing forces a `📖` target to load, so a hop past the skill body lands well under half the time. The sentence that tells a reader they *have* the problem stays inline where it applies; only the fix procedure goes behind the citation. "Cite the owner rather than duplicating" is right about duplication and wrong about delivery. `skills/_shared/references/editing-skills-checklist.md` §"Pointer citations" owns the wording and the two-hop shape to avoid.
-- **A rule governing every turn needs a host read early, not one whose topic matches.** A wrap-up skill reaches only sessions that invoke it. `read-summary` runs at the start of most sessions and ships to consumers, so it is the furthest-reaching skill host; this repo's own `CLAUDE.md` never loads in a consumer's session. Nothing re-injects a standing rule mid-session, so say plainly that it is best-effort where stated.
+- **Shared rules**: a rule in 3+ skills moves to `skills/_shared/references/`. Paths resolve against the citing file (`../` from `skills/<name>/SKILL.md`, `../../` from `skills/<name>/references/*.md`), and a wrong depth never 404s at authoring time, so `ls` the target from the citing file's own directory.
+- **Extracting defers a rule; it does not deliver one.** Nothing forces a `📖` target to load, and a hop past the skill body lands well under half the time. The sentence telling a reader they *have* the problem stays inline; only the fix procedure goes behind the citation. "Cite the owner rather than duplicating" is right about duplication and wrong about delivery. Two-hop shape to avoid: `skills/_shared/references/editing-skills-checklist.md` §"Pointer citations".
+- **A rule governing every turn needs a host read early.** A wrap-up skill reaches only sessions that invoke it. `read-summary` runs at the start of most sessions and ships to consumers, the furthest-reaching host; this repo's `CLAUDE.md` never loads in a consumer's session. Nothing re-injects a standing rule mid-session, so say where it is best-effort.
 
 #### Registering and publishing a skill {#checklist-registry}
 
-- **Skill registry sync**: The registry lives in two places: this file's Skills table and `README.md`. Both drift independently, so check each against what's actually on disk rather than against the other.
-- **Plugin-internal paths**: `tasks/**` is not shipped in the marketplace. Verify against a git-sourced install, since a `directory` cache shows uncommitted files. Route writes through `update-plugin`, the only skill with an ownership gate. A colleague's GitHub install keeps a shallow clone at `~/.claude/plugins/marketplaces/syafiqkit`, refreshed on update (measured on `superpowers-marketplace`: `.git` updated 15/10), beside the per-version cache. Anything outside a skill (`tools/`) that a colleague links to or installs into points at the clone, never the cache. The official Anthropic marketplace is the exception (re-downloaded from GCS, not cloned). The folder name comes from `marketplace.json`'s `name`, unconfirmed while name and repo match.
-- **Scope and naming**: When a name stops matching scope, rename in the same change, since a stale name under-fires forever. When a command's body becomes "run skill X", migrate it to a skill.
-- **Model invocation**: Never add `disable-model-invocation` without user request, since it kills auto-suggestion. Default to proactive invocation.
+- **Skill registry sync**: the registry lives in this file's Skills tables and `README.md`. Both drift independently, so check each against what is on disk, not against the other.
+- **Plugin-internal paths**: `tasks/**` is not shipped in the marketplace. Verify against a git-sourced install, since a `directory` cache shows uncommitted files. Route writes through `update-plugin`, the only skill with an ownership gate. A colleague's GitHub install keeps a shallow clone at `~/.claude/plugins/marketplaces/syafiqkit`, refreshed on update (measured on `superpowers-marketplace`: `.git` updated 15/10), beside the per-version cache. Anything outside a skill (`tools/`) that a colleague links to points at the clone, never the cache. The official Anthropic marketplace is re-downloaded from GCS, not cloned. The folder name comes from `marketplace.json`'s `name`, unconfirmed while name and repo match.
+- **Scope and naming**: when a name stops matching scope, rename in the same change; a stale name under-fires forever. When a command's body becomes "run skill X", migrate it to a skill.
+- **Model invocation**: never add `disable-model-invocation` without a user request; it kills auto-suggestion. Default to proactive invocation.
 
 #### Editing steps, citations or a restructure {#checklist-citations}
 
-- **Internal cross-references**: cite a named heading or bullet, never a raw line number, which goes stale on any edit above it. **A citation that resolves can still misdescribe its target.** "X is already the rule" is a claim about the target's *scope*: a rule under one heading, or inside one template's fenced block, reads as general once cited generally. Open the target and find the heading the sentence lives under. If it is narrower than you need, widen it at the source; editing your citation to match leaves the next reader the same wrong scope.
-- **Renumbering a file's own steps breaks every citation to them.** `Step 3a` is itself a heading, so flattening `3, 3a, 4, 4a` into `0–6` retires the label while every pointer still resolves, and the file reads as a clean sequence. Sibling skills and task docs cite steps by label, so one renumber stranded citations in two `_shared/references/` files and a live routing table. After changing a step's number or letter, grep the repo for the old label: a decision record's mention is history, but a live routing table or pointer is a citation to fix. **The old label is usually gone, so a clean grep proves nothing.** Sweep for the citation syntax (`rule [0-9]+`, `Step [0-9]`) and read every hit against what the number now names, including your own edits. Measured 2026-09-15 on `hooks/RULESET.md`: rule 10 moved to position 1, `grep "rule 10"` returned zero, and two `rule N` citations pointed at the wrong rule, one a cross-reference the pass had just rewritten. **Tell: your renumber check grepped for the old number and found nothing.**
-- **A rewrite that absorbs a reference inline breaks the citation graph at both ends.** Pulling a fact up strands the file it pointed at: nothing 404s, and the orphan keeps collecting edits. Dropping a citation to shared machinery leaves inlined prose that reads complete while the reader is never routed to the machinery behind it. Neither shows in a resolve-check, a diff or a self-report. After any inlining, ask which files this one no longer cites and which absorbed facts had machinery behind them. An uncited reference is either content to fold in and delete, or a pointer to restore.
+- **Internal cross-references**: cite a named heading or bullet, never a raw line number. **A citation that resolves can still misdescribe its target.** "X is already the rule" claims the target's *scope*: a rule under one heading, or inside one template's fenced block, reads as general once cited generally. Open the target, find the heading the sentence lives under, and if it is narrower than needed, widen it at the source rather than editing the citation to match.
+- **Renumbering a file's own steps breaks every citation to them.** Flattening `3, 3a, 4, 4a` into `0–6` retires the labels while every pointer still resolves, so the file reads as a clean sequence. One such renumber stranded citations in two `_shared/references/` files and a live routing table. After changing a number or letter, sweep the citation syntax (`rule [0-9]+`, `Step [0-9]`) and read every hit against what the number names now, including your own edits. A decision record's mention is history; a live routing table or pointer is a citation to fix. The old label is usually gone, so a clean grep for it proves nothing. Measured 2026-09-15 on `hooks/RULESET.md`: rule 10 moved to position 1, `grep "rule 10"` returned zero, and two `rule N` citations pointed at the wrong rule, one a cross-reference the pass had just rewritten. **Tell: your renumber check grepped for the old number and found nothing.**
+- **Inlining a reference breaks the citation graph at both ends.** Pulling a fact up strands the file it pointed at, which keeps collecting edits; dropping a citation to shared machinery leaves prose that reads complete while the reader is never routed to the machinery. Neither shows in a resolve-check, a diff or a self-report. After any inlining, ask which files this one no longer cites and which absorbed facts had machinery behind them. An uncited reference is either content to fold in and delete, or a pointer to restore.
 
 #### Retracting or deleting a rule {#checklist-retraction}
 
-- **Retracting a rule reaches every file that prescribed it, which is always more than the entry naming the fix.** Adding a rule is bounded by where you put it; removing one leaves every other site still telling a reader to do the withdrawn thing, and those sites read as correct until the retraction. The changelog entry then certifies the wrong scope, since it names the files the fix touched. Measured 2026-09-03: 1.225.0 removed a token-diff verification step and patched the four files it named, while `unhobble-instructions/references/target-types.md` and `_shared/references/editing-skills-checklist.md` still prescribed it. A reviewer swept the four named files and found nothing else. So after a retraction, grep the corpus for the *practice* in its own vocabulary, and treat a surviving prescription as in scope even where it predates the fix. **Tell: your changelog entry says a step was removed and enumerates the files it was removed from.**
-- **"Already stated elsewhere" justifies deletion only if *elsewhere* is reachable from where the reader stands, and this repo's `CLAUDE.md` is the trap.** A consumer loads their own `CLAUDE.md`, never ours, so a rule deleted as duplicated here may be the only copy they would ever see. The skill is what travels, so a rule a consumer needs lives there. Measured 2026-09-11: an `unhobble-instructions` pass removed the house-style rule as redundant with this file's opening, which is a one-line summary and a mode table, not the rule.
-- **Before accepting a deletion as dedup, grep the whole tree for the mechanism, then name the survivor.** A fact with two homes is a dedup and one with a single home is a loss, and the diff looks identical either way. A dedup leaves a sole copy, so the next pass over that file must be told by name, with the cost. Measured 2026-09-11: `setup-playwright` shed its stale-bundle warning, correctly, because `uiux` states the mechanism in full. The next pass over `uiux` cut 24% and kept the warning only because its prompt named it as the last callout standing.
+- **Retracting a rule reaches every file that prescribed it, which is always more than the entry naming the fix.** Removing one leaves other sites still telling a reader to do the withdrawn thing, and they read as correct until the retraction. Measured 2026-09-03: 1.225.0 removed a token-diff step and patched the four files it named, while `unhobble-instructions/references/target-types.md` and `_shared/references/editing-skills-checklist.md` still prescribed it, and a reviewer swept the four named files and found nothing else: the changelog entry certified the wrong scope because it named the files the fix touched. So after a retraction, grep the corpus for the *practice* in its own vocabulary, and treat a surviving prescription as in scope even where it predates the fix. **Tell: your changelog entry enumerates the files a step was removed from.**
+- **"Already stated elsewhere" justifies deletion only if *elsewhere* is reachable from where the reader stands.** This repo's `CLAUDE.md` is the trap: a consumer loads their own, never ours, so a rule deleted as duplicated here may be the only copy they would see. The skill is what travels, so a rule a consumer needs lives there. Measured 2026-09-11: an `unhobble-instructions` pass removed the house-style rule as redundant with this file's opening, a one-line summary and a mode table, not the rule.
+- **Before accepting a deletion as dedup, grep the whole tree for the mechanism and name the survivor.** A fact with two homes is a dedup and one with a single home is a loss; the diff looks identical. A dedup leaves a sole copy, so the next pass over that file must be told by name, with the cost. Measured 2026-09-11: `setup-playwright` shed its stale-bundle warning correctly, since `uiux` states the mechanism in full; the next `uiux` pass cut 24% and kept the warning only because its prompt named it as the last callout standing.
 
 #### Verifying a sweep or a probe {#checklist-verification}
 
-**Run the control in both directions.** A check that can never pass is as broken as one that can never fail, and it looks like a crisis rather than a bug. A pointer sweep that keeps the `📖` inside the path tests a string that cannot exist, so every pointer reports broken; stripping `${CLAUDE_SKILL_DIR}` turns a valid absolute path into a bogus relative one. One sweep reported 38 of 127 pointers broken when the real number was two. A failure rate too high to be plausible is evidence about the checker. Resolve one known-good and one known-bad case first. Both controls passing still does not clear the sweep, because a hand-rolled extractor feeds both cases through the same flaw. Print the extracted values and read a few against the file.
+**Run the control in both directions.** A check that can never pass is as broken as one that can never fail, and it looks like a crisis rather than a bug. A pointer sweep that keeps the `📖` inside the path tests a string that cannot exist, so every pointer reports broken; stripping `${CLAUDE_SKILL_DIR}` turns a valid absolute path into a bogus relative one. One sweep reported 38 of 127 pointers broken when the real number was two, so a failure rate too high to be plausible is evidence about the checker. Resolve one known-good and one known-bad case first. Both passing still does not clear the sweep, since a hand-rolled extractor feeds both cases through the same flaw: print the extracted values and read a few against the file.
 
-**A passing control does not make every hit a defect: `📖` marks several kinds of citation, and only some are paths.** The syntax also covers a repo-root path, a bare skill name (`syafiqkit:update-plugin`), and CHANGELOG prose about pointers, so `[ -e ]` reports those as broken. Measured 2026-09-11: seven hits across the changed files, one real. Classify each hit before believing any of them. A "broken" target that is not path-shaped at all means you are reading the classifier, not the corpus.
+**A passing control does not make every hit a defect.** `📖` marks several kinds of citation: a repo-root path, a bare skill name (`syafiqkit:update-plugin`), CHANGELOG prose about pointers. `[ -e ]` reports those as broken (measured 2026-09-11: seven hits, one real). Classify each hit first; a "broken" target that is not path-shaped means you are reading the classifier, not the corpus.
 
-**Where the measured thing is what a session has in context, asking the session cannot measure it.** A model that judges a rule irrelevant answers "there is no such rule" just as one that never received it. A better bait buys a better-argued negative, and a positive control proves only that the channel works. Take load-state from outside the model (the harness's `Loaded <path>` report or `/context`); an absence established by asking is unmeasured. This cost four agreeing probes and a near-shipped wrong finding about `.claude/rules/` loading.
+**Where the measured thing is what a session has in context, asking the session cannot measure it.** A model that judges a rule irrelevant answers "there is no such rule" just as one that never received it, and a better bait buys a better-argued negative. Take load-state from outside the model (the harness's `Loaded <path>` report or `/context`); an absence established by asking is unmeasured. This cost four agreeing probes and a near-shipped wrong finding about `.claude/rules/` loading.
 
 📖 `skills/_shared/references/editing-skills-checklist.md`: tool validation, reachability, registry sync, path portability and failure modes per edit class. Read it before writing a shell snippet into a skill body: a skill invoked with an argument has bare dollar-zero rewritten in its own instructions, which its audit command catches and no review would.
 
@@ -310,20 +292,15 @@ Version lives in two files and must match:
 | `.claude-plugin/plugin.json` | `"version"` |
 | `.claude-plugin/marketplace.json` | `plugins[0].version` |
 
-Before editing, re-read both files, since working copies may disagree from an uncommitted bump. Take the highest value claimed, and re-number an uncommitted entry that a later commit has overtaken: `ship` scopes its release note from the last shipped version, so an entry left below it never reaches colleagues (2026-10-20: a 1.406.3 holding two new skills sat under a pushed 1.406.4). Bump and CHANGELOG entry are one atomic change; if the entry isn't ready, leave the version at baseline so its writer takes the number. Parallel agents each re-read before bumping. Run `claude plugin update syafiqkit@syafiqkit` once after all changes land, not mid-batch.
+Re-read both before editing, since working copies may disagree from an uncommitted bump. Take the highest value claimed, and re-number an uncommitted entry that a later commit overtook: `ship` scopes its release note from the last shipped version, so an entry below it never reaches colleagues (2026-10-20: a 1.406.3 holding two new skills sat under a pushed 1.406.4). Bump and CHANGELOG entry are one atomic change; if the entry isn't ready, leave the version at baseline so its writer takes the number. Parallel agents each re-read before bumping. Run `claude plugin update syafiqkit@syafiqkit` once after all changes land, not mid-batch.
 
 ### Release Notes
 
-Release notes state the reader's action, since consumers install without repo access: (1) the CLI command to update, (2) which prior output becomes invalid, (3) edge cases a reader would wonder about. Skill- or hook-only changes need no regeneration; mention it only when agents or templates changed.
+Release notes state the reader's action, since consumers install without repo access: (1) the CLI command to update, (2) which prior output becomes invalid, (3) edge cases a reader would wonder about. Mention regeneration only when agents or templates changed.
 
 ### Testing Changes
 
-After modifying commands or skills:
-```bash
-claude plugin update syafiqkit@syafiqkit
-```
-
-No build step: markdown files are interpreted directly.
+After modifying commands or skills, run the update above. No build step: markdown is interpreted directly.
 
 ## Dependencies
 
@@ -341,7 +318,7 @@ Optional external plugins:
 
 The following design constraints exist and should not be "fixed":
 
-- **`claude-md-pruner` scope is wider than its name**: It prunes task docs too. Renaming breaks silent gates in `update-claude-docs` and `agent-setup`. The name is inert for spawn; `description:` carries the real trigger surface.
+- **`claude-md-pruner` scope is wider than its name**: it prunes task docs too. Renaming breaks silent gates in `update-claude-docs` and `agent-setup`. The name is inert for spawn; `description:` carries the trigger surface.
 - **Size policy lives in condense skills only**: CLAUDE.md thresholds → `condense-claude-md`; task doc thresholds → `condense-task-doc`. Callers may name a number as a trigger; never enforce size as policy.
-- **Every change = version bump**: A fan-out of parallel edits means re-read before writing and expect to bump again if it moved.
-- **House style is enforced on every CLAUDE.md the skills touch, consumer repos included**: installing this plugin buys an opinion about how a CLAUDE.md should be built, so a pass that finds a file written another way and defers to it delivers nothing. `update-claude-docs` (Rewrite, Create, and the Capture write step) and `condense-claude-md` apply `references/structure.md` regardless of whose repo they're in. **Consistency proves a pass was uniform, never that it was right**: an existing file's shape is what one pass left behind, not evidence anyone chose it. What still binds is content: the rule inventory and its diff, with the capture filter as the only licensed deletion. **Task docs are the exception** (`tasks/**`, `task-summary`): there, drift is a section going missing, not a shape that differs.
+- **Every change = version bump**: a fan-out of parallel edits means re-read before writing, and expect to bump again if it moved.
+- **House style applies to every CLAUDE.md the skills touch, consumer repos included**: `update-claude-docs` (Rewrite, Create, Capture write) and `condense-claude-md` apply `references/structure.md` whoever's repo it is, so a pass that defers to a file written another way delivers nothing. Consistency proves a pass was uniform, not that it was right; what binds is content: the rule inventory and its diff, with the capture filter as the only licensed deletion. **Task docs are the exception** (`tasks/**`, `task-summary`): there, drift is a section going missing, not a shape that differs.
