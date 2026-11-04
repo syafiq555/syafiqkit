@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.416.8
+
+**`casual-message` gives a decision-maker enough context to answer.** A question to a manager who isn't in the work day to day now opens with a short recap of the features involved, and each question says how it works today, what goes wrong and the proposed change. Before, the short-message default sent bare questions about features the reader had forgotten, and the message came back three times asking for context.
+
+**`refresh-instructions` stops its later passes undoing or stalling on earlier ones.**
+- From the second pass on, each agent is told the file's uncommitted changes are the earlier pass's own work. A condense agent had taken them for another session's edits and stopped without writing.
+- Facts you checked about the project's current state now go to every pass, the first included, since a restructure rewrites status lines too.
+- The restore step in the last pass skips text a link already points to elsewhere. Putting moved text back had pushed a file over its size budget.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.416.7
 
 **Agents no longer leak private notes into a public repo.**
