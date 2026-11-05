@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.419.0
+
+**New tool: `gsheets-mcp`, a Google Sheets and Drive MCP server that you switch on per project.** It replaces a general-purpose Sheets server that stopped working an hour after it started and turned other people's coloured comments black when you replied.
+- It renews its own sign-in: it refreshes the access token before it expires and retries once when Google answers 401.
+- Replying in a shared tracker no longer changes anyone's colours. `cells_read_rich` shows each cell's coloured runs, its cell-wide colour, any Drive file chip and its dropdown rule. `cell_append_line` adds a line in an explicit colour (black by default), keeps every existing run (including after an emoji, since Google counts in UTF-16 units) and reads the cell back, reporting an error if the result is wrong. Checked against live sheets.
+- A reply aimed at a hidden cell inside a merged block is refused with the top-left cell to use instead, since a line written there never shows. `cells_read_rich` marks such cells, and reads whole columns like `F:F`.
+- `validation_clear` removes a stray dropdown from a remarks column. `values_get` can show formulas, and `spreadsheet_get` passes any field mask through and returns the grid data.
+- Drive tools (`drive_file_upload`, `drive_file_update`, `drive_file_get`) use the same sign-in. It asks for exactly `spreadsheets` and `drive.file` and stores nothing if Google grants more.
+- Sign in once with `tools/gsheets-mcp/bin/gsheets-mcp auth --client <client.json>`. Switch it on from inside a project (or any subfolder of it) with `bin/enable`, then run `/reload-plugins`. It registers at local scope: this machine and this project only, so teammates of a shared repo get no broken entry. The upload tools refuse credential files. `bin/disable` switches it off. The launcher finds bun without your shell's PATH.
+- Known limit: a cell holding a Drive file chip is refused rather than rewritten, so paste that reply by hand.
+
 ## 1.417.0
 
 **New skill: `product-still`, for designed still images made from your product's real screens.** Use it for the step pictures on a "how it works" page, a feature image, a hero image, or any marketing image whose screenshots show an old UI.

@@ -46,6 +46,7 @@ It draws nothing in the VS Code panel or `claude -p`. It runs with your permissi
 | Tool | Description |
 |------|-------------|
 | `remote` | Run commands on your servers over SSH, upload files and download one file. Needs Bun and a one-time setup: see [`tools/remote-cli/README.md`](tools/remote-cli/README.md) |
+| `gsheets-mcp` | MCP server for Google Sheets and Drive, switched on per project with `bin/enable`. It renews its own sign-in and replies in shared tracker cells without changing other people's text colours. Needs Bun and a one-time Google sign-in: see [`tools/gsheets-mcp/README.md`](tools/gsheets-mcp/README.md) |
 
 ## I want to…
 

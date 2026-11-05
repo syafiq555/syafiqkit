@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+project=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+cd "$project"
+claude mcp remove gsheets -s local
+echo "Disabled for $project."

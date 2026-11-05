@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+self=$0
+while [ -L "$self" ]; do
+  target=$(readlink "$self")
+  case $target in
+    /*) self=$target ;;
+    *) self=$(dirname "$self")/$target ;;
+  esac
+done
+root=$(cd "$(dirname "$self")/.." && pwd)
+launcher="$root/bin/gsheets-mcp"
+
+project=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+if [ "$project" != "$(pwd -P)" ] && [ "$project" != "$(pwd)" ]; then
+  echo "Registering for the repo root $project (you ran this from a subfolder)."
+fi
+cd "$project"
+
+"$launcher" check || {
+  echo "Sign in first: $launcher auth --client <path to a Desktop-app client.json>" >&2
+  exit 1
+}
+
+if claude mcp get gsheets >/dev/null 2>&1; then
+  echo "A server named gsheets is already visible from $project:" >&2
+  claude mcp get gsheets >&2
+  echo "Remove that one first (claude mcp remove gsheets -s <scope>), then run this again." >&2
+  exit 1
+fi
+
+claude mcp add --scope local gsheets -- "$launcher"
+echo "Enabled for $project only (local scope, this machine). Run /reload-plugins in a Claude Code session there to load the tools."
