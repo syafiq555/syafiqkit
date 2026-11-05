@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.417.0
+
+**New skill: `product-still`, for designed still images made from your product's real screens.** Use it for the step pictures on a "how it works" page, a feature image, a hero image, or any marketing image whose screenshots show an old UI.
+- It captures the real screens with the project's own Playwright setup and demo data. One settings block lays out floating cropped cards, numbered steps, dotted connectors and an icon badge, and a headless browser renders that to PNG at double size.
+- Each card is captured at the narrowest screen width it still looks right at. The product's own layout then packs it tighter, so the text comes out bigger with nothing redrawn. The phone image is a separate stacked layout built from phone-width captures.
+- Transparent copies come from one flag. The skill says to check them on both a white and a dark background, and to keep shadows inside the image so they don't end in a hard edge on the page.
+- The rules (crop to the one thing the caption names, make the focus element bigger instead of pointing an arrow at it, check text size at the width the image is really shown) come from published screenshot guidance, cited in the skill's reference file.
+- It comes with a finished desktop and phone example, and takes the product's own colours and font, so another brand's images don't ship in this example's teal.
+- `motion-clip`, `taste` and `user-manual` now point still images here.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.416.8
 
 **`casual-message` gives a decision-maker enough context to answer.** A question to a manager who isn't in the work day to day now opens with a short recap of the features involved, and each question says how it works today, what goes wrong and the proposed change. Before, the short-message default sent bare questions about features the reader had forgotten, and the message came back three times asking for context.

@@ -11,7 +11,8 @@ description: >-
   house style with a real-browser inspector, and runs a look-and-fix loop on screenshots. Vendored
   from tasteskill v2 (MIT). NOT for screens inside an existing app or for working within an app's
   established design language (that is `uiux`), for a scored critique with no rebuild (`uiux`), or
-  when the user names impeccable (`impeccable`). App screens run here only
+  when the user names impeccable (`impeccable`). An image composed from the product's own screens
+  for such a page (a how-it-works step, a feature or hero composite) is `product-still`. App screens run here only
   when the user asks for taste by name.
 ---
 

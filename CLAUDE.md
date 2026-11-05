@@ -44,6 +44,7 @@ These skills accept explicit user command:
 | `doc-to-md` | `.docx`, `.pdf` or `.xlsx` to Markdown, so each version is a readable diff |
 | `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw discussion board, verified by screenshot. Charts are `dataviz`; deciding what to build is `plan-worklist` |
 | `motion-clip` | Designed launch, promo or explainer video as code: real captured screens, storyboard and sound approved before the full render, automatic and contact-sheet checks, 9:16/1:1/16:9 plus store presets, music bed, optional voice-over. Test-run recordings are `setup-playwright` |
+| `product-still` | Designed still image from real captured screens (how-it-works steps, feature and hero composites): floating cropped cards, numbered steps, badge, rendered from HTML to PNG with phone and transparent variants. Video is `motion-clip` |
 | `understanding-guide` | Large text the user must understand → offline question-and-answer page, every claim checked against its source; decisions wait until the reader understands |
 | `reverse-engineer` | Rebuild a web app's mechanism that the client already uses, read through REA, into a task doc a sonnet reviewer verifies before design |
 | `user-manual` | End-user manual from user tasks, Diátaxis shape, screenshots from an E2E capture spec. Distinct from `md-to-pdf` |
@@ -80,6 +81,7 @@ These skills accept explicit user command:
 | `reclaim-disk` | Laptop storage low or full, "free up space", "what's eating my disk", Docker or System Data too large |
 | `hobby-review` | User reports finishing a book, game, show or hobby item |
 | `motion-clip` | Asked for a launch clip, promo, explainer or reel, or to add music to one, without naming the skill |
+| `product-still` | Website or marketing images built from the product's screens are outdated or wanted ("update the images on our site", "feature image", "transparent version", "phone version"), without naming the skill |
 | `understanding-guide` | User faces more text than one sitting holds, or asks how it should be presented |
 | `reverse-engineer` | "The same as <app> my client uses" built in our app, or "reverse engineer" / "utilize REA" about a web app someone is logged into |
 | `function-parameter-limits` | "Too many parameters" or parameter count concerns |

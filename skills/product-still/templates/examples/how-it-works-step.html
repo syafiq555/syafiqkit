@@ -1,0 +1,123 @@
+<!doctype html><html><head><meta charset="utf-8">
+<script>
+// Everything about one image lives here. Crop rectangles are in SOURCE pixels (a 2x capture is twice its CSS size).
+// For a series, put the shared look (colours, font, glows, badge) in series.js as window.SERIES = {...} and load it
+// with a script tag (src="series.js") placed above this block, then delete those keys from this block: keys set here
+// override the series.
+window.STILL = {
+  // Worked example: a "how it works" step for a property-management app. Three steps: the Add property button lifted
+  // out of a faded list, the first form step with "By the room" picked, then the rooms with their rents.
+  // Captures: list.png at 1440x900, form/rooms at a 900 px viewport (tighter real layout, bigger text), all at 2x.
+  width: 1448, height: 1086,
+  background: '#ffffff',
+  glows: [
+    { x: 980, y: -120, w: 560, h: 440, color: '#c9f0eb' },
+    { x: -160, y: 820, w: 620, h: 400, color: '#e3f7f4' },
+  ],
+  accent: '#00b8a6', ink: '#1e524d', inkDeep: '#003b35',
+  font: "'Manrope', 'Avenir Next', system-ui, sans-serif",
+  cards: [
+    { src: 'shots/list.png', crop: [0, 0, 2880, 944], x: 36, y: 40, w: 866, radius: 14, browserBar: true, fade: 110 },
+    { src: 'shots/list.png', crop: [2567, 153, 273, 90], x: 758, y: 102, w: 164, radius: 999, lift: true },
+    { src: 'shots/n-basics.png', crop: [469, 356, 1300, 461], x: 610, y: 250, w: 806, radius: 22 },
+    { src: 'shots/n-rooms.png', crop: [474, 350, 1296, 867], x: 70, y: 548, w: 700, radius: 24 },
+  ],
+  numbers: [ { n: 1, x: 710, y: 107 }, { n: 2, x: 588, y: 228 }, { n: 3, x: 48, y: 526 } ],
+  connectors: [
+    { d: 'M922 129 C990 140 1000 190 1000 246', dotEnd: true },
+    { d: 'M840 538 C840 600 820 640 774 660', dotEnd: true },
+  ],
+  badge: { x: 1200, y: 28, size: 220, icon: 'house' },
+};
+</script>
+<style>
+*{box-sizing:border-box;margin:0}
+body{position:relative;overflow:hidden;font-family:var(--font)}
+.glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.75}
+.card{position:absolute;background:#fff;overflow:hidden;border:1px solid color-mix(in srgb,var(--ink) 12%,#fff);
+ box-shadow:0 1px 2px rgba(19,26,38,.05),0 24px 48px -16px rgba(19,26,38,.20),0 48px 90px -40px color-mix(in srgb,var(--inkDeep) 22%,transparent)}
+.card.lift{border:0}
+.slice{position:relative;overflow:hidden}.slice img{position:absolute;transform-origin:0 0}
+.slice.missing{display:flex;align-items:center;justify-content:center;background:#f3f6f6;color:#7a8a88;font:600 20px system-ui;outline:2px dashed #c5d3d0;outline-offset:-12px}
+.bar{height:26px;background:#f6f9f9;border-bottom:1px solid #e6eeec;display:flex;align-items:center;gap:6px;padding-left:12px}
+.bar i{width:9px;height:9px;border-radius:50%;background:#d8e2e0;display:block}
+.fade{position:absolute;left:0;right:0;bottom:0;pointer-events:none}
+.n{position:absolute;border-radius:50%;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;
+ box-shadow:0 0 0 5px rgba(255,255,255,.9),0 8px 18px color-mix(in srgb,var(--inkDeep) 35%,transparent)}
+</style></head><body>
+<script>
+(async () => {
+  const S = window.STILL = { accent: '#2563eb', ink: '#1e3a5f', inkDeep: '#0f172a', ...(window.SERIES || {}), ...window.STILL }, body = document.body;
+  if (location.search.includes('transparent')) S.background = 'transparent';
+  Object.assign(body.style, { width: S.width + 'px', height: S.height + 'px', background: S.background });
+  for (const [k, v] of [['--ink', S.ink], ['--inkDeep', S.inkDeep], ['--accent', S.accent], ['--font', S.font || 'system-ui, sans-serif']]) body.style.setProperty(k, v);
+  const el = (tag, cls, css) => { const e = document.createElement(tag); if (cls) e.className = cls; Object.assign(e.style, css || {}); return e; };
+  const naturalWidth = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i.naturalWidth); i.onerror = () => ok(0); i.src = src; });
+
+  if (S.background !== 'transparent') for (const g of S.glows || [])
+    body.appendChild(el('div', 'glow', { left: g.x + 'px', top: g.y + 'px', width: g.w + 'px', height: g.h + 'px', background: g.color }));
+
+  for (const c of S.cards) {
+    const slices = c.slices || [{ src: c.src, crop: c.crop }];
+    const bar = c.browserBar ? 26 : 0;
+    const card = el('div', 'card' + (c.lift ? ' lift' : ''), { left: c.x + 'px', top: c.y + 'px', width: c.w + 'px', borderRadius: (c.radius ?? 18) + 'px' });
+    if (c.lift) card.style.boxShadow = '0 0 0 5px color-mix(in srgb,var(--accent) 18%,transparent), 0 14px 28px -8px color-mix(in srgb,var(--inkDeep) 45%,transparent)';
+    if (bar) { const b = el('div', 'bar'); b.innerHTML = '<i></i><i></i><i></i>'; card.appendChild(b); }
+    let h = bar;
+    for (const s of slices) {
+      const [sx, sy, sw, shh] = s.crop, k = c.w / sw;
+      const box = el('div', s.src ? 'slice' : 'slice missing', { width: c.w + 'px', height: Math.round(shh * k) + 'px' });
+      if (s.src) {
+        const img = el('img', '', { width: (await naturalWidth(s.src) || sw) + 'px', transform: `scale(${k})`, left: -sx * k + 'px', top: -sy * k + 'px' });
+        img.src = s.src; box.appendChild(img);
+      } else box.textContent = 'missing: set this card\'s src';
+      card.appendChild(box); h += shh * k;
+    }
+    card.style.height = Math.round(h) + 'px';
+    if (c.fade) card.appendChild(el('div', 'fade', { height: c.fade + 'px', background: 'linear-gradient(rgba(255,255,255,0),#fff)' }));
+    body.appendChild(card);
+  }
+
+  const NS = 'http://www.w3.org/2000/svg';
+  if (S.badge) {
+    const { x, y, size: sz } = S.badge, cx = 160, cy = 135, R = 128, a0 = 192, a1 = 262;
+    const pt = (a, r = R) => [cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)];
+    const [sx0, sy0] = pt(a0), [ex, ey] = pt(a1), [hx, hy] = pt(a1 + 3);
+    const ta = (a1 + 4) * Math.PI / 180, tx = -Math.sin(ta), ty = Math.cos(ta), na = (a1 + 9) * Math.PI / 180, nx = Math.cos(na), ny = Math.sin(na);
+    const tip = [hx + tx * 22, hy + ty * 22], b1 = [hx + nx * 13, hy + ny * 13], b2 = [hx - nx * 13, hy - ny * 13];
+    const icons = { house: 'M160 80 L218 131 L203 131 L203 186 L175 186 L175 152 L145 152 L145 186 L117 186 L117 131 L102 131 Z' };
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 -24 290 284'); svg.setAttribute('width', sz); svg.setAttribute('height', sz * 284 / 290);
+    Object.assign(svg.style, { position: 'absolute', left: x + 'px', top: y + 'px', overflow: 'visible' });
+    svg.innerHTML = `<defs><linearGradient id="bgI" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="color-mix(in srgb, ${S.accent} 70%, #fff)"/><stop offset="1" stop-color="${S.accent}"/></linearGradient>
+      <linearGradient id="bgC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${S.ink}"/><stop offset="1" stop-color="${S.inkDeep}"/></linearGradient></defs>
+      <circle cx="${cx}" cy="${cy}" r="105" fill="url(#bgC)"/>
+      <path d="${icons[S.badge.icon] || S.badge.icon}" fill="url(#bgI)"/>
+      <path d="M${sx0} ${sy0} A${R} ${R} 0 0 1 ${ex} ${ey}" fill="none" stroke="${S.accent}" stroke-width="8" stroke-linecap="round"/>
+      <path d="M${tip} L${b1} L${b2} Z" fill="${S.accent}" stroke="${S.accent}" stroke-width="3" stroke-linejoin="round"/>`;
+    body.appendChild(svg);
+  }
+
+  if (S.connectors?.length) {
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('width', S.width); svg.setAttribute('height', S.height);
+    Object.assign(svg.style, { position: 'absolute', left: 0, top: 0 });
+    svg.innerHTML = S.connectors.map((c) =>
+      `<path d="${c.d}" fill="none" stroke="${S.accent}" stroke-width="2.5" stroke-dasharray="2 8" stroke-linecap="round"/>`).join('');
+    body.appendChild(svg);
+    [...svg.querySelectorAll('path')].forEach((p, i) => {
+      if (!S.connectors[i].dotEnd) return;
+      const end = p.getPointAtLength(p.getTotalLength()), dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', end.x); dot.setAttribute('cy', end.y); dot.setAttribute('r', 5); dot.setAttribute('fill', S.accent);
+      svg.appendChild(dot);
+    });
+  }
+
+  for (const m of S.numbers || []) {
+    const sz = m.size || 44, n = el('div', 'n', { left: m.x + 'px', top: m.y + 'px', width: sz + 'px', height: sz + 'px', fontSize: sz * 0.45 + 'px', background: S.ink });
+    n.textContent = m.n; body.appendChild(n);
+  }
+  document.body.dataset.ready = '1';
+})().catch((e) => { document.body.dataset.ready = 'error'; document.body.dataset.error = e.message; });
+</script>
+</body></html>
