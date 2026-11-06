@@ -139,7 +139,7 @@ the happy path only.
 ## Delivering it
 
 Ask where it is going before formatting: a chat message, a ticket, a doc and a paste into another
-tool are different shapes. For Google Chat, `gchat-format` owns the syntax.
+tool are different shapes. For Google Chat, `gchat-format` owns the syntax. Any follow-up worth raising with the designer gets words for the person to paste, not a suggestion to "ask them", whatever the destination.
 
 Keep the brief to what a person will actually read. Lead with what the screen is for; put the
 measured failures where they cannot be skipped. End by offering the material you held back —
@@ -162,8 +162,7 @@ prompt belongs in the person's hands in the turn's closing message, since one gi
 followed by more tool work scrolls away. Keep the prompt to what the files do not already carry:
 once the brief opens with the ask and names its own siblings, the prompt is a few lines, and
 padding it back into a summary of the brief is the same failure wearing the opposite face. A brief
-revised after the prompt went out owes a fresh prompt. Do the same for follow-ups you find: if it's worth mentioning to the designer, hand the
-person words to paste, not a suggestion to "ask them". Measured 2026-09-30: a renewal prompt went
+revised after the prompt went out owes a fresh prompt. Measured 2026-09-30: a renewal prompt went
 mid-turn, twenty tool calls followed, the closing report referred to it without restating it, and
 the user had to ask where the prompt was. **Tell: your closing message describes files you wrote
 rather than giving the user words to send.**
@@ -193,7 +192,7 @@ questions by assumption: a tax on by default, a rate, a state that applies "only
 passed". Those assumptions never contradict the brief, because the brief never named them, so a
 contradiction check passes them through. Before planning the port, list every business rule the
 design states that the brief did not supply. Check each one against the domain's docs and code, and
-put the result in the plan as kept, corrected, or a question for the user, asked through `AskUserQuestion` before the plan is presented, not written into it as a default. Measured 2026-10-07: a
+record each in the plan as kept, corrected, or a question for the user. A question goes through `AskUserQuestion` before the plan is presented, never written into it as a default. Measured 2026-10-07: a
 returned billing design defaulted SST to on at 6% for every agency, against an opt-in rule that
 exempts residential rent. The port plan carried it until a side note flagged it. **Tell: your port
 plan lists the design's deviations from the brief and nothing the design introduced.**

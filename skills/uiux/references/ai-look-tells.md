@@ -23,3 +23,18 @@ Each tell is common because it is the statistically safest answer to "make this 
 In a critique (`critique-mode.md`) a hit is a prompt to ask the right-hand question, not a finding by itself. In a build, check your own diff for the tells before showing it, the way you check it for raw colour values. Two or three together on one screen is the signal that nothing on it was shaped by the audience.
 
 Adapted from the anti-pattern lists in impeccable (Apache-2.0, `github.com/pbakaus/impeccable`) and taste-skill (MIT, `github.com/Leonxlnx/taste-skill`), restated in our own terms and reframed as questions.
+
+## Stock aesthetic looks {#stock-looks}
+
+Whole-look defaults, one level above the component tells in the table. Choices collapse into one of these when nothing drives them, and each bundles an unexamined assumption:
+
+- **cream/serif/terracotta** (literary)
+- **near-black + acid** (high contrast)
+- **broadsheet hairline** (airy)
+- **SaaS card kit** (rounded, one shadow)
+- **template chrome** (tracked labels)
+- **AI-native gradient** (glowing)
+
+When you recognise one, ask what your audience, subject and job would choose instead.
+
+Adapted from `frontend-design` skill (Apache-2.0) and `superdesign` skill (MIT).

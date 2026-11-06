@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.421.3
+
+**Design skills refreshed: `taste` now stays whole through a long session, and `uiux` and `motion-clip` have room to grow.**
+- `taste` was nearly twice the size a session keeps after its context is compacted, so in long sessions its house rules, laws and inspector gate quietly dropped out. The rules that bind every build now come first, and the step-by-step detail moved to a new `references/run.md`. The whole skill (4,948 tokens) now stays loaded. Every rule, figure and command is kept.
+- `motion-clip` now runs in the order the work happens: story before capturing pictures (the storyboard approval already assumed this), and music before the review and draft render that need it. Both are tighter, with room under the limit.
+- `uiux` puts the "is this a `taste` job?" routing first, and reading a screenshot before choosing the job. The six stock looks moved into its AI-look reference.
+- `design-handoff`, `product-still`, `excalidraw-board` and `user-manual` got light wording fixes; `impeccable` is unchanged.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.421.0
 
 **New skill: `setup-tracker`, for a shared tracker spreadsheet anyone can read without a guide.** Use it to set up a tracker for client asks, change requests, issues and questions, to fix one whose remarks column has turned into a chat log, or to build a master sheet across projects.

@@ -27,7 +27,7 @@ A product still is a program, the same way a `motion-clip` film is: one HTML pag
 
 **The brand** comes from the product's own theme: its CSS variables or design tokens, a Flutter `ThemeData`, a brand page. Set `accent`, `ink`, `inkDeep` and `font` from it; a web font also needs an `@font-face` rule in the template's style block, or the render quietly falls back to the system font. The template's blue defaults are placeholders; shipping them for another brand reads as the wrong company.
 
-For a series (six step images on one page), plan them together first: list each image's claim and the screen that shows it, and put the shared look (colours, font, glows, badge) in one `series.js` (`window.SERIES = { ... }`) that every image loads with a script tag above its `STILL` block, and delete those keys from each `STILL`, since keys left there override the series. A change to the look is then one edit.
+For a series (six step images on one page), plan them together first: list each image's claim and the screen that shows it, and put the shared look (colours, font, glows, badge) in one `series.js` (`window.SERIES = { ... }`) that each image loads with a script tag above its `STILL` block. Delete those keys from each `STILL`, since keys left there override the series. A change to the look is then one edit.
 
 ## 2. Capture the real screens
 
@@ -40,7 +40,7 @@ Shoot at `deviceScaleFactor: 2`, with demo data, never a real customer's account
 
 **Capture each card at the narrowest viewport its layout still reads well at.** The product's responsive layout packs a card tighter at 900 px than at 1440 px, so the same card fills the image with text about 1.7 times larger and nothing is redrawn. Phone images come from phone-width captures (about 430 px), where cards stack.
 
-In the capture script, log each element you will crop with `locator.boundingBox()` multiplied by the scale factor: that is the card's `crop` rectangle in source pixels, and it saves guessing. The box is relative to the viewport, so take it with the page scrolled to the top (or add `window.scrollY`) when the shot is a full-page one, and check the first render against the shot. Look at every capture before composing: private data, half-faded toasts and placeholder names are fixed at the source.
+In the capture script, log each element you will crop as `locator.boundingBox()` x the scale factor: that is the card's `crop` rectangle in source pixels, so nothing is guessed. The box is relative to the viewport, so for a full-page shot take it with the page scrolled to the top (or add `window.scrollY`), and check the first render against the shot. Look at every capture before composing: private data, half-faded toasts and placeholder names are fixed at the source.
 
 ## 3. Compose
 

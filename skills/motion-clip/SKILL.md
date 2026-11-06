@@ -6,9 +6,9 @@ description: >
 
 # Motion clip
 
-A clip is a program, not a recording: one function draws the exact frame for any time `t`, a headless browser photographs each frame, and ffmpeg joins them. That shape makes the work inspectable: render any single moment, look at it, fix it, re-render. Quality comes from the harness and the review loop, not the prompt.
+A clip is a program, not a recording: one function draws the exact frame for any time `t`, a headless browser photographs each frame, and ffmpeg joins them. Render any single moment, look at it, fix it, re-render. Quality comes from the harness and the review loop, not the prompt.
 
-It works for any product, because the engine only needs pictures and a story. Three frames cover most of what gets filmed:
+The engine needs only pictures and a story. Three frames cover most films:
 
 | Frame | For | Pictures |
 |---|---|---|
@@ -18,99 +18,73 @@ It works for any product, because the engine only needs pictures and a story. Th
 
 A film with no pictures at all (a logo animation, a type-only teaser) leaves out `screens` and runs on the hook, a stat and the lockup.
 
-What it does not do: character animation, scrolling through a long page (capture several viewport shots at different scroll offsets and push between them instead), or long-form teaching videos. An app that isn't built yet is filmed from the team's own design exports, labelled as a preview in the brief, never from UI Claude draws. Where the request needs something outside this, say which part is missing rather than improvising.
+What it does not do: character animation, scrolling a long page (capture viewport shots at several offsets and push between them), or long-form teaching videos. An app not yet built is filmed from the team's design exports, labelled as a preview in the brief, never from UI Claude draws. Name the missing part rather than improvising.
 
 ## 0. Check the tools
 
-Confirm before writing anything: `node -v`, `ffmpeg -version`, `python3 -c "import numpy"`, and a folder where `playwright` resolves with Chromium installed. Where none exists, make one: `npm i playwright && npx playwright install chromium` in a scratch folder (the first install downloads Chromium), then point `PLAYWRIGHT_DIR` at it.
+Confirm `node -v`, `ffmpeg -version`, `python3 -c "import numpy"`, and a folder where `playwright` resolves with Chromium. If none, run `npm i playwright && npx playwright install chromium` in a scratch folder (downloads Chromium), then point `PLAYWRIGHT_DIR` at it.
 
-A voice-over, spoken-word captions or a depth background need the free local tools: `sh scripts/setup-local.sh voice captions depth`, naming only the parts the brief needs (about 1.5 GB plus models: check free disk). It prints the Python path, `PY` below. 📖 `references/voice-captions-backgrounds.md`.
+A voice-over, spoken captions or a depth background need the local tools: `sh scripts/setup-local.sh voice captions depth`, naming only the parts the brief needs (about 1.5 GB plus models: check free disk). It prints the Python path, `PY` below. 📖 `references/voice-captions-backgrounds.md`.
 
 ## 1. Brief before pixels
 
-Make a folder for the clip outside any product repo, and write `docs/brief.md` there: who is watching, the one idea a viewer should leave with, the feeling, the visual rules (brand colours, fonts, what's banned), a timed story table, and an "open" list. Twenty seconds is about five beats: a hook in a few large words, the product appearing by 3 s, two or three things it does shown as real actions or real images, one number, then the logo and call to action.
+Make a clip folder outside any product repo with `docs/brief.md`: who is watching, the one idea to leave with, the feeling, visual rules (brand colours, fonts, what's banned), a timed story table, and an "open" list. Twenty seconds is about five beats: a hook in a few large words, the product by 3 s, two or three real actions or images of what it does, one number, then logo and call to action.
 
-Every claim on screen has to be true. The number beat is the trap: a session wants a metric and invents one. Use a fact you can cite (a limit in the code, a figure on the product's own site, a number someone gives you) and write its source in the brief. A claim must stay true while the clip circulates, not just on render day: "coming soon", a date or a time-limited offer forces a re-render once it passes. Write the call to action as it will read after launch ("on iOS and Android", the product's address); if the team wants a dated line, note in the brief when it goes stale.
+Every claim on screen must be true. The number beat is the trap: a session wants a metric and invents one. Use a citable fact (a limit in the code, a figure on the product's site, a number someone gives you) and write its source in the brief. Never invent a metric: drop the number beat without one. A claim must stay true while the clip circulates: "coming soon" or a date forces a re-render once it passes. Write the call to action as it will read after launch ("on iOS and Android"); a dated line needs a stale-date note in the brief.
 
-The five beats are a starting shape; followed blindly they make every film look the same. Before writing the story, ask whether this film could belong to another company with the logo swapped. A hook, caption or number that would fit any product is filler: replace it with something only this product can say or show. Write the answer as one line in the brief, so the next session can see it was asked. Who is watching sets the voice: a site or app showcase speaks from its user's side, even when the first audience is the client who paid for it; lines that address the client as approver ("as you asked") read as a sign-off checklist (📖 `references/review-lenses.md#brand`).
+The five beats are a starting shape; followed blindly they make every film look the same. Ask whether the film could belong to another company with the logo swapped; a hook, caption or number that fits any product is filler, to be replaced with something only this product can say or show. Write the answer as one line in the brief, so the next session can see it was asked. Who is watching sets the voice: a showcase speaks from its user's side, even when the client paid for it; lines addressing the client as approver ("as you asked") read as a sign-off checklist (📖 `references/review-lenses.md#brand`).
 
-**Research before the story.** Before the storyboard is drafted, an agent searches the web and fetches a URL per claim for how strong teams make this kind of film, falling back to well-known examples it knows when web access is unavailable (say so), and the brief notes what it borrowed. A room-presented film (a pitch, tender or keynote) uses full-frame `photos`, not a device beside captions: 📖 `references/premium-motion.md#room-presentation`.
+**Research before the story.** An agent fetches a URL per claim on how strong teams make this kind of film; without web access, it uses examples it knows and says so. The brief notes what it borrowed. A room-presented film (pitch, tender, keynote) uses full-frame `photos`, not a device beside captions: 📖 `references/premium-motion.md#room-presentation`.
 
-**Two approvals before the expensive render.** Each change to a finished film costs a full re-render, so these two gates come first. Block the story out before capturing (§3; uncaptured pictures draw as "missing" cards), run `node render.mjs board 1080 1920` (a timed table of every beat, caption, voice line and sourced number, in `out/storyboard.md`), paste it into your reply and get the user's yes. Once pictures, voice and a first `score.wav` exist (§5), send `node render.mjs draft 1080 1920` (half size, with sound and a time stamp per frame) and get a yes before §4's full renders.
+**A store listing clip** follows the store's rules from the brief on (Apple: 15 to 30 s of the app's own screens, no backdrops, prices or dates, product on screen by 5 s; Google Play: app inside 10 s). Set `PRESET=app-store` or `google-play` on `check` and `video`. 📖 `references/store-presets.md`.
 
-**A store listing clip** follows the store's rules from the brief on (Apple: 15 to 30 s of the app's own screens, no backdrops, prices or dates, the product on screen at 5 s; Google Play: the app inside 10 s): set `PRESET=app-store` or `google-play` on `check` and `video`. 📖 `references/store-presets.md`.
+## 2. Write the story
 
-## 2. Gather the real pictures
+Copy `templates/film.html`, `templates/story.js`, `scripts/render.mjs`, `scripts/score.py` (and whichever of `voice.mjs`, `kokoro_tts.py`, `words.py`, `image.mjs`, `depth.py` the brief needs) into the clip folder, with `assets/` beside them. Renderer paths are relative to the folder `render.mjs` sits in, not the shell's.
 
-Collect the pictures into `assets/screens/<name>.png` (or give any path as a screen's `file`), with demo data rather than a real customer's account.
-
-- **Flutter app**: a throwaway widget test with goldens. Fonts drawn as boxes, a DEBUG ribbon or a missing icon font all pass without error: 📖 `references/capture-real-ui.md` has the working test and each fix. Simulator screenshots signed in as a demo account the team provides also work.
-- **Web app or website**: Playwright screenshots at the frame's viewport and `deviceScaleFactor` (table above), signed in through the suite's existing storageState and seeded demo user where there is one (`setup-playwright` covers both). An old build, dev overlays in the shots or fixture names that read as fake are fixed before shooting: 📖 `references/capture-web-ui.md` has the checks and how to record tap points from the real buttons.
-- **Products, places, brands**: photos and logos from the brand kit, shop listing or the user. Ask for them rather than generating them.
-- **Mood backgrounds** (a city at night) behind the hook or lockup, never the product, its UI, or people shown as its customers: free stock (Pexels), or `node image.mjs` on Cloudflare's free daily allowance, falling back to stock and saying so when it is unset or spent (📖 `references/voice-captions-backgrounds.md#images`). The prompt goes to Cloudflare, so ask before sending unreleased product names. For depth motion, run `$PY depth.py` on the picture now.
-
-Where capturing means adding a file to the product repo, check its `git status` first and afterwards remove only what you added; keep a copy of the capture script in the clip folder so the pictures can be re-taken after the product changes. Look at a sheet of every picture before going on; demo data that reads as fake (`INV-1`) is fixed at the source, not in the video. Check the same sheet for anything private: real emails and phone numbers, keys and tokens, notifications, other browser tabs and bookmarks. Hide it or take the shot again; a video gets shared further than a screenshot.
-
-## 3. Write the story
-
-Copy `templates/film.html`, `templates/story.js`, `scripts/render.mjs`, `scripts/score.py` (and whichever of `voice.mjs`, `kokoro_tts.py`, `words.py`, `image.mjs`, `depth.py` the brief needs) into the clip folder, with `assets/` beside them. Every path the renderer reads or writes is relative to the folder `render.mjs` sits in, not the shell's.
-
-`film.html` is the engine and is not edited per film. Everything about one film lives in `story.js`: frame, colours, fonts (a `file` per font to load the brand's own, or none for a system font), logo, picture size, which picture shows when and how it enters (`via: 'push'` slides, `'fade'` dissolves), taps or clicks, camera keyframes, captions, an optional number scene and the closing lockup. The starter `story.js` is a 15-second browser film with placeholder words; `templates/examples/autorentic.story.js` is a finished 20-second phone film to read for timing and camera work. A picture that hasn't been captured yet draws as a "missing" card, so the story can be blocked out before the pictures exist.
+`film.html` is the engine and is not edited per film. Everything about one film lives in `story.js`: frame, colours, fonts (a `file` per brand font, or none for a system font), logo, picture size, when each picture shows and how it enters (`via: 'push'` or `'fade'`), taps, camera keyframes, captions, an optional number scene and the closing lockup. The starter is a 15-second browser film with placeholder words; `templates/examples/autorentic.story.js` is a finished 20-second phone film for timing and camera work. An uncaptured picture draws as a "missing" card, so the story can be blocked out first.
 
 The engine already holds what took iteration to get right:
 
 - **Time is the only input.** Every value comes from `t`; no timers, no state carried between frames, no unseeded random. Frame 300 renders the same alone as in sequence.
-- **Springs, not easing curves.** Closed-form springs (`snappy`, `smooth`, `playful`) give motion weight. Text enters by sliding up inside a mask, never by fading in.
+- **Springs, not easing curves.** Closed-form springs (`snappy`, `smooth`, `playful`) give weight. Text slides up inside a mask, never fades in.
 - **A camera that pushes into the picture.** Zoom to the part the caption is about; a whole screen shown small leaves its UI unreadable on a phone (📖 `references/premium-motion.md#camera-size`).
 - **One timeline, three layouts.** The layout is computed from the frame size, so 9:16, 1:1 and 16:9 are re-composed, not cropped; side-by-side layouts take smaller captions and less zoom, or the text runs into the picture (📖 `references/premium-motion.md#camera-size`). Text too long for its space shrinks to fit, and `check` warns when a caption shrinks below 80%: split that row into shorter ones. A 4:5 frame falls on the side-by-side side of the split; check it with a still before promising one.
 
-Two scenes carry the number beat. `stat` counts up to a figure with a label and an optional source line (`{ at, out, value, prefix, suffix, label, source }`). `number` drops cards that merge into one pill, for a "many become one" fact (📖 `references/premium-motion.md#number-examples`). With no citable number, drop the beat rather than inventing one.
+Two scenes carry the number beat: `stat` counts up to a figure with a label and optional source (`{ at, out, value, prefix, suffix, label, source }`); `number` merges dropped cards into one pill for a "many become one" fact (📖 `references/premium-motion.md#number-examples`).
 
-`backdrops` (`{ name, from, to, depth: true, dim }`) fill the frame behind everything with a slow push-in; `depth: true` with a map from `$PY depth.py <picture>` slides near things against far ones.
+`backdrops` fill the frame behind everything with a slow push-in; `depth: true` needs a map from `$PY depth.py <picture>`. Keys in 📖 `references/voice-captions-backgrounds.md#backdrops`.
 
-When a device beside captions reads as basic, the engine also has `spotlights`, a browser `cursor`, `tilt`, `motionBlur`, `ambient`, `softText`, full-frame `photos` and a `products` row. 📖 `references/premium-motion.md` before using them: which help a viewer follow the screen and which only decorate.
+When a device beside captions reads as basic, the engine has more: `spotlights`, `cursor`, `tilt`, `motionBlur`, `ambient`, `softText`, `photos`, `products`. 📖 `references/premium-motion.md` before using them: which help a viewer follow the screen and which only decorate.
 
-`screens`, `number`, `stat`, `success`, `taps`, `music`, `voice`, `subtitles`, `backdrops` and `lockup` are all optional; a film without `lockup` ends with no logo, which the brief should mean on purpose. The logo is blended with `multiply`, which suits a logo on white; on a dark page set `logoBlend: 'source-over'` and use a transparent PNG.
+`screens`, `number`, `stat`, `success`, `taps`, `music`, `voice`, `subtitles`, `backdrops` and `lockup` are optional; a film without `lockup` ends with no logo, which the brief should mean on purpose. The logo blends with `multiply`, which suits white; on a dark page set `logoBlend: 'source-over'` and use a transparent PNG.
 
-Run one stills render after copying, to catch a missing file before anything else; the renderer logs any file it could not load. Take the times from your own story's beats, and clear `out/stills` between rounds or old frames mix into the sheet. The `x` argument, `STORY=<path>` and watching the film while writing it are covered in 📖 `references/review-lenses.md#render-pitfalls`.
-
-With a voice-over, make it now, straight after the first draft of the story (the voice part of §5), and time the captions and scenes to the spoken lines before the contact sheet. The voice sets the pace. Any retime afterwards means writing the cues again and re-rendering what it touched, since the music hits come from the same cues.
+Run one stills render after copying to catch a missing file (the renderer logs any it cannot load). Take the times from your own beats, and clear `out/stills` between rounds or old frames mix into the sheet. The `x` argument, `STORY=<path>` and watching while writing: 📖 `references/review-lenses.md#render-pitfalls`.
 
 ```
 node render.mjs stills 1080 1920 x 1.4 4.5 8.5 12.5 16.6 19.9
 ```
 
-| Format | Size | Command |
-|---|---|---|
-| Vertical (Reels, TikTok, Shorts) | 1080x1920 | `node render.mjs video 1080 1920 out/clip_9x16.mp4` |
-| Square (feed) | 1080x1080 | `node render.mjs video 1080 1080 out/clip_1x1.mp4` |
-| Widescreen (YouTube, decks, websites) | 1920x1080 | `node render.mjs video 1920 1080 out/clip_16x9.mp4` |
-| App Store preview | 886x1920 | `PRESET=app-store node render.mjs video 886 1920 out/clip_appstore.mp4` |
-The video length comes from the story's `duration`. Pass the still times literally: in zsh a `$TIMES` variable is not split into words, and every still comes out as `NaN`.
+Pass the still times literally: in zsh a `$TIMES` variable is not split into words, and every still comes out as `NaN`.
 
-## 4. Review your own frames
+With a voice-over, make it right after the first story draft (steps in §4, Voice-over), and time captions and scenes to the spoken lines before the contact sheet. The voice sets the pace; a later retime means rewriting the cues and re-rendering what they touched, since the music hits come from the same cues.
 
-Start with the automatic check, once per size you will deliver:
+Block the story out before capturing: run `node render.mjs board 1080 1920` (a timed table of every beat, caption, voice line and sourced number, in `out/storyboard.md`), paste it into your reply and get the user's yes. Each change costs a full re-render, so settle the story here.
 
-```
-node render.mjs check 1080 1920
-```
+## 3. Gather the real pictures
 
-It draws a frame every half second twice, in two shuffled orders, and compares them: anything that depends on more than `t` (a random number, a clock, state kept between frames) fails with the times named. It also warns on a font the machine lacks, missing pictures, a product first seen after 3 s, a voice over 3 words a second, and text on screen too briefly to read; the full list, with the loudness checks, is in 📖 `references/review-lenses.md#check-warnings`. It exits 1 on an error, so a background run reports the failure. A pass says the film is consistent, not good; the sheet judges that.
+Collect the pictures into `assets/screens/<name>.png` (or give any path as a screen's `file`), with demo data rather than a real customer's account.
 
-Then render one still per beat and tile them into a contact sheet:
+- **Flutter app**: a throwaway widget test with goldens; boxed fonts, a DEBUG ribbon or a missing icon font all pass silently (📖 `references/capture-real-ui.md`). Simulator screenshots signed in as a team demo account also work.
+- **Web app or website**: Playwright screenshots at the frame's viewport and `deviceScaleFactor` (table above), signed in via the suite's storageState and seeded demo user (`setup-playwright`). Fix an old build, dev overlays or fake-reading fixture names before shooting: 📖 `references/capture-web-ui.md` has the checks and how to record tap points from real buttons.
+- **Products, places, brands**: photos and logos from the brand kit, shop listing or the user. Ask for them rather than generating them.
+- **Mood backgrounds** (a city at night) behind the hook or lockup, never the product, its UI, or people shown as its customers: free stock (Pexels), or `node image.mjs` on Cloudflare's free daily allowance, falling back to stock and saying so when it is unset or spent (📖 `references/voice-captions-backgrounds.md#images`). The prompt goes to Cloudflare; ask before sending unreleased product names. For depth motion, run `$PY depth.py` on the picture now.
 
-```
-ffmpeg -pattern_type glob -i 'out/stills/1080x1920_*.png' -vf "scale=270:-1,tile=6x2:padding=8" -frames:v 1 out/contact_9x16.png
-```
+Capturing into the product repo: check `git status` first and afterwards remove only what you added; keep the capture script in the clip folder so pictures can be re-taken. Look at a sheet of every picture: fake-reading demo data (`INV-1`) is fixed at the source. Check the same sheet for private data (real emails and phone numbers, keys and tokens, notifications, other tabs and bookmarks) and hide it or reshoot; a video gets shared further than a screenshot.
 
-Make one sheet per size (change `1080x1920` in the glob), since frames of different shapes distort when tiled; each layout fails in its own way, and a clean vertical cut says nothing about the square one. Review the sheets four times, one lens per pass (parallel agents where you can spawn them): design (collisions, one focal point), readability (the hook in two seconds, UI text at phone size), pacing (something new every two to four seconds, a short ending), brand (colours, true claims, nothing private). 📖 `references/review-lenses.md` has each lens's questions. Merge, fix the worst three problems and re-render the sheet.
+## 4. Music and sound
 
-Then render the videos (1.5 to 3 minutes each for 20 s; run them in the background, plugged in and awake). A render that dies with a negative `locator.screenshot` timeout or 30-second canvas timeouts was a laptop sleep or Low Power Mode (📖 `references/review-lenses.md#render-pitfalls`). Chain a mux after a render with `&&`, never `;` or a pipe into `tail`: either one hides the failure and muxes a half-second file. A background run tells you only that it exited, so before calling one done, `ffprobe` it for the right size and frame count, and pull the 12-frame motion strip around the fastest action to check for jumps (same reference).
-
-## 5. Music and sound
-
-`score.py` composes an original bed in numpy (pad, bass, plucks, kick, hats) and places taps, whooshes and chimes on the film's cues, so nothing needs licensing. The cues come from the story itself (`window.cues`), so retiming a scene moves its sound with it:
+`score.py` composes an original numpy bed (pad, bass, plucks, kick, hats) and places taps, whooshes and chimes on the story's cues (`window.cues`), so nothing needs licensing and retiming a scene moves its sound with it:
 
 ```
 node render.mjs cues 1080 1920 cues.json
@@ -118,18 +92,17 @@ node voice.mjs cues.json        # only for a story with voice lines, see below
 python3 score.py cues.json score_raw.wav
 ffmpeg -i score_raw.wav -af loudnorm=I=-14:TP=-1.5:LRA=11 -ar 48000 -y score.wav
 node render.mjs check 1080 1920
-for f in 9x16 1x1 16x9; do ffmpeg -i out/clip_$f.mp4 -i score.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 256k -ac 2 -ar 48000 -shortest out/clip_${f}_music.mp4; done
 ```
 
-The `check` here is the one that measures `score.wav`'s loudness, which the first check in §4 could not. A `score.wav` left from an earlier round gets measured as if it were current, so make it fresh each time. `ffprobe` each muxed file for an audio stream and the full length.
+This `check` also measures `score.wav`'s loudness; a `score.wav` left from an earlier round is measured as if current, so regenerate it each time.
 
-Run it with plain `python3`, not `python3 -I`: isolated mode drops the user site-packages where numpy usually lives. `music.mood` (`bright`, `calm` or `dark`) matches the brief's feeling; details in 📖 `references/real-track.md#generated-bed`. The moods share instruments and rhythm, so they sound alike: offer the bed as one generated option, not three.
+Run it with plain `python3`, not `python3 -I`: isolated mode drops the user site-packages where numpy lives. `music.mood` (`bright`, `calm` or `dark`) matches the brief's feeling (📖 `references/real-track.md#generated-bed`). The moods share instruments and rhythm, so offer the bed as one option, not three.
 
-**A real track** is the route when someone wants a genuinely different sound. Check its licence and Content ID status before the user downloads it, cut it so the drop lands on `device.enter`, keep the sound effects, and record the track in the README. 📖 `references/real-track.md`.
+**A real track** gives a genuinely different sound. Check licence and Content ID status before the user downloads it, cut the drop onto `device.enter`, keep the sound effects, and record the track in the README. 📖 `references/real-track.md`.
 
-You cannot hear the result. Check what you can (a waveform image showing the beat starting where the film says, the loudness figure, no clipping) and say plainly that the sound itself still needs a human ear.
+You cannot hear the result. Check what you can (a waveform showing the beat starting where the film says, the loudness figure, no clipping) and say the sound still needs a human ear.
 
-**Voice-over (optional).** Only when the brief asks for one. Add `voice: [{ at: 2.6, text: '...' }]` to the story, then generate the lines between `cues` and `score.py`:
+**Voice-over (only when the brief asks).** Add `voice: [{ at: 2.6, text: '...' }]` to the story, then generate the lines between `cues` and `score.py`:
 
 ```
 node render.mjs cues 1080 1920 cues.json
@@ -137,13 +110,52 @@ node voice.mjs cues.json
 $PY words.py cues.json          # only with subtitles: true
 ```
 
-- **Provider**: Kokoro, a free local voice (nothing leaves the laptop), once installed; otherwise the macOS `say` voice, a wiring draft never to release. A paid voice (ElevenLabs, OpenAI) runs only with `VOICE_PROVIDER` set, never from a key alone, and only after the user agrees the script may go to that service. 📖 `references/voice-captions-backgrounds.md#voice` for voices, overrides and the untested paid paths.
-- **Files**: `assets/voice/`, remade only when a line's text or voice changes, so a re-run doesn't pay twice.
-- **Timing**: `voice.mjs` warns when a line runs into the next, outlasts its caption or runs past the end. Move the line or shorten the words; the voice sets the pace (📖 `references/voice-captions-backgrounds.md#voice-timing`).
-**Spoken-word captions.** Most feeds autoplay muted, so a voice-over film carries its words on screen: `subtitles: true` in the story, then `$PY words.py cues.json` after every voice change, which times each word to the recording. With subtitles on, keep the headline `captions` short and different from the spoken words; without them, each caption's text matches what its line says. 📖 `references/voice-captions-backgrounds.md#subtitles`.
+- **Provider**: Kokoro, a free local voice (nothing leaves the laptop), once installed; otherwise macOS `say` (never released: a wiring draft). A paid voice (ElevenLabs, OpenAI) runs only with `VOICE_PROVIDER` set, never from a key alone, and only after the user agrees to send the script there. 📖 `references/voice-captions-backgrounds.md#voice` (voices, overrides, untested paid paths).
+- **Files and timing**: lines are cached in `assets/voice/` and remade only when text or voice changes, so a re-run doesn't pay twice. `voice.mjs` warns when a line runs into the next, outlasts its caption or runs past the end: move the line or shorten the words (📖 `references/voice-captions-backgrounds.md#voice-timing`).
+
+**Spoken-word captions.** Feeds autoplay muted, so a voice-over film carries its words on screen: `subtitles: true` in the story, then `$PY words.py cues.json` after every voice change, which times each word to the recording. With subtitles on, keep headline `captions` short and different from the spoken words; without them, each caption matches its line. 📖 `references/voice-captions-backgrounds.md#subtitles`.
 
 `check` fails while a voice line has no file, and `score.py` stops on one, so a skipped step can't ship a silent film.
 
+## 5. Review and render
+
+Start with the automatic check, once per size you will deliver:
+
+```
+node render.mjs check 1080 1920
+```
+
+It draws a frame every half second in two shuffled orders and compares them: anything depending on more than `t` (a random number, a clock, state kept between frames) fails with the times named. It also warns on a missing font, missing pictures, a product first seen after 3 s, a voice over 3 words a second, and text too brief to read (full list and loudness checks: 📖 `references/review-lenses.md#check-warnings`). It exits 1 on error. A pass says the film is consistent, not good; the sheet judges that.
+
+Then render one still per beat and tile them into a contact sheet:
+
+```
+ffmpeg -pattern_type glob -i 'out/stills/1080x1920_*.png' -vf "scale=270:-1,tile=6x2:padding=8" -frames:v 1 out/contact_9x16.png
+```
+
+One sheet per size (change `1080x1920` in the glob): frames of different shapes distort when tiled, and a clean vertical cut says nothing about the square one. Review the sheets four times, one lens per pass (parallel agents where you can spawn them): design, readability, pacing, brand (📖 `references/review-lenses.md` has each lens's questions). Merge, fix the worst three problems and re-render the sheet.
+
+Once pictures, voice and a first `score.wav` exist (§4), send `node render.mjs draft 1080 1920` (half size, with sound and a time stamp per frame) and get a yes before the full renders: each change after that costs a full re-render.
+
+Then render the videos (1.5 to 3 minutes each for 20 s; run them in the background, plugged in and awake):
+
+| Format | Size | Command |
+|---|---|---|
+| Vertical (Reels, TikTok, Shorts) | 1080x1920 | `node render.mjs video 1080 1920 out/clip_9x16.mp4` |
+| Square (feed) | 1080x1080 | `node render.mjs video 1080 1080 out/clip_1x1.mp4` |
+| Widescreen (YouTube, decks, websites) | 1920x1080 | `node render.mjs video 1920 1080 out/clip_16x9.mp4` |
+| App Store preview | 886x1920 | `PRESET=app-store node render.mjs video 886 1920 out/clip_appstore.mp4` |
+
+Length comes from the story's `duration`. A render dying on a negative `locator.screenshot` timeout or 30-second canvas timeouts was laptop sleep or Low Power Mode (📖 `references/review-lenses.md#render-pitfalls`). Chain a mux after a render with `&&`, never `;` or a pipe into `tail`: either hides the failure and muxes a half-second file. A background run only reports that it exited, so `ffprobe` it for size and frame count, and pull the 12-frame motion strip around the fastest action for jumps (same reference).
+
+Mux the score into each finished video, using the `score.wav` from §4:
+
+```
+for f in 9x16 1x1 16x9; do ffmpeg -i out/clip_$f.mp4 -i score.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 256k -ac 2 -ar 48000 -shortest out/clip_${f}_music.mp4; done
+```
+
+`ffprobe` each muxed file for an audio stream and the full length.
+
 ## 6. Deliver
 
-Send the MP4s and the contact sheet, keep the silent versions beside the ones with music, and write a README in the clip folder with the capture and render commands (and, with a voice, the provider, voice and model used, never the key). Close by listing what needs a person: the call to action, the music if the generated one isn't good enough, a listen to the voice, any generated background, and any demo names marketing wants changed.
+Send the MP4s and the contact sheet, keep the silent versions beside the ones with music, and write a clip-folder README with the capture and render commands (with a voice: provider, voice and model, never the key). List what needs a person: the call to action, the music if the generated one isn't good enough, a listen to the voice, any generated background, and any demo names marketing wants changed.
