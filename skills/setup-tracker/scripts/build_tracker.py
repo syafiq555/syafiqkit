@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Build a tracker Google Sheet from a JSON config.
 
-Usage: SHEETS_TOKEN=<oauth token with spreadsheets scope> python3 -I build_tracker.py config.json [--into <spreadsheetId> [--replace]] [--no-samples]
+Usage: python3 -I build_tracker.py config.json [--into <spreadsheetId> [--replace]] [--no-samples]
+The token comes from SHEETS_TOKEN if set, else from the gsheets-mcp sign-in (~/.config/syafiqkit/google).
 Prints the sheet URL and writes onEdit-<tab>.gs next to the config.
 """
-import json, os, re, sys, urllib.request, urllib.error
+import json, os, re, sys, urllib.parse, urllib.request, urllib.error
 from pathlib import Path
 
 API = 'https://sheets.googleapis.com/v4/spreadsheets'
@@ -15,7 +16,7 @@ COLOUR = re.compile(r'^#?[0-9A-Fa-f]{6}$')
 KNOWN_KEYS = {'title', 'tab', 'locale', 'timezone', 'date_pattern', 'closed_status', 'statuses', 'counts', 'stale_rule', 'columns',
               'sample_rows', 'extra_tabs', 'new_status', 'history_date_pattern', 'unknown_editor_label', 'status_change_line',
               'domain_names', 'table', 'table_name', 'rows'}
-KNOWN_COLUMN_KEYS = {'role', 'header', 'kind', 'width', 'values', 'muted', 'folded'}
+KNOWN_COLUMN_KEYS = {'role', 'header', 'kind', 'width', 'values', 'muted'}
 KNOWN_COUNT_KEYS = {'label', 'statuses', 'colour', 'overdue', 'span'}
 
 
@@ -147,7 +148,27 @@ def format_rule(index, range_, condition, fmt):
 args = sys.argv[1:]
 if not args or args[0].startswith('--'):
     fail('usage: build_tracker.py config.json [--into <spreadsheetId> [--replace]] [--no-samples]')
-TOKEN = os.environ.get('SHEETS_TOKEN', '').strip() or fail('SHEETS_TOKEN is empty: export an OAuth access token with the spreadsheets scope')
+def token_from_gsheets_signin():
+    folder = Path(os.environ.get('GSHEETS_CONFIG_DIR') or Path.home() / '.config' / 'syafiqkit' / 'google')
+    try:
+        client = json.loads((folder / 'client.json').read_text())
+        client = client.get('installed') or client.get('web') or client
+        refresh = json.loads((folder / 'refresh.json').read_text())['refresh_token']
+        body = urllib.parse.urlencode({'client_id': client['client_id'], 'client_secret': client['client_secret'],
+                                       'refresh_token': refresh, 'grant_type': 'refresh_token'}).encode()
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return ''
+    try:
+        with urllib.request.urlopen('https://oauth2.googleapis.com/token', body, timeout=30) as r:
+            return json.load(r).get('access_token', '')
+    except urllib.error.HTTPError as e:
+        fail(f'the gsheets-mcp sign-in in {folder} was refused ({e}); run "gsheets-mcp auth" again, or set SHEETS_TOKEN')
+    except (urllib.error.URLError, TimeoutError) as e:
+        fail(f'could not reach Google to refresh the sign-in ({e}); check the network and run again')
+
+
+TOKEN = os.environ.get('SHEETS_TOKEN', '').strip() or token_from_gsheets_signin() or fail(
+    'no token: set SHEETS_TOKEN to an OAuth access token with the spreadsheets scope, or sign in once with "gsheets-mcp auth"')
 cfg_path = Path(args[0])
 cfg = json.loads(cfg_path.read_text())
 closed, stale_rules = validate(cfg, args)
@@ -311,19 +332,6 @@ try:
             {'repeatCell': {'range': rng(HEADER_ROW, FIRST, last_col, last_col + 4), 'cell': {}, 'fields': 'userEnteredValue,userEnteredFormat'}},
             repeat_cell(rng(HEADER_ROW, FIRST, 0, last_col), {'textFormat': {'bold': True, 'foregroundColor': rgb('222222')}}, ['textFormat']),
             set_size(sheet_id, 'ROWS', 1, 34)] + [set_size(sheet_id, 'COLUMNS', i, c.get('width', 120)) for i, c in enumerate(cols)]})
-
-    folded = [i for i, c in enumerate(cols) if c.get('folded')]
-    runs = []
-    for i in folded:
-        if runs and runs[-1][1] == i:
-            runs[-1][1] = i + 1
-        else:
-            runs.append([i, i + 1])
-    if runs:
-        call('POST', f'{API}/{sid}:batchUpdate', {'requests': [r for a, b in runs for r in (
-            {'addDimensionGroup': {'range': {'sheetId': sheet_id, 'dimension': 'COLUMNS', 'startIndex': a, 'endIndex': b}}},
-            {'updateDimensionProperties': {'range': {'sheetId': sheet_id, 'dimension': 'COLUMNS', 'startIndex': a, 'endIndex': b},
-                                           'properties': {'hiddenByUser': True}, 'fields': 'hiddenByUser'}})]})
 
     if replace_old is not None:
         tables = call('GET', f'{API}/{sid}?fields=sheets(properties.sheetId,tables(tableId))')

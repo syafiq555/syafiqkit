@@ -9,6 +9,16 @@
 - `design-handoff`, `product-still`, `excalidraw-board` and `user-manual` got light wording fixes; `impeccable` is unchanged.
 - Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
 
+## 1.421.2
+
+**`setup-tracker`: the build signs in by itself, and seeded rows read for the people who answer them.**
+- The build script now uses the sign-in the plugin's Google Sheets connection already has, so there is no token to fetch and paste. A token you set yourself still wins. The gcloud route is gone from the steps, because Google answers it with "This app is blocked".
+- When the people who answer the questions will open the sheet (colleagues as well as clients), each unsent question starts as their turn, and the sheet goes out with the message. Starting them as the sender's turn made the counts show the sender's to-do list.
+- A starting row's latest update says where the question stands for whoever answers it, never the sender's own note such as "drafted, not yet sent". The tab and title use the name the team will call the sheet, not the example's "Asks".
+- The Apps Script is no longer presented as optional when the sheet has History or Updated columns, since nothing else fills them. The skill asks before building whether the owner will install it, and the hand-over says History stays frozen until it is in.
+- Columns are never folded any more. The record columns (Updated, History, Raised by, Raised, Closed) used to sit behind a "+", and readers couldn't find History. The `folded` setting is gone; an old config that still has it gets a warning and builds unfolded.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.421.1
 
 **`done`: a session that changed no files still gets its knowledge and task-doc steps.** An empty diff now skips only the review agents. A session that only read an email, a PDF or meeting notes still runs `update-claude-docs` and `task-summary`, because what was pasted or attached is lost once the session is cleared. Before, such a session was wrapped up as "nothing to do" and the email's facts had to be captured by hand afterwards.
