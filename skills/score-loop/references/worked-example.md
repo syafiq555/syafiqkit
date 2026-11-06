@@ -11,3 +11,17 @@ The first run of this loop (2026-10-27), on a WooCommerce storefront built from 
 **The user's calls.** Two gaps changed what customers are told: the product page's guest price line, and whether to publish a placeholder privacy page so the footer could link it. Both went through one `AskUserQuestion` before the build round.
 
 **Round 2: 16/20.** One builder fixed the add-to-cart feedback, tap targets, a default category banner, product states, the setup checklist and fallback meta descriptions. 16/20 is inside the 80–90% band, so the loop stopped. The report listed the four remaining one-point gaps (a phone-sized category banner, checklist links, two unlabelled gallery links, and a signed-in member seeing no price confirmation, which was the user's call), so the user could decide on a third round.
+
+# Worked example: a user manual taken from 4.5 to 10
+
+A colleague's run (reported 05/11/2026) on a 40-page user manual PDF. Judge persona: a new user who knows nothing about the app. Ten criteria, 0/1/2 each, reported out of 10.
+
+**The stop rule was the user's, not the session's.** The user wanted "stop at 10". The session added its own plateau stop, which the user did not want, and the user extended the round cap twice, from 5 to 10 to 15. Ask for the stop rule and use it as given.
+
+**A phantom finding from an eyeballed threshold.** One criterion docked pages "more than 25% blank". The judge reported a page as 45% blank; measured between the margins it was 20%. Writing into the rubric how blank space is measured removed the finding.
+
+**Fresh judges plateaued.** Rounds 5 to 10 sat at 8 to 9 out of 10: each new judge docked a different handful of points on the same PDF, so the score moved by one point either way without converging. Switching to one retained judge, resumed each round and told to re-check its own previous list, reached 10 in five more rounds. The cost is independence, so the switch is the user's call and the report names which judge produced each score.
+
+**Claims checked against the source.** Before acting, the session caught a judge's wrong UI direction (it described a "side dot" where the app has a bottom handle), a warning from the screen capture tool read as a real app error, and a builder's claim about autosave that nothing had shown.
+
+**One builder across rounds.** Reusing the same builder kept its file context from round to round; its report was still checked against the rendered PDF before each new score.

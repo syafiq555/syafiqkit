@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.420.0
+
+**`score-loop` and `casual-message` learn from two colleague runs.**
+- `score-loop` uses your stop rule as you gave it. If you didn't give one, it asks before round 1. When the score stalls or the round cap is reached, it tells you and asks whether to go on, instead of stopping by itself.
+- When fresh reviewers keep scoring within a point of each other below your target (each one docks a different few points), `score-loop` offers to keep one reviewer for later rounds that re-checks its own list. It is less independent but gets there: on a 40-page manual this took the score from stuck at 8 to 9 out of 10 up to 10 in five rounds. Each round line says which kind of reviewer gave the score.
+- Rubric points with a threshold ("page more than 25% blank") now say how to measure it, so a reviewer can't eyeball a number no fix can clear. Claims from the builder are checked against the real output just like the reviewer's, and the same builder is kept across rounds so it remembers the files.
+- `casual-message` reads messages you actually sent before drafting, and copies their spelling and shape. Without them, a casual Malay message defaults to several short bubbles, each answering first with the reason after `sbb`, all lowercase, no emoji, no greeting beyond answering theirs, and no sign-off. A new reference lists the default shortenings (`x`, `mmg`, `sbb`, `dgn`), particles (`kot`, `je`, `pulak`) and a full example. Your own messages always win over the defaults.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.419.0
 
 **New tool: `gsheets-mcp`, a Google Sheets and Drive MCP server that you switch on per project.** It replaces a general-purpose Sheets server that stopped working an hour after it started and turned other people's coloured comments black when you replied.
