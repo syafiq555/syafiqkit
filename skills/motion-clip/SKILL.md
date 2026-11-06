@@ -59,7 +59,7 @@ When a device beside captions reads as basic, the engine has more: `spotlights`,
 
 `screens`, `number`, `stat`, `success`, `taps`, `music`, `voice`, `subtitles`, `backdrops` and `lockup` are optional; a film without `lockup` ends with no logo, which the brief should mean on purpose. The logo blends with `multiply`, which suits white; on a dark page set `logoBlend: 'source-over'` and use a transparent PNG.
 
-Run one stills render after copying to catch a missing file (the renderer logs any it cannot load). Take the times from your own beats, and clear `out/stills` between rounds or old frames mix into the sheet. The `x` argument, `STORY=<path>` and watching while writing: 📖 `references/review-lenses.md#render-pitfalls`.
+Run one stills render after copying to catch a missing logo, font or backdrop (the renderer logs any file it cannot load; screens draw as "missing" until §3). Take the times from your own beats, and clear `out/stills` between rounds or old frames mix into the sheet. The `x` argument, `STORY=<path>` and watching while writing: 📖 `references/review-lenses.md#render-pitfalls`.
 
 ```
 node render.mjs stills 1080 1920 x 1.4 4.5 8.5 12.5 16.6 19.9

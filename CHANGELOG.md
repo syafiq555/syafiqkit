@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.421.4
+
+**Fixes from reviewing the design refresh, and two lessons for future refreshes.**
+- `taste` step 5 again says what the first screen needs: one supporting sentence under the headline and one real button. The refresh had moved that line into `references/run.md`, while the laws still pointed to it. Paths inside `run.md` now resolve from its own folder. `taste` is now 4,958 tokens.
+- `motion-clip`: the early stills render now says it checks the logo, fonts and backdrop, since the screens aren't captured until the next step.
+- `uiux` again says to ask one question only, and to re-brief research once rather than without limit. `design-handoff` has no em dashes left.
+- `setup-tracker`: a first sign-in now says what it needs (`bun` and your own Google OAuth client, `gsheets-mcp auth --client <file>`), that the connection doesn't have to be switched on in the repo, and which account the sheet will land in. The build stops after 30 seconds on a stalled network and says it's a network problem, rather than telling you to sign in again. A damaged sign-in file gives the plain "no token" message instead of a Python error. Whether the owner will install the Apps Script is now asked with the other questions before building, and a "no" is spelled out: the History and Updated columns go, and the No, Raised and Closed columns have to be filled in by hand. The hand-over now includes the message that goes out with the sheet link, so the rows waiting on someone arrive with an explanation.
+- `refresh-instructions` now puts an item count in the prompt for every list or table a condense may touch, not only after a patch. Turning a bulleted list into paragraphs is where items quietly disappear. The relocation checklist adds that paths inside moved text change too, including plain file paths that aren't links.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.421.3
 
 **Design skills refreshed: `taste` now stays whole through a long session, and `uiux` and `motion-clip` have room to grow.**

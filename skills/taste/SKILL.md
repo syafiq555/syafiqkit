@@ -18,8 +18,7 @@ description: >-
 
 # tasteskill v2
 
-> After a compaction only the start of this file stays in context. The house rules, laws and gate below
-> survive; after one, re-read the current step in `references/run.md` before the next build step.
+> After a compaction, re-read the current step in `references/run.md` before the next build step.
 
 A model-built page looks like the average of every page it has seen: a centred headline, a small
 label above it, icon cards, a soft gradient, thin rules, a monospace caption. Nothing in it is wrong and
@@ -202,6 +201,8 @@ Write the whole page as a plain-text copy deck before markup, following `referen
 - **The first screen answers the visitor's first question in large type**: what the event is, when and
   where; what the product is and costs; who the person is. Each section the visitor came for has its own
   heading and navigation entry.
+- One supporting sentence directly under the headline, shown with it; one primary action, named for
+  what it does, as a real button on the first screen.
 - **Write the full content.** Thin sections are the commonest reason a clean page loses to a busier one.
 - Sample details are allowed where the brief has gaps, listed in the report for the client to confirm.
   Proof is never invented: no customers, quotes, reviews, press, logos or business statistics.

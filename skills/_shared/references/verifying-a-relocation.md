@@ -10,7 +10,7 @@ Three shapes, all of which survive a full read of the resulting file.
 
 A link written `](../be-gotchas.md#anchor)` when both files sit in the same directory resolves one level too high and 404s. The reverse — a pointer left at sibling depth after its target moved down a level — fails identically. Neither errors at authoring time, both look correct in review, and the reader who follows one lands on nothing.
 
-Resolve every inbound link by walking its `../` count from the **citing file's own directory**, not by eye and not from the repo root. `(cd <citing-dir> && ls <path-as-written>)` is the only check that fails when the depth is wrong. Do this for links *into* the moved content as well as the ones the pass wrote — a split changes the depth of both halves, and the ones the pass didn't touch are the ones nobody thinks to check.
+Resolve every inbound link by walking its `../` count from the **citing file's own directory**, not by eye and not from the repo root. `(cd <citing-dir> && ls <path-as-written>)` is the only check that fails when the depth is wrong. Do this for links *into* the moved content as well as the ones the pass wrote — a split changes the depth of both halves, and the ones the pass didn't touch are the ones nobody thinks to check. Paths *inside* the moved text re-base too, including backticked ones that are not links: `references/copy.md` written in a SKILL.md names a file that, from inside `references/`, is just `copy.md` (measured 06/11/2026, ten such paths moved into a skill's `references/run.md` unchanged, caught only at review).
 
 ## A documented glob keeps matching after it stops covering
 

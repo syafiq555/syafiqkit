@@ -18,7 +18,7 @@ Someone else is designing. Your job is to give them what they cannot look up, an
 of the part that is theirs.
 
 The failure this skill exists to prevent is sincere and hard to see from the inside: you know
-the domain, you have read the docs, a shape has already formed in your head — so the brief
+the domain, you have read the docs, a shape has already formed in your head, so the brief
 comes out carrying that shape. It reads as thoroughness. What it actually does is spend the
 designer's judgement on ratifying yours, and it arrives with enough authority that a junior
 designer will not push back on it.
@@ -42,7 +42,7 @@ A designer cannot look up how billing works, which two operations hide behind on
 a regulator requires, or which past decision already cost someone money. That is what only you
 have, and leaving it out is the other way to waste their time. So say what the screen is for,
 who uses it, what the business rules are, what must be possible, and what has already gone
-wrong — then stop.
+wrong; then stop.
 
 Yours to state: purpose, audience, frequency, the operations involved, business and legal
 rules, data that must be captured, states that exist in reality, measured failures. Theirs to
@@ -51,7 +51,7 @@ decide: layout, hierarchy, step count, which control, what collapses, what goes 
 ⚠️ **A constraint and a solution arrive in the same sentence shape, and the solution is the one
 that feels more helpful.** "Two operations hide behind this screen and a PM needs to know which
 they are doing" is a constraint. "Use a segmented control for new-vs-existing" is a solution
-wearing a constraint's clothes — it names a component, so it has already designed. The tell is
+wearing a constraint's clothes: it names a component, so it has already designed. The tell is
 that you could delete the *reason* and the sentence still instructs. Where a real constraint
 happens to imply a mechanism (a control must stay visible, a warning must appear at the moment
 of the choice), state the requirement and the consequence of missing it; let them pick the
@@ -100,19 +100,19 @@ the repo understands it, either translate it or drop it.
 record what was settled when written; a later conversation can reverse it, and the doc rarely
 says so. Shipping the stale side sends the designer around an obstacle that no longer exists.
 Before pasting a decision, check whether this session already overruled it, and if so say which
-way it went and why — an override with its reason is useful context; an unmarked contradiction
+way it went and why: an override with its reason is useful context; an unmarked contradiction
 costs a whole review cycle.
 
 ## Check whether it has been designed already
 
 A screen being rebuilt has often been designed before, and the prior artboards are usually in
 the repo. Finding them changes the ask from "design this" to "here is what you specified, here
-is what shipped, here is where they diverged" — which is both cheaper and more likely to be
+is what shipped, here is where they diverged", which is both cheaper and more likely to be
 right, since a fresh exploration re-decides things that were already settled well.
 
 This matters most where the prior design was *sound and partially implemented*. Re-briefing it
-cold gets the same answer back a second time, and the real problem — that the design was not
-followed — goes unaddressed and unmentioned.
+cold gets the same answer back a second time, and the real problem (that the design was not
+followed) goes unaddressed and unmentioned.
 
 ⚠️ **A prior design carries its DECISIONS forward, never its look.** Its flow, fields and states
 were settled; its colours, type and mode were whatever the product looked like that week. Offered
@@ -132,7 +132,7 @@ fully-populated are different screens and the gap between them is often the whol
 form that looks empty on arrival and runs to thousands of pixels once filled cannot be described
 in prose as well as it can be shown.
 
-Capture the awkward states too — the empty one, the error, the branch a seeder cannot build.
+Capture the awkward states too: the empty one, the error, the branch a seeder cannot build.
 Those are what a designer would otherwise have to guess at, and guessing produces a design for
 the happy path only.
 
@@ -142,20 +142,20 @@ Ask where it is going before formatting: a chat message, a ticket, a doc and a p
 tool are different shapes. For Google Chat, `gchat-format` owns the syntax. Any follow-up worth raising with the designer gets words for the person to paste, not a suggestion to "ask them", whatever the destination.
 
 Keep the brief to what a person will actually read. Lead with what the screen is for; put the
-measured failures where they cannot be skipped. End by offering the material you held back —
-prior artboards, extra screenshots, the full doc — rather than pre-emptively attaching all of it.
+measured failures where they cannot be skipped. End by offering the material you held back
+(prior artboards, extra screenshots, the full doc) rather than pre-emptively attaching all of it.
 
 **When the destination is a project filesystem rather than a person**, that last rule inverts: a
 designer opening a project reads what is in it, and material you held back to offer is material
-they never see. Write the reference files too, split by what each answers — the brief, the assets
-and links, the source material in its own voice — so a reader lands on the one they need instead
+they never see. Write the reference files too, split by what each answers (the brief, the assets
+and links, the source material in its own voice) so a reader lands on the one they need instead
 of scrolling one long file. Check what the project already contains before writing, since these
 tools seed a new project from whichever system was last active and the inherited one may belong
 to a different product.
 
 ⚠️ **Where the destination is a project with a filesystem, deliver BOTH artefacts: the files in
 the project, AND the text the person sends to the designer.** The person asked for something to
-*send* — "give me the prompt" — and files in a project are addressed to the designer, not to them.
+*send* ("give me the prompt"), and files in a project are addressed to the designer, not to them.
 Ending on a report of what you wrote leaves them holding nothing to paste, and it reads as
 completion because the research is real. Project files belong in the designer's workspace; the
 prompt belongs in the person's hands in the turn's closing message, since one given mid-turn and
@@ -176,7 +176,7 @@ Verify the destination's own facts before citing them. A URL you constructed rat
 from a live page is the common defect: it looks authoritative in a brief and sends the designer
 to a 404, and a fetch tool will answer a question *about* a page that does not exist by assembling
 the answer from elsewhere, so the content reads correct while the address is wrong. Check with
-`curl -sL -o /dev/null -w '%{http_code}' '<url>'` before citing it — 📖
+`curl -sL -o /dev/null -w '%{http_code}' '<url>'` before citing it; 📖
 `../haiku/references/verifying-research.md` for why a fetch's success is never evidence the
 address was real.
 

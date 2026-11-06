@@ -30,7 +30,7 @@ is also your picture search: each place, material and printed thing on it is a q
 ## Step 2. Write the argument {#step-2}
 
 Before any design, list the page as claims with their proof, one line per section, the way
-`references/copy.md` §1 shows. The claims decide which sections exist and in what order. Delete any
+`copy.md` §1 shows. The claims decide which sections exist and in what order. Delete any
 section that has no claim. This is how you avoid the stock sequence of hero, logos, three features,
 testimonial, pricing, call to action.
 
@@ -118,7 +118,7 @@ to anyone is a screensaver.
 
 ## Step 5. Write the words {#step-5}
 
-Write the whole page as a copy deck (plain text) before markup, following `references/copy.md`:
+Write the whole page as a copy deck (plain text) before markup, following `copy.md`:
 
 - **Every headline fits in two lines or fewer at every width.** Do the arithmetic in copy.md §2 before
   committing to a sentence: about 32 characters is safe everywhere at a confident size. The studied
@@ -190,7 +190,7 @@ not finished. Order of work:
    exists: search it with `assets.mjs --video "<query>"` and use it as a muted loop with a poster
    frame. Models skip pictures and footage because finding them is work; the page fails without them.
 
-   `references/imagery.md` covers searching, licences and credits, video, drawing, crops and treatments.
+   `imagery.md` covers searching, licences and credits, video, drawing, crops and treatments.
 5. **The live thing** from step 4, built into the section where it proves the claim (often the hero
    or the booking), with real content, a thumb-sized phone version and a plain fallback.
 6. **The scroll scenes,** when the sheet deals them (the rest of the motion layer is step 9), each
@@ -199,7 +199,7 @@ not finished. Order of work:
    and the scene's files from `<skill>/assets/scenes/`, fill the scene with this project's own pictures
    and words, and set the page's tokens so it takes the page's look. A scene is composition: it decides
    how long the page is and what each screen shows, so it is built now and seen in every look round, not
-   added at the end. `references/scenes.md` says how to put one on a page, fill it, fit it and check it;
+   added at the end. `scenes.md` says how to put one on a page, fill it, fit it and check it;
    `assets/scenes/demo/<id>.html` is a working example of each.
 7. **Fullness.** Look at each desktop screen as a poster: one dominant thing and the content it
    carries. A screen that is mostly empty ground is an underbuilt section, not a rest; one deliberate
@@ -217,7 +217,7 @@ not finished. Order of work:
 9. **States and semantics.** Real links and buttons, visible focus, alt text, a phone layout that is
    its own composition.
 
-Read `references/type.md`, `references/colour.md` and `references/layout.md` when you need the detail
+Read `type.md`, `colour.md` and `layout.md` when you need the detail
 behind a decision; the laws in SKILL.md are the short form.
 
 ## Step 7. Gate {#step-7}
@@ -238,7 +238,7 @@ and the reduced-motion page; with scenes on the sheet, `inspect.mjs` also films 
 
 Passing the gate means nothing banned was measured. It does not mean the page is good. Open the
 screenshots the inspector lists (every viewport, with your image viewer or Read tool) and critique them
-with `references/critique.md`: the fourteen passes, the Awwwards-weighted score, the caps. Write the
+with `critique.md`: the fourteen passes, the Awwwards-weighted score, the caps. Write the
 critique down in its format, fix the top three problems, run the inspector again, look again. Three
 rounds at most.
 
@@ -261,7 +261,7 @@ sixteen). Any scroll scenes are already built (step 6); around them the layer ha
 Transform and opacity only; every move has a `prefers-reduced-motion` fallback that keeps the content
 and drops the travel. A move that changes the colour or the layout of whole screens (colour by
 chapter, a pinned story) is part of the composition, so build it in step 6 and let every look round see
-it. `references/motion.md` has the tokens and tested recipes. Then run the inspector once more and check
+it. `motion.md` has the tokens and tested recipes. Then run the inspector once more and check
 every screenshot for content that failed to appear.
 
 ## Step 10. Report {#step-10}
@@ -274,7 +274,7 @@ Do not report until all of these are true; each one was skipped in a test run th
   (desktop, phone, reduced motion).
 - A stranger reading the first screen for five seconds can say what this is and what to do.
 - Every section has a heading; the margins match on both sides; no stretch of the page is empty.
-- The critique of your last round is written down in the shape of `references/critique.md` §4.
+- The critique of your last round is written down in the shape of `critique.md` §4.
 
 Tell the user, briefly: the direction dealt (name and seed) and any redraws with reasons; the idea
 sentence and the live thing; the final scores from your last critique round and what still falls short;
@@ -290,7 +290,7 @@ launch. Do not claim a check you did not run.
    source. Read the code: the framework, the styling method (Tailwind v3 or v4, CSS modules,
    styled-components, plain CSS), the components, and what must survive: routes, forms, data,
    behaviour, the brand's own assets.
-2. **A review stops here.** Critique the before screenshots with `references/critique.md`, list the
+2. **A review stops here.** Critique the before screenshots with `critique.md`, list the
    findings with the inspector's measurements, and name the three changes that would move the page
    most.
 3. **Keep the stack, the content and what works.** No framework or styling-library migration; check the

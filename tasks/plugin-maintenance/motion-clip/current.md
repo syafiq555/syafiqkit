@@ -4,10 +4,10 @@ Domain: plugin-maintenance / motion-clip skill
 Gotchas (critical; full list in ## Critical Gotchas below):
   - A trigger test only means something in a session started after the skill was written
   - film.html is the engine and is never edited per film; each film is a story.js
-  - SKILL.md is at 4,994 of the 5,000 tokens kept after compaction: cut or move to references/ before adding
+  - SKILL.md is at 4,483 of the 5,000 tokens kept after compaction (06/11/2026): about 500 tokens of room; past that, move detail to references/
   - The ElevenLabs/OpenAI voices have never run with a real key
 Related: tasks/plugin-maintenance/skill-authoring/current.md, decisions/media-and-approvals.md
-Last updated: 2026-10-21
+Last updated: 2026-11-06
 -->
 
 # syafiqkit: motion-clip skill
@@ -17,9 +17,8 @@ Last updated: 2026-10-21
 **Where we are**: `/motion-clip` makes 15 to 30 second promo videos for any product (app, website, physical product, brand) from real pictures, as code, in three formats, with an original music bed and an optional voice-over. Built from one real run (the Autorentic tenant-app launch clip). Every `~/herd/...` folder named in this doc exists only on Syafiq's machine; another reader has the facts recorded here, not the folders. On 2026-10-21 four upgrades were built, verified and shipped in 1.406.17: storyboard and sound-draft approvals, a free local Kokoro voice, captions timed to the spoken words, and full-frame backgrounds (stock or Cloudflare-generated) that move in depth (decisions/media-and-approvals.md). The user dropped the OpenFilm move the same day; our engine is the only path. A second research round the same day added, in the same release: `check` warnings for text on screen too briefly to read, a fast voice and a product first seen after 3 s; App Store and Google Play presets (`PRESET`); a four-lens contact-sheet review (decisions/media-and-approvals.md D-text-store-checks).
 
 **Immediate next actions (in order)**:
-1. `film.html` and `score.py` carry another session's uncommitted work (spotlights, photos, tilt, cursor, `--track`); leave it to that session.
-2. The Autorentic re-cut is in `~/herd/autorentic-launch-clips-1406` (Syafiq's machine; the 19/10 version kept in `v1/`, details in its `docs/brief.md`). Its App Store cut is not upload-ready: the captured screens show "RM 1,649.91" and due dates, so recapture with demo data that has neither.
-3. In a new session, run the trigger test ("make a promo video for <product>" without the skill name).
+1. The Autorentic re-cut is in `~/herd/autorentic-launch-clips-1406` (Syafiq's machine; the 19/10 version kept in `v1/`, details in its `docs/brief.md`). Its App Store cut is not upload-ready: the captured screens show "RM 1,649.91" and due dates, so recapture with demo data that has neither.
+2. In a new session, run the trigger test ("make a promo video for <product>" without the skill name).
 
 **Key facts for cold start**:
 - Files: `skills/motion-clip/` with `SKILL.md`, `scripts/render.mjs`, `scripts/score.py`, `templates/film.html` (engine), `templates/story.js` (starter), `templates/examples/autorentic.story.js`, `references/capture-real-ui.md`.
@@ -225,11 +224,8 @@ Chosen by the user on 2026-10-23, after watching both clips ("seems like no chan
 
 ## Last Session
 
-- 2026-10-22/23: HyperFrames studied (five haiku agents over a clone, a dozen citations re-read) and trialled on the Autorentic 9:16 cut. The user kept our engine and took its parallel render, shipped in 1.407.4 after `/done` review fixed a silent hang on a dead ffmpeg and a warning-guard race (D-hyperframes-trial).
-- Second research round (four haiku research agents, three haiku claim-checkers on the source pages): ranked five improvements, the user chose four and they were built (decisions/media-and-approvals.md#research-round-two, D-text-store-checks).
-- Verified: Autorentic passes every new check and its stills and cues are byte-identical to the previous engine; a deliberately bad story (phone at 5.5 s, a 0.4 s caption, "Best deal: RM 30/mo from March 2027.") fires every new warning; a logo-only story gets the information line; backdrops error under the App Store preset; an 886x1920 App Store encode probes as High 4.0, 30 fps, BT.709; a hidden ffprobe warns rather than passing.
-- `/done` reviews: the product reviewer moved the store rules into the brief step, set the music mux to 256k stereo, made logo-only films informational, measured voice pace without subtitles, and found App Review 2.3.4 (screen captures only). The code reviewers tightened the price and date patterns, skipped captions with no `out`, matched the board's threshold to the preset, and surfaced a missing ffprobe.
-- Autorentic re-cut with every feature, approved at both gates by the user: generated KL skyline with depth behind hook and lockup, Kokoro voice at `VOICE_SPEED=0.8` with lines that differ from the headlines, five-word subtitles, lockup "Tenant app on iOS and Android" (user: the app is live), four cuts including App Store. The reading check drove three rounds (slower voice, five words, one word cut from line 3), and the review swapped voice line 4 to "Settle them all at once." because it repeated the on-screen number. It exposed three skill defects, fixed: `voice.mjs` timed lines by file length, so trailing silence (0.8 s on Kokoro) raised false "still speaking" warnings; a lone last word got its own 0.79 s caption; the reference gave no starting `VOICE_SPEED` for subtitled films.
+- 06/11/2026, 1.421.3: SKILL.md refreshed (restructure, condense, judgement-prose passes on haiku, then a `/done` review). Sections now run in work order: §0 tools, §1 brief, §2 write the story (ends on the storyboard gate), §3 gather pictures, §4 music and sound (voice-over inside it), §5 review and render (check, contact sheets, draft gate, full renders, mux), §6 deliver. Before, pictures came before the story although the storyboard gate said "before capturing", and music came after the full renders although the draft gate needed `score.wav`. The early stills render now says it catches a missing logo, font or backdrop, since screens are expected missing until §3. 4,865 to 4,483 tokens; the backdrop key list, extra engine options and the four lens questions now live only in `references/voice-captions-backgrounds.md#backdrops`, `references/premium-motion.md` and `references/review-lenses.md`. No engine or script change.
+- Earlier sessions (HyperFrames trial and parallel render, research round two, the Autorentic re-cut at `VOICE_SPEED=0.8` with five-word subtitles) are recorded in D-hyperframes-trial below and decisions/media-and-approvals.md#research-round-two.
 
 ---
 
