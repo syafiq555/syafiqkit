@@ -12,3 +12,16 @@
 | Optional Listen | Text-to-speech helps readers with ADHD-related reading difficulty in small studies; offered, never the default |
 
 SQ3R/PQ4R as a named method has "very little empirical support" (The Learning Scientists, https://www.learningscientists.org/blog/2021/3/4-1); only its survey and question steps survive here. Live products (GOV.UK step-by-step, Google Play's Policy Summary / Full Policy split, Apple's "Intentionally omitted" for retired rules) informed the shape, but the reader in the worked run found those pages hard too, which is why the page goes further than they do.
+
+## Comparing two documents {#comparing-two-documents}
+
+Measured 05/11/2026 on a client requirement spec against a vendor quotation. The three-card topic (what the spec asks, what the quotation promises, what is open) was rejected by the same reader: "too many repetition ... it didn't flow with my mind, have to read multiple times go back and forth especially if the source is in multiple places". The figures repeated across the intro, diagram and two answers, and each comparison was split across two cards.
+
+| Choice | Evidence |
+|---|---|
+| Verdict first, then one row per point with both documents side by side, grouped "needs an answer", "left out", "these match"; each fact once per topic | Sweller, redundancy principle: "redundant material interferes with rather than facilitates learning" (https://www.cambridge.org/core/books/cambridge-handbook-of-multimedia-learning/redundancy-principle-in-multimedia-learning/1CB52515DB655365BDBEBD85FEFD680A). Ayres and Sweller, split attention: materials should be "physically and temporally integrated" (https://cambridge.org/core/books/cambridge-handbook-of-multimedia-learning/splitattention-principle-in-multimedia-learning/497A2FCB9737E3009B3CF0E4D97F7B99). NN/g: "The story should start with the main point" (https://www.nngroup.com/articles/inverted-pyramid/) |
+| Each open point says who answers and what changes if the answer differs | Where the vendor document has its own assumptions table, use its "until then" and "if different" columns rather than writing new ones |
+| Clicking a side opens the source text with the quoted lines highlighted, beside the row on wide screens; no expand and collapse | The reader asked for it ("instead of collapse/uncollapse, straight away open the source where applicable, highlighted"). legislation.gov.uk keeps changes in place with annotations (https://www.legislation.gov.uk/ukpga/2010/15/section/1) |
+| Anchor each point on its quoted string and find its lines at build time, failing the build when the string is gone | Line numbers of a text copy shift with every new document version, and the highlight then lands on the wrong sentence without an error |
+
+A derived claim is still a claim: a row saying a 3.5% fee was "not on top of" a 10% fee survived the quote check because both quotes were real, and only the critique, reading the worked example, caught that the example charged both.

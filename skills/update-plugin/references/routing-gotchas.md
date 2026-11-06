@@ -8,6 +8,8 @@ A file may have uncommitted changes from another session already in-flight. Patc
 
 📖 **`../../_shared/references/contested-doc-sections.md`** — detection method and the routing rules once a doc is contested (additive-only edits, don't overwrite Last Session, etc.).
 
+The session listing cannot tell you who wrote a contested file: the only live local peer is often working elsewhere. Before sending findings "to the author", ask the user or name the file and ask the peer whether it is theirs (📖 `../../_shared/references/cross-session-messaging.md`, the "Discovery is weaker than it looks" warning). Measured 05/11/2026: setup-tracker findings went to a live session in an unrelated project that had never touched the plugin; the writer was offline.
+
 ## Agent files are generated copies
 
 An `.claude/agents/` file is usually NOT the source — it's a generated copy from a template. A durable fix belongs in the template (`skills/agent-setup/templates/<agent>.template.md`) first, then ported to the copies it should carry forward, or it's lost on the next regeneration.

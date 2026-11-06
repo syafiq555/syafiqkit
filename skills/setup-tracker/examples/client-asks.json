@@ -1,0 +1,246 @@
+{
+  "title": "Acme x Studio: Project Tracker",
+  "tab": "Asks",
+  "locale": "en_GB",
+  "timezone": "Asia/Kuala_Lumpur",
+  "date_pattern": "dd/mm/yyyy",
+  "closed_status": [
+    "Closed",
+    "Not proceeding"
+  ],
+  "statuses": [
+    {
+      "name": "With Studio",
+      "colour": "CFE2F3"
+    },
+    {
+      "name": "With Acme",
+      "colour": "FCE5CD"
+    },
+    {
+      "name": "Studio done, please check",
+      "colour": "FFF2CC"
+    },
+    {
+      "name": "Waiting on third party",
+      "colour": "EFEFEF"
+    },
+    {
+      "name": "Closed",
+      "colour": "D9EAD3"
+    },
+    {
+      "name": "Not proceeding",
+      "colour": "D9D9D9"
+    }
+  ],
+  "counts": [
+    {
+      "label": "With Acme",
+      "statuses": [
+        "With Acme",
+        "Studio done, please check"
+      ],
+      "colour": "FCE5CD"
+    },
+    {
+      "label": "With Studio",
+      "statuses": [
+        "With Studio"
+      ],
+      "colour": "CFE2F3",
+      "span": 2
+    },
+    {
+      "label": "Waiting on third party",
+      "statuses": [
+        "Waiting on third party"
+      ],
+      "colour": "EFEFEF",
+      "span": 2
+    },
+    {
+      "label": "Overdue",
+      "overdue": true,
+      "colour": "F4CCCC"
+    }
+  ],
+  "stale_rule": [
+    {
+      "status": "Studio done, please check",
+      "days": 5
+    },
+    {
+      "status": "With Studio",
+      "days": 14
+    }
+  ],
+  "columns": [
+    {
+      "role": "no",
+      "header": "No",
+      "kind": "number",
+      "width": 60
+    },
+    {
+      "role": "ask",
+      "header": "Ask",
+      "width": 300
+    },
+    {
+      "role": "type",
+      "header": "Type",
+      "kind": "dropdown",
+      "values": [
+        "Bug",
+        "Change request",
+        "Question",
+        "Need from client"
+      ],
+      "width": 175
+    },
+    {
+      "role": "status",
+      "header": "Status",
+      "kind": "dropdown",
+      "width": 180
+    },
+    {
+      "role": "next",
+      "header": "Next action by",
+      "width": 140
+    },
+    {
+      "role": "needed",
+      "header": "Needed by",
+      "kind": "date",
+      "width": 100
+    },
+    {
+      "role": "latest",
+      "header": "Latest update",
+      "width": 330
+    },
+    {
+      "role": "updated",
+      "header": "Updated",
+      "kind": "date",
+      "width": 95,
+      "muted": true
+    },
+    {
+      "role": "history",
+      "header": "History",
+      "width": 400,
+      "muted": true
+    },
+    {
+      "role": "raised_by",
+      "header": "Raised by",
+      "width": 100,
+      "muted": true
+    },
+    {
+      "role": "raised",
+      "header": "Raised",
+      "kind": "date",
+      "width": 95,
+      "muted": true
+    },
+    {
+      "role": "closed",
+      "header": "Closed",
+      "kind": "date",
+      "width": 95,
+      "muted": true
+    }
+  ],
+  "sample_rows": [
+    [
+      1,
+      "Contact form sends to the wrong inbox",
+      "Bug",
+      "With Studio",
+      "Sam",
+      "12/11/2026",
+      "Found the cause, fixing today",
+      "05/11/2026",
+      "Sam 05/11: found the cause, fixing today.\nPriya 04/11: test message never arrived.",
+      "Priya",
+      "04/11/2026",
+      ""
+    ],
+    [
+      2,
+      "Brand colours for the new banner",
+      "Need from client",
+      "With Acme",
+      "Priya",
+      "01/11/2026",
+      "Still need the hex codes from the brand guide",
+      "30/10/2026",
+      "Sam 30/10: still need the hex codes from the brand guide.",
+      "Sam",
+      "28/10/2026",
+      ""
+    ],
+    [
+      3,
+      "Export orders to Excel",
+      "Change request",
+      "Studio done, please check",
+      "Priya",
+      "20/11/2026",
+      "Not in the quote: about 1 day. Done on staging, please check",
+      "29/10/2026",
+      "Sam 29/10: done on staging, please check.\nPriya 27/10: approved the extra day.",
+      "Priya",
+      "25/10/2026",
+      ""
+    ],
+    [
+      4,
+      "Who approves refunds?",
+      "Question",
+      "Closed",
+      "",
+      "31/10/2026",
+      "Answered: the finance lead",
+      "30/10/2026",
+      "Priya 30/10: the finance lead approves refunds.",
+      "Sam",
+      "29/10/2026",
+      "30/10/2026"
+    ]
+  ],
+  "extra_tabs": [
+    {
+      "title": "Decisions",
+      "header": [
+        "No",
+        "Date",
+        "Decision",
+        "Decided by",
+        "From ask no"
+      ],
+      "widths": [
+        50,
+        95,
+        460,
+        120,
+        110
+      ],
+      "sample_rows": [
+        [
+          1,
+          "30/10/2026",
+          "Refunds are approved by the finance lead.",
+          "Priya",
+          4
+        ]
+      ]
+    }
+  ],
+  "new_status": "With Studio",
+  "history_date_pattern": "dd/MM/yy"
+}

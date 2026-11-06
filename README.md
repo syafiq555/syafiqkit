@@ -105,6 +105,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
 | `/ci-ssh-deploy-timeout` | Diagnose + fix flaky CI deploys that SSH-timeout to a server (rules out firewall, applies connect-only retry) |
 | `/setup-playwright` | Set up a Playwright E2E suite, or harden a flaky one (per-worker fixtures, seeded test data, throttle-safe auth) |
+| `/setup-tracker` | Set up or fix a shared tracker spreadsheet for a project or for all projects: a status that says whose turn it is, a one-line latest update with history underneath, counts across the top so nobody needs a guide, built in one go from a settings file |
 | `/function-parameter-limits` | Apply + enforce the 0/2/3+ function-parameter rule — advises parameter-object/DTO refactors and sets up the right linter (ESLint/PHPMD/Pylint) with DI-constructor carve-outs |
 | `/hobby-review` | Socratic debrief of a hobby item against the taste rubric in the matching task doc |
 | `/haiku` | Run a task or a named skill on haiku agents instead of the current session, with a verification pass over what comes back |

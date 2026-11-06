@@ -67,6 +67,8 @@ Verify: open 2-3 quotes per agent on the live page yourself, recheck every `not_
 
 ## 5. Render
 
+The generator renders the questions-and-answers card shape. For two documents compared point by point it is the wrong shape (📖 `reading-evidence.md` § Comparing two documents): render a verdict and side-by-side rows instead, with each point anchored on its quote. No script for that layout ships with the skill yet, so build it from the topic's rows and check every quote is found before showing it.
+
 `python3 -I <skill>/scripts/build_guide.py <home>/build --out <home>/guide.html` with `build/guide.json`:
 
 ```json
