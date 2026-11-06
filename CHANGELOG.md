@@ -9,6 +9,11 @@
 - `design-handoff`, `product-still`, `excalidraw-board` and `user-manual` got light wording fixes; `impeccable` is unchanged.
 - Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
 
+## 1.421.1
+
+**`done`: a session that changed no files still gets its knowledge and task-doc steps.** An empty diff now skips only the review agents. A session that only read an email, a PDF or meeting notes still runs `update-claude-docs` and `task-summary`, because what was pasted or attached is lost once the session is cleared. Before, such a session was wrapped up as "nothing to do" and the email's facts had to be captured by hand afterwards.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.421.0
 
 **New skill: `setup-tracker`, for a shared tracker spreadsheet anyone can read without a guide.** Use it to set up a tracker for client asks, change requests, issues and questions, to fix one whose remarks column has turned into a chat log, or to build a master sheet across projects.

@@ -28,7 +28,7 @@ Read `git status --short` and recent commits, then match the session to a mode. 
 
 ⚠️ **The referential-integrity check is the one this mode adds, and a hand-rolled sweep for it reports the corpus broken when the bug is in your extractor.** A defect that common would already have surfaced in a maintained corpus, so when a sweep flags many pointers, suspect the extractor first, and resolve a known-good and a known-bad pointer before trusting a run. 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/editing-skills-checklist.md` owns the method.
 
-**Ambiguous signal:** Empty `git status --short` means work already committed, another writer's tree, or no changes at all. When git errors (no repo, no first commit), run **full mode** with substitutes per 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/verifying-a-write-landed.md`.
+**Ambiguous signal:** Empty `git status --short` means work already committed, another writer's tree, or no changes at all. No changes at all skips Step 1 only: Steps 3 to 5 scan the conversation, not the diff, so a session that only read an email, a PDF or meeting notes still owes them, and its pasted or attached material is gone at `/clear`. **Tell: your Output reads "nothing to wrap up" and Steps 3 and 4 were never invoked.** When git errors (no repo, no first commit), run **full mode** with substitutes per 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/verifying-a-write-landed.md`.
 
 ## Step 1: Simplify + Review + Product Review (parallel)
 
