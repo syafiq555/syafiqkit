@@ -4,11 +4,7 @@ Patterns from a colleague's real WhatsApp messages to another colleague (reporte
 
 ## Shape {#shape}
 
-- All lowercase, almost no punctuation, no emoji.
-- Answer first ("mmg issue", "x jadi issue kot"), then the reason after `sbb`.
-- No greeting beyond replying to theirs (`wsalam`), no closing line.
-- Several short bubbles, one point each. A later bubble adds a follow-up ("untuk X tu kan.").
-- Proof in brackets as names, e.g. "(db1, db2, db3)", never links or tables.
+The bubble, greeting, lowercase and proof defaults are the three bullets under Language in SKILL.md. A later bubble adds a follow-up ("untuk X tu kan.").
 
 ## Spelling {#spelling}
 
@@ -38,7 +34,7 @@ Patterns from a colleague's real WhatsApp messages to another colleague (reporte
 
 ## Code-switching {#code-switching}
 
-Tech terms stay English and lowercase: issue, standard rds, dashboard, region, cost.
+Tech terms stay English and lowercase (issue, standard rds, dashboard, region, cost).
 
 ## Example accepted as written {#example}
 

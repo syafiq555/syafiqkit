@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.420.1
+
+**Tidier `score-loop` and `casual-message` after review.**
+- `score-loop`: a run nobody can answer mid-way stops at its stated cap and keeps fresh reviewers. The round where the reviewer kind changes is marked as a new starting point instead of "was Y".
+- `casual-message`: the several-bubbles shape applies to short casual replies only. Messages to a decision-maker, replies with dates or estimates, and client-group posts keep their own structure. A greeting may still use the name the sender calls the recipient.
+- Update with `claude plugin update syafiqkit@syafiqkit`, then start a new session.
+
 ## 1.420.0
 
 **`score-loop` and `casual-message` learn from two colleague runs.**

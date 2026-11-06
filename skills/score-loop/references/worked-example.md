@@ -16,7 +16,7 @@ The first run of this loop (2026-10-27), on a WooCommerce storefront built from 
 
 A colleague's run (reported 05/11/2026) on a 40-page user manual PDF. Judge persona: a new user who knows nothing about the app. Ten criteria, 0/1/2 each, reported out of 10.
 
-**The stop rule was the user's, not the session's.** The user wanted "stop at 10". The session added its own plateau stop, which the user did not want, and the user extended the round cap twice, from 5 to 10 to 15. Ask for the stop rule and use it as given.
+**The stop rule was the user's, not the session's.** The user wanted "stop at 10". The session added its own plateau stop, which the user did not want, and the user extended the round cap twice, from 5 to 10 to 15.
 
 **A phantom finding from an eyeballed threshold.** One criterion docked pages "more than 25% blank". The judge reported a page as 45% blank; measured between the margins it was 20%. Writing into the rubric how blank space is measured removed the finding.
 
