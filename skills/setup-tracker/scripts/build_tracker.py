@@ -3,7 +3,7 @@
 
 Usage: python3 -I build_tracker.py config.json [--into <spreadsheetId> [--replace]] [--no-samples]
 The token comes from SHEETS_TOKEN if set, else from the gsheets-mcp sign-in (~/.config/syafiqkit/google).
-Prints the sheet URL and writes onEdit-<tab>.gs next to the config.
+Prints the sheet URL and, when the config has an updated or history column, writes onEdit-<tab>.gs next to the config.
 """
 import json, os, re, sys, urllib.parse, urllib.request, urllib.error
 from pathlib import Path
@@ -366,7 +366,10 @@ placeholders = {
 gs = Path(__file__).with_name('onEdit.template.gs').read_text()
 for key, value in placeholders.items():
     gs = gs.replace(key, value)
-out = cfg_path.parent / f'onEdit-{re.sub(r"[^A-Za-z0-9]+", "-", tab).strip("-") or "tracker"}.gs'
-out.write_text(gs)
 print(f'https://docs.google.com/spreadsheets/d/{sid}/edit')
-print(f'Apps Script written to {out}')
+if 'updated' in role or 'history' in role:
+    out = cfg_path.parent / f'onEdit-{re.sub(r"[^A-Za-z0-9]+", "-", tab).strip("-") or "tracker"}.gs'
+    out.write_text(gs)
+    print(f'Apps Script written to {out}')
+else:
+    print('No Apps Script written: the config has no updated or history column for it to keep')

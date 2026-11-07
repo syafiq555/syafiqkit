@@ -22,10 +22,14 @@ window.STILL = {
   numbers: [ /* { n: 1, x: 710, y: 107, size: 44 } */ ],
   connectors: [ /* { d: 'M922 129 C990 140 1000 190 1000 246', dotEnd: true } */ ],
   badge: { x: 1200, y: 28, size: 220, icon: 'house' },   // null to omit; icon is 'house' or an SVG path in a 290x260 box centred on 160,135
+  texts: [ /* { text: 'Record a payment', x: 56, y: 140, size: 74, weight: 700, w: 700, align: 'left', color: '#1f2a37', family: 'inherit' } */ ],
+  chips: [ /* { text: 'Before', x: 56, y: 64, bg: '#e5e9ef', color: '#3c4756', size: 30 } */ ],
 };
 </script>
 <style>
 *{box-sizing:border-box;margin:0}
+.t{position:absolute;line-height:1.15;white-space:pre-wrap}
+.chip{position:absolute;border-radius:999px;font-weight:700;padding:10px 26px}
 body{position:relative;overflow:hidden;font-family:var(--font)}
 .glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.75}
 .card{position:absolute;background:#fff;overflow:hidden;border:1px solid color-mix(in srgb,var(--ink) 12%,#fff);
@@ -111,6 +115,9 @@ body{position:relative;overflow:hidden;font-family:var(--font)}
     const sz = m.size || 44, n = el('div', 'n', { left: m.x + 'px', top: m.y + 'px', width: sz + 'px', height: sz + 'px', fontSize: sz * 0.45 + 'px', background: S.ink });
     n.textContent = m.n; body.appendChild(n);
   }
+  for (const c of S.chips || []) { const e = el('div', 'chip', { left: c.x + 'px', top: c.y + 'px', background: c.bg, color: c.color, fontSize: (c.size || 30) + 'px' }); e.textContent = c.text; body.appendChild(e); }
+  for (const x of S.texts || []) { const e = el('div', 't', { left: x.x + 'px', top: x.y + 'px', width: (x.w || S.width) + 'px', fontSize: x.size + 'px', fontWeight: x.weight || 600, color: x.color || S.inkDeep, textAlign: x.align || 'left', fontFamily: x.family || 'inherit' }); e.textContent = x.text; body.appendChild(e); }
+  await document.fonts.ready;
   document.body.dataset.ready = '1';
 })().catch((e) => { document.body.dataset.ready = 'error'; document.body.dataset.error = e.message; });
 </script>

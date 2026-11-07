@@ -44,7 +44,7 @@ In the capture script, log each element you will crop as `locator.boundingBox()`
 
 ## 3. Compose
 
-Copy `templates/still.html` and `scripts/render.cjs` into a work folder outside the product repo, with the captures in `shots/`. Everything about one image lives in the `STILL` config at the top of `still.html`: canvas, colours, cards (source, crop, position, width, or `slices` to stack parts of one screen), numbered markers, connectors and the badge (`null` to drop it, or any SVG path as its icon). `templates/examples/how-it-works-step.html` and `how-it-works-step-phone.html` are a finished desktop and phone pair to read for spacing.
+Copy `templates/still.html` and `scripts/render.cjs` into a work folder outside the product repo, with the captures in `shots/`. Everything about one image lives in the `STILL` config at the top of `still.html`: canvas, colours, cards (source, crop, position, width, or `slices` to stack parts of one screen), numbered markers, connectors, the badge (`null` to drop it, or any SVG path as its icon), and `texts`/`chips` for a title, a step legend or a big count (a "before vs after" or "8 taps vs 6" series needs them). Markers placed from recorded tap coordinates are only as good as the recording: the trap where a capture helper scrolls before measuring is in 📖 `../motion-clip/references/capture-web-ui.md`. `templates/examples/how-it-works-step.html` and `how-it-works-step-phone.html` are a finished desktop and phone pair to read for spacing.
 
 The composition rules come from published screenshot guidance (sources and the arithmetic in 📖 `references/composition.md`):
 

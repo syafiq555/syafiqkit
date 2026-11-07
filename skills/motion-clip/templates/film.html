@@ -63,6 +63,7 @@ function start() {
   STORY = window.STORY;
   if (!STORY) throw new Error(`${params.get('story') || 'story.js'} did not set window.STORY`);
   STORY.screens = Array.isArray(STORY.screens) ? STORY.screens : [];
+  for (const s of STORY.screens) s.name = s.name || s.file;
   STORY.frame = STORY.frame || 'phone';
   if (!['phone', 'browser', 'none'].includes(STORY.frame)) throw new Error(`STORY.frame must be "phone", "browser" or "none", got "${STORY.frame}"`);
   STORY.duration = STORY.duration || 20;
@@ -689,6 +690,31 @@ function captions(t) {
   for (const c of STORY.captions) lines(c.rows, c.in, c.out, t, L.cap, L.capY, { caption: [c.in, c.out] });
 }
 
+function counters(t) {
+  for (const k of STORY.counters || []) {
+    if (t < k.from - 0.1 || t > k.to + 0.4) continue;
+    const enter = snappy(t - k.from), leave = easeIn((t - k.to) / 0.3);
+    if (enter <= 0 || leave >= 1) continue;
+    const done = STORY.taps.filter((x) => x.at >= k.from && x.at <= k.to && x.at <= t);
+    const pop = done.length ? Math.max(0, 1 - (t - done[done.length - 1].at) / 0.35) : 0;
+    const size = L.vertical ? W * 0.05 : H * 0.05;
+    const text = `${k.label}  ·  ${done.length} ${done.length === 1 ? 'tap' : 'taps'}`;
+    g.save();
+    g.font = font(size, true);
+    const w = g.measureText(text).width + size * 1.6, h = size * 1.75;
+    const x = L.vertical ? W / 2 : L.textX + w / 2, y = (k.y ?? (L.vertical ? 0.215 : 0.6)) * H;
+    const s = (0.92 + 0.08 * clamp(enter)) * (1 + 0.06 * pop);
+    g.globalAlpha = clamp(enter) * (1 - leave);
+    g.translate(x, y); g.scale(s, s);
+    roundRect(-w / 2, -h / 2, w, h, h / 2);
+    g.fillStyle = color(k.bg || 'surface'); g.fill();
+    g.lineWidth = size * 0.08; g.strokeStyle = color(k.color || 'ink'); g.stroke();
+    g.fillStyle = color(k.color || 'ink'); g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text, 0, size * 0.05);
+    g.restore();
+  }
+}
+
 function hook(t) {
   const size = L.hook;
   const cy = H * (L.vertical ? 0.44 : 0.46);
@@ -1086,6 +1112,7 @@ function drawFrame(t) {
   hook(t);
   drawDevice(t);
   captions(t);
+  counters(t);
   photos(t);
   numberScene(t);
   statScene(t);

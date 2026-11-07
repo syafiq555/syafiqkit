@@ -28,7 +28,7 @@ tools/gsheets-mcp/bin/gsheets-mcp check                                # confirm
 
 `drive.file` reaches only files this sign-in created or was handed, so a request for any other Drive file answers 404. The upload tools refuse files holding credentials (this sign-in's own folder, `~/.ssh`, `.env` files).
 
-Each person signs in with their own Google account and OAuth client; nothing is shared through the repo.
+Each person signs in with their own Google account and OAuth client; nothing is shared through the repo. An OAuth client created as Internal inside a Google Workspace signs in only that Workspace's accounts. Any other account (a personal Gmail) gets `Error 403: org_internal`, so it needs an External client of its own, or a `SHEETS_TOKEN` from the OAuth Playground for a one-off build. Publish that client's consent screen (Audience, In production) before signing in, because a client still in Testing issues sign-ins that expire after 7 days. Publishing asks for a homepage and a privacy-policy link on the Branding page. Keep each account in its own folder and run `GSHEETS_CONFIG_DIR=<folder> bin/enable` in the repo that should use it. The registration carries the folder, so one repo can use a personal account while the others keep the work one.
 
 ## Switching it on for a project
 

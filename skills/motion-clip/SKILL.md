@@ -40,9 +40,9 @@ The five beats are a starting shape; followed blindly they make every film look 
 
 ## 2. Write the story
 
-Copy `templates/film.html`, `templates/story.js`, `scripts/render.mjs`, `scripts/score.py` (and whichever of `voice.mjs`, `kokoro_tts.py`, `words.py`, `image.mjs`, `depth.py` the brief needs) into the clip folder, with `assets/` beside them. Renderer paths are relative to the folder `render.mjs` sits in, not the shell's.
+Copy `templates/film.html`, `templates/story.js`, `scripts/render.mjs`, `scripts/score.py` (and whichever of `voice.mjs`, `kokoro_tts.py`, `words.py`, `image.mjs`, `depth.py` the brief needs) into the clip folder, with `assets/` beside them. Renderer paths are relative to the folder `render.mjs` sits in, not the shell's, and the render server serves only that folder: a `../` picture 404s and draws as "missing", so copy pictures in.
 
-`film.html` is the engine and is not edited per film. Everything about one film lives in `story.js`: frame, colours, fonts (a `file` per brand font, or none for a system font), logo, picture size, when each picture shows and how it enters (`via: 'push'` or `'fade'`), taps, camera keyframes, captions, an optional number scene and the closing lockup. The starter is a 15-second browser film with placeholder words; `templates/examples/autorentic.story.js` is a finished 20-second phone film for timing and camera work. An uncaptured picture draws as a "missing" card, so the story can be blocked out first.
+`film.html` is the engine and is not edited per film. Everything about one film lives in `story.js`: frame, colours, fonts (a `file` per brand font, or none for a system font), logo, picture size, when each picture shows and how it enters (`via: 'push'` or `'fade'`), taps, camera keyframes, captions, an optional number scene and the closing lockup. The starter is a 15-second browser film with placeholder words; `templates/examples/autorentic.story.js` is a finished 20-second phone film for timing and camera work. An uncaptured picture draws as a "missing" card, so the story can be blocked out first. A story built by code (screens and taps generated from a list) wraps itself in `(() => { ... })()`: it shares the page's global scope with the engine, so a top-level `const camera` or `screens` fails to load with "already been declared".
 
 The engine already holds what took iteration to get right:
 
@@ -57,7 +57,7 @@ Two scenes carry the number beat: `stat` counts up to a figure with a label and 
 
 When a device beside captions reads as basic, the engine has more: `spotlights`, `cursor`, `tilt`, `motionBlur`, `ambient`, `softText`, `photos`, `products`. 📖 `references/premium-motion.md` before using them: which help a viewer follow the screen and which only decorate.
 
-`screens`, `number`, `stat`, `success`, `taps`, `music`, `voice`, `subtitles`, `backdrops` and `lockup` are optional; a film without `lockup` ends with no logo, which the brief should mean on purpose. The logo blends with `multiply`, which suits white; on a dark page set `logoBlend: 'source-over'` and use a transparent PNG.
+`screens`, `number`, `stat`, `success`, `taps`, `music`, `voice`, `subtitles`, `backdrops` and `lockup` are optional; a film without `lockup` ends with no logo, which the brief should mean on purpose. A before/after or app-versus-app film counts effort with `counters: [{ from, to, label, color }]`: a pill under the captions showing how many `taps` have landed between `from` and `to`, so each side's count comes from the same taps the viewer sees. Give both sides the same seconds per tap, or the edit, not the product, decides which looks slower. The logo blends with `multiply`, which suits white; on a dark page set `logoBlend: 'source-over'` and use a transparent PNG.
 
 Run one stills render after copying to catch a missing logo, font or backdrop (the renderer logs any file it cannot load; screens draw as "missing" until §3). Take the times from your own beats, and clear `out/stills` between rounds or old frames mix into the sheet. The `x` argument, `STORY=<path>` and watching while writing: 📖 `references/review-lenses.md#render-pitfalls`.
 

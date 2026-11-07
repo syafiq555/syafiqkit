@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.421.6
+
+**`motion-clip` counts taps on screen and stops two silent failures; `product-still` gets a text layer.**
+- `film.html` has `counters: [{ from, to, label, color }]`: a pill under the captions counting the story's taps between `from` and `to`, for before/after and app-versus-app films. It reads only `t`, so `check` still passes. The SKILL says to give both sides the same seconds per tap.
+- A screen given only `file` now takes the file as its `name`. Pictures are keyed by name, so several `file`-only screens all collided as `undefined` and showed the same picture.
+- The SKILL says a story built by code wraps itself in `(() => { ... })()`: it shares the page's scope with the engine, and a top-level `const camera` failed with "already been declared". It also says the render server serves only the clip folder, so a `../` picture draws as "missing".
+- `capture-web-ui.md`: measure tap boxes without scrolling. A helper that centred each element before measuring put every marker on the wrong control; hidden duplicates report 0,0.
+- `product-still`'s `still.html` draws `texts` and `chips` (title, legend, big count) and waits for fonts; the SKILL names them and points at the tap-coordinate trap.
+- `setup-tracker`: a sheet without the history script keeps its trail in the Latest update cell. Each reply is a new line starting with who and the date ("Syafiq 07/11: ..."), appended, never written over. Leaving the record to Google's edit history let an update erase the earlier reply.
+
+## 1.421.5
+
+**`setup-tracker` asks whose Google account a sheet belongs in, and stops writing a script nobody needs.**
+- New context question: whose account owns the sheet. Side work or a personal client may want a personal account, while the sign-in is the work one. A tracker was built in the wrong account and had to be rebuilt.
+- The sign-in section now says that nothing on disk names the sign-in's account, so it has to be confirmed first. It also says that an OAuth client created as Internal in a Google Workspace refuses outside accounts (`403 org_internal`), and gives the way round it: a `SHEETS_TOKEN` from the Playground signed in as the other account, then revoking the Playground.
+- `build_tracker.py` writes `onEdit-<tab>.gs` only when the config has an `updated` or `history` column. A sheet whose owner declined the script no longer gets one.
+- A two-party tracker can use three statuses ("Pending us · Pending them · Closed"); an owner chose exactly that.
+- `gsheets-mcp` README: an Internal OAuth client cannot sign in an outside account.
+- `reverse-engineer` step 1 (where the debug window is opened) now says how to close it: by its profile with `pkill`. Quitting the browser by app name closed the user's own Brave windows too.
+- `setup-tracker` hand-over: a link to a Restricted sheet gave the client "You need access". The owner now sets General access (Anyone with the link: Editor, or the reader's address) before the message goes, and an anonymous CSV export confirms the link opens.
+- `gsheets-mcp`: `GSHEETS_CONFIG_DIR=<folder> bin/enable` now registers the server with that folder, so one repo can sign in as a second Google account. Before, the check used the folder while the registration fell back to the default. The README explains publishing a second client (In production, or sign-ins expire in 7 days).
+
 ## 1.421.4
 
 **Fixes from reviewing the design refresh, and two lessons for future refreshes.**
