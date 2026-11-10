@@ -11,8 +11,10 @@ description: >-
   house style with a real-browser inspector, and runs a look-and-fix loop on screenshots. Vendored
   from tasteskill v2 (MIT). NOT for screens inside an existing app or for working within an app's
   established design language (that is `uiux`), for a scored critique with no rebuild (`uiux`), or
-  when the user names impeccable (`impeccable`). An image composed from the product's own screens
-  for such a page (a how-it-works step, a feature or hero composite) is `product-still`. App screens run here only
+  when the user names impeccable (`impeccable`); its review path (inspector and lint on the live
+  screen, no rebuild) still runs on a customer-facing app screen such as a checkout or sign-up form
+  when `uiux` calls it before a redesign goes for approval. An image composed from the product's own screens
+  for such a page (a how-it-works step, a feature or hero composite) is `product-still`. Beyond that review path, app screens run here only
   when the user asks for taste by name.
 ---
 
@@ -44,6 +46,12 @@ in `.taste-skill/`. Requirements: Node 22+ and Chrome, Edge or Chromium; the scr
   follows **the run** below.
 - **An app screen** is worked in (dashboard, admin, settings, billing, inbox, filtered list, editor). It
   follows **`references/app-screens.md`**, read whole first, with `draw.mjs --app` and `inspect.mjs --app`.
+- **A reading page** is read to understand something and sells nothing (an internal guide, an explainer,
+  documentation). It takes the review path: the house rules and laws hold, `lint.mjs` and `inspect.mjs`
+  run, but `few-pictures`, `still-page`, `no-footage` and `focal-point` are defended in one line each where
+  no honest picture exists and motion would cost the reader. Those floors exist to win a visitor's
+  attention, and on a page whose job is comprehension they push in imagery and movement that compete with
+  the text.
 
 A product site that shows its app is a page; its interface fragments follow the app rules. Deal the app
 style once, keeping the page's colours and type:

@@ -36,6 +36,14 @@ A whole screen shown at two-thirds of a 9:16 frame leaves its UI unreadable on a
 
 A film played in a room while someone presents (a pitch, tender or keynote) reads best as full-frame `photos` with a `focus` and `zoom` push-in per screen and short labels. Side by side in 16:9, the screen takes half the frame and the camera zoom is damped, so UI text is unreadable from the back of a room. Keep a `rows` subject above the caption band: a strong `scrim`, and a `focus` that puts the subject in the upper 60% of the frame.
 
+## Personal photo films {#photo-film}
+
+An anniversary, birthday or family film is a run of full-frame `photos` with `frame: 'none'`, no screens and an optional `stat` ("3 / tahun kita") before the `lockup`. The brief's "could it belong to someone else" answer is the captions: each names a real moment of theirs, from the person's own words.
+
+- **Overlap the photos.** With each `to` equal to the next `from`, the old photo fades while the new card is still opening, and the page colour flashes at the edges for a few frames. Set each `to` about 0.6 s past the next `from`: the next card is drawn on top, so the old caption never shows through.
+- **Landscape photos in 9:16 keep one face.** A 3:2 photo cropped to 9:16 keeps about a third of its width. Pre-composite each one whole on a blurred, darkened copy of itself (ImageMagick: clone resized to fill and blurred, then the photo resized to the frame width and centred) and use that file.
+- **Choosing from a phone library** is the slow part. On macOS the Photos library's own index (`Photos.sqlite`, read from a copy) already tags people and scores each photo, so pick a person's photos per month by score, export them by id through Photos' AppleScript, and show the user a numbered contact sheet to choose from. Never pick from albums by name alone: they mix in receipts and screenshots.
+
 ## Number beat examples {#number-examples}
 
 `stat` examples: "99.9%", "3x faster". `number` examples: twenty bills merged into one payment, twelve tools merged into one app.

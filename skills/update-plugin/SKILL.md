@@ -1,7 +1,7 @@
 ---
 name: update-plugin
 description: >
-  Scan the session for learnings about the syafiqkit plugin itself, then patch the affected skill files — trigger descriptions, workflow steps, gotcha and rule tables. Use it when a skill misfired (triggered wrongly, stayed silent when it should have fired, a step turned out wrong mid-execution, or you worked around its instructions), when a session hand-edited a skill/command/agent file even with no defect, and as a near-session-end sweep. Cue phrases: "update the plugin", "capture this for the skill", "improve the skill based on this session", "fix the skill trigger". It patches skills that already exist — creating a new one is `skill-creator`, a project gotcha or a general communication preference is `update-claude-docs`.
+  Scan the session for learnings about the syafiqkit plugin itself, then patch the affected skill files: trigger descriptions, workflow steps, gotcha and rule tables. Use it when a skill misfired (triggered wrongly, stayed silent when it should have fired, a step turned out wrong mid-execution, or you worked around its instructions), when a project session built something other projects would reuse ("make this reusable", "could this be a skill", "use this in other projects"), when a session hand-edited a skill/command/agent file even with no defect, and as a near-session-end sweep. Cue phrases: "update the plugin", "capture this for the skill", "improve the skill based on this session", "fix the skill trigger". It patches skills that already exist; creating a new one is `skill-creator`, a project gotcha or a general communication preference is `update-claude-docs`.
 ---
 
 # Update Plugin — Capture Session Learnings into Skill Files
@@ -40,6 +40,7 @@ Capture gaps, not presence of working code. Trigger misfires, wrong steps, missi
 | Workflow step was wrong or corrected mid-execution | Body of that step | The corrected instruction |
 | Rule was missing, or a keyword trap has no home | Relevant skill's rules section | The principle, with a concrete example |
 | Rule was PRESENT and broke anyway | Step 1a diagnosis | Usually a route or instrument change, not re-wording |
+| Reusable work built inside a project that no skill or plugin tool carries (a generic generator or checker, a procedure found by trial and error, an API call hand-rolled with a minted token) | A new skill via `skill-creator`, an existing skill's body, or a new or extended plugin MCP server (when the reusable part is reaching an outside system: an API, a Google file, a vendor portal) | Recommend one and ask before building; the session that built it is the cheapest time to lift it out |
 | New skill created this session | `CLAUDE.md` and `README.md` registries | Entry with trigger and purpose |
 | Existing skill changed meaningfully | CHANGELOG + `Last updated` note | What the change enables |
 | Architecture or composition decision | `plugin-maintenance/current.md` decisions | Decision and rationale |

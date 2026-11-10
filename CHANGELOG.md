@@ -1,5 +1,117 @@
 # Changelog
 
+## 1.421.23
+
+**Review fixes across the 1.421.7 to 1.421.22 batch.**
+- **`explainer-deck`:** a spec with no sources used to pass every check and print `OK`, so the build now also prints `UNCHECKED` when there is nothing to check against. Step 2 says PDFs and .docx files go through `doc-to-md` first, since the checker cites text by line. Step 5 says sharing is a manual hand-off: no plugin tool sets Drive sharing. `references/google-slides.md` gains a "Before you start" list: the `gsheets` server switched on, which Google account owns the deck, and `pdftoppm`/`magick`.
+- **`gsheets` `cells_awaiting_reply`:** `yourLast` showed only the last colour run, so a bolded word cut your line short. It now joins your consecutive runs (one new test, 44 pass).
+- **`remote --sync`:** a non-zero rsync exit no longer claims nothing was sent, since exits 23 and 24 are partial transfers.
+- **`/done`:** the exit gate's Plugin row now names Gate C (reusable project work) alongside A and B, so a session that trips only C keeps the row.
+- **`taste`:** its description no longer ends by contradicting the review path `uiux` calls.
+- **`haiku`:** a new em dash in its description is gone, and README's row mentions the volume trigger.
+- **This repo's own `Plan` and `task-builder` agents** now route focused builds to task-builder, matching 1.421.19.
+
+No action needed beyond `claude plugin update syafiqkit@syafiqkit`.
+
+## 1.421.22
+
+**`gsheets` server gains `cells_awaiting_reply`: which tracker rows wait for your reply, in one call.** Checking a 64-row client tracker, both `values_get` and `cells_read_rich` spilled to files and the session wrote Python over the dumps; its first pass judged each cell by the name at the start of its last line and missed client lines with no name. The new tool takes the reply column and your colours, and lists only cells where text in another colour follows your last line, with `alsoRead` for each row's other columns and `statusColumn` to leave out Closed rows (half of the first live run's 18 cells were "verified" lines on Closed rows). The server's instructions now point a tracker check at it, and its description says a row owed without a new client line (a stale promise of ours) still needs reading by hand.
+
+## 1.421.21
+
+**`motion-clip` renders under `caffeinate -dims`.** A 30 s render on power, lid open and Low Power Mode off still died about 10 minutes in with a 30-second canvas `locator.screenshot` timeout, the machine's display-sleep setting; the same three renders passed once each ran under `caffeinate -dims`. The render step now says to prefix each video command with it, and `references/review-lenses.md#render-pitfalls` records the case beside the lid and Low Power Mode ones. No action needed.
+
+## 1.421.20
+
+**`casual-message` gathers real moments before drafting a heartfelt message to a partner or family, and `motion-clip` covers personal photo films.** An anniversary wish built from categories (money, pregnancy, fights) was turned down twice as too general; it landed once the session asked one question at a time for scenes only the sender held, aimed at the year the occasion marks rather than a how-we-met recap. `motion-clip` gains a "Personal photo films" section in `references/premium-motion.md`, pointed at from the frame table: overlap each photo about 0.6 s past the next one's start (otherwise the page colour flashes at the edges on every transition), pre-composite landscape photos on a blurred copy of themselves for 9:16, and pick from a phone library by the Photos index's people tags and quality score with a numbered contact sheet, not by album name. No action needed.
+
+## 1.421.19
+
+**`task-builder` is for any focused, non-trivial build, not only parallel partitions.** Its template description said to dispatch it only once work was split into file partitions, and to build "a small single-file change with no partitioning need" directly, so a focused build of several files (template, styles, unit test, live check) ran in the main session. The user: "task-builder is more for complex but focused than main agent". The description now opens with that case: one builder for one focused unit, in its own context, while the main session keeps the plan, the verification and the user; trivial edits (a word, a line, one value) stay direct. `agent-setup`'s roster row and the `Plan` template's "build it directly" clause say the same, so Plan's skip route points at task-builder. Re-run `agent-setup` (or hand-edit the two descriptions) in projects generated before this.
+
+## 1.421.18
+
+**`haiku` counts empty research cells before relaying.** The rule to re-brief once at a different source kind when most cells come back "not found" lived only in `references/verifying-research.md`, which nothing opens when the results return, so on 10/11 a live-store checkout survey (Shopee, Lazada, Watsons, Zalora) mostly empty went to the user with a caveat. The check now sits in SKILL.md's research-verification line, with source kinds to try (walk-through articles with screenshots, app-store listings, a live page driven in a browser), and says a caveat is not the second pass.
+
+## 1.421.17
+
+**`haiku` fires on volume, not only on its name.** It used to trigger only when a request named haiku or asked for parallel agents, so a sweep over 100+ items (every UAT case against the plugin source, every feature shipped since a date) went to one agent or ran inline, which reads the tail thinly while claiming full coverage. The description now opens with that brute-force case, "When to dispatch" says volume is the trigger and to split by section, tab, commit or file, and the plugin `CLAUDE.md` lists `haiku` under proactive invocation. Came from a UAT refresh where the user had to ask for haiku mid-task, then asked for it as the default.
+
+## 1.421.16
+
+**`uiux`'s approval gate now runs `taste`'s review path beside the `impeccable` critique.** Before a redesign direction goes to the user, a screen a customer sees also gets `inspect.mjs --app` and `lint.mjs` at its three widths, and a critique of an unbuilt direction says in its header that the detector had nothing to scan instead of being skipped. `taste`'s description now says its review path runs on a customer-facing app screen (a checkout, a sign-up form) when `uiux` calls it. Third time `taste` was left out (20/10, 08/11, 10/11): the earlier fixes added a rule for "use all" requests, which a normal redesign never reaches, while the gate that does fire named only `impeccable`. On 10/11 a checkout redesign went through research and critique, the user asked "how do u know taste is not ? probably got something can improve also", and the inspector then found UK field labels ("State / County", "Postcode / ZIP"), a save tick that read as disabled, and 2.7:1 footer text.
+
+## 1.421.15
+
+**`impeccable` updated from 4.8.1 to 4.8.2 (upstream tag `skill-v4.8.2`, commit `035c8f3`, engine 0.1.19 to 0.1.21).**
+- Upstream 4.8.2 is an engine and live-mode release: `scripts/VERSION` and `scripts/engine-checksums.txt` now pin engine 0.1.21, so the first run after updating downloads it to `~/.impeccable/bin/0.1.21/` (checked: `impeccable context` runs from `/tmp`, exit 0).
+- `scripts/live-browser.js` fixes two live-mode bugs: an accepted variant now stays styled on a static page with no hot reload (it used to fall back to showing the original and the other variants), and page fonts are kept in live captures in three more cases (fonts behind redirected stylesheets or `@media`/`@supports` wrappers).
+- No reference or command changed: SKILL.md differs only in its version line, and no file was added or removed.
+- The four local changes are re-applied unchanged, since upstream still has none of them: the description that routes to `taste` and `uiux` when impeccable isn't named, the `UPDATE_AVAILABLE` paragraph pointing at a re-copy instead of `npx impeccable update`, the `product-reviewer` bullet in critique's sub-agent gate, and the regex-only detector notes in critique and new-work. `SOURCE.md` records the new commit.
+
+## 1.421.14
+
+**`gsheets-mcp` replies in a cell that holds a Drive file chip, when the sign-in can open the file.** `cell_append_line` and `cell_replace_text` used to refuse every chip cell. Tested live (10/11/2026), Google takes a rewrite back in one form only: each chip collapsed to a single `@` in the text, with chip runs that carry a chip and no end markers ("Chip run must have a chip"). Colour runs after a chip move left by the chip title's length minus one. On read, a chip spans its whole file title, so both tools now collapse it before planning, write `chipRuns` back, and compare the read-back the same way. Google also re-fetches the linked file on every rewrite, and refuses ("Error fetching chip data: Permission denied") when the signed-in account can't open it. Under the `drive.file` scope that is any file the tool didn't create, so the tool now says which file blocked the write and that nothing was written, instead of refusing up front. `cell_replace_text` refuses a `find` that covers a chip. The server now asks for `drive.readonly` too, so a chip linking any file the account can see is in reach: run `gsheets-mcp auth` once to re-consent, since a token without it is refused at sign-in. Came from a client tracker where two replies (a `.pptx` and an `.xlsx` the client attached) had to be pasted by hand.
+
+## 1.421.13
+
+**`gsheets-mcp` gains `cell_replace_text`.** It replaces one exact piece of text in a cell (it must occur once) and keeps everyone else's text colours: the replacement gets an explicit colour, black by default, the text after it keeps the colour it had, and the cell is read back. It shares `cell_append_line`'s refusals (a hidden merged cell, a Drive file chip, a formula or number). Came from a session that rewrote its own replies in a client's tracker three times (bullets, numbers, then lettered lists) by hand-building `batchUpdate` colour runs with character offsets, with the client's blue lines at stake each time. The server's `CLAUDE.md` now says, where the code is edited, that a changed server is reloaded through `/mcp` (reconnect `gsheets`), since `/reload-plugins` leaves a `claude mcp add` server on its old tool list; that trap hit twice, its note living only in a reference.
+
+**The Done button asks for a fresh run, and `update-plugin` looks for skills answered without being invoked.** Twice in one session the button's "Use the done skill to wrap up this session." was answered from memory as already wrapped, so the CLAUDE.md and plugin captures never ran until the user invoked them by hand; the next `update-plugin` scan missed it as well. The prompt now says to invoke it even if it ran earlier, and Step 1 of `update-plugin` counts a request naming a skill with no Skill call after it as a signal. The `gsheets-mcp` tests are renamed `*.spec.ts`, so `claude plugin test .` no longer fails on three files it cannot load as mod tests.
+
+## 1.421.12
+
+**`remote --scp` / `--sync` say when an upload failed.** A non-zero rsync exit used to return silently (only success printed "Sent"), so a server without rsync showed just openrsync's "child exited with status 127" and the next command ran against a file that never arrived. It now prints "Upload failed (rsync exit N): <file> was not sent to <dest>" with the likely cause and the scp fallback. Came from a session that uploaded a PHP script to two hosts lacking rsync and ran it twice before noticing.
+
+## 1.421.11
+
+**`ship` reviews this session's own code written after `/done`, not just other sessions' commits.** Its review gate was worded around code "this session neither wrote nor saw through `/done`", so a session's own review fixes and late additions (written after the reviewers returned) matched neither half and shipped with a "not agent-reviewed" summary line, the disclosure the gate exists to replace. Before the push it now diffs from the commit each reviewer last saw and sends any non-trivial delta to a reviewer first. Came from a payment-gateway session whose post-review fixes and new customer page reached staging unreviewed; the next review found an order-existence leak in the new redirect, an exhaustible rate cap, a stale outcome that could lead to a double payment, and wrong copy.
+
+**`done`'s brief guidance: a re-review after a fix names the class, not the instance.** A brief asking "any remaining way to get an order key" got an answer about keys while the fix had moved the leak into a redirect target; the leak surfaced only when a later brief asked whether anything differed by order id at all.
+
+## 1.421.10
+
+**`explainer-deck` gains a user journey slide.** A deck explaining a system now shows, before each mechanism a person goes through, that person's journey: one named person, 2 to 6 moments each with a lucide icon, what they do, where it happens (outside the system, by email, a named screen, an outside tool) and what it does to the example, with everyone else's work in cards under an "Out of Aina's sight" line. An alternative path drops to a dashed second row numbered `3b`, so two outcomes never read as one sequence. The checker refuses a screen or tool not named within 3 lines of a cited source line, a condition that does not read as one (If, Once, After, Until, When), and figures outside the files the slide's `numbers` kind allows. SKILL.md now says a journey sits beside the mechanism slide, never instead of it, and that two options a client has not chosen between are shown as what gets built plus an "If ... instead" slide, not "Option A/B". Came from a walkthrough deck where a swimlane of every actor read as "all I see is a bunch of boxes" and replacing the mechanism pictures lost what had been asked for the day before. Needs `lucide-static` and `@resvg/resvg-js` in the cache folder's `package.json`.
+
+**`casual-message` and `explainer-deck` check that a link opens for its readers.** A draft carrying a link to a file the session made is checked signed out first, and access is asked for and set before the draft is handed over, rather than footnoted. `explainer-deck`'s hand-over step does the same for the deck. Came from a team message pointing at a deck only its owner could open.
+
+**`setup-tracker` knows how to change a live tracker's status list.** Its Sheets API traps now cover the Table dropdown: `setDataValidation` is refused on a typed column (and sinks the whole batch), so the list changes through `updateTable` with every column listed, followed by the values, colours, counts and the config.
+
+## 1.421.9
+
+**New `explainer-deck` skill, and `gsheets-mcp` can now show what Google drew.** Both come from a session that built a 45-slide walkthrough deck by hand.
+- `explainer-deck`: a deck explaining a system or document to a live audience is written as one JSON spec, and `scripts/build.js` checks and draws it (pptxgenjs). It has 10 picture kinds (flow, split, compare, panels, waterfall, share, timeline, clocks, ladder, ledger), each beside a worked example badged by where its figures come from: from the source, worked from source figures, or made-up.
+  - The build refuses a quote not near its cited line, a derived figure badged as quoted, parts that don't add up, a heading over 5 words, a flow over 5 steps (Google broke the words of a 7-step row mid-way) and an em dash.
+  - Figures match as whole numbers (`0%` no longer passes inside `80%`). Whole currency amounts and durations count as figures. Text and table slides are checked too, and a quote must be at least 20 characters. Review found that each of these let a wrong figure through.
+  - Text is sized by the script, because Google ignores shrink-to-fit. The research found that pptxgenjs's `fit: 'shrink'` only writes `normAutofit`, which PowerPoint computes when it opens the file (gitbrent.github.io/PptxGenJS/docs/api-text). None of Marp, Slidev or Quarto checks text length before rendering, so the check is our own.
+  - Generalised from beacon-mart's walkthrough deck; `example/` is a made-up six-slide deck, built and checked in Google's render.
+- `gsheets-mcp`: `drive_file_export` saves a Google Doc, Sheet or Slides file as Google renders it (pdf by default). `slides_thumbnails` saves one PNG per slide. It needs the Slides API enabled in the sign-in's Cloud project, and Google allows about 60 a minute per user (developers.google.com/workspace/slides/limits).
+  - These replace a `curl` export with a hand-minted token.
+  - Both write only to an absolute path, and they check it before creating any folder. They refuse a credentials folder (also through a symlinked parent), a `.env` or `.netrc` name and a symlinked target. They are marked destructive because they overwrite.
+  - `drive_file_update` now says a Slides file stays Slides when given a .pptx (checked live).
+- `understanding-guide`: routes a deck for a meeting to `explainer-deck`.
+- **Wrap-ups now ask whether anything is reusable.**
+  - `done` Step 5 has a third gate: something built inside a project that another project would have to rebuild, and no skill or plugin tool carries it. For each one it recommends a new skill, a skill update, or a new or extended plugin MCP server where the reusable part is reaching an outside system, and asks before building.
+  - `quick-done` asks the same question, and `update-plugin` gains the scan row and the trigger vocabulary ("make this reusable", "could this be a skill").
+  - `done` Step 1: before granting a write partition, run `ListAgents` and ask any live peer in the repo about the files. An untracked file has no diff to read, and after a compaction the "files I remember editing" are the summary's list. This run's simplifier rewrote two untracked files a peer had restructured that morning; the mtime check that would have caught it sits in `owner-and-partition.md`, which was never opened. Ownership rules have recurred often (see 1.177.0 and earlier), so this adds an observable check rather than more wording.
+  - Gates A and B only fire when a skill misled the session or a plugin file was edited. This session's deck generator and its `curl` export fired neither, and became a skill and two MCP tools only because the user asked (Syafiq 09/11: "always see if anything is reusable for other projects to either create skill/update skill").
+
+## 1.421.8
+
+**Design skills and haiku dispatch, from a session that built a walkthrough page with every design skill and seven haiku writers.**
+- `haiku`: a fill-in shape (fields like `default`, `owner`, `row`) gets a sanctioned empty answer and the decision records to grep, and its returned fields are read against their sources. Seven stop-writing agents invented four defaults the sources never set, one contradicting a recorded decision, and every quote check passed.
+- `brainstorming` Step 4 and `uiux`: a design goes in the reply above the question and again in the option `preview`. The old rule put it only in the preview, which contradicts the 2026-10-27 case of a preview that never rendered.
+- `uiux`: "use all" design skills runs `uiux`, `impeccable` and `taste` together, with `taste` on its review path for a page it would not own.
+- `taste`: a reading page (guide, explainer, docs) takes the review path, and the picture, motion, footage and focal-point floors are defended rather than met.
+- `impeccable` (fourth local change, recorded in `SOURCE.md`): an `UPDATE_AVAILABLE` notice is answered by re-copying per `SOURCE.md`, not `npx impeccable update`, which writes a second copy into the current project.
+
+## 1.421.7
+
+**`impeccable` updated from 4.7.0 to 4.8.1 (upstream commit `924bbd1`, engine 0.1.16 to 0.1.19).**
+- The launcher now checks every engine it downloads or caches against a new `scripts/engine-checksums.txt`, and refuses a leftover sibling binary whose version differs from `VERSION`, so an update that copies files over the folder no longer keeps running the old engine. First run after updating downloads engine 0.1.19 to `~/.impeccable/bin/0.1.19/` (checked: `impeccable context` runs from `/tmp`).
+- Upstream wording changes across 18 references (critique, new-work, audit, craft-floor, android, document, init, live, visualize and the degraded fallbacks, among others) and the live-browser scripts. No command was added or removed.
+- The three local changes are re-applied unchanged, since upstream still has none of them: the description that routes to `taste` and `uiux` when impeccable isn't named, the `product-reviewer` bullet in critique's sub-agent gate, and the regex-only detector notes in critique and new-work. `SOURCE.md` records the new commit.
+
 ## 1.421.6
 
 **`motion-clip` counts taps on screen and stops two silent failures; `product-still` gets a text layer.**

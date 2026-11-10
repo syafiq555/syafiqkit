@@ -39,7 +39,7 @@ The three roles see the diff through different lenses:
 
 ### Ownership & Partition
 
-Judge file ownership by diff *content*, since the harness auto-stages your own writes identically to a peer's. Read the diff before spawning agents.
+Judge file ownership by diff *content*, since the harness auto-stages your own writes identically to a peer's. Read the diff before spawning agents. Two cases leave nothing to read. An untracked file has no `git diff HEAD`. And after a compaction, "files I remember editing" is the summary's list, written before any peer touched them. So before granting a write partition, run `ListAgents`, and ask any live peer in the same repo about each file you would hand out. A summary's file list is a claim about the past, not ownership now (09/11/2026: a simplifier rewrote two untracked files a peer had restructured that morning).
 
 **Ban these verbs in every agent prompt: `stash`, `checkout -- .`, `reset`, `clean`, `restore`, `commit`, `push`.** A file partition scopes reads, never git commands: one agent reaching for a clean baseline collides with your uncommitted work or a peer's, so naming the verbs is the guard. A report-only brief also names the project's build and generator scripts as writes. An agent checking whether a generated file is stale will otherwise run the generator and rewrite it, so tell it to use the tool's check mode or a scratch path.
 
@@ -112,7 +112,7 @@ Run Step 3 before Step 4. Both skills scan the same conversation and decide rout
 
 Steps 3+4 write to the *project*; this writes to the *plugin*, a global artifact shared across every project.
 
-Two gates. **Gate B** fires when this session wrote to `skills/**/*.md`, `commands/*.md` or `.claude/agents/*.md`, defect or no. **Gate A** fires on a real skill signal: something misfired, a step was wrong, you worked around an instruction.
+Three gates. **Gate B** fires when this session wrote to `skills/**/*.md`, `commands/*.md` or `.claude/agents/*.md`, defect or no. **Gate A** fires on a real skill signal: something misfired, a step was wrong, you worked around an instruction. **Gate C** fires when the session built something inside a project that another project would reuse, and no skill or plugin tool carries it yet. Examples: a generator or checker whose logic names nothing project-specific, a multi-step procedure worked out by trial and error, or an API call hand-rolled with `curl` and a minted token. Answer it by asking "would the next project have to rebuild this?" For each yes, recommend creating a skill (`skill-creator`), extending an existing skill, or a new or extended plugin MCP server where the reusable part is reaching an outside system (an API, a Google file, a vendor portal; `gsheets-mcp` gained its export tools this way), and ask the user in this step's `AskUserQuestion` before building, since a skill is hours of work and ships to every project. **Tell: the session's most reusable artifact sits in a project folder, and your Plugin row says no gate fired.**
 
 **Gate B only says the plugin tree changed, so it cannot tell you whether a skill misled you**, and reverting a bad edit erases the evidence it looks for. **Gate A is answered by recalling the session** (did a skill send you somewhere wrong, or did you correct or work around a step?), not by a status command.
 Check the plugin tree with:

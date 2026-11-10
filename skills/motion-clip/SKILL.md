@@ -16,7 +16,7 @@ The engine needs only pictures and a story. Three frames cover most films:
 | `browser` | Web apps, SaaS, websites | Screens at 2880x1800 (1440x900 at 2x) |
 | `none` | Physical products, places, brand imagery, slides | Photos or images; each is cropped to fill the story's `shot` size |
 
-A film with no pictures at all (a logo animation, a type-only teaser) leaves out `screens` and runs on the hook, a stat and the lockup.
+A personal film (anniversary, birthday, family) is `none` with full-frame `photos`: 📖 `references/premium-motion.md#photo-film` before writing the story, for overlapping the photos and fitting landscape ones into 9:16. A film with no pictures at all (a logo animation, a type-only teaser) leaves out `screens` and runs on the hook, a stat and the lockup.
 
 What it does not do: character animation, scrolling a long page (capture viewport shots at several offsets and push between them), or long-form teaching videos. An app not yet built is filmed from the team's design exports, labelled as a preview in the brief, never from UI Claude draws. Name the missing part rather than improvising.
 
@@ -137,7 +137,7 @@ One sheet per size (change `1080x1920` in the glob): frames of different shapes 
 
 Once pictures, voice and a first `score.wav` exist (§4), send `node render.mjs draft 1080 1920` (half size, with sound and a time stamp per frame) and get a yes before the full renders: each change after that costs a full re-render.
 
-Then render the videos (1.5 to 3 minutes each for 20 s; run them in the background, plugged in and awake):
+Then render the videos (1.5 to 3 minutes each for 20 s; run them in the background, plugged in, each command prefixed with `caffeinate -dims` so neither the display nor the system idles mid-render):
 
 | Format | Size | Command |
 |---|---|---|

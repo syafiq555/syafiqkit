@@ -1,6 +1,6 @@
 # Step 5: Plugin Capture Gates and Update Logic
 
-Skip this step if neither gate fires. When a gate fires, invoke `syafiqkit:update-plugin` — it owns everything downstream.
+Skip this step if no gate fires. Gate C (reusable work built inside a project) is stated in full in the SKILL.md step, because it is answered in that moment rather than looked up. When a gate fires, invoke `syafiqkit:update-plugin`, which owns everything downstream.
 
 ## Gate A — Skill Signal
 
@@ -46,7 +46,7 @@ The third answer is legitimate and worth stating plainly; what it is NOT is the 
 
 ## Plugin Update
 
-Invoke `syafiqkit:update-plugin` once both gates are checked:
+Invoke `syafiqkit:update-plugin` once all three gates are checked:
 
 - **Owner** → patch the skill files + version bump + CHANGELOG
 - **Consumer** → draft and offer to file as a GitHub issue upstream
