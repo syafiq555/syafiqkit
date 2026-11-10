@@ -69,7 +69,7 @@ CLI scan:
 - Pass markup files/directories as `[target]`; do not pass CSS-only files.
 - For URLs, skip CLI scan and use browser visualization.
 - For very large trees (500+ scannable files), narrow scope or ask.
-- Exit code 0 = no findings; 2 = findings. On component source (`.tsx`, `.jsx`, `.vue`, `.svelte`) only the regex rules run, and contrast, tiny-text and other rules that need a parsed page do not. Text mode says so ("findings are an undercount, not a clean bill of health"); `--json` drops that line, so a `[]` there is a partial scan, not a clean one. Report it as regex-only, and for the rendered rules scan the dev-server URL (`--cdp` against a logged-in browser when the page sits behind a login).
+- Exit code 0 = clean; 2 = findings. On component source (`.tsx`, `.jsx`, `.vue`, `.svelte`) only the regex rules run, and contrast, tiny-text and other rules that need a parsed page do not. Text mode says so ("findings are an undercount, not a clean bill of health"); `--json` drops that line, so a `[]` there is a partial scan, not a clean one. Report it as regex-only, and for the rendered rules scan the dev-server URL (`--cdp` against a logged-in browser when the page sits behind a login).
 - If the detector entrypoint is missing or fails to load, report deterministic scan unavailable and continue with browser/manual review.
 
 Browser visualization is required for a viewable target when browser automation is available. Use a localhost dev/static URL for local files; avoid `file://` unless the available browser explicitly supports this workflow. Overlay flow:
