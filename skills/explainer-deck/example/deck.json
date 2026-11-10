@@ -1,0 +1,319 @@
+{
+  "title": "How Bean Box works",
+  "author": "Example",
+  "sources": [
+    "source.md"
+  ],
+  "facts": [
+    "facts.json"
+  ],
+  "workings": [
+    "workings.json"
+  ],
+  "parties": [
+    "Customer",
+    "Bean Box",
+    "Roaster",
+    "Card network"
+  ],
+  "tracker": [
+    "Billing",
+    "Pricing",
+    "Payouts"
+  ],
+  "slides": [
+    {
+      "type": "title",
+      "title": "How Bean Box works: one box, end to end",
+      "subtitle": "Made-up example deck for the explainer-deck skill",
+      "notes": [
+        "Say this is a made-up example."
+      ]
+    },
+    {
+      "type": "text",
+      "section": 1,
+      "heading": "The example box",
+      "sub": "Aina subscribes to one box a month",
+      "bullets": [
+        "One box at RM60.00",
+        "First-month voucher RM10.00",
+        "Delivery RM8.00"
+      ],
+      "notes": [
+        "Every slide follows Aina's box."
+      ]
+    },
+    {
+      "type": "journey",
+      "id": "card-fails-journey",
+      "section": 1,
+      "person": "Aina",
+      "actor": "Customer",
+      "goal": "Keeping her monthly box coming after her card fails",
+      "moments": [
+        {
+          "icon": "credit-card",
+          "label": "Is charged on the 1st",
+          "where": "outside",
+          "eg": "RM60.00 box"
+        },
+        {
+          "icon": "mail",
+          "label": "Hears the charge failed",
+          "where": "email"
+        },
+        {
+          "icon": "monitor",
+          "label": "Updates her card",
+          "where": "screen",
+          "screen": "account page"
+        },
+        {
+          "icon": "package",
+          "label": "Gets her box again",
+          "where": "outside",
+          "eg": "The box restarts"
+        },
+        {
+          "icon": "pause",
+          "label": "Sees her box paused",
+          "where": "outside",
+          "under": 3,
+          "when": "If the retry fails first",
+          "eg": "Until she updates the card"
+        }
+      ],
+      "behind": [
+        {
+          "at": 1,
+          "actor": "Card network",
+          "label": "Declines the card",
+          "where": "outside"
+        },
+        {
+          "at": 2,
+          "actor": "Bean Box",
+          "label": "Retries after 3 days",
+          "where": "auto"
+        },
+        {
+          "at": 4,
+          "actor": "Bean Box",
+          "label": "Restarts the box",
+          "where": "auto"
+        }
+      ],
+      "rule": "If the card fails, we retry after 3 days, then pause the box.",
+      "notes": [
+        "Follow Aina: one charge, one email, one card update.",
+        "3b, underneath, is the other path: the retry fails before she updates the card, so the box pauses until she does."
+      ],
+      "src": [
+        {
+          "file": "source.md",
+          "line": 7,
+          "quote": "the customer is emailed, and updates the card on the account page"
+        },
+        {
+          "file": "source.md",
+          "line": 5,
+          "quote": "we retry after 3 days, then pause the box"
+        },
+        {
+          "file": "source.md",
+          "line": 4,
+          "quote": "The customer is charged on the 1st of each month."
+        }
+      ]
+    },
+    {
+      "type": "mechanism",
+      "id": "billing-retry",
+      "section": 1,
+      "heading": "When a card fails",
+      "sub": "Bean Box retries once after 3 days, then pauses the box",
+      "visual": {
+        "kind": "flow",
+        "steps": [
+          {
+            "label": "Charge on the 1st",
+            "actor": "Bean Box"
+          },
+          {
+            "label": "Card network answers",
+            "actor": "Card network"
+          },
+          {
+            "label": "Box ships",
+            "actor": "Bean Box"
+          }
+        ],
+        "branch": {
+          "from_step": 1,
+          "when": "If the card fails",
+          "steps": [
+            {
+              "label": "Retry after 3 days",
+              "actor": "Bean Box"
+            },
+            {
+              "label": "Pause the box",
+              "actor": "Bean Box",
+              "note": "Restarts when the card is updated"
+            }
+          ]
+        }
+      },
+      "example": {
+        "kind": "quoted",
+        "lines": [
+          "Aina's card fails on the 1st.",
+          "Bean Box retries after 3 days.",
+          "It fails again, so the box pauses."
+        ]
+      },
+      "rule": "If the card fails, we retry after 3 days, then pause the box.",
+      "notes": [
+        "Point at the branch.",
+        "Stress there is only one retry."
+      ],
+      "src": [
+        {
+          "file": "source.md",
+          "line": 5,
+          "quote": "we retry after 3 days, then pause the box"
+        }
+      ]
+    },
+    {
+      "type": "mechanism",
+      "id": "first-month-price",
+      "section": 2,
+      "heading": "The first-month price",
+      "sub": "Bean Box funds the voucher, the customer pays delivery",
+      "visual": {
+        "kind": "waterfall",
+        "start": {
+          "label": "Box price",
+          "amount": 60.0
+        },
+        "steps": [
+          {
+            "label": "First-month voucher",
+            "delta": -10.0,
+            "by": "Bean Box"
+          },
+          {
+            "label": "Delivery",
+            "delta": 8.0,
+            "by": "Customer"
+          }
+        ],
+        "end": {
+          "label": "Aina pays",
+          "amount": 58.0
+        }
+      },
+      "example": {
+        "kind": "quoted",
+        "lines": [
+          "Box RM60.00.",
+          "Voucher takes RM10.00 off.",
+          "Delivery adds RM8.00.",
+          "Aina pays RM58.00."
+        ]
+      },
+      "rule": "A first-month voucher takes RM10.00 off, funded by Bean Box.",
+      "waits_on": [
+        "Row 3"
+      ],
+      "notes": [
+        "Walk the bars left to right."
+      ],
+      "src": [
+        {
+          "file": "source.md",
+          "line": 10,
+          "quote": "A box costs RM60.00 before discounts."
+        },
+        {
+          "file": "source.md",
+          "line": 10,
+          "quote": "takes RM10.00 off, funded by Bean Box"
+        }
+      ]
+    },
+    {
+      "type": "mechanism",
+      "id": "roaster-pay",
+      "section": 3,
+      "heading": "What the roaster earns",
+      "sub": "The roaster gets 80% of the box price, before the voucher",
+      "visual": {
+        "kind": "share",
+        "total": {
+          "label": "Box price",
+          "amount": 60.0
+        },
+        "parts": [
+          {
+            "label": "Roaster's share",
+            "amount": 48.0,
+            "who": "Roaster"
+          },
+          {
+            "label": "Bean Box keeps",
+            "amount": 12.0,
+            "who": "Bean Box"
+          }
+        ]
+      },
+      "example": {
+        "kind": "worked",
+        "lines": [
+          "Box price RM60.00.",
+          "80% to the roaster: RM48.00.",
+          "Bean Box keeps RM12.00."
+        ]
+      },
+      "rule": "Each roaster is paid 80% of the box price it supplied.",
+      "notes": [
+        "Say we worked these figures out from the 80% rate."
+      ],
+      "src": [
+        {
+          "file": "source.md",
+          "line": 15,
+          "quote": "paid 80% of the box price"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "section": 3,
+      "heading": "Decisions waiting",
+      "sub": "Open points with the client",
+      "columns": [
+        "Row",
+        "Decision",
+        "Meanwhile"
+      ],
+      "rows": [
+        [
+          "3",
+          "Who funds the voucher later",
+          "Bean Box"
+        ],
+        [
+          "4",
+          "Retry count",
+          "One retry"
+        ]
+      ],
+      "notes": [
+        "Ask for row 3 first."
+      ]
+    }
+  ]
+}

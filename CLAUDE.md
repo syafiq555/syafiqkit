@@ -47,6 +47,7 @@ These skills accept explicit user command:
 | `product-still` | Designed still image from real captured screens (how-it-works steps, feature and hero composites): floating cropped cards, numbered steps, badge, rendered from HTML to PNG with phone and transparent variants. Video is `motion-clip` |
 | `setup-tracker` | Shared tracker sheet for a project or a multi-project master, shaped by context: whose-turn status, Latest update plus History, counts strip instead of a tutorial, built from a JSON config by script. UAT scripts and huddles are out of scope |
 | `understanding-guide` | Large text the user must understand → offline question-and-answer page, every claim checked against its source; decisions wait until the reader understands |
+| `explainer-deck` | Deck (Google Slides or .pptx) explaining a system or document to a live audience: each mechanism drawn beside a worked example, written as a JSON spec that `scripts/build.js` checks against its sources and draws; Google's own render checked. A page read alone is `understanding-guide` |
 | `reverse-engineer` | Rebuild a web app's mechanism that the client already uses, read through REA, into a task doc a sonnet reviewer verifies before design |
 | `user-manual` | End-user manual from user tasks, Diátaxis shape, screenshots from an E2E capture spec. Distinct from `md-to-pdf` |
 | `design-handoff` | Brief for someone ELSE to design a screen, layout decisions withheld. Designing it yourself is `uiux` |
@@ -78,6 +79,7 @@ These skills accept explicit user command:
 | `read-summary` | Before answering architectural, investigative or project-context questions |
 | `brainstorming` | Before creative or architectural design work |
 | `judgement` | About to send an unmeasured either/or ("should I fold this in", "is this in scope"), or about to stay silent on a real finding |
+| `haiku` | Brute-force work over more items than one context reads well (every case of a script against the code, every commit since a date, every row of a register), unnamed: split across parallel haiku agents |
 | `pull-db` | Session involves remote database work |
 | `reclaim-disk` | Laptop storage low or full, "free up space", "what's eating my disk", Docker or System Data too large |
 | `hobby-review` | User reports finishing a book, game, show or hobby item |
@@ -85,6 +87,7 @@ These skills accept explicit user command:
 | `product-still` | Website or marketing images built from the product's screens are outdated or wanted ("update the images on our site", "feature image", "transparent version", "phone version"), without naming the skill |
 | `setup-tracker` | A tracker sheet is asked for or complained about ("set up a tracker", "issue log", "the remarks column is too long", "client can't tell what's waiting on them"), or a tracker screenshot arrives, without naming the skill. Not a per-person weekly huddle or timesheet |
 | `understanding-guide` | User faces more text than one sitting holds, or asks how it should be presented |
+| `explainer-deck` | Asked for slides or a deck to explain how something works to a meeting, without naming the skill |
 | `reverse-engineer` | "The same as <app> my client uses" built in our app, or "reverse engineer" / "utilize REA" about a web app someone is logged into |
 | `function-parameter-limits` | "Too many parameters" or parameter count concerns |
 | `merge-task-docs` | Related task docs in a domain: classify by subsystem boundary, merge, delete sources, reconcile back-references |
