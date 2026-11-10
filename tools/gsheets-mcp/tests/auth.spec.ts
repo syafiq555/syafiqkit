@@ -57,7 +57,8 @@ describe('Google.call', () => {
 })
 
 test('scope check is exact and order-free', () => {
-  expect(grantedScopesMatch('https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets')).toBe(true)
+  expect(grantedScopesMatch('https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets')).toBe(true)
+  expect(grantedScopesMatch('https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets')).toBe(false)
   expect(grantedScopesMatch('https://www.googleapis.com/auth/spreadsheets')).toBe(false)
   expect(grantedScopesMatch('https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive')).toBe(false)
 })

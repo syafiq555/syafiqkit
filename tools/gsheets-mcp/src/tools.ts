@@ -6,7 +6,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { cellAddress, gridRange, mergeHolding, mergeLabel, parseRange, type Merge } from './a1.ts'
 import { DRIVE, DRIVE_UPLOAD, Google, SHEETS, SLIDES, query } from './google.ts'
-import { checkAppend, checkReplace, describeCell, hexToRgb, planAppend, planReplace, type CellData, type TextRun } from './rich.ts'
+import { awaitingReply, checkAppend, checkReplace, chipLinks, collapseChips, describeCell, hexToRgb, planAppend, planReplace, type CellData, type ChipRun, type TextRun } from './rich.ts'
 
 const id = z.string().describe('Spreadsheet id (the long part of the sheet URL between /d/ and /edit)')
 const range = z.string().describe('A1 range with its sheet name, e.g. Tracker!A1:F20. Tabs can be renamed by their owner, so list them with sheets_list if a name stops working')
@@ -70,28 +70,35 @@ async function readCell(g: Google, spreadsheetId: string, a1: string): Promise<C
 async function openRichCell(g: Google, spreadsheetId: string, cell: string) {
   const r = parseRange(cell)
   if (r.endRow !== r.startRow + 1 || r.endCol !== r.startCol + 1) throw new Error('cell must be a single cell, e.g. Tracker!F34')
-  const before = await readCell(g, spreadsheetId, cell)
-  if (before.chipRuns?.length) {
-    throw new Error(
-      'This cell holds a Drive file chip. Rewriting it through the API needs the chip sent back in a form Google has refused so far, so nothing was written: paste the text into the sheet by hand.',
-    )
-  }
+  const before = collapseChips(await readCell(g, spreadsheetId, cell))
   const { sheetId, merges } = await sheetMeta(g, spreadsheetId, r.sheet)
   const merge = mergeHolding(merges, r.startRow, r.startCol)
   if (merge && (merge.startRowIndex !== r.startRow || merge.startColumnIndex !== r.startCol)) {
     const topLeft = cellAddress(merge.startColumnIndex ?? 0, merge.startRowIndex ?? 0)
     throw new Error(`${cell} is a hidden part of the merged block ${mergeLabel(merge)}, so text written there never shows. Nothing was written: use ${r.sheet}!${topLeft} instead.`)
   }
-  const write = async (text: string, runs: TextRun[]): Promise<CellData> => {
-    await batchUpdate(g, spreadsheetId, [
-      {
-        updateCells: {
-          range: gridRange(r, sheetId),
-          rows: [{ values: [{ userEnteredValue: { stringValue: text }, textFormatRuns: runs }] }],
-          fields: 'userEnteredValue,textFormatRuns',
+  const write = async (text: string, runs: TextRun[], chipRuns: ChipRun[]): Promise<CellData> => {
+    const value = chipRuns.length
+      ? { userEnteredValue: { stringValue: text }, textFormatRuns: runs, chipRuns }
+      : { userEnteredValue: { stringValue: text }, textFormatRuns: runs }
+    try {
+      await batchUpdate(g, spreadsheetId, [
+        {
+          updateCells: {
+            range: gridRange(r, sheetId),
+            rows: [{ values: [value] }],
+            fields: chipRuns.length ? 'userEnteredValue,textFormatRuns,chipRuns' : 'userEnteredValue,textFormatRuns',
+          },
         },
-      },
-    ])
+      ])
+    } catch (err) {
+      if (chipRuns.length && /chip data: Permission denied/i.test(String(err))) {
+        throw new Error(
+          `This cell links a Drive file (${chipLinks({ chipRuns }).join(', ')}) that this sign-in cannot open, and Google refuses a rewrite of the cell unless it can. Nothing was written. Ask the file's owner to share it with the signed-in account and try again, or paste the line into the sheet by hand. If the account can open the file in a browser, the sign-in predates the drive.readonly scope: run gsheets-mcp auth.`,
+        )
+      }
+      throw err
+    }
     return readCell(g, spreadsheetId, cell)
   }
   return { before, write }
@@ -298,10 +305,59 @@ export function registerTools(server: McpServer, g: Google): void {
   )
 
   server.registerTool(
+    'cells_awaiting_reply',
+    {
+      description:
+        'Find which tracker rows wait for your reply, without reading every cell. Give the reply column (e.g. Tracker!F2:F200) and the colours you write in; it returns only the cells where text in another colour comes after your last line, with that text, its colours and your last line. Who wrote what is read from the text colour, never from a name at the start of a line, so a client line with no name and a client question in the middle of a cell are both caught. Pass alsoRead (e.g. Tracker!A2:E200, the same rows) to get each row\'s other columns beside it, and statusColumn (e.g. E) to leave out rows whose status is in skipStatuses (Closed by default). Cells with no text in another colour after yours are left out, so a row you still owe something on without the client writing again (your own stale promise, a status to move) is not listed: read those rows yourself.',
+      inputSchema: {
+        spreadsheetId: id,
+        range: range.describe('One column of reply cells with its sheet name, e.g. Tracker!F2:F200'),
+        mine: z.array(z.string().regex(/^\s*(default|#?[0-9a-f]{6})\s*$/i)).default(['default', '#000000']).describe('Colours your side writes in, as #rrggbb; "default" is text with no colour set'),
+        alsoRead: z.string().optional().describe('Optional range over the same rows (e.g. Tracker!A2:E200) whose values are returned beside each listed cell'),
+        statusColumn: z.string().regex(/^[A-Za-z]{1,3}$/).optional().describe('Column letter holding each row\'s status, e.g. E; rows whose status is in skipStatuses are left out'),
+        skipStatuses: z.array(z.string()).default(['Closed']).describe('Statuses to leave out when statusColumn is given (exact text, case ignored)'),
+      },
+      annotations: READ,
+    },
+    guarded(async ({ spreadsheetId, range: replyRange, mine, alsoRead, statusColumn, skipStatuses }) => {
+      const parsed = parseRange(replyRange)
+      if (parsed.endCol === undefined || parsed.endCol - parsed.startCol !== 1) throw new Error('Give one column of reply cells, e.g. Tracker!F2:F200.')
+      const { block } = await readRich(g, spreadsheetId, replyRange)
+      const replyRows: any[] = block.rowData ?? []
+      const startRow = block.startRow ?? parsed.startRow
+      const colIndex = block.startColumn ?? parsed.startCol
+      const valuesByRow = async (a1: string, firstRow: number) => {
+        const res = await g.call('GET', `${SHEETS}/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(a1)}`)
+        return new Map(((res.values ?? []) as unknown[][]).map((row, i) => [firstRow + i, row] as const))
+      }
+      const extra = alsoRead ? await valuesByRow(alsoRead, parseRange(alsoRead).startRow) : new Map<number, unknown[]>()
+      const sheetPrefix = replyRange.slice(0, replyRange.lastIndexOf('!'))
+      const col = statusColumn?.toUpperCase()
+      const status = col && replyRows.length ? await valuesByRow(`${sheetPrefix}!${col}${startRow + 1}:${col}${parsed.endRow ?? startRow + replyRows.length}`, startRow) : new Map<number, unknown[]>()
+      const skip = new Set(skipStatuses.map((s) => s.trim().toLowerCase()))
+      const rows: unknown[] = []
+      let skipped = 0
+      replyRows.forEach((row, r) => {
+        const cell: CellData | undefined = row.values?.[0]
+        const waiting = cell && awaitingReply(cell, mine)
+        if (!waiting) return
+        const rowIndex = startRow + r
+        const rowStatus = col ? String(status.get(rowIndex)?.[0] ?? '') : undefined
+        if (rowStatus !== undefined && skip.has(rowStatus.trim().toLowerCase())) {
+          skipped++
+          return
+        }
+        rows.push({ cell: cellAddress(colIndex, rowIndex), status: rowStatus, row: extra.get(rowIndex), ...waiting })
+      })
+      return { awaiting: rows.length, skippedByStatus: col ? skipped : undefined, rows }
+    }),
+  )
+
+  server.registerTool(
     'cell_append_line',
     {
       description:
-        'Add a line to the end of one cell without touching anyone else\'s text colours (the safe way to reply in a shared tracker). The new line gets an explicit colour, black by default, so it does not inherit a cell-wide colour such as a client\'s blue. Refuses a hidden cell inside a merged block (naming the block\'s top-left cell to use) and a cell holding a Drive file chip. Reads the cell back and reports the result; a mismatch is reported as an error.',
+        'Add a line to the end of one cell without touching anyone else\'s text colours (the safe way to reply in a shared tracker). The new line gets an explicit colour, black by default, so it does not inherit a cell-wide colour such as a client\'s blue. Refuses a hidden cell inside a merged block (naming the block\'s top-left cell to use). A Drive file chip in the cell is kept, which Google allows only when this sign-in can open the linked file; otherwise nothing is written and the error says so. Reads the cell back and reports the result; a mismatch is reported as an error.',
       inputSchema: {
         spreadsheetId: id,
         cell: z.string().describe('One cell with its sheet name, e.g. Tracker!F34'),
@@ -314,8 +370,8 @@ export function registerTools(server: McpServer, g: Google): void {
       const rgb = hexToRgb(colour)
       const { before, write } = await openRichCell(g, spreadsheetId, cell)
       const plan = planAppend(before, line, rgb)
-      const after = await write(plan.text, plan.runs)
-      const problems = checkAppend(before, plan, after, rgb)
+      const after = await write(plan.text, plan.runs, plan.chipRuns)
+      const problems = checkAppend(before, plan, collapseChips(after), rgb)
       const readBack = describeCell(after)
       if (problems.length) throw new Error(`Written, but the read-back is wrong (do not retry, or the line is added twice):\n- ${problems.join('\n- ')}\n${JSON.stringify(readBack, null, 2)}`)
       return { ok: true, cell, readBack }
@@ -326,7 +382,7 @@ export function registerTools(server: McpServer, g: Google): void {
     'cell_replace_text',
     {
       description:
-        'Replace one exact piece of text inside a cell (for example your own earlier reply in a shared tracker) without touching anyone else\'s text colours. find must occur exactly once in the cell, so copy it from cells_read_rich; the replacement gets an explicit colour, black by default, and the text after it keeps the colour it had. Same refusals as cell_append_line (hidden merged cell, Drive file chip, formula or number). Reads the cell back and reports the result.',
+        'Replace one exact piece of text inside a cell (for example your own earlier reply in a shared tracker) without touching anyone else\'s text colours. find must occur exactly once in the cell, so copy it from cells_read_rich; the replacement gets an explicit colour, black by default, and the text after it keeps the colour it had. Same refusals as cell_append_line (hidden merged cell, a Drive file chip this sign-in cannot open, formula or number); find may not cover a chip. Reads the cell back and reports the result.',
       inputSchema: {
         spreadsheetId: id,
         cell: z.string().describe('One cell with its sheet name, e.g. Tracker!F34'),
@@ -340,8 +396,8 @@ export function registerTools(server: McpServer, g: Google): void {
       const rgb = hexToRgb(colour)
       const { before, write } = await openRichCell(g, spreadsheetId, cell)
       const plan = planReplace(before, find, replace, rgb)
-      const after = await write(plan.text, plan.runs)
-      const problems = checkReplace(before, plan, after, rgb)
+      const after = await write(plan.text, plan.runs, plan.chipRuns)
+      const problems = checkReplace(before, plan, collapseChips(after), rgb)
       const readBack = describeCell(after)
       if (problems.length) throw new Error(`Written, but the read-back is wrong (read the cell before trying again):\n- ${problems.join('\n- ')}\n${JSON.stringify(readBack, null, 2)}`)
       return { ok: true, cell, readBack }

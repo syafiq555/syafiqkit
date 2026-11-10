@@ -5,6 +5,7 @@ import { join } from 'node:path'
 export const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
   'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/drive.readonly',
 ]
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
@@ -138,7 +139,7 @@ export async function consent(clientFile?: string): Promise<void> {
       state,
     }).toString()
 
-  console.error(`\nGrant ONLY these two:\n  ${SCOPES.join('\n  ')}\nIf the consent screen lists Gmail, Calendar or full Drive, deny it.\n\n${url}\n`)
+  console.error(`\nGrant ONLY these:\n  ${SCOPES.join('\n  ')}\nIf the consent screen lists Gmail, Calendar or full Drive editing, deny it.\n\n${url}\n`)
   Bun.spawn(['open', url], { stdout: 'ignore', stderr: 'ignore' })
 
   const timeout = setTimeout(() => rejectCode(new Error('gsheets: sign-in timed out after 5 minutes. Run auth again.')), 5 * 60_000)

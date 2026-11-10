@@ -9,13 +9,64 @@ export interface TextRun {
   format?: Record<string, any>
 }
 
+export interface ChipRun {
+  startIndex?: number
+  chip?: Record<string, any>
+}
+
 export interface CellData {
   formattedValue?: string
   userEnteredValue?: Record<string, any>
   userEnteredFormat?: { textFormat?: Record<string, any> }
   textFormatRuns?: TextRun[]
-  chipRuns?: unknown[]
+  chipRuns?: ChipRun[]
   dataValidation?: unknown
+}
+
+export const CHIP_PLACEHOLDER = '@'
+
+export function collapseChips(cell: CellData): CellData {
+  const raw = cell.chipRuns ?? []
+  if (!raw.some((r) => r.chip)) return cell
+  const text = textOf(cell)
+  const spans = raw
+    .map((r, i) => ({ start: r.startIndex ?? 0, end: raw[i + 1]?.startIndex ?? text.length, chip: r.chip }))
+    .filter((s) => s.chip)
+  const removedBefore = (i: number) => spans.filter((s) => s.end <= i).reduce((n, s) => n + s.end - s.start - 1, 0)
+  const map = (i: number) => {
+    const inside = spans.find((s) => i > s.start && i < s.end)
+    return inside ? inside.start - removedBefore(inside.start) + 1 : i - removedBefore(i)
+  }
+  let collapsed = ''
+  let last = 0
+  const chipRuns: ChipRun[] = []
+  for (const s of spans) {
+    collapsed += text.slice(last, s.start)
+    chipRuns.push({ startIndex: collapsed.length, chip: s.chip })
+    collapsed += CHIP_PLACEHOLDER
+    last = s.end
+  }
+  collapsed += text.slice(last)
+  const byStart = new Map<number, TextRun>()
+  for (const r of cell.textFormatRuns ?? []) {
+    const at = map(r.startIndex ?? 0)
+    if (at < collapsed.length) byStart.set(at, { ...r, startIndex: at })
+  }
+  return {
+    ...cell,
+    userEnteredValue: { ...cell.userEnteredValue, stringValue: collapsed },
+    formattedValue: collapsed,
+    textFormatRuns: [...byStart.values()].sort((a, b) => (a.startIndex ?? 0) - (b.startIndex ?? 0)),
+    chipRuns,
+  }
+}
+
+export function chipLinks(cell: CellData): string[] {
+  return (cell.chipRuns ?? []).flatMap((r) => {
+    if (!r.chip) return []
+    const uri = String(r.chip.richLinkProperties?.uri ?? JSON.stringify(r.chip))
+    return [`${r.startIndex ?? 0}:${/\/d\/([\w-]+)/.exec(uri)?.[1] ?? uri}`]
+  })
 }
 
 export function hexToRgb(hex: string): Rgb {
@@ -68,6 +119,7 @@ export function describeCell(cell: CellData) {
 export interface AppendPlan {
   text: string
   runs: TextRun[]
+  chipRuns: ChipRun[]
   newRunStart: number
 }
 
@@ -79,12 +131,13 @@ export function planAppend(cell: CellData, line: string, colour: Rgb): AppendPla
   const newRunStart = old.length
   const runs: TextRun[] = [...(cell.textFormatRuns ?? [])]
   runs.push({ startIndex: newRunStart, format: { foregroundColorStyle: { rgbColor: colour } } })
-  return { text, runs, newRunStart }
+  return { text, runs, chipRuns: cell.chipRuns ?? [], newRunStart }
 }
 
 export interface ReplacePlan {
   text: string
   runs: TextRun[]
+  chipRuns: ChipRun[]
   start: number
   oldEnd: number
   newEnd: number
@@ -106,6 +159,10 @@ export function planReplace(cell: CellData, find: string, replace: string, colou
   if (start < 0) throw new Error('find was not found in the cell; read it with cells_read_rich and copy the text exactly.')
   if (old.indexOf(find, start + 1) >= 0) throw new Error('find appears more than once in the cell; include more of the surrounding text so it matches once.')
   const oldEnd = start + find.length
+  const chips = cell.chipRuns ?? []
+  if (chips.some((r) => (r.startIndex ?? 0) >= start && (r.startIndex ?? 0) < oldEnd)) {
+    throw new Error('find covers a Drive file chip, which this tool keeps as it is; choose text that leaves the chip out.')
+  }
   const newEnd = start + replace.length
   const text = old.slice(0, start) + replace + old.slice(oldEnd)
   const shift = newEnd - oldEnd
@@ -121,7 +178,8 @@ export function planReplace(cell: CellData, find: string, replace: string, colou
   runs.push(...after)
   const byStart = new Map<number, TextRun>()
   for (const r of runs) if ((r.startIndex ?? 0) < text.length) byStart.set(r.startIndex ?? 0, r)
-  return { text, runs: [...byStart.values()].sort((a, b) => (a.startIndex ?? 0) - (b.startIndex ?? 0)), start, oldEnd, newEnd }
+  const chipRuns = chips.map((r) => ((r.startIndex ?? 0) >= oldEnd ? { ...r, startIndex: (r.startIndex ?? 0) + shift } : r))
+  return { text, runs: [...byStart.values()].sort((a, b) => (a.startIndex ?? 0) - (b.startIndex ?? 0)), chipRuns, start, oldEnd, newEnd }
 }
 
 const near = (a: number | undefined, b: number | undefined) => Math.abs((a ?? 0) - (b ?? 0)) < 0.01
@@ -139,6 +197,7 @@ export function colourAt(cell: CellData, index: number): Rgb {
 export function checkReplace(before: CellData, plan: ReplacePlan, after: CellData, colour: Rgb): string[] {
   const problems: string[] = []
   if (textOf(after) !== plan.text) problems.push('The cell text read back differs from what was written.')
+  if (chipLinks({ chipRuns: plan.chipRuns }).join() !== chipLinks(after).join()) problems.push('The Drive file chip did not read back where it was.')
   if (plan.newEnd > plan.start && !sameRgb(colourAt(after, plan.start), colour)) problems.push('The replacement did not read back in the requested colour.')
   const oldLength = textOf(before).length
   const starts = new Set([0, plan.oldEnd, ...(before.textFormatRuns ?? []).map((r) => r.startIndex ?? 0)])
@@ -155,6 +214,7 @@ export function checkReplace(before: CellData, plan: ReplacePlan, after: CellDat
 export function checkAppend(before: CellData, plan: AppendPlan, after: CellData, colour: Rgb): string[] {
   const problems: string[] = []
   if (textOf(after) !== plan.text) problems.push('The cell text read back differs from what was written.')
+  if (chipLinks({ chipRuns: plan.chipRuns }).join() !== chipLinks(after).join()) problems.push('The Drive file chip did not read back where it was.')
   if (!sameRgb(colourAt(after, plan.newRunStart), colour)) problems.push('The new line did not read back in the requested colour.')
   const oldLength = plan.newRunStart
   const starts = new Set([0, ...(before.textFormatRuns ?? []).map((r) => r.startIndex ?? 0)])
@@ -165,4 +225,28 @@ export function checkAppend(before: CellData, plan: AppendPlan, after: CellData,
     }
   }
   return problems
+}
+
+export interface AwaitingReply {
+  theirs: string
+  theirColours: string[]
+  yourLast?: string
+}
+
+export function awaitingReply(cell: CellData, mine: string[]): AwaitingReply | null {
+  const d = describeCell(cell)
+  const own = new Set(mine.map((c) => (c.trim().toLowerCase() === 'default' ? 'default' : rgbToHex(hexToRgb(c.trim())))))
+  const lead = { colour: d.baseColour, text: d.text.slice(0, d.runs[0]?.start ?? d.text.length) }
+  const spoken = [lead, ...d.runs].filter((r) => r.text.trim())
+  const lastOwn = spoken.findLastIndex((r) => own.has(r.colour))
+  const after = spoken.slice(lastOwn + 1)
+  if (!after.length) return null
+  let ownStart = lastOwn
+  while (ownStart > 0 && own.has(spoken[ownStart - 1]!.colour)) ownStart--
+  const ownText = lastOwn < 0 ? '' : spoken.slice(ownStart, lastOwn + 1).map((r) => r.text).join('')
+  return {
+    theirs: after.map((r) => r.text).join('').trim(),
+    theirColours: [...new Set(after.map((r) => r.colour))],
+    yourLast: ownText.split('\n').map((l) => l.trim()).filter(Boolean).at(-1)?.slice(0, 200),
+  }
 }

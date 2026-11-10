@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { columnIndex, columnLetters, mergeHolding, mergeLabel, parseRange } from '../src/a1.ts'
-import { checkAppend, checkReplace, describeCell, hexToRgb, planAppend, planReplace, rgbToHex, type CellData } from '../src/rich.ts'
+import { awaitingReply, checkAppend, checkReplace, chipLinks, collapseChips, describeCell, hexToRgb, planAppend, planReplace, rgbToHex, type CellData } from '../src/rich.ts'
 
 const BLUE = { blue: 1 }
 const BLACK = hexToRgb('#000000')
@@ -170,5 +170,90 @@ describe('ranges and merges', () => {
     expect(mergeHolding(merges, 7, 5)).toBe(merges[0])
     expect(mergeHolding(merges, 11, 5)).toBeUndefined()
     expect(mergeLabel(merges[0]!)).toBe('F6:F11')
+  })
+})
+
+describe('drive file chips', () => {
+  const chip = { richLinkProperties: { uri: 'https://docs.google.com/presentation/d/FILE123/edit?usp=drive_link' } }
+  const read: CellData = {
+    userEnteredValue: { stringValue: 'Ours\nYY: see Logic.pptx please' },
+    textFormatRuns: [{ startIndex: 5, format: { foregroundColorStyle: { rgbColor: BLUE } } }, { startIndex: 24, format: { foregroundColorStyle: { rgbColor: BLUE } } }],
+    chipRuns: [{ startIndex: 13, chip }, { startIndex: 23 }],
+  }
+
+  test('collapses each chip to one placeholder with chip-only runs and shifted colour runs', () => {
+    const c = collapseChips(read)
+    expect(c.userEnteredValue?.stringValue).toBe('Ours\nYY: see @ please')
+    expect(c.chipRuns).toEqual([{ startIndex: 13, chip }])
+    expect(c.textFormatRuns?.map((r) => r.startIndex)).toEqual([5, 15])
+  })
+
+  test('append keeps the chip where it was and adds the line after', () => {
+    const plan = planAppend(collapseChips(read), 'Syafiq: ok', BLACK)
+    expect(plan.text).toBe('Ours\nYY: see @ please\nSyafiq: ok')
+    expect(plan.chipRuns).toEqual([{ startIndex: 13, chip }])
+    expect(chipLinks({ chipRuns: plan.chipRuns })).toEqual(['13:FILE123'])
+  })
+
+  test('replace refuses text covering a chip and shifts a chip after the edit', () => {
+    expect(() => planReplace(collapseChips(read), 'see @', 'x', BLACK)).toThrow('chip')
+    const plan = planReplace(collapseChips(read), 'Ours', 'Our reply', BLACK)
+    expect(plan.chipRuns).toEqual([{ startIndex: 18, chip }])
+  })
+
+  test('a cell with no chip passes through unchanged', () => {
+    const plain: CellData = { userEnteredValue: { stringValue: 'a' } }
+    expect(collapseChips(plain)).toBe(plain)
+  })
+})
+
+describe('awaiting reply', () => {
+  const MINE = ['default', '#000000']
+  const blue = { foregroundColorStyle: { rgbColor: BLUE } }
+  const black = { foregroundColorStyle: { rgbColor: BLACK } }
+
+  test('lists a client line after your last one, with no name in front of it', () => {
+    const text = 'Syafiq 04/11: done.\nthank you. To configure at production'
+    const cell: CellData = { userEnteredValue: { stringValue: text }, textFormatRuns: [{ format: black }, { startIndex: 19, format: blue }] }
+    expect(awaitingReply(cell, MINE)).toEqual({ theirs: 'thank you. To configure at production', theirColours: ['#0000ff'], yourLast: 'Syafiq 04/11: done.' })
+  })
+
+  test('your last line split across two of your runs comes back whole', () => {
+    const text = 'Syafiq: done it\nYY: ok'
+    const bold = { foregroundColorStyle: { rgbColor: BLACK }, bold: true }
+    const cell: CellData = { userEnteredValue: { stringValue: text }, textFormatRuns: [{ format: black }, { startIndex: 8, format: bold }, { startIndex: 15, format: blue }] }
+    expect(awaitingReply(cell, MINE)?.yourLast).toBe('Syafiq: done it')
+  })
+
+  test('ignores a cell where your line is last, even after a client question mid-cell', () => {
+    const text = 'YY: which one?\nSyafiq: this one'
+    const cell: CellData = { userEnteredValue: { stringValue: text }, textFormatRuns: [{ format: blue }, { startIndex: 14, format: black }] }
+    expect(awaitingReply(cell, MINE)).toBeNull()
+  })
+
+  test('a cell written only by the client, in its cell-wide colour, is listed with no last line of yours', () => {
+    const cell: CellData = { userEnteredValue: { stringValue: 'YY: new ask' }, userEnteredFormat: { textFormat: blue } }
+    expect(awaitingReply(cell, MINE)).toEqual({ theirs: 'YY: new ask', theirColours: ['#0000ff'], yourLast: undefined })
+  })
+
+  test('trailing whitespace in the client colour does not count as a line', () => {
+    const text = 'Syafiq: done\n '
+    const cell: CellData = { userEnteredValue: { stringValue: text }, textFormatRuns: [{ format: black }, { startIndex: 12, format: blue }] }
+    expect(awaitingReply(cell, MINE)).toBeNull()
+  })
+
+  test('text before the first run takes the cell-wide colour', () => {
+    const text = 'YY: ask\nSyafiq: answer'
+    const cell: CellData = { userEnteredValue: { stringValue: text }, userEnteredFormat: { textFormat: blue }, textFormatRuns: [{ startIndex: 7, format: black }] }
+    expect(awaitingReply(cell, MINE)).toBeNull()
+  })
+
+  test('own colours given without # or in capitals still match', () => {
+    const cell: CellData = { userEnteredValue: { stringValue: 'YY: ask' }, userEnteredFormat: { textFormat: blue } }
+    expect(awaitingReply(cell, ['0000FF'])).toBeNull()
+  })
+
+  test('an empty cell is never listed', () => {
+    expect(awaitingReply({}, MINE)).toBeNull()
   })
 })
