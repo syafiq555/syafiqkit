@@ -64,10 +64,17 @@ export async function executeSync(
     ? await spawnRsync("sshpass", ["-e", "rsync", ...rsyncArgs], connInfo.config.password)
     : await spawnRsync("rsync", rsyncArgs);
 
+  const dest = `${connInfo.config.username}@${connInfo.config.host}:${remotePath}`;
+
   if (exitCode === 0) {
-    const dest = `${connInfo.config.username}@${connInfo.config.host}:${remotePath}`;
     const size = options.singleFile && !dirSource ? ` (${sentSize(absLocalPath)})` : "";
     console.error(`${colors.green}Sent${colors.reset} ${options.localPath}${size} -> ${dest}`);
+  } else {
+    console.error(
+      `${colors.red}Upload failed${colors.reset} (rsync exit ${exitCode}): ${options.localPath} -> ${dest} may be missing or incomplete.\n` +
+        `If rsync reported a child "exited with status 127", the server has no rsync installed; ` +
+        `copy with scp through your SSH alias instead (scp <file> <alias>:<path>).`,
+    );
   }
 
   return exitCode;
