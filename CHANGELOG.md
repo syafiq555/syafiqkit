@@ -4,7 +4,8 @@
 
 **Review fixes across the 1.421.7 to 1.421.22 batch.**
 - **`explainer-deck`:** a spec with no sources used to pass every check and print `OK`, so the build now also prints `UNCHECKED` when there is nothing to check against. Step 2 says PDFs and .docx files go through `doc-to-md` first, since the checker cites text by line. Step 5 says sharing is a manual hand-off: no plugin tool sets Drive sharing. `references/google-slides.md` gains a "Before you start" list: the `gsheets` server switched on, which Google account owns the deck, and `pdftoppm`/`magick`.
-- **`gsheets` `cells_awaiting_reply`:** `yourLast` showed only the last colour run, so a bolded word cut your line short. It now joins your consecutive runs (one new test, 44 pass).
+- **`gsheets` `cells_awaiting_reply`:** `yourLast` showed only the last colour run, so a bolded word cut your line short. It now joins your consecutive runs (one new test).
+- **`gsheets` `drive_file_export`:** it now refuses to write a hidden file (a shell startup file such as `~/.zshrc`) or into `~/Library/LaunchAgents`, where a replaced file could run code, and it catches a symlink whose target doesn't exist yet (47 tests pass).
 - **`remote --sync`:** a non-zero rsync exit no longer claims nothing was sent, since exits 23 and 24 are partial transfers.
 - **`/done`:** the exit gate's Plugin row now names Gate C (reusable project work) alongside A and B, so a session that trips only C keeps the row.
 - **`taste`:** its description no longer ends by contradicting the review path `uiux` calls.

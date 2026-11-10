@@ -174,7 +174,10 @@ export function outputPath(path: string): string {
   if (PRIVATE_DIRS.some((dir) => real === dir || real.startsWith(`${dir}/`)) || CREDENTIAL_FILE.test(real)) {
     throw new Error(`${path} is inside a credentials folder or names a credentials file; choose another place`)
   }
-  if (existsSync(real) && lstatSync(real).isSymbolicLink()) throw new Error(`${path} is a symlink; choose a plain file path`)
+  if (basename(real).startsWith('.') || /\/Library\/(LaunchAgents|LaunchDaemons)(\/|$)/.test(real)) {
+    throw new Error(`${path} is a hidden file or a launch folder, where a replaced file can run code; choose another place`)
+  }
+  if (lstatSync(real, { throwIfNoEntry: false })?.isSymbolicLink()) throw new Error(`${path} is a symlink; choose a plain file path`)
   mkdirSync(dirname(real), { recursive: true })
   return real
 }

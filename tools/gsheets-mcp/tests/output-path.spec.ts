@@ -27,6 +27,19 @@ test('refuses a symlink target', () => {
   expect(() => outputPath(join(base, 'link.txt'))).toThrow('symlink')
 })
 
+test('refuses a dangling symlink', () => {
+  symlinkSync(join(base, 'missing.txt'), join(base, 'dangling.txt'))
+  expect(() => outputPath(join(base, 'dangling.txt'))).toThrow('symlink')
+})
+
+test('refuses a hidden file such as a shell startup file', () => {
+  expect(() => outputPath(join(homedir(), '.zshrc'))).toThrow('hidden')
+})
+
+test('refuses a launch agents folder', () => {
+  expect(() => outputPath(join(homedir(), 'Library', 'LaunchAgents', 'x.plist'))).toThrow('launch')
+})
+
 test('creates missing folders for a plain path', () => {
   const out = outputPath(join(base, 'new', 'deck.pdf'))
   expect(out.endsWith('/new/deck.pdf')).toBe(true)

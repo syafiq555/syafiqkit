@@ -11,7 +11,7 @@ Last updated: 2026-11-10: `cells_awaiting_reply` (which tracker rows wait for a 
 ## Quick Start (read this first in next session)
 
 **Next action**: commit when Syafiq asks. The tool is untracked under `tools/gsheets-mcp/`, plus the plugin README row, CHANGELOG 1.419.0 and the manifest bump. Another session's uncommitted `setup-tracker` and `understanding-guide` work sits in the same tree, so commit by path.
-**Current state**: signed in as `syafiq.shamsuddin@techstrongbox.com` (`~/.config/syafiqkit/google/`). Registered at local scope in the three projects. The old user-scope `gsheets` server was removed on 05/11/2026. Run `cd tools/gsheets-mcp && bun test` (44 pass on 10/11) and `bunx tsc --noEmit`.
+**Current state**: signed in as `syafiq.shamsuddin@techstrongbox.com` (`~/.config/syafiqkit/google/`). Registered at local scope in the three projects. The old user-scope `gsheets` server was removed on 05/11/2026. Run `cd tools/gsheets-mcp && bun test` (47 pass on 10/11) and `bunx tsc --noEmit`.
 **Success looks like**: a session in one of the three projects replies on a client tracker with `cell_append_line`, and the client's blue lines stay blue.
 
 ## Overview
