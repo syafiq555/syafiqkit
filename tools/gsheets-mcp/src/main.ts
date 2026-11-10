@@ -9,7 +9,7 @@ async function serve(): Promise<void> {
     { name: 'gsheets', version: '1.0.0' },
     {
       instructions:
-        'Google Sheets and Drive through the syafiqkit sign-in (scopes: spreadsheets, drive.file). Ranges are A1 with the sheet name (Tracker!F34). To reply in a shared tracker cell, read it with cells_read_rich and add your line with cell_append_line: values_update replaces whole cells and wipes other people\'s text colours. A cell holding a Drive file chip cannot be rewritten; hand the user the text to paste. In a merged block only the top-left cell shows, so reply there. Owners rename tabs: re-list with sheets_list when a sheet name stops working.',
+        'Google Sheets and Drive through the syafiqkit sign-in (scopes: spreadsheets, drive.file). Ranges are A1 with the sheet name (Tracker!F34). To reply in a shared tracker cell, read it with cells_read_rich and add your line with cell_append_line: values_update replaces whole cells and wipes other people\'s text colours. A cell holding a Drive file chip cannot be rewritten; hand the user the text to paste. In a merged block only the top-left cell shows, so reply there. Owners rename tabs: re-list with sheets_list when a sheet name stops working. After uploading a deck or document converted to a Google file, check Google\'s own layout with drive_file_export (pdf) or slides_thumbnails, not the local file.',
     },
   )
   registerTools(server, new Google(new TokenSource()))

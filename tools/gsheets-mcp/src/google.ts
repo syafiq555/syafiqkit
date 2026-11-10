@@ -3,6 +3,7 @@ import type { TokenSource } from './auth.ts'
 export const SHEETS = 'https://sheets.googleapis.com/v4/spreadsheets'
 export const DRIVE = 'https://www.googleapis.com/drive/v3/files'
 export const DRIVE_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files'
+export const SLIDES = 'https://slides.googleapis.com/v1/presentations'
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>
 
@@ -19,15 +20,31 @@ export class Google {
   ) {}
 
   async call(method: string, url: string, opts: CallOptions = {}): Promise<any> {
-    let res = await this.send(method, url, opts, false)
-    if (res.status === 401) res = await this.send(method, url, opts, true)
+    const res = await this.sendRetrying(method, url, opts)
     const text = await res.text()
     const body = text ? safeJson(text) : {}
-    if (!res.ok) {
-      const message = body?.error?.message || text || `HTTP ${res.status}`
-      throw new Error(`Google API ${res.status}: ${message}`)
-    }
+    if (!res.ok) throw apiError(res.status, body, text)
     return body
+  }
+
+  async bytes(url: string): Promise<Uint8Array> {
+    const res = await this.sendRetrying('GET', url, {})
+    if (!res.ok) {
+      const text = await res.text()
+      throw apiError(res.status, safeJson(text), text)
+    }
+    return new Uint8Array(await res.arrayBuffer())
+  }
+
+  async download(url: string): Promise<Uint8Array> {
+    const res = await this.fetcher(url)
+    if (!res.ok) throw new Error(`Download ${res.status} from ${new URL(url).host}`)
+    return new Uint8Array(await res.arrayBuffer())
+  }
+
+  private async sendRetrying(method: string, url: string, opts: CallOptions): Promise<Response> {
+    const res = await this.send(method, url, opts, false)
+    return res.status === 401 ? this.send(method, url, opts, true) : res
   }
 
   private async send(method: string, url: string, opts: CallOptions, force: boolean): Promise<Response> {
@@ -43,6 +60,10 @@ export class Google {
     }
     return this.fetcher(url, { method, headers, body })
   }
+}
+
+function apiError(status: number, body: any, text: string): Error {
+  return new Error(`Google API ${status}: ${body?.error?.message || text || `HTTP ${status}`}`)
 }
 
 function safeJson(text: string): any {

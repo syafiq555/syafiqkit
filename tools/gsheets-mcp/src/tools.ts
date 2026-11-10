@@ -1,11 +1,11 @@
-import { readFileSync, realpathSync, statSync } from 'node:fs'
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { basename, extname, join } from 'node:path'
+import { basename, dirname, extname, join, relative } from 'node:path'
 import { configDir } from './auth.ts'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { cellAddress, gridRange, mergeHolding, mergeLabel, parseRange, type Merge } from './a1.ts'
-import { DRIVE, DRIVE_UPLOAD, Google, SHEETS, query } from './google.ts'
+import { DRIVE, DRIVE_UPLOAD, Google, SHEETS, SLIDES, query } from './google.ts'
 import { checkAppend, describeCell, hexToRgb, planAppend, type CellData } from './rich.ts'
 
 const id = z.string().describe('Spreadsheet id (the long part of the sheet URL between /d/ and /edit)')
@@ -90,11 +90,9 @@ const GOOGLE_TYPE: Record<string, string> = {
 }
 
 const realOrSelf = (p: string) => {
-  try {
-    return realpathSync(p)
-  } catch {
-    return p
-  }
+  let existing = p
+  while (!existsSync(existing)) existing = dirname(existing)
+  return join(realpathSync(existing), relative(existing, p))
 }
 
 const PRIVATE_DIRS = [
@@ -108,6 +106,8 @@ const PRIVATE_DIRS = [
   join(homedir(), 'mcps', 'gsheets-config'),
 ].map(realOrSelf)
 
+const CREDENTIAL_FILE = /(^|\/)(\.env(\..*)?|[^/]*\.env|\.netrc)$/
+
 function localFile(path: string) {
   if (!path.startsWith('/')) throw new Error('path must be absolute')
   let real: string
@@ -116,7 +116,7 @@ function localFile(path: string) {
   } catch {
     throw new Error(`${path} does not exist`)
   }
-  if (PRIVATE_DIRS.some((dir) => real === dir || real.startsWith(`${dir}/`)) || /(^|\/)(\.env(\..*)?|[^/]*\.env|\.netrc)$/.test(real)) {
+  if (PRIVATE_DIRS.some((dir) => real === dir || real.startsWith(`${dir}/`)) || CREDENTIAL_FILE.test(real)) {
     throw new Error(`${path} holds credentials; it is never uploaded`)
   }
   if (!statSync(path).isFile()) throw new Error(`${path} is not a file`)
@@ -129,6 +129,27 @@ function multipart(metadata: object, bytes: Uint8Array, mime: string) {
   const tail = `\r\n--${boundary}--`
   const body = new Blob([head, bytes, tail])
   return { body, contentType: `multipart/related; boundary=${boundary}` }
+}
+
+export function outputPath(path: string): string {
+  if (!path.startsWith('/')) throw new Error('path must be absolute')
+  const real = join(realOrSelf(dirname(path)), basename(path))
+  if (PRIVATE_DIRS.some((dir) => real === dir || real.startsWith(`${dir}/`)) || CREDENTIAL_FILE.test(real)) {
+    throw new Error(`${path} is inside a credentials folder or names a credentials file; choose another place`)
+  }
+  if (existsSync(real) && lstatSync(real).isSymbolicLink()) throw new Error(`${path} is a symlink; choose a plain file path`)
+  mkdirSync(dirname(real), { recursive: true })
+  return real
+}
+
+const EXPORT_TYPE = {
+  pdf: 'application/pdf',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  csv: 'text/csv',
+  txt: 'text/plain',
+  png: 'image/png',
 }
 
 const DRIVE_FIELDS = 'id,name,mimeType,webViewLink,modifiedTime,parents'
@@ -434,7 +455,7 @@ export function registerTools(server: McpServer, g: Google): void {
     'drive_file_update',
     {
       description:
-        'Replace the content of a Drive file this sign-in created, keeping its id and link. A Google Doc or Sheet stays a Google file when given a .docx or .xlsx. A file locked against edits answers 403 until it is unlocked in Drive.',
+        'Replace the content of a Drive file this sign-in created, keeping its id and link. A Google Doc, Sheet or Slides file stays a Google file when given a .docx, .xlsx or .pptx. A file locked against edits answers 403 until it is unlocked in Drive.',
       inputSchema: { fileId: z.string(), path: z.string().describe('Absolute path of the local file') },
       annotations: DESTROY,
     },
@@ -444,6 +465,61 @@ export function registerTools(server: McpServer, g: Google): void {
         rawBody: bytes,
         contentType: mime,
       })
+    }),
+  )
+
+  server.registerTool(
+    'drive_file_export',
+    {
+      description:
+        'Export a Google Doc, Sheet or Slides file this sign-in can reach to a local file, as Google itself renders it (pdf, pptx, docx, xlsx, csv, txt; png gives only the first slide or page). Use the pdf to check how Google laid out a deck or document after upload.',
+      inputSchema: {
+        fileId: z.string(),
+        format: z.enum(['pdf', 'pptx', 'docx', 'xlsx', 'csv', 'txt', 'png']).default('pdf'),
+        path: z.string().describe('Absolute path to write; its folder is created if missing. An existing file is replaced'),
+      },
+      annotations: DESTROY,
+    },
+    guarded(async ({ fileId, format, path }) => {
+      const out = outputPath(path)
+      const bytes = await g.bytes(`${DRIVE}/${encodeURIComponent(fileId)}/export${query({ mimeType: EXPORT_TYPE[format] })}`)
+      writeFileSync(out, bytes)
+      return { path: out, bytes: bytes.length }
+    }),
+  )
+
+  server.registerTool(
+    'slides_thumbnails',
+    {
+      description:
+        'Save one PNG per slide of a Google Slides file, drawn by Google, into a local folder as slide-01.png, slide-02.png… Use after uploading a deck to see each slide as the audience will. Google counts each image as an expensive read (about 60 a minute per user), so pass slides to fetch only the ones that changed. Needs the Google Slides API enabled in the sign-in\'s Cloud project.',
+      inputSchema: {
+        presentationId: z.string(),
+        dir: z.string().describe('Absolute folder to write into; created if missing'),
+        slides: z.array(z.number().int().min(1)).optional().describe('1-based slide numbers; all slides when omitted'),
+        size: z.enum(['SMALL', 'MEDIUM', 'LARGE']).default('LARGE').describe('Width 200, 800 or 1600 px'),
+      },
+      annotations: DESTROY,
+    },
+    guarded(async ({ presentationId, dir, slides, size }) => {
+      const pid = encodeURIComponent(presentationId)
+      const deck = await g.call('GET', `${SLIDES}/${pid}${query({ fields: 'slides.objectId' })}`)
+      const ids: string[] = (deck.slides ?? []).map((s: any) => s.objectId)
+      const wanted = slides ?? ids.map((_, i) => i + 1)
+      const missing = wanted.filter((n) => n > ids.length)
+      if (missing.length) throw new Error(`The deck has ${ids.length} slides; no slide ${missing.join(', ')}`)
+      const width = Math.max(2, String(ids.length).length)
+      const written: string[] = []
+      for (const n of wanted) {
+        const thumb = await g.call(
+          'GET',
+          `${SLIDES}/${pid}/pages/${encodeURIComponent(ids[n - 1]!)}/thumbnail${query({ 'thumbnailProperties.mimeType': 'PNG', 'thumbnailProperties.thumbnailSize': size })}`,
+        )
+        const out = outputPath(join(dir, `slide-${String(n).padStart(width, '0')}.png`))
+        writeFileSync(out, await g.download(thumb.contentUrl))
+        written.push(out)
+      }
+      return { slides: ids.length, written }
     }),
   )
 }
