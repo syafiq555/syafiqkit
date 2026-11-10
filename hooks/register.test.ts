@@ -189,7 +189,7 @@ test('the band sends commit and done in one press, and push only after the confi
   await ui.press({ key: 'band-commit' })
   expect(sent).toEqual(['Use the commit skill to commit the staged changes.'])
   await ui.press({ key: 'band-done' })
-  expect(sent[1]).toBe('Use the done skill to wrap up this session.')
+  expect(sent[1]).toBe('Use the done skill to wrap up this session. Invoke it now even if it ran earlier: this run covers everything since the last one.')
   expect(opened).toEqual([])
   await ui.press({ key: 'band-push' })
   expect(sent.length).toBe(2)

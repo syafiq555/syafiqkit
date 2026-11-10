@@ -151,7 +151,7 @@ export const VERBS = [
   {
     label: 'Done',
     hint: 'review, tidy, update docs',
-    text: 'Use the done skill to wrap up this session.',
+    text: 'Use the done skill to wrap up this session. Invoke it now even if it ran earlier: this run covers everything since the last one.',
     toast: 'Sent: done',
   },
   { label: 'Read a task doc', hint: 'pick a doc, then act on its open items', go: 'list' },
