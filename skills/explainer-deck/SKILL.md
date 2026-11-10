@@ -18,7 +18,7 @@ Then write the slide-by-slide outline in the reply and get it approved: per slid
 
 The deck is one JSON spec. `scripts/build.js` checks it and draws it, so you write content and never layout. Read 📖 `references/spec.md` before writing one: it holds the slide types, the 10 picture kinds with their limits, and the source-checking fields. `example/deck.json` is a small complete spec to copy from.
 
-The source checks run only when the spec lists `sources` (and `facts` or `workings` for figures); without them the build prints `UNCHECKED` and verifies nothing. Sources are text files cited by line, so convert a PDF, .docx or .xlsx with `doc-to-md` first and cite the converted file's lines.
+The source checks run only when the spec lists `sources` (and `facts` or `workings` for figures); without them the build prints `UNCHECKED` and verifies nothing. Sources are text files cited by line, so convert a PDF, .docx or .xlsx with `doc-to-md` first and cite the converted file's lines. Vendor docs hosted on ReadMe usually serve each page as markdown when `.md` is added to its URL, and the site's `/llms.txt` lists every page, so `curl` them into the deck's sources folder instead of summarising them through a fetch.
 
 What matters when choosing the content:
 

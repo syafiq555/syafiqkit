@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.421.24
+
+**`explainer-deck`: sources from vendor docs, and naming the audience's own systems.**
+- Step 2 says vendor docs hosted on ReadMe usually serve each page as markdown when `.md` is added to the URL, with `/llms.txt` listing every page, so sources can be `curl`ed straight into the deck folder instead of summarised through a fetch.
+- `references/spec.md`: journey `screen`/`tool` names match as whole words ("SoftPOS Application" in a cited line does not license "SoftPOS App"), and a system the audience already owns that the source never names (a client's own POS beside a vendor's docs) goes in a short running-example source file, rather than borrowing the vendor's nearest phrase. A SoftPOS deck first read "In Existing POS systems" for that reason, and the reader took it to mean the product had no POS.
+
+No action needed beyond `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.421.23
 
 **Review fixes across the 1.421.7 to 1.421.22 batch.**
