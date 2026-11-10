@@ -25,6 +25,7 @@ A Sheets and Drive MCP server, switched on per project. Setup and tools are in `
 | Reply after a blue run, in a whole-cell blue cell, and after an emoji | Blue kept, the new line black, offsets right |
 | Hidden cell in a merged block F6:F11 | `cell_append_line` on F8 refused and named F6; the reply in F6 worked |
 | `validation_clear`, whole-column read `F:F` | Worked |
+| `cell_replace_text` (10/11/2026): a two-line reply between two blue lines rewritten as a longer lettered list; text that occurs twice | Blue lines kept, the replacement black, the following blue line shifted correctly; the repeated text refused with nothing written |
 | Expired token, and a forced 401 | Refreshed, and retried once |
 | Credential file upload, `enable` from a subfolder | Refused; registered the repo root |
 

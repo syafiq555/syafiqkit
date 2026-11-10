@@ -6,7 +6,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { cellAddress, gridRange, mergeHolding, mergeLabel, parseRange, type Merge } from './a1.ts'
 import { DRIVE, DRIVE_UPLOAD, Google, SHEETS, SLIDES, query } from './google.ts'
-import { checkAppend, describeCell, hexToRgb, planAppend, type CellData } from './rich.ts'
+import { checkAppend, checkReplace, describeCell, hexToRgb, planAppend, planReplace, type CellData, type TextRun } from './rich.ts'
 
 const id = z.string().describe('Spreadsheet id (the long part of the sheet URL between /d/ and /edit)')
 const range = z.string().describe('A1 range with its sheet name, e.g. Tracker!A1:F20. Tabs can be renamed by their owner, so list them with sheets_list if a name stops working')
@@ -65,6 +65,36 @@ async function readRich(g: Google, spreadsheetId: string, a1: string): Promise<{
 async function readCell(g: Google, spreadsheetId: string, a1: string): Promise<CellData> {
   const { block } = await readRich(g, spreadsheetId, a1)
   return block.rowData?.[0]?.values?.[0] ?? {}
+}
+
+async function openRichCell(g: Google, spreadsheetId: string, cell: string) {
+  const r = parseRange(cell)
+  if (r.endRow !== r.startRow + 1 || r.endCol !== r.startCol + 1) throw new Error('cell must be a single cell, e.g. Tracker!F34')
+  const before = await readCell(g, spreadsheetId, cell)
+  if (before.chipRuns?.length) {
+    throw new Error(
+      'This cell holds a Drive file chip. Rewriting it through the API needs the chip sent back in a form Google has refused so far, so nothing was written: paste the text into the sheet by hand.',
+    )
+  }
+  const { sheetId, merges } = await sheetMeta(g, spreadsheetId, r.sheet)
+  const merge = mergeHolding(merges, r.startRow, r.startCol)
+  if (merge && (merge.startRowIndex !== r.startRow || merge.startColumnIndex !== r.startCol)) {
+    const topLeft = cellAddress(merge.startColumnIndex ?? 0, merge.startRowIndex ?? 0)
+    throw new Error(`${cell} is a hidden part of the merged block ${mergeLabel(merge)}, so text written there never shows. Nothing was written: use ${r.sheet}!${topLeft} instead.`)
+  }
+  const write = async (text: string, runs: TextRun[]): Promise<CellData> => {
+    await batchUpdate(g, spreadsheetId, [
+      {
+        updateCells: {
+          range: gridRange(r, sheetId),
+          rows: [{ values: [{ userEnteredValue: { stringValue: text }, textFormatRuns: runs }] }],
+          fields: 'userEnteredValue,textFormatRuns',
+        },
+      },
+    ])
+    return readCell(g, spreadsheetId, cell)
+  }
+  return { before, write }
 }
 
 const MIME: Record<string, string> = {
@@ -281,35 +311,39 @@ export function registerTools(server: McpServer, g: Google): void {
       annotations: WRITE,
     },
     guarded(async ({ spreadsheetId, cell, line, colour }) => {
-      const r = parseRange(cell)
-      if (r.endRow !== r.startRow + 1 || r.endCol !== r.startCol + 1) throw new Error('cell must be a single cell, e.g. Tracker!F34')
       const rgb = hexToRgb(colour)
-      const before = await readCell(g, spreadsheetId, cell)
-      if (before.chipRuns?.length) {
-        throw new Error(
-          'This cell holds a Drive file chip. Rewriting it through the API needs the chip sent back in a form Google has refused so far, so nothing was written: paste the line into the sheet by hand.',
-        )
-      }
-      const { sheetId, merges } = await sheetMeta(g, spreadsheetId, r.sheet)
-      const merge = mergeHolding(merges, r.startRow, r.startCol)
-      if (merge && (merge.startRowIndex !== r.startRow || merge.startColumnIndex !== r.startCol)) {
-        const topLeft = cellAddress(merge.startColumnIndex ?? 0, merge.startRowIndex ?? 0)
-        throw new Error(`${cell} is a hidden part of the merged block ${mergeLabel(merge)}, so a line written there never shows. Nothing was written: reply in ${r.sheet}!${topLeft} instead.`)
-      }
+      const { before, write } = await openRichCell(g, spreadsheetId, cell)
       const plan = planAppend(before, line, rgb)
-      await batchUpdate(g, spreadsheetId, [
-        {
-          updateCells: {
-            range: gridRange(r, sheetId),
-            rows: [{ values: [{ userEnteredValue: { stringValue: plan.text }, textFormatRuns: plan.runs }] }],
-            fields: 'userEnteredValue,textFormatRuns',
-          },
-        },
-      ])
-      const after = await readCell(g, spreadsheetId, cell)
+      const after = await write(plan.text, plan.runs)
       const problems = checkAppend(before, plan, after, rgb)
       const readBack = describeCell(after)
       if (problems.length) throw new Error(`Written, but the read-back is wrong (do not retry, or the line is added twice):\n- ${problems.join('\n- ')}\n${JSON.stringify(readBack, null, 2)}`)
+      return { ok: true, cell, readBack }
+    }),
+  )
+
+  server.registerTool(
+    'cell_replace_text',
+    {
+      description:
+        'Replace one exact piece of text inside a cell (for example your own earlier reply in a shared tracker) without touching anyone else\'s text colours. find must occur exactly once in the cell, so copy it from cells_read_rich; the replacement gets an explicit colour, black by default, and the text after it keeps the colour it had. Same refusals as cell_append_line (hidden merged cell, Drive file chip, formula or number). Reads the cell back and reports the result.',
+      inputSchema: {
+        spreadsheetId: id,
+        cell: z.string().describe('One cell with its sheet name, e.g. Tracker!F34'),
+        find: z.string().describe('The exact text to replace, occurring once in the cell; it may span several lines'),
+        replace: z.string().describe('The new text; may contain line breaks, or be empty to delete find'),
+        colour: z.string().default('#000000').describe('Colour of the replacement text as #rrggbb'),
+      },
+      annotations: WRITE,
+    },
+    guarded(async ({ spreadsheetId, cell, find, replace, colour }) => {
+      const rgb = hexToRgb(colour)
+      const { before, write } = await openRichCell(g, spreadsheetId, cell)
+      const plan = planReplace(before, find, replace, rgb)
+      const after = await write(plan.text, plan.runs)
+      const problems = checkReplace(before, plan, after, rgb)
+      const readBack = describeCell(after)
+      if (problems.length) throw new Error(`Written, but the read-back is wrong (read the cell before trying again):\n- ${problems.join('\n- ')}\n${JSON.stringify(readBack, null, 2)}`)
       return { ok: true, cell, readBack }
     }),
   )

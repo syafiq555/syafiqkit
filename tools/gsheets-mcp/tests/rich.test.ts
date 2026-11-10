@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { columnIndex, columnLetters, mergeHolding, mergeLabel, parseRange } from '../src/a1.ts'
-import { checkAppend, describeCell, hexToRgb, planAppend, rgbToHex, type CellData } from '../src/rich.ts'
+import { checkAppend, checkReplace, describeCell, hexToRgb, planAppend, planReplace, rgbToHex, type CellData } from '../src/rich.ts'
 
 const BLUE = { blue: 1 }
 const BLACK = hexToRgb('#000000')
@@ -80,6 +80,53 @@ describe('append', () => {
     const plan = planAppend(before, 'b', BLACK)
     const after: CellData = { userEnteredValue: { stringValue: 'a\nb' }, textFormatRuns: [{ startIndex: 1, format: { foregroundColorStyle: { rgbColor: {} } } }] }
     expect(checkAppend(before, plan, after, BLACK)).toEqual(['The colour of the existing text starting at character 0 changed.'])
+  })
+})
+
+describe('replace', () => {
+  const blue = { foregroundColorStyle: { rgbColor: BLUE } }
+  const trackerCell = (): CellData => ({
+    userEnteredValue: { stringValue: 'YY: who gets it?\nSyafiq: (1) staff (2) extras\nYY: thanks' },
+    textFormatRuns: [{ format: blue }, { startIndex: 16, format: {} }, { startIndex: 46, format: blue }],
+  })
+
+  test('replaces once, colours the new text and shifts the runs after it', () => {
+    const plan = planReplace(trackerCell(), 'Syafiq: (1) staff (2) extras', 'Syafiq:\n(a) staff\n(b) the extras', BLACK)
+    expect(plan.text).toBe('YY: who gets it?\nSyafiq:\n(a) staff\n(b) the extras\nYY: thanks')
+    expect(plan.runs.map((r) => r.startIndex ?? 0)).toEqual([0, 16, 17, 49, 50])
+    expect(plan.runs[2]).toEqual({ startIndex: 17, format: { foregroundColorStyle: { rgbColor: BLACK } } })
+    expect(plan.runs[3]).toEqual({ startIndex: 49, format: {} })
+    expect(plan.runs[4]).toEqual({ startIndex: 50, format: blue })
+  })
+
+  test('replacing the tail of the cell adds no resume run', () => {
+    const cell: CellData = { userEnteredValue: { stringValue: 'YY: q\nSyafiq: old' }, textFormatRuns: [{ format: blue }, { startIndex: 5, format: {} }] }
+    const plan = planReplace(cell, 'Syafiq: old', 'Syafiq: new and longer', BLACK)
+    expect(plan.text).toBe('YY: q\nSyafiq: new and longer')
+    expect(plan.runs.map((r) => r.startIndex ?? 0)).toEqual([0, 5, 6])
+  })
+
+  test('an empty replacement deletes and keeps the following colour', () => {
+    const plan = planReplace(trackerCell(), '\nSyafiq: (1) staff (2) extras', '', BLACK)
+    expect(plan.text).toBe('YY: who gets it?\nYY: thanks')
+    expect(plan.runs.map((r) => r.startIndex ?? 0)).toEqual([0, 16, 17])
+    expect(plan.runs[2]!.format).toEqual(blue)
+  })
+
+  test('refuses text that is missing, repeated or empty, and non-text cells', () => {
+    expect(() => planReplace(trackerCell(), 'nope', 'x', BLACK)).toThrow('not found')
+    expect(() => planReplace(trackerCell(), 'YY:', 'x', BLACK)).toThrow('more than once')
+    expect(() => planReplace(trackerCell(), '', 'x', BLACK)).toThrow('empty')
+    expect(() => planReplace({ userEnteredValue: { numberValue: 3 } }, '3', 'x', BLACK)).toThrow('number')
+  })
+
+  test('read-back check passes on a faithful write and names a lost colour after the edit', () => {
+    const before = trackerCell()
+    const plan = planReplace(before, 'Syafiq: (1) staff (2) extras', 'Syafiq:\n(a) staff\n(b) the extras', BLACK)
+    const good: CellData = { userEnteredValue: { stringValue: plan.text }, textFormatRuns: plan.runs }
+    expect(checkReplace(before, plan, good, BLACK)).toEqual([])
+    const lost: CellData = { userEnteredValue: { stringValue: plan.text }, textFormatRuns: plan.runs.slice(0, 4) }
+    expect(checkReplace(before, plan, lost, BLACK)).toEqual(['The colour of the text kept around the replacement (character 46 before the edit) changed.'])
   })
 })
 
