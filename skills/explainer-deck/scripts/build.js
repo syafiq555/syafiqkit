@@ -60,6 +60,10 @@ const TONES = new Set(['now', 'other', 'warn', 'same']);
 
 function items(list, where) {
   for (const it of list) {
+    if (typeof it === 'string') {
+      bad(where, `item "${it}" must be an object {"name": "..."}, not a bare string`);
+      continue;
+    }
     words(it.name, 4, `${where} item`);
     if (it.cls && !CLASSES.has(it.cls)) bad(where, 'cls must be dry, chilled or frozen');
   }

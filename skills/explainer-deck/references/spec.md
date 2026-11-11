@@ -54,7 +54,7 @@ Figure check on a mechanism slide: every figure in the visual, example, sub and 
 | `flow` | Steps where the order is the point, with an optional "if" branch | `steps` 3 to 5 `{label ≤6 words, actor, note? ≤12}`; `branch {from_step (0-based), when ≤6, steps 1 to 3}` |
 | `split` | One thing becoming several | `from {label, items 1 to 6}`, `to` 2 to 4 `{label, tag? ≤4, items}`; item `{name ≤4, cls? dry/chilled/frozen, sub?}` |
 | `compare` | Two options or cases side by side | `left`/`right {heading ≤6, tone, lines 2 to 5 ≤12 words}` |
-| `panels` | Two states, each made of groups | `panels` exactly 2 `{heading, tone, groups 1 to 4 {label, tag?, items 1 to 4}}` |
+| `panels` | Two states, each made of groups | `panels` exactly 2 `{heading, tone, groups 1 to 4 {label, tag?, items 1 to 4}}`; item is an object as in `split` (`{"name": "Stars and average"}`), never a bare string |
 | `waterfall` | An amount stepping down or up | `start {label, amount}`, `steps` 2 to 6 `{label ≤7, delta, by}`, `end {label, amount}`; numbers, must add up |
 | `share` | One amount cut into parts | `total {label, amount}`, `parts` 2 to 5 `{label ≤5, amount, who}`; must add up |
 | `timeline` | Dated or timed points | `points` 3 to 6 `{when ≤4, what ≤10}` |
