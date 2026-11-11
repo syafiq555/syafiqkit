@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.421.26
+
+**`pull-db` no longer copies a client's personal data onto your machine when the project forbids it.**
+- **`pull-db`:** Step 1 now first searches the project's `CLAUDE.md`, `CLAUDE.local.md` and task docs for an NDA or personal-data rule. Where one exists, it does an allowlist dump instead of a whole-database one: structure for every table, data only for tables named as non-personal, and filtered content, meta and options (no orders, customer emails, billing fields, review photos, tokens or licence keys). It proves the dump finished with a marker line, since a failed dump piped through `gzip` under `dash` reads as success, and audits the copy for emails, ID numbers and phone numbers before use. Recipe in the new `references/allowlist-dump.md`. A whole-database pull of a client staging site would have brought users, orders, addresses and POS sales onto a machine the client's NDA keeps them off.
+
+No action needed beyond `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.421.25
 
 **CLAUDE.md condenses now land well under the limit, so the file stops regrowing past it within days.**

@@ -1,6 +1,6 @@
 ---
 name: pull-db
-description: Pull a remote server's database to the local development environment. Handles mysqldump on server, binary-safe transfer via scp, MariaDB→MySQL compatibility fixes, password reset, and cleanup. Use when the user says "pull db", "copy production database", "sync db from server", "get real data", "import prod db", "pull database locally", or wants to test with production/staging data.
+description: Pull a remote server's database to the local development environment, or, where the project forbids client personal data on the machine (NDA, PDPA, "no customer data locally"), an allowlist copy of only its non-personal tables. Handles mysqldump on server, binary-safe transfer via scp, MariaDB→MySQL compatibility fixes, password reset, and cleanup. Use when the user says "pull db", "copy production database", "sync db from server", "get real data", "import prod db", "pull database locally", or wants to test with production/staging data.
 ---
 
 # Pull Remote Database to Local
@@ -21,6 +21,8 @@ These defaults match the common setup but can be overridden by user context or C
 ## Workflow
 
 ### Step 1: Gather Parameters
+
+⚠️ **First, check whether the data may leave the server at all.** Grep the project's `CLAUDE.md`, `CLAUDE.local.md` and task docs for an NDA or personal-data rule (`NDA`, `personal data`, `PDPA`, `GDPR`, `no client data`). Where one exists, a whole-database dump breaks it the moment the file lands, however soon it is deleted: users, orders, customer addresses and synced POS or CRM records all come with it. Do an allowlist dump instead (structure for every table, data only for tables you named as non-personal, filtered posts, meta and options), verify it finished, and audit what arrived before anyone uses it. 📖 `references/allowlist-dump.md` for the recipe. **Tell: you are about to dump a client database and have not searched its repo for a data rule.**
 
 Determine from context or ask the user:
 
