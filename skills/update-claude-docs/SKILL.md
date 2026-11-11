@@ -96,7 +96,7 @@ Keep an entry to the rule plus its single strongest reason — session storytell
 
 When replacing an existing rule, replace old text rather than appending — a second warning dilutes what came first. 📖 `${CLAUDE_SKILL_DIR}/references/violations-refinement.md` for escalation guidance.
 
-Write in house style (`references/structure.md` §4). A gotcha whose fix is a lookup becomes a `Symptom | Cause | Fix` row; a bare do/don't becomes `❌/✅`; a rule needing reasoning becomes prose. Capture is additive — add new entries without restructuring what surrounds them; a file whose whole shape is off is a Rewrite-mode job.
+Write in house style (`references/structure.md` §4). A gotcha whose fix is a lookup becomes a `Symptom | Cause | Fix` row; a bare do/don't becomes `❌/✅`; a rule needing reasoning becomes prose. Capture is additive — add new entries without restructuring what surrounds them; a file whose whole shape is off is a Rewrite-mode job. Where the target declares an intake rule or a landing budget, the incident goes to the companion owning its topic and the CLAUDE.md gets one principle line plus a `📖` pointer: full incident paragraphs are what push a freshly condensed file back over its ceiling within days.
 
 **Before writing:** Check for duplicates across CLAUDE.md files using vocabulary from the mechanism, symptom, and neighbouring section—not your own phrasing. A concept already covered elsewhere should shrink to just the new instance and point at the existing rule. Use `Edit` for the write, never `Write` — `Edit` guards against absent or non-unique anchors.
 

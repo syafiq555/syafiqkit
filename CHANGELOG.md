@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.421.25
+
+**CLAUDE.md condenses now land well under the limit, so the file stops regrowing past it within days.**
+- **`condense-claude-md`:** 40 KB is the ceiling that triggers a condense, not where one lands. A condense now lands at about 32 KB and writes that figure into the file, along with an intake rule: new incidents go to the companion file that owns the topic, and CLAUDE.md gets one principle line and a pointer. A global CLAUDE.md condensed to about 39.5 KB three times in a row was back over 40 KB within days each time.
+- **`refresh-instructions`:** the condense prompt quotes that landing figure rather than the ceiling. When several files are refreshed in parallel and one moves text out, its prompt names the siblings other agents are editing as closed destinations, and that text comes back in its report for you to place afterwards.
+- **`update-claude-docs`:** where a CLAUDE.md declares an intake rule or landing budget, a capture puts the incident in the owning companion and adds only a principle line plus a pointer to CLAUDE.md.
+
+No action needed beyond `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.421.24
 
 **`explainer-deck`: sources from vendor docs, and naming the audience's own systems.**
