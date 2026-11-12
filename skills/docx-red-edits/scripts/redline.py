@@ -1,8 +1,9 @@
 """Edit someone else's .docx with every change in red, touching only the bytes changed.
 
-Import from a per-revision script:
+Copy this file beside the per-revision script (so the repo runs on machines
+without the plugin) and import it from there:
 
-    import sys; sys.path.insert(0, '<this folder>')
+    import os, sys; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from redline import Doc
     d = Doc(src)
     d.replace(d.one('unique sentence'), 'old words', 'new words')
@@ -11,9 +12,12 @@ Import from a per-revision script:
     d.save(out)
 
 Lookups (one, all_) search the paragraphs present when the file was opened, so a
-paragraph this run inserts is never matched by a later lookup.
+paragraph this run inserts is never matched by a later lookup; struck paragraphs
+still match. replace() drops the old words and puts the new ones in red; use
+delete() where the reader must see what was removed.
 """
 import copy
+import os
 import zipfile
 
 from lxml import etree
@@ -57,6 +61,11 @@ def red(r, strike=False):
     return r
 
 
+def is_red(r):
+    c = r.find(q('rPr') + '/' + q('color'))
+    return c is not None and c.get(q('val'), '').upper() == RED
+
+
 def settext(r, text):
     ts = r.findall(q('t'))
     assert len(ts) == 1, 'run with several texts'
@@ -74,16 +83,19 @@ class Doc:
         self.log = []
 
     def red_runs(self):
-        """Runs already coloured red: the owner's own notes. Ask before marking yours the same colour."""
-        return [ptext_run(r) for r in self.root.iter(q('r')) if _is_red(r)]
+        """Text of runs coloured pure red (FF0000) directly: the owner's own notes. Other reds (C00000, theme or style colours) are not detected."""
+        return [ptext(r) for r in self.root.iter(q('r')) if is_red(r)]
+
+    def _containing(self, sub):
+        return [p for p in self.paras if sub in ptext(p)]
 
     def one(self, sub):
-        hits = [p for p in self.paras if sub in ptext(p)]
+        hits = self._containing(sub)
         assert len(hits) == 1, f'{len(hits)} hits for: {sub[:70]}'
         return hits[0]
 
     def all_(self, sub, n):
-        hits = [p for p in self.paras if sub in ptext(p)]
+        hits = self._containing(sub)
         assert len(hits) == n, f'{len(hits)} hits (want {n}) for: {sub[:70]}'
         return hits
 
@@ -129,11 +141,17 @@ class Doc:
         for child in list(new):
             if child.tag != q('pPr'):
                 new.remove(child)
+        for sect in new.iter(q('sectPr')):
+            sect.getparent().remove(sect)
         for text, ri in parts:
+            assert ri < len(src_runs), f'template has {len(src_runs)} runs, asked for run {ri}: {ptext(template)[:50]}'
             r = copy.deepcopy(src_runs[ri])
             for child in list(r):
                 if child.tag != q('rPr'):
                     r.remove(child)
+            for tag in ('strike', 'dstrike'):
+                for s in r.iter(q(tag)):
+                    s.getparent().remove(s)
             t = etree.SubElement(r, q('t'))
             t.text = text
             t.set(XML_SPACE, 'preserve')
@@ -147,19 +165,12 @@ class Doc:
             self.log.append(f'insert: {ptext(np_)[:60]!r}')
 
     def save(self, out):
+        assert os.path.realpath(out) != os.path.realpath(self.zip.filename), 'out is the source file; save as the next version beside it'
         with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
             for item in self.zip.infolist():
                 data = self.zip.read(item.filename)
                 if item.filename == self.part:
                     data = etree.tostring(self.root, xml_declaration=True, encoding='UTF-8', standalone=True)
                 z.writestr(item, data)
+        self.zip.close()
         return self.log
-
-
-def _is_red(r):
-    c = r.find(q('rPr') + '/' + q('color'))
-    return c is not None and c.get(q('val'), '').upper() == RED
-
-
-def ptext_run(r):
-    return ''.join(t.text or '' for t in r.iter(q('t')))

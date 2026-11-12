@@ -595,8 +595,11 @@ export function registerTools(server: McpServer, g: Google): void {
     guarded(async ({ fileId, path }) => {
       const id = encodeURIComponent(fileId)
       const meta = await g.call('GET', `${DRIVE}/${id}${query({ fields: 'name,mimeType,modifiedTime', supportsAllDrives: true })}`)
-      if (String(meta.mimeType).startsWith('application/vnd.google-apps.')) {
-        throw new Error(`${meta.name} is a Google file (${meta.mimeType}); use drive_file_export with the format wanted`)
+      const type = String(meta.mimeType)
+      if (type === 'application/vnd.google-apps.folder') throw new Error(`${meta.name} is a folder; pass the id of a file inside it`)
+      if (type === 'application/vnd.google-apps.shortcut') throw new Error(`${meta.name} is a shortcut; pass the id of the file it points to`)
+      if (type.startsWith('application/vnd.google-apps.')) {
+        throw new Error(`${meta.name} is a Google file (${type}); use drive_file_export with the format wanted`)
       }
       const out = outputPath(path)
       const bytes = await g.bytes(`${DRIVE}/${id}${query({ alt: 'media', supportsAllDrives: true })}`)
