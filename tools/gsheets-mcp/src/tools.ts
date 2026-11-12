@@ -582,6 +582,30 @@ export function registerTools(server: McpServer, g: Google): void {
   )
 
   server.registerTool(
+    'drive_file_download',
+    {
+      description:
+        'Save a Drive file that is not a Google Doc, Sheet or Slides (a .docx, .xlsx, .pptx, .pdf or image someone uploaded) to a local file, byte for byte, as its owner stored it. A docs.google.com link ending in rtpof=true is such a file. Google files answer with a pointer to drive_file_export. Reaches any file the sign-in can read. Client files under an NDA stay off disk: read those through the API instead.',
+      inputSchema: {
+        fileId: z.string(),
+        path: z.string().describe('Absolute path to write; its folder is created if missing. An existing file is replaced'),
+      },
+      annotations: DESTROY,
+    },
+    guarded(async ({ fileId, path }) => {
+      const id = encodeURIComponent(fileId)
+      const meta = await g.call('GET', `${DRIVE}/${id}${query({ fields: 'name,mimeType,modifiedTime', supportsAllDrives: true })}`)
+      if (String(meta.mimeType).startsWith('application/vnd.google-apps.')) {
+        throw new Error(`${meta.name} is a Google file (${meta.mimeType}); use drive_file_export with the format wanted`)
+      }
+      const out = outputPath(path)
+      const bytes = await g.bytes(`${DRIVE}/${id}${query({ alt: 'media', supportsAllDrives: true })}`)
+      writeFileSync(out, bytes)
+      return { path: out, bytes: bytes.length, name: meta.name, mimeType: meta.mimeType, modifiedTime: meta.modifiedTime }
+    }),
+  )
+
+  server.registerTool(
     'slides_thumbnails',
     {
       description:
