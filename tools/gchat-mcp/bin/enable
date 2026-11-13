@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+self=$0
+while [ -L "$self" ]; do
+  target=$(readlink "$self")
+  case $target in
+    /*) self=$target ;;
+    *) self=$(dirname "$self")/$target ;;
+  esac
+done
+root=$(cd "$(dirname "$self")/.." && pwd)
+launcher="$root/bin/gchat-mcp"
+
+"$launcher" check || {
+  echo "Sign in first: $launcher auth" >&2
+  exit 1
+}
+
+if claude mcp get gchat >/dev/null 2>&1; then
+  echo "A server named gchat is already registered:" >&2
+  claude mcp get gchat >&2
+  echo "Remove it first (claude mcp remove gchat -s <scope>), then run this again." >&2
+  exit 1
+fi
+
+if [ -n "$GCHAT_CONFIG_DIR" ]; then
+  claude mcp add gchat --scope user --env GCHAT_CONFIG_DIR="$GCHAT_CONFIG_DIR" -- "$launcher"
+else
+  claude mcp add gchat --scope user -- "$launcher"
+fi
+echo "Enabled in every project (user scope, this machine). In a running session: /mcp reconnect gchat, or start a new session."

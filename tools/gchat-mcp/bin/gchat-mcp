@@ -1,0 +1,30 @@
+#!/bin/sh
+self=$0
+while [ -L "$self" ]; do
+  target=$(readlink "$self")
+  case $target in
+    /*) self=$target ;;
+    *) self=$(dirname "$self")/$target ;;
+  esac
+done
+root=$(cd "$(dirname "$self")/.." && pwd)
+
+bun=$(command -v bun 2>/dev/null)
+for candidate in "$HOME/.bun/bin/bun" /opt/homebrew/bin/bun /usr/local/bin/bun; do
+  [ -n "$bun" ] && break
+  [ -x "$candidate" ] && bun=$candidate
+done
+
+if [ -z "$bun" ]; then
+  echo "gchat-mcp: bun not found (install it from https://bun.sh)" >&2
+  exit 127
+fi
+
+if [ ! -d "$root/node_modules/@modelcontextprotocol" ]; then
+  (cd "$root" && "$bun" install --frozen-lockfile >/dev/null 2>&1) || {
+    echo "gchat-mcp: dependencies missing; run: cd $root && bun install" >&2
+    exit 1
+  }
+fi
+
+exec "$bun" "$root/src/main.ts" "$@"

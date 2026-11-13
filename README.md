@@ -47,6 +47,7 @@ It draws nothing in the VS Code panel or `claude -p`. It runs with your permissi
 |------|-------------|
 | `remote` | Run commands on your servers over SSH, upload files and download one file. Needs Bun and a one-time setup: see [`tools/remote-cli/README.md`](tools/remote-cli/README.md) |
 | `gsheets-mcp` | MCP server for Google Sheets and Drive, switched on per project with `bin/enable`. It renews its own sign-in and replies in shared tracker cells without changing other people's text colours. Needs Bun and a one-time Google sign-in: see [`tools/gsheets-mcp/README.md`](tools/gsheets-mcp/README.md) |
+| `gchat-mcp` | MCP server for Google Chat as you: list spaces and DMs, read and search messages, download the files people attach (Drive links excepted), and send a message, with files if you like, only after you approve it in Claude Code's permission prompt, which Claude cannot answer and which reaches your phone through Remote Control. Registered for every project with `bin/enable`. Needs Bun, the Chat and People APIs enabled in your OAuth client's Cloud project, and a one-time sign-in: see [`tools/gchat-mcp/README.md`](tools/gchat-mcp/README.md) |
 
 ## I want to…
 
