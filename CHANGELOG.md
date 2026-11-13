@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.430.6
+
+**`refresh-instructions`: a story moved out of the file gets its open-state words checked where it lands.**
+- The open-state check ("unfixed", "still missing") ran only inside the condense prompt, so a relocated incident story kept its state words unchecked in the task doc or companion it moved to, which no pass visits. The session now reads each relocated open-state claim against the code before reporting. Raised by the `/done` product reviewer on 14/11/2026 and missed from 1.430.5.
+
 ## 1.430.5
 
 **`refresh-instructions` no longer works against the condense skill it dispatches, and decides a split before Pass 1.**
