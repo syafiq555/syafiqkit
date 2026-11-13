@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.430.8
+
+**`update-plugin`: a step the user had to add counts as a signal.**
+- A `/done` run skipped the product reviewer on skill files; the user asked for it, it ran and found 11 defects, and the next `update-plugin` scan still reported nothing new, because a suggestion followed by a good outcome doesn't read as a correction. Step 1 now names it: a step the user added that a skill skipped is a pushback on that skill (14/11/2026).
+
 ## 1.430.7
 
 **`done`: a plugin's skill, command and agent files get the product reviewer.**
