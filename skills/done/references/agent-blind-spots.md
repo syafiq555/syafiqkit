@@ -27,7 +27,7 @@ A finding, a fix, and anything built in response to one are three separate momen
 
 ## Incidents Behind the Step 1 and Step 2 Rules
 
-- **Product reviewer skipped as docs-only (2026-10-29).** A session tuning a deployed advisory assistant's instructions skipped the product reviewer as docs-only. The user asked where it was; once run, it found six gaps (decisions not carried between chats, no developer journey, jargon in every answer).
+- **Product reviewer skipped as docs-only (2026-10-29).** A session tuning a deployed advisory assistant's instructions skipped the product reviewer as docs-only. The user asked where it was; once run, it found six gaps (decisions not carried between chats, no developer journey, jargon in every answer). It recurred on 14/11/2026 on a plugin skill fix, because the rule's own example list named "skill files" as internal and outranked its "ask who reads it" clause; once asked for, the reviewer found 11 workflow defects. The list now names plugin instruction files as product.
 - **Out-of-brief message to a running agent (2026-09-05).** Messaging a still-running agent reads as an out-of-brief instruction, and a well-built agent refuses it.
 - **Unchecked premise in a question (2026-10-23).** "Not now still gets pushes on older Android" went out as an option without being checked. The permission code showed that screen never appears there, so the question was asked again.
 - **Seeder stopped on its entry point (2026-09-17).** A test-mode seeder was stopped after its entry point merely navigated elsewhere, and five sub-pages still fetched its rows.

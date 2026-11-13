@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.430.7
+
+**`done`: a plugin's skill, command and agent files get the product reviewer.**
+- The docs-only rule listed skill files among internal docs, so `/done` skipped the product reviewer on a refresh-instructions fix. Run on request, it found 11 workflow defects (a self-contradicting scope rule, a protection list cancelling condense's main move, no early split decision). Plugin instruction files ship to every install and decide what those sessions do, so they are the product; only notes about a project skip the reviewer (14/11/2026).
+
 ## 1.430.6
 
 **`refresh-instructions`: a story moved out of the file gets its open-state words checked where it lands.**

@@ -35,7 +35,7 @@ Read `git status --short` and recent commits, then match the session to a mode. 
 The three roles see the diff through different lenses:
 - **Simplifier**: is the code *clean*? (duplication, readability, consistency)
 - **Reviewer**: is the code *correct*? (bugs, security, logic errors, conventions)
-- **Product reviewer**: is the *feature* complete and valuable? (missing journeys, dead-end flows, UX and business gaps, the class of miss a line-level diff cannot catch). Runs in full mode, and in docs-only mode when the markdown is the product rather than notes about one: instructions or prompts for an assistant people talk to, a user guide, public docs. Internal docs (task docs, CLAUDE.md, skill files) skip it. A file kind settles the mode, not whether anyone uses what it says, so ask who reads the diff's output before skipping. Dispatch it only if a project or user-level `product-reviewer` agent is available; skip silently otherwise.
+- **Product reviewer**: is the *feature* complete and valuable? (missing journeys, dead-end flows, UX and business gaps, the class of miss a line-level diff cannot catch). Runs in full mode, and in docs-only mode when the markdown is the product rather than notes about one: instructions or prompts for an assistant people talk to, a user guide, public docs, and a plugin's skills, commands and agent files, which ship to everyone who installs it and decide what their sessions do. Notes about a project (task docs, a project's own CLAUDE.md) skip it. A file kind settles the mode, not whether anyone uses what it says, so ask who reads the diff's output before skipping. Dispatch it only if a project or user-level `product-reviewer` agent is available; skip silently otherwise.
 
 ### Ownership & Partition
 
