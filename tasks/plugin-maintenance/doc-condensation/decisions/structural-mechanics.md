@@ -257,3 +257,17 @@ Two rules from the moved blocks were deliberately duplicated into both files rat
 Position is the other half and is cheaper than relocation: the cut lands at a fixed offset, so a guard or verify step sitting late is at risk regardless of total size. Check the boundary (`head -c 20000 <file> | tail -c 1200`) before assuming the file must shrink.
 
 **Status**: committed · **Reversible**: yes
+
+### D-size-wins-over-story-location — On An Over-Budget Doc, Incident Stories Move With A Destination; The Split Is Judged Before Pass 1 — committed — 2026-11-14
+
+**Problem**
+A `refresh-instructions` run on a 46 KB CLAUDE.md companion ended at 41 KB. Three things in the refresh prompts worked against the condense skill they dispatched: "whether extraction may go to a companion, or forbid it in every prompt" led the session to ban extraction; a protected-instance list locked about 20 dated incident stories in place; and the count gate counted only the target file. Condense stopped at a floor it reported truthfully. The user asked "How come after refresh also 40kb" and then "I thought refresh shouldn't alter or contradict the 3 skill instructions?". The split and the story trim were then done by hand-written prompts outside `condense-claude-md`.
+
+**Decision**
+Size wins (the user's call, 14/11/2026). On a file over budget, an incident story is protected by its destination: the full story moves to the owning task doc or companion, and the doc keeps the rule plus one figure and a pointer. Extraction is allowed by default; prompts name destinations and the cross-file contract (anchors, pointers) checked afterwards, never a ban. The count gate spans the file plus named destinations. Whether to split is a judgement made before Pass 1, by reading the file (sections that serve different readers, a gap to the landing figure that compression won't close), with no fixed threshold (the user: "Judgement, read summary suitable"). A condense that stops on "the rest is protected" means re-dispatch with looser protection or split, not a hand-written prompt.
+
+**Rejected**
+- Stories stay unless decided per run. Why not: the doc lands wherever the stories allow, which is the 41 KB outcome, and it contradicts the intake rule that incidents go to the owning companion.
+- A fixed pre-flight threshold (over 40 KB, or 25% above the landing figure). Why not: the user chose judgement; a number fires on a dense single-reader file that should condense, and misses a file under it whose sections serve unrelated readers.
+
+**Status**: committed · **Reversible**: yes

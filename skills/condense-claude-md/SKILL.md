@@ -54,7 +54,7 @@ Size is the first test, not the only one. A file can be under budget yet wrong. 
 - A subject-named file (`auth`, `media`, `migrations`) answers that from the pointer alone.
 - A layer-named file (`backend`, `frontend`, `utils`, `misc`) answers nothing — the only thing true of everything a reader might be doing. No natural eviction pressure: every gotcha plausibly belongs. Split by subject regardless of line count, and match any sibling already split that way.
 
-A dense file under budget: restructure in-place with `{#anchor}` subsections grouped by reader-search axis (where they are when the symptom hits), not subsystem. If a section list's entries share no reader (headings would make sensible separate filenames), split.
+A dense file under budget: restructure in-place with `{#anchor}` subsections grouped by reader-search axis (where they are when the symptom hits), not subsystem. If a section list's entries share no reader (headings would make sensible separate filenames), split. Make this call before compressing, not after: a file whose sections serve different readers and sits further above the landing figure than compression can close is split first (a `refresh-instructions` run decides it before its Pass 1).
 
 A split producing multiple companions is index-based by default: a thin router file naming which sibling answers which symptom. Enumerating them in the parent is hand-maintained prose that goes stale silently. 📖 `references/split-decision-tree.md` — lever selection, index-file shape, pointer requirements.
 
@@ -62,7 +62,7 @@ A split producing multiple companions is index-based by default: a thin router f
 
 Report `wc -l` and `wc -c` before and after — both, every run. A line drop with bytes flat means content moved, not deleted. A byte drop past ~10% on restructure means content left; past ~33%, name the rules judged non-essential and why, not just the total. If an extraction went to a companion/subdir, that destination should have grown by roughly what the source lost — shrink on both sides means content went nowhere.
 
-A pass landing above the ~32KB landing figure has not finished, even under the ceiling: keep moving incidents out. If still >200 lines or >40KB after compressing, offer to split before asking what to cut — check both, since a file can clear one budget and miss the other. When growth is the diagnosis, report headroom in days, not bytes: "6KB left, ~4 days at observed rate" (check history: `git log --format='%h %ad %s' --date=short -N -- <file>`).
+A pass landing above the ~32KB landing figure has not finished, even under the ceiling: keep moving incidents out. If still >200 lines or >40KB after compressing, offer to split before asking what to cut, and check both, since a file can clear one budget and miss the other. (The earlier split judgement is in `#split-decision`.) When growth is the diagnosis, report headroom in days, not bytes: "6KB left, ~4 days at observed rate" (check history: `git log --format='%h %ad %s' --date=short -N -- <file>`).
 
 Extract first column of old/new (`awk -F'|' '{print $2}'`), `comm -23` them, confirm each against diff. Confirm the last line is real content (not a `</content>` tag — see Hard rules).
 

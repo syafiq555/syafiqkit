@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.430.5
+
+**`refresh-instructions` no longer works against the condense skill it dispatches, and decides a split before Pass 1.**
+- The scope principle offered "or forbid it in every prompt" for extraction. A session banned it on a 46 KB companion, locked about 20 incident stories in a protected list, and condense stopped truthfully at 41 KB. Extraction is now allowed by default on an over-budget file, an incident story is protected by its destination (rule plus one figure stays, the story moves), and the count gate spans the file plus named destinations.
+- Before Pass 1 the session reads the file and judges whether a split suits it (different readers, a gap compression won't close), with no fixed threshold. `condense-claude-md` says the same when run alone, and `update-claude-docs` Rewrite points an oversized companion at the split decision tree.
+- After Pass 2, a condense that stops on "the rest is protected" means re-dispatch with looser protection or split, not a hand-written prompt. Only facts checked this session go on the protected list: an unchecked "keep as is" claim about a write guard was false and survived all three passes (14/11/2026).
+
+## 1.430.3
+
+**`refresh-instructions`: a CLAUDE.md companion's restructure pass runs `update-claude-docs`, not a hand-written prompt.**
+- The routing table said companions had no owning skill, so Pass 1 on a 46 KB payment companion went out as a bespoke prompt that had to restate, from memory, rules `update-claude-docs` already carries: keep every existing anchor name, house table shapes, and re-reading the parent's pointer row after sections move (13/11/2026, user asked why the skill wasn't used). `update-claude-docs` rewrite mode now says a companion skips the CLAUDE.md section taxonomy and groups by the reader's moment under a symptom router, and its description names companions.
+
 ## 1.430.0
 
 **Approve Google Chat sends from your phone, send files with them, and let Claude open the screenshots people post.**

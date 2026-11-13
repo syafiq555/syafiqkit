@@ -44,11 +44,11 @@ Legitimate pauses are rare. Invoking this skill authorised the whole sequence, s
 
 The tempting pause-points are checkpoints where a reader might choose differently on second thought (after seeing actual counts, after reading what Pass 1 produced). That is re-litigation: the user chose three passes when they invoked the skill, and a clean result with real numbers in hand is the moment that choice looks most solid, which is precisely why it *doesn't* warrant re-asking. The decision is already made; the numbers are confirmation.
 
-The same holds for extraction axis decisions: whether a pass may write to a companion is settled by this file, not per-run, so asking it as a user question hands back a decision the skill already made.
+The same holds for extraction, and this file settles it: a condense pass may move content to named destinations by default. A per-run prompt names the destinations and the cross-file contract (anchors, pointers) it will check afterwards, never a ban, and asking the user hands back a decision already made.
 
 ## File-type specifics: When Pass 1 has no owning skill
 
-Where no skill owns restructure — a README, runbook, design doc, or CLAUDE.md companion — restructure against the document's own contract (what a reader opens it to answer), never a template borrowed from a different file type.
+Where no skill owns restructure (a README, runbook or design doc; a CLAUDE.md companion is not one, since `update-claude-docs` rewrite owns it and its anchor, house-style and pointer rules are the companion's contract), restructure against the document's own contract (what a reader opens it to answer), never a template borrowed from a different file type.
 
 A README reshaped into a task doc is a worse file than the one you started with, and the pass reports success either way. Where the target resembles a PRD or architecture doc, 📖 `../setup-project-docs/references/standard-shapes.md` is the shape authority (arc42, C4, PR/FAQ, Shape Up); otherwise, the ordering question is the one Pass 3 asks anyway — does each rule sit where the reader is when it applies.
 
