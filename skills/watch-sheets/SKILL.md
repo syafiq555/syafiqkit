@@ -25,7 +25,7 @@ Find each sheet's id and its layout before the first read. Look in the project's
 - **Tracker:** id, reply column (e.g. `Tracker!F2:F200`), status column, ask column, `myNames` (every name your side signs with, teammates included), and which statuses mean our turn. When the status names who acts next, only that status is our turn. A tracker with no status column has no handoff to read, so every client line after ours is our turn.
 - **Test workbooks:** id, the summary tab with its counts, the defects tab, and the tester columns on each role tab (tester, date, remarks).
 
-When the user asks for a repeating check and no job exists yet, schedule one with `CronCreate`, putting the user's own wording in the prompt so each run comes back here. Tell them the job id, that it lasts only as long as this session, and that it expires after 7 days.
+When the user asks for a repeating check and no job exists yet, schedule one with `CronCreate`, putting the user's own wording in the prompt so each run comes back here. Tell them the job id, that it lasts only as long as this session, and that it expires after 7 days. **"No job exists" is a `CronList` answer, not a memory of the jobs you made:** a session can hold watch jobs this conversation never created, and each fires its own full check and its own alert. Run `CronList` before creating one and on every later invocation; when more than one job runs this skill, keep one and delete the rest, saying which. **Tell: you are about to call `CronCreate`, or say the watch is off, without a `CronList` result this turn.**
 
 ## Each check
 
@@ -41,7 +41,7 @@ Keep the baseline (each sheet's `modifiedTime`, each tracker row's status, the s
 ## Reporting
 
 - **Something is our turn:** raise it with `AskUserQuestion`, so the user sees it even when away from the transcript. Name the row and its ask in plain words, who wrote it, and whether a peer already has it. Offer: draft replies now; leave it, they'll handle it; another session has it. Several items found in one check go into one question, never one each. A row the user said to leave comes back only when its last line or status has changed since: an unrelated edit moves `modifiedTime` and would otherwise raise it on every check.
-- **Nothing is:** a short report with the counts, what moved (e.g. "row 80 closed"), and when the next check runs. After several quiet checks in a row, say so in one line and remind them how to stop the job (`CronDelete` with the id).
+- **Nothing is:** a short report with the counts, what moved (e.g. "row 80 closed"), and when the next check runs. After several quiet checks in a row, say so in one line and remind them how to stop the job (`CronDelete` with the id). Stopping the watch (`/loop off`, "stop watching") deletes every job `CronList` shows running this skill, then lists again and reports it empty: deleting only the id you remember left two duplicate watchers running while the reply said nothing was scheduled.
 - Replying in the sheet is a separate step that follows the project's tracker rules (`cell_append_line` keeps each person's colours). Never reply because the check found something: the user picks.
 
 📖 `references/worked-example.md`: a launch-week run over one tracker and two UAT workbooks. It shows the routing lines that looked like asks, a row that closed with no text, and the `modifiedTime` gate checked against it.
