@@ -754,6 +754,71 @@ test('an oversized decisions file with a generated outline beside it says so in 
   await ui.unmount()
 })
 
+test('an outline older than its copy by more than the slack reads as stale in the badge', async ($, on) => {
+  const sent: string[] = []
+  await stubTaskDoc(
+    $,
+    on,
+    sent,
+    'quote',
+    2000,
+    [
+      { ...fileEntry('copy.md', 163_000), mtimeMs: 999_000 + 3_600_000 },
+      fileEntry('copy-outline.md', 4_000),
+    ],
+    '# T\n- [ ] one',
+  )
+  await $.command.run({ command: 'sk', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'vb5' })
+  expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB · outline stale/ })).length).toBe(1)
+  await ui.unmount()
+})
+
+test('a copy kept whole with its outline offers no Split, and Shrink tells the session to leave it', async ($, on) => {
+  const sent: string[] = []
+  await stubTaskDoc(
+    $,
+    on,
+    sent,
+    'quote',
+    60,
+    [fileEntry('copy.md', 163_000), fileEntry('copy-outline.md', 4_000), fileEntry('plan.md', 47_000)],
+    '# T\n- [ ] one',
+  )
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'r0b' })
+  await ui.press({ key: 'decisions-toggle' })
+  await ui.press({ key: 'dec0' })
+  expect(await ui.find({ key: 'dec-split' })).toBeUndefined()
+  expect(await ui.find({ key: 'dec-condense' })).toBeDefined()
+  await ui.unmount()
+  await $.command.run({ command: 'sk', args: '' })
+  const menu = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await menu.press({ key: 'vb5' })
+  await menu.press({ key: 'y0b' })
+  expect(sent.length).toBe(1)
+  expect(sent[0]).toContain('Over the limit: decisions/plan.md (45.9 KB) is over the 40 KB limit')
+  expect(sent[0]).toContain('decisions/copy.md (159.2 KB) is a copy kept whole with a generated outline beside it: do not split or condense it')
+  expect(sent[0]).not.toContain('looks older than the file')
+  await menu.unmount()
+})
+
+test('Shrink on a doc whose only oversized file is kept whole with its outline asks for no split or condense', async ($, on) => {
+  const sent: string[] = []
+  await stubTaskDoc($, on, sent, 'quote', 60, [fileEntry('copy.md', 163_000), fileEntry('copy-outline.md', 4_000)], '# T\n- [ ] one')
+  await $.command.run({ command: 'sk', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'vb5' })
+  await ui.press({ key: 'y0b' })
+  expect(sent.length).toBe(1)
+  expect(sent[0]).not.toContain('Over the limit')
+  expect(sent[0]).not.toContain('judge what fits')
+  expect(sent[0]).toContain('change nothing and say so')
+  await ui.unmount()
+})
+
 test('an oversized decisions file without an outline keeps the plain badge', async ($, on) => {
   const sent: string[] = []
   await stubTaskDoc($, on, sent, 'quote', 2000, [fileEntry('copy.md', 163_000)], '# T\n- [ ] one')

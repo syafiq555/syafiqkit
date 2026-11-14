@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.434.3
+
+**The doc panel stops offering a split for a copy kept whole with its outline, and says when that outline looks out of date.**
+- A product review of 1.434.2 found the Split button still on an outlined file and Shrink still listing it, so a press sent a session to split it or rebuild the outline, and "· outline" showed even after the copy changed (14/11/2026). The user chose: hide Split, leave it out of Shrink, mark it stale; the size warning stays
+- A decisions page whose file has a `<name>-outline.md` beside it has no Split button (Condense stays). Shrink's prompt lists it as kept whole, "do not split or condense it", and asks to regenerate its outline and run `--check` when the outline looks older
+- Stale means the copy's modified time is more than 10 minutes after its outline's: a timestamp hint, with slack because a fresh clone writes `copy-outline.md` before `copy.md`. `--check` is still the real test. The badge reads `· outline stale` (`, N stale` with several) and the decisions list `(over 40 KB, outline stale)`
+- An `-outline.md` file is never itself counted as an oversized decisions file
+- `condense-task-doc` and `doc-to-md`: the repo's `--check` passes the same `--group`/`--label` flags as generation, since it rebuilds the outline from them and reports a correct outline STALE without them; `doc-to-md` now says to copy the script into the repo and run the check from there
+- When an outlined copy is the doc's only oversized file, Shrink's prompt drops the split-or-condense advice and asks the session to change nothing and say so
+- Three mod tests cover the stale badge, the missing Split, and the Shrink wording with and without other oversized files
+
 ## 1.434.2
 
 **The doc list says when an oversized decisions file already has its outline.**

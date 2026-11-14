@@ -16,6 +16,7 @@ export const NARROW_COLUMNS = 60
 export const MEASURE_FROM_BYTES = 8000
 export const TASK_DOC_MAX_LINES = 300
 export const DECISION_MAX_BYTES = 40 * 1024
+export const OUTLINE_STALE_SLACK_MS = 10 * 60 * 1000
 export const CLAUDE_MD_MAX_LINES = 200
 export const CLAUDE_MD_MAX_BYTES = 40000
 export const NESTED_SCAN_DEPTH = 4

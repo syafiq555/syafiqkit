@@ -1,5 +1,5 @@
 import { hostEnvGet, hostProcessRun } from './api.js'
-import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DECISION_MAX_BYTES, RECENT_AGE_DAYS, TASK_DOC_MAX_LINES } from './constants.js'
+import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DECISION_MAX_BYTES, OUTLINE_STALE_SLACK_MS, RECENT_AGE_DAYS, TASK_DOC_MAX_LINES } from './constants.js'
 
 export function parentOf(path) {
   const cut = path.lastIndexOf('/')
@@ -138,7 +138,7 @@ export function isInstructionFile(doc) {
 }
 
 export function isOversizedDecision(file) {
-  return (file.size || 0) > DECISION_MAX_BYTES
+  return (file.size || 0) > DECISION_MAX_BYTES && !/-outline\.md$/.test(file.name || '')
 }
 
 export function oversizedDecisions(doc) {
@@ -155,15 +155,26 @@ export function isHeavy(doc) {
 export function outlineName(file) {
   return file.name.replace(/\.md$/, '') + '-outline.md'
 }
+function outlineOf(doc, file) {
+  return (doc.decisions || []).find((other) => other.name === outlineName(file))
+}
 export function hasOutline(doc, file) {
-  return (doc.decisions || []).some((other) => other.name === outlineName(file))
+  return Boolean(outlineOf(doc, file))
+}
+export function isOutlineStale(doc, file) {
+  const outline = outlineOf(doc, file)
+  if (!outline || typeof outline.mtime !== 'number' || typeof file.mtime !== 'number') return false
+  return file.mtime - outline.mtime > OUTLINE_STALE_SLACK_MS
 }
 export function heavyNote(doc) {
   const big = oversizedDecisions(doc).sort((a, b) => (b.size || 0) - (a.size || 0))
-  const outlined = big.filter((file) => hasOutline(doc, file)).length
+  const outlined = big.filter((file) => hasOutline(doc, file))
+  const stale = outlined.filter((file) => isOutlineStale(doc, file)).length
   const parts = []
   if (big.length) parts.push(big.length > 1 ? big.length + ' decisions, max ' + kb(big[0].size) : 'decisions ' + kb(big[0].size))
-  if (outlined) parts.push(big.length > 1 ? outlined + ' with outline' : 'outline')
+  if (outlined.length) {
+    parts.push(big.length > 1 ? outlined.length + ' with outline' + (stale ? ', ' + stale + ' stale' : '') : stale ? 'outline stale' : 'outline')
+  }
   if (typeof doc.lines === 'number' && doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES) parts.push(doc.lines + ' lines')
   if (!parts.length) parts.push(isInstructionFile(doc) && doc.lines <= CLAUDE_MD_MAX_LINES ? kb(doc.size) : doc.lines + ' lines')
   return '⚠ ' + parts.join(' · ')
@@ -229,13 +240,34 @@ export function taskDocShrinkRequest(doc) {
   const sizes = []
   if (typeof doc.lines === 'number' && doc.lines > TASK_DOC_MAX_LINES) sizes.push('current.md is ' + doc.lines + ' lines (index limit 300)')
   const big = oversizedDecisions(doc)
-  if (big.length) sizes.push(big.map(decisionLabel).join(', ') + (big.length === 1 ? ' is' : ' are') + ' over the 40 KB limit for one decisions file')
+  const open = big.filter((file) => !hasOutline(doc, file))
+  const kept = big.filter((file) => hasOutline(doc, file))
+  const stale = kept.filter((file) => isOutlineStale(doc, file))
+  if (open.length) sizes.push(open.map(decisionLabel).join(', ') + (open.length === 1 ? ' is' : ' are') + ' over the 40 KB limit for one decisions file')
+  const keptNote = kept.length
+    ? kept.map(decisionLabel).join(', ') +
+      (kept.length === 1 ? ' is a copy' : ' are copies') +
+      ' kept whole with a generated outline beside it: do not split or condense ' +
+      (kept.length === 1 ? 'it' : 'them') +
+      '. ' +
+      (stale.length
+        ? 'The outline of ' +
+          stale.map(decisionLabel).join(', ') +
+          ' looks older than the file: regenerate it with the generator the index names, otherwise condense-task-doc\'s scripts/doc_outline.py, and run its --check. '
+        : '')
+    : ''
   return (
     'Use the task-summary skill on ' +
     doc.path +
     '. ' +
     (sizes.length ? 'Over the limit: ' + sizes.join('; ') + '. ' : '') +
-    'For each oversized file, judge what fits: condense it, split it by topic with current.md as the router, condense then split, or a better structure. Before splitting, grep the repo for each file name in scripts, builds and CI: a file that a script or version diff reads at its path stays whole with a generated outline beside it (condense-task-doc\'s scripts/doc_outline.py). If you see a better way than these, propose it before changing anything. Keep every decision, figure, name and quote, and move text between files word for word. Verify the result before reporting.'
+    keptNote +
+    (sizes.length
+      ? 'For each oversized file, judge what fits: condense it, split it by topic with current.md as the router, condense then split, or a better structure. Before splitting, grep the repo for each file name in scripts, builds and CI: a file that a script or version diff reads at its path stays whole with a generated outline beside it (condense-task-doc\'s scripts/doc_outline.py). If you see a better way than these, propose it before changing anything. Keep every decision, figure, name and quote, and move text between files word for word. '
+      : stale.length
+        ? ''
+        : 'Nothing else is over the limit, so change nothing and say so. ') +
+    'Verify the result before reporting.'
   )
 }
 

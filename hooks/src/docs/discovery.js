@@ -40,7 +40,7 @@ export async function findTaskDocs($, root) {
         path: dir + '/current.md',
         size: doc.size,
         mtime: doc.mtimeMs,
-        decisions: files.map((entry) => ({ name: entry.name, path: dir + '/decisions/' + entry.name, size: entry.size })),
+        decisions: files.map((entry) => ({ name: entry.name, path: dir + '/decisions/' + entry.name, size: entry.size, mtime: entry.mtimeMs })),
       })
     }
     for (const entry of entries) {

@@ -1,6 +1,6 @@
 import { hostUiInvalidate, hostUiScroll } from '../core/api.js'
 import { ITEM_CAP_ROWS, PANE, TYPESET_WIDTH_STEP } from '../core/constants.js'
-import { condenseFileRequest, hasOutline, isInstructionFile, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
+import { condenseFileRequest, hasOutline, isInstructionFile, isOutlineStale, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
 import { state } from '../core/state.js'
 import { copyDocFile, openInEditor } from '../docs/export.js'
 import { fitImage, hashOf, svgPicture } from '../docs/images.js'
@@ -169,7 +169,11 @@ export function docView($, c) {
                     file.name.replace(/\.md$/, '') +
                     '  ' +
                     kb(file.size) +
-                    (isOversizedDecision(file) ? (hasOutline(state.current, file) ? ' (over 40 KB, has outline)' : ' (over 40 KB)') : '') +
+                    (isOversizedDecision(file) ? (hasOutline(state.current, file)
+                      ? isOutlineStale(state.current, file)
+                        ? ' (over 40 KB, outline stale)'
+                        : ' (over 40 KB, has outline)'
+                      : ' (over 40 KB)') : '') +
                     '  ›',
                   plain: true,
                   onPress: () => openDecision(index),
@@ -420,12 +424,16 @@ export function decisionView($, c) {
           onPress: () =>
             sendNow('Condense ' + file.name, condenseFileRequest(state.current, file), state.current),
         }),
-        Button({
-          key: prefix + 'dec-split',
-          label: 'Split',
-          ...liveOnly(prefix, { hotkey: 't' }),
-          onPress: () => sendNow('Split ' + file.name, splitRequest(state.current, file), state.current),
-        }),
+        ...(hasOutline(state.current, file)
+          ? []
+          : [
+              Button({
+                key: prefix + 'dec-split',
+                label: 'Split',
+                ...liveOnly(prefix, { hotkey: 't' }),
+                onPress: () => sendNow('Split ' + file.name, splitRequest(state.current, file), state.current),
+              }),
+            ]),
       ],
     })
   }
