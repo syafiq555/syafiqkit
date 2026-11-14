@@ -35,7 +35,7 @@ Every slide may carry `notes` (1 to 5 lines, the presenter's prompts), `id`, `se
   - `visual`: one of the kinds below
   - `example`: optional, `{"kind": "quoted" | "worked" | "made_up", "lines": [2 to 6 lines, max 16 words]}`. Give it only when it adds a figure the picture lacks; without it the picture takes the full width, and `numbers` (`quoted` default, `worked`, `made_up`) says how the picture's figures are checked
   - `rule`: optional, the source's own rule, max 30 words
-  - `waits_on`: open points, each max 3 words ("Row 8")
+  - `waits_on`: open points, each max 3 words naming the question itself ("Who keeps delivery", "Days until payable"), never a tracker row or item number, which the reader cannot look up mid-talk; the build refuses "Row 8". The full question and its suggested default go in the notes
   - `src`: `[{"file", "line", "quote"}]`, required when `sources` is set. The quote is copied character for character, is at least 20 characters, and must sit within 12 lines of `line`
   - `kicker`: overrides "How it works"
 

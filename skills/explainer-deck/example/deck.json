@@ -226,7 +226,7 @@
       },
       "rule": "A first-month voucher takes RM10.00 off, funded by Bean Box.",
       "waits_on": [
-        "Row 3"
+        "Voucher stacking rule"
       ],
       "notes": [
         "Walk the bars left to right."

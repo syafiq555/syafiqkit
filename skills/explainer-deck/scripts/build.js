@@ -168,7 +168,7 @@ function checkMechanism(s, where) {
   if (!LABELS[ex.kind]) bad(where, s.example ? 'example.kind must be quoted, worked or made_up' : 'numbers must be quoted, worked or made_up');
   if (s.example) for (const l of count(ex.lines, 2, 6, where, 'example lines')) words(l, 16, `${where} example line`);
   if (s.rule) words(s.rule, 30, `${where} rule`);
-  for (const w of s.waits_on || []) words(w, 3, `${where} waits_on`);
+  for (const w of s.waits_on || []) { words(w, 3, `${where} waits_on`); if (/^(row|item|q|no\.?|#)\s*\d+[a-z]?$/i.test(String(w).trim())) bad(where, `waits_on "${w}" is a row number; name the question itself (e.g. "Who keeps delivery")`); }
   if (sourceFiles.length && !(s.src || []).length) bad(where, 'needs src (file, line, quote) because the spec lists sources');
   const near = (s.src || []).length ? nearText(s.src, where) : '';
   if (ex.kind === 'made_up' || !sourceFiles.length && !factFiles.length && !workingFiles.length) return;
@@ -231,7 +231,7 @@ function checkJourney(s, where) {
   if (behind.length > 8) bad(where, 'at most 8 behind cards');
   if (s.numbers && !LABELS[s.numbers]) bad(where, 'numbers must be quoted, worked or made_up');
   if (s.rule) words(s.rule, 30, `${where} rule`);
-  for (const w of s.waits_on || []) words(w, 3, `${where} waits_on`);
+  for (const w of s.waits_on || []) { words(w, 3, `${where} waits_on`); if (/^(row|item|q|no\.?|#)\s*\d+[a-z]?$/i.test(String(w).trim())) bad(where, `waits_on "${w}" is a row number; name the question itself (e.g. "Who keeps delivery")`); }
   const named = [...ms, ...behind].map((x) => x.screen || x.tool).filter(Boolean);
   if (sourceFiles.length && (named.length || s.rule) && !(s.src || []).length) bad(where, 'needs src (file, line, quote) for its screens, tools and rule');
   const near = (s.src || []).length ? nearText(s.src, where) : '';

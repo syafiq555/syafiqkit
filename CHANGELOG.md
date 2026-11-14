@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.433.1
+
+**`explainer-deck` names open questions instead of row numbers and shows overrides; `done` design-reviews decks.**
+- `spec.md` taught `waits_on: "Row 8"` and the example deck carried "Row 3", so a sprint deck listed "Row 16, Row 18" and its owner answered "Don't make it row N, i want the thing itself" (14/11/2026). The spec now asks for the question in three words with the full question and suggested default in the notes, the example deck follows it, and the build refuses a `waits_on` that is only a row or item number.
+- SKILL.md § 2: a default is half the rule. A rate with a per-party override, premium tier or start date gets a slide in the order the rules apply, and each picture carries every open question from the project's tracker that touches it (the same deck showed only 10% and 3.5%; "what about the override and 12% and all?").
+- Description: also fires on a team plan or sprint kick-off deck and on any change to a deck this skill built; the request "the sprint planning checklist is too simple" reached the deck only after the user named the skill.
+- `done` Design row: covers a slide deck or rendered document too, graded from its rendered pages; `impeccable`'s detector does not apply there, so its critique runs the design review alone. A render check for overflow is not this row: the deck passed every render check and its owner still had to ask for the design skills.
+
 ## 1.433.0
 
 **`explainer-deck`: decks stop looking like one template; people and sellers keep a colour throughout.**
