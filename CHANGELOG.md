@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.432.0
+
+**`gsheets-mcp`: `drive_file_share` shares a file the sign-in created; `explainer-deck` uses it at hand-over.**
+- New tool: share with anyone who has the link, a Google Workspace domain or one person (reader, commenter or writer; no email to a person unless `notify`), answering with who can now open the file. `drive.file` is per OAuth client, so only this server's sign-in can share what it uploaded.
+- `explainer-deck` § Hand it over said "No plugin tool sets sharing", so a session handed the user Drive Share-dialog steps for a deck it had uploaded, then shared it anyway through a hand-rolled Drive API call with the server's refresh token (14/11/2026). The step now asks who should see it, calls `drive_file_share`, and checks an anyone-with-link deck opens signed out; `references/google-slides.md` gains the sharing step, `setup-tracker`'s sheets-api gotchas point a sheet the same sign-in created at it, and the server's instructions name the tool.
+- Existing installs: `/mcp reconnect gsheets` to load the new tool.
+
 ## 1.431.0
 
 **`done` design-reviews every screen the diff changed.**

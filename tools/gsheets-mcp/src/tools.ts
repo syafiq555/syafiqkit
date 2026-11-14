@@ -225,6 +225,25 @@ export function driveSearchQuery({ nameContains = [], type, modifiedAfter, folde
   return terms.join(' and ')
 }
 
+export interface ShareRequest {
+  type: 'anyone' | 'domain' | 'user'
+  role: 'reader' | 'commenter' | 'writer'
+  domain?: string
+  emailAddress?: string
+}
+
+export function sharePermission({ type, role, domain, emailAddress }: ShareRequest): Record<string, string> {
+  if (type === 'domain') {
+    if (!domain?.trim()) throw new Error('type domain needs domain, e.g. techstrongbox.com')
+    return { type, role, domain: domain.trim() }
+  }
+  if (type === 'user') {
+    if (!emailAddress?.includes('@')) throw new Error('type user needs emailAddress')
+    return { type, role, emailAddress: emailAddress.trim() }
+  }
+  return { type, role }
+}
+
 export function registerTools(server: McpServer, g: Google): void {
   server.registerTool(
     'values_get',
@@ -630,6 +649,30 @@ export function registerTools(server: McpServer, g: Google): void {
         rawBody: bytes,
         contentType: mime,
       })
+    }),
+  )
+
+  server.registerTool(
+    'drive_file_share',
+    {
+      description:
+        'Share a Drive file this sign-in created (an upload, a deck converted to Slides, a sheet it made) and return who can now open it. type anyone gives everyone with the link, domain everyone in a Google Workspace domain, user one person by email (no email is sent unless notify is true). Sharing publishes the file to its audience, so ask the user who should see it before calling. A file someone else made answers 404 or 403: its owner shares it in Drive.',
+      inputSchema: {
+        fileId: z.string(),
+        type: z.enum(['anyone', 'domain', 'user']),
+        role: z.enum(['reader', 'commenter', 'writer']).default('reader'),
+        domain: z.string().optional().describe('For type domain, e.g. techstrongbox.com'),
+        emailAddress: z.string().optional().describe('For type user'),
+        notify: z.boolean().default(false).describe('For type user: send Google\'s sharing email'),
+      },
+      annotations: WRITE,
+    },
+    guarded(async ({ fileId, type, role, domain, emailAddress, notify }) => {
+      const url = `${DRIVE}/${encodeURIComponent(fileId)}/permissions`
+      const permission = sharePermission({ type, role, domain, emailAddress })
+      const flags = type === 'user' ? { sendNotificationEmail: notify } : {}
+      await g.call('POST', `${url}${query({ supportsAllDrives: true, ...flags })}`, { body: permission })
+      return g.call('GET', `${url}${query({ supportsAllDrives: true, fields: 'permissions(id,type,role,domain,emailAddress)' })}`)
     }),
   )
 

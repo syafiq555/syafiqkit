@@ -19,7 +19,7 @@ Each of these produced a sheet that the API reported as built successfully but t
 
 Facts that limit what can be automated (Google help pages, checked 05/11/2026):
 
-- A token with only the spreadsheets scope can create a spreadsheet and edit any sheet the account can reach. It cannot share, move or delete files; that needs a Drive scope.
+- A token with only the spreadsheets scope can create a spreadsheet and edit any sheet the account can reach. It cannot share, move or delete files; that needs a Drive scope. The gsheets MCP's sign-in carries `drive.file`, so its `drive_file_share` can share a sheet that same sign-in created, once the user has said who should see it.
 - Conditional notifications are available only to some work or school accounts. Recipients must be Google accounts (no Outlook or Yahoo), and changes arriving through IMPORTRANGE do not trigger them (support.google.com/docs/answer/14099459).
 - A simple `onEdit` trigger cannot use services that need authorisation (so no email), runs for at most 30 seconds, and doesn't fire for edits made by scripts. An installable trigger runs as its creator (developers.google.com/apps-script/guides/triggers). Apps Script email quota: 100 recipients a day on a consumer account, 1,500 on Workspace.
 - Google Form responses land in their own tab, not an existing tracker tab, so a form intake needs a script or a `QUERY` to fold the responses in (support.google.com/docs/answer/2917686).

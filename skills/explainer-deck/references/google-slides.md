@@ -12,7 +12,8 @@ With syafiqkit's `gsheets` MCP:
 
 1. First time: `drive_file_upload` with `convertTo: "slides"`. Keep the returned id with the spec (a task doc or the spec's folder).
 2. Every rebuild: `drive_file_update` with that id and the new .pptx. The link stays the same and the file stays Google Slides, so a link already shared keeps working. A new upload would make a second file.
-3. The sign-in writes only through `drive.file` (its `drive.readonly` scope can read others' files, not change them), so it can update only files it created. A deck someone else made can't be updated this way; upload a new one.
+3. Sharing: once the user has said who should see it, `drive_file_share` with that id (`type` anyone, domain or user; `role` reader by default). It answers with who can now open the file. Sharing survives every `drive_file_update`.
+4. The sign-in writes only through `drive.file` (its `drive.readonly` scope can read others' files, not change them), so it can update only files it created. A deck someone else made can't be updated this way; upload a new one.
 
 Without the MCP, upload the .pptx by hand and open it with Google Slides. Check the render the same way.
 
