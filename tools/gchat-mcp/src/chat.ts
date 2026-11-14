@@ -236,6 +236,10 @@ export class Chat {
     return res.attachmentDataRef
   }
 
+  edit(name: string, text: string): Promise<ChatMessage> {
+    return this.g.call('PATCH', `${CHAT}/${name}${query({ updateMask: 'text' })}`, { text })
+  }
+
   async send(space: string, text: string, thread?: string, attachments: AttachmentRef[] = [], messageId?: string): Promise<ChatMessage> {
     const body: Record<string, unknown> = { text }
     if (attachments.length) body.attachment = attachments.map((ref) => ({ attachmentDataRef: ref }))

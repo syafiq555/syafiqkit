@@ -27,6 +27,7 @@ These skills accept explicit user command:
 | Skill | When to invoke |
 |-------|----------------|
 | `commit` | Create git commits from staged changes; `/commit push` also pushes |
+| `claude-server-token` | Give a server-side Claude agent a one-year `claude setup-token` token, or renew it, even when the owner is only on their phone |
 | `write-summary` | Create a task summary document |
 | `update-summary` | Update an existing task summary |
 | `task-summary` | Create/update task summaries with full machinery |
@@ -42,10 +43,12 @@ These skills accept explicit user command:
 | `commit-invoice-generator` | Invoice line items from git commits |
 | `md-to-pdf` | Markdown to PDF with rendered Mermaid diagrams |
 | `doc-to-md` | `.docx`, `.pdf` or `.xlsx` to Markdown, so each version is a readable diff |
+| `docx-red-edits` | Edit someone else's Word file with changes in red and deletions in red strikethrough, their formatting untouched (Word Track Changes is `docx`) |
 | `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw discussion board, verified by screenshot. Charts are `dataviz`; deciding what to build is `plan-worklist` |
 | `motion-clip` | Designed launch, promo or explainer video as code: real captured screens, storyboard and sound approved before the full render, automatic and contact-sheet checks, 9:16/1:1/16:9 plus store presets, music bed, optional voice-over. Test-run recordings are `setup-playwright` |
 | `product-still` | Designed still image from real captured screens (how-it-works steps, feature and hero composites): floating cropped cards, numbered steps, badge, rendered from HTML to PNG with phone and transparent variants. Video is `motion-clip` |
 | `setup-tracker` | Shared tracker sheet for a project or a multi-project master, shaped by context: whose-turn status, Latest update plus History, counts strip instead of a tutorial, built from a JSON config by script. UAT scripts and huddles are out of scope |
+| `watch-sheets` | One check of shared sheets on a repeating loop: `modifiedTime` gate, whose-turn by status not by last colour, status-only moves via `skippedByStatus`, UAT count diffs, live same-project peers, `AskUserQuestion` only when it is our turn. Building a tracker is `setup-tracker` |
 | `understanding-guide` | Large text the user must understand → offline question-and-answer page, every claim checked against its source; decisions wait until the reader understands |
 | `explainer-deck` | Deck (Google Slides or .pptx) explaining a system or document to a live audience: each mechanism drawn beside a worked example, written as a JSON spec that `scripts/build.js` checks against its sources and draws; Google's own render checked. A page read alone is `understanding-guide` |
 | `reverse-engineer` | Rebuild a web app's mechanism that the client already uses, read through REA, into a task doc a sonnet reviewer verifies before design |
@@ -86,6 +89,7 @@ These skills accept explicit user command:
 | `motion-clip` | Asked for a launch clip, promo, explainer or reel, or to add music to one, without naming the skill |
 | `product-still` | Website or marketing images built from the product's screens are outdated or wanted ("update the images on our site", "feature image", "transparent version", "phone version"), without naming the skill |
 | `setup-tracker` | A tracker sheet is asked for or complained about ("set up a tracker", "issue log", "the remarks column is too long", "client can't tell what's waiting on them"), or a tracker screenshot arrives, without naming the skill. Not a per-person weekly huddle or timesheet |
+| `watch-sheets` | Asked to keep checking or monitor a tracker or UAT sheet ("check the tracker every 10m", "alert me when the client replies"), or a `/loop` prompt that checks one, without naming the skill |
 | `understanding-guide` | User faces more text than one sitting holds, or asks how it should be presented |
 | `explainer-deck` | Asked for slides or a deck to explain how something works to a meeting, without naming the skill |
 | `reverse-engineer` | "The same as <app> my client uses" built in our app, or "reverse engineer" / "utilize REA" about a web app someone is logged into |
@@ -93,6 +97,7 @@ These skills accept explicit user command:
 | `merge-task-docs` | Related task docs in a domain: classify by subsystem boundary, merge, delete sources, reconcile back-references |
 | `sweep-doc-overlaps` | Fleet-wide scan of all `tasks/` domains for cross-domain merge candidates; hands groups to `merge-task-docs` |
 | `ci-ssh-deploy-timeout` | "Deploy keeps timing out" or SSH intermittency in CI |
+| `claude-server-token` | A server's Claude agent reports "credentials expired", "OAuth session expired", a blank `refreshToken` or a 401, or keeps losing its login every few weeks |
 | `setup-playwright` | "E2E tests are flaky", "specs pass alone but fail together" |
 | `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, critique a screen (no edits), research. Public-facing page looks go to `taste`, whatever the verb. Also fires on a screenshot or a report of what someone saw |
 | `taste` | Asked to build, redesign or polish a public-facing page, or told one looks generic, cheap or "AI-made" |
@@ -100,6 +105,7 @@ These skills accept explicit user command:
 | `gchat-format` | Asked to send, post or format anything for Google Chat |
 | `casual-message` | Asked to reply to, text or tell a NAMED person something; runs before drafting |
 | `continue-session` | Session ending with work deferred, or the user is low on context or starting fresh |
+| `docx-red-edits` | About to change a Word file a colleague or client owns, where they mark their own revisions in red |
 
 ### Sub-skills (spawned from other skills)
 

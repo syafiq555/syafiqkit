@@ -6,7 +6,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { cellAddress, gridRange, mergeHolding, mergeLabel, parseRange, type Merge } from './a1.ts'
 import { DRIVE, DRIVE_UPLOAD, Google, SHEETS, SLIDES, query } from './google.ts'
-import { awaitingReply, checkAppend, checkReplace, chipLinks, collapseChips, describeCell, hexToRgb, planAppend, planReplace, type CellData, type ChipRun, type TextRun } from './rich.ts'
+import { awaitingReply, checkAppend, checkReplace, chipLinks, collapseChips, describeCell, hexToRgb, planAppend, planReplace, textOf, type CellData, type ChipRun, type TextRun } from './rich.ts'
 
 const id = z.string().describe('Spreadsheet id (the long part of the sheet URL between /d/ and /edit)')
 const range = z.string().describe('A1 range with its sheet name, e.g. Tracker!A1:F20. Tabs can be renamed by their owner, so list them with sheets_list if a name stops working')
@@ -194,6 +194,37 @@ const EXPORT_TYPE = {
 
 const DRIVE_FIELDS = 'id,name,mimeType,webViewLink,modifiedTime,parents'
 
+const SEARCH_TYPE = {
+  doc: 'application/vnd.google-apps.document',
+  sheet: 'application/vnd.google-apps.spreadsheet',
+  slides: 'application/vnd.google-apps.presentation',
+  folder: 'application/vnd.google-apps.folder',
+  pdf: 'application/pdf',
+} as const
+
+export interface DriveSearch {
+  nameContains?: string[]
+  type?: keyof typeof SEARCH_TYPE
+  modifiedAfter?: string
+  folderId?: string
+}
+
+const quoted = (value: string) => `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
+
+export function driveSearchQuery({ nameContains = [], type, modifiedAfter, folderId }: DriveSearch): string {
+  const terms = nameContains.filter((t) => t.trim()).map((t) => `name contains ${quoted(t)}`)
+  if (type) terms.push(`mimeType = ${quoted(SEARCH_TYPE[type])}`)
+  if (modifiedAfter) {
+    const at = new Date(/^\d{4}-\d{2}-\d{2}$/.test(modifiedAfter) ? `${modifiedAfter}T00:00:00+08:00` : modifiedAfter)
+    if (Number.isNaN(at.getTime())) throw new Error(`modifiedAfter "${modifiedAfter}" is not a date; use YYYY-MM-DD`)
+    terms.push(`modifiedTime > ${quoted(at.toISOString())}`)
+  }
+  if (folderId) terms.push(`${quoted(folderId)} in parents`)
+  if (!terms.length) throw new Error('give at least one of nameContains, type, modifiedAfter or folderId')
+  terms.push('trashed = false')
+  return terms.join(' and ')
+}
+
 export function registerTools(server: McpServer, g: Google): void {
   server.registerTool(
     'values_get',
@@ -311,7 +342,7 @@ export function registerTools(server: McpServer, g: Google): void {
     'cells_awaiting_reply',
     {
       description:
-        'Find which tracker rows wait for your reply, without reading every cell. Give the reply column (e.g. Tracker!F2:F200) and the colours you write in; it returns only the cells where text in another colour comes after your last line, with that text, its colours and your last line. Who wrote what is read from the text colour, never from a name at the start of a line, so a client line with no name and a client question in the middle of a cell are both caught. Pass alsoRead (e.g. Tracker!A2:E200, the same rows) to get each row\'s other columns beside it, and statusColumn (e.g. E) to leave out rows whose status is in skipStatuses (Closed by default). Cells with no text in another colour after yours are left out, so a row you still owe something on without the client writing again (your own stale promise, a status to move) is not listed: read those rows yourself.',
+        'Find which tracker rows wait for your reply, without reading every cell. Give the reply column (e.g. Tracker!F2:F200) and the colours you write in; it returns only the cells where text in another colour comes after your last line, with that text, its colours and your last line. Who wrote what is read from the text colour, never from a name at the start of a line, so a client line with no name and a client question in the middle of a cell are both caught. Pass alsoRead (e.g. Tracker!A2:E200, the same rows) to get each row\'s other columns beside it, and statusColumn (e.g. E) to leave out rows whose status is in skipStatuses (Closed by default). Cells with no text in another colour after yours are left out, so a row you still owe something on without the client writing again (your own stale promise, a status to move) is not listed: read those rows yourself. Two client asks are invisible to colour alone, so name them: askColumn (e.g. B) also lists rows whose ask column has text while the reply cell is empty (a new row asked in the description column), marked newRow; myNames (e.g. ["Syafiq"]) treats a line in your colour that opens "Name dd/mm:" with another name as theirs (a client who typed in black), shown as colour signed:<name>.',
       inputSchema: {
         spreadsheetId: id,
         range: range.describe('One column of reply cells with its sheet name, e.g. Tracker!F2:F200'),
@@ -319,10 +350,12 @@ export function registerTools(server: McpServer, g: Google): void {
         alsoRead: z.string().optional().describe('Optional range over the same rows (e.g. Tracker!A2:E200) whose values are returned beside each listed cell'),
         statusColumn: z.string().regex(/^[A-Za-z]{1,3}$/).optional().describe('Column letter holding each row\'s status, e.g. E; rows whose status is in skipStatuses are left out'),
         skipStatuses: z.array(z.string()).default(['Closed']).describe('Statuses to leave out when statusColumn is given (exact text, case ignored)'),
+        askColumn: z.string().regex(/^[A-Za-z]{1,3}$/).optional().describe('Column letter holding each row\'s ask, e.g. B; a row with text there and an empty reply cell is listed as newRow'),
+        myNames: z.array(z.string()).default([]).describe('Every name your side signs lines with, teammates included, e.g. ["Syafiq", "KL"]; a line in your colour signed "Other dd/mm:" counts as theirs. The other name must start with a capital, so "ana 11/11:" typed in your colour still reads as yours'),
       },
       annotations: READ,
     },
-    guarded(async ({ spreadsheetId, range: replyRange, mine, alsoRead, statusColumn, skipStatuses }) => {
+    guarded(async ({ spreadsheetId, range: replyRange, mine, alsoRead, statusColumn, skipStatuses, askColumn, myNames }) => {
       const parsed = parseRange(replyRange)
       if (parsed.endCol === undefined || parsed.endCol - parsed.startCol !== 1) throw new Error('Give one column of reply cells, e.g. Tracker!F2:F200.')
       const { block } = await readRich(g, spreadsheetId, replyRange)
@@ -336,15 +369,22 @@ export function registerTools(server: McpServer, g: Google): void {
       const extra = alsoRead ? await valuesByRow(alsoRead, parseRange(alsoRead).startRow) : new Map<number, unknown[]>()
       const sheetPrefix = replyRange.slice(0, replyRange.lastIndexOf('!'))
       const col = statusColumn?.toUpperCase()
-      const status = col && replyRows.length ? await valuesByRow(`${sheetPrefix}!${col}${startRow + 1}:${col}${parsed.endRow ?? startRow + replyRows.length}`, startRow) : new Map<number, unknown[]>()
+      const lastRow = parsed.endRow ?? ''
+      const column = (letter: string) => valuesByRow(`${sheetPrefix}!${letter}${startRow + 1}:${letter}${lastRow}`, startRow)
+      const askCol = askColumn?.toUpperCase()
+      const asks = askCol ? await column(askCol) : new Map<number, unknown[]>()
+      const status = col && (replyRows.length || asks.size) ? await column(col) : new Map<number, unknown[]>()
       const skip = new Set(skipStatuses.map((s) => s.trim().toLowerCase()))
       const rows: unknown[] = []
       let skipped = 0
-      replyRows.forEach((row, r) => {
-        const cell: CellData | undefined = row.values?.[0]
-        const waiting = cell && awaitingReply(cell, mine)
-        if (!waiting) return
+      const rowCount = Math.max(replyRows.length, ...[...asks.keys()].map((k) => k - startRow + 1))
+      Array.from({ length: rowCount }, (_, r) => r).forEach((r) => {
+        const cell: CellData | undefined = replyRows[r]?.values?.[0]
         const rowIndex = startRow + r
+        const ask = String(asks.get(rowIndex)?.[0] ?? '').trim()
+        const replyEmpty = !(cell ? textOf(cell) : '').trim()
+        const waiting = cell && !replyEmpty ? awaitingReply(cell, mine, myNames) : ask && replyEmpty ? { newRow: true, theirs: ask } : null
+        if (!waiting) return
         const rowStatus = col ? String(status.get(rowIndex)?.[0] ?? '') : undefined
         if (rowStatus !== undefined && skip.has(rowStatus.trim().toLowerCase())) {
           skipped++
@@ -516,6 +556,38 @@ export function registerTools(server: McpServer, g: Google): void {
       annotations: READ,
     },
     guarded(async ({ fileId }) => g.call('GET', `${DRIVE}/${encodeURIComponent(fileId)}${query({ fields: DRIVE_FIELDS, supportsAllDrives: true })}`)),
+  )
+
+  server.registerTool(
+    'drive_search',
+    {
+      description:
+        'Find Drive files by name, type, last change or folder, and get their ids for drive_file_get, drive_file_export or drive_file_download. Every entry in nameContains must match the name, and an entry can be a phrase (Google matches whole words and word prefixes, not text from the middle of a word). Covers every file this sign-in can read, shared drives included. Newest first; pass pageToken from the last answer to continue. If the answer has incompleteSearch true, Google skipped some drives: narrow the search.',
+      inputSchema: {
+        nameContains: z.array(z.string()).optional().describe('Words that must all appear in the file name, e.g. ["Daily standup", "Notes by Gemini"]'),
+        type: z.enum(['doc', 'sheet', 'slides', 'folder', 'pdf']).optional(),
+        modifiedAfter: z.string().optional().describe('YYYY-MM-DD (midnight Malaysia time) or an ISO time with its zone'),
+        folderId: z.string().optional().describe('Only files directly inside this folder'),
+        pageSize: z.number().int().min(1).max(1000).optional().describe('Default 100'),
+        pageToken: z.string().optional(),
+      },
+      annotations: READ,
+    },
+    guarded(async ({ nameContains, type, modifiedAfter, folderId, pageSize, pageToken }) =>
+      g.call(
+        'GET',
+        `${DRIVE}${query({
+          q: driveSearchQuery({ nameContains, type, modifiedAfter, folderId }),
+          fields: `nextPageToken,incompleteSearch,files(${DRIVE_FIELDS})`,
+          orderBy: 'modifiedTime desc',
+          pageSize: pageSize ?? 100,
+          pageToken,
+          corpora: 'allDrives',
+          includeItemsFromAllDrives: true,
+          supportsAllDrives: true,
+        })}`,
+      ),
+    ),
   )
 
   server.registerTool(

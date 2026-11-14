@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.430.10
+
+**`gchat-mcp`: edit your own Chat messages; `gchat-format` and `casual-message` know the API reads Markdown.**
+- A CRP45 release note sent through `message_send` with `*Heading*` and typed `•` items arrived with italic headings and every bullet run into one line, and could only be fixed by hand. Text posted through the API is Markdown: `**bold**`, `- ` per list item, and a single `*x*` is italic. `gchat-format` § Key Rules now opens with that split (composer route keeps `*bold*`, send-tool route uses Markdown and drops the code fence, which would post as literal backticks), `casual-message` § Syntax says the same, and `message_send`'s own description no longer claims `*bold*` (14/11/2026).
+- New `message_edit_preview` and `message_edit`, locked like sending: a read-only preview, then the edit behind Claude Code's per-call permission prompt, checking the chat name, the replaced message's opening words (`was`, so the phone prompt shows which message changes; cut on whole characters so an emoji at the cut can't make it unmatchable) and its last-edit time, and refusing anyone else's message. Checked live on 14/11: an edit through the tool rendered `**bold**` and `- ` items as bold with a real list. The sign-in widened to `chat.messages`, which Google needs for editing and which also allows deleting; no delete tool is built. Existing installs run `gchat-mcp auth` once; until then an edit returns Google's 403.
+- Every `messages_list` and `messages_search` line now shows its `message:` name, not only lines with files, so any of your messages can be edited.
+- `explainer-deck` client notes: a line opening "Say out loud:" or "Raise:" lost everything after the cue, the loss 1.423.0 meant to fix; both are now cut as a prefix that keeps the fact, and the trailing "… Say it out loud." form matches only at the end of a line (found reviewing the backlog before shipping, 14/11/2026).
+- `claude-server-token`: installing asks the owner before the first server command (it rewrites the env file and recreates the container), the pty script runs from `${CLAUDE_SKILL_DIR}` with a `mktemp -d` work dir instead of an undefined `$W` and a relative path, and the incident notes no longer name the project.
+
+**Shipped in this release without an entry of their own until now** (written by earlier sessions, 11/11 to 14/11):
+- `casual-message`: a bubble is a topic, not a sentence; points on one topic share a bubble, two or three bubbles is the usual reply (a five-bubble WhatsApp came back "too many spaces between the texts").
+- `done`: the commit list is built from the paths this session wrote, never `git status` minus folders thought to be a peer's, and a file handed to a peer earlier is struck from the write partition.
+- `condense-task-doc` and `task-summary` (`decision-splits.md`): a decisions file over ~40 KB is judged on its own, and after a split every mention of the file's path is grepped and re-aimed, not only `§ Heading` pointers (a heading-only sweep missed five of eleven inbound links).
+- `refresh-instructions`: the cross-file citation sweep after a parallel pass is the orchestrator's, an extracting agent may not write into a sibling another agent is editing, sets over 20 files go out in waves, and each condense prompt says whether provenance on a claim is evidence to keep.
+- `agent-setup` and its four templates: Plan may write its own agent memory, the code reviewer takes untracked files into its file list, the pruner reads `git status` beside the diff (an untracked file has no diff), and the product reviewer asks whether a boundary is a bug or a deliberate business rule before calling it a defect.
+- `CLAUDE.md` and `README.md` registries: `docx-red-edits` rows.
+- Entries 1.430.1, 1.430.2 and 1.430.4 below were written but never committed with their versions, so they first reach installs in this release.
+
+## 1.430.9
+
+**`watch-sheets`: our-turn rows are named by cell, not by counting.**
+- A check read the tracker's status column alone to find the one Pending TSB row. The values came back unnumbered, so the row was located by counting 59 entries by hand. Steps 2 and 3 now compute each row as the range's first row plus the entry's index, and report the tracker's own number beside the cell where it has one, since that number can sit one off the sheet row (14/11/2026).
+- From the `/done` product review the same day: step 3 diffs each row's status against the last check instead of the `skippedByStatus` count, which holds steady when one row closes as another reopens; a row the user said to leave is raised again only when its last line or status changes, since any unrelated edit moves `modifiedTime`; and a tracker with no status column treats every client line after ours as our turn.
+
 ## 1.430.8
 
 **`update-plugin`: a step the user had to add counts as a signal.**
@@ -22,10 +46,27 @@
 - Before Pass 1 the session reads the file and judges whether a split suits it (different readers, a gap compression won't close), with no fixed threshold. `condense-claude-md` says the same when run alone, and `update-claude-docs` Rewrite points an oversized companion at the split decision tree.
 - After Pass 2, a condense that stops on "the rest is protected" means re-dispatch with looser protection or split, not a hand-written prompt. Only facts checked this session go on the protected list: an unchecked "keep as is" claim about a write guard was false and survived all three passes (14/11/2026).
 
+## 1.430.4
+
+**Chat sends draft through `casual-message` or `gchat-format`, chosen by context, never from memory.**
+- The gchat MCP server's send instructions said only "draft the text with the user", so a release note posted to a team space after `/ship` was written by hand in remembered Chat syntax. It skipped `gchat-format`'s first step (match the space's recent posts) and came out shaped unlike the sender's other release posts that day (13/11/2026, user: "it's either casual or gchat format, depending on the context"). The instructions now name both skills and when each applies.
+- `ship` Step 5 already said to format with `gchat-format`; it was read as satisfied because the skill had run earlier in the session. It now says to invoke it for this note regardless, with a Tell.
+- `gchat-format`'s description now names "send this to the team" and "post it in <space>", which never mention Chat.
+
 ## 1.430.3
 
 **`refresh-instructions`: a CLAUDE.md companion's restructure pass runs `update-claude-docs`, not a hand-written prompt.**
 - The routing table said companions had no owning skill, so Pass 1 on a 46 KB payment companion went out as a bespoke prompt that had to restate, from memory, rules `update-claude-docs` already carries: keep every existing anchor name, house table shapes, and re-reading the parent's pointer row after sections move (13/11/2026, user asked why the skill wasn't used). `update-claude-docs` rewrite mode now says a companion skips the CLAUDE.md section taxonomy and groups by the reader's moment under a symptom router, and its description names companions.
+
+## 1.430.2
+
+**`watch-sheets`: a UAT check reads only the columns it compares.**
+- Step 4 now asks for the check ID, status, tester, date and remarks columns as separate ranges per role tab, never whole rows. On a real launch-week first check, one batch read of eight role tabs at full width returned 145,000 characters, past the tool's output limit, and had to be parsed from a saved file (13/11/2026).
+
+## 1.430.1
+
+**`ship`: the throwaway promotion worktree goes beside the repo, not under `/tmp`.**
+- In a sandboxed session `/tmp` can be gone by the next shell call while git still lists the worktree as registered, so a `cd /tmp/<name> && …` chain skipped silently and the rest of the line ran in the shared checkout. Step 3 now puts the worktree at `../<repo>-ship`, says to `cd` there in every call, and names `git worktree prune` for the stale entry (13/11/2026, a production promotion).
 
 ## 1.430.0
 
@@ -34,11 +75,57 @@
 - **`gchat-mcp` `message_send` sends files:** a new `files` list (up to 10 absolute paths, 50 MB each) attaches local files, and the text may be empty when files go. The preview names every file and its size, and files upload only inside the approved send. A file is judged by the real file a link points to, and keys, credentials, `.env` files, config folders, shell settings, databases and the browser and Mail data under `~/Library` are never sent. Uses the send scope already granted.
 - **`gchat-mcp` `attachment_download` (new tool):** saves the files attached to one message into a fresh folder in the system temp folder (readable by you only, deleted after a day) and returns each path, so Claude can look at a screenshot instead of asking what it shows. Message lines from `messages_list` and `messages_search` now show `message: spaces/…/messages/…` whenever the message has files; pass that name, and `file` to pick one. Files linked from Google Drive come back as their Drive link, since downloading them needs a Drive scope the tool doesn't hold. It uses the read scope already granted, so no new sign-in; run `/mcp reconnect gchat` to load it.
 
+## 1.429.0
+
+**Ask Claude to keep an eye on a busy tracker, and it only interrupts you when something is your turn.**
+- **`watch-sheets` (new skill):** the body of one check, run on a `/loop` or a schedule it sets up itself. It skips the full read when no sheet's `modifiedTime` moved. It counts a client line as your turn only when the row's status says so, because most new lines just pass the item to someone on their own side. It notices a row that closed with no new text from the change in `skippedByStatus`. It diffs UAT summary counts, defects and tester columns. It looks at peer sessions only when they are live, in the same project, and something is your turn, and then runs `read-summary` and asks the peer before anyone replies. It raises findings with `AskUserQuestion`, several in one question; a quiet check is one short report. It keeps the baseline in the conversation, never on disk. Built from a launch-week `/loop 10m` run. Sources: Google SRE book, "Every page should be actionable"; Claude Code scheduled-tasks docs (7-day expiry, jitter of up to 30 minutes); Drive `files` reference on `version` and `modifiedTime`. The `modifiedTime` gate was checked against a real row closing between two checks.
+
 ## 1.428.0
 
 **Claude can read your Google Chat, and send a message once you approve it.**
 - **`gchat-mcp` (new tool):** a Google Chat MCP server that signs in as you. `spaces_list` shows your spaces and DMs, most recently active first, with DMs named after the other person. `messages_list` reads one space or DM in Malaysia time, filtered by date, thread or sender. `messages_search` finds words or a person's messages across every space active since a date. Google's API has no search of its own, so the tool reads each space and says what it skipped. `message_send` posts as you only after you press Accept in a Claude Code dialog: line 1 says who it goes to, whether it is a DM or a space and how many people are in it; line 2 is the whole text. If a new message lands in that chat while the dialog is open, nothing is sent. Google shows the Chat app's name beside every sent message, so name the app with that in mind. Claude cannot answer that dialog, and a client without dialogs (`claude -p`) never posts. Each send is logged locally. It cannot edit or delete messages, create spaces or start a new DM.
 - Setup: enable the Chat API and People API in your OAuth client's Cloud project, save the Chat API's Configuration page (Google refuses every Chat call until it exists), run `tools/gchat-mcp/bin/gchat-mcp auth` (it reuses the `gsheets-mcp` client), then `bin/enable` to register it for every project. See `tools/gchat-mcp/README.md`.
+
+## 1.427.0
+
+**A tracker's History no longer repeats earlier text as the new person's reply.**
+- **`setup-tracker`:** the generated `onEdit.gs` used to copy the whole Latest update cell into History on every edit, so a client adding one line under our suggestion was logged as having written the suggestion too. It now logs only the lines that weren't in the cell before the edit (from the edit's old value). A deleted line logs nothing, and an edited line logs only that line. A paste over several cells still logs each cell in full, because Google gives no old value there. `NAMES` also matches by the part of an email before the @, across every domain, so `'hongliang': 'Hong Liang'` replaces the bare prefix History showed before. Checked live by typing in a real tracker. Existing trackers keep the old script until its file is rebuilt or edited the same way and pasted into Extensions > Apps Script.
+
+## 1.426.0
+
+**A tracker check no longer misses a brand-new row or a client who typed in black.**
+- **`gsheets-mcp`:** `cells_awaiting_reply` takes two optional settings. `askColumn` (for example `B`) also lists a row whose ask column has text while its reply cell is empty, marked `newRow`. `myNames` (for example `["Syafiq"]`) counts a line in your own colour that starts "Name dd/mm:" with someone else's name as theirs, shown with colour `signed:<name>`. List every name your side signs with, teammates included; the other person's name must start with a capital. Without them the tool behaves exactly as before.
+
+After `claude plugin update syafiqkit@syafiqkit`, reconnect `gsheets` in `/mcp` in each project that uses it.
+
+## 1.425.0
+
+**A link posted in a tracker reply now opens the right page.**
+- **`gsheets-mcp`:** `cell_append_line` and `cell_replace_text` link each URL in the new text themselves, leaving out a trailing `)`, `.` or `,`, curly quotes and full-width punctuation (a bracket stays when the URL itself opened one). Checked live on a scratch sheet. A reply ending `(screenshot: …/view)` had reached a client linked to `…/view%29`, Drive's "unable to open the file" page. `cell_replace_text` also keeps an existing link on its text when that text survives the edit (it used to drop it), `cells_read_rich` now shows where each run links, and both write tools report a link that did not read back.
+
+After `claude plugin update syafiqkit@syafiqkit`, reconnect `gsheets` in `/mcp` in each project that uses it.
+
+## 1.424.0
+
+**`gsheets-mcp` can find Drive files by name.**
+- **`gsheets-mcp`:** new `drive_search` tool. It finds files by words in the name, type (doc, sheet, slides, folder, pdf), last change or folder, across every file the sign-in can read (shared drives included), newest first, with paging. Before this, `drive_file_get`, `drive_file_export` and `drive_file_download` all needed an id you already had, so finding a file meant minting a token by hand and calling Drive's REST API. A session on 12/11 did exactly that to pull 27 daily-standup notes; the same search now returns all 27 in one call.
+
+After `claude plugin update syafiqkit@syafiqkit`, reconnect `gsheets` in `/mcp` in each project that uses it (`/reload-plugins` leaves the old tool list).
+
+## 1.423.0
+
+**A deck can go to the client without the team's speaking cues, and a tracker rebuild no longer loses what people typed.**
+- **`explainer-deck`:** `"notes_for": "client"` in the spec builds the speaker notes for an outside audience: presenter cues ("Stress:", "Raise row 7:", "Say out loud", "do not give a number on the day") are cut and the fact after them kept, and a line that was only a cue is dropped; `presenter_cues` adds project-specific cue patterns. Speaker notes travel inside the file, so a deck for the team and the same deck for the client used to need hand-edited notes. Lifted from a client walkthrough deck on 12/11, where a first version that dropped whole cue lines also lost the facts they carried (the refund-after-payout rule among them).
+- **`setup-tracker`:** new `scripts/pull_tracker.py` copies a live sheet's rows (main tab and every extra tab, as displayed) back into the config's `sample_rows`, keeping the file's indent and warning about rows with no number. Before a `--replace` rebuild, or after a session that edited the live sheet, the copy back used to be a hand-written REST script per project.
+
+No action needed beyond `claude plugin update syafiqkit@syafiqkit`.
+
+## 1.422.0
+
+**New skill `claude-server-token`: a server's Claude agent stops losing its login every few weeks.**
+- **`claude-server-token`:** moves a server-side Claude agent (Agent SDK, `claude -p` in a container or service) from a copied login file onto a one-year `claude setup-token` token in `CLAUDE_CODE_OAUTH_TOKEN`, and renews it. It explains why the file login dies (each renewal rotates the refresh token, so a copy restored by a deploy is already dead), how to pass the token through process managers that clear the environment, and how to surface the expiry date to the owner. When the owner is away from the Mac, it runs `setup-token` under a pty (`scripts/setup-token-pty.py`), sends them the sign-in link, feeds back their code, cuts the token out without the "Store this token securely" text glued to it, tests it locally, installs it over stdin, verifies with a real agent run and deletes every copy. Distilled from the lhdn-management outage of 2026-11-11, the fourth since August.
+
+No action needed beyond `claude plugin update syafiqkit@syafiqkit`.
 
 ## 1.421.26
 

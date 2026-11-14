@@ -52,9 +52,9 @@ test('message line carries time, sender, files and thread', () => {
   expect(line).toBe('[13/11/2026 10:30] Alya (in thread): see attached\n    files: quote.pdf · message: spaces/A/messages/m · thread: spaces/A/threads/t')
 })
 
-test('a message without files does not print its name', () => {
+test('a message without files still prints its name, so it can be edited', () => {
   expect(messageLine({ name: 'spaces/A/messages/m', createTime: '2026-11-13T02:30:00Z', text: 'hi', thread: { name: 'spaces/A/threads/t' } }, 'Alya')).toBe(
-    '[13/11/2026 10:30] Alya: hi\n    thread: spaces/A/threads/t',
+    '[13/11/2026 10:30] Alya: hi\n    message: spaces/A/messages/m · thread: spaces/A/threads/t',
   )
 })
 
@@ -83,5 +83,7 @@ test('mapLimit keeps order and caps concurrency', async () => {
 test('scope check is exact', () => {
   expect(grantedScopesMatch([...SCOPES].reverse().join(' '))).toBe(true)
   expect(grantedScopesMatch(SCOPES.slice(1).join(' '))).toBe(false)
-  expect(grantedScopesMatch([...SCOPES, 'https://www.googleapis.com/auth/chat.messages'].join(' '))).toBe(false)
+  expect(grantedScopesMatch([...SCOPES, 'https://www.googleapis.com/auth/chat.spaces'].join(' '))).toBe(false)
+  expect(SCOPES).toContain('https://www.googleapis.com/auth/chat.messages')
+  expect(SCOPES).not.toContain('https://www.googleapis.com/auth/chat.messages.create')
 })

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { columnIndex, columnLetters, mergeHolding, mergeLabel, parseRange } from '../src/a1.ts'
-import { awaitingReply, checkAppend, checkReplace, chipLinks, collapseChips, describeCell, hexToRgb, planAppend, planReplace, rgbToHex, type CellData } from '../src/rich.ts'
+import { awaitingReply, checkAppend, checkReplace, chipLinks, collapseChips, describeCell, findUrls, hexToRgb, planAppend, planReplace, rgbToHex, type CellData } from '../src/rich.ts'
 
 const BLUE = { blue: 1 }
 const BLACK = hexToRgb('#000000')
@@ -255,5 +255,104 @@ describe('awaiting reply', () => {
 
   test('an empty cell is never listed', () => {
     expect(awaitingReply({}, MINE)).toBeNull()
+  })
+
+  test('with myNames, a client line typed in your colour and signed with another name is listed', () => {
+    const text = 'Syafiq 12/11: fixed on staging, please try again.\n\nJasmine 13/11: Thanks Syafiq, verified in stg'
+    const cell: CellData = { userEnteredValue: { stringValue: text }, userEnteredFormat: { textFormat: black } }
+    expect(awaitingReply(cell, MINE)).toBeNull()
+    expect(awaitingReply(cell, MINE, ['Syafiq'])).toEqual({
+      theirs: 'Jasmine 13/11: Thanks Syafiq, verified in stg',
+      theirColours: ['signed:jasmine'],
+      yourLast: 'Syafiq 12/11: fixed on staging, please try again.',
+    })
+  })
+
+  test('with myNames, your own signed lines and their unsigned continuation stay yours', () => {
+    const text = 'Jasmine 13/11: still not working\nSyafiq 13/11 (later): thanks Jasmine\n- check Spam\n- check filters'
+    const cell: CellData = { userEnteredValue: { stringValue: text }, userEnteredFormat: { textFormat: black } }
+    expect(awaitingReply(cell, MINE, ['Syafiq'])).toBeNull()
+  })
+
+  test('with myNames, your reply signed without a date, or date first, ends the client line above it', () => {
+    for (const text of ['Jasmine 13/11: q\n\nSyafiq: reply', 'Jasmine 13/11: x\n13/11 Syafiq: reply']) {
+      const cell: CellData = { userEnteredValue: { stringValue: text }, userEnteredFormat: { textFormat: black } }
+      expect(awaitingReply(cell, MINE, ['Syafiq'])).toBeNull()
+    }
+  })
+
+  test('with myNames, a heading like "Note 1/2:" or a lowercase lead in your colour is not read as a client signature', () => {
+    for (const line of ['Note 1/2: see below', 'Step 2/3: verify', 'see 13/11: meeting notes', 'Update 13/11: we fixed it']) {
+      const cell: CellData = { userEnteredValue: { stringValue: `Syafiq 12/11: done\n${line}` }, userEnteredFormat: { textFormat: black } }
+      expect(awaitingReply(cell, MINE, ['Syafiq'])).toBeNull()
+    }
+  })
+
+  test('with myNames, a client line addressing you by name is not taken for your signature', () => {
+    const cell: CellData = { userEnteredValue: { stringValue: 'Jasmine 13/11: still broken\nSyafiq please check: the link fails' }, userEnteredFormat: { textFormat: black } }
+    expect(awaitingReply(cell, MINE, ['Syafiq'])?.theirColours).toEqual(['signed:jasmine'])
+  })
+
+  test('with myNames, a date-first client signature and your full-name signature are both read', () => {
+    const theirs: CellData = { userEnteredValue: { stringValue: 'Syafiq 12/11: x\n13/11 Jasmine: q' }, userEnteredFormat: { textFormat: black } }
+    expect(awaitingReply(theirs, MINE, ['Syafiq'])?.theirColours).toEqual(['signed:jasmine'])
+    const ours: CellData = { userEnteredValue: { stringValue: 'Jasmine 13/11: q\nSyafiq Shamsuddin 13/11: answered' }, userEnteredFormat: { textFormat: black } }
+    expect(awaitingReply(ours, MINE, ['Syafiq'])).toBeNull()
+  })
+
+  test('with myNames, a longer name that starts with yours is still theirs', () => {
+    const cell: CellData = { userEnteredValue: { stringValue: 'Syafiq 12/11: done\nSyafiqah 13/11: one more ask' }, userEnteredFormat: { textFormat: black } }
+    expect(awaitingReply(cell, MINE, ['Syafiq'])?.theirColours).toEqual(['signed:syafiqah'])
+  })
+
+  test('with myNames, an unsigned line of yours after a coloured client line is not credited to an earlier signer', () => {
+    const text = 'Jasmine 13/11: ask\nYY: noted\nok, done'
+    const cell: CellData = { userEnteredValue: { stringValue: text }, textFormatRuns: [{ format: black }, { startIndex: 19, format: blue }, { startIndex: 29, format: black }] }
+    expect(awaitingReply(cell, MINE, ['Syafiq'])).toBeNull()
+  })
+})
+
+describe('links', () => {
+  const URL = 'https://drive.google.com/file/d/abc/view'
+  const linkAt = (runs: { startIndex?: number; format?: Record<string, any> }[] | undefined) =>
+    (runs ?? []).filter((r) => r.format?.link).map((r) => `${r.startIndex}:${r.format!.link.uri}`)
+
+  test('a URL inside brackets or before a full stop is linked without the punctuation', () => {
+    expect(findUrls(`(screenshot: ${URL}), so`).map((u) => u.uri)).toEqual([URL])
+    expect(findUrls(`see ${URL}.`).map((u) => u.uri)).toEqual([URL])
+    expect(findUrls('https://en.wikipedia.org/wiki/Foo_(bar)').map((u) => u.uri)).toEqual(['https://en.wikipedia.org/wiki/Foo_(bar)'])
+    expect(findUrls(`see “${URL}” and （${URL}）。`).map((u) => u.uri)).toEqual([URL, URL])
+    expect(findUrls('(https://) and http://.')).toEqual([])
+  })
+
+  test('an appended line links its URL explicitly and returns to plain text after it', () => {
+    const plan = planAppend({ userEnteredValue: { stringValue: 'YY: ask' } }, `Syafiq: (shot: ${URL}) ok`, BLACK)
+    const at = plan.text.indexOf(URL)
+    expect(linkAt(plan.runs)).toEqual([`${at}:${URL}`])
+    expect(plan.runs.some((r) => r.startIndex === at + URL.length && !r.format?.link)).toBe(true)
+  })
+
+  test('replacing text around a link keeps the link on its moved text', () => {
+    const text = `Syafiq: see this video, thanks\nYY: ok`
+    const start = text.indexOf('this video')
+    const cell: CellData = {
+      userEnteredValue: { stringValue: text },
+      textFormatRuns: [{ format: {} }, { startIndex: start, format: { link: { uri: URL } } }, { startIndex: start + 10, format: {} }, { startIndex: 31, format: { foregroundColorStyle: { rgbColor: BLUE } } }],
+    }
+    const plan = planReplace(cell, 'Syafiq: see this video, thanks', 'Syafiq: please watch this video', BLACK)
+    expect(linkAt(plan.runs)).toEqual([`${plan.text.indexOf('this video')}:${URL}`])
+    expect(checkReplace(cell, plan, { userEnteredValue: { stringValue: plan.text }, textFormatRuns: plan.runs }, BLACK)).toEqual([])
+  })
+
+  test('read-back names a link Google dropped', () => {
+    const before: CellData = { userEnteredValue: { stringValue: 'a' } }
+    const plan = planAppend(before, URL, BLACK)
+    const problems = checkAppend(before, plan, { userEnteredValue: { stringValue: plan.text }, textFormatRuns: [{ format: {} }, { startIndex: 1, format: { foregroundColorStyle: { rgbColor: BLACK } } }] }, BLACK)
+    expect(problems.join()).toContain('did not read back')
+  })
+
+  test('describeCell shows where each link points', () => {
+    const d = describeCell({ userEnteredValue: { stringValue: `go ${URL}` }, textFormatRuns: [{ format: {} }, { startIndex: 3, format: { link: { uri: URL } } }] })
+    expect(d.runs[1]!.link).toBe(URL)
   })
 })

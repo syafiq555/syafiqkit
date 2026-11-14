@@ -321,7 +321,26 @@ function icon(name, color) {
 const journeyMap = require('./journey.js')({ pres, T, party, txt, icon, possessive });
 
 const base = (slide) => { slide.background = { color: T.ground }; };
-const notes = (slide, lines) => { if (lines && lines.length) slide.addNotes(lines.join('\n')); };
+const PRESENTER_CUTS = [
+  /^Stress( [^:]{1,30})?:\s*/i,
+  /^Stress that\s+/i,
+  /^Raise:\s*/i,
+  /^Raise rows? \d[\d, and]*( \([^)]*\))?( and rows? \d+( \([^)]*\))?)?[^:.]{0,40}[:.]\s*/i,
+  /^[^:.]{0,20} to say out loud:\s*/i,
+  /^Say (it |this |the [^.]{1,30} )?out loud[:.]?\s*/i,
+  /\s+Say (it |this |the [^.]{1,30} )?out loud\.?\s*$/i,
+  /,? so do not give a number on the day(?=\.)/i,
+  ...(spec.presenter_cues || []).map((p) => new RegExp(p, 'i')),
+];
+const forClient = spec.notes_for === 'client';
+const clientNote = (line) => {
+  const t = PRESENTER_CUTS.reduce((s, re) => s.replace(re, ''), line).trim();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+const notes = (slide, lines) => {
+  const out = (lines || []).map((l) => (forClient ? clientNote(l) : l)).filter((l) => l.length > 0);
+  if (out.length) slide.addNotes(out.join('\n'));
+};
 function strip(slide, current) {
   if (!tracker) return;
   const gap = 0.08, w = (CW - (tracker.length - 1) * gap) / tracker.length;

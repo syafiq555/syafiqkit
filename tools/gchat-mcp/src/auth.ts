@@ -5,8 +5,7 @@ import { join } from 'node:path'
 export const SCOPES = [
   'https://www.googleapis.com/auth/chat.spaces.readonly',
   'https://www.googleapis.com/auth/chat.memberships.readonly',
-  'https://www.googleapis.com/auth/chat.messages.readonly',
-  'https://www.googleapis.com/auth/chat.messages.create',
+  'https://www.googleapis.com/auth/chat.messages',
   'https://www.googleapis.com/auth/directory.readonly',
 ]
 
@@ -137,7 +136,7 @@ export async function consent(clientFile?: string): Promise<void> {
       state,
     }).toString()
 
-  console.error(`\nGrant ONLY these:\n  ${SCOPES.join('\n  ')}\nIf the consent screen lists Gmail, Calendar, Drive or deleting Chat messages, deny it.\n\n${url}\n`)
+  console.error(`\nGrant ONLY these:\n  ${SCOPES.join('\n  ')}\nIf the consent screen lists Gmail, Calendar or Drive, deny it. Managing your Chat messages (read, send, edit, delete) is expected.\n\n${url}\n`)
   Bun.spawn(['open', url], { stdout: 'ignore', stderr: 'ignore' })
 
   const timeout = setTimeout(() => rejectCode(new Error('gchat: sign-in timed out after 5 minutes. Run auth again.')), 5 * 60_000)

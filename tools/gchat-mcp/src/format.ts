@@ -105,6 +105,7 @@ export function safeFileName(name: string | undefined, index: number): string {
 export interface ChatMessage {
   name?: string
   createTime?: string
+  lastUpdateTime?: string
   text?: string
   sender?: { name?: string; displayName?: string; type?: string }
   thread?: { name?: string }
@@ -127,7 +128,7 @@ function body(m: ChatMessage, hasFiles: boolean): string {
 export function messageLine(m: ChatMessage, who: string): string {
   const files = (m.attachment ?? []).map((a) => a.contentName).filter(Boolean)
   const head = `[${klTime(m.createTime)}] ${who}${m.threadReply ? ' (in thread)' : ''}${m.quotedMessageMetadata ? ' (quoting an earlier message)' : ''}: ${body(m, files.length > 0)}`
-  const tail = [files.length ? `files: ${files.join(', ')}` : '', files.length && m.name ? `message: ${m.name}` : '', `thread: ${m.thread?.name ?? '-'}`]
+  const tail = [files.length ? `files: ${files.join(', ')}` : '', m.name ? `message: ${m.name}` : '', `thread: ${m.thread?.name ?? '-'}`]
     .filter(Boolean)
     .join(' · ')
   return `${head}\n    ${tail}`

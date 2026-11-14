@@ -42,7 +42,7 @@ Then add a second Bootstrap table for the sibling repo's CLAUDE.md files. -->
 
 ## Process
 
-1. **Gather changes** — `git status --short` for the file list, then `git diff` + `git diff --cached` for the content; `git diff <before>..HEAD` if already committed this session. Take the file list from `git status --short` rather than `git diff --name-only`: the latter omits staged and untracked files, so once a session's work is staged it returns empty and you review nothing while reporting clean. <!-- multi-repo: run in EACH repo, bootstrap only repos with changes -->
+1. **Gather changes** — `git status --short` for the file list, then `git diff` + `git diff --cached` for the content; `git diff <before>..HEAD` if already committed this session. Take the file list from `git status --short` rather than `git diff --name-only`: the latter omits staged and untracked files, so once a session's work is staged it returns empty and you review nothing while reporting clean. The tree may be shared with peer sessions, so when the brief names paths, review those and list any other changed files you left alone, rather than folding a peer's work in progress into your findings. <!-- multi-repo: run in EACH repo, bootstrap only repos with changes -->
    
 2. **Read project context** — Run `/read-summary` skill to discover and read task docs explaining the feature or change. Task docs reduce false positives by naming intentional patterns and edge cases the code handles deliberately.
 

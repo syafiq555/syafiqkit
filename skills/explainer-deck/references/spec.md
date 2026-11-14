@@ -17,6 +17,8 @@ One JSON file. Paths inside it are relative to the spec. Word limits are enforce
 | `figure_pattern` | Regex for what counts as a figure to check; default is currency amounts (whole or two decimals), percentages and durations (`3 days`, `24 hours`). Matching is by whole number, so `0%` never matches inside `80%` |
 | `example_labels` | Badge text per example kind: `{"quoted": "From the quotation", "worked": "Worked from quotation rates", "made_up": "Made-up numbers"}` |
 | `strip_label`, `waits_label` | Bottom-strip labels on mechanism and journey slides, default "In the source" and "Waiting on" |
+| `notes_for` | `"client"` builds the speaker notes for an outside audience: presenter cues ("Stress:", "Raise row 7:", "Say out loud", "do not give a number on the day") are cut and the fact after them kept; a line that was only a cue is dropped. Omit for the team's own copy |
+| `presenter_cues` | Extra regex strings cut from notes when `notes_for` is `"client"`, for cue words the defaults miss |
 | `theme` | Colour token overrides: `ground surface sunk ink soft accent onAccent ours oursInk open openBg font` (hex without `#`) |
 
 ## Slide types

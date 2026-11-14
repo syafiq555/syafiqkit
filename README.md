@@ -96,6 +96,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/continue-session` | Produce the copy-paste prompt that starts a fresh session where this one stopped — doc path, next goal, uncommitted state; next session asks open decisions |
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
 | `/doc-to-md` | Convert a Word, PDF or Excel file to Markdown, so versions can be compared as git diffs |
+| `/docx-red-edits` | Edit someone else's Word file with every change in red (deletions struck through in red), keeping their formatting byte for byte |
 | `/excalidraw-board` | Draw a task doc or worklist as a black-and-white Excalidraw discussion board (gates, waiting-on, parked-with-revive-trigger, live decisions strip), pasted into the user's excalidraw.com tab |
 | `/motion-clip` | Make a short launch or promo video for any product (app, website, physical product or brand) from its real screens or photos, in vertical, square and widescreen (or as an App Store or Google Play preview), with an original music track, an optional free voice-over with captions that follow the spoken words, and background pictures that move in depth. You approve a storyboard and a quick draft before the full render, and an automatic check flags text that flashes past too fast to read and a product that shows up too late |
 | `/product-still` | Make a designed still image from your product's real screens, like the step pictures on a "how it works" page or a feature or hero image: cropped screen cards that float, numbered steps, a connector line and an icon badge. It ships a desktop image, a separate phone image and transparent-background copies, with the source kept so a product change is a quick re-render |
@@ -106,8 +107,10 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
 | `/ci-ssh-deploy-timeout` | Diagnose + fix flaky CI deploys that SSH-timeout to a server (rules out firewall, applies connect-only retry) |
+| `/claude-server-token` | Move a server's Claude agent onto a one-year `claude setup-token` token, or renew it, including a phone-only login run from this Mac |
 | `/setup-playwright` | Set up a Playwright E2E suite, or harden a flaky one (per-worker fixtures, seeded test data, throttle-safe auth) |
 | `/setup-tracker` | Set up or fix a shared tracker spreadsheet for a project or for all projects: a status that says whose turn it is, a one-line latest update with history underneath, counts across the top so nobody needs a guide, built in one go from a settings file |
+| `/watch-sheets` | Keep checking a shared tracker and test sheets that many people write in, and get asked only when something is your turn: it skips sheets that haven't changed, tells "please review" notes on the client's side apart from questions to you, notices a row that closed without anyone writing, and checks your other sessions so two don't answer the same row |
 | `/function-parameter-limits` | Apply + enforce the 0/2/3+ function-parameter rule — advises parameter-object/DTO refactors and sets up the right linter (ESLint/PHPMD/Pylint) with DI-constructor carve-outs |
 | `/hobby-review` | Socratic debrief of a hobby item against the taste rubric in the matching task doc |
 | `/haiku` | Run a task or a named skill on haiku agents instead of the current session, with a verification pass over what comes back. Also fires unnamed on brute-force work over many items (every row, case or commit), split across parallel agents |

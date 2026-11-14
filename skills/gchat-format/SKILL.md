@@ -2,7 +2,8 @@
 name: gchat-format
 description: >
   Convert Markdown or plain text into Google Chat-compatible formatting. Use this
-  skill whenever the user wants to send a message in Google Chat, format a
+  skill whenever the user wants to send a message in Google Chat ("send this to the
+  team", "post it in <space>", even a document already drafted), format a
   changelog/release note for Google Chat, convert a Markdown document for posting
   in Google Chat, or says anything like "format this for Google Chat", "convert to
   Google Chat", "post this in Chat", "gchat format", or "make this Chat-friendly".
@@ -59,7 +60,9 @@ Before delivering a condensed release note, count the distinct shipped items in 
 
 ## Key Rules
 
-Google Chat does NOT support standard Markdown fully. Apply these transformations:
+⚠️ **Where the text goes decides the syntax, and the two Chat routes disagree on `*`.** The rules below are for text **pasted or typed into the Chat app's composer** (the clipboard route), where `*text*` is bold. Text **posted through an API or MCP send tool** (a `message_send` or `message_edit` call) is read as Markdown instead: `**text**` is bold, a single `*text*` renders *italic*, each list item is its own line starting `- `, and a typed `•` is plain text whose lines run together into one paragraph. For that route, write headings and labels as `**bold**`, bullets as `- `, and links as bare URLs, and pass the text without the code fence § Output Format asks for, since the fence would post as literal backticks; the other conversions (tables to label lines, no em dashes) still apply. Measured 14/11/2026: a release note sent through the API with `*Heading*` and `•` items arrived with italic headings and every bullet merged into one line; edited through the API as `**Heading**` and `- ` items, it rendered bold with a real list. **Tell: your next step after formatting is a send tool call, and the text holds a single-asterisk heading.**
+
+Google Chat's composer does NOT support standard Markdown fully. For the clipboard route, apply these transformations:
 
 ### Headers -> Bold text
 All `#` headers become `*bold*`. Remove the `#` symbols entirely.

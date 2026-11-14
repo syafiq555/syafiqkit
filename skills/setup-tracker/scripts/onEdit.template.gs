@@ -8,9 +8,20 @@ const HISTORY_DATE = __HISTORY_DATE__;
 const UNKNOWN_EDITOR = __UNKNOWN_EDITOR__;
 const STATUS_LINE = __STATUS_LINE__;
 const NAMES = {
-  // 'person@example.com': 'Person',
+  // 'person@example.com': 'Person', or by the part before @ (matches every domain): 'person': 'Person',
 };
 const DOMAIN_NAMES = __DOMAIN_NAMES__;
+
+function newLines(before, now) {
+  const remaining = new Map();
+  before.split('\n').forEach((line) => remaining.set(line.trim(), (remaining.get(line.trim()) || 0) + 1));
+  return now.split('\n').filter((line) => {
+    const count = remaining.get(line.trim()) || 0;
+    if (count === 0) return true;
+    remaining.set(line.trim(), count - 1);
+    return false;
+  }).join('\n').trim();
+}
 
 function onEdit(e) {
   const range = e.range;
@@ -24,7 +35,8 @@ function onEdit(e) {
   const touches = (key) => COL[key] && COL[key] >= left && COL[key] <= right;
   const today = Utilities.parseDate(Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'), TZ, 'yyyy-MM-dd');
   const email = (e.user && e.user.getEmail && e.user.getEmail()) || '';
-  const editor = NAMES[email] || DOMAIN_NAMES[email.split('@')[1]] || (email ? email.split('@')[0] : UNKNOWN_EDITOR);
+  const [localPart, domain] = email.split('@');
+  const editor = NAMES[email] || NAMES[localPart] || DOMAIN_NAMES[domain] || (email ? localPart : UNKNOWN_EDITOR);
   const stamp = Utilities.formatDate(new Date(), TZ, HISTORY_DATE);
   let lock = null;
   try {
@@ -68,7 +80,11 @@ function onEdit(e) {
       }
 
       if (touches('latest') && cell('latest').getValue() !== '') {
-        addHistory(String(cell('latest').getValue()));
+        const now = String(cell('latest').getValue());
+        const singleCell = range.getNumRows() === 1 && range.getNumColumns() === 1;
+        const before = singleCell && e.oldValue !== undefined ? String(e.oldValue) : '';
+        const added = before ? newLines(before, now) : now;
+        if (added !== '') addHistory(added);
         if (COL.updated) cell('updated').setValue(today);
       }
     }

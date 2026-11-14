@@ -103,6 +103,7 @@ export function describeCell(cell: CellData) {
       start,
       colour: colourOf(run.format) ?? base ?? 'default',
       bold: run.format?.bold || undefined,
+      link: run.format?.link?.uri || undefined,
       text: text.slice(start, end),
     }
   })
@@ -114,6 +115,57 @@ export function describeCell(cell: CellData) {
     validation: cell.dataValidation ?? undefined,
     isFormula: Boolean(cell.userEnteredValue?.formulaValue),
   }
+}
+
+export interface LinkSpan {
+  start: number
+  end: number
+  uri: string
+}
+
+const TRAILING_PUNCTUATION = /[.,;:!?'"\]>*…。，、！？」）]+$/
+
+export function findUrls(text: string): LinkSpan[] {
+  const spans: LinkSpan[] = []
+  for (const m of text.matchAll(/https?:\/\/[^\s<>"“”‘’]+/g)) {
+    let uri = m[0].replace(TRAILING_PUNCTUATION, '')
+    while (uri.endsWith(')') && (uri.match(/\(/g) ?? []).length < (uri.match(/\)/g) ?? []).length) {
+      uri = uri.slice(0, -1).replace(TRAILING_PUNCTUATION, '')
+    }
+    if (/^https?:\/\/[^\w]*$/.test(uri)) continue
+    spans.push({ start: m.index, end: m.index + uri.length, uri })
+  }
+  return spans
+}
+
+function linkSpansOf(cell: CellData, text: string): LinkSpan[] {
+  const runs = cell.textFormatRuns ?? []
+  return runs.flatMap((r, i) => {
+    const uri = r.format?.link?.uri
+    return uri ? [{ start: r.startIndex ?? 0, end: runs[i + 1]?.startIndex ?? text.length, uri }] : []
+  })
+}
+
+function colouredRuns(offset: number, length: number, colour: Rgb, links: LinkSpan[]): TextRun[] {
+  const plain = { foregroundColorStyle: { rgbColor: colour } }
+  const runs: TextRun[] = [{ startIndex: offset, format: plain }]
+  for (const l of [...links].sort((a, b) => a.start - b.start)) {
+    runs.push({ startIndex: offset + l.start, format: { ...plain, underline: true, link: { uri: l.uri } } })
+    if (l.end < length) runs.push({ startIndex: offset + l.end, format: plain })
+  }
+  const byStart = new Map<number, TextRun>()
+  for (const r of runs) byStart.set(r.startIndex ?? 0, r)
+  return [...byStart.values()]
+}
+
+function linksForNewText(newText: string, carried: LinkSpan[] = []): LinkSpan[] {
+  const links: LinkSpan[] = [...carried]
+  for (const u of findUrls(newText)) if (!links.some((l) => u.start < l.end && l.start < u.end)) links.push(u)
+  return links
+}
+
+export function linksOf(cell: CellData): string[] {
+  return linkSpansOf(cell, textOf(cell)).map((l) => `${l.start}:${l.uri}`)
 }
 
 export interface AppendPlan {
@@ -130,7 +182,9 @@ export function planAppend(cell: CellData, line: string, colour: Rgb): AppendPla
   const text = old ? `${old}\n${line}` : line
   const newRunStart = old.length
   const runs: TextRun[] = [...(cell.textFormatRuns ?? [])]
-  runs.push({ startIndex: newRunStart, format: { foregroundColorStyle: { rgbColor: colour } } })
+  const lineStart = old ? newRunStart + 1 : 0
+  const lineLinks = linksForNewText(line).map((l) => ({ ...l, start: l.start + lineStart - newRunStart, end: l.end + lineStart - newRunStart }))
+  runs.push(...colouredRuns(newRunStart, text.length - newRunStart, colour, lineLinks))
   return { text, runs, chipRuns: cell.chipRuns ?? [], newRunStart }
 }
 
@@ -170,7 +224,13 @@ export function planReplace(cell: CellData, find: string, replace: string, colou
   let resume: TextRun | undefined
   for (const r of original) if ((r.startIndex ?? 0) <= oldEnd) resume = r
   const runs: TextRun[] = original.filter((r) => (r.startIndex ?? 0) < start)
-  if (replace) runs.push({ startIndex: start, format: { foregroundColorStyle: { rgbColor: colour } } })
+  const carried = linkSpansOf(cell, old).flatMap((l) => {
+    if (l.start < start || l.end > oldEnd) return []
+    const label = old.slice(l.start, l.end)
+    const at = replace.indexOf(label)
+    return at >= 0 && replace.indexOf(label, at + 1) < 0 ? [{ start: at, end: at + label.length, uri: l.uri }] : []
+  })
+  if (replace) runs.push(...colouredRuns(start, replace.length, colour, linksForNewText(replace, carried)))
   const after = original.filter((r) => (r.startIndex ?? 0) >= oldEnd).map((r) => ({ ...r, startIndex: (r.startIndex ?? 0) + shift }))
   if (oldEnd < old.length && !after.some((r) => r.startIndex === newEnd)) {
     runs.push({ startIndex: newEnd, format: resume?.format ?? {} })
@@ -194,8 +254,16 @@ export function colourAt(cell: CellData, index: number): Rgb {
   return rgbOf(run?.format) ?? rgbOf(cell.userEnteredFormat?.textFormat) ?? {}
 }
 
+function missingLinks(runs: TextRun[], after: CellData): string[] {
+  const got = new Set(linksOf(after))
+  const foldedAtZero = !(after.textFormatRuns ?? []).some((r) => (r.startIndex ?? 0) === 0)
+  return linksOf({ ...after, textFormatRuns: runs })
+    .filter((l) => !got.has(l) && !(foldedAtZero && l.startsWith('0:')))
+    .map((l) => `The link ${l.slice(l.indexOf(':') + 1)} did not read back on its text.`)
+}
+
 export function checkReplace(before: CellData, plan: ReplacePlan, after: CellData, colour: Rgb): string[] {
-  const problems: string[] = []
+  const problems: string[] = [...missingLinks(plan.runs, after)]
   if (textOf(after) !== plan.text) problems.push('The cell text read back differs from what was written.')
   if (chipLinks({ chipRuns: plan.chipRuns }).join() !== chipLinks(after).join()) problems.push('The Drive file chip did not read back where it was.')
   if (plan.newEnd > plan.start && !sameRgb(colourAt(after, plan.start), colour)) problems.push('The replacement did not read back in the requested colour.')
@@ -212,7 +280,7 @@ export function checkReplace(before: CellData, plan: ReplacePlan, after: CellDat
 }
 
 export function checkAppend(before: CellData, plan: AppendPlan, after: CellData, colour: Rgb): string[] {
-  const problems: string[] = []
+  const problems: string[] = [...missingLinks(plan.runs, after)]
   if (textOf(after) !== plan.text) problems.push('The cell text read back differs from what was written.')
   if (chipLinks({ chipRuns: plan.chipRuns }).join() !== chipLinks(after).join()) problems.push('The Drive file chip did not read back where it was.')
   if (!sameRgb(colourAt(after, plan.newRunStart), colour)) problems.push('The new line did not read back in the requested colour.')
@@ -233,11 +301,42 @@ export interface AwaitingReply {
   yourLast?: string
 }
 
-export function awaitingReply(cell: CellData, mine: string[]): AwaitingReply | null {
+const SIGNED_LINE = /^\s*(?:\d{1,2}\/\d{1,2}\s+([A-Z][A-Za-z'-]*(?: [A-Z][A-Za-z'-]*){0,2})|([A-Z][A-Za-z'-]*(?: [A-Z][A-Za-z'-]*){0,2})\s+\d{1,2}\/\d{1,2}\b)(?:\s*\([^)\n]{0,20}\))?\s*:/
+const NOT_A_NAME = new Set(['note', 'notes', 'step', 'see', 'update', 'updated', 'page', 'part', 'item', 'phase', 'round', 'version', 'row', 'rev', 'stage', 'week', 'day', 'q', 'question', 'answer', 'reply', 'done', 'sent', 'fixed', 'status', 'point', 'case', 'issue', 'option', 'meeting', 'checked', 'tested', 'deployed', 'live', 'staging'])
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+function signsAsOwn(line: string, names: string[]): boolean {
+  return names.some((n) => new RegExp(`^\\s*(?:\\d{1,2}/\\d{1,2}\\s+)?${escapeRegex(n)}(?:\\s+[A-Za-z]+)?(?:\\s+\\d{1,2}/\\d{1,2})?(?:\\s*\\([^)\\n]{0,20}\\))?\\s*:`, 'i').test(line))
+}
+
+function splitLines(run: { colour: string; text: string }): { colour: string; text: string }[] {
+  return run.text.split(/(?<=\n)/).map((text) => ({ colour: run.colour, text }))
+}
+
+export function awaitingReply(cell: CellData, mine: string[], myNames: string[] = []): AwaitingReply | null {
   const d = describeCell(cell)
   const own = new Set(mine.map((c) => (c.trim().toLowerCase() === 'default' ? 'default' : rgbToHex(hexToRgb(c.trim())))))
+  const names = myNames.map((n) => n.trim().toLowerCase()).filter(Boolean)
   const lead = { colour: d.baseColour, text: d.text.slice(0, d.runs[0]?.start ?? d.text.length) }
-  const spoken = [lead, ...d.runs].filter((r) => r.text.trim())
+  let current = ''
+  const spoken = [lead, ...d.runs]
+    .flatMap((r) => (names.length && own.has(r.colour) ? splitLines(r) : [r]))
+    .map((r) => {
+      if (!names.length) return r
+      if (!own.has(r.colour)) {
+        current = ''
+        return r
+      }
+      if (signsAsOwn(r.text, names)) {
+        current = ''
+        return r
+      }
+      const match = r.text.match(SIGNED_LINE)
+      const signer = (match?.[1] ?? match?.[2])?.trim().toLowerCase()
+      if (signer && !NOT_A_NAME.has(signer.split(' ')[0]!)) current = `signed:${signer}`
+      return current ? { ...r, colour: current } : r
+    })
+    .filter((r) => r.text.trim())
   const lastOwn = spoken.findLastIndex((r) => own.has(r.colour))
   const after = spoken.slice(lastOwn + 1)
   if (!after.length) return null

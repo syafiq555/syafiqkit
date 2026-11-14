@@ -50,4 +50,4 @@ tapi x jadi masalah sngt kot. detective tu cuma tempat search/investigate je, ya
 rds custom pulak x jadi issue sbb db dia (db1, db2, db3) standard rds. standard rds sql server ada kat my
 ```
 
-Four bubbles: the greeting answered with the headline, then one point per bubble, each answer first with the reason after `sbb`, and no closing line.
+Four bubbles: the greeting answered with the headline, then one topic per bubble (the second holds two sentences about the same service), each answer first with the reason after `sbb`, and no closing line.
