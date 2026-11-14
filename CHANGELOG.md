@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.431.0
+
+**`done` design-reviews every screen the diff changed.**
+- A seventh row, Design, whenever the diff touches something a person sees (page, screen, template, component, stylesheet, admin screen, email layout): invoke `uiux` fresh to grade each changed screen at 375, 768 and 1280 with every capture opened, `impeccable` `critique` on the changed screens, and `taste`'s review path on customer-facing ones, started in the same batch as the other Step 1 reviewers, findings fixed or asked before Output. The description names "wrap up with the design skills" so the ask routes here. A code or product pass that "covers UX" does not stand in for it (14/11/2026: a redesigned admin screen passed code and product review, and the user had to ask twice for the design skills at wrap-up).
+- `uiux`'s builder-grading rule now says `done` runs that grade as its Design row.
+
 ## 1.430.10
 
 **`gchat-mcp`: edit your own Chat messages; `gchat-format` and `casual-message` know the API reads Markdown.**

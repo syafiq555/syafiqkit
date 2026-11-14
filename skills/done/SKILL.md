@@ -1,6 +1,6 @@
 ---
 name: done
-description: Post-task cleanup - simplify code, review changes, update docs, capture session knowledge. Use when finished implementing or when user says "done", "wrap up", "finalize".
+description: Post-task cleanup - simplify code, review changes, design-review any screen the diff changed (uiux grading plus impeccable critique, and taste on customer-facing pages), update docs, capture session knowledge. Use when finished implementing or when user says "done", "wrap up", "finalize", "wrap up with the design skills", "done with a design review".
 ---
 
 # Post-Task Workflow
@@ -9,7 +9,7 @@ Run the steps in one turn. If you find yourself naming a remaining step rather t
 
 **User args**: If the user passed instructions with `/done` (e.g., "make sure this works for X"), address those FIRST before proceeding with the standard steps. The user's instructions override defaults. Record what you did about them in the **User args** row of the Output's Session table. If no args were passed, omit that row.
 
-**The contract.** A long session usually compacts before reaching `/done`, and only this skill's opening survives that, so read it now rather than trusting that the steps below will still be in view. You owe six rows: Simplify · Review · Product · Knowledge · Task docs · Plugin. Every row is a claim that a step actually ran: an agent you dispatched with the right kind of prompt, or a skill you invoked *and then confirmed changed something on disk*. Invoking is not updating. A row you cannot substantiate is a step you skipped, so go run it rather than writing `✅`. Then check that anything the user must decide is the first thing they read, not buried under a report.
+**The contract.** A long session usually compacts before reaching `/done`, and only this skill's opening survives that, so read it now rather than trusting that the steps below will still be in view. You owe six rows: Simplify · Review · Product · Knowledge · Task docs · Plugin, and a seventh, Design, whenever the diff changes something a person sees. Every row is a claim that a step actually ran: an agent you dispatched with the right kind of prompt, or a skill you invoked *and then confirmed changed something on disk*. Invoking is not updating. A row you cannot substantiate is a step you skipped, so go run it rather than writing `✅`. Then check that anything the user must decide is the first thing they read, not buried under a report.
 
 Re-read this file whenever its body is no longer in view: after a compaction, after agents return (the body is not re-attached), or after an interrupted turn. Recalled steps read as `✅` without having run.
 
@@ -36,6 +36,7 @@ The three roles see the diff through different lenses:
 - **Simplifier**: is the code *clean*? (duplication, readability, consistency)
 - **Reviewer**: is the code *correct*? (bugs, security, logic errors, conventions)
 - **Product reviewer**: is the *feature* complete and valuable? (missing journeys, dead-end flows, UX and business gaps, the class of miss a line-level diff cannot catch). Runs in full mode, and in docs-only mode when the markdown is the product rather than notes about one: instructions or prompts for an assistant people talk to, a user guide, public docs, and a plugin's skills, commands and agent files, which ship to everyone who installs it and decide what their sessions do. Notes about a project (task docs, a project's own CLAUDE.md) skip it. A file kind settles the mode, not whether anyone uses what it says, so ask who reads the diff's output before skipping. Dispatch it only if a project or user-level `product-reviewer` agent is available; skip silently otherwise.
+- **Design review**: does the changed *screen* read well for its reader at every width? Runs whenever the diff touches something a person sees: a page, screen, template, component, stylesheet, admin screen or email layout. It is skills, not one agent, started in the same batch: invoke `uiux` fresh to grade (capture each changed screen at 375, 768 and 1280, open every capture, grade against its siblings), invoke `impeccable` `critique` on the changed screens (it runs its own two isolated reviewers), and on a screen a customer sees also `taste`'s review path. Their findings are fixed or asked before Output like any reviewer's. The product reviewer judges the journey and rules; this row judges what the reader sees, and a code or product pass that "covers UX" does not stand in for it. Measured 14/11/2026: a redesigned admin screen passed code and product review, and the user still had to ask twice for the design skills to run at wrap-up. **Tell: your diff has a `.css`, template or screen file and no Design row.**
 
 ### Ownership & Partition
 
@@ -168,6 +169,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 | Review | [issues + fixes, or ✅] |
 | Simplify | [changes, or ✅] |
 | Product | [✅ or → question] |
+| Design | [screens and widths graded, critique findings + fixes; omit only when nothing a person sees changed] |
 | Cleanup | [removed, or omit] |
 | Test | [command/steps, or omit] |
 
