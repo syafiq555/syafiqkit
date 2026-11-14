@@ -736,6 +736,35 @@ test('a short task doc with a decisions file over 40 KB is listed for shrinking,
   await ui.unmount()
 })
 
+test('an oversized decisions file with a generated outline beside it says so in the list badge', async ($, on) => {
+  const sent: string[] = []
+  await stubTaskDoc(
+    $,
+    on,
+    sent,
+    'quote',
+    2000,
+    [fileEntry('copy.md', 163_000), fileEntry('copy-outline.md', 4_000)],
+    '# T\n- [ ] one',
+  )
+  await $.command.run({ command: 'sk', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'vb5' })
+  expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB · outline/})).length).toBe(1)
+  await ui.unmount()
+})
+
+test('an oversized decisions file without an outline keeps the plain badge', async ($, on) => {
+  const sent: string[] = []
+  await stubTaskDoc($, on, sent, 'quote', 2000, [fileEntry('copy.md', 163_000)], '# T\n- [ ] one')
+  await $.command.run({ command: 'sk', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'vb5' })
+  expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB/ })).length).toBe(1)
+  expect((await ui.findAll({ type: 'Text', text: /outline/ })).length).toBe(0)
+  await ui.unmount()
+})
+
 test('a decisions page offers Split, which sends in one press and names that one file', async ($, on) => {
   const sent: string[] = []
   const ui = await openBigDecision($, on, sent)

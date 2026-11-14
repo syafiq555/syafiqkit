@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.434.2
+
+**The doc list says when an oversized decisions file already has its outline.**
+- A verbatim copy kept whole (1.434.0) still shows the size warning, by the user's choice, but the badge read `⚠ decisions 159.3 KB` the same before and after its outline existed, so a handled file looked like an open problem and invited a Split press that only declines
+- `heavyNote` adds ` · outline` when a `<name>-outline.md` sits beside the oversized file (` · N with outline` when several are oversized), and the decisions list marks it `(over 40 KB, has outline)`. The warning itself still fires
+- Two mod tests cover the badge with and without an outline
+
 ## 1.434.1
 
 **Gaps a product review found in 1.433.2 to 1.434.0.**

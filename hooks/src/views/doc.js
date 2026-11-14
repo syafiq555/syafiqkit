@@ -1,6 +1,6 @@
 import { hostUiInvalidate, hostUiScroll } from '../core/api.js'
 import { ITEM_CAP_ROWS, PANE, TYPESET_WIDTH_STEP } from '../core/constants.js'
-import { condenseFileRequest, isInstructionFile, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
+import { condenseFileRequest, hasOutline, isInstructionFile, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
 import { state } from '../core/state.js'
 import { copyDocFile, openInEditor } from '../docs/export.js'
 import { fitImage, hashOf, svgPicture } from '../docs/images.js'
@@ -169,7 +169,7 @@ export function docView($, c) {
                     file.name.replace(/\.md$/, '') +
                     '  ' +
                     kb(file.size) +
-                    (isOversizedDecision(file) ? ' (over 40 KB)' : '') +
+                    (isOversizedDecision(file) ? (hasOutline(state.current, file) ? ' (over 40 KB, has outline)' : ' (over 40 KB)') : '') +
                     '  ›',
                   plain: true,
                   onPress: () => openDecision(index),
