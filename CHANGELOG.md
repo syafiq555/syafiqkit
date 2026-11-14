@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.434.1
+
+**Gaps a product review found in 1.433.2 to 1.434.0.**
+- `condense-task-doc` source-capture rule and `doc-to-md`: copy `doc_outline.py` into the repo and wire `--check` through that copy, since the plugin's path is a pruned, versioned cache folder a teammate may not have
+- An outline is generated, so later passes regenerate it and never edit it: stated in `condense-task-doc`, `merge-task-docs` (move it with the copy), `refresh-instructions` and the pruner agent
+- The mod's Condense and Shrink prompts and `task-summary`'s verbatim capture rule now say to grep the repo for the file name before splitting, as the Split prompt already did, and name the outline script
+- `read-summary`: run the outline's `--check` before reading line ranges from it, since a stale outline gives wrong ranges silently
+- `claude-md-pruner`: this repo's own agent gains the verbatim-copy-out-of-lane paragraph the template got in 1.434.0; both now say an `-outline.md` is regenerated, never edited
+- `haiku`: the sentence a brief carries now includes loading `SendMessage` through `ToolSearch`, which the agent will not do unprompted
+- `watch-sheets`: with duplicate watch jobs, keep the one matching the user's latest request; if none match, delete all and create one
+
 ## 1.434.0
 
 **A large verbatim copy that a script reads stays one file with a generated outline beside it; `update-plugin` finds roles from the artifact's life, not a grep.**

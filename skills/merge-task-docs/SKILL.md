@@ -88,7 +88,7 @@ For every deleted path, update every file that referenced it:
 - Inline path mentions (`tasks/payment/analytics-instrumentation/current.md`)
 - Domain `CLAUDE.md` pointers
 - Roadmap/hub tables
-- Scripts, builds and CI that read a moved file at a fixed path (grep the whole repo, not just `tasks/`): a verbatim copy such as a quotation or contract is often one, and a moved copy breaks its script silently. Prefer leaving such a file where it is; if it must move, update the script's path in the same change and run it.
+- Scripts, builds and CI that read a moved file at a fixed path (grep the whole repo, not just `tasks/`): a verbatim copy such as a quotation or contract is often one, and a moved copy breaks its script silently. Prefer leaving such a file where it is; if it must move, update the script's path in the same change and run it. A `<name>-outline.md` beside it is generated: move it with the copy and regenerate it, never merge or edit it.
 
 After updating, verify zero stale references remain:
 

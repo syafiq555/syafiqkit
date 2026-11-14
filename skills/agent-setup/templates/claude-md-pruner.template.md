@@ -47,7 +47,7 @@ The rules below fork here, and applying the wrong branch is a correctness bug, n
 
 Classify each path in a batch on its own terms rather than picking one branch for the whole list — a mixed batch is exactly how a task doc ends up with CLAUDE.md's free-form section deletion applied to it.
 
-**A verbatim copy is out of lane on both branches.** A file whose header or owning doc says it is a word-for-word copy (a contract, quotation, policy, or a captured spec that scripts match quotes against) is never pruned, deduped, split or moved: text that reads stale is the version on record, and scripts or `git diff` history often read it at its path. Its size is not a finding either; at most, report that it has no generated outline beside it.
+**A verbatim copy is out of lane on both branches.** A file whose header or owning doc says it is a word-for-word copy (a contract, quotation, policy, or a captured spec that scripts match quotes against) is never pruned, deduped, split or moved: text that reads stale is the version on record, and scripts or `git diff` history often read it at its path. Its size is not a finding either; at most, report that it has no generated outline beside it. A `<name>-outline.md` beside it is generated: never edit it, regenerate it.
 
 #### 1b. Confirm no file is contested
 

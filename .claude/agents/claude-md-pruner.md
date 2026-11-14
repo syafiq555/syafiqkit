@@ -55,6 +55,8 @@ The rules below fork here, and applying the wrong branch is a correctness bug, n
 
 ⚠️ **A mixed list is per-file, never per-batch** — classify each path on its own and apply its own branch. One branch chosen for a batch containing both is how a task doc gets CLAUDE.md's free-form section deletion applied to it.
 
+**A verbatim copy is out of lane on both branches.** A file whose header or owning doc says it is a word-for-word copy (a contract, quotation, policy, or a captured spec that scripts match quotes against) is never pruned, deduped, split or moved: text that reads stale is the version on record, and scripts or `git diff` history often read it at its path. Its size is not a finding either; at most, report that it has no generated outline beside it. A `<name>-outline.md` beside it is generated: never edit it, regenerate it.
+
 ### 1. Inventory
 
 1. Read the target in full — the CLAUDE.md, or (task-doc branch) the index **and every `decisions/*.md` sibling**
