@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.434.0
+
+**A large verbatim copy that a script reads stays one file with a generated outline beside it; `update-plugin` finds roles from the artifact's life, not a grep.**
+- An automatic size prompt asked a session to split a 160 KB quotation copy into topic files (14/11/2026). Two scripts read it at a fixed path and its history is one commit per version, so the split would have broken both while every heading count matched. `condense-task-doc` and `task-summary` both said a verbatim copy past ~40 KB is split along its own sections
+- New `condense-task-doc/scripts/doc_outline.py <file> [--group P] [--label P] [--check]`: writes `<file>-outline.md`, one row per section with its line range and size, nested top-level parts in bold; `--check` exits 1 when the outline no longer matches. It reads `#` and underlined headings and whole-line bold sections (Word conversions keep most sections as bold lines), and skips fenced code and YAML front matter. Skills call it as `${CLAUDE_SKILL_DIR}/scripts/doc_outline.py` (from `doc-to-md`, `${CLAUDE_SKILL_DIR}/../condense-task-doc/...`), and defer to a generator the owning doc already names
+- `condense-task-doc` (step 8 source-capture rule, step 2, `section-rules.md`): grep the repo's scripts, builds and CI for the file name before splitting a capture; if anything reads it at that path, keep it whole, generate the outline, wire `--check` into the gate that already runs on it
+- The same exception now reaches every skill on the copy's path: `task-summary` (verbatim capture rule) and `decision-splits.md`; `doc-to-md` (one file per document holds past 40 KB, outline instead); `read-summary` (read a big copy through its outline and `sed -n` the range); `refresh-instructions` `process-details.md`; `merge-task-docs` (repoint scripts that read a moved file); `unhobble-instructions` and the `claude-md-pruner` template (a verbatim copy is out of lane). Regenerate project pruner agents with `agent-setup` to pick that up
+- The mod's Split, Condense and Shrink prompts carry the same check (`hooks/src/core/format.js`). The size warning itself still fires on such files, by the user's choice
+- `update-plugin` Step 2 and `grep-for-sharing.md`: the roles table is filled by naming the artifact and walking every skill's description for who creates, reads, changes or checks it, then grepping inside the ones that do. The first pass of this change built its roles from grepping "split" and "verbatim" and missed `doc-to-md` and `read-summary` until the user asked
+
+## 1.433.3
+
+**`watch-sheets`: "no job exists" and "the watch is off" are `CronList` answers.**
+- A session held three hourly watchers over the same tracker and UAT sheets (14/11/2026): the skill created one after judging from memory that none existed, `/loop off` deleted only that id, and the reply said nothing else was scheduled while two more (never created in that conversation) were still due to fire. Each would have run its own full check and raised its own alert for the same row
+- § Setup: run `CronList` before `CronCreate` and on every later invocation; more than one job running this skill is cut to one, naming the ones deleted
+- § Reporting: stopping the watch deletes every job `CronList` shows for this skill, then lists again and reports it empty
+
+## 1.433.2
+
+**`haiku`: a brief tells a running agent it may message the main session.**
+- The user asked why a research agent never discussed anything with the main session mid-run (14/11/2026): its first pass spent 31 calls on pages that carry the rule but not the answer and reported only at the end, because the brief said "report at the end" and gave it no reason or address to message
+- SKILL.md § Writing the prompt: a subagent reaches its parent with `SendMessage` to the recipient `main`; the session's own name and id are rejected from inside. Measured with three test agents: the ping arrived in the main session while the agent was still running, after the agent loaded `SendMessage` through `ToolSearch`. A brief for work that may need a decision or come back empty now names the cases to message about and says not to wait for a reply
+- `cross-session-messaging.md`: "a subagent cannot see peer sessions" now says it can still message its own parent
+
 ## 1.433.1
 
 **`explainer-deck` names open questions instead of row numbers and shows overrides; `done` design-reviews decks.**

@@ -204,7 +204,7 @@ export function splitRequest(doc, file) {
     doc,
     file,
     'split',
-    ' by topic into smaller decisions files. Move the text word for word and count its headings and table rows before and after, make current.md the router that says which file holds what, and repoint every link to the old file.',
+    ' by topic into smaller decisions files. First grep the repo for the file name in scripts, builds and CI, and read the index for "one file" or "one commit per version": if anything reads it at that path, do not split it, and generate a section outline beside it instead: with the generator the index names if it names one, otherwise condense-task-doc\'s scripts/doc_outline.py (its source-capture rule). Otherwise move the text word for word and count its headings and table rows before and after, make current.md the router that says which file holds what, and repoint every link to the old file.',
   )
 }
 
@@ -213,7 +213,7 @@ export function condenseFileRequest(doc, file) {
     doc,
     file,
     'condense',
-    ' in place. Remove superseded and repeated text, and keep every decision, figure, name and quoted line. If the file is the only copy of an outside source (a spec, a transcript, client notes), do not cut it: only remove repeats, and split it if it is over 40 KB. If it is still over 40 KB afterwards, say so.',
+    ' in place. Remove superseded and repeated text, and keep every decision, figure, name and quoted line. If the file is the only copy of an outside source (a spec, a transcript, client notes), do not cut it: only remove repeats, and split it if it is over 40 KB, unless a script or version diff reads it as one file (then keep it whole with a generated outline). If it is still over 40 KB afterwards, say so.',
   )
 }
 
@@ -227,7 +227,7 @@ export function taskDocShrinkRequest(doc) {
     doc.path +
     '. ' +
     (sizes.length ? 'Over the limit: ' + sizes.join('; ') + '. ' : '') +
-    'For each oversized file, judge what fits: condense it, split it by topic with current.md as the router, condense then split, or a better structure. If you see a better way than these, propose it before changing anything. Keep every decision, figure, name and quote, and move text between files word for word. Verify the result before reporting.'
+    'For each oversized file, judge what fits: condense it, split it by topic with current.md as the router, condense then split, or a better structure. A file that a script or version diff reads at its path stays whole with a generated outline beside it. If you see a better way than these, propose it before changing anything. Keep every decision, figure, name and quote, and move text between files word for word. Verify the result before reporting.'
   )
 }
 

@@ -27,7 +27,7 @@ Both scripts use only the Python standard library, so any `python3` from 3.9 wor
 2. Convert the **previous** version first and commit it alone, by path (`git commit -m "<name> vN" -- <path>`), so other staged work stays out.
 3. Convert the new version over the same file. `git diff HEAD -- <path>` now shows exactly what changed. Commit it as the next version once reviewed.
 
-One file per document, regenerated in place, is what makes the history readable. A new file per version gives no diff.
+One file per document, regenerated in place, is what makes the history readable. A new file per version gives no diff. That holds past the usual ~40 KB decisions-file size too: don't split the copy. Give readers a map instead with `python3 -I ${CLAUDE_SKILL_DIR}/../condense-task-doc/scripts/doc_outline.py <copy>` (unless the owning doc already names its own outline generator), which writes `<copy>-outline.md` beside it with each section's line range. Regenerate it in the same commit as each version, and point `current.md` at it. A Word conversion usually has its sections as bold lines rather than `#` headings, so pass `--group`/`--label` prefixes as that script's help describes.
 
 With no repo to track them (two files in Downloads, a one-off comparison), convert both versions into a scratch folder and run `diff -u old.md new.md`. Where only the new file is given and an earlier conversion is already committed, regenerate over it and diff against `HEAD`.
 

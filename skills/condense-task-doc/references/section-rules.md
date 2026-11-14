@@ -59,3 +59,5 @@ A pass that "condenses" a decision paraphrases it, and a paraphrase written from
 
 A file whose header says it is a verbatim copy (terms, a policy, a contract or quotation) is not edited at all, not even to dedupe: its wording is the deliverable, and the next revision is checked by diffing against it. Measured 2026-10-02: a condense pass told that every client figure must survive still cut a 265-line client-sources capture by 43 lines, dropping supplier names, line-level workbook errors and verbatim WhatsApp wording, and had to be reverted whole.
 
+Not editing it extends to not splitting it when a script, build or `git diff` history reads it as one file at its path; such a copy keeps a generated outline beside it instead (SKILL.md, the source-capture rule under step 8).
+

@@ -47,6 +47,8 @@ The rules below fork here, and applying the wrong branch is a correctness bug, n
 
 Classify each path in a batch on its own terms rather than picking one branch for the whole list — a mixed batch is exactly how a task doc ends up with CLAUDE.md's free-form section deletion applied to it.
 
+**A verbatim copy is out of lane on both branches.** A file whose header or owning doc says it is a word-for-word copy (a contract, quotation, policy, or a captured spec that scripts match quotes against) is never pruned, deduped, split or moved: text that reads stale is the version on record, and scripts or `git diff` history often read it at its path. Its size is not a finding either; at most, report that it has no generated outline beside it.
+
 #### 1b. Confirm no file is contested
 
 Before inventorying, check each file for concurrent work: Run `git diff HEAD -- <file>` and `git status --short -- <file>` beside it, since an untracked file (`??`) has no diff at all and reads as uncontested. A non-empty result is not the answer on its own — your dispatcher usually edited this file moments ago and left those writes uncommitted, so the expected case is a diff full of the caller's own work. What makes a file contested is content belonging to neither of you: hunks on sections outside the caller's stated brief, or in a file the brief never named. Where the diff holds only what you were told was just written, proceed; where it holds anything else, treat the file as contested — pruning that destroys work no reflog can recover. A contested file gets no edits from this agent at all — report what you would have removed and stop. 📖 `../../_shared/references/diff-ownership.md`

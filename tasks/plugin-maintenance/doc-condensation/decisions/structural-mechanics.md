@@ -271,3 +271,18 @@ Size wins (the user's call, 14/11/2026). On a file over budget, an incident stor
 - A fixed pre-flight threshold (over 40 KB, or 25% above the landing figure). Why not: the user chose judgement; a number fires on a dense single-reader file that should condense, and misses a file under it whose sections serve unrelated readers.
 
 **Status**: committed · **Reversible**: yes
+
+### D-read-at-path-copy-stays-whole — A Verbatim Copy That A Script Or Version Diff Reads As One File Is Never Split For Size; It Gets A Generated Outline — committed — 2026-11-14
+
+**Problem**
+The mod's Split prompt asked a session to split a 160 KB quotation text copy by topic. `condense-task-doc` and `task-summary` both said a verbatim copy past ~40 KB is split along its own sections. Two project scripts read that copy at a fixed path and its history is one commit per version, so a split would have broken both while every heading count matched. A first fix pass then patched only the five files that used the words "split" and "verbatim", missing `doc-to-md` (creates such copies) and `read-summary` (reads them) until the user asked "are u sure there are no skills needed left ?".
+
+**Decision**
+Before splitting any capture, grep the repo for its file name outside markdown and read the owning doc for "one file" or "one commit per version". If anything reads it as one file, it stays whole with `<file>-outline.md` beside it, written by `condense-task-doc/scripts/doc_outline.py` (or the generator the owning doc names), regenerated with each version and checked by `--check` in whatever gate already runs on the file. The size warning still fires on such files (the user: "Leave it as is" on exempting them); only what the skills do after it changed. The outline is a saved file, not a command in the doc (the user chose "Saved index file"). The rule reaches every skill on the copy's path, and `update-plugin` now finds those skills by walking descriptions against the artifact rather than grepping the fix's words.
+
+**Rejected**
+- Exempt verbatim copies from the size warning. Why not: the user declined it.
+- A grep command in the owning doc instead of a saved outline. Why not: the user chose the saved file; staleness is handled by `--check`.
+- One generic generator only, retiring project copies. Why not: a project gate must run for teammates without the plugin, so a project may keep its own generator, and the skills defer to it when the owning doc names it.
+
+**Status**: committed · **Reversible**: yes

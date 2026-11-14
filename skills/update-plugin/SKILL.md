@@ -82,6 +82,8 @@ The right target is whichever file actually owns the fact, not where the session
 
 Thinking "I checked the other roles" and actually checking them feel identical, so the four roles are written out as the report's second table (see Output), never answered in your head.
 
+⚠️ **Fill the roles from the artifact's life, not from a grep of the fix's words.** A word search finds skills that already say what you are about to say (the ones prescribing the defect), never the skill that creates the artifact or the one that reads it, since neither uses the vocabulary of the rule. Name the artifact the mechanism governs (a large verbatim copy, a decisions file, a tracker row), then walk the whole skill list's descriptions (the session's available-skills list, or `README.md`'s table) and ask of each: does it create this, read it, change it, or check it? Grep only afterwards, to find the line inside each skill that answers yes. (14/11/2026: a "don't split a verbatim copy read by scripts" fix built its roles from grepping "split", "verbatim" and "40 KB"; it patched five prescribing files and missed `doc-to-md`, which creates such copies, and `read-summary`, the reader an outline exists for, until the user asked "are u sure there are no skills needed left?") **Tell: every row of your roles table came from a grep hit on words in your own patch.**
+
 📖 **`references/grep-for-sharing.md`** — search strategy and when to route to `_shared/references/` instead of one skill. 📖 **`references/routing-gotchas.md`** — contested files and generated agent copies.
 
 ## Step 3 — Harness Constraints

@@ -6,6 +6,8 @@ When routing a patch to a skill file, check whether other skills already handle 
 
 **Blind spot in vocabulary search:** Searching the mechanism's terminology finds skills that *talk about* a thing, but not sibling primitives that answer a neighbouring question off the same underlying command. A reference generalised to handle one failing command can sit beside another whose whole mechanism is that same command, and a search for the first's nouns never surfaces the second. When you find a match, also ask which *other* primitives the same steps cite — if two references are named a few lines apart in the skills you're patching, they likely share the assumption you just fixed. Verify by running the broken condition against each, not by reading their descriptions alone.
 
+**The creator and the reader never share the rule's words.** A grep for the fix's vocabulary returns the skills that already prescribe the behaviour being fixed. The skill that produces the artifact and the one that consumes it describe it in their own terms ("convert a Word file", "read the task doc first"), so they come up only from walking every skill's description against the artifact (SKILL.md Step 2, roles from the artifact's life).
+
 **Shared mechanism patterns:**
 - Several skills all need the same fact at different depths → core rule in `_shared/references/` + pointer from each (hot-path line in each skill, full statement they point at)
 - Two skills decide opposite directions → each gets the pointer, not one fixed and one left intact
