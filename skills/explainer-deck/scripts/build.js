@@ -54,6 +54,7 @@ const count = (arr, lo, hi, where, what) => {
   return Array.isArray(arr) ? arr : [];
 };
 const party = (name) => PARTIES[name] || [T.sunk, T.soft];
+const partyIn = (text) => (typeof text === 'string' ? PARTIES[text.trim()] : undefined);
 const isParty = (name, where) => { if (!PARTIES[name]) bad(where, `"${name}" is not in parties`); };
 const CLASSES = new Set(['dry', 'chilled', 'frozen']);
 const TONES = new Set(['now', 'other', 'warn', 'same']);
@@ -163,9 +164,9 @@ function checkMechanism(s, where) {
   words(s.heading, 5, `${where} heading`);
   if (!s.sub || s.sub.length > 100) bad(where, 'sub (the claim under the heading) is required, max 100 characters');
   checkVisual(s.visual, where);
-  const ex = s.example || {};
-  if (!LABELS[ex.kind]) bad(where, 'example.kind must be quoted, worked or made_up');
-  for (const l of count(ex.lines, 2, 6, where, 'example lines')) words(l, 16, `${where} example line`);
+  const ex = s.example ? { ...s.example } : { kind: s.numbers || 'quoted', lines: [] };
+  if (!LABELS[ex.kind]) bad(where, s.example ? 'example.kind must be quoted, worked or made_up' : 'numbers must be quoted, worked or made_up');
+  if (s.example) for (const l of count(ex.lines, 2, 6, where, 'example lines')) words(l, 16, `${where} example line`);
   if (s.rule) words(s.rule, 30, `${where} rule`);
   for (const w of s.waits_on || []) words(w, 3, `${where} waits_on`);
   if (sourceFiles.length && !(s.src || []).length) bad(where, 'needs src (file, line, quote) because the spec lists sources');
@@ -266,12 +267,15 @@ slides.forEach((s, i) => {
   if (s.id) { if (ids.has(s.id)) bad(where, 'duplicate id'); ids.add(s.id); }
   if (s.section != null && (!tracker || !(s.section >= 1 && s.section <= tracker.length))) bad(where, 'section must be a 1-based index into tracker');
   if (s.notes) count(s.notes, 1, 5, where, 'notes lines');
-  if (s.type === 'title') { words(s.title, 12, `${where} title`); }
+  if (s.owner != null) isParty(s.owner, `${where} owner`);
+  if (s.type === 'title') { words(s.title, 12, `${where} title`); if (s.tagline != null) words(s.tagline, 14, `${where} tagline`); checkFigures([s.tagline], where); }
+  else if (s.type === 'section') { words(s.heading, 5, `${where} heading`); if (s.items) count(s.items, 1, 5, where, 'items').forEach((t) => words(t, 6, `${where} item`)); checkFigures([s.sub, s.items], where); }
+  else if (s.type === 'hero') { words(s.big, 3, `${where} big`); words(s.heading, 6, `${where} heading`); if (s.bullets) count(s.bullets, 1, 4, where, 'bullets').forEach((b) => words(b, 14, `${where} bullet`)); checkFigures([s.sub, s.bullets], where); }
   else if (s.type === 'text') { words(s.heading, 5, `${where} heading`); count(s.bullets, 1, 6, where, 'bullets').forEach((b) => words(b, 18, `${where} bullet`)); checkFigures([s.sub, s.bullets], where); }
   else if (s.type === 'table') { words(s.heading, 5, `${where} heading`); checkVisual({ kind: 'ledger', columns: s.columns, rows: s.rows, total: s.total }, where); checkFigures([s.sub, s.rows, s.total], where); }
   else if (s.type === 'mechanism') checkMechanism(s, where);
   else if (s.type === 'journey') checkJourney(s, where);
-  else bad(where, 'type must be title, text, table, mechanism or journey');
+  else bad(where, 'type must be title, section, hero, text, table, mechanism or journey');
 });
 if (tracker) tracker.forEach((t, i) => words(t, 2, `tracker ${i + 1}`));
 
@@ -305,7 +309,7 @@ function fit(text, w, h, max, min = 8) {
   }
   return min;
 }
-const kinds = require('./kinds.js')({ pres, T, party, txt, fit, money });
+const kinds = require('./kinds.js')({ pres, T, party, partyIn, txt, fit, money });
 const ICONS = path.join(path.dirname(path.resolve(OUT)), 'icons');
 function icon(name, color) {
   const out = path.join(ICONS, `${name}-${color}.png`);
@@ -343,20 +347,24 @@ const notes = (slide, lines) => {
 };
 function strip(slide, current) {
   if (!tracker) return;
-  const gap = 0.08, w = (CW - (tracker.length - 1) * gap) / tracker.length;
+  const gap = 0.12, w = (CW - (tracker.length - 1) * gap) / tracker.length;
   tracker.forEach((name, i) => {
-    const on = i + 1 === current;
-    slide.addText(`${i + 1}  ${name}`, txt({
-      x: M + i * (w + gap), y: 0.3, w, h: 0.38, fontSize: fit(`${i + 1}  ${name}`, w - 0.1, 0.38, 11, 8), bold: on, align: 'center', valign: 'middle',
-      color: on ? T.onAccent : T.soft, fill: { color: on ? T.accent : T.sunk }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06,
-    }));
+    const on = i + 1 === current, done = current && i + 1 < current;
+    const x = M + i * (w + gap);
+    slide.addShape(pres.shapes.RECTANGLE, { x, y: 0.32, w, h: 0.05, fill: { color: on || done ? T.accent : T.sunk }, line: { color: on || done ? T.accent : T.sunk, width: 0 } });
+    slide.addText(`${i + 1}  ${name}`, txt({ x, y: 0.42, w, h: 0.24, fontSize: 9.5, bold: on, color: on ? T.accent : T.soft }));
   });
 }
+const ownerOf = (s) => (s.owner ? party(s.owner) : null);
 function heading(slide, s, y) {
-  if (s.kicker) slide.addText(s.kicker.toUpperCase(), txt({ x: M, y: y - 0.24, w: 4, h: 0.22, fontSize: 10, bold: true, color: T.accent, charSpacing: 2 }));
-  slide.addText(s.heading, txt({ x: M, y, w: CW, h: 0.5, fontSize: 26, bold: true, valign: 'middle' }));
-  if (s.sub) slide.addText(s.sub, txt({ x: M, y: y + 0.5, w: CW, h: 0.36, fontSize: fit(s.sub, CW, 0.36, 14, 11), color: T.soft, valign: 'middle' }));
+  const own = ownerOf(s);
+  if (own) slide.addShape(pres.shapes.RECTANGLE, { x: 0, y: y - 0.3, w: 0.16, h: 1.25, fill: { color: own[1] }, line: { color: own[1], width: 0 } });
+  const kick = [s.owner, s.kicker].filter(Boolean).join('  ·  ');
+  if (kick) slide.addText(kick.toUpperCase(), txt({ x: M, y: y - 0.26, w: 7, h: 0.24, fontSize: 10.5, bold: true, color: own ? own[1] : T.accent, charSpacing: 2 }));
+  slide.addText(s.heading, txt({ x: M, y, w: CW, h: 0.56, fontSize: 30, bold: true, valign: 'middle' }));
+  if (s.sub) slide.addText(s.sub, txt({ x: M, y: y + 0.58, w: CW, h: 0.38, fontSize: fit(s.sub, CW, 0.38, 16, 12), color: T.soft, valign: 'middle' }));
 }
+function dark(slide) { slide.background = { color: T.ink }; }
 
 function bottomStrip(slide, s) {
   const waits = s.waits_on || [], rw = waits.length ? 2.6 : 0;
@@ -366,30 +374,51 @@ function bottomStrip(slide, s) {
 
 const LAYOUT = {
   title(slide, s) {
-    slide.addText(s.title, txt({ x: M, y: 2.3, w: CW, h: 1.2, fontSize: fit(s.title, CW, 1.2, 40, 26), bold: true, valign: 'bottom' }));
-    slide.addShape(pres.shapes.RECTANGLE, { x: M, y: 3.55, w: 1.2, h: 0.06, fill: { color: T.accent }, line: { color: T.accent, width: 0 } });
-    if (s.subtitle) slide.addText(s.subtitle, txt({ x: M, y: 3.7, w: 10, h: 0.9, fontSize: 18, color: T.soft }));
+    dark(slide);
+    slide.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 0.35, h: 7.5, fill: { color: T.accent }, line: { color: T.accent, width: 0 } });
+    slide.addText(s.title, txt({ x: M + 0.4, y: 1.7, w: CW - 0.6, h: 1.9, fontSize: fit(s.title, CW - 0.6, 1.9, 48, 30), bold: true, valign: 'bottom', color: T.onAccent }));
+    if (s.tagline) slide.addText(s.tagline, txt({ x: M + 0.4, y: 3.8, w: CW - 0.6, h: 0.7, fontSize: fit(s.tagline, CW - 0.6, 0.7, 24, 16), bold: true, color: 'A9C3F2' }));
+    if (s.subtitle) slide.addText(s.subtitle, txt({ x: M + 0.4, y: 5.6, w: CW - 0.6, h: 0.6, fontSize: 16, color: 'C9C6BF' }));
+  },
+  section(slide, s, n) {
+    dark(slide);
+    slide.addText(String(s.section || n).padStart(2, '0'), txt({ x: M, y: 1.0, w: 4, h: 2.2, fontSize: 120, bold: true, color: T.accent, valign: 'bottom' }));
+    slide.addText(s.heading, txt({ x: M, y: 3.35, w: CW, h: 0.9, fontSize: 44, bold: true, color: T.onAccent, valign: 'middle' }));
+    if (s.sub) slide.addText(s.sub, txt({ x: M, y: 4.25, w: CW * 0.8, h: 0.6, fontSize: fit(s.sub, CW * 0.8, 0.6, 20, 14), color: 'C9C6BF' }));
+    (s.items || []).forEach((it, i) => {
+      const c = partyIn(it);
+      slide.addText(it, txt({ x: M + i * 2.45, y: 5.4, w: 2.3, h: 0.6, fontSize: fit(it, 2.1, 0.5, 14, 10), bold: true, align: 'center', valign: 'middle', color: c ? c[1] : T.onAccent, fill: { color: c ? c[0] : '3A3936' }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.08 }));
+    });
+  },
+  hero(slide, s) {
+    dark(slide);
+    slide.addText(s.big, txt({ x: M, y: 0.9, w: CW, h: 2.4, fontSize: fit(s.big, CW, 2.4, 150, 60), bold: true, color: T.accent, valign: 'bottom' }));
+    slide.addText(s.heading, txt({ x: M, y: 3.4, w: CW, h: 0.8, fontSize: 38, bold: true, color: T.onAccent, valign: 'middle' }));
+    if (s.sub) slide.addText(s.sub, txt({ x: M, y: 4.2, w: CW, h: 0.5, fontSize: 18, color: 'C9C6BF' }));
+    if (s.bullets) slide.addText(s.bullets.map((b, i) => ({ text: b, options: { bullet: true, breakLine: i < s.bullets.length - 1, paraSpaceAfter: 8 } })), txt({ x: M, y: 4.85, w: CW * 0.85, h: 2.2, fontSize: fit(s.bullets, CW * 0.85 - 0.3, 2.2, 20, 14), color: 'E8E6E0' }));
   },
   text(slide, s) {
-    heading(slide, s, tracker ? 1.0 : 0.6);
-    const y = tracker ? 2.0 : 1.6, h = 7.0 - y;
-    slide.addText(s.bullets.map((b, i) => ({ text: b, options: { bullet: true, breakLine: i < s.bullets.length - 1, paraSpaceAfter: 10 } })), txt({ x: M, y, w: CW * 0.8, h, fontSize: fit(s.bullets, CW * 0.8 - 0.3, h, 20, 13), color: T.ink }));
+    heading(slide, s, tracker ? 1.05 : 0.6);
+    const y = tracker ? 2.2 : 1.8, h = 7.05 - y;
+    slide.addText(s.bullets.map((b, i) => ({ text: b, options: { bullet: { indent: 22 }, breakLine: i < s.bullets.length - 1, paraSpaceAfter: 16 } })), txt({ x: M, y, w: CW * 0.88, h, fontSize: fit(s.bullets, CW * 0.88 - 0.4, h - s.bullets.length * 0.25, 26, 16), color: T.ink }));
   },
   table(slide, s) {
-    heading(slide, s, tracker ? 1.0 : 0.6);
-    const y = tracker ? 2.0 : 1.6;
-    kinds.ledger(slide, { columns: s.columns, rows: s.rows, total: s.total }, M, y, CW, 7.0 - y);
+    heading(slide, s, tracker ? 1.05 : 0.6);
+    const y = tracker ? 2.2 : 1.8;
+    kinds.ledger(slide, { columns: s.columns, rows: s.rows, total: s.total, fill: true }, M, y, CW, 7.05 - y);
   },
   journey(slide, s) {
-    heading(slide, { kicker: s.kicker || 'User journey', heading: s.heading || `${possessive(s.person)} journey`, sub: s.goal }, 0.98);
+    heading(slide, { kicker: s.kicker || 'User journey', heading: s.heading || `${possessive(s.person)} journey`, sub: s.goal, owner: s.owner }, 1.05);
     if (s.numbers === 'made_up') slide.addText(LABELS.made_up, txt({ x: M + CW - 1.9, y: 0.8, w: 1.9, h: 0.3, fontSize: 10, bold: true, align: 'center', valign: 'middle', color: BADGE.made_up[0], fill: { color: BADGE.made_up[1] }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
-    journeyMap(slide, s, M, 1.95, CW, s.rule || (s.waits_on || []).length ? 6.08 : 6.9);
+    journeyMap(slide, s, M, 2.15, CW, s.rule || (s.waits_on || []).length ? 6.08 : 6.9);
     bottomStrip(slide, s);
   },
   mechanism(slide, s) {
-    heading(slide, { kicker: s.kicker || 'How it works', heading: s.heading, sub: s.sub }, 0.98);
-    const vx = M, vy = 1.95, vw = 8.55, vh = 4.1;
-    kinds[s.visual.kind](slide, s.visual, vx, vy, vw, vh);
+    heading(slide, { kicker: s.kicker || 'How it works', heading: s.heading, sub: s.sub, owner: s.owner }, 1.05);
+    const hasEx = !!s.example, vx = M, vy = 2.2, vw = hasEx ? 8.55 : CW, vh = 3.9;
+    const own = ownerOf(s);
+    kinds[s.visual.kind](slide, own ? { ...s.visual, accent: own[1] } : s.visual, vx, vy, vw, vh);
+    if (!hasEx) { bottomStrip(slide, s); return; }
     const ex = 9.3, ew = M + CW - ex, badge = BADGE[s.example.kind];
     slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: ex, y: vy, w: ew, h: vh, fill: { color: T.surface }, line: { color: T.sunk, width: 1 }, rectRadius: 0.08 });
     slide.addText('Example', txt({ x: ex + 0.18, y: vy + 0.14, w: 1.2, h: 0.32, fontSize: 14, bold: true, color: T.accent }));
@@ -400,11 +429,14 @@ const LAYOUT = {
   },
 };
 
+const FULL = new Set(['title', 'section', 'hero']);
+let sectionNo = 0;
 for (const s of slides) {
   const slide = pres.addSlide();
   base(slide);
-  if (s.type !== 'title') strip(slide, s.section);
-  LAYOUT[s.type](slide, s);
+  if (!FULL.has(s.type)) strip(slide, s.section);
+  if (s.type === 'section') sectionNo += 1;
+  LAYOUT[s.type](slide, s, sectionNo);
   notes(slide, s.notes);
 }
 

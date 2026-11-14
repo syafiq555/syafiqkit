@@ -23,15 +23,17 @@ One JSON file. Paths inside it are relative to the spec. Word limits are enforce
 
 ## Slide types
 
-Every slide may carry `notes` (1 to 5 lines, the presenter's prompts), `id` and `section`.
+Every slide may carry `notes` (1 to 5 lines, the presenter's prompts), `id`, `section` and `owner` (a party: the slide gets that party's colour bar and kicker, and a timeline on it takes the colour). A table cell, split group or panel group whose text is exactly a party name is filled in that party's colours, so name people and sellers consistently and give each one a colour in `parties`.
 
-- `title`: `title` (max 12 words), `subtitle`.
+- `title`: `title` (max 12 words), optional `tagline` (max 14 words, the running example in one line), `subtitle`. Drawn on a dark ground.
+- `section`: a divider, dark ground with the big section number (`section`, else its count). `heading` (max 5 words), `sub`, optional `items` (1 to 5, max 6 words; a party name shows as a chip in its colour).
+- `hero`: one big figure or date (`big`, max 3 words, e.g. "27/11") with `heading` (max 6 words), `sub` and up to 4 `bullets` (max 14 words). Use it to open on the thing the deck builds to, or to close on it.
 - `text`: `heading` (max 5 words), `sub`, `bullets` (1 to 6, max 18 words each). Use sparingly: the running example's set-up, a close.
 - `table`: `heading`, `sub`, `columns` (3 to 5), `rows` (2 to 7, cells max 8 words), optional `total` row.
 - `mechanism`: the core slide. Fields:
   - `heading` (max 5 words) and `sub` (the claim, max 100 characters)
   - `visual`: one of the kinds below
-  - `example`: `{"kind": "quoted" | "worked" | "made_up", "lines": [2 to 6 lines, max 16 words]}`
+  - `example`: optional, `{"kind": "quoted" | "worked" | "made_up", "lines": [2 to 6 lines, max 16 words]}`. Give it only when it adds a figure the picture lacks; without it the picture takes the full width, and `numbers` (`quoted` default, `worked`, `made_up`) says how the picture's figures are checked
   - `rule`: optional, the source's own rule, max 30 words
   - `waits_on`: open points, each max 3 words ("Row 8")
   - `src`: `[{"file", "line", "quote"}]`, required when `sources` is set. The quote is copied character for character, is at least 20 characters, and must sit within 12 lines of `line`

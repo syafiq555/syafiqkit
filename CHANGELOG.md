@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.433.0
+
+**`explainer-deck`: decks stop looking like one template; people and sellers keep a colour throughout.**
+- Any slide takes `owner` (a party): a colour bar beside the heading, the name in the kicker, and a timeline in that colour. A table cell, split group or panel group whose text is exactly a party name fills in that party's colours, so `parties` with set colours carries through every picture.
+- New slide types: `section` (dark divider with the big section number and optional party chips) and `hero` (one big figure or date with heading and up to 4 bullets, for the opening or the close). The title slide is dark with an optional `tagline` for the running example in one line.
+- Layout: the four-tab bar is a thin progress rule; headings 30 pt; bullets grow to 26 pt and fill the slide; tables fill the height at 14 to 18 pt with an uppercase header and bold first column; timelines are larger. A mechanism's `example` is optional, and without it the picture takes the full width (`numbers` sets how its figures are checked).
+- Why: a sprint kick-off deck read to its owner as "generic like that"; a `uiux` pass and `impeccable` critique (14 of 24) found one template on all 31 slides, no person colour, content in the top half, 10 pt tables and Example boxes repeating the picture (14/11/2026). SKILL.md § 2 now asks for colours, owners, dividers and a closing slide as the default shape for a team deck. Existing specs keep their content (the example deck still builds) and pick up the new look on the next build.
+
 ## 1.432.0
 
 **`gsheets-mcp`: `drive_file_share` shares a file the sign-in created; `explainer-deck` uses it at hand-over.**

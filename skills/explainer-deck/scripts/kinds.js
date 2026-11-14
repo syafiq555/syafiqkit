@@ -2,6 +2,7 @@ const CLASS = { dry: ['F3E6D4', '6A4013', 'Dry'], chilled: ['DFF0F0', '1C5656', 
 
 module.exports = function makeKinds(ctx) {
   const { pres, T, party, txt, fit, money } = ctx;
+  const partyIn = ctx.partyIn || (() => undefined);
   const TONE = { now: [T.ours, T.oursInk, 'What gets built'], other: [T.sunk, T.soft, 'The alternative'], warn: [T.openBg, T.open, 'Watch out'], same: [T.surface, T.accent, ''] };
 
   const arrow = (slide, x1, y1, x2, y2, color = T.soft) =>
@@ -56,11 +57,11 @@ module.exports = function makeKinds(ctx) {
     v.from.items.forEach((it, i) => chip(slide, it, x + 0.15, fy + 0.55 + i * 0.62, fw - 0.3, 0.54));
     const gx = x + fw + 0.9, gw = w - fw - 0.9, gap = 0.18, gh = (h - gap * (v.to.length - 1)) / v.to.length;
     v.to.forEach((g, i) => {
-      const gy = y + i * (gh + gap);
-      arrow(slide, x + fw + 0.05, fy + fromH / 2, gx - 0.05, gy + gh / 2, T.accent);
-      box(slide, { runs: [{ text: '' }], x: gx, y: gy, w: gw, h: gh, fill: T.surface, line: T.accent });
-      slide.addText(g.label, txt({ x: gx + 0.15, y: gy + 0.06, w: gw - 1.9, h: 0.36, fontSize: 12.5, bold: true, color: T.oursInk, valign: 'middle' }));
-      if (g.tag) slide.addText(g.tag, txt({ x: gx + gw - 1.75, y: gy + 0.08, w: 1.6, h: 0.32, fontSize: 11, bold: true, align: 'center', valign: 'middle', color: T.onAccent, fill: { color: T.accent }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
+      const gy = y + i * (gh + gap), pc = partyIn(g.label), ink = pc ? pc[1] : T.accent;
+      arrow(slide, x + fw + 0.05, fy + fromH / 2, gx - 0.05, gy + gh / 2, ink);
+      box(slide, { runs: [{ text: '' }], x: gx, y: gy, w: gw, h: gh, fill: pc ? pc[0] : T.surface, line: ink, lineW: 1.5 });
+      slide.addText(g.label, txt({ x: gx + 0.15, y: gy + 0.06, w: gw - 2.2, h: 0.4, fontSize: 15, bold: true, color: pc ? pc[1] : T.oursInk, valign: 'middle' }));
+      if (g.tag) slide.addText(g.tag, txt({ x: gx + gw - 2.05, y: gy + 0.08, w: 1.9, h: 0.34, fontSize: fit(g.tag, 1.8, 0.3, 12, 9), bold: true, align: 'center', valign: 'middle', color: T.onAccent, fill: { color: ink }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
       const cw = Math.min(2.0, (gw - 0.3 - 0.1 * (g.items.length - 1)) / g.items.length), ch = Math.min(0.6, gh - 0.55);
       g.items.forEach((it, j) => chip(slide, it, gx + 0.15 + j * (cw + 0.1), gy + 0.48, cw, ch));
     });
@@ -100,22 +101,31 @@ module.exports = function makeKinds(ctx) {
   }
 
   function timeline(slide, v, x, y, w, h) {
-    const n = v.points.length, ly = y + h * 0.42, x0 = x + 0.9, span = w - 1.8, step = span / (n - 1), lw = Math.min(2.0, step - 0.12);
-    slide.addShape(pres.shapes.LINE, { x: x0, y: ly, w: span, h: 0, line: { color: T.accent, width: 3 } });
+    const ink = v.accent || T.accent;
+    const n = v.points.length, ly = y + h * 0.36, x0 = x + 0.9, span = w - 1.8, step = span / (n - 1), lw = Math.min(2.6, step - 0.12);
+    slide.addShape(pres.shapes.LINE, { x: x0, y: ly, w: span, h: 0, line: { color: ink, width: 4 } });
     v.points.forEach((p, i) => {
       const px = x0 + i * step;
-      slide.addShape(pres.shapes.OVAL, { x: px - 0.15, y: ly - 0.15, w: 0.3, h: 0.3, fill: { color: i === n - 1 ? T.accent : T.surface }, line: { color: T.accent, width: 2 } });
-      slide.addText(p.when, txt({ x: px - lw / 2, y: ly - 0.85, w: lw, h: 0.6, fontSize: fit(p.when, lw, 0.6, 15, 10), bold: true, align: 'center', valign: 'bottom' }));
-      slide.addText(p.what, txt({ x: px - lw / 2, y: ly + 0.3, w: lw, h: 1.6, fontSize: fit(p.what, lw, 1.6, 12, 9), align: 'center', color: T.soft }));
+      slide.addShape(pres.shapes.OVAL, { x: px - 0.2, y: ly - 0.2, w: 0.4, h: 0.4, fill: { color: i === n - 1 ? ink : T.surface }, line: { color: ink, width: 3 } });
+      slide.addText(p.when, txt({ x: px - lw / 2, y: ly - 0.95, w: lw, h: 0.65, fontSize: fit(p.when, lw, 0.65, 20, 12), bold: true, align: 'center', valign: 'bottom', color: ink }));
+      slide.addText(p.what, txt({ x: px - lw / 2, y: ly + 0.38, w: lw, h: h - (ly - y) - 0.4, fontSize: fit(p.what, lw - 0.1, h - (ly - y) - 0.5, 16, 11), align: 'center', color: T.ink }));
     });
   }
 
   function ledger(slide, v, x, y, w, h) {
-    const head = v.columns.map((c) => ({ text: c, options: { bold: true, color: T.soft, fill: { color: T.sunk } } }));
-    const rows = v.rows.map((r) => r.map((c) => ({ text: c, options: { fill: { color: T.surface }, color: /^[-−]/.test(c) ? T.open : T.ink } })));
+    const head = v.columns.map((c) => ({ text: c.toUpperCase(), options: { bold: true, color: T.soft, fill: { color: T.ground }, fontSize: 11, charSpacing: 1 } }));
+    const cell = (c, j) => {
+      const pc = partyIn(c);
+      if (pc) return { text: c, options: { bold: true, fill: { color: pc[0] }, color: pc[1] } };
+      return { text: c, options: { fill: { color: T.surface }, color: /^[-−]/.test(c) ? T.open : T.ink, bold: j === 0 } };
+    };
+    const rows = v.rows.map((r) => r.map(cell));
     if (v.total) rows.push(v.total.map((c) => ({ text: c, options: { bold: true, fill: { color: T.ours }, color: T.oursInk } })));
-    const rowH = Math.min(0.5, h / (rows.length + 1));
-    slide.addTable([head, ...rows], { x, y, w, fontFace: T.font, fontSize: rowH < 0.45 ? 12 : 14, color: T.ink, border: { type: 'solid', color: T.sunk, pt: 1 }, rowH, valign: 'middle', margin: [4, 8, 4, 8] });
+    const longest = Math.max(...v.rows.flat().map((c) => String(c).length), 1);
+    const cap = v.fill ? 0.82 : 0.5;
+    const rowH = Math.min(cap, (h - 0.45) / rows.length);
+    const size = v.fill ? (rowH >= 0.7 && longest <= 40 ? 18 : rowH >= 0.55 ? 16 : 14) : (rowH < 0.45 ? 12 : 14);
+    slide.addTable([head, ...rows], { x, y, w, fontFace: T.font, fontSize: size, color: T.ink, border: { type: 'solid', color: T.sunk, pt: 1 }, rowH: [0.42, ...rows.map(() => rowH)], valign: 'middle', margin: [4, 10, 4, 10] });
   }
 
   function ladder(slide, v, x, y, w, h) {
@@ -163,9 +173,9 @@ module.exports = function makeKinds(ctx) {
       slide.addText(p.heading, txt({ x: px + 0.18, y: y + 0.38, w: pw - 0.36, h: 0.4, fontSize: fit(p.heading, pw - 0.36, 0.4, 15, 11), bold: true, color: T.ink, valign: 'middle' }));
       const top = y + 0.9, gap = 0.14, n = p.groups.length, gh = Math.min(1.25, (h - 1.0 - gap * (n - 1)) / n);
       p.groups.forEach((g, j) => {
-        const gy = top + j * (gh + gap), gx = px + 0.15, gw = pw - 0.3;
-        box(slide, { runs: [{ text: '' }], x: gx, y: gy, w: gw, h: gh, fill: T.ground, line: T.accent });
-        slide.addText(g.label, txt({ x: gx + 0.12, y: gy + 0.05, w: gw - 1.5, h: 0.32, fontSize: 11.5, bold: true, color: T.oursInk, valign: 'middle' }));
+        const gy = top + j * (gh + gap), gx = px + 0.15, gw = pw - 0.3, pc = partyIn(g.label);
+        box(slide, { runs: [{ text: '' }], x: gx, y: gy, w: gw, h: gh, fill: pc ? pc[0] : T.ground, line: pc ? pc[1] : T.accent, lineW: pc ? 1.5 : 1 });
+        slide.addText(g.label, txt({ x: gx + 0.12, y: gy + 0.05, w: gw - 1.5, h: 0.32, fontSize: 12.5, bold: true, color: pc ? pc[1] : T.oursInk, valign: 'middle' }));
         if (g.tag) slide.addText(g.tag, txt({ x: gx + gw - 1.4, y: gy + 0.07, w: 1.3, h: 0.28, fontSize: 9.5, bold: true, align: 'center', valign: 'middle', color: T.onAccent, fill: { color: T.accent }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
         const k = g.items.length, cw = Math.min(1.75, (gw - 0.24 - 0.08 * (k - 1)) / k), ch = Math.min(0.62, gh - 0.48);
         g.items.forEach((it, m) => chip(slide, it, gx + 0.12 + m * (cw + 0.08), gy + 0.42, cw, ch));
