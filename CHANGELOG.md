@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.436.2
+
+**The one design review is followable end to end, and its report shows what ran.**
+- Reviewer A starts on the screenshots before any machine check runs, so check output never anchors its judgement; B then gets the checks. A is dispatched as the project's `product-reviewer` where one exists, with the heuristic score table as its required return shape
+- A's heuristic scores are the starting point, B's evidence confirms or lowers them, then `taste`'s caps apply through a full mapping (overall caps hold the whole score; each criterion cap holds its heuristics at 2 or 3 of 4)
+- The report opens with `impeccable`'s method line, prints the score as N/M (P%) with what "good" looks like, and writes "caps held: none" rather than leaving it blank; `done`'s Design row adds the method and whether `taste`'s passes and caps were applied
+- Native apps, PDFs, decks and documents run reviewer A alone with an exact method line; emails run both reviewers, since the detector reads their rendered HTML
+- Reviewers no longer produce `taste`'s own 1 to 10 score; `taste`'s module text says its checks run inside the one review
+
 ## 1.436.1
 
 **A design review is one combined review with one score, not three reviews merged.**

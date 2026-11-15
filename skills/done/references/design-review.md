@@ -10,7 +10,7 @@ Open this when Step 1's Design row is due and the change is not a plain web scre
 
 ## One review
 
-- `uiux` is invoked once per wrap-up, fresh, in the batch with the agents. It runs one combined review (`uiux/references/critique-mode.md`): the machine checks that fit the surface, then two isolated reviewers scoring one rubric, giving one score.
+- `uiux` is invoked once per wrap-up, fresh, in the batch with the agents. It runs one combined review (`uiux/references/critique-mode.md`): two isolated reviewers (A on the screenshots, started before the machine checks run; B on those checks) scoring one rubric, giving one score.
 - Running a module's script from a shell or an agent is evidence for that review, not the review.
 
 ## Runtime proof

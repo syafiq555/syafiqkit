@@ -28,7 +28,7 @@ Each tell is common because it is the statistically safest answer to "make this 
 
 ## Using the list
 
-In a critique (this skill's grade, `critique-mode.md` step 4) a hit is a prompt to ask the right-hand question, not a finding by itself. In a build, check your own diff for the tells before showing it, the way you check it for raw colour values. Two or three together on one screen is the signal that nothing on it was shaped by the audience.
+In a critique (`critique-mode.md` § The rubric) a hit is a prompt to ask the right-hand question, not a finding by itself. In a build, check your own diff for the tells before showing it, the way you check it for raw colour values. Two or three together on one screen is the signal that nothing on it was shaped by the audience.
 
 Adapted from the anti-pattern lists in impeccable (Apache-2.0, `github.com/pbakaus/impeccable`) and taste-skill (MIT, `github.com/Leonxlnx/taste-skill`), restated in our own terms and reframed as questions.
 

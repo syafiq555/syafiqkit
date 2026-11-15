@@ -2,7 +2,7 @@
 
 Read this only for landing pages, portfolios and client brochure sites. Any look change to one (build, redesign, polish, improve) is the combined `taste-web` and `taste` run (`../SKILL.md` § Route the job); this file is the yardstick when `uiux` critiques such a page or judges one those modules built. Business tools (dashboards, tables, multi-step forms, admin) inherit the app's language and do not use this file: their job is getting work done, and these choices spend distinctiveness a tool does not need.
 
-In a critique (this skill's grade, `critique-mode.md` step 4), this file is only the yardstick for the sections below the dials: structure, proof, type and colour. The design read, dials and approval steps belong to building.
+In a critique (`critique-mode.md` § The rubric), this file is only the yardstick for the sections below the dials: structure, proof, type and colour. The design read, dials and approval steps belong to building.
 
 A marketing page has one job: persuade one visitor to take one action, usually in under a minute. Everything below serves that.
 
