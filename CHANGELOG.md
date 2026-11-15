@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.434.5
+
+**`ship` is back under the 5,000-token re-attach limit, so its release-note and card-closing steps survive a compaction.**
+- 5,864 to 4,597 tokens: the throwaway-worktree promotion recipe moved to a new `references/promotion-worktree.md`, the cherry-pick conflict paragraph to `merge-conflict-resolution.md`, the host-alias and container-path traps to `ship-deploy-verification.md`, and the dated incidents behind the rules to a new `references/ship-incidents.md`. Each rule keeps one line and a pointer at the moment it applies
+- Kept in the body: the review gate for code written after `/done`'s reviewers and for peers' commits riding along, the "print every version and read them as a set" gate, Step 5 item 6's gchat-format tell and its screenshot sentence, and the reason a card closed on a staging-only deploy misleads the requester
+
 ## 1.434.4
 
 **A bare `refresh-instructions` at the end of a session refreshes that session's own docs, and a shipped UI change's release note brings its screenshots.**

@@ -35,3 +35,7 @@ grep -rn '<<<<<<<\|>>>>>>>\|^=======$' --include='*.md' --include='*.php' . | gr
 ```
 
 Then re-run the test suite. A doc-only conflict cannot break tests, but a ship's merge usually pulls in the deploy branch's *code* alongside it, and that code may interact with what you just built — which is the thing worth knowing before you push, not after.
+
+## Cherry-pick conflicts on a promotion
+
+A hunk that conflicts when cherry-picking onto the deploy branch may be touching a feature that branch doesn't have: never promoted, or reverted on it. Check the symbol exists on `origin/<deploy-branch>` before resolving. If it doesn't, the right answer is to drop the hunk, and its CHANGELOG claim on that branch, rather than merge context around it.
