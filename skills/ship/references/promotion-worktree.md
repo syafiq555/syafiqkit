@@ -4,7 +4,7 @@ Read when Step 3 must merge or cherry-pick onto the deploy branch and the workin
 
 ## Why a worktree
 
-On a shared checkout carrying another session's in-flight files, `git checkout <deploy-branch>` succeeds and carries those files onto the deploy branch. Only the following `git merge` fails, listing files the merge never touches. By then a peer's work is already on the branch you are about to ship, and the promotion is half-started. The failure also reads as a conflict to resolve, which invites stashing someone else's work to clear the path. Don't stash.
+On a shared checkout carrying another session's in-flight files, `git checkout <deploy-branch>` succeeds and carries those files onto the deploy branch. Only the following `git merge` fails, listing files the merge never touches. By then a peer's work is already on the branch you are about to ship, and the promotion is half-started. The failure also reads as a conflict to resolve, which invites stashing someone else's work to clear the path.
 
 ## Recipe
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.434.6
+
+**Review fixes to 1.434.4 and 1.434.5: a bare refresh with nothing to go on asks, and release-note images say where they come from and how they're checked.**
+- `refresh-instructions` step 1: a vague request ("refresh the docs") counts as bare; with nothing touched this session and no CLAUDE.md in the working directory it asks rather than climbing to a parent (the reading that was reverted before); it says when the chosen set is a guess
+- `ship` Step 5 item 6: images are named above the fence; when the note is posted through the Chat send tool they go as a thread reply, a second send with its own preview. Each capture is opened first, only seeded demo or test accounts go (local and staging carry real customer data), and a dropped one is named. No capture means no images
+- `ship` Step 3: the worktree line says to cherry-pick only your SHAs and check the file list against the deploy branch before pushing
+- `ship`: duplicated sentences between the body and its references removed, em dashes replaced, the Edge Cases pointer list completed; 4,605 tokens
+
 ## 1.434.5
 
 **`ship` is back under the 5,000-token re-attach limit, so its release-note and card-closing steps survive a compaction.**

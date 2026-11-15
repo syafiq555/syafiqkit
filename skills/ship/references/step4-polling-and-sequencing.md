@@ -6,9 +6,9 @@ Before verifying deployed artifacts, resolve the CI/deploy and check for sequenc
 
 **Non-CI deploy paths:** Some projects document rsync hotfixes or manual sync that bypass CI. Check `CLAUDE.local.md` for a non-CI path and follow it if documented, still verifying at destination the same way.
 
-**Match the run to YOUR commit.** A poll on "most recent run" will return the *previous* commit's run if it completed — CI goes green, loop exits, and your deploy is still queued unnoticed. Key the wait on the SHA or commit subject you just pushed, not on position in the list; the full SHA (`git rev-parse HEAD`), since `gh run list --commit` silently matches nothing for a short one. Treat "green" as a starting point, not the answer — verify the artifact at destination (Step 4b).
+**Match the run to YOUR commit** (the rule is in SKILL.md Step 4a). Key the wait on the SHA or commit subject you just pushed, never on position in the list. Treat "green" as a starting point and verify the artifact at destination (Step 4b).
 
-📖 `ci-provider-polling.md` for per-provider commands and sibling-run traps.
+📖 `ci-provider-polling.md` for per-provider commands, the full-SHA requirement and sibling-run traps.
 
 **User-reserved steps:** A project rule saying "user builds manually" or "never run production builds" describes the default, not a ceiling. When the user has explicitly asked you to carry the whole ship, that instruction overrides the reserve. Name both the rule and the user's instruction if you do override.
 

@@ -29,3 +29,7 @@ A search for the documented tracker name returned a card weeks old, and the draf
 ## Hand-written note skipped the skill (13/11/2026)
 
 A hand-written release note in its remembered syntax skipped the formatting skill's first step. It came out shaped unlike the sender's other release posts that day.
+
+## Release note without images (15/11/2026)
+
+A release note describing a new screen in words only was posted, though the session had already rendered it in a design-review capture. The user had to ask "along with some images" afterwards.
