@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.434.8
+
+**A design pass names all three design skills, and `/done`'s report shows which ones ran.**
+- `done`: the Output's Design row has a slot for each of `uiux`, `impeccable` and `taste`, with "not run: <reason>" where one is skipped, so a dropped skill shows as a blank. An email or document a customer receives counts as a customer screen for `taste`. This is the fourth time `taste` was left out, so the fix changes the report rather than rewording the rule
+- `uiux`: a user calling a surface's design work "the UI/UX" means all the design skills, the same as "use all"
+- `continue-session`: the design-research step a handoff checks for names `uiux`, `impeccable` and `taste`
+
 ## 1.434.7
 
 **A ship posts its release note to the team's Chat space instead of stopping at the clipboard, and a handoff's "another session's files" is checked rather than trusted.**
