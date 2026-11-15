@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.434.4
+
+**A bare `refresh-instructions` at the end of a session refreshes that session's own docs, and a shipped UI change's release note brings its screenshots.**
+- `refresh-instructions`: with no path and no words naming a set, the target is first the living docs the session wrote or flagged (a task doc `/done` reported over budget with its condense skipped), then the working directory's CLAUDE.md. The earlier working-directory rule, kept for invocations whose words name a set, refreshed only the root CLAUDE.md while the over-budget task doc flagged an hour earlier waited until the user asked (15/11/2026)
+- `ship` Step 5: when the release changed something a person sees and the session already rendered it, the Chat post carries those captures as a reply under the note, checked for demo data only. The user had to ask for images after a release note was posted (15/11/2026)
+
 ## 1.434.3
 
 **The doc panel stops offering a split for a copy kept whole with its outline, and says when that outline looks out of date.**
