@@ -1,11 +1,11 @@
 ---
 name: score-loop
-description: Score a piece of work against a fixed rubric out of N, fix the gaps, re-score with an independent reviewer, and repeat until it meets the user's stop rule or the rest needs the user. Fires on "score it out of 20", "rate it and keep improving", "loop until 80%", "keep going until it's good", "give it a score then fix", "run the product reviewer and score it", "iterate until N/20", or a `/goal` that names a score. Works on any artefact a reviewer can judge from evidence: a UI or storefront, a feature, a document, a proposal. Not for a one-off review with no loop (that is `done`'s reviewers, `uiux`/`impeccable` critique, or a single `product-reviewer` dispatch), and not for planning a list before anything is built (`plan-worklist`).
+description: Score a piece of work against a fixed rubric out of N, fix the gaps, re-score with an independent reviewer, and repeat until it meets the user's stop rule or the rest needs the user. Fires on "score it out of 20", "rate it and keep improving", "loop until 80%", "keep going until it's good", "give it a score then fix", "run the product reviewer and score it", "iterate until N/20", or a `/goal` that names a score. Works on any artefact a reviewer can judge from evidence: a UI or storefront, a feature, a document, a proposal. Not for a one-off review with no loop (that is `done`'s reviewers, `uiux` critique, or a single `product-reviewer` dispatch), and not for planning a list before anything is built (`plan-worklist`).
 ---
 
 # Score loop
 
-One agent builds, a separate agent judges, and the loop repeats until the judge's score reaches what the user asked for. Anthropic calls this the evaluator-optimizer pattern; their harness work found that separating the agent doing the work from the agent judging it is a strong lever, that a standalone judge is easier to make sceptical than a builder is to make self-critical, and that scores rise and then plateau with headroom left. The loop is only as honest as its judge and its rubric, so most of this skill is about keeping both fixed and independent.
+One agent builds, a separate agent judges, and the loop repeats until the judge's score reaches what the user asked for (Anthropic's evaluator-optimizer pattern). Separating the builder from the judge is a strong lever: a standalone judge is easier to make sceptical than a builder is to make self-critical. Scores rise, then plateau with headroom left. The loop is only as honest as its judge and rubric, so most of this skill keeps both fixed and independent.
 
 ## Before round 1: write the rubric and the stop rule
 

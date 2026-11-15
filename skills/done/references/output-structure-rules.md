@@ -41,6 +41,7 @@
 | Review | [issues found + fixed, or ✅ clean; docs-only ALSO appends referential-integrity; ops-only = live read-back] |
 | Simplify | [changes made, or ✅ none needed] |
 | Product | [✅ journeys complete, or → question] |
+| Design | uiux: [screens and widths graded] · impeccable: [its heuristic score, both reviewers' findings + fixes] · taste: [its critique score + inspector FAIL/WARN count + fixes, or "not run: <reason>"]; a slot with no score of that skill's own is a skill that did not run; omit the row only when nothing a person sees changed |
 | Cleanup | [removed, or omit] |
 | Test | [exact command or steps the user runs] |
 
@@ -55,3 +56,7 @@
 | Plugin | owner: [files + bump] · consumer: [issue URL or why not] (omit if Step 5 didn't fire) |
 | User args | [what was done about them] (only if args passed) |
 ```
+
+## Handoff Words
+
+- Words the user still has to send (a handoff prompt, a message) are restated in full in Output, never pointed at ("the message from my earlier reply"). The earlier copy has scrolled away, and if what it points at was revised since, it's stale too.

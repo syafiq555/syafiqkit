@@ -33,3 +33,11 @@ A hand-written release note in its remembered syntax skipped the formatting skil
 ## Release note without images (15/11/2026)
 
 A release note describing a new screen in words only was posted, though the session had already rendered it in a design-review capture. The user had to ask "along with some images" afterwards.
+
+## Captures withheld wholesale (15/11/2026)
+
+Every capture was withheld on the reasoning that local data is real, so no images went. The user had to ask how to send some, and four of them showed the seeded demo agency. Judge each capture by its own content.
+
+## Release note only on the clipboard (15/11/2026)
+
+A ship ended on "copied to your clipboard" with the team's Chat space left unposted. The user asked "U didnt post to the geoup ?" afterwards.

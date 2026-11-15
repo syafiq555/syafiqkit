@@ -33,3 +33,8 @@ A finding, a fix, and anything built in response to one are three separate momen
 - **Seeder stopped on its entry point (2026-09-17).** A test-mode seeder was stopped after its entry point merely navigated elsewhere, and five sub-pages still fetched its rows.
 - **Mirrored component not republished (2026-09-16).** Eleven mirrored files across four components were committed while the published system served the prior build.
 
+## Step 2 Consumer Checks
+
+- **Grep the data, not the entry point.** Stopping a seeder, fixture builder or setup routine is deleting it without the grep that deleting would prompt. Grep the *data* the routine produces and open whatever renders it, since the dependent is usually a page or job fetching those rows.
+- **A mirrored component's sync config decides what is mirrored, not its directory name.** If the repo mirrors components out (Claude Design, a Storybook deploy, a released package), the published copy keeps serving the old build and nothing errors. State the mirrored count in the Output and offer the re-sync rather than running it, since publishing is the user's call.
+

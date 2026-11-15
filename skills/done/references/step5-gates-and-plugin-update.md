@@ -1,6 +1,6 @@
 # Step 5: Plugin Capture Gates and Update Logic
 
-Skip this step if no gate fires. Gate C (reusable work built inside a project) is stated in full in the SKILL.md step, because it is answered in that moment rather than looked up. When a gate fires, invoke `syafiqkit:update-plugin`, which owns everything downstream.
+Skip this step if no gate fires. Gate C's test question sits in the SKILL.md step, because it is answered in that moment rather than looked up; its examples are below. When a gate fires, invoke `syafiqkit:update-plugin`, which owns everything downstream.
 
 ## Gate A — Skill Signal
 
@@ -58,3 +58,9 @@ Either way the finding survives.
 **Gate B is a *file-modification* test and cannot answer whether a skill misled you, it only says the plugin tree changed.** Reverting a bad edit erases exactly the evidence Gate B looks for, so better defect handling makes the gate likelier to report nothing. Measured 2026-09-03: a session was sent wrong, reverted its own and template edits, saw empty status, reported "gate did not fire", two invocations later the same signal patched five files. **Gate A is answered by recalling the session, not by status command.** Did a skill send you somewhere wrong? Did you correct a step mid-execution? Did you work around an instruction? A `git status` cannot answer these. On any session where you fixed something, treat Gate A as likelier.
 
 **Gate B re-fires on work already routed.** Once files land in a session commit they stay in `git show --stat` for every later `/done`. A second run sees the same hit with nothing new, which reads as unrouted. Ask what changed since the last `update-plugin` run: nothing new means the gate is satisfied. A genuinely new signal means invoking scoped to it. Also read the CHANGELOG head, your signal may already be captured there, and two version bumps in one afternoon is a collision to avoid.
+
+## Gate C Examples
+
+The reusable part is often reaching an outside system (an API, a Google file, a vendor portal). `gsheets-mcp` gained its export tools this way, so a new or extended plugin MCP server can be the answer rather than a skill.
+
+Other reusable work built inside a project: a generator or checker whose logic names nothing project-specific; a multi-step procedure worked out by trial and error; an API call hand-rolled with `curl` and a minted token.

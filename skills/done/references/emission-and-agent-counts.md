@@ -49,6 +49,8 @@ A slice plus a focus area buys a clean-looking pass — the agent reads what you
 
 > Project agents have a Bootstrap section — they read relevant CLAUDE.md files + the task doc themselves. Do NOT paste project conventions into the prompt.
 
+A report-only brief also names the project's build and generator scripts as writes. An agent checking whether a generated file is stale will otherwise run the generator and rewrite it, so tell it to use the tool's check mode or a scratch path.
+
 ## Count Rationale and Dispatch History
 
 ⚠️ **The count is inlined because a pointer loses it.** It was a `📖` away until 1.291.0, and the dispatch paragraph in the skill is a loud "dispatch NOW, no prose first", which pulls attention past the pointer, so the reference goes unopened and three agents feel like the whole batch whatever the diff size. Measured 2026-09-22: a 110-file diff (81+ band, seven agents) got three, and the shortfall surfaced only because the user asked. Nothing in the dispatch reads as wrong, three agents is the *correct* answer for the band you never checked, and every report comes back clean because each agent reviewed what it was handed. **Tell: you are about to emit a batch without having named which band the file count put you in.**

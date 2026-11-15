@@ -61,3 +61,7 @@ Each entry backs a rule in SKILL.md; the rule stays there, the story lives here.
 - **Delegated plan defaults** (SKILL.md {#plan-mode}): Measured 2026-10-07: six part-payment rules from a Plan agent went into an approved plan this way, including a fee that could be charged twice.
 - **Decision-first opens** (SKILL.md {#decision-first}): Measured 2026-09-14: ~12 consecutive replies opened that way before the user asked what the spam was.
 - **Sibling doc answers a question** (SKILL.md {#decision-first}): Measured 2026-10-21: a "build or reword" question went out while the owning domain held the opposite answer. The same holds for a defect reported as new: measured 2026-10-26, a stale receipt balance went out as a finding while the `Related:` payments doc held the bug and the user's decision from two weeks before.
+
+## Reading a large verbatim copy through its outline
+
+A large verbatim copy (a contract, quotation or policy) with a `<name>-outline.md` beside it is read through the outline: find the section's line range there and read only that range (`sed -n 'START,ENDp'`), not the whole copy. Run the generator's `--check` first where the outline names one: a stale outline gives wrong ranges without any error. Where there is no outline, list the copy's headings or bold section lines with `grep -n` first and read the range you need.

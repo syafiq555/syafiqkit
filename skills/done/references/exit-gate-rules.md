@@ -41,6 +41,8 @@ An agent that returns FAILURE leaves its row unfillable — re-run it. On spawn/
 
 Measured 2026-08-28: a decision block was written and a sequencing plan stayed in the conversation, so the check was not run before Output.
 
+Six filled rows read as thorough, which makes skipping this check likelier. Structure that looks complete is not evidence a check ran.
+
 ## Red Suites and Interrupted Turns
 
 ⚠️ **A red test suite blocks the exit, whoever caused it.** A failure you proved pre-existing is still a failure, and fixing it is part of `/done`. A baseline run at HEAD tells you WHAT to fix (the code or an outdated test), never WHETHER to fix it. "Not caused by this diff" is a finding to state beside the fix, not a reason to stop at a report. Fix the code when it's wrong. Fix the test when it's stale or its fixture is date- or order-dependent. Where the right behaviour is a genuinely open product call, fix the test's determinism and record the product question. Measured 2026-09-29: a `/done` proved 7 billing failures pre-existing and wrote them up as not its concern, and the user had to ask for the fix. Keep the full runner output, never a `tail`: the failure names are what a fix needs, and dropping them costs a whole re-run. **Tell: your Output says a test fails "on master too" and no row says it was fixed.**

@@ -47,6 +47,7 @@ What a reader expects in a file named `PRD.md`:
 
 | Section | Answers |
 |---|---|
+| Platform | Web, iOS, Android or adaptive, stated first (see the mapping table below) |
 | Problem & positioning | Why does this exist, and why now |
 | Personas | Who is it for — goals, pains, behaviour, what success means for each |
 | Success metrics | What number tells you it worked, with a target |
@@ -55,6 +56,26 @@ What a reader expects in a file named `PRD.md`:
 | Out of scope | What is deliberately not built, and why |
 | Roadmap | What comes next, and what is explicitly undated |
 | Open questions | What is unresolved, who decides, what it blocks |
+
+## PRD sections that carry the impeccable product record
+
+The `uiux` skill's `impeccable` module used to keep a root `PRODUCT.md`; its schema now lives in the PRD. Every PRODUCT.md section maps to a PRD section, so `impeccable init` fills these and nothing is lost. Where a PRODUCT.md section has no equivalent above, the PRD gains a section **under the same heading**, so tooling and readers find it by the name they know.
+
+| PRODUCT.md section | PRD section | How |
+|---|---|---|
+| Platform | `## Platform` (new) | Bare value: `web`, `ios`, `android` or `adaptive` (one product that genuinely adapts its design language per OS). Mobile web is `web`; a native wrapper around a website is not native. Absent means `web`. Native values send UI work to the impeccable iOS and Android references. |
+| Stack | `## Stack` (new, greenfield only) | The user's answer on what to build with, including "delegated: what was chosen and why". Omit when an existing codebase answers it (ARCHITECTURE.md owns the detail). |
+| Users | Personas | Equivalent. Primary user, situation and job first; extra audiences only when confirmed. |
+| Product Purpose | Problem & positioning, with Success metrics | Equivalent: purpose and why it exists go in the first, what success means in the second. |
+| Positioning | Problem & positioning | Equivalent: the mechanism or claim a neighbouring product could not truthfully copy. |
+| Operating Context | `## Operating Context` (new) | Workflows, environments, tools, documents and rituals that are factual parts of using or judging the product. |
+| Capabilities and Constraints | Scope, plus `## Constraints and Terminology` (new) | Confirmed functionality is Scope. Technical constraints and the project's vocabulary get the new section. Explicitly undecided product facts go to Open questions, with who decides. |
+| Brand Commitments | `## Brand Commitments` (new) | Existing name, voice, assets and identity constraints the owner made binding. Omit when none. DESIGN.md cites this, never restates it. |
+| Evidence on Hand | `## Evidence on Hand` (new) | Real content, data, testimonials, case studies and assets, with paths, plus the absences future work must not fabricate. |
+| Product Principles | `## Product Principles` (new) | Three to five durable strategic principles from confirmed answers. No visual recipes. |
+| Accessibility and Inclusion | `## Accessibility & Inclusion` (new) | Known user needs or the required standard. Omit when none was established. |
+
+Rules carried over from the init flow: write only confirmed facts and marked open decisions; record the undecided instead of inventing it; no visual worlds, palettes, typography or page concepts in the PRD (those go to `docs/DESIGN.md`); no invented testimonials, customers, benchmarks, pricing or licensing. Where the file carries an `<!-- impeccable:product-schema N -->` comment, copy it verbatim to the top of the PRD so the module can tell a deliberately short record from one written before a section existed. A section the project has not decided is kept and marked `[TBD]` under the rule below, which suits the sections the PRD name promises. The sections above that are new are the exception: omit those when irrelevant, as the init flow does, rather than filling them with generic prose.
 
 **Non-goals earn their own named section** — Shape Up, Google and the ADR tradition converge on this independently, which is unusual enough to be worth weighting. It is the section that prevents a whole feature being invented, and the one most often dropped because absence feels like it needs no documenting.
 

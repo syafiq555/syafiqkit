@@ -33,7 +33,7 @@ These skills accept explicit user command:
 | `task-summary` | Create/update task summaries with full machinery |
 | `ship` | End-to-end release: commit → changelog → push → CI verify → release note |
 | `plan-worklist` | Pre-scoped list (findings, backlog, ClickUp paste) → `product-reviewer` sizes and sequences each → present the plan, don't build |
-| `score-loop` | "Score it out of 20 and keep improving": frozen rubric, fresh judge per round (a retained judge on the user's yes when scores stall), stops on the user's own stop rule or a need for the user. A single review is `done`/`uiux`/`impeccable` |
+| `score-loop` | "Score it out of 20 and keep improving": frozen rubric, fresh judge per round (a retained judge on the user's yes when scores stall), stops on the user's own stop rule or a need for the user. A single review is `done`/`uiux` |
 | `done` | Post-task cleanup orchestrator |
 | `quick-done` | Fast cleanup for sessions known to be small and low-risk |
 | `read-summary` | Read task docs or project CLAUDE.md before answering, investigating or implementing |
@@ -54,8 +54,7 @@ These skills accept explicit user command:
 | `reverse-engineer` | Rebuild a web app's mechanism that the client already uses, read through REA, into a task doc a sonnet reviewer verifies before design |
 | `user-manual` | End-user manual from user tasks, Diátaxis shape, screenshots from an E2E capture spec. Distinct from `md-to-pdf` |
 | `design-handoff` | Brief for someone ELSE to design a screen, layout decisions withheld. Designing it yourself is `uiux` |
-| `taste` | Build, redesign or polish a public-facing page, any verb, with art direction and a browser-inspected look-and-fix loop. Vendored tasteskill v2 (MIT), source in `skills/taste/SOURCE.md`; needs Node 22+ and Chrome |
-| `impeccable` | Only when the user names it (`/impeccable polish`, `audit`, `critique`…): design-director toolkit vendored from impeccable 4.7.0 (Apache-2.0). A bare "polish" or "critique" is `uiux`'s |
+| `uiux` | The one design skill for everything a person sees (web, native mobile, email, PDF, slides, documents): build, redesign, polish, critique, research. Routes to three vendored modules under `skills/uiux/modules/`, and public pages run `taste-web` and `taste` together, and every review runs `impeccable` and both taste checks plus its own grade. `taste`: art-directed pages from a 247-site direction deal, the app-screen path and the juror critique; tasteskill 2.1 (MIT), source in `skills/uiux/modules/taste/SOURCE.md`. `taste-web`: company websites with scroll scenes, product UI pieces, icons, a browser checker and a finish gate run by a Stop hook in `uiux`'s frontmatter; tasteskill 2.5.1 (MIT), kept beside 2.1 because it removed those jobs, source in `skills/uiux/modules/taste-web/SOURCE.md`. Both need Node 22+ and Chrome. `impeccable`: its named commands (`polish`, `audit`, `critique`…), craft floor and native guidance; impeccable 4.8.2 (Apache-2.0), source in `skills/uiux/modules/impeccable/SOURCE.md`; its launcher downloads a binary on first use |
 | `gchat-format` | Document posted to a Chat thread. A message to a named person is `casual-message` |
 | `casual-message` | Casual 1:1 message in the sender's own voice. A document for Chat is `gchat-format` |
 | `continue-session` | Copy-paste prompt that starts a fresh session: task doc path, next goal, uncommitted state |
@@ -99,8 +98,7 @@ These skills accept explicit user command:
 | `ci-ssh-deploy-timeout` | "Deploy keeps timing out" or SSH intermittency in CI |
 | `claude-server-token` | A server's Claude agent reports "credentials expired", "OAuth session expired", a blank `refreshToken` or a 401, or keeps losing its login every few weeks |
 | `setup-playwright` | "E2E tests are flaky", "specs pass alone but fail together" |
-| `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, critique a screen (no edits), research. Public-facing page looks go to `taste`, whatever the verb. Also fires on a screenshot or a report of what someone saw |
-| `taste` | Asked to build, redesign or polish a public-facing page, or told one looks generic, cheap or "AI-made" |
+| `uiux` | Anything a person sees (web, native mobile, email, PDF, slides, documents): build, redesign, polish, critique a screen (no edits), research. A public-page build or look change (any verb, or "generic, cheap or AI-made") runs its `taste-web` and `taste` modules together, one leading by page kind, and a named `impeccable` command opens its `impeccable` module inside the same job. Also fires on a screenshot or a report of what someone saw |
 | `design-handoff` | About to volunteer a layout or component list for a screen someone else designs, or asked for "the prompt" for another designer |
 | `gchat-format` | Asked to send, post or format anything for Google Chat |
 | `casual-message` | Asked to reply to, text or tell a NAMED person something; runs before drafting |

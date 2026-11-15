@@ -1,8 +1,8 @@
 # Marketing pages
 
-Read this only for landing pages, portfolios and client brochure sites. Any look change to one (build, redesign, polish, improve) is `taste`'s job (dealt directions, real pictures, a browser inspector); this file is the yardstick when `uiux` critiques such a page or judges one `taste` built. Business tools (dashboards, tables, multi-step forms, admin) inherit the app's language and do not use this file: their job is getting work done, and these choices spend distinctiveness a tool does not need.
+Read this only for landing pages, portfolios and client brochure sites. Any look change to one (build, redesign, polish, improve) is the combined `taste-web` and `taste` run (`../SKILL.md` § Route the job); this file is the yardstick when `uiux` critiques such a page or judges one those modules built. Business tools (dashboards, tables, multi-step forms, admin) inherit the app's language and do not use this file: their job is getting work done, and these choices spend distinctiveness a tool does not need.
 
-In a critique (`critique-mode.md`), this file is only the yardstick for the sections below the dials: structure, proof, type and colour. The design read, dials and approval steps belong to building.
+In a critique (this skill's grade, `critique-mode.md` step 4), this file is only the yardstick for the sections below the dials: structure, proof, type and colour. The design read, dials and approval steps belong to building.
 
 A marketing page has one job: persuade one visitor to take one action, usually in under a minute. Everything below serves that.
 
@@ -31,7 +31,7 @@ Brief words map to dials: "clean", "calm" and "trustworthy" lower all three; "bo
 
 Finding and placing the material is build work, so it is `taste`'s (its picture and `--video` search); this section is the check on what it found. A bold, cinematic or "wow" direction is carried by real material: photography, footage, or a rendered asset. Shapes drawn in CSS (a gradient sky, a strip of road, a box for a sign) read as clip art however hard they are animated, so when the user calls a bold page cheap after a motion round, the next round changes the material, not the motion. Measured 2026-10-19: four rounds of scroll motion on a drawn night road were called "cheap cinematic"; real dashcam footage behind the same layout ended the complaint.
 
-Source it under a licence that covers a client's commercial site; a licence that owes a credit (CC BY, CC BY-SA) is fine when the credit line goes in the footer, and 📖 `../../taste/references/imagery.md` owns the credit rules. Read the licence per item, not per site: Pexels qualifies; Mixkit marks each clip Free or Restricted (personal use only), and the download button's `data-license` is the truth when the page metadata disagrees; Uppbeat's free plan excludes client and commercial use. Footage that will be scrubbed by scroll is re-encoded all-keyframe, and the host must answer HTTP Range requests or the seek silently stays on frame 0.
+Source it under a licence that covers a client's commercial site; a licence that owes a credit (CC BY, CC BY-SA) is fine when the credit line goes in the footer, and 📖 `../modules/taste/references/imagery.md` owns the credit rules. Read the licence per item, not per site: Pexels qualifies; Mixkit marks each clip Free or Restricted (personal use only), and the download button's `data-license` is the truth when the page metadata disagrees; Uppbeat's free plan excludes client and commercial use. Footage that will be scrubbed by scroll is re-encoded all-keyframe, and the host must answer HTTP Range requests or the seek silently stays on frame 0.
 
 ## Type and colour
 

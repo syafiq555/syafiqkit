@@ -30,6 +30,16 @@ Once the partition is decided, move to Emission shape and emit every agent from 
 
 ## Edits Against a Partitioned File
 
-Measured 2026-09-15: a restored figure landed beside a paragraph the simplifier had refolded, and only the harness's "modified on disk" notice showed it, after the write.
+Measured 2026-09-15: a restored figure landed beside a paragraph the simplifier had refolded, and only the harness's "modified on disk" notice showed it, after the write. Your own edits count as well: a partition reads as a rule about *them*, but an `Edit` against remembered text still applies cleanly to a string that survived a rewrite while its paragraph moved. Hold your edits to a granted file until the agent returns, or re-read before each one.
 
 **Mismatch between role and subagent_type goes undetected** — match the prompt's content to the subagent_type you're calling.
+
+## Ownership Incidents
+
+- 09/11/2026: a simplifier rewrote two untracked files a peer had restructured that morning. A summary's file list is a claim about the past, not ownership now.
+- 12/11/2026: a file this session had handed to a peer ("it's free now") still sat in the session's commit list, so it slipped into a partition and an agent edited the peer's work (a one-line revert). Strike released files before partitioning.
+- 12/11/2026: two CRP45 files rode into a marketplace commit because the commit list came from `git status` minus the folders the session took to be a peer's. An exclusion filter passes every peer file it did not anticipate, so build the list from the paths you wrote.
+
+## Partition Paths on a Shared Tree
+
+A partition listing paths reads as advisory once an agent notices a sibling file, so name the other repo's paths as out of bounds in the brief, not only in the partition.
