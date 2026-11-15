@@ -17,7 +17,7 @@ The rewrite half splits by what the pass has to decide. Restructuring and conden
 
 **Your own first tool call is `Agent(subagent_type: "general-purpose", model: "haiku", prompt: "...")`.** Never call `Skill(...)` on **the skill being dispatched**: that runs it here, the opposite of dispatching. If the request names a skill, its name goes *inside* the prompt ("First run `/skill-name`"), not as a tool call you make. Re-invoking *this* skill is the exception: a sequencing caller reloads it before each prompt, since these rules never re-attach once read. Anything else is a free-form task (research, audit, bulk read) and goes into the prompt as itself.
 
-⚠️ **Choose the tier per pass and after the fact, never in advance.** The "one tier up" allowance covers re-running a pass whose own haiku output failed verification. Earlier haiku runs needing correction are the case for verifying carefully, not for switching tier. **Tell: you are writing `model: "sonnet"` into a first dispatch and justifying it with some other run's failures.**
+⚠️ **Choose the tier per pass and after the fact, never in advance.** The "one tier up" allowance covers re-running a pass whose own haiku output failed verification. Earlier haiku runs needing correction are the case for verifying carefully, not for switching tier. **Tell: you are writing `model: "sonnet"` into a first dispatch and justifying it with some other run's failures.** A headless `claude -p` child is a dispatch too, and with no `--model` it runs on the user's default, often the top tier, so name the tier there as you would in `Agent`.
 
 **Read the request for three things:** Does it name a skill, a target, and whether more than one agent is needed? That shapes what goes into your prompt.
 
