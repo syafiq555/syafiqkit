@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.434.7
+
+**A ship posts its release note to the team's Chat space instead of stopping at the clipboard, and a handoff's "another session's files" is checked rather than trusted.**
+- `ship` Step 5 item 7 (new): where the team reads release notes in a Chat space (named in the project docs, or an earlier note sits there), preview the post with the Chat send tool and ask Send, Edit or Don't send in the same run. The Output's Release Note row now says where and when it was posted, or why not
+- `commit` Step 3: a summary or handoff saying files belong to another session is checked with `ListAgents`; with no live session in this checkout, those files are unowned and in scope for "commit everything" or "ship everything"
+- `continue-session` item 3: files thought to be a peer's are named with that session's `ListAgents` name, never as "belong to another session"
+
 ## 1.434.6
 
 **Review fixes to 1.434.4 and 1.434.5: a bare refresh with nothing to go on asks, and release-note images say where they come from and how they're checked.**
