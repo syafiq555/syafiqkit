@@ -253,7 +253,7 @@ gradient, a violet accent), keep the brand asset, say so in the report, and pass
 rule only.
 
 **Redesign, restyle or review.** Record the before first: `inspect.mjs <url> --out .taste-skill/before`
-(with `--app` for an app screen), and lint the source, or its rendered HTML when `lint.mjs` cannot read the template language (Blade, Twig, an email layout). A review stops after the critique: score the screenshots with `references/critique.md`, since the inspector passing is the floor and the critique is this skill's own judgement, which no other design skill's review replaces. A redesign keeps
+(with `--app` for an app screen), and lint the source, or its rendered HTML when `lint.mjs` cannot read the template language (Blade, Twig, an email layout). A review stops after the critique: score the screenshots with `references/critique.md`, since the inspector passing is the floor and the critique is this skill's own judgement, which no other design skill's review replaces. Inside a `uiux` review its passes, questions and caps run within that one review's rubric and score (`uiux/references/critique-mode.md`). A redesign keeps
 the stack, content and what works, then proceeds from step 2 with the real content; prove it by inspecting
 into `.taste-skill/after` and comparing at every width. 📖 references/run.md#redesign
 

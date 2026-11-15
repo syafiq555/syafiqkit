@@ -41,7 +41,7 @@
 | Review | [issues found + fixed, or ✅ clean; docs-only ALSO appends referential-integrity; ops-only = live read-back] |
 | Simplify | [changes made, or ✅ none needed] |
 | Product | [✅ journeys complete, or → question] |
-| Design | uiux: [screens and widths graded] · impeccable: [its heuristic score, both reviewers' findings + fixes] · taste: [its critique score + inspector FAIL/WARN count + fixes, or "not run: <reason>"]; a slot with no score of that skill's own is a skill that did not run; omit the row only when nothing a person sees changed |
+| Design | uiux: [screens and widths graded] · score [heuristic score over the applicable maximum] · checks [detector, inspector, lint, taste-web checker: each run, or "not run: <reason>"] · [top findings + fixes]; omit the row only when nothing a person sees changed |
 | Cleanup | [removed, or omit] |
 | Test | [exact command or steps the user runs] |
 

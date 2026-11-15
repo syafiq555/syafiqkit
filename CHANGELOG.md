@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.436.1
+
+**A design review is one combined review with one score, not three reviews merged.**
+- `uiux/references/critique-mode.md`: one procedure. The machine checks that fit the surface run first as evidence (`impeccable`'s detector, `taste`'s inspector and lint, `taste-web`'s checker on a public page), then `impeccable`'s two isolated reviewers score one rubric: its Nielsen heuristics over the applicable maximum, with `taste`'s critique questions and house rules and `uiux`'s own checks (app consistency, mobile-first, states, the five questions, render at 375/768/1280) read into the heuristics they bear on. One report, one score, one closing question
+- No check is dropped: the report and `done`'s Design row list each machine check as run or "not run: <reason>", so a skipped check still shows
+- `done`'s Design row gives the one score and the check list instead of three per-engine scores; `uiux`, `done`, `CLAUDE.md` and `README.md` say "one combined review" where they said three engines
+
 ## 1.436.0
 
 **One design skill: `impeccable` and `taste` are now modules inside `uiux`, which covers everything a person sees; a ship sorts its screenshots instead of withholding them all; an open question about something nothing uses is researched before it is asked.**

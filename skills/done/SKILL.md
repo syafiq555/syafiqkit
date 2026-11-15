@@ -1,6 +1,6 @@
 ---
 name: done
-description: Post-task cleanup - simplify code, review changes, design-review anything a person sees that the diff changed (uiux, whose impeccable and taste modules review alongside its own grade), update docs, capture session knowledge. Use when finished implementing or when user says "done", "wrap up", "finalize", "wrap up with the design skills", "done with a design review".
+description: Post-task cleanup - simplify code, review changes, design-review anything a person sees that the diff changed (uiux's one combined review, carrying its impeccable and taste modules' checks), update docs, capture session knowledge. Use when finished implementing or when user says "done", "wrap up", "finalize", "wrap up with the design skills", "done with a design review".
 ---
 
 # Post-Task Workflow
@@ -34,7 +34,7 @@ Read `git status --short` and recent commits, then match a mode.
 - **Simplifier**: is the code *clean*? (duplication, readability, consistency)
 - **Reviewer**: is the code *correct*? (bugs, security, logic errors, conventions)
 - **Product reviewer**: is the *feature* complete and valuable? (missing journeys, dead ends, UX and business gaps, what a line-level diff cannot catch). Runs in full mode, and in docs-only mode when the markdown is the product (what ships to users and steers their sessions), not notes about one project. A file kind settles the mode, not whether anyone reads it: ask who reads the output before skipping. 📖 `${CLAUDE_SKILL_DIR}/references/docs-only-mode.md` § Product reviewer scope.
-- **Design review**: does the changed *screen* read well for its reader at every width? Runs whenever the diff touches something a person sees (screens, templates, components, stylesheets, emails, decks, rendered documents). Invoke `uiux` once, fresh, in the batch with the agents. Its review runs three engines: `impeccable` (both critique reviewers in full), `taste` (inspector, lint and its own scored critique), then uiux's own grade, and merges them. Running a module's script from a shell or an agent is its meter, not the module. The Output's Design row names all three with each one's own score, so an engine that did not run shows as a missing number. Fix or ask its findings like any reviewer's. The product reviewer judges journeys and rules; a code or product pass that "covers UX" does not stand in for this row. 📖 `${CLAUDE_SKILL_DIR}/references/design-review.md` for decks, rendered documents, emails and a UI diff with no spec. **Tell: your diff has a `.css`, template or screen file and no Design row.**
+- **Design review**: does the changed *screen* read well for its reader at every width? Runs whenever the diff touches something a person sees (screens, templates, components, stylesheets, emails, decks, rendered documents). Invoke `uiux` once, fresh, in the batch with the agents. It runs one combined review with one score, carrying every module's checks (detector, inspector, lint, its two isolated reviewers). Running a module's script from a shell or an agent is evidence, not the review. The Output's Design row gives that score and lists each check as run or "not run: <reason>", so a skipped check shows. Fix or ask its findings like any reviewer's. The product reviewer judges journeys and rules; a code or product pass that "covers UX" does not stand in for this row. 📖 `${CLAUDE_SKILL_DIR}/references/design-review.md` for decks, rendered documents, emails and a UI diff with no spec. **Tell: your diff has a `.css`, template or screen file and no Design row.**
 
 ### Ownership & Partition
 
@@ -159,7 +159,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 | Review | [issues + fixes, or ✅] |
 | Simplify | [changes, or ✅] |
 | Product | [✅ or → question] |
-| Design | uiux: [screens and widths graded] · impeccable: [its heuristic score, both reviewers' findings + fixes] · taste: [its critique score + inspector FAIL/WARN count + fixes, or "not run: <reason>"]; a slot with no score of that skill's own is a skill that did not run; omit the row only when nothing a person sees changed |
+| Design | uiux: [screens and widths graded] · score [heuristic score over the applicable maximum] · checks [detector, inspector, lint, taste-web checker: each run, or "not run: <reason>"] · [top findings + fixes]; omit the row only when nothing a person sees changed |
 | Cleanup | [removed, or omit] |
 | Test | [command/steps, or omit] |
 
