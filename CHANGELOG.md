@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.437.0
+
+**The design skills are separate again: `uiux`, `impeccable` and `taste` are back as they were before the 15/11/2026 merge.** The owner judged the merged result not good enough: fresh Sonnet sessions entered the merged router and then skipped the module it routed to, and a redesign built that way looked weak.
+- Reverts the merge (1.436.0) and its two review follow-ups (1.436.1, 1.436.2): the three skills return to their pre-merge files, `taste-web` 2.5.1 (which existed only inside the merge) is gone, and `done`'s Design row names all three again
+- `setup-project-docs` drops the `docs/DESIGN.md` doc it gained in the merge; the skill tables in `CLAUDE.md` and `README.md`, and `continue-session`, `product-still`, `score-loop` and `understanding-guide`, name the separate skills again
+- Kept: the unrelated fixes inside the merge commits (`read-summary`, `refresh-instructions`, `ship`, `done`'s reference files)
+- `skill-creator`'s trigger-testing reference: a hand-run `claude -p` fresh session uses the user's default model unless `--model` names one, so name the tier the user works on; test outside plan mode, which sent a "redesign" request to scoping questions instead of the skill
+- `haiku`: a headless `claude -p` child is a dispatch too, and needs its tier named like an `Agent` call
+- `done`: the Design row's reviews that ran (`uiux`, `impeccable`, and `taste` on a customer's screen) are merged into one report with one score: `impeccable`'s Nielsen total, lowered by the `uiux` and `taste` findings that bear on each heuristic, held to 60% by an open `taste` inspector FAIL
+- `taste`: `assets/web-scenes/` brings tasteskill 2.5.1's eleven built scroll scenes, with the object renders, `effects/`, `ui/` and manual they need; `references/scenes.md` points a page at them before it builds a scene by hand
+
 ## 1.436.2
 
 **The one design review is followable end to end, and its report shows what ran.**

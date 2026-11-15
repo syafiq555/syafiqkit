@@ -18,7 +18,7 @@ The run this skill was distilled from. Five research reports (Android store rule
 | "we need to understand the documents ... take a step back to really confirm everything" | No decision question until the reader says he understands |
 | "im the one who needs to understand not u ?" | Plan around the reader's comprehension; the agent's checking only feeds it |
 | "implementation as in the code, in the project, the html doesnt count" | The guide is a reading tool, not product work; build it without waiting |
-| "did u use the design skills properly or not ?" | A design read, case-study research and the `uiux` critique (impeccable module included) come before any proposal |
+| "did u use the design skills properly or not ?" | A design read, case-study research and the impeccable critique come before any proposal |
 | "their ux also i cant really read also" | Borrowing GOV.UK or store-policy layouts is not enough; ask the reader which format works |
 | "im a slow reader too" | Fewer words, one topic per screen, a stop point after each |
 | "hv to research the technique" | Name the evidence for each reading choice on the page's design |

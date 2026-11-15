@@ -41,7 +41,7 @@
 | Review | [issues found + fixed, or ✅ clean; docs-only ALSO appends referential-integrity; ops-only = live read-back] |
 | Simplify | [changes made, or ✅ none needed] |
 | Product | [✅ journeys complete, or → question] |
-| Design | uiux: [screens and widths graded] · method [dual-agent / design review only / degraded] · score [N/M (P%)] · taste passes + caps [applied, caps held: none / which] · checks [detector, inspector, lint, taste-web checker: each run, or "not run: <reason>"] · [top findings + fixes]; omit the row only when nothing a person sees changed |
+| Design | score [N/M (P%), merged] · uiux: [screens and widths graded] · impeccable: [critique findings + fixes] · taste: [review-path findings, or "not run: <reason>"] · [top merged findings + fixes]; omit the row only when nothing a person sees changed |
 | Cleanup | [removed, or omit] |
 | Test | [exact command or steps the user runs] |
 
