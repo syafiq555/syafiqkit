@@ -5,7 +5,7 @@
 **`setup-tracker`'s `pull_tracker.py` keeps links: a `=HYPERLINK` cell is copied into the config as its formula, not its label.** Update with `claude plugin update syafiqkit@syafiqkit`.
 - Before this, a `--replace` rebuild after a pull turned every link in the sheet into plain text with no warning; other cells (dates included) still come back as the sheet shows them
 - The skill now says that bringing an existing tracker up to date follows the owner's other trackers too: an owner on the running-log shape wants it here, not the History script (a second owner turned the script down)
-- New config keys: `"person_colours": {"Name": "hex"}` colours each person's "Name dd/MM:" lines in the reply cells, name in bold (leave blue for the client), and `"font": "Arial"` sets the file's font. The build applies both, so a `--replace` rebuild no longer loses colours set by hand; a bad colour or a `person_colours` with no reply column is refused before anything is built
+- New config keys: `"person_colours": {"Name": "hex"}` colours each person's "Name dd/MM:" lines in the reply cells, name in bold (leave blue for the client), and `"font": "Arial"` sets the font of the tabs the build makes (and the file's default, on a new file). The build applies both, so a `--replace` rebuild no longer loses colours set by hand; a bad colour or a `person_colours` with no reply column is refused before anything is built
 - Tested by building a throwaway tab: its colour runs matched the hand-set ones on the live tracker character for character
 
 ## 1.439.0
