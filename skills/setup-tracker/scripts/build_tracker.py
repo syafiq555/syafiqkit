@@ -15,7 +15,7 @@ MAX_COLUMNS = 26
 COLOUR = re.compile(r'^#?[0-9A-Fa-f]{6}$')
 KNOWN_KEYS = {'title', 'tab', 'locale', 'timezone', 'date_pattern', 'closed_status', 'statuses', 'counts', 'stale_rule', 'columns',
               'sample_rows', 'extra_tabs', 'new_status', 'history_date_pattern', 'unknown_editor_label', 'status_change_line',
-              'domain_names', 'table', 'table_name', 'rows'}
+              'domain_names', 'table', 'table_name', 'rows', 'summary'}
 KNOWN_COLUMN_KEYS = {'role', 'header', 'kind', 'width', 'values', 'muted'}
 KNOWN_COUNT_KEYS = {'label', 'statuses', 'colour', 'overdue', 'span'}
 
@@ -124,7 +124,42 @@ def validate(cfg, args):
     for t in cfg.get('extra_tabs', []):
         if not t.get('title') or not t.get('header'):
             fail(f'every extra tab needs "title" and "header" ({t})')
+    if cfg.get('summary'):
+        if 'type' not in roles:
+            fail('"summary" counts rows by Type and Status, so it needs a column with role "type"')
+        title = summary_title(cfg)
+        if title == cfg.get('tab', 'Tracker') or title in [t.get('title') for t in cfg.get('extra_tabs', [])]:
+            fail(f'the summary tab "{title}" has the same name as another tab')
     return closed, ([stale] if isinstance(stale, dict) else stale)
+
+
+def summary_title(cfg):
+    s = cfg.get('summary')
+    return s.get('title', 'Summary') if isinstance(s, dict) else 'Summary'
+
+
+def pivot_cell(summary_id, source, role, statuses):
+    pivot = {'source': source,
+             'rows': [{'sourceColumnOffset': role['type'], 'showTotals': True, 'sortOrder': 'ASCENDING'}],
+             'columns': [{'sourceColumnOffset': role['status'], 'showTotals': True, 'sortOrder': 'ASCENDING'}],
+             'values': [{'sourceColumnOffset': role['ask'], 'summarizeFunction': 'COUNTA'}],
+             'filterSpecs': [{'columnOffsetIndex': role['status'], 'filterCriteria': {'visibleValues': [s['name'] for s in statuses]}}],
+             'valueLayout': 'HORIZONTAL'}
+    return {'updateCells': {'start': {'sheetId': summary_id, 'rowIndex': 0, 'columnIndex': 0}, 'fields': 'pivotTable',
+                            'rows': [{'values': [{'pivotTable': pivot}]}]}}
+
+
+def pivots_on(sid, source_sheet):
+    found = []
+    meta = call('GET', f'{API}/{sid}?fields=sheets(properties.sheetId,data(startRow,startColumn,rowData.values.pivotTable))')
+    for s in meta.get('sheets', []):
+        for block in s.get('data', []):
+            for r, row in enumerate(block.get('rowData', [])):
+                for c, cell in enumerate(row.get('values', [])):
+                    p = cell.get('pivotTable')
+                    if p and 'source' in p and p['source'].get('sheetId', 0) == source_sheet:
+                        found.append((s['properties'].get('sheetId', 0), block.get('startRow', 0) + r, block.get('startColumn', 0) + c, p))
+    return found
 
 
 def repeat_cell(range_, fmt, fields=None):
@@ -185,6 +220,7 @@ created_file = None
 added_tab = None
 replace_old = None
 final_tab = tab
+summary_id = added_summary = None
 use_table = cfg.get('table', True)
 rows_cap = int(cfg.get('rows', 300))
 table_end = HEADER_ROW + rows_cap + 1 if use_table else None
@@ -193,7 +229,7 @@ try:
     if into:
         sid = into
         meta = call('GET', f'{API}/{sid}?fields=properties(timeZone,locale),sheets.properties(sheetId,title)')
-        existing = {s['properties']['title']: s['properties']['sheetId'] for s in meta['sheets']}
+        existing = {s['properties']['title']: s['properties'].get('sheetId', 0) for s in meta['sheets']}
         if tab in existing:
             if '--replace' not in args:
                 fail(f'tab "{tab}" already exists in {sid}; pick another "tab" name, or add --replace to rebuild it in place (rows typed since the config was written are lost)')
@@ -208,15 +244,22 @@ try:
         sheet_id = call('POST', f'{API}/{sid}:batchUpdate', {'requests': [{'addSheet': {'properties': {'title': tab, 'index': 0}}}]})['replies'][0]['addSheet']['properties']['sheetId']
         added_tab = sheet_id
         extra_tabs, extra_ids = [], {}
+        if cfg.get('summary'):
+            if summary_title(cfg) in existing:
+                print(f'note: the "{summary_title(cfg)}" tab already exists, so it is left as it is' + ('; its pivots are re-pointed at the rebuilt tab' if replace_old is not None else ''))
+            else:
+                summary_id = added_summary = call('POST', f'{API}/{sid}:batchUpdate', {'requests': [{'addSheet': {'properties': {'title': summary_title(cfg), 'index': 1, 'gridProperties': {'hideGridlines': True}}}}]})['replies'][0]['addSheet']['properties']['sheetId']
     else:
         extra_tabs = cfg.get('extra_tabs', [])
-        tabs = [tab] + [t['title'] for t in extra_tabs]
+        tabs = [tab] + ([summary_title(cfg)] if cfg.get('summary') else []) + [t['title'] for t in extra_tabs]
         created = call('POST', API, {'properties': {'title': cfg.get('title', tab), 'locale': cfg.get('locale', 'en_GB'), 'timeZone': timezone},
                                      'sheets': [{'properties': {'title': t, 'index': i}} for i, t in enumerate(tabs)]})
         sid = created_file = created['spreadsheetId']
         ids = {s['properties']['title']: s['properties']['sheetId'] for s in created['sheets']}
         sheet_id = ids[tab]
         extra_ids = {t: ids[t] for t in tabs[1:]}
+        if cfg.get('summary'):
+            summary_id = ids[summary_title(cfg)]
 
     q = sheet_ref(tab)
 
@@ -305,6 +348,11 @@ try:
         reqs.append(freeze_rows(sh, 1))
         reqs.append(repeat_cell(rng(0, 1, 0, len(t['header']), sh), {'textFormat': {'bold': True}}, ['textFormat.bold']))
         reqs += [set_size(sh, 'COLUMNS', i, px) for i, px in enumerate(t.get('widths', []))]
+    if summary_id is not None:
+        source = rng(HEADER_ROW, table_end or HEADER_ROW + rows_cap + 1, 0, last_col)
+        reqs += [pivot_cell(summary_id, source, role, statuses),
+                 {'updateSheetProperties': {'properties': {'sheetId': summary_id, 'gridProperties': {'hideGridlines': True}}, 'fields': 'gridProperties.hideGridlines'}},
+                 set_size(summary_id, 'COLUMNS', 0, 220)]
     call('POST', f'{API}/{sid}:batchUpdate', {'requests': reqs})
 
     table_name = cfg.get('table_name') or re.sub(r'\W+', '_', final_tab).strip('_') or 'Tracker'
@@ -335,18 +383,30 @@ try:
 
     if replace_old is not None:
         tables = call('GET', f'{API}/{sid}?fields=sheets(properties.sheetId,tables(tableId))')
+        repoint = []
+        own_summary = existing.get(summary_title(cfg)) if cfg.get('summary') else None
+        for on_sheet, row_i, col_i, pivot in pivots_on(sid, replace_old):
+            if on_sheet == own_summary and row_i == 0 and col_i == 0:
+                repoint.append(pivot_cell(on_sheet, rng(HEADER_ROW, table_end or HEADER_ROW + rows_cap + 1, 0, last_col), role, statuses))
+                continue
+            pivot.pop('dataExecutionStatus', None)
+            pivot['source']['sheetId'] = sheet_id
+            repoint.append({'updateCells': {'start': {'sheetId': on_sheet, 'rowIndex': row_i, 'columnIndex': col_i}, 'fields': 'pivotTable',
+                                            'rows': [{'values': [{'pivotTable': pivot}]}]}})
         swap = [{'deleteSheet': {'sheetId': replace_old}},
                 {'updateSheetProperties': {'properties': {'sheetId': sheet_id, 'title': final_tab, 'index': 0}, 'fields': 'title,index'}}]
         for s in tables['sheets']:
             if s['properties']['sheetId'] == sheet_id and s.get('tables'):
                 swap.append({'updateTable': {'table': {'tableId': s['tables'][0]['tableId'], 'name': table_name}, 'fields': 'name'}})
-        call('POST', f'{API}/{sid}:batchUpdate', {'requests': swap})
-        added_tab = None
+        call('POST', f'{API}/{sid}:batchUpdate', {'requests': swap + repoint})
+        if repoint:
+            print(f'{len(repoint)} pivot table(s) re-pointed at the rebuilt tab')
         tab = final_tab
+    added_tab = added_summary = None
 except Exception as error:
     if added_tab is not None:
         try:
-            call('POST', f'{API}/{into}:batchUpdate', {'requests': [{'deleteSheet': {'sheetId': added_tab}}]})
+            call('POST', f'{API}/{into}:batchUpdate', {'requests': [{'deleteSheet': {'sheetId': t}} for t in (added_tab, added_summary) if t is not None]})
             fail(f'{error}\nThe half-built tab was removed.')
         except RuntimeError as cleanup:
             fail(f'{error}\nRemoving the half-built tab also failed ({cleanup}); delete the "{tab}" tab by hand.')

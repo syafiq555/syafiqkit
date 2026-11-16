@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.439.0
+
+**`setup-tracker` can add a Summary tab: one pivot counting asks by Type and Status.** Update with `claude plugin update syafiqkit@syafiqkit`, then add `"summary": true` to a tracker config (it needs a column with role `type`).
+- The Summary tab sits beside the tracker and updates itself as rows change; a status column appears once a row has that status
+- `--replace` rebuilds now re-point every pivot that read the old tab, including ones made by hand, which used to break when the old tab was deleted
+- On a rebuild, the config's own Summary pivot is redrawn from the current columns, so a moved Type or Status column can't leave it counting the wrong one; other pivots keep their layout and only change source
+- If a build fails partway, the Summary tab it added is removed along with the half-built tracker tab
+- Built from the GB Mart decision tracker, whose owner asked for the same check tab the client's CRP45 tracker has; tested by a build and a `--replace` rebuild on throwaway tabs
+
 ## 1.438.0
 
 **New `/sign-pdf`: sign a PDF form with your own signature, initial its pages and date it, as a signed copy ready to send.** Update, then say "sign this form" (or "tandatangan borang ni").

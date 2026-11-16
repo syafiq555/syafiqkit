@@ -16,6 +16,8 @@ Each of these produced a sheet that the API reported as built successfully but t
 | Wide columns come out at 300 px after a build | Converting the range to a Table can override column widths set before it | Set the widths again after `addTable` (the builder does) |
 | A count moved one column to the right now counts the wrong column | `copyPaste` shifts relative references (`D4:D` becomes `E4:E`) | Move formula cells with `cutPaste`, which keeps references |
 | Filter views cover rows the Table doesn't | Views made with an open-ended range run to row 1001 while the Table stops at its row cap | Give each view the Table's range (the builder does) |
+| A pivot over the Table comes back empty | A pivot's `filterCriteria.condition` `NOT_BLANK` (used to hide the Table's empty rows) filtered out everything | List the wanted statuses in `filterCriteria.visibleValues`: pivots accept it, filter views don't |
+| Pivot shows #REF or vanishes after a rebuild | A pivot's source is a `sheetId`, and `--replace` deletes the old tab | Re-point it with `updateCells` (`fields: pivotTable`), dropping the read-only `dataExecutionStatus` (the builder does) |
 
 Facts that limit what can be automated (Google help pages, checked 05/11/2026):
 
