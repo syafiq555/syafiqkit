@@ -44,6 +44,7 @@ These skills accept explicit user command:
 | `md-to-pdf` | Markdown to PDF with rendered Mermaid diagrams |
 | `doc-to-md` | `.docx`, `.pdf` or `.xlsx` to Markdown, so each version is a readable diff |
 | `docx-red-edits` | Edit someone else's Word file with changes in red and deletions in red strikethrough, their formatting untouched (Word Track Changes is `docx`) |
+| `sign-pdf` | Sign, initial and date a PDF form with the user's own signature image (found in their notes or an earlier signed PDF), after they confirm the signature and the boxes; writes a checked signed copy, never sends. Certificate signing and form filling are not it |
 | `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw discussion board, verified by screenshot. Charts are `dataviz`; deciding what to build is `plan-worklist` |
 | `motion-clip` | Designed launch, promo or explainer video as code: real captured screens, storyboard and sound approved before the full render, automatic and contact-sheet checks, 9:16/1:1/16:9 plus store presets, music bed, optional voice-over. Test-run recordings are `setup-playwright` |
 | `product-still` | Designed still image from real captured screens (how-it-works steps, feature and hero composites): floating cropped cards, numbered steps, badge, rendered from HTML to PNG with phone and transparent variants. Video is `motion-clip` |
@@ -106,6 +107,7 @@ These skills accept explicit user command:
 | `casual-message` | Asked to reply to, text or tell a NAMED person something; runs before drafting |
 | `continue-session` | Session ending with work deferred, or the user is low on context or starting fresh |
 | `docx-red-edits` | About to change a Word file a colleague or client owns, where they mark their own revisions in red |
+| `sign-pdf` | A form the user is preparing to send has an empty signature box and they've asked for it to be signed |
 
 ### Sub-skills (spawned from other skills)
 

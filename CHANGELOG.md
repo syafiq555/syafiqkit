@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.438.0
+
+**New `/sign-pdf`: sign a PDF form with your own signature, initial its pages and date it, as a signed copy ready to send.** Update, then say "sign this form" (or "tandatangan borang ni").
+- Finds your signature on your laptop: from your notes if a source is recorded there, otherwise from a PDF you signed digitally before (often stored as a clean image with a see-through background), a scan, or a photo it tells you how to take. It shows you the signature and asks "is this yours?" before the first use, since a signed agreement also carries the other party's, then records where it came from so the next form skips the search
+- Lists the boxes it will fill (page, label, what goes in) and waits for your yes. It leaves boxes meant for someone else empty, ticks declarations that belong to the signature, and asks about choices such as marketing consent or add-on products rather than ticking them
+- Initials every page in one run, writes today's date in your time zone and the form's own format, and covers an old printed date in the field's colour. Works on scanned forms with no text, by reading positions off the rendered page
+- Always writes a new file and refuses to overwrite the original however the path is written. It stops with a plain message on a rotated page, a page outside the document or a password-protected PDF. It renders every stamped page and checks by eye that each mark sits inside its box. Sending stays your job
+- Warns when a form asks for an original (wet ink) signature, and stamps only if you still want it: an image is an electronic signature, which Malaysia's Electronic Commerce Act 2006 treats like a handwritten one for most commercial documents
+- Built from signing a bank loan application and a campaign form; the script reproduced that hand-made result pixel for pixel
+
 ## 1.437.4
 
 **A task-doc update now fixes the same date or status in the project's `docs/PRD.md`, `docs/ARCHITECTURE.md` and `docs/ARCHITECTURE-ESSENTIALS.md`.** Nothing to do but update.
