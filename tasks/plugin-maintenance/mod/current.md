@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: ✅ Shipped through 1.410.0; row 40 (1.414.0) is on origin/master, not yet seen live; row 41 (1.437.2) built, uncommitted, columns seen live.
+Status: ✅ Shipped through 1.410.0; row 40 (1.414.0) is on origin/master, not yet seen live; row 41 (1.437.2) pushed to master 16/11 (2eec082), columns seen live, marks, grid and scroll not yet.
 Domain: plugin-maintenance/mod
 Gotchas (critical; full list in ## Critical Gotchas below):
   - The host loads `hooks/src/mod.js` and follows its imports; past an import `$` goes only into a `function name($)` declaration, `$` is never put in an object, and a save that fails to load keeps the OLD module running
@@ -16,7 +16,7 @@ Last updated: 2026-11-16
 **Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, an Enhance button, and Typst-rendered task docs and pictures under Claude's terminal answers.
 
 **Immediate next actions (in order)**:
-0. Commit 1.437.2 (row 41, terminal doc list) by pathspec once the user has seen a gentle scroll stay put and `u` work (§ Next Steps → Verify, row 41); then pick which Doc list design items to build.
+0. Live-check 1.437.2 (row 41, shipped before being seen): marks, attention order, one grid, a gentle scroll staying put, `u` (§ Next Steps → Verify, row 41); a fix found there ships as a new version.
 1. Live-check the wrap-up chips (row 37, § Next Steps → Verify). It shipped in 1.407.2 before being seen, so a fix found there ships as a new version.
 2. Live-check the 2026-10-19 work in iTerm2 (§ Next Steps → Verify, the 2026-10-19 item). It shipped in 1.405.7 before being seen (user's call); a fix found there ships as a new version.
 3. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify.
@@ -179,7 +179,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ## Last Session
 
-- 2026-11-16: the user sent a screenshot of the terminal `/task-docs` list (beacon-mart, side pane about 75 to 80 columns) and asked for a `uiux` polish. Row 41 (1.437.2, uncommitted at session end). Four live rounds: columns fixed after round 1; "most of the texts are truncated" led to short ages, fitted name and folder columns, the 40-character word cut and dropping `main doc` from folder rows; "it tries to stay at the top of the page, only when i scroll heavily only it can pull thru" (screen recording) was the Top button appearing past offset 3, now always shown.
+- 2026-11-16: the user sent a screenshot of the terminal `/task-docs` list (beacon-mart, side pane about 75 to 80 columns) and asked for a `uiux` polish. Row 41 (1.437.2, pushed as 2eec082 with another session's 1.437.1 as e5c5fd7, at the user's choice). Four live rounds: columns fixed after round 1; "most of the texts are truncated" led to short ages, fitted name and folder columns, the 40-character word cut and dropping `main doc` from folder rows; "it tries to stay at the top of the page, only when i scroll heavily only it can pull thru" (screen recording) was the Top button appearing past offset 3, now always shown.
 - Wrap-up review: code review found only the figure-width drift (fixed); the product review and `impeccable` critique (21/36) findings are under Next Steps → Doc list design.
 
 ---
