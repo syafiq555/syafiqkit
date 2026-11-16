@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.439.2
+
+**`setup-tracker` and `watch-sheets` now say what a coloured reply line needs from the gsheets tools.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- A tracker built with `person_colours` writes your own lines in that colour, but `cells_awaiting_reply` counts only black and uncoloured text as yours unless the colour is in `mine`, so every row read as waiting on you. Both skills now say to add it
+- `cell_append_line` writes black unless given the writer's colour, and has no bold option, so a name added by hand stays plain
+- Found on a 38-row tracker rebuilt with `person_colours`: every seeded line turned green
+
 ## 1.439.1
 
 **`setup-tracker`'s `pull_tracker.py` keeps links: a `=HYPERLINK` cell is copied into the config as its formula, not its label.** Update with `claude plugin update syafiqkit@syafiqkit`.
