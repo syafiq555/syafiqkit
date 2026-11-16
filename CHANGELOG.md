@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.437.3
+
+**A `watch-sheets` watch job no longer reloads the whole skill on every check.** Update, then say "stop watching" and ask for the watch again: a watch set up before this keeps the old prompt (the skill now offers to replace one when it finds it).
+- The scheduled prompt checks by itself whether any sheet changed and loads the skill's instructions only when one did, so a quiet check costs one line instead of the full text. Reloading the full instructions on every run filled the conversation, so it was summarised early, and each summary forgot what the last check had read
+- A quiet line now gives each sheet's last-edited time, so the next check still has something to compare against after a summary. A first check, a summary that kept no times, or a failed read counts as changed and runs the full check, never a false "quiet"
+- New jobs' prompts start `watch-sheets check:`, and both the duplicate-watcher cleanup and "stop watching" find them
+
 ## 1.437.2
 
 **The `/task-docs` list shows which doc needs you, and reads cleanly in a narrow terminal pane.** Nothing to do but update. Changes are terminal only unless a line says Desktop.
