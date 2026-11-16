@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.437.2
+
+**The `/task-docs` list shows which doc needs you, and reads cleanly in a narrow terminal pane.** Nothing to do but update. Changes are terminal only unless a line says Desktop.
+- Every task doc now carries its status, not only the five changed lately, in the terminal and Desktop. In the terminal a coloured mark before it says the state at a glance: `✗` blocked, `○` waiting, `●` in progress, `✓` done
+- Inside a folder, docs needing attention come first (over the limit, then blocked, waiting, near the limit), then the rest, with done docs last; the main doc stays on top. Desktop too
+- Yellow means over the limit everywhere: a figure turns yellow only when that file itself is over, and its bar ends in `▲`. A doc flagged for big decisions files keeps its yellow note but no longer shows a misleading line bar. Project docs and skills have no line limit, so they show a plain count (`419 ln`) with no bar. Desktop too
+- The figure, bar and age columns sit in the same place in every section: Changed lately and search show the folder inside the name (`crp45/delivery`), and other scopes (`this project`, `your global`) lead the note at the end
+- The columns keep their width at any status length, so figures no longer read `195/3…` and bars no longer wrap; ages read `2h`, `3d`, `now`
+- Statuses are cut at a whole word, up to 40 characters, instead of mid-word at 24, in the terminal and Desktop; inside a folder, rows no longer repeat `main doc`; a folder's warning reads `⚠ 2 over limit`
+- The list no longer floats `[ ↑ Top ]` over the last row; press `u` to jump to the top (the first row shows `u: ↑ Top`). Desktop keeps its floating button. Scrolling no longer jumps back to the top unless you scroll hard
+
 ## 1.437.1
 
 **Two fixes from a colleague's July audit, the only two of its 14 plugin findings still live.**

@@ -1,5 +1,5 @@
 import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, NEAR_LIMIT_SHARE, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, VERBS, WINDOW_ROWS } from '../core/constants.js'
-import { docAgeOf, docLabel, isHeavy, isInstructionFile, kb, oversizedDecisions } from '../core/format.js'
+import { docAgeOf, docLabel, isInstructionFile, kb, oversizedDecisions } from '../core/format.js'
 import { invalidatePane, state } from '../core/state.js'
 import { ensureSlice, openInViewer, saveGallery, sliceGeometry, slicesWanted } from '../docs/gallery.js'
 import { svgPicture } from '../docs/images.js'
@@ -634,19 +634,24 @@ export function desktopChangeFileView($, c) {
 
 export function docGauge(doc) {
   const size = doc.size || 0
+  const instruction = isInstructionFile(doc)
+  const limited = instruction || doc.group === 'Task docs'
   if (typeof doc.lines === 'number') {
-    const max = isInstructionFile(doc) ? CLAUDE_MD_MAX_LINES : TASK_DOC_MAX_LINES
+    if (!limited) return { value: doc.lines, max: 0, label: doc.lines + ' ln', near: false, over: false }
+    const max = instruction ? CLAUDE_MD_MAX_LINES : TASK_DOC_MAX_LINES
+    const linesOver = doc.lines > max
     const linesNear = doc.lines >= max * NEAR_LIMIT_SHARE
-    const bytesNear = isInstructionFile(doc) && size >= CLAUDE_MD_MAX_BYTES * NEAR_LIMIT_SHARE
-    if (bytesNear && !linesNear) return { value: size, max: CLAUDE_MD_MAX_BYTES, label: kb(size), near: true }
-    return { value: doc.lines, max, label: doc.lines + '/' + max, near: isHeavy(doc) || linesNear }
+    const bytesOver = instruction && size > CLAUDE_MD_MAX_BYTES
+    const bytesNear = instruction && size >= CLAUDE_MD_MAX_BYTES * NEAR_LIMIT_SHARE
+    if ((bytesNear && !linesNear) || (bytesOver && !linesOver)) return { value: size, max: CLAUDE_MD_MAX_BYTES, label: kb(size), near: true, over: bytesOver }
+    return { value: doc.lines, max, label: doc.lines + '/' + max, near: linesNear || bytesOver, over: linesOver || bytesOver }
   }
-  return { value: size, max: CLAUDE_MD_MAX_BYTES, label: kb(size), near: isHeavy(doc) || size >= CLAUDE_MD_MAX_BYTES * NEAR_LIMIT_SHARE }
+  const bytesOver = instruction && size > CLAUDE_MD_MAX_BYTES
+  return { value: size, max: CLAUDE_MD_MAX_BYTES, label: kb(size), near: instruction && size >= CLAUDE_MD_MAX_BYTES * NEAR_LIMIT_SHARE, over: bytesOver }
 }
 
 export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
   const { Box, Text, Button, pickAction } = c
-  const heavy = isHeavy(doc)
   const gauge = docGauge(doc)
   const decisionsHeavy = oversizedDecisions(doc).length
   return Box({
@@ -673,7 +678,7 @@ export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
         minWidth: 0,
         overflow: 'hidden',
         justifyContent: 'flex-end',
-        children: [Text({ key: key + 'lt', color: heavy ? 'warning' : undefined, dimColor: !gauge.near, children: gauge.label })],
+        children: [Text({ key: key + 'lt', color: gauge.over ? 'warning' : undefined, dimColor: !gauge.near, children: gauge.label })],
       }),
       Box({ key: key + 'g', width: 9, flexShrink: 4, minWidth: 0, overflow: 'hidden', paddingLeft: 1, children: gauge.near ? [meter(c, key + 'm', gauge.value, gauge.max, 8)] : [] }),
       Box({ key: key + 'a', width: 9, flexShrink: 2, minWidth: 0, overflow: 'hidden', children: [Text({ dimColor: true, children: docAgeOf(state.now, doc.mtime, fullAge) })] }),

@@ -52,6 +52,8 @@ export const state = {
   stickySection: null,
   windowed: false,
   noTopFloat: false,
+  listNameWidth: 0,
+  redrawEveryScroll: false,
   docParse: null,
   repoFound: [],
   repoManual: [],

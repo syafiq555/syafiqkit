@@ -130,7 +130,9 @@ export function summaryOf(line) {
   const icon = (body.match(/^(\p{Extended_Pictographic}️?)/u) || [])[1] || '·'
   const rest = body.replace(/^\p{Extended_Pictographic}️?\s*/u, '')
   const head = rest.split(/\s[—–-]\s|\(|,/)[0].trim()
-  return icon + ' ' + head.slice(0, 24)
+  if (head.length <= 40) return icon + ' ' + head
+  const cut = head.slice(0, 40)
+  return icon + ' ' + (cut.includes(' ') ? cut.slice(0, cut.lastIndexOf(' ')) : cut) + '…'
 }
 
 export function isInstructionFile(doc) {

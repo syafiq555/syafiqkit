@@ -222,7 +222,6 @@ export function recentDocs() {
 }
 
 export async function readDocMeta($) {
-  const recent = recentDocs()
   await Promise.all(
     state.docs
       .filter((doc) => doc.group === 'Task docs')
@@ -230,7 +229,7 @@ export async function readDocMeta($) {
         try {
           const text = await hostFsRead($, doc.path)
           doc.hub = isHubText(text)
-          if (recent.includes(doc)) doc.status = summaryOf(statusLineOf(text))
+          doc.status = summaryOf(statusLineOf(text))
         } catch {
           doc.status = ''
         }

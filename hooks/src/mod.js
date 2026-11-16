@@ -147,7 +147,7 @@ export function register(on) {
     if (e.requestId !== PANE || !state.isOpen) return next(e)
     state.allScroll = { view: state.view, offset: e.offset, body: e.bodyRows }
     const ran = next(e)
-    const floats = !state.noTopFloat && (state.topShown || state.stickyShown || e.offset > TOP_BUTTON_AFTER || (state.desktop && e.offset >= STICKY_AFTER))
+    const floats = state.redrawEveryScroll || !state.noTopFloat && (state.topShown || state.stickyShown || e.offset > TOP_BUTTON_AFTER || (state.desktop && e.offset >= STICKY_AFTER))
     if (floats || Math.abs(e.offset - state.windowAt) > e.bodyRows / 3) hostUiInvalidate($, 'ui.render')
     return ran
   })

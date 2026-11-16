@@ -1,12 +1,12 @@
 <!--LLM-CONTEXT
-Status: ✅ Shipped through 1.410.0; row 40 (1.414.0) is on origin/master, not yet seen live.
+Status: ✅ Shipped through 1.410.0; row 40 (1.414.0) is on origin/master, not yet seen live; row 41 (1.437.2) built, uncommitted, columns seen live.
 Domain: plugin-maintenance/mod
 Gotchas (critical; full list in ## Critical Gotchas below):
   - The host loads `hooks/src/mod.js` and follows its imports; past an import `$` goes only into a `function name($)` declaration, `$` is never put in an object, and a save that fails to load keeps the OLD module running
   - A reload swaps the mod only when it reports "re-read from its folder" (directory source, measured 2026-10-16); otherwise only a new session loads a changed one
   - Older Claude Code versions are unverified against a `modules` key sharing `hooks.json` with the ruleset hook
 Related: ../project-docs/current.md (ESSENTIALS entry `{#mod-one-file}` extracts The Mod), ../output-style-hook/current.md (shares `hooks/hooks.json`)
-Last updated: 2026-11-04
+Last updated: 2026-11-16
 -->
 
 # Plugin Maintenance: The Mod Summary
@@ -16,6 +16,7 @@ Last updated: 2026-11-04
 **Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, an Enhance button, and Typst-rendered task docs and pictures under Claude's terminal answers.
 
 **Immediate next actions (in order)**:
+0. Commit 1.437.2 (row 41, terminal doc list) by pathspec once the user has seen a gentle scroll stay put and `u` work (§ Next Steps → Verify, row 41); then pick which Doc list design items to build.
 1. Live-check the wrap-up chips (row 37, § Next Steps → Verify). It shipped in 1.407.2 before being seen, so a fix found there ships as a new version.
 2. Live-check the 2026-10-19 work in iTerm2 (§ Next Steps → Verify, the 2026-10-19 item). It shipped in 1.405.7 before being seen (user's call); a fix found there ships as a new version.
 3. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify.
@@ -127,6 +128,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 | 38 | Ship chip after push (1.409.0): `○ ship`, `s` asks then sends the Ship verb; running from `/ship`, the Ship verb or a `Skill(ship)` call; green only when that turn finishes, amber after a later edit or commit. A `/commit push` lights push, never ship (reasoning: `decisions/design-calls.md`) | ✅ built; seen live in iTerm2 2026-10-23 |
 | 39 | Band revamp (1.410.0): rules in `hooks/CLAUDE.md#drawing`; chips joined by ` › `, no terminal background (tints kept in Desktop), wordmark cut to `▤`; one-time toast "The menu moved off the line: type /sk" (`$.store` key `bandMovedNoticeShown`); ship holds blue past a turn that started a background `Bash` or `Monitor` and goes green on the next finished turn (owner's call 2026-10-23: green means confirmed); a turn ending on a question keeps the hold; the notice swallows store or toast failures so session start never stops | ✅ built; ⏳ iTerm2 and Desktop **New** unseen, narrow-window wrap unseen, and whether a live `tool.call` carries `run_in_background` unverified |
 | 40 | Hand off removed and fewer confirms (1.414.0, on origin/master): `hooks/src/handoff/` deleted with its menu verb, toolbar button, confirm tickbox and band row; Done, Refresh, Shrink, Condense and Split send in one press through `sendNow` (`views/pane-context.js`); Commit and push, Push, Ship and Merge docs still ask; Desktop menu group SESSION renamed REVIEW | ✅ built; ⏳ live in iTerm2 |
+| 41 | Terminal doc list columns (1.437.2): each fixed column of `docRow` sits in a fixed-width `Box` with `flexShrink: 0` (the host's `Text` refuses flex props), the tail alone shrinks; status drops its leading emoji (`plainStatus`); folder warning `⚠ N over limit`; terminal list sets `noTopFloat` and always shows `u: ↑ Top` in its top row (shown only once scrolled, it made the pane snap back to the top: screen recording 16/11), and sets `redrawEveryScroll` so the `ui.scroll` hook redraws every tick as the float used to force; ages short (`2h`), a status with under 8 columns of room hidden; `summaryOf` cuts at a word up to 40 characters; terminal folder rows drop `main doc` (the folder line names it). Then, on the user's pick of all three review items: `readDocMeta` reads status for every task doc; a 1-column mark cell before the note (`statusMark`: ✗ red blocked, ○ yellow waiting, ● cyan in progress, ✓ green done, from the Status emoji); `taskFolders` sorts main doc, then `attentionRank` (over limit 0, blocked 1, waiting 2, near 3, in progress 4, other 5, done 6); `docGauge` returns `over`, yellow and a `▲` bar end only when the file itself is over, `N ln` with no bar for groups with no limit (Project docs, Skills, Rules); one grid: `state.listNameWidth` set once per render from every doc, folders folded into names (`crp45/delivery`) in Changed lately, search and the over-limit list, other scopes lead the note | ✅ built, kit-tested; columns seen live 16/11 at ~75 columns; ⏳ scroll after the always-shown button, the marks and the grid |
 
 ---
 
@@ -177,15 +179,15 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ## Last Session
 
-- 2026-10-27: the user removed Hand off ("i dont really use and like it"). `/continue-session` stays, and `~/.claude/handoffs/` was deleted on this Mac. Row 40.
-- The user asked to drop every confirm that isn't needed. The line drawn: confirm only what publishes (push, ship) or deletes source docs (merge, discard). A dirty or untracked doc has no git copy under Refresh or Shrink, so no confirm there either.
-- Committed together with another session's 1.411 to 1.413 work, at the user's choice.
+- 2026-11-16: the user sent a screenshot of the terminal `/task-docs` list (beacon-mart, side pane about 75 to 80 columns) and asked for a `uiux` polish. Row 41 (1.437.2, uncommitted at session end). Four live rounds: columns fixed after round 1; "most of the texts are truncated" led to short ages, fitted name and folder columns, the 40-character word cut and dropping `main doc` from folder rows; "it tries to stay at the top of the page, only when i scroll heavily only it can pull thru" (screen recording) was the Top button appearing past offset 3, now always shown.
+- Wrap-up review: code review found only the figure-width drift (fixed); the product review and `impeccable` critique (21/36) findings are under Next Steps → Doc list design.
 
 ---
 
 ## Next Steps
 
 ### Verify
+- [ ] Row 41 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.437.2`), in beacon-mart `/task-docs`: every figure whole (`195/300`, `112/300`), ages in one column, no blank gap after `delivery`, `uat` or `quotation`, no wrapped bar, no `[ ↑ Top ]` over rows; a gentle wheel scroll leaves the top without snapping back; scrolled down, `u` jumps to the top (unverified: whether a hotkey on a button scrolled off screen fires). Also a ~60-column pane.
 - [ ] Row 40 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.414.0`): `/sk` has no Hand off and goes Merge docs → Changes; `w` sends done with no pane; Refresh and Shrink from a doc send at once and Docs reopens that doc; Push and Ship still confirm; no `↪ Handoff` row after `/clear`.
 - [ ] Row 37 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.407.2`): press done; the chip turns blue and stays blue while review agents run (if it goes green early, `mod.log` lacks `wrap-up still running … agents open`, meaning subagent turns carry no `agentId` and the hold needs another signal); green when the last turn ends; edit a file, amber. Commit through the chip: green within 5 s; push: green; edit after: all amber. `git pull` and a branch switch must not light commit. In Desktop **New**: chips keep their tint and labels stay readable; a narrow pane wraps the strip.
 - [ ] Row 36 in iTerm2 (`/sk` reads `mod v1.406.2`): scroll a long rendered doc with the wheel and PageDown for ten seconds: smooth, no blank band, no flicker at window shifts (if pages stutter at each shift, the terminal re-sends a picture on remount and the window must stay put longer); `u` mid-doc jumps to the top; a doc with 15+ open items scrolled to the middle shows the right page; `t` round trip brings the float back in Text view. A narrow pane wraps the toolbar past the 4 rows `DOC_TOP_ROWS` assumes; the half-screen margin absorbs the offset error.
@@ -200,7 +202,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 - [ ] Syntax colours (row 22) live in a Desktop New session and in iTerm2: rows look like the native panel; a tall window on a long dense file stays drawn (the kit measured a 200-line dense PHP page under the 95k warning at its default 60-row window only); light theme (colours are fixed for dark; on a light terminal the yellow type and grey comment colours on a light row may be hard to read)
 - [ ] Pinned bars (row 23) in a Desktop **New** session, in order: (1) the absolute Box draws at all; (2) on a long All changes page the top row and file bar stay put and the file bar names the file under it, also deep in a 20-file page (a wrong name means Desktop's wrap estimate needs measuring); (3) a pinned Next ›, Back or Stage pressed deep in a page lands at the top of the new view (`goto` resets only the mod's offset; if the host keeps it, call `$.ui.scroll` to the start in `goto`, which the kit cannot press-test); (4) a pinned `/task-docs` folder fold keeps you at that folder; (5) how tall the pinned block is in a narrow window, and whether `#1e1e1e` matches the pane background; (6) whether Home/End fire `ui.scroll`
 - [ ] Pinned `/task-docs` Filter (user chose to pin it, 2026-10-12): two `Input`s share `state.filter`; check live that typing in the pinned one keeps focus across the redraw and the other box shows the same text. Terminal pinning was declined by the user (Desktop only; ↑ Top covers the terminal)
-- [ ] ↑ Top (row 21) live: does Desktop draw a `position: 'absolute'` Box in the Pane (first use in the kit), does the press scroll to the top, does it cover a diff line's end rather than a button, and is a redraw per wheel tick in the terminal noticeable on a long list (on a rendered doc it was: the user reported lag 2026-10-19, so rendered docs dropped the float, row 36; lists still have it). Fallback if it doesn't draw: a page-bar button, which scrolls away on Desktop
+- [ ] ↑ Top (row 21) live: does Desktop draw a `position: 'absolute'` Box in the Pane (first use in the kit), does the press scroll to the top, does it cover a diff line's end rather than a button, and is a redraw per wheel tick in the terminal noticeable on a long list (on a rendered doc it was: the user reported lag 2026-10-19, so rendered docs dropped the float, row 36; terminal lists dropped it in 1.437.2, row 41, and only Desktop and the changes views keep it). Fallback if it doesn't draw: a page-bar button, which scrolls away on Desktop
 - [ ] Desktop, in a session started with New: `/sk` and the other mod commands (not known to be intercepted there; the docs are silent), the band's buttons opening a pane, and whether a small PNG draws through `Svg` (nested `<image>` data URI; the docs do not say it is allowed, and a failure would be an empty box with the viewer button beside it). Also whether `tool.call` carries the surface, so `show_image` could tell Claude where the user will see the picture
 - [ ] Terminal windowing in iTerm2 (row 18, kit only): does keyboard scrolling (PgUp, arrows) fire `ui.scroll`; do rows keep drawing past two screens; can a file's `+` far down be reached by Tab (off-screen buttons are not in the tree); do wide characters (emoji, CJK) only clip at the edge.
 - [ ] Desktop `/changes` still unseen: the folder `view`, a fully staged tree, an empty new file, a new file over 256 KB, light-theme contrast for `DIFF_PALETTE.light` and `DESKTOP_TONE`, a wide window with long markdown lines (estimate blank band), and the `sips` copy of a big gallery picture
@@ -234,12 +236,18 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 - [ ] Nested untracked repos appear as `sub/`: the tree row has an empty name, Discard runs `git clean -f` without `-d` and still toasts success, and its diff note reads 'cannot be read'
 - [ ] A size-based "could not be drawn" fallback once Desktop's real limit is known (size is only logged today)
 
+### Doc list design (from the 16/11/2026 wrap-up review, terminal list, about 75 columns)
+- [ ] The `⚠ N over the size limit · show` line sits third, and Changed lately repeats five docs, so warnings show twice (attention marks, folder sorting, warning colours and one grid were built in row 41 on the user's pick, 16/11)
+- [ ] The status mark reads only the Status line's first emoji (`statusMark`, `STATUS_MARKS` in `views/list.js`); a doc whose Status has no emoji shows `·`, and open-item counts are not used yet
+- [ ] `u: ↑ Top` is advertised only in the first row, which scrolls away; whether its hotkey fires off screen is unverified. A footer or title hint would keep it in view
+- [ ] One grid means the name column takes the widest name in the whole list (capped at 26), so a 60 to 75 column pane leaves the note about 20 columns; `summaryOf` drops a word that would fit when character 40 is a space
+
 ### Navigation & discoverability gaps
 - [ ] Finding one file in a 200-file set on the narrow terminal and Desktop All diffs: the collapsed index is gone and nothing replaces it but scrolling and folding sections
 
 ### Copy & polish
 - [ ] Colourer rough edges (row 22), from review: an apostrophe in Vue/HTML text or YAML/shell prose opens a string to the end of the line; a multi-line string or Python docstring is coloured only on its first and last lines; a regex literal holding a quote swallows the rest of the line; a comment or keyword inside the changed-word mark is low contrast (comment grey on `addedWord` is about 1.7:1)
-- [ ] Render check at 80 columns with a recent heavy doc (status plus warning is about 55 characters) and a long folder name (the folder button label is not clipped); `TASK DOCS (n)` counts all docs while folder counts exclude the five recents, so the header says `· 5 listed above`
+- [ ] A long folder name in the terminal list (the folder button label is not clipped)
 - [ ] Shrink picker no longer names which decisions file is oversized (`heavyNote` shortened); collapse state lives for the whole mod session and is keyed by folder name
 - [ ] Narrow layout still loads the default focus's diffs on open though only `All changes` draws them
 - [ ] `/task-docs`: a folder with its own `current.md` lands under a folder named `tasks` rather than its own (latent; only `project-docs` has one in beacon-mart); filter matches don't sort the main doc first

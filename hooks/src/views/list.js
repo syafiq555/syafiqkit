@@ -1,10 +1,19 @@
-import { DESKTOP_STRIP_ROWS, GROUPS, LIST_FOLD_FROM, LIST_TOP_ROWS, NAME_WIDTH, NARROW_COLUMNS, SCOPE_WIDTH } from '../core/constants.js'
-import { clip, docAgeOf, docLabel, heavyNote, isHeavy } from '../core/format.js'
+import { hostUiInvalidate, hostUiScroll } from '../core/api.js'
+import { DESKTOP_STRIP_ROWS, GROUPS, LIST_FOLD_FROM, LIST_TOP_ROWS, NAME_WIDTH, NARROW_COLUMNS, PANE } from '../core/constants.js'
+import { clip, clipMiddle, docAgeOf, docLabel, heavyNote, isHeavy, shortName } from '../core/format.js'
 import { state } from '../core/state.js'
 import { heavyDocs, recentDocs } from '../docs/discovery.js'
 import { paneColumns } from './changes.js'
 import { desktopDocRow, docGauge, windowedRows } from './desktop.js'
 import { chip, isDesktop, liveOnly, strip, textMeter } from './ui.js'
+
+const AGE_WIDTH = 4
+const FIGURE_WIDTH = 8
+const MARK_WIDTH = 1
+const GAUGE_WIDTH = 6
+const COLUMN_GAP = 2
+const MIN_TAIL_WIDTH = 8
+const MIN_NAME_WIDTH = 8
 
 export function docRow(c, doc, key, withScope, indent, fullAge) {
   if (isDesktop(c.e)) return desktopDocRow(c, doc, key, withScope, indent, fullAge)
@@ -13,32 +22,80 @@ export function docRow(c, doc, key, withScope, indent, fullAge) {
   const pad = indent ? '  ' : ''
   const columns = paneColumns(c.e)
   const narrow = columns < NARROW_COLUMNS
-  const nameWidth = Math.max(8, (narrow ? Math.min(NAME_WIDTH, Math.floor(columns * 0.45)) : NAME_WIDTH) - pad.length)
+  const fitted = Math.min(NAME_WIDTH, state.listNameWidth || NAME_WIDTH)
+  const nameWidth = Math.max(MIN_NAME_WIDTH, (narrow ? Math.min(fitted, Math.floor(columns * 0.45)) : fitted) - pad.length)
   const gauge = docGauge(doc)
-  const head = (withScope ? clip(doc.scope || '', SCOPE_WIDTH - 1).padEnd(SCOPE_WIDTH) : '') + gauge.label.padStart(8) + ' '
-  const age = docAgeOf(state.now, doc.mtime, fullAge)
-  const tail = [narrow && withScope ? doc.scope : '', doc.hub ? 'main doc' : '', heavy ? heavyNote(doc) : '', doc.status].filter(Boolean).join('  ')
+  const tint = heavy ? 'yellow' : undefined
+  const over = gauge.over ? 'yellow' : undefined
+  const folded = Boolean(withScope && doc.group === 'Task docs' && doc.scope)
+  const label = folded ? clipMiddle(doc.scope + '/' + shortName(doc), nameWidth) : docLabel(doc, nameWidth)
+  const figure = clip(gauge.label, FIGURE_WIDTH).padStart(FIGURE_WIDTH)
+  const bar = !gauge.near ? ' '.repeat(GAUGE_WIDTH) : gauge.over ? textMeter(1, 1, GAUGE_WIDTH - 1) + '▲' : textMeter(gauge.value, gauge.max, GAUGE_WIDTH)
+  const age = shortAge(docAgeOf(state.now, doc.mtime, fullAge))
+  const mark = statusMark(doc.status)
+  const fixedWidth = pad.length + nameWidth + MARK_WIDTH + (narrow ? 0 : FIGURE_WIDTH + GAUGE_WIDTH + AGE_WIDTH)
+  const tailRoom = columns - fixedWidth - (narrow ? 2 : 5) * COLUMN_GAP
+  const tail =
+    tailRoom < MIN_TAIL_WIDTH
+      ? ''
+      : [withScope && !folded ? doc.scope : '', doc.hub && !indent ? 'main doc' : '', heavy ? heavyNote(doc) : '', plainStatus(doc.status)].filter(Boolean).join('  ')
+  const cell = (suffix, width, child) => Box({ key: key + suffix + 'c', width, flexShrink: 0, children: [child] })
   return Box({
     key,
     flexDirection: 'row',
-    columnGap: 2,
+    columnGap: COLUMN_GAP,
     children: [
-      Button({
-        key: key + 'b',
-        label: pad + docLabel(doc, nameWidth).padEnd(nameWidth),
-        plain: true,
-        onPress: () => pickAction(doc),
-      }),
+      cell('b', pad.length + nameWidth, Button({ key: key + 'b', label: pad + label.padEnd(nameWidth), plain: true, onPress: () => pickAction(doc) })),
       ...(narrow
         ? []
         : [
-            Text({ key: key + 'a', dimColor: !gauge.near, color: heavy ? 'yellow' : undefined, wrap: 'truncate-end', children: head }),
-            Text({ key: key + 'g', color: heavy ? 'yellow' : undefined, children: gauge.near ? textMeter(gauge.value, gauge.max, 6) : ' '.repeat(6) }),
-            Text({ key: key + 'w', dimColor: true, children: age.padEnd(10) }),
+            cell('a', FIGURE_WIDTH, Text({ key: key + 'a', dimColor: !gauge.near, color: over, wrap: 'truncate-end', children: figure })),
+            cell('g', GAUGE_WIDTH, Text({ key: key + 'g', color: over, wrap: 'truncate-end', children: bar })),
+            cell('w', AGE_WIDTH, Text({ key: key + 'w', dimColor: true, wrap: 'truncate-end', children: age.padStart(AGE_WIDTH) })),
           ]),
-      Text({ key: key + 'm', dimColor: !heavy, color: heavy ? 'yellow' : undefined, wrap: 'truncate-end', children: tail }),
+      cell('s', MARK_WIDTH, Text({ key: key + 's', color: mark.color, dimColor: !mark.color, children: mark.glyph })),
+      Box({
+        key: key + 'mc',
+        flexGrow: 1,
+        flexShrink: 1,
+        minWidth: 0,
+        children: [Text({ key: key + 'm', dimColor: !heavy, color: tint, wrap: 'truncate-end', children: tail })],
+      }),
     ],
   })
+}
+
+function docRowsFor(c, docs, prefix) {
+  return docs.map((doc) => docRow(c, doc, prefix + state.docs.indexOf(doc), true, false, true))
+}
+
+const STATUS_MARKS = [
+  { glyph: '✗', color: 'red', rank: 1, icons: '❌🚫⛔🛑🔴🐛' },
+  { glyph: '○', color: 'yellow', rank: 2, icons: '⏳⌛⏸🕐💤🟡⏰🅿' },
+  { glyph: '●', color: 'cyan', rank: 4, icons: '🔨🚧🏗🔄⚙🛠👷🧪📝' },
+  { glyph: '✓', color: 'green', rank: 6, icons: '✅✔☑🟢🎉🚀' },
+]
+
+export function statusMark(status) {
+  const icon = ((status || '').match(/^\p{Extended_Pictographic}/u) || [])[0]
+  const found = icon && STATUS_MARKS.find((entry) => entry.icons.includes(icon))
+  return found || { glyph: status ? '·' : ' ', color: undefined, rank: 5 }
+}
+
+export function shortAge(age) {
+  if (age === 'just now') return 'now'
+  if (age === 'yesterday') return '1d'
+  return age.replace(/^(\d+) (min|h|d) ago$/, (_, count, unit) => count + (unit === 'min' ? 'm' : unit))
+}
+
+export function nameWidthOf(docs, folded) {
+  const widths = docs.map((doc) => (doc.listName || shortName(doc)).length + 2)
+  const foldedWidths = folded.map((doc) => (doc.scope || '').length + 1 + shortName(doc).length)
+  return Math.max(MIN_NAME_WIDTH, ...widths, ...foldedWidths)
+}
+
+export function plainStatus(status) {
+  return (status || '').replace(/^(\p{Extended_Pictographic}️?|·)\s*/u, '')
 }
 
 export function folderOf(doc) {
@@ -53,7 +110,7 @@ export function taskFolders(docs) {
     folder.docs.push(doc)
   })
   folders.forEach((folder) => {
-    folder.docs.sort((a, b) => (b.hub ? 1 : 0) - (a.hub ? 1 : 0))
+    folder.docs.sort((a, b) => (b.hub ? 1 : 0) - (a.hub ? 1 : 0) || attentionRank(a) - attentionRank(b))
     folder.main = folder.docs[0].hub ? folder.docs[0].name : ''
   })
   return folders
@@ -69,7 +126,9 @@ export const CHAIN_SECTIONS = [
 ]
 
 export function attentionRank(doc) {
-  return isHeavy(doc) ? 0 : docGauge(doc).near ? 1 : 2
+  if (isHeavy(doc)) return 0
+  const rank = statusMark(doc.status).rank
+  return rank > 3 && docGauge(doc).near ? 3 : rank
 }
 
 export function chainSections(docs) {
@@ -79,10 +138,15 @@ export function chainSections(docs) {
   }).filter((section) => section.docs.length)
 }
 
-export function listView(c) {
+export function listView($, c) {
   const { Box, Text, Button, Input, goto, redraw, bindField } = c
   const gap = (key) => Text({ key: 'gap-' + key, children: ' ' })
   const desktop = isDesktop(c.e)
+  if (!desktop) {
+    state.noTopFloat = true
+    state.redrawEveryScroll = true
+  }
+  state.listNameWidth = nameWidthOf(state.docs, recentDocs())
   const header = (key, title) =>
     desktop
       ? Box({ key: 'sec-' + key, flexDirection: 'column', marginTop: 1, children: [strip(c, { key, title })] })
@@ -108,6 +172,9 @@ export function listView(c) {
         state.pick
           ? Text({ color: 'cyan', children: 'Pick a doc to ' + state.pick })
           : Text({ dimColor: true, children: 'Pick a doc to read' }),
+        ...(!desktop && !prefix
+          ? [Button({ key: 'list-top-u', label: '↑ Top', plain: true, hotkey: 'u', onPress: () => hostUiScroll($, { in: PANE, to: 'start', block: 'start' }).then(() => hostUiInvalidate($, 'ui.render')) })]
+          : []),
       ],
     })
   const filterField = (prefix) =>
@@ -127,14 +194,14 @@ export function listView(c) {
       .filter((doc) => (doc.label + ' ' + doc.group + ' ' + (doc.scope || '')).toLowerCase().includes(needle))
       .slice(0, 40)
     rows.push(header('h-match', 'MATCHES (' + matches.length + ')'))
-    matches.forEach((doc) => rows.push(docRow(c, doc, 'f' + state.docs.indexOf(doc), true, false, true)))
+    rows.push(...docRowsFor(c, matches, 'f'))
     if (!matches.length) rows.push(Text({ dimColor: true, children: 'No doc matches that.' }))
     return Box({ flexDirection: 'column', children: rows })
   }
   const heavy = heavyDocs()
   if (state.heavyOnly) {
     rows.push(header('h-heavy', 'DOCS OVER THE SIZE LIMIT (' + heavy.length + ')'))
-    heavy.forEach((doc) => rows.push(docRow(c, doc, 'y' + state.docs.indexOf(doc), true, false, true)))
+    rows.push(...docRowsFor(c, heavy, 'y'))
     if (!heavy.length) rows.push(Text({ dimColor: true, children: 'Nothing is over the limit.' }))
     rows.push(
       Button({
@@ -159,7 +226,7 @@ export function listView(c) {
   const recent = recentDocs()
   if (recent.length) {
     pushHeader(header('h-recent', 'CHANGED LATELY'))
-    recent.forEach((doc) => push(docRow(c, doc, 'r' + state.docs.indexOf(doc), true, false, true)))
+    docRowsFor(c, recent, 'r').forEach((row) => push(row))
   }
   if (heavy.length) {
     push(gap('heavy'))
@@ -241,7 +308,7 @@ export function listView(c) {
             folder.docs.length +
             (folder.main ? ' · main: ' + folder.main : '') +
             ')' +
-            (flagged ? '  ⚠ ' + flagged : ''),
+            (flagged ? '  ⚠ ' + flagged + ' over limit' : ''),
           plain: true,
           onPress: () => {
             state.collapsed['dir:' + folder.name] = open

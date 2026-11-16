@@ -621,7 +621,7 @@ test('a companion section puts files over or near the limit first, and one over 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const names = (await ui.findAll({ type: 'Button', text: /aaa-small|zzz-heavy/ })).map((node: any) => String(node.props.label))
   expect(names[0]).toContain('zzz-heavy')
-  expect((await ui.findAll({ type: 'Text', text: /^[█░]{6}$/ })).length).toBeGreaterThan(0)
+  expect((await ui.findAll({ type: 'Text', text: /^█{5}▲$/ })).length).toBeGreaterThan(0)
   await ui.unmount()
   const search = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await search.input({ key: 'filter', text: 'small' })
@@ -981,7 +981,7 @@ test('on Desktop a docs list of 110 task docs opens with folders and skills fold
   await ui.unmount()
 })
 
-test('a doc whose Domain line says (hub is its folder main doc, marked in the folder and in Changed lately; a "detail hub" doc is not', async ($, on) => {
+test('a doc whose Domain line says (hub is its folder main doc, named in the terminal folder header and tagged in Changed lately (Desktop tags the folder row too); a "detail hub" doc is not', async ($, on) => {
   stubSession(on, [], [], [], ['fs.list'])
   const doc = (name: string, mtimeMs: number) => ({ name, entry: { name: 'current.md', kind: 'file', size: 60, mtimeMs, isLink: false } })
   const list = [doc('back-office', 1_000), doc('delivery', 999_000), doc('pos', 2_000)]
@@ -996,7 +996,7 @@ test('a doc whose Domain line says (hub is its folder main doc, marked in the fo
 
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ key: 'fold-crp45', text: /main: delivery/ })).toBeDefined()
-  expect(await ui.find({ key: 'd1', text: /main doc/ })).toBeDefined()
+  expect(await ui.find({ key: 'd1', text: /main doc/ })).toBeUndefined()
   expect(await ui.find({ key: 'r1', text: /main doc/ })).toBeDefined()
   expect(await ui.find({ key: 'd0', text: /main doc/ })).toBeUndefined()
   expect(await ui.find({ key: 'd2', text: /main doc/ })).toBeUndefined()
@@ -2706,5 +2706,63 @@ test('$$ written inside inline code is not drawn as math, while a video path in 
   await ui.rerender?.()
   expect(runs.some((run) => run[0] === 'typst' && run[1] === 'compile')).toBe(false)
   expect(runs.some((run) => run[0] === 'ffmpeg' && run.includes('/Users/test/out/demo.mp4'))).toBe(true)
+  await ui.unmount()
+})
+
+test('terminal docs list rows keep their figure, bar and age columns whole, drop the status emoji, and always offer Top as u (a button that came and went with the scroll made the pane snap back to the top) instead of a float', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, {
+    '/work/tasks': [{ name: 'delivery', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false }],
+    '/work/tasks/delivery': [{ name: 'current.md', kind: 'file', size: 9_000, mtimeMs: 999_000, isLink: false }],
+  })
+  on('fs.read', () => ({ value: '<!--\nStatus: 🔨 Building the client storefront and the back office\n-->\n# T\n' + '\n'.repeat(290) }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  const figure = await ui.findAll({ type: 'Text', text: /\d+\/300/ })
+  expect(figure.length).toBeGreaterThan(0)
+  const cells = (await ui.findAll({ type: 'Box' })).filter((node: any) => /^d\d+[abgw]c$/.test(String(node.props.key ?? node.key ?? '')))
+  expect(cells.length).toBe(4)
+  cells.forEach((node: any) => {
+    expect(node.props.flexShrink).toBe(0)
+    expect(node.props.width).toBeGreaterThan(0)
+  })
+  expect((await ui.findAll({ type: 'Text', text: /🔨/ })).length).toBe(0)
+  expect((await ui.findAll({ type: 'Text', text: /Building/ })).length).toBeGreaterThan(0)
+  expect(await ui.find({ key: 'list-top-u' })).toBeDefined()
+  await ui.unmount()
+  const down = await $.ui.mount({ ...PANE, surface: 'terminal', props: { ...PANE.props, scroll: { offset: 10, bodyRows: 3 } } })
+  expect(await down.find({ key: 'list-top-u' })).toBeDefined()
+  expect(await down.find({ key: 'pane-top' })).toBeUndefined()
+  await down.unmount()
+})
+
+test('terminal docs list marks every task doc by its status, puts blocked docs first in a folder, folds the folder into recent names, and gives project docs a plain line count with no bar', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  const doc = (name: string, mtimeMs: number) => ({ name, entry: { name: 'current.md', kind: 'file', size: 60, mtimeMs, isLink: false } })
+  const list = [doc('alpha', 1_000), doc('beta', 2_000), doc('gamma', 3_000), doc('delta', 4_000), doc('eps', 5_000), doc('zeta', 6_000), doc('omega', 7_000)]
+  const tree: Record<string, any[]> = {
+    '/work/tasks': [dirEntry('crp45')],
+    '/work/tasks/crp45': list.map((item) => dirEntry(item.name)),
+    '/work/docs': [fileEntry('ARCHITECTURE.md', 9_000)],
+  }
+  list.forEach((item) => (tree['/work/tasks/crp45/' + item.name] = [item.entry]))
+  stubTree(on, tree)
+  on('fs.read', (_$: any, e: any) => {
+    if (String(e.path).endsWith('ARCHITECTURE.md')) return { value: '# A\n' + 'x\n'.repeat(419) }
+    const status = e.path.includes('/alpha/') ? '❌ Blocked on the client' : e.path.includes('/beta/') ? '✅ Done' : '🔨 Building'
+    return { value: '<!--\nStatus: ' + status + '\n-->\n# T\n' }
+  })
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.findAll({ type: 'Text', text: /^✗$/ })).length).toBeGreaterThan(0)
+  expect((await ui.findAll({ type: 'Text', text: /^✓$/ })).length).toBeGreaterThan(0)
+  const folderNames = (await ui.findAll({ type: 'Button', text: /^  (alpha|beta|gamma)/ })).map((node: any) => String(node.props.label).trim())
+  expect(folderNames[0]).toBe('alpha')
+  expect(folderNames[folderNames.length - 1]).toBe('beta')
+  expect((await ui.findAll({ type: 'Button', text: /^crp45\/omega/ })).length).toBe(1)
+  expect((await ui.findAll({ type: 'Text', text: /^ *421 ln$/ })).length).toBe(1)
+  expect((await ui.findAll({ type: 'Text', text: /421\/300/ })).length).toBe(0)
   await ui.unmount()
 })

@@ -22,6 +22,7 @@ export async function paneView($, e, next) {
   state.stickySection = null
   state.windowed = false
   state.noTopFloat = false
+  state.redrawEveryScroll = false
   const tree = withFloats($, c, await paneTree($, c))
   const size = drawingSize(tree)
   if (state.desktop && size > DESKTOP_DRAW_LIMIT) {
@@ -109,5 +110,5 @@ export async function paneTree($, c) {
   if (state.view === 'change-all') return changeAllView($, c)
   if (state.view === 'decision' && state.current) return decisionView($, c)
   if (state.view === 'doc' && state.current) return docView($, c)
-  return listView(c)
+  return listView($, c)
 }
