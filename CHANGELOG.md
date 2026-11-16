@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.439.4
+
+**`casual-message` drafts now come in a code block, so you get the copy button.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- Before, a WhatsApp or Chat reply came back as plain text you had to select by hand. The text inside stays casual. What made drafts read formal was the document shape (headers, a reason under every point), never the block around it. `gchat-format` had already gone back to fencing by default for the same reason
+- A reply no longer corrects the other person's wording when the answer would be the same either way: a client who says "cache" for a cookie gets the answer in their own words, without an explanation of the right term first
+
 ## 1.439.3
 
 **`watch-sheets` alerts also go out through a messaging channel (Telegram, Discord) when the session runs with one.** Update with `claude plugin update syafiqkit@syafiqkit`.

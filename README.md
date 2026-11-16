@@ -92,7 +92,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/commit-invoice-generator` | Generate invoice line items from git commits |
 | `/design-handoff` | Write a brief for someone ELSE to design a screen (external designer, Claude Design, contractor) — purpose, audience, business and legal rules, measured failures; layout, components and step count stay theirs. Designing it yourself is `/uiux` |
 | `/gchat-format` | Convert Markdown to Google Chat syntax — for a document posted to a thread (release note, status update, announcement) |
-| `/casual-message` | Write a casual 1:1 message in your own voice — a WhatsApp reply, a colleague DM, "tell X that…"; short, unfenced, matches how you actually talk (including casual Malay/Manglish) |
+| `/casual-message` | Write a casual 1:1 message in your own voice — a WhatsApp reply, a colleague DM, "tell X that…"; short, in a copyable fence, matches how you actually talk (including casual Malay/Manglish) |
 | `/continue-session` | Produce the copy-paste prompt that starts a fresh session where this one stopped — doc path, next goal, uncommitted state; next session asks open decisions |
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
 | `/doc-to-md` | Convert a Word, PDF or Excel file to Markdown, so versions can be compared as git diffs |
