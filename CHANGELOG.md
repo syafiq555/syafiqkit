@@ -5,7 +5,7 @@
 **`watch-sheets` alerts also go out through a messaging channel (Telegram, Discord) when the session runs with one.** Update with `claude plugin update syafiqkit@syafiqkit`.
 - Its "something is our turn" alert was only an `AskUserQuestion`, which reaches a phone only through Remote Control, and that needs the phone signed into the same claude.ai account. A phone on another account never saw it
 - With Claude Code Channels (`claude --channels plugin:telegram@claude-plugins-official`), the check sends the alert through the channel's `reply` tool instead, options numbered, and ends the turn, since an open question would hold a chat reply unread. The next message from the chat or the terminal is the pick
-- A check that fires before the user has written to the bot uses the plugin's allowlist when it names one person. The chat gets the row, who wrote and a short gist, never the cell text, and drafts come back to the chat for a yes before anything is written
+- A check that fires before the user has written to the bot uses the plugin's allowlist when it names one person and no group. The chat gets the row, who wrote and a short gist, never the cell text, and drafts come back to the chat for a yes before anything is written
 - Checked against code.claude.com/docs/en/channels and the official Telegram plugin's `server.ts`, which also forwards permission prompts to the chat (`claude/channel/permission`)
 
 ## 1.439.2
