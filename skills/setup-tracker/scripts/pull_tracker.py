@@ -3,7 +3,8 @@
 
 Usage: python3 -I pull_tracker.py config.json <spreadsheetId> [--dry-run]
 Reads the main tab (data from the row under the headings) into sample_rows and each extra tab (data from row 2)
-into extra_tabs[].sample_rows, as the sheet displays them. Keeps the config's own JSON indent.
+into extra_tabs[].sample_rows, as the sheet displays them, except formula cells (a =HYPERLINK link, say), which keep
+their formula so a rebuild keeps the link. Keeps the config's own JSON indent.
 The token comes from SHEETS_TOKEN if set, else from the gsheets-mcp sign-in (~/.config/syafiqkit/google).
 """
 import json, os, re, sys, urllib.parse, urllib.request, urllib.error
@@ -44,7 +45,19 @@ def column_letter(n):
 
 
 def read(token, sid, rng):
-    url = f'{API}/{sid}/values/{urllib.parse.quote(rng)}'
+    shown, formulas = read_as(token, sid, rng, 'FORMATTED_VALUE'), read_as(token, sid, rng, 'FORMULA')
+    shown += [[] for _ in range(len(formulas) - len(shown))]
+    for r, row in enumerate(shown):
+        frow = formulas[r] if r < len(formulas) else []
+        row += [''] * (len(frow) - len(row))
+        for c, f in enumerate(frow):
+            if isinstance(f, str) and f.startswith('='):
+                row[c] = f
+    return shown
+
+
+def read_as(token, sid, rng, render):
+    url = f'{API}/{sid}/values/{urllib.parse.quote(rng)}?valueRenderOption={render}'
     req = urllib.request.Request(url, headers={'Authorization': f'Bearer {token}'})
     try:
         with urllib.request.urlopen(req, timeout=30) as r:

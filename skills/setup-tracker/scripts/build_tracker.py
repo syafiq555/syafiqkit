@@ -15,7 +15,7 @@ MAX_COLUMNS = 26
 COLOUR = re.compile(r'^#?[0-9A-Fa-f]{6}$')
 KNOWN_KEYS = {'title', 'tab', 'locale', 'timezone', 'date_pattern', 'closed_status', 'statuses', 'counts', 'stale_rule', 'columns',
               'sample_rows', 'extra_tabs', 'new_status', 'history_date_pattern', 'unknown_editor_label', 'status_change_line',
-              'domain_names', 'table', 'table_name', 'rows', 'summary'}
+              'domain_names', 'table', 'table_name', 'rows', 'summary', 'font', 'person_colours'}
 KNOWN_COLUMN_KEYS = {'role', 'header', 'kind', 'width', 'values', 'muted'}
 KNOWN_COUNT_KEYS = {'label', 'statuses', 'colour', 'overdue', 'span'}
 
@@ -58,6 +58,25 @@ def text(value):
 
 def any_of(cell, values):
     return 'OR(' + ','.join(f'{cell}={text(v)}' for v in values) + ')'
+
+
+def utf16_len(s):
+    return len(s.encode('utf-16-le')) // 2
+
+
+def person_runs(value, people):
+    if not isinstance(value, str) or not people:
+        return None
+    line_start = re.compile(r'(' + '|'.join(re.escape(n) for n in sorted(people, key=len, reverse=True)) + r') \d{1,2}/\d{1,2}(?:/\d{2,4})?:')
+    runs, pos = [], 0
+    for line in value.split('\n'):
+        m = line_start.match(line)
+        if m:
+            colour = {'foregroundColorStyle': {'rgbColor': rgb(people[m.group(1)])}}
+            runs.append({'startIndex': utf16_len(value[:pos]), 'format': dict(colour, bold=True)})
+            runs.append({'startIndex': utf16_len(value[:pos + m.end()]), 'format': dict(colour, bold=False)})
+        pos += len(line) + 1
+    return [r for r in runs if r['startIndex'] < utf16_len(value)] or None
 
 
 def validate(cfg, args):
@@ -124,6 +143,13 @@ def validate(cfg, args):
     for t in cfg.get('extra_tabs', []):
         if not t.get('title') or not t.get('header'):
             fail(f'every extra tab needs "title" and "header" ({t})')
+    if 'font' in cfg and not (isinstance(cfg['font'], str) and cfg['font'].strip()):
+        fail('"font" must be a font name, such as "Arial"')
+    people = cfg.get('person_colours', {})
+    if not isinstance(people, dict) or not all(isinstance(n, str) and n.strip() and COLOUR.match(str(h)) for n, h in people.items()):
+        fail('"person_colours" maps each name to a six-digit hex colour, such as {"Syafiq": "38761D"}')
+    if people and not {'latest', 'history'} & set(roles):
+        fail('"person_colours" colours the reply lines, so it needs a column with role "latest" or "history"')
     if cfg.get('summary'):
         if 'type' not in roles:
             fail('"summary" counts rows by Type and Status, so it needs a column with role "type"')
@@ -380,6 +406,22 @@ try:
             {'repeatCell': {'range': rng(HEADER_ROW, FIRST, last_col, last_col + 4), 'cell': {}, 'fields': 'userEnteredValue,userEnteredFormat'}},
             repeat_cell(rng(HEADER_ROW, FIRST, 0, last_col), {'textFormat': {'bold': True, 'foregroundColor': rgb('222222')}}, ['textFormat']),
             set_size(sheet_id, 'ROWS', 1, 34)] + [set_size(sheet_id, 'COLUMNS', i, c.get('width', 120)) for i, c in enumerate(cols)]})
+
+    finish = []
+    if cfg.get('font'):
+        font = {'textFormat': {'fontFamily': cfg['font']}}
+        if created_file:
+            finish.append({'updateSpreadsheetProperties': {'properties': {'defaultFormat': font}, 'fields': 'defaultFormat.textFormat.fontFamily'}})
+        finish += [repeat_cell({'sheetId': sh}, font, ['textFormat.fontFamily']) for sh in [sheet_id, summary_id, *extra_ids.values()] if sh is not None]
+    people = cfg.get('person_colours', {})
+    for r_i, row in enumerate(samples):
+        for col_role in ('latest', 'history'):
+            runs = person_runs(row[role[col_role]], people) if col_role in role and role[col_role] < len(row) else None
+            if runs:
+                finish.append({'updateCells': {'start': {'sheetId': sheet_id, 'rowIndex': FIRST + r_i, 'columnIndex': role[col_role]},
+                                               'fields': 'textFormatRuns', 'rows': [{'values': [{'textFormatRuns': runs}]}]}})
+    if finish:
+        call('POST', f'{API}/{sid}:batchUpdate', {'requests': finish})
 
     if replace_old is not None:
         tables = call('GET', f'{API}/{sid}?fields=sheets(properties.sheetId,tables(tableId))')
