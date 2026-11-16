@@ -98,7 +98,7 @@ Distinct from verifying what a survey agent told you — that happens before a f
 
 Grep every path the new docs cite and confirm it resolves — a relative path written from the wrong directory is the common failure, and it reads fine.
 
-Then check the facts you can check. Figures, dates, identifiers and file paths should each trace to a source; a number appearing in a derived doc and nowhere in the source is either wrong or invented. Read the essentials file whole and ask whether a stranger could follow it before their first edit.
+Then check the facts you can check. Figures, dates, identifiers and file paths should each trace to a source; a number appearing in a derived doc and nowhere in the source is either wrong or invented. On an update, reconcile every date and status line against the task doc that owns it, not only against the doc's own earlier text: a faithful refresh of a stale view keeps it stale. Read the essentials file whole and ask whether a stranger could follow it before their first edit.
 
 **Verifying a figure settles whether it is right, never whether it belongs.** An exact count decays silently on the next commit; nothing recomputes it. Prefer the shape plus the command to re-derive it. Keep an exact figure only where precision itself is the argument — a **zero** ("no view carries an `@vite` directive") is load-bearing in a way that 173-vs-175 never is, because the reader's conclusion flips when it stops being zero. **Tell: you have verified a count and are about to paste the digits into a doc nobody will recount.** The same trap applies to counting the doc's own contents — "the eight rules" fails identically and for the same reason.
 

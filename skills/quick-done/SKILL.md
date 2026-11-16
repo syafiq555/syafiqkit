@@ -73,7 +73,7 @@ Where something was parked rather than finished and the session is ending, offer
 | Step | Result |
 |------|--------|
 | CLAUDE.md | [file path → what was captured, or "nothing reusable surfaced"] |
-| Task doc | [doc path → one-line summary] |
+| Task doc | [doc path → one-line summary; derived views: old values searched and hits fixed, or "no date/status changed"] |
 | Plugin | [skill files patched + version bump — omit row if the gate didn't fire] |
 
 Skipped by design: code review, simplify, product review, cleanup scan. The code was not read for defects.

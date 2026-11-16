@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.437.4
+
+**A task-doc update now fixes the same date or status in the project's `docs/PRD.md`, `docs/ARCHITECTURE.md` and `docs/ARCHITECTURE-ESSENTIALS.md`.** Nothing to do but update.
+- When `task-summary` (and so `/done`) changes a date, a status or a decision, it searches the project's `docs/` set for the old wording ("1 January", "not yet confirmed", "unbuilt") and corrects those lines only. Lines that record history (a dated decision, a quote) and every other file (versioned client documents, verbatim captures, archives) are left alone. Before, nothing opened those files after a task-doc change, so an architecture doc kept a launch date three days after the task doc moved it
+- `update-claude-docs` searches the same views when a session moved a date or status only in CLAUDE.md; `setup-project-docs` checks dates and statuses against the owning task doc on an update; `/quick-done`'s summary says which old values were searched
+- `read-summary` now says a date or status in `PRD.md` or `ARCHITECTURE.md` can lag its task doc, the task doc wins where they differ on a date or decision, and the code wins on whether something is built
+
 ## 1.437.3
 
 **A `watch-sheets` watch job no longer reloads the whole skill on every check.** Update, then say "stop watching" and ask for the watch again: a watch set up before this keeps the old prompt (the skill now offers to replace one when it finds it).

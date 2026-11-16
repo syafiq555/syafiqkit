@@ -14,9 +14,13 @@ After updating a feature doc, close the loop on what refers back to it:
 
 Signal you've found a mirror needing sync: the referencing doc describes the feature in the past tense of an older state than the doc you just updated.
 
-## Two Other Reconciliation Cases
+## Three Other Reconciliation Cases
 
-The feature-name grep above misses two other reconciliation cases, each needing its own vocabulary to search for rather than the feature's name:
+The feature-name grep above misses three other reconciliation cases, each needing its own vocabulary to search for rather than the feature's name:
+
+### A Changed Project Fact in a Derived View
+
+A project doc set (`docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/ARCHITECTURE-ESSENTIALS.md`, or whatever the project's CLAUDE.md calls a derived view of its task docs) restates the task docs' dates, status and decisions, but never links back to them and sits outside `tasks/`, so the grep above can't reach it. When an update changes a date, a status (unbuilt to built, unsigned to signed) or a decision, grep the whole set for the **old value** (`1 January`, `not yet confirmed`, `unbuilt`), not for the feature's name. A derived view states the fact in its own words. Fix each hit to the new value, keeping the sentence's claim, and leave the rest of the view alone. A hit that records history rather than the present (a dated decision row, a planned-versus-built table, a quote) stays as it is. So does every file outside the named views: versioned client documents, verbatim captures and archives deliberately hold old values, and "fixing" them rewrites what was sent or said. No derived views in the project means nothing to do. In the output, name the old values searched and the hits fixed, so an empty diff reads as checked, not skipped. A rewrite beyond those hits is `refresh-instructions`, not this step. Nothing else in the workflow opens these files: `update-claude-docs` routes only rules breakable in one line into essentials and never opens the PRD or architecture doc, and `/done` re-checks the set only when its own diff touched it (16/11/2026: an architecture doc said "1 January" in six places and "client has not confirmed the project" three days after the task doc moved the date and recorded the signing).
 
 ### A Fixed Bug
 

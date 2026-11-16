@@ -6,7 +6,7 @@ Related:
   - ../doc-condensation/current.md (sibling — one-fact-one-home; this set must not restate CLAUDE.md rules it already owns)
   - ../agent-architecture/current.md (sibling — Bootstrap tables in generated agents)
   - ../mod/current.md (sibling — the ESSENTIALS entry `{#mod-one-file}` and ARCHITECTURE §8 host-API traps extract the mod)
-Last updated: 2026-10-07
+Last updated: 2026-11-16
 -->
 
 # Plugin Maintenance — Project Docs
@@ -34,6 +34,7 @@ The plugin's core doc set: `docs/PRD.md` (Shape Up pitch plus standard PRD secti
 | Bump 1.363.0 with CHANGELOG | User's call: agent rows ship in the repo, and "every change is a bump" holds |
 | `plugins/vue-lsp/` removed | No manifest, setting or doc wired it up; owner unknown, user chose removal |
 | `docs/` shipping stays unverified | The local marketplace is a `directory` source, so its cache is a working-tree copy and proves nothing; check a git-sourced install |
+| A consumer project's derived views are kept in step by `task-summary`'s reconcile step (1.437.4), searching for the OLD value | Nothing else opened `docs/PRD.md` or `ARCHITECTURE*.md` after a task-doc change (beacon-mart 16/11/2026: "1 January" survived three days after the date moved). The step sits where the fact changes, so every `/done` and `/quick-done` reaches it. A grep for the feature's name misses a view that words the fact its own way. Versioned client documents and verbatim captures are excluded, since they hold old values on purpose. `update-claude-docs` (a fact moved only in CLAUDE.md), `setup-project-docs` (on refresh) and `read-summary` (task doc wins on dates, code on built status) each carry one line |
 
 ## Gotchas
 
