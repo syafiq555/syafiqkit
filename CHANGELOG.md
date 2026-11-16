@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+**`refresh-instructions` keeps a task doc's captured-source files in the refresh.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- A task doc whose `decisions/` files hold a client document word for word (a spec, a quotation) had those files dropped from the refresh, and its condense pass skipped "to protect the quotes". Condense and unhobble already know how to treat such files (keep every quote, never reword a verbatim copy, check what reads it before splitting), so the refresh now hands the files to them instead of leaving them out
+- `task-summary` and `condense-task-doc` no longer tell you to split a word-for-word copy (a quotation, a contract, a policy) once it passes about 40 KB. It stays one file at any size, made and outlined by `doc-to-md`'s scripts, so the next version can be regenerated over it and compared
+- A signed client spec whose requirement IDs and wording the team maps its quotation against (a BRS) now counts as a word-for-word copy too: one file converted from the client's document, with an outline, instead of hand-split module files. `condense-task-doc` reports a copy that was hand-split before, so it can be converted back from the source document
+- `condense-task-doc` is back under the 5,000-token limit (4,700), so all of it reloads when a long session needs it again. Its rare branches (the long source-capture detail, a client question list on an already-split index, re-aiming links after a split) moved to its reference file, with a pointer naming when to open it
+
 ## 1.439.4
 
 **`casual-message` drafts now come in a code block, so you get the copy button.** Update with `claude plugin update syafiqkit@syafiqkit`.
