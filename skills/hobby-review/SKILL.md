@@ -24,7 +24,7 @@ Only then output the verdict. No shortcuts.
 | Ask multiple questions at once in conversation | One question per message in the Socratic arc (AskUserQuestion is only for the Step 3 pre-flight — 2 classifier questions, once, before the arc starts) |
 | Derive questions from memory/training data | Read the current.md rubric and derive from its axes |
 | Assume what the user thought | Let them tell you — the Socratic method means *they* surface the insight |
-| Output a verdict mid-conversation | Complete all 3 conversation gates first |
+| Output a verdict mid-conversation | Cover all four gates in the HARD-GATE first |
 | Invent axes not in the rubric | Flag new signals as "new axis candidate", don't silently add |
 
 ## Steps
@@ -60,18 +60,18 @@ These are **classifiers**, not elicitors — they orient the arc, not replace it
 
 Drive conversation with **one question per message**. Questions must follow this arc — but adapt wording naturally, don't feel like a form:
 
-**Arc**:
+**Arc** (steps 1, 2, 3 and 5 are the HARD-GATE's four gates; step 4 is only for an ambiguous answer):
 1. **Most memorable moment** — open with the sharpest or most unexpected thing. This surfaces what the item actually *did* to them, not what they expected. If mood was "mixed/disappointed", open with the expectation gap instead: "what were you hoping for that didn't land?"
 2. **Delivery on the anchor feeling** — did it deliver the core vibe they come to this hobby for? (E.g., for anime-romance: "did it give you the couple payoff?")
 3. **Comparison to anchor title** — if *finished*: where does it sit relative to their baseline, what does it do better or worse? If *still watching*: "based on what you've seen, how does the vibe compare to [anchor] so far?" — frame as first impressions, not a final verdict.
 4. **Rubric axis drill-down** — for any axis where the answer was ambiguous or surprising, probe one level deeper. (E.g., "so the FL was warm — but did it feel earned or was it just her personality from ep 1?")
-5. **Gap question** — always ask, even after gates 1–3 are covered: "if this had one more season / arc / chapter, what would make it perfect?" — reveals unmet expectations and new axis candidates. Do not skip this.
+5. **Gap question** — always ask, even after the other three gates are covered: "if this had one more season / arc / chapter, what would make it perfect?" — reveals unmet expectations and new axis candidates. Do not skip this.
 
 Stop after the gap question. Don't drag the conversation past the point of diminishing returns.
 
 ### 5. Output the verdict
 
-After the conversation naturally reaches the 3 gates, output this structure:
+After the conversation has covered all four gates, gap question included, output this structure:
 
 ```
 ## Verdict: [Item Title] ([Year if known])

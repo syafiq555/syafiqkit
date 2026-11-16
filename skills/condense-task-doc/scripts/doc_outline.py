@@ -112,7 +112,7 @@ def main(argv):
     args = parser.parse_args(argv)
     out = args.out or args.source.with_name(args.source.stem + '-outline.md')
     flags = ''.join(f' --group "{g}"' for g in args.group) + ''.join(f' --label "{l}"' for l in args.label)
-    command = f'doc_outline.py {args.source.name}{flags}'
+    command = f'python3 -I {Path(__file__).name} {args.source.name}{flags}'
     lines = args.source.read_text(encoding='utf-8').split('\n')
     if lines and lines[-1] == '':
         lines.pop()

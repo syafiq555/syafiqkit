@@ -8,8 +8,9 @@ Gotchas (critical — full list in each ADR's Consequences):
   - A new skill's trigger is a claim about every sibling trigger, and nothing checks that automatically (D-fork-the-gap-not-the-source)
   - A growth ranking counts a file created in the window as having grown by its whole length (D61)
   - An instruction naming a path under `tasks/` is unfollowable off this checkout (D61)
+  - A consumer's findings age at the corpus's arrival rate: graded four months late, 10 of 14 plugin findings were already gone (D-consumer-22-graded)
 Related: ../current.md (feature index — which file holds which decisions), grading-method.md (sibling theme — how a verdict is reached in the first place), reattach-ceiling.md (sibling theme — the re-attach ceiling cluster), agent-and-edit-traps.md (sibling theme — agent and scripted-edit traps), house-style-ownership.md (sibling theme — whose CLAUDE.md shape the skills enforce), ../../doc-condensation/decisions/unhobble-rule-writing.md (D63, the measured prose-vs-value boundary every adoption pass needs)
-Last updated: 2026-10-10 — split by topic into four files; this one keeps the verdict, fork and grading-applied decisions (7), decision blocks moved verbatim. Before that, 2026-08-20 — split out of current.md when it reached 294 lines, ahead of grading source #6
+Last updated: 2026-11-16: D-consumer-22-graded added (the consumer's 22 findings graded). Before that, 2026-10-10 — split by topic into four files; this one keeps the verdict, fork and grading-applied decisions (7), decision blocks moved verbatim. Before that, 2026-08-20 — split out of current.md when it reached 294 lines, ahead of grading source #6
 -->
 
 # External Guidance — Applying a Verdict
@@ -80,6 +81,45 @@ Chosen: a rejection records the **lever**, and any downstream restatement names 
 - **The receiving branch was unreachable, and both `/done` reviewers caught it independently.** `update-plugin` Step 1's arrival-rate branch skips Steps 1-2 whenever a handoff carries *any* arrival-rate file — and since arrival rate is measured every run, that is nearly every handoff, so the new row recording verdicts was dead on the common path. Narrowed to *solely* arrival-rate, with an explicit mixed-handoff rule. Same shape as D59's own N-owners defect, one layer down.
 - **The consumer upstream flow was singular-defect shaped.** Its template titles one skill and one defect; the real payload was 22 findings across 25 files. A fleet audit now files as ONE issue with the table as body — splitting it buries the corpus-wide signal a sweep exists to produce, under the user's own name.
 - **Scope came in narrower than approved, on evidence.** A full sweep found 7 further sites; 7 were correct as written — the 6 `.claude/agents/*.md` hits have templates that are already generic, so the hardcoded domain belongs in this repo's own copies, and `task-summary/references/templates.md` cites the path as split history, not as a path to read.
+
+**Status**: committed · **Reversible**: yes
+---
+
+### D-consumer-22-graded: The Consumer's 22 Findings, Graded Four Months Late (10 Already Gone, 8 Not Ours, 2 Rejected, 2 Fixed) · committed · 2026-11-16 {#D-consumer-22-graded}
+
+**Problem**
+D61's consumer run (a marketplace install in their own Laravel project, plugin HEAD `b83542e`, 28/07/2026) returned 22 findings (21 `adopt`, one `already-adopted`) plus two retirement rows; earlier notes here called all 22 "adopt". They arrived as verdicts but were never graded here. The session that received them is gone (transcripts here start 11/10/2026); a saved terminal capture of the run survived, and its content is recorded below so the grading does not depend on it.
+
+**Decision**
+Grade each against today's files and local ADRs. 175 skill commits landed between the run and the grading, so most skill findings were measured on files that no longer exist in that shape.
+
+| # | Finding (consumer's words, condensed) | Verdict | Evidence (2026-11-16) |
+|---|---|---|---|
+| 1-7 | Their three CLAUDE.md files (their global at 305L/40.7KB, their project file at 488L/206KB, their `CLAUDE.local.md`): build companion dirs first; route a dated shipped-log, closed security write-ups, deploy/API sections and a platform-gotchas block to companions; reword pointers to name a symptom; drop 8 row-leading ⚠️ in an all-traps table | **not ours** | These grade the consumer's own files, not the plugin. The plugin side already exists: `update-claude-docs` and `condense-claude-md` route to `.claude-companions/`. Handed back in the reply (Next Steps) |
+| 8-10 | `audit-instructions`: top grower +168L; Rules table restates the body (10 of 14 rows); "spot-check one" proof duplicated with `sweep-doc-overlaps` | **moot** | Skill removed 2026-08-01; `grep -rn "spot-check one" skills/` returns nothing. #8 was D61's in-window-creation artifact anyway |
+| 11 | `task-summary`: 19 ⚠️ in 218L, in the file that owns the anti-dilution rule | **already fixed** | 2 ⚠️ in 102L |
+| 12 | `task-summary` and `done` both carry the three tells of contested ownership; `diff-ownership.md` lacks them | **already fixed** | No copy left in either skill or the shared ref |
+| 13 | `agent-setup`: five rule pairs duplicated between Step 4 and Step 5 | **already fixed** | Step 5 rewritten as three questions owned by `references/agent-setup-verification.md`; the overlap left is the frontmatter facts, stated as what to write in Step 4 and what to check in Step 5 |
+| 14 | `update-claude-docs/references/structure.md` 15.5KB, 2.6x the ~6KB reference ceiling: split per topic | **reject** | D54 (`../../doc-condensation/decisions/structural-mechanics.md`): a catalog is exempt from the prose ceiling, and names `structure.md` at 15KB as correct. Now 15.3KB |
+| 15 | `condense-claude-md/references/structural-splits.md` 6.5KB: trim under 6KB | **already decided** | Owner declared a ~10KB budget in the file's own header. Now 10.8KB, about 0.8KB past its declared ~10KB: an overage to report, not a reason to reopen the budget |
+| 16 | `ship` has no `references/`; 14-line `git reset --hard` recovery inline | **already fixed** | `ship/references/` exists |
+| 17 | `read-summary`: `claude-md-tree-walk.md` pointer names a destination, not a symptom | **already fixed** | Pointer gone; the remaining `📖` lines name what they answer |
+| 18 | `pull-db`: 6 of 6 Gotchas rows duplicate the steps | **already fixed** | No Gotchas section; 87 lines |
+| 19 | `gchat-format`: embeds a past incident ("a prior version defaulted to no fence… the user reverted that") | **reject** | The sentence carries the rejected alternative's reasoning (`/copy` reads raw source), which is what stops the fence default being re-derived and dropped again (D-verdict-records-lever) |
+| 20 | `hobby-review`: gate count contradicts itself | **adopt, fixed** | Still live: the HARD-GATE lists four gates, the Constraints row and Step 5 said "3". Both now say four |
+| 21 | `brainstorming`: trigger "when multiple valid approaches exist" fires on nearly everything, attached to a hard gate blocking all implementation | **adopt, fixed** | The 2026-03-04 narrowing kept the clause. Dropped, and on the product reviewer's point (owner's call) "new features with multiple approaches", nearly as broad, became "new features where what to build is still open"; "how should we build" and architectural changes still trigger it |
+| 22 | Their global CLAUDE.md emphasis, 2.6 ⚠️ per 100 lines, graded `already-adopted` | **not ours** | Their file; no plugin action |
+
+The run also corrected its own ⚠️ counter: a raw `grep -c '⚠️'` counts markers written as content to emit (`agent-setup`'s "add a ⚠️ banner" lines) as emphasis. That command lived in `audit-instructions`; worth reusing if a fleet audit returns.
+
+The two retirement rows (an `advisor()` tool and a boost MCP key, graded `unverified`; three satisfied reintroduction bans, graded `reject`) concern the consumer's files and stay with them.
+
+**Rejected**
+- Acting on the findings in arrival order. Why not: two of the four still standing were contradicted by a recorded decision, and acting first would have split a catalog D54 calls correct.
+
+**Consequences**
+- **A consumer's findings age at the corpus's arrival rate, not the calendar's.** At 175 skill commits in under four months, an ungraded report goes mostly moot; the value left is the handful still live, found only by re-measuring each one.
+- **A third-party report needs a durable copy the day it arrives.** The receiving session's transcript was gone by grading time, and only an unrelated terminal capture saved the 22 rows.
 
 **Status**: committed · **Reversible**: yes
 ---

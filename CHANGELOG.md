@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.437.1
+
+**Two fixes from a colleague's July audit, the only two of its 14 plugin findings still live.**
+- `brainstorming` no longer fires on "when multiple valid approaches exist", which matched almost any task and put its approve-a-design gate in front of ordinary work, and its feature trigger narrows to "new features where what to build is still open". It still fires on architectural changes and "how should we build"; a feature with a clear goal and only a choice of approach goes to the Plan agent, which has no approval gate
+- `hobby-review` counts its gates the same way everywhere: four, with the arc naming which of its five steps are gates (the drill-down step is only for an ambiguous answer)
+- `condense-task-doc`'s outline script writes its re-run command as `python3 -I doc_outline.py …` into the outline it generates, so the command a reader copies runs the script isolated from the folder it sits in
+
 ## 1.437.0
 
 **The design skills are separate again: `uiux`, `impeccable` and `taste` are back as they were before the 15/11/2026 merge.** The owner judged the merged result not good enough: fresh Sonnet sessions entered the merged router and then skipped the module it routed to, and a redesign built that way looked weak.
