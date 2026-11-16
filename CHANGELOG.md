@@ -8,6 +8,11 @@
 - A signed client spec whose requirement IDs and wording the team maps its quotation against (a BRS) now counts as a word-for-word copy too: one file converted from the client's document, with an outline, instead of hand-split module files. `condense-task-doc` reports a copy that was hand-split before, so it can be converted back from the source document
 - `condense-task-doc` is back under the 5,000-token limit (4,700), so all of it reloads when a long session needs it again. Its rare branches (the long source-capture detail, a client question list on an already-split index, re-aiming links after a split) moved to its reference file, with a pointer naming when to open it
 
+## 1.439.5
+
+**`setup-playwright` keeps e2e on the build while your dev server keeps running.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- When the local host relaunches your dev command after you stop it, the guide no longer has you stop it again: it shows how to make tests serve the built pages per request (a marker header plus Laravel's `Vite::useHotFile()`), so hot reload keeps working for you and the suite stops timing out on the dev server
+
 ## 1.439.4
 
 **`casual-message` drafts now come in a code block, so you get the copy button.** Update with `claude plugin update syafiqkit@syafiqkit`.

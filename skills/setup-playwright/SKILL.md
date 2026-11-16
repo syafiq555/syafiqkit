@@ -59,6 +59,8 @@ What a count usually shows, largest first: a dev server (Vite and the like) answ
 
 ⚠️ **A fix that consists of stopping a process is not a fix until you know what starts it.** Re-check before every run that it is still stopped (port listener, the hot file it writes), or guard the run with a watchdog, because a process restarted mid-run turns the second half of the suite into noise that reads as fresh failures. **Tell: you stopped something earlier in the session and the current run never checked it is still down.**
 
+When what starts it is the local host's own tooling (a site manager that relaunches the project's dev command after it dies), stop fighting it and make the run immune instead: the developer keeps hot reload and the tests get the build. In a Laravel app on Vite, the testing environment points `Vite::useHotFile()` at a path that never exists, and a middleware active only in local does the same when Playwright sends a marker header (`use.extraHTTPHeaders`). The suite's guard then checks that the build manifest exists, not that the hot file is absent. Measured: a killed dev command came back on its own twice in one evening, and the per-request switch held through every later run.
+
 Make each failure carry its cause, so the next diagnosis reads rather than guesses: a shared fixture that fails a test the moment the app shows its crash screen (a page binding plus `page.close({ reason })` interrupts the pending wait with that message), attaches the same-origin failed and 5xx requests, and `trace: 'retain-on-failure'` (`'on-first-retry'` with local retries at 0 never saves one).
 
 ### The cross-file race
