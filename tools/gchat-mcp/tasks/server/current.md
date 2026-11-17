@@ -14,7 +14,7 @@ Last updated: 2026-11-14: scope widened to `chat.messages` (signed in again 14/1
 **Blocked on**: nothing.
 **Current state**: signed in again 14/11 with the four scopes including `chat.messages` (`~/.config/syafiqkit/google-chat/`), registered at user scope in `~/.claude.json`, Chat API, People API and Chat app configuration done in `careful-yew-506703-e8`. Run `cd tools/gchat-mcp && bun test` (62 pass on 14/11) and `bun x tsc --noEmit`. A running Claude session keeps the old server until `/mcp reconnect gchat`. Text sent or edited through the API is Markdown (`**bold**`, `- ` items); a single `*x*` is italic.
 **Next check, live**: the edit worked on a real message 14/11 (Next Steps lists what it didn't cover); one `attachment_download` of a real screenshot; one send with a file approved from the phone, confirming Google accepts the `client-` messageId (a 400 on every send would mean it doesn't).
-**Success looks like**: in any repo, "what did Hong Liang say in the Autorentic space this week" answers from real messages including posted screenshots, and a send asks Syafiq first (AskUserQuestion), then posts only after he taps Claude Code's permission prompt, on the Mac or the phone.
+**Success looks like**: in any repo, "what did Hong Liang say in the Autorentic space this week" answers from real messages including posted screenshots, and a send shows Syafiq the preview and full text, then posts only after he taps Claude Code's permission prompt, on the Mac or the phone (the one confirmation since 17/11).
 
 ## Overview
 
@@ -22,11 +22,10 @@ Google Chat as the signed-in user: list spaces and DMs, read one, search across 
 
 ```mermaid
 flowchart LR
-  P[message_send_preview] --> Q[Claude asks Syafiq: AskUserQuestion]
-  Q -- Edit / Don't send --> N[nothing sent]
-  Q -- Send --> M[message_send]
+  P[message_send_preview] --> Q[Claude shows the preview line and full text in its reply]
+  Q --> M[message_send]
   M --> R[Claude Code permission prompt, Mac or phone; Claude cannot answer]
-  R -- denied --> N
+  R -- denied: keep the draft, ask what to change --> N[nothing sent]
   R -- approved --> C{recipient matches, files allowed, thread in space?}
   C -- no --> X[NOT SENT]
   C -- yes --> F{DM or thread reply, and chat moved on since preview?}

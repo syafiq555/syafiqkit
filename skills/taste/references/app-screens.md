@@ -306,6 +306,7 @@ node <skill>/scripts/lint.mjs --app <source files or folder>
 node <skill>/scripts/inspect.mjs --app <url or path/to/index.html>
 ```
 
+An app with a dark theme runs the inspector a second time with `--scheme dark` (light is the default).
 A sheet dealt with `--app` switches both tools to the app rules by itself. The inspector opens the
 screen at 1440, 768 and 390 and measures what this chapter asks for: an h1 (and reports it as the
 screen's hero); a sidebar that folds on the phone; the canvas used to its right edge; panel shadows

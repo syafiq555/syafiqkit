@@ -11,10 +11,11 @@ Vendored from tasteskill v2 by Leonxlnx: https://github.com/Leonxlnx/taste-skill
 - `references/run.md` is new (the step detail split out of `SKILL.md`, above).
 - `assets/web-scenes/` is new (16/11/2026): the scroll-scene library, object renders, the `effects/` and `ui/` folders the object demos import, `system.css`, `LICENSE` and scene manual (as `README.md`) from tasteskill 2.5.1 (commit `f6b76575f949707b4e3c37cd86cb44b0b98643e8`), copied byte for byte apart from a header on the README mapping its paths; `references/scenes.md`'s opening points a page at it before building a scene by hand. The owner asked for the scenes after 2.5.1, kept for a day as the `taste-web` module of `uiux`, was removed with that merge.
 - Nothing else is changed. Scripts, the rest of the library, the other references and assets are byte-identical to the commit above.
+- `scripts/lib/cdp.mjs`, `scripts/inspect.mjs`, `scripts/scenes.mjs`: every page emulates `prefers-color-scheme` (light by default, `--scheme dark` on both scripts), and the MEASURED line names it. Upstream's headless Chrome followed the OS appearance, so on a dark-mode Mac a light pass measured the dark theme (17/11/2026).
 
 ## Updating
 
-Re-copy `skills/taste-skill/` from a newer upstream commit, re-apply the frontmatter changes and the two local patches above (unless upstream has fixed them), update the commit and date here, and note it in the plugin CHANGELOG.
+Re-copy `skills/taste-skill/` from a newer upstream commit, re-apply the frontmatter changes and the local patches above (unless upstream has fixed them), update the commit and date here, and note it in the plugin CHANGELOG.
 
 ## Requirements
 

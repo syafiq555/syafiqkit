@@ -240,7 +240,8 @@ node <skill>/scripts/scenes.mjs <url or path/to/index.html>     # when the page 
 `lint.mjs` scans source for banned patterns; `inspect.mjs` measures the page in a real browser at 1440,
 768 and 390 pixels and saves screenshots to `.taste-skill/inspect/`; `scenes.mjs` photographs each scroll
 scene (a scene that never starts or rests on desktop is a `FAIL`). If the page must also open from the
-file system, open `index.html` that way once before you finish. 📖 references/run.md#step-7
+file system, open `index.html` that way once before you finish. Both tools measure the light colour
+scheme; a page with a dark theme is inspected again with `--scheme dark`. 📖 references/run.md#step-7
 
 ### 8. Look
 
@@ -257,7 +258,7 @@ one moving picture. Transform and opacity only, each with a `prefers-reduced-mot
 
 ### 10. Report
 
-Do not report until `inspect.mjs` shows **0 FAIL** at 1440, 768 and 390 on the final version, every
+Do not report until `inspect.mjs` shows **0 FAIL** at 1440, 768 and 390 on the final version (and with `--scheme dark` when the page has a dark theme), every
 screenshot listed after the last change has been opened, and the critique is written up (📖
 references/run.md#step-10 has the full checklist). Tell the user the direction, the idea and live thing,
 the last scores, each found picture's credit, which pictures stand in for photography, and any sample

@@ -132,16 +132,17 @@ export class Browser {
     return () => this.listeners.get(k)?.delete(fn);
   }
 
-  async newPage({ width = 1440, height = 900, dsf = 1, mobile = false, reducedMotion = false } = {}) {
+  async newPage({ width = 1440, height = 900, dsf = 1, mobile = false, reducedMotion = false, scheme = 'light' } = {}) {
     const { targetId } = await this.send('Target.createTarget', { url: 'about:blank', newWindow: true });
     const { sessionId } = await this.send('Target.attachToTarget', { targetId, flatten: true });
     const p = new Page(this, targetId, sessionId);
     await p.send('Page.enable');
     await p.send('Runtime.enable');
     await p.setViewport({ width, height, dsf, mobile });
-    if (reducedMotion) {
-      await p.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
-    }
+    // Headless Chrome otherwise follows the OS appearance, so a Mac in dark mode measured dark themes unasked.
+    const features = [{ name: 'prefers-color-scheme', value: scheme }];
+    if (reducedMotion) features.push({ name: 'prefers-reduced-motion', value: 'reduce' });
+    await p.send('Emulation.setEmulatedMedia', { features });
     return p;
   }
 

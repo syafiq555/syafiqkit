@@ -230,6 +230,11 @@ saves screenshots to `.taste-skill/inspect/`. The inspector serves local files o
 server; if the page must also open straight from the file system, open `index.html` that way once
 before you finish.
 
+Both `inspect.mjs` and `scenes.mjs` emulate `prefers-color-scheme: light` unless given `--scheme dark`,
+and the report's MEASURED line names the scheme. Before the flag, headless Chrome followed the machine's
+own appearance, so on a Mac in dark mode a "light" pass measured the dark theme unannounced
+(17/11/2026). A page that follows the visitor's scheme passes the gate in both.
+
 `scenes.mjs` photographs every scroll scene at 0, 10 … 100% of its hold, on desktop and on a phone,
 and the reduced-motion page; with scenes on the sheet, `inspect.mjs` also films the whole scroll
 (`desktop-film-NN.jpg`). A scene that never started or rests on desktop is a `FAIL`.
@@ -268,7 +273,7 @@ every screenshot for content that failed to appear.
 
 Do not report until all of these are true; each one was skipped in a test run that came out badly:
 
-- `inspect.mjs` shows **0 FAIL** at 1440, 768 and 390, on the final version of the page.
+- `inspect.mjs` shows **0 FAIL** at 1440, 768 and 390, on the final version of the page, in each colour scheme the page has (`--scheme dark` for its dark theme).
 - You opened every screenshot it listed after the last change, not only the first screen.
 - With scroll scenes: `scenes.mjs` ran on the final page with no problems, and you read every sheet
   (desktop, phone, reduced motion).
@@ -286,7 +291,7 @@ launch. Do not claim a check you did not run.
 ## Special cases: redesign, restyle or review {#redesign}
 
 1. **Record the before.** Run the project as it is and inspect it into its own folder
-   (`inspect.mjs <url> --out .taste-skill/before`, with `--app` for an app screen) and lint its
+   (`inspect.mjs <url> --out .taste-skill/before`, with `--app` for an app screen and the same `--scheme` as the after pass) and lint its
    source. Read the code: the framework, the styling method (Tailwind v3 or v4, CSS modules,
    styled-components, plain CSS), the components, and what must survive: routes, forms, data,
    behaviour, the brand's own assets.

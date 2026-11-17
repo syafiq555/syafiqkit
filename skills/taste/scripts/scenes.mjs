@@ -20,8 +20,10 @@ const flag = (k, d) => { const i = args.indexOf('--' + k); if (i === -1) return 
 const outDir = resolve(flag('out', '.taste-skill/scenes'));
 const STEPS = Math.max(2, +flag('steps', 10)), WAIT = +flag('wait', 900);
 const only = flag('scene', '');
+const scheme = flag('scheme', 'light');
+if (!['light', 'dark'].includes(scheme)) { console.error('--scheme takes light or dark'); process.exit(2); }
 const target = args[0];
-if (!target || target.startsWith('--')) { console.error('usage: node scenes.mjs <url | file.html> [--out DIR] [--steps 10] [--scene "#id"] [--wait 900]'); process.exit(2); }
+if (!target || target.startsWith('--')) { console.error('usage: node scenes.mjs <url | file.html> [--out DIR] [--steps 10] [--scene "#id"] [--wait 900] [--scheme light|dark]'); process.exit(2); }
 
 // A local file is served from 127.0.0.1 (the working directory when the file is inside it, else the
 // file's folder), so relative assets and CDN scripts behave as they will when the page is hosted.
@@ -46,7 +48,7 @@ if (!/^https?:\/\//.test(target)) {
 }
 mkdirSync(outDir, { recursive: true });
 const browser = await Browser.launch();
-const helper = await browser.newPage({ width: 1600, height: 1000 });
+const helper = await browser.newPage({ width: 1600, height: 1000, scheme });
 const problems = [];
 
 async function sheet(frames, labels, cellW, cellH, cols, path) {
@@ -65,7 +67,7 @@ const go = (y) => `(() => { const y = ${y}; if (window.Stage && Stage.lenis) Sta
 const rel = (p) => relative(process.cwd(), p).split('\\').join('/');
 
 async function run(label, vp) {
-  const page = await browser.newPage(vp);
+  const page = await browser.newPage({ ...vp, scheme });
   await page.goto(url, { timeoutMs: 40000, settleMs: 1200 });
   await page.eval('document.fonts.ready.then(() => true)').catch(() => {});
   await sleep(500);
@@ -107,7 +109,7 @@ async function run(label, vp) {
 try {
   await run('desktop', { width: 1440, height: 900, dsf: 1 });
   await run('phone', { width: 390, height: 844, dsf: 1, mobile: true });
-  const rp = await browser.newPage({ width: 1440, height: 900, dsf: 1, reducedMotion: true });
+  const rp = await browser.newPage({ width: 1440, height: 900, dsf: 1, reducedMotion: true, scheme });
   await rp.goto(url, { timeoutMs: 40000, settleMs: 1200 });
   const h = await rp.eval('document.documentElement.scrollHeight');
   const frames = [], labels = [];

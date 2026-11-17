@@ -1,12 +1,36 @@
 # Changelog
 
-## Unreleased
+## 1.440.0
+
+**Sending in Google Chat asks once, not twice.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.
+- A Chat send or edit used to show a Send / Edit / Don't send question and then Claude Code's own permission prompt for the same message. Now Claude shows the preview and the full text in its reply and goes straight to the send, so the permission prompt (on the Mac or the phone) is the one confirmation; deny it to ask for changes. The Chat server's instructions and tool descriptions and `ship`'s release-note step all say so
+- A message split into parts is now shown whole in one reply before the first part goes, and denying any part stops the ones after it, so a thread is never left half-posted
+- `taste`'s done gate now asks for a clean `--scheme dark` pass on a page with a dark theme, and a redesign's before and after shots use the same scheme
+
+**`taste`'s inspector measures the colour scheme you ask for.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- On a Mac set to dark mode, `inspect.mjs` and `scenes.mjs` measured and screenshotted a site's dark theme while every report read as the normal (light) pass, because headless Chrome follows the machine's appearance. Both now emulate the light scheme by default, take `--scheme dark` for a second pass, and name the scheme on the MEASURED line. An inspect run on a dark-mode Mac before this update may have measured the wrong theme; re-run it if the page has a dark theme
+- `taste`, `uiux` and `done`'s design review now ask for the dark pass on any screen that has a dark theme
+
+**`ship` covers a follow-up deploy and looks for the team's Chat space.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- A fix the user asked for after the ship report, pushed to the deploy branch, used to end on its green run with no CHANGELOG line, tracker entry, task-doc update or team post. `ship` now treats that push as a new ship that owes those steps again
+- A project whose docs named no Chat space got a clipboard-only release note even when the team's space existed. `ship` now lists the Chat spaces and opens the one named after the project before concluding there is none, then records it for the next ship
+- Adding to something already posted in Chat (one more login, a corrected figure) now edits that message instead of sending a new one, so the thread stays one complete message and nobody is notified twice. The Chat server's own instructions say so; reconnect it with `/mcp reconnect gchat` to pick it up
 
 **`refresh-instructions` keeps a task doc's captured-source files in the refresh.** Update with `claude plugin update syafiqkit@syafiqkit`.
 - A task doc whose `decisions/` files hold a client document word for word (a spec, a quotation) had those files dropped from the refresh, and its condense pass skipped "to protect the quotes". Condense and unhobble already know how to treat such files (keep every quote, never reword a verbatim copy, check what reads it before splitting), so the refresh now hands the files to them instead of leaving them out
 - `task-summary` and `condense-task-doc` no longer tell you to split a word-for-word copy (a quotation, a contract, a policy) once it passes about 40 KB. It stays one file at any size, made and outlined by `doc-to-md`'s scripts, so the next version can be regenerated over it and compared
 - A signed client spec whose requirement IDs and wording the team maps its quotation against (a BRS) now counts as a word-for-word copy too: one file converted from the client's document, with an outline, instead of hand-split module files. `condense-task-doc` reports a copy that was hand-split before, so it can be converted back from the source document
 - `condense-task-doc` is back under the 5,000-token limit (4,700), so all of it reloads when a long session needs it again. Its rare branches (the long source-capture detail, a client question list on an already-split index, re-aiming links after a split) moved to its reference file, with a pointer naming when to open it
+
+**`watch-sheets` keeps alerting when a Telegram channel drops, and names which test check moved.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- Another session with the Telegram plugin enabled takes the bot over when its plugins load, and the watching session loses its `reply` tool with no warning. The check now alerts in the transcript (and by question over Remote Control), and says how to take the bot back and how to stop the takeover
+- The repeating check's prompt no longer carries the alert route. A prompt saying "alerts go to Telegram" went stale when the user switched to Claude Code mobile, and the job had to be replaced
+- The first check records every test check's status, not only the tab counts, so a later Pass with no tester name can be named by its check ID
+
+**Fewer confirmations before a Chat post or a tracker reply, and `/gchat-format` always formats.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.
+- Typing Send under a Chat draft used to be followed by a Send / Edit / Don't send question and then the permission prompt. A Send you typed under that exact text now counts, so only the permission prompt follows. The question still comes when the text changed after you approved it
+- In `watch-sheets`, a pick that already says what to tell the tester or client ("just ask them to do it") now gets the line written and shown in the report. Before, a second "post this?" question came first
+- `gchat-format` matched a space's earlier plain posts and dropped the bold headings and lists. Earlier posts now set only length, structure and voice: when you ask for the format by name, the post gets it
 
 ## 1.439.5
 

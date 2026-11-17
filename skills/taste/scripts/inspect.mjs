@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // tasteskill / inspect — render the page in a real browser, measure it, and photograph it.
 //
-//   node inspect.mjs <url | path/to/file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]
+//   node inspect.mjs <url | path/to/file.html> [--out DIR] [--widths 1440,768,390] [--scheme light|dark] [--allow rule,rule] [--app] [--film] [--json]
 //
 // --film also photographs the scroll as a visitor sees it (a frame every third of a screen, real wheel
 // input) into desktop-film-NN.jpg, so a scroll scene is judged by its in-between states. A direction
@@ -24,6 +24,8 @@ const flag = (name, def) => { const i = args.indexOf('--' + name); if (i === -1)
 const has = (name) => { const i = args.indexOf('--' + name); if (i === -1) return false; args.splice(i, 1); return true; };
 const outDir = resolve(flag('out', '.taste-skill/inspect'));
 const widths = flag('widths', '1440,768,390').split(',').map(Number).filter(Boolean);
+const scheme = flag('scheme', 'light');
+if (!['light', 'dark'].includes(scheme)) { console.error('--scheme takes light or dark'); process.exit(2); }
 let allow = flag('allow', '').split(',').filter(Boolean);
 const asJson = has('json');
 let appMode = has('app');
@@ -31,7 +33,7 @@ let film = has('film');
 let dealtFonts = []; // the faces the saved sheet dealt, to catch a build that quietly fell back to a default
 const target = args[0];
 if (!target || target === '-h' || target.startsWith('--')) {
-  console.error('usage: node inspect.mjs <url | file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--app] [--film] [--json]');
+  console.error('usage: node inspect.mjs <url | file.html> [--out DIR] [--widths 1440,768,390] [--scheme light|dark] [--allow rule,rule] [--app] [--film] [--json]');
   process.exit(2);
 }
 // Allowances granted by the drawn direction (written by draw.mjs) apply automatically.
@@ -67,8 +69,8 @@ mkdirSync(outDir, { recursive: true });
 // Screenshots from an earlier run would sit beside the new ones when the page got shorter.
 for (const f of readdirSync(outDir)) if (/^(desktop|tablet|mobile)-(fold|page-\d+|film-\d+)\.jpg$/.test(f)) unlinkSync(join(outDir, f));
 const browser = await Browser.launch();
-const helper = await browser.newPage({ width: 1600, height: 1000 });
-const report = { url: server ? target : url, at: new Date().toISOString(), allow, viewports: [], findings: [], images: [] };
+const helper = await browser.newPage({ width: 1600, height: 1000, scheme });
+const report = { url: server ? target : url, at: new Date().toISOString(), scheme, allow, viewports: [], findings: [], images: [] };
 
 const MOTION_MIN = 8, MOTION_GOOD = 16; // distinct moving elements over load + one scroll through the page
 // Runs in the page before any of its own scripts: counts the distinct elements that actually move while
@@ -117,7 +119,7 @@ try {
   for (const w of widths) {
     const h = HEIGHT[w] || Math.round(w * 0.625);
     const label = name(w);
-    const page = await browser.newPage({ width: w, height: h, dsf: 1, mobile: w < 600 });
+    const page = await browser.newPage({ width: w, height: h, dsf: 1, mobile: w < 600, scheme });
     await page.send('Page.addScriptToEvaluateOnNewDocument', { source: MOTION_RECORDER }).catch(() => {});
     const how = await page.goto(url, { timeoutMs: 30000, settleMs: 600 });
     await sleep(600); // about 1.2s after the load event: is the title there to read yet?
@@ -237,7 +239,7 @@ try {
   // Under prefers-reduced-motion the page is the finished page: nothing may stay hidden waiting for an
   // animation that will not run. Two in three studied award pages had no reduced-motion rules at all.
   if (!appMode && widths.some((x) => x >= 1100) && !allow.includes('reduced-hidden')) {
-    const rp = await browser.newPage({ width: 1440, height: 900, dsf: 1, reducedMotion: true });
+    const rp = await browser.newPage({ width: 1440, height: 900, dsf: 1, reducedMotion: true, scheme });
     try {
       await rp.goto(url, { timeoutMs: 30000, settleMs: 1500 });
       const hidden = await rp.eval(`(() => {
@@ -274,7 +276,7 @@ const d = report.viewports[0].metrics;
 const line = (s = '') => console.log(s);
 line(`TASTESKILL · INSPECT   ${report.url}`);
 line('');
-line('MEASURED (first viewport listed)');
+line(`MEASURED (first viewport listed, ${scheme} colour scheme)`);
 if (d.hero) line(`  hero headline   "${d.hero.text.slice(0, 70)}"  ${d.hero.words} words · ${d.hero.lines} line(s) · ${d.hero.size}px (${d.hero.vw}vw) · ${d.hero.font} ${d.hero.weight} · tracking ${d.hero.tracking}em · leading ${d.hero.leading}`);
 for (const v of report.viewports.slice(1)) if (v.metrics.hero) line(`  @${v.width}px          ${v.metrics.hero.lines} line(s) · ${v.metrics.hero.size}px`);
 line(`  typefaces       ${d.type.families.filter((f) => f.share >= 0.02).map((f) => `${f.family} ${Math.round(f.share * 100)}%`).join(', ')}`);
