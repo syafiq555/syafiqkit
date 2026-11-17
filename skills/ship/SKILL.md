@@ -117,6 +117,7 @@ Scope the note to everything the push carried, and to whatever this session chan
 7. **Where the team reads release notes in a Chat space, the clipboard is not delivery.** When the project docs name the space, or an earlier release note or team update sits in it, preview the post with the Chat send tool in this run, show its line and full text in the reply, then send: the send tool's own permission prompt is the one confirmation, so no `AskUserQuestion` before it. Images follow as in item 6. Docs naming no space is not evidence there is none: list the Chat spaces, open the one named after the project, and record it in the project's local instructions. 📖 `references/ship-incidents.md` § Release note only on the clipboard.
 8. If the project documents an issue tracker (`CLAUDE.md`/`CLAUDE.local.md`), post there in the same run. Update an existing entry for this release rather than duplicating it; multi-repo ships need one entry per repo. None documented: skip silently. If the tracker's MCP server is project-scoped (a repo's `.mcp.json`), start a session in that repo and hand it the post rather than reporting the tracker unreachable.
 9. **Close the tracker cards this release finished, when the shipped commits name any.** Read `git log <pre-push-SHA>..<pushed-SHA> --format=%B` for `Task:` lines; most ships have none and this step does nothing. Flip each card only once Prod Verify passed (a card closed on a staging-only deploy tells the requester it is live), read its status back, and leave a parent or project card open when only one child shipped. A card named only in conversation is invisible here. Report each in the Ship Summary's Cards row.
+10. **Answer the shared-sheet rows this ship fixed, in the same run.** When the work began from a client tracker row or a tester's Fail (named in the conversation, a `watch-sheets` alert, a row number in the task doc), the client hears about it only there: the team post and the card reach the team. Add a line on that row in the project's documented tracker style, naming where it is live (staging only, or production), and move the status to whoever acts next. Run it after Prod Verify; a staging-only ship says so on the row. Report each in the Ship Summary's Client rows row. **Tell: the release note is posted and the row that reported the bug still ends on the client's line.**
 
 ## Output
 
@@ -141,6 +142,7 @@ The release note is its own labelled fenced block after the Ship Summary table, 
 | Release Note | ✅ | [posted to <space> at <time>, or why not posted]; text below |
 | Images | ✅ | [captures sent as a thread reply, each opened first; or the ones dropped and why; or "none rendered this session"] |
 | Cards | ✅ | [cards flipped to done, from `Task:` lines; omit the row when the range named none] |
+| Client rows | ✅ | [tracker or UAT rows answered, with the status each moved to; omit when the work came from no shared sheet] |
 
 [Operator commentary: open items, caveats, offers, status the user should know. Omit if none. The ONLY place commentary goes; a choice the user must make goes in Decisions above, since anything parked here gets read past.]
 

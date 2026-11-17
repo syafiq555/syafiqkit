@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.449.0
+
+**`ship` answers the client's sheet row and waits for a chained deploy.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `ship` Step 5 item 10 and a Client rows line in the Ship Summary: when the work came from a client tracker row or a tester's Fail, the ship adds a line on that row saying where the fix is live and moves the status to whoever acts next. Twice in one week the release note and card went out while the row that reported the bug still ended on the client's line, until the user asked "updated tracker already?".
+- `ship` polling reference: a deploy workflow chained with `workflow_run` starts only after CI finishes, so a wait that exits on CI's success misses it. A staging deploy failed on a missing PHP extension and was found only when the user asked why it was slow.
+- `watch-sheets`: a row the user had fixed and shipped counts as picked, so the "never write unprompted" rule no longer reads against the ship step.
+
 ## 1.448.2
 
 **`uat-script` plans for testers running tabs in parallel.** Update with `claude plugin update syafiqkit@syafiqkit`.
