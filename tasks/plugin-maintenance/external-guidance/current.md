@@ -105,7 +105,7 @@ Which file holds which decision (split by topic on 2026-10-10; each decision liv
 |------|-------|
 | `decisions/grading-method.md` | How to reach a verdict: D55, D56, D59 |
 | `decisions/applying-verdicts.md` | How to act on a verdict: D-fork-the-gap-not-the-source, D-verdict-records-lever, D61, D-consumer-22-graded, D-source-6-harness-drift, D-paths-glob-readopted-from-the-docs-that-were-already-rejected, D-second-pass-on-uiux, D-third-pass-on-uiux |
-| `decisions/reattach-ceiling.md` | The 5,000-token re-attach ceiling: D-ceiling-found-not-yet-cleared, D-pointers-are-suggestions, D-reorder-beats-extract, D-ceiling-pass-two, D-ceiling-cleared |
+| `decisions/reattach-ceiling.md` | The 5,000-token re-attach ceiling: D-ceiling-found-not-yet-cleared, D-pointers-are-suggestions, D-reorder-beats-extract, D-ceiling-pass-two, D-ceiling-cleared, D-ceiling-crept-back (17/11/2026: `done`, `ship` back under) |
 | `decisions/agent-and-edit-traps.md` | Traps in trusting a check, an agent or a scripted edit: D-agent-broke-its-own-pointer-check, D-scripted-anchor-matched-the-wrong-occurrence, D-a-model-that-declines-a-rule-reports-it-as-absent |
 | `decisions/house-style-ownership.md` | Whose CLAUDE.md shape the skills enforce: D-rewrite-skills-branch-on-file-ownership, D-house-style-applies-everywhere |
 | `decisions/skill-survey-2026-10.md` | Source #10, a whole-plugin comparables survey: the hook-cap finding, verified figures, borrowable candidates |

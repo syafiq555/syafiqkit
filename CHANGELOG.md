@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.447.2
+
+**Six rules the 1.447.1 refresh had narrowed are back, and two lessons from it now guard the next refresh.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `ship` Step 1 checks every repo for unpushed commits, clean or not. In 1.447.1 a sub-repo committed earlier was skipped whenever the root still had edits. Also restored: "say so" after `/quick-done`, skipping prod verify when `remote` isn't configured, "or team update" as a sign of the team's Chat space, and captures sent as a thread reply.
+- `done`: the Design row names the capture widths again and points to the merge score before the Output row is written; the ARCHITECTURE count check runs only when the diff touches those files; product-reviewer research names what to look up.
+- `read-summary`: the stash rule says again why it lives in a doc-reading skill.
+- `refresh-instructions`: an unhobble pass may fold into a rule only an exception the file already states, never a new one, and a sentence another skill quotes is protected as "verbatim, with nothing added beside it".
+- `verifying-a-relocation` (used by the condense, unhobble and haiku skills): a new check for a rule moved under a condition that excludes the case it covered, such as a table row folded into a step that runs only when everything is clean.
+
 ## 1.447.1
 
 **`done` and `ship` fit inside the 5,000-token limit again, so their Output templates survive a compaction.** Update with `claude plugin update syafiqkit@syafiqkit`. No behaviour changes; earlier output stays valid.

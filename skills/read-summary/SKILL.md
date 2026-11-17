@@ -70,7 +70,7 @@ Task docs are authoritative for **decisions and gotchas**: why the code works th
 
 ⚠️ **Confirm against what LOADS the technology, not what declares it.** An installed package or manifest entry is weak evidence, since a dependency is declared once and left unwired. Read the entry point: the layout that emits the script tags, the container registration, the actual import sites.
 
-Reading a doc is also auditing it. Sweep the fields written once and checked least (`Quick Start`, `Status:`, `Immediate next actions`), since those carry the costliest staleness, and route what you find in the same turn to `task-summary` (project facts) or `update-plugin` (skill defects). An offer parked on the user's reply isn't routing: the finding dies with the conversation.
+Reading a doc is also auditing it. Sweep the fields written once and checked least (`Quick Start`, `Status:`, `Immediate next actions`), since those carry the costliest staleness, and route what you find in the same turn to `task-summary` (project facts) or `update-plugin` (skill defects). An offer parked on the user's reply isn't routing: the finding dies with the conversation. A doc's silence about something doesn't make it incomplete; nobody has needed that path yet.
 
 📖 `references/doc-authority.md`: edge cases where a doc's claim contradicts live state, external claims go stale, blockers differ by path, or a doc records both an ask and a conclusion.
 
@@ -100,8 +100,6 @@ Plan mode's own workflow restricts its first phase to `Explore` agents. That lim
 
 ⚠️ **A question a delegated agent hands back is still the user's question, and writing it into the plan as a default is not asking it.** A `Plan` agent often ends with "decisions for you" and a recommended answer for each. Copied in as "defaults, overridable at approval", they become decisions nobody made, since approving a long plan approves every line unread. Put each through `AskUserQuestion` before `ExitPlanMode`. **Tell: your plan contains "overridable", "default unless", or an agent's question with its answer filled in.**
 
-A doc's silence about something doesn't make it incomplete; nobody has needed that path yet.
-
 ⚠️ **A subagent inherits plan mode, so one dispatched to MEASURE returns a plan to measure.** Searching and reading still work, which is why the limit goes unnoticed. Exit plan mode first, or defer the measurement until after approval and say which. 📖 `../_shared/references/explore-delegation.md` § How to Spawn. **Tell: you are about to spawn an agent to find out a fact about the world while the session cannot act on the world.**
 
 ---
@@ -110,9 +108,9 @@ A doc's silence about something doesn't make it incomplete; nobody has needed th
 
 Before writing to a doc, check `ListAgents` for a live session that might be editing the same `current.md`. Presence narrows the question without settling which checkout they're in; 📖 `../_shared/references/cross-session-messaging.md` covers what it does and doesn't tell you.
 
-⚠️ **When another session's work must finish first, the wait is yours to arrange, not the user's to relay.** Find the peer with `ListAgents`, say what you will touch, and subscribe with `SendMessage` `notify_when_idle: true`. Idle means its turn ended, not its work done. **Tell: your closing line asks the user to report another session's progress.**
+⚠️ **When another session's work must finish first, the wait is yours to arrange, not the user's to relay.** Find the peer with `ListAgents`, say what you will touch, and subscribe with `SendMessage` `notify_when_idle: true`. Idle means its turn ended, not its work done, so act on its reply. **Tell: your closing line asks the user to report another session's progress.**
 
-⚠️ **A live peer makes `git stash` unsafe for the whole session.** The full ban is in 📖 `../_shared/references/diff-ownership.md` (loaded only by wrap-up and doc skills). The operative half: **`git stash` answers no question.** What a file used to contain, whether a failure predates your edits, which session wrote a line: `git show HEAD:<path>`, `git diff HEAD -- <path>`, `git log -S`, or a second worktree at HEAD, none of which move a byte. Reserve it for a merge that needs one path parked. `--keep-index` still takes every *unstaged* file, which on a shared checkout is a peer's in-flight work. **Tell: you are about to stash for any reason other than an in-progress merge.**
+⚠️ **A live peer makes `git stash` unsafe for the whole session.** The full ban is in 📖 `../_shared/references/diff-ownership.md` (loaded only by wrap-up and doc skills), so a session that reads docs and then builds meets the command with nothing else loaded. The operative half: **`git stash` answers no question.** What a file used to contain, whether a failure predates your edits, which session wrote a line: `git show HEAD:<path>`, `git diff HEAD -- <path>`, `git log -S`, or a second worktree at HEAD, none of which move a byte. Reserve it for a merge that needs one path parked. `--keep-index` still takes every *unstaged* file, which on a shared checkout is a peer's in-flight work. **Tell: you are about to stash for any reason other than an in-progress merge.**
 
 ---
 

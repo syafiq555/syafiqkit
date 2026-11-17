@@ -15,7 +15,7 @@ Resuming mid-chain after a compaction: answer which steps ran from evidence (the
 
 ## Prerequisites
 
-**Code must have been reviewed.** `/done` runs the review; `/quick-done` leaves code unread, so after it, get a review before proceeding.
+**Code must have been reviewed.** `/done` runs the review; `/quick-done` leaves code unread, so after it, say so and get a review before proceeding.
 
 **Review covers only what reviewers saw.** Code written after they returned (fixes to findings, a new redirect, one more screen) reads as covered when it isn't, and the peer-commit rule below never catches it. Before the push, run `git diff --stat <last-reviewed-SHA>..HEAD -- <code paths>` and send anything non-trivial to a reviewer (a product reviewer where users see it). 📖 `references/ship-incidents.md` (2026-11-10). **Tell: a summary line says the last fixes were "checked with tests" or "not agent-reviewed", and you are about to push.**
 
@@ -36,7 +36,7 @@ git status --short
 for dir in */; do [ -d "$dir/.git" ] && (cd "$dir" && echo "=== $dir ===" && git status --short); done
 ```
 
-Skip repos with nothing to commit. If all are clean, check each for unpushed commits (`git log origin/main..HEAD`) and go to Step 3 for those. Push only the repos with unpushed commits.
+Commit only the repos with changes. Check every repo for unpushed commits (`git log origin/main..HEAD`), clean or not: a sub-repo committed earlier still needs its push while the root is dirty. Step 3 pushes exactly the repos that have them; if all are clean, go straight there.
 
 ### Step 2: Commit Each Repo
 
@@ -88,11 +88,11 @@ If `git status -sb` shows `[behind N]` or the push is rejected as non-fast-forwa
 
 ### Step 4b: Verify at Destination
 
-**Once CI/deploy resolves, verify the artifact is live** at its destination (the Key principle), whether code, schema or config.
+**Once CI/deploy resolves, verify the artifact is live** at its destination (the Key principle).
 
 **Verify by artifact type:**
 
-- **Code:** `remote <prod-server> "cd <deploy-path>/<repo> && git log --oneline -1"` (skip if no prod server is documented). Non-git deployments: grep the changed file, or confirm config through the app's bootstrap. Believe the workflow file over the alias when they name different hosts; inside a container, get its own root before concluding from a negative. 📖 `references/ship-deploy-verification.md` § Host Aliases and Container Paths.
+- **Code:** `remote <prod-server> "cd <deploy-path>/<repo> && git log --oneline -1"` (skip if `remote` isn't configured or no prod server is documented). Non-git deployments: grep the changed file, or confirm config through the app's bootstrap. Believe the workflow file over the alias when they name different hosts; inside a container, get its own root before concluding from a negative. 📖 `references/ship-deploy-verification.md` § Host Aliases and Container Paths.
 - **Schema:** Migrations often run apart from code (entrypoint, release phase, separate job, manual). Ask the DB: migration status, or a query confirming the new column. Missing-column errors surface hours after a green deploy.
 - **Data steps:** A seed or backfill in this payload runs AFTER the code lands. Run before it, it executes the old file and changes nothing, which reads as a broken tool. 📖 `references/ship-deploy-verification.md` § Seeded Reference Data.
 
@@ -113,14 +113,14 @@ Scope the note to everything the push carried, and to whatever this session chan
 3. **Lead with accomplishment, not caveats.** Deferred work is a closing note; a note that hands an action to a named person says how in one line, or where the steps are. Regroup the flat list by feature: what users couldn't do before, what they can do now.
 4. **Pass raw CHANGELOG text to gchat-format; don't paraphrase.** Count shipped items against the output bullets; a mismatch means something dropped. Cross-check `git diff --stat <last-deployed>..<HEAD>` for user-facing changes (copy, status labels, templates, buttons) a mid-work changelog missed, add them to the CHANGELOG, then format.
 5. **If a tracker is documented, open its most recent entry before formatting.** Its length, structure and voice beat any default. List the newest few by date (titles drift) and read the top one plus the one before it when they differ. 📖 `references/ship-incidents.md` (stale tracker format).
-6. Format with the `gchat-format` skill, invoked even when it ran earlier in the session (📖 `references/ship-incidents.md`, 13/11/2026), unless the project's own `CLAUDE.md` or `CLAUDE.local.md` spells out the release-post format for that destination (a plain first line, no bullets or bold): then draft to that and skip the call. A user who names `gchat-format` still gets its formatting. Then copy to the clipboard (`pbcopy`). **Tell: your release note was drafted without a `Skill` call in this step, and no project doc names the format you used.** Captures of a changed screen go in only when they hold seeded demo or test data: open each, name kept and dropped ones. **Tell: you dropped every capture without opening one.** The procedure and its incidents: 📖 `references/ship-deploy-verification.md` § Release Captures, `references/ship-incidents.md` (15/11/2026).
-7. **Where the team reads release notes in a Chat space, the clipboard is not delivery.** When the project docs name the space, or an earlier release note sits in it, preview the post with the Chat send tool in this run, show its line and full text in the reply, then send: the send tool's own permission prompt is the one confirmation, so no `AskUserQuestion` before it. Docs naming no space is not evidence there is none: list the Chat spaces, open the one named after the project, and record it in the project's local instructions. 📖 `references/ship-incidents.md` § Release note only on the clipboard.
+6. Format with the `gchat-format` skill, invoked even when it ran earlier in the session (📖 `references/ship-incidents.md`, 13/11/2026), unless the project's own `CLAUDE.md` or `CLAUDE.local.md` spells out the release-post format for that destination (a plain first line, no bullets or bold): then draft to that and skip the call. A user who names `gchat-format` still gets its formatting. Then copy to the clipboard (`pbcopy`). **Tell: your release note was drafted without a `Skill` call in this step, and no project doc names the format you used.** Captures of a changed screen go in only when they hold seeded demo or test data: open each, name kept and dropped ones above the fence, and send them as a thread reply with their own preview. **Tell: you dropped every capture without opening one.** The procedure and its incidents: 📖 `references/ship-deploy-verification.md` § Release Captures, `references/ship-incidents.md` (15/11/2026).
+7. **Where the team reads release notes in a Chat space, the clipboard is not delivery.** When the project docs name the space, or an earlier release note or team update sits in it, preview the post with the Chat send tool in this run, show its line and full text in the reply, then send: the send tool's own permission prompt is the one confirmation, so no `AskUserQuestion` before it. Images follow as in item 6. Docs naming no space is not evidence there is none: list the Chat spaces, open the one named after the project, and record it in the project's local instructions. 📖 `references/ship-incidents.md` § Release note only on the clipboard.
 8. If the project documents an issue tracker (`CLAUDE.md`/`CLAUDE.local.md`), post there in the same run. Update an existing entry for this release rather than duplicating it; multi-repo ships need one entry per repo. None documented: skip silently. If the tracker's MCP server is project-scoped (a repo's `.mcp.json`), start a session in that repo and hand it the post rather than reporting the tracker unreachable.
 9. **Close the tracker cards this release finished, when the shipped commits name any.** Read `git log <pre-push-SHA>..<pushed-SHA> --format=%B` for `Task:` lines; most ships have none and this step does nothing. Flip each card only once Prod Verify passed (a card closed on a staging-only deploy tells the requester it is live), read its status back, and leave a parent or project card open when only one child shipped. A card named only in conversation is invisible here. Report each in the Ship Summary's Cards row.
 
 ## Output
 
-The release note is its own labelled fenced block after the Ship Summary table, distinct from it: a release note buried in a table reads as one the user can't copy. The inner fence is the artifact. **Operator commentary goes ABOVE the fence, never below it.** Commentary (open items, offers, next steps) addressed to the user goes above the label. Caveats for Chat readers ("Note: bulk export still deferred") go inside the fence.
+The release note is its own labelled fenced block after the Ship Summary table, distinct from it: a release note buried in a table reads as one the user can't copy. The inner fence is the artifact. **Operator commentary (open items, offers, next steps) goes ABOVE the fence, never below it.** Caveats for Chat readers ("Note: bulk export still deferred") go inside the fence.
 
 ````
 ## Decisions

@@ -145,3 +145,23 @@ Handled inline instead where the gap was small: `agent-setup` (−431) and `unho
 **Status**: committed · **Reversible**: yes · Closes the ceiling work opened by D-source-6-harness-drift
 ---
 
+### D-ceiling-crept-back — `done` and `ship` Grew Back Over the Ceiling and a Three-Pass Refresh Cleared Them — committed — 2026-11-17
+
+**Problem**
+D-ceiling-cleared held for three months, then incident-driven additions pushed `done` to 5,018 and `ship` to 5,167 tokens (cl100k_base), with `read-summary` at 4,784. Both overages cut the Output template, the last section and the one that shapes the reply.
+
+**Decision**
+Chosen: `refresh-instructions` on each skill (restructure, condense, unhobble on haiku, each verified), then a `/done` review. Landed: `done` 4,560, `ship` 4,437, `read-summary` 4,220 (1.447.1 plus a review-fix commit). Mechanisms moved to the references that already cited them (`done/references/design-review-merge.md` is new); step numbers, gates, anchors and the sentences other skills quote stayed verbatim.
+
+**Rejected**
+- Accepting `done`'s first condense at 4,609 tokens. Why not: the agent stopped because the brief protected the Design paragraph whole; loosening that protection and re-dispatching the same skill reached 4,340 with the rule kept inline.
+
+**Consequences**
+- **Folding a table into prose loses the rows whose case exists only in the table.** `ship`'s Edge Cases row "Sub-repo already pushed but root not: push only unpushed repos" was the only handling of a clean sub-repo beside a dirty root, because Step 1 says "if all are clean". The condense dropped it as covered; the `/done` product reviewer caught it, and Step 1 now checks every repo for unpushed commits.
+- **The unhobble repair "write the exception into the rule's own sentence" can itself write a licence.** On `read-summary`'s decision-first rule the pass added "(A question with no real choice behind it is not one…)" inside the sentence `judgement` quotes, the same softening reverted on 2026-08-14 in another shape. Reverted by hand; a protected rule needs "no exception added beside it", not only "verbatim".
+- **A wording-only refresh still drops reasons that change behaviour at the margin**: the `/quick-done` "say so", "no `remote` CLI", "or team update" on the Chat-space trigger, and the read-summary stash rule's reason for living in a doc-reading skill. The product reviewer, briefed to compare against `git show <commit>^`, found all six; the code reviewer found the same set as low severity.
+- Headroom is now 440 to 780 tokens per skill. The next incident added to `done` or `ship` should go to a reference with a one-line rule inline.
+
+**Status**: committed · **Reversible**: yes
+---
+

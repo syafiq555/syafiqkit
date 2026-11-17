@@ -23,7 +23,7 @@ Read `git status --short` and recent commits, then match a mode.
 | **Infra-only** | Entirely configuration code (CI, Dockerfile, nginx/env config, provisioning scripts); no application code | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 | **Ops-only** | System changes applied out-of-band (deploy, backfill, config flip); no repo diff, no commit | None (skip Step 1) | Read 📖 `${CLAUDE_SKILL_DIR}/references/rare-modes.md` |
 
-**Docs-only:** count changed files from `git show --stat <this-session's commit>` plus the uncommitted diff, since agent review covers both. Re-derive any count `docs/ARCHITECTURE*.md` states from its cited `file:line`. 📖 `${CLAUDE_SKILL_DIR}/references/docs-only-mode.md` for why and the method.
+**Docs-only:** count changed files from `git show --stat <this-session's commit>` plus the uncommitted diff, since agent review covers both. If the diff touches `docs/ARCHITECTURE*.md`, re-derive any count it states from its cited `file:line`. 📖 `${CLAUDE_SKILL_DIR}/references/docs-only-mode.md` for why and the method.
 
 ⚠️ **Referential integrity is this mode's addition: when a sweep flags many pointers, suspect the extractor first.** 📖 `${CLAUDE_SKILL_DIR}/references/docs-only-mode.md` § Referential integrity for the method.
 
@@ -34,7 +34,7 @@ Read `git status --short` and recent commits, then match a mode.
 - **Simplifier**: is the code *clean*? (duplication, readability, consistency)
 - **Reviewer**: is the code *correct*? (bugs, security, logic errors, conventions)
 - **Product reviewer**: is the *feature* complete and valuable? (missing journeys, dead ends, UX and business gaps, what a line-level diff cannot catch). Full mode; docs-only only when the markdown is the product (what ships to users or steers their sessions), not notes about one project, so ask who reads the output before skipping. 📖 `${CLAUDE_SKILL_DIR}/references/docs-only-mode.md` § Product reviewer scope.
-- **Design review**: does the changed *screen* read well for its reader at every width? Runs whenever the diff touches something a person sees (any page, screen, template, component, stylesheet, email, deck or rendered document). Three skills start in one batch: `uiux` grades, `impeccable` critiques, and `taste`'s review path joins for a customer's screen. The Output's Design row names all three with what each found, so a dropped one shows as a blank. Their findings merge into one score and are fixed or asked before Output like any reviewer's. A render check or a code or product pass does not stand in for it: on 14/11/2026 a redesigned admin screen passed both, and the user then had to ask for the design skills. 📖 `${CLAUDE_SKILL_DIR}/references/design-review-merge.md` for capture widths, scope, the deck case and the merge. **Tell: your diff has a `.css`, template or screen file and no Design row.**
+- **Design review**: does the changed *screen* read well for its reader at every width? Runs whenever the diff touches something a person sees (any page, screen, template, component, stylesheet, email, deck or rendered document). Three skills start in one batch: `uiux` grades (captures at 375, 768 and 1280 in each colour scheme, every capture opened), `impeccable` critiques, and `taste`'s review path joins for a customer's screen. The Output's Design row names all three with what each found, so a dropped one shows as a blank. Their findings merge into one score and are fixed or asked before Output like any reviewer's. A render check or a code or product pass does not stand in for it: on 14/11/2026 a redesigned admin screen passed both, and the user then had to ask for the design skills. 📖 `${CLAUDE_SKILL_DIR}/references/design-review-merge.md` for each skill's scope, the deck case and the merge score the Output's Design row reports (read § Merge again before writing that row). **Tell: your diff has a `.css`, template or screen file and no Design row.**
 
 ### Ownership & Partition
 
@@ -83,7 +83,7 @@ Reconcile agents against each other: each sees one repo, domain or layer, so a u
 
 Cross-agent findings are applied *after* both return, by you or a fresh dispatch carrying the finding in its brief, never by messaging a running agent.
 
-Product-reviewer questions go through one `AskUserQuestion` call before Step 4, so the task doc records answers, not open questions. Open the code each premise rests on first. A question that changes who can do or see something is researched before it is asked, one `haiku` agent per question, with quotes inside the options; asked bare, the user answers "research" and they come back twice. **Tell: an option repeats a reviewer's claim about behaviour and you have not opened the file that decides it, or a who-can-do option carries no quote from the spec or a platform.**
+Product-reviewer questions go through one `AskUserQuestion` call before Step 4, so the task doc records answers, not open questions. Open the code each premise rests on first. A question that changes who can do or see something (which role ships, who sets a status, what exits a stuck state) is researched before it is asked, one `haiku` agent per question for the governing spec rows and how strong platforms handle it, with quotes inside the options; asked bare, the user answers "research" and they come back twice. **Tell: an option repeats a reviewer's claim about behaviour and you have not opened the file that decides it, or a who-can-do option carries no quote from the spec or a platform.**
 
 ## Step 2: Clean up temp code
 
@@ -95,7 +95,7 @@ Scan the session for temporary artifacts (debug UI, logging, commented-out migra
 
 ## Steps 3 + 4: Capture Knowledge + Update Task Docs (sequential: Step 3, then Step 4)
 
-Run Step 3 before Step 4: both scan the same conversation and route facts (CLAUDE.md vs. task doc), so run in parallel, the same fact can land in both files or neither. `task-summary`'s rule that only broadly applying patterns go in CLAUDE.md relies on Step 3 deciding first.
+Run Step 3 before Step 4: both scan the same conversation and route facts (CLAUDE.md vs. task doc), so in parallel the same fact can land in both files or neither. `task-summary`'s rule that only broadly applying patterns go in CLAUDE.md relies on Step 3 deciding first.
 
 **Step 3, Capture Session Knowledge:** Invoke `syafiqkit:update-claude-docs` bare, or with only a hint. Args that list only code facts silently drop the early-session behavioural insights, the highest-value captures. Do not draft CLAUDE.md entries here: a drafted summary reads complete and gets Step 4 skipped.
 
