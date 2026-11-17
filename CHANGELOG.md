@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.447.3
+
+**`watch-sheets` checks other sessions for a watch on the same sheets before starting its own.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `CronList` sees only the current session, so two live sessions in one project could each watch the same tracker without knowing: both checked every edit, and each asked the other about rows it had found. Setup now runs `ListAgents` and asks live same-project peers before the first `CronCreate`, and lets the user pick which session keeps watching.
+
 ## 1.447.2
 
 **Six rules the 1.447.1 refresh had narrowed are back, and two lessons from it now guard the next refresh.** Update with `claude plugin update syafiqkit@syafiqkit`.
