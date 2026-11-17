@@ -31,8 +31,8 @@ fi
 
 if [ -n "$GSHEETS_CONFIG_DIR" ]; then
   claude mcp add gsheets --scope local --env GSHEETS_CONFIG_DIR="$GSHEETS_CONFIG_DIR" -- "$launcher"
-  echo "Enabled for $project only (local scope, this machine), signed in from $GSHEETS_CONFIG_DIR. Run /reload-plugins in a Claude Code session there to load the tools."
+  echo "Enabled for $project only (local scope, this machine), signed in from $GSHEETS_CONFIG_DIR. Start a new Claude Code session there (or run /mcp reconnect gsheets) to load the tools."
 else
   claude mcp add --scope local gsheets -- "$launcher"
-  echo "Enabled for $project only (local scope, this machine). Run /reload-plugins in a Claude Code session there to load the tools."
+  echo "Enabled for $project only (local scope, this machine). Start a new Claude Code session there (or run /mcp reconnect gsheets) to load the tools."
 fi

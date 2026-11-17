@@ -16,11 +16,13 @@ It also has the usual tools: `values_get` (including formulas), `values_batch_ge
 
 ## Sign-in
 
-You need bun and a Google OAuth client of the Desktop-app type, saved as `client.json`.
+**Easiest:** ask Claude to "set up the Google Sheets tool for me". The `setup-tools` skill walks through creating your own Google Cloud project and OAuth client, signing in and switching it on, then checks it with a real read. Run the commands below from the plugin's install folder (`installLocation` for `syafiqkit` in `~/.claude/plugins/known_marketplaces.json`), never the versioned `plugins/cache` copy, which is deleted after updates.
+
+You need bun and a Google OAuth client of the Desktop-app type, saved as `client.json`. A plain date in `drive_search`'s `modifiedAfter` means midnight in this machine's time zone (`SYAFIQKIT_TZ` overrides).
 
 ```sh
 tools/gsheets-mcp/bin/gsheets-mcp auth --client /path/to/client.json   # once; opens the browser
-tools/gsheets-mcp/bin/gsheets-mcp check                                # confirms the sign-in works
+tools/gsheets-mcp/bin/gsheets-mcp check --read                         # confirms the sign-in, Drive and the Sheets API all answer
 ```
 
 - **What it asks for:** exactly three scopes: `spreadsheets`, `drive.file` and `drive.readonly` (since 10/11/2026, so a reply can keep a Drive file chip linking a file the account can see). If Google grants anything else, it stores nothing. A token from before then has to sign in again with `auth`.
@@ -43,7 +45,7 @@ From inside the project (a subfolder works too: it registers the repo root):
 ```
 
 - **Why local scope:** the entry lives in this machine's Claude config for this project only. Nothing is written into the repo, so teammates who don't have the sign-in get no broken server.
-- **When it takes effect:** run `/reload-plugins` in a Claude Code session in that project (or start a new one).
+- **When it takes effect:** start a new Claude Code session in that project, or run `/mcp reconnect gsheets` in one. `/reload-plugins` restarts only plugin-bundled servers, not this one.
 - **An existing `gsheets` server blocks it:** `enable` refuses while another server named `gsheets` is visible from the project (a user-scope one, for example). Remove that one first.
 
 The launcher finds bun on its own (`~/.bun/bin`, `/opt/homebrew/bin`, `/usr/local/bin`), because Claude Code starts MCP servers without your shell's PATH. On first start it installs the dependencies if they are missing.

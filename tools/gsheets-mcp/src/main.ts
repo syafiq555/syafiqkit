@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { TokenSource, configDir, consent } from './auth.ts'
-import { Google } from './google.ts'
+import { DRIVE, Google, SHEETS, query } from './google.ts'
 import { registerTools } from './tools.ts'
 
 async function serve(): Promise<void> {
@@ -26,8 +26,18 @@ if (command === 'auth') {
   })
 } else if (command === 'check') {
   try {
-    await new TokenSource().get()
+    const tokens = new TokenSource()
+    await tokens.get()
     console.error(`gsheets: signed in (config ${configDir()})`)
+    if (rest.includes('--read')) {
+      const google = new Google(tokens)
+      const files = await google.call('GET', `${DRIVE}${query({ pageSize: 1, fields: 'files(name)' })}`)
+      console.error(`gsheets: Drive answered (${files.files?.length ? 'files visible' : 'no files yet'})`)
+      await google.call('GET', `${SHEETS}/setup-check-no-such-sheet${query({ fields: 'spreadsheetId' })}`).catch((err: Error) => {
+        if (!/Google API 404/.test(err.message)) throw err
+      })
+      console.error('gsheets: Sheets API answered')
+    }
   } catch (err) {
     console.error((err as Error).message)
     process.exit(1)
@@ -35,6 +45,6 @@ if (command === 'auth') {
 } else if (command === undefined || command === 'serve') {
   await serve()
 } else {
-  console.error('usage: gsheets-mcp [serve | auth [--client <client.json>] | check]')
+  console.error('usage: gsheets-mcp [serve | auth [--client <client.json>] | check [--read]]')
   process.exit(2)
 }

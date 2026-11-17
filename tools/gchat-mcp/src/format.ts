@@ -1,19 +1,9 @@
-const KL_OFFSET = '+08:00'
+import { zoneMidnight, zoneParts } from './zone.ts'
 
-const klFormat = new Intl.DateTimeFormat('en-GB', {
-  timeZone: 'Asia/Kuala_Lumpur',
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-})
-
-export function klTime(iso: string | undefined): string {
+export function localTime(iso: string | undefined): string {
   if (!iso) return '-'
-  const parts = Object.fromEntries(klFormat.formatToParts(new Date(iso)).map((p) => [p.type, p.value]))
-  return `${parts.day}/${parts.month}/${parts.year} ${parts.hour === '24' ? '00' : parts.hour}:${parts.minute}`
+  const parts = zoneParts(new Date(iso))
+  return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`
 }
 
 export function parseWhen(input: string, now: Date = new Date()): string {
@@ -31,7 +21,7 @@ export function parseWhen(input: string, now: Date = new Date()): string {
     const [y, m, d] = parts.map(Number) as [number, number, number]
     const check = new Date(Date.UTC(y, m - 1, d))
     if (check.getUTCFullYear() !== y || check.getUTCMonth() !== m - 1 || check.getUTCDate() !== d) throw unreadable
-    return new Date(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}T00:00:00${KL_OFFSET}`).toISOString()
+    return zoneMidnight(y, m, d).toISOString()
   }
   if (!/^\d{4}-\d{2}-\d{2}T.+(Z|[+-]\d{2}:?\d{2})$/i.test(s)) throw unreadable
   const d = new Date(s)
@@ -84,7 +74,7 @@ export function sendPreview(p: {
   const size = p.body ? `${count(p.body.split('\n').length, 'line')}, ${count(p.body.length, 'char')}.` : 'No text.'
   const attached = files.length ? ` With ${count(files.length, 'file')}: ${files.map((f) => `${f.name} (${fileSize(f.bytes)})`).join(', ')}.` : ''
   const where = p.thread ? ', as a reply in a thread' : p.space.spaceType === 'SPACE' ? ', as a new top-level message' : ''
-  return `Send as you to ${p.to} [${audience(p.space)}]${where}. ${size}${attached}${p.last ? ` Last message there: ${p.last.who}, ${klTime(p.last.at)}.` : ''}`
+  return `Send as you to ${p.to} [${audience(p.space)}]${where}. ${size}${attached}${p.last ? ` Last message there: ${p.last.who}, ${localTime(p.last.at)}.` : ''}`
 }
 
 export interface Attachment {
@@ -127,7 +117,7 @@ function body(m: ChatMessage, hasFiles: boolean): string {
 
 export function messageLine(m: ChatMessage, who: string): string {
   const files = (m.attachment ?? []).map((a) => a.contentName).filter(Boolean)
-  const head = `[${klTime(m.createTime)}] ${who}${m.threadReply ? ' (in thread)' : ''}${m.quotedMessageMetadata ? ' (quoting an earlier message)' : ''}: ${body(m, files.length > 0)}`
+  const head = `[${localTime(m.createTime)}] ${who}${m.threadReply ? ' (in thread)' : ''}${m.quotedMessageMetadata ? ' (quoting an earlier message)' : ''}: ${body(m, files.length > 0)}`
   const tail = [files.length ? `files: ${files.join(', ')}` : '', m.name ? `message: ${m.name}` : '', `thread: ${m.thread?.name ?? '-'}`]
     .filter(Boolean)
     .join(' · ')

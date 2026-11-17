@@ -6,6 +6,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { cellAddress, gridRange, mergeHolding, mergeLabel, parseRange, type Merge } from './a1.ts'
 import { DRIVE, DRIVE_UPLOAD, Google, SHEETS, SLIDES, query } from './google.ts'
+import { timeZone, zoneMidnight } from './zone.ts'
 import { awaitingReply, checkAppend, checkReplace, chipLinks, collapseChips, describeCell, hexToRgb, planAppend, planReplace, textOf, type CellData, type ChipRun, type TextRun } from './rich.ts'
 
 const id = z.string().describe('Spreadsheet id (the long part of the sheet URL between /d/ and /edit)')
@@ -215,7 +216,10 @@ export function driveSearchQuery({ nameContains = [], type, modifiedAfter, folde
   const terms = nameContains.filter((t) => t.trim()).map((t) => `name contains ${quoted(t)}`)
   if (type) terms.push(`mimeType = ${quoted(SEARCH_TYPE[type])}`)
   if (modifiedAfter) {
-    const at = new Date(/^\d{4}-\d{2}-\d{2}$/.test(modifiedAfter) ? `${modifiedAfter}T00:00:00+08:00` : modifiedAfter)
+    const ymd = modifiedAfter.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    const asUtc = new Date(`${modifiedAfter}T00:00:00Z`)
+    const real = ymd && !Number.isNaN(asUtc.getTime()) && asUtc.toISOString().startsWith(modifiedAfter)
+    const at = ymd ? (real ? zoneMidnight(Number(ymd[1]), Number(ymd[2]), Number(ymd[3])) : new Date(NaN)) : new Date(modifiedAfter)
     if (Number.isNaN(at.getTime())) throw new Error(`modifiedAfter "${modifiedAfter}" is not a date; use YYYY-MM-DD`)
     terms.push(`modifiedTime > ${quoted(at.toISOString())}`)
   }
@@ -585,7 +589,7 @@ export function registerTools(server: McpServer, g: Google): void {
       inputSchema: {
         nameContains: z.array(z.string()).optional().describe('Words that must all appear in the file name, e.g. ["Daily standup", "Notes by Gemini"]'),
         type: z.enum(['doc', 'sheet', 'slides', 'folder', 'pdf']).optional(),
-        modifiedAfter: z.string().optional().describe('YYYY-MM-DD (midnight Malaysia time) or an ISO time with its zone'),
+        modifiedAfter: z.string().optional().describe(`YYYY-MM-DD (midnight, ${timeZone()} time) or an ISO time with its zone`),
         folderId: z.string().optional().describe('Only files directly inside this folder'),
         pageSize: z.number().int().min(1).max(1000).optional().describe('Default 100'),
         pageToken: z.string().optional(),

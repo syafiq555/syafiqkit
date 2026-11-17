@@ -7,7 +7,7 @@ A Google Chat MCP server for Claude Code that reads, sends and edits as you: you
 | Tool | Does |
 |---|---|
 | `spaces_list` | Your spaces, group chats and DMs, most recently active first; DMs are labelled with the other person's name |
-| `messages_list` | The newest messages of one space or DM, shown oldest to newest in Malaysia time, each line with its thread name; filter by `since`, `until`, `thread`, `from` |
+| `messages_list` | The newest messages of one space or DM, shown oldest to newest in local time, each line with its thread name; filter by `since`, `until`, `thread`, `from` |
 | `messages_search` | Every message containing all the given words (quote a phrase) across spaces active since a date, optionally from one sender; with only `from`, everything that person said. Shows at most 150 hits and says what it left out or couldn't read |
 | `attachment_download` | Saves the files attached to one message (screenshots, PDFs) into a new `gchat-attachments-*` folder under the system temp folder, readable by you only, and returns each path, so Claude can open a screenshot someone posted. Every message line from `messages_list` or `messages_search` shows `message: spaces/…/messages/…`; pass that name, and `file` to take one of several. Files linked from Google Drive are not downloaded (that needs a Drive scope this tool doesn't have); their Drive link comes back instead. Each file is capped at 50 MB. Download folders untouched for a day are deleted the next time the server starts |
 | `message_send_preview` | Step 1 of sending, sends nothing: checks any files and returns one line naming the recipient, whether it is a DM or a space and how many people are in it, whether it goes as a reply in a thread or a new top-level message, the text's size, each file's name and size and the last message there, plus the `recipient` and `afterMessage` values step 2 needs |
@@ -17,16 +17,20 @@ A Google Chat MCP server for Claude Code that reads, sends and edits as you: you
 
 **Formatting:** text sent or edited through the API is read as Markdown: `**bold**`, `*italic*`, `~strike~`, `` `code` `` and a line starting `- ` per list item. A single `*text*` is italic here, unlike typing in the Chat app, and a typed `•` is plain text whose lines run together (measured 14/11/2026).
 
-A `space` argument takes a space name (`spaces/AAAA…`), a display name or a unique part of one, a person's name for a DM, or a colleague's email for your DM with them. Dates take `7d`, `12h`, `2w`, `13/11/2026`, `2026-11-13` (both Malaysia midnight) or an ISO timestamp.
+A `space` argument takes a space name (`spaces/AAAA…`), a display name or a unique part of one, a person's name for a DM, or a colleague's email for your DM with them. Dates take `7d`, `12h`, `2w`, `13/11/2026`, `2026-11-13` (both local midnight) or an ISO timestamp.
 
 ## Setup (once)
 
-In the Google Cloud project that owns the OAuth client (the Sheets one: `careful-yew-506703-e8`):
+**Easiest:** ask Claude to "set up Google Chat for me". The `setup-tools` skill walks through every step below, including creating the Google Cloud project, and checks the result with a real read.
 
-1. Enable the **Google Chat API** and the **People API**.
-2. Open the Chat API's **Configuration** tab and fill in an app name, an avatar URL and a description. Pick the name with care: Google shows it beside your name on every message the tool sends (ours is `Syafiq`). Leave every interactive feature off. Google refuses every Chat API call, user sign-ins included, until this page is saved ("Google Chat app not found").
-3. Sign in: `tools/gchat-mcp/bin/gchat-mcp auth`. With no `--client` it copies the Sheets tool's `client.json` from `~/.config/syafiqkit/google/`. It stores the token in `~/.config/syafiqkit/google-chat/` (`GCHAT_CONFIG_DIR` overrides).
+You need a **Google Workspace** (Business or Enterprise) account: Google's Chat API guide lists that as a prerequisite, so a personal Gmail cannot use this tool. You also need your own Google Cloud project with a Desktop-app OAuth client (the same one the Sheets tool uses). The paths below are inside the plugin's install folder (`installLocation` for `syafiqkit` in `~/.claude/plugins/known_marketplaces.json`; `~/.claude/plugins/marketplaces/syafiqkit` on a GitHub install), never the versioned `plugins/cache` copy, which is deleted after updates.
+
+1. In that project, enable the **Google Chat API** and the **People API**.
+2. Open the Chat API's **Configuration** tab and fill in an app name, an avatar URL and a description. Pick the name with care: Google shows it beside your name on every message the tool sends, so use your own name. Leave every interactive feature off. Google refuses every Chat API call, user sign-ins included, until this page is saved ("Google Chat app not found").
+3. Sign in: `tools/gchat-mcp/bin/gchat-mcp auth`. With no `--client` it copies the Sheets tool's `client.json` from `~/.config/syafiqkit/google/`. It stores the token in `~/.config/syafiqkit/google-chat/` (`GCHAT_CONFIG_DIR` overrides). `tools/gchat-mcp/bin/gchat-mcp check --read` then confirms Chat answers (it prints how many spaces it saw).
 4. Register it in every project: `tools/gchat-mcp/bin/enable` (user scope). Then `/mcp reconnect gchat`, or start a new session.
+
+**Times** are shown in this machine's time zone. Set `SYAFIQKIT_TZ` (an IANA name such as `Asia/Kuala_Lumpur`) in the registration's environment to override it.
 
 **What it asks for:** exactly four scopes: `chat.spaces.readonly`, `chat.memberships.readonly`, `chat.messages` and `directory.readonly` (to turn user ids into names). `chat.messages` lets the sign-in read, send, edit and delete your messages; the tool builds no delete. It cannot create spaces or start a new DM. If Google grants anything else, nothing is stored.
 

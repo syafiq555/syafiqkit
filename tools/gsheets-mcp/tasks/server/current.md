@@ -1,17 +1,17 @@
 <!--LLM-CONTEXT
-Status: ✅ Live in beacon-mart, autorentic, dourr (local scope); uncommitted
+Status: ✅ Live in beacon-mart, autorentic, dourr (local scope); colleagues set it up through `setup-tools`
 Domain: tools / gsheets-mcp
 Gotchas: Google normalises colour runs on write, so read-back checks compare the colour shown at each position, not run lists (../../CLAUDE.md)
-Related: ../../README.md, ../../CLAUDE.md, ~/.claude/references/google-sheets-access.md
-Last updated: 2026-11-10: `cells_awaiting_reply` (which tracker rows wait for a reply, with a status filter), checked live; 2026-11-05
+Related: ../../README.md, ../../CLAUDE.md, ../../../../tasks/plugin-maintenance/setup-tools/current.md, ~/.claude/references/google-sheets-access.md
+Last updated: 2026-11-17: `check --read`, machine time zone for `drive_search` dates (`SYAFIQKIT_TZ`), Linux browser opener; 2026-11-10
 -->
 
 # gsheets-mcp: the server
 
 ## Quick Start (read this first in next session)
 
-**Next action**: commit when Syafiq asks. The tool is untracked under `tools/gsheets-mcp/`, plus the plugin README row, CHANGELOG 1.419.0 and the manifest bump. Another session's uncommitted `setup-tracker` and `understanding-guide` work sits in the same tree, so commit by path.
-**Current state**: signed in as `syafiq.shamsuddin@techstrongbox.com` (`~/.config/syafiqkit/google/`). Registered at local scope in the three projects. The old user-scope `gsheets` server was removed on 05/11/2026. Run `cd tools/gsheets-mcp && bun test` (47 pass on 10/11) and `bunx tsc --noEmit`.
+**Next action**: none open for the server; colleague setup is tracked in `tasks/plugin-maintenance/setup-tools/current.md`.
+**Current state**: signed in as `syafiq.shamsuddin@techstrongbox.com` (`~/.config/syafiqkit/google/`), registered at local scope in the three projects. `bin/gsheets-mcp check --read` proves Drive and the Sheets API answer. Run `cd tools/gsheets-mcp && bun test` (73 pass on 17/11; `tests/preload.ts` pins `SYAFIQKIT_TZ`) and `bunx tsc --noEmit`.
 **Success looks like**: a session in one of the three projects replies on a client tracker with `cell_append_line`, and the client's blue lines stay blue.
 
 ## Overview

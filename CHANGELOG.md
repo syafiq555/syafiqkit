@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.442.0
+
+**You can now set up the Google Sheets, Google Chat and `remote` tools yourself.** Update with `claude plugin update syafiqkit@syafiqkit`, then ask Claude "set up the Google Sheets tool for me" (or Chat, or remote).
+- New `setup-tools` skill: walks you through creating your own Google Cloud project and OAuth client one step at a time, signs you in, switches each tool on and checks it with a real read. It handles both work (Google Workspace) and personal Gmail accounts. Google Chat needs a Workspace account; Sheets works with either
+- Google Chat and `drive_search` now use your Mac's own time zone instead of always Malaysia time. Nothing changes if you are in Malaysia. To force a zone, set `SYAFIQKIT_TZ` (e.g. `Europe/London`) on the server's registration. Already using gchat or gsheets? Run `/mcp reconnect gchat` and `/mcp reconnect gsheets` after updating
+- Pick your own name for the Chat app during setup: Google shows it beside every message you send through the tool
+- `gsheets-mcp check --read` and `gchat-mcp check --read` make one real Google call, so a missing API or Chat app page shows up right after signing in, not later in a session
+- Signing in on Linux no longer stops with an error when the browser can't be opened for you; the link is printed to open yourself
+- `setup-tracker` points anyone without a Google sign-in to `setup-tools`
+
 ## 1.440.0
 
 **Sending in Google Chat asks once, not twice.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.

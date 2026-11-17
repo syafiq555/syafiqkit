@@ -140,7 +140,11 @@ export async function consent(clientFile?: string): Promise<void> {
     }).toString()
 
   console.error(`\nGrant ONLY these:\n  ${SCOPES.join('\n  ')}\nIf the consent screen lists Gmail, Calendar or full Drive editing, deny it.\n\n${url}\n`)
-  Bun.spawn(['open', url], { stdout: 'ignore', stderr: 'ignore' })
+  try {
+    Bun.spawn([process.platform === 'darwin' ? 'open' : 'xdg-open', url], { stdout: 'ignore', stderr: 'ignore' })
+  } catch {
+    console.error('Open the link above in your browser.')
+  }
 
   const timeout = setTimeout(() => rejectCode(new Error('gsheets: sign-in timed out after 5 minutes. Run auth again.')), 5 * 60_000)
   try {

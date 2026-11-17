@@ -5,7 +5,8 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { configDir } from './auth.ts'
 import { Chat } from './chat.ts'
-import { count, fileSize, klTime, mapLimit, matchesAll, messageLine, parseWhen, safeFileName, sendPreview, terms } from './format.ts'
+import { count, fileSize, localTime, mapLimit, matchesAll, messageLine, parseWhen, safeFileName, sendPreview, terms } from './format.ts'
+import { timeZone } from './zone.ts'
 
 const READ = { readOnlyHint: true, openWorldHint: true }
 const SAVES_LOCALLY = { readOnlyHint: false, destructiveHint: false, openWorldHint: true }
@@ -104,7 +105,7 @@ export function checkSendFile(path: string): SendFile {
 const spaceRef = z
   .string()
   .describe('A space name (spaces/AAAA…), a space\'s display name (whole or a unique part), a person\'s name for a DM, or a colleague\'s email for your DM with them')
-const WHEN = '7d, 12h, 2w, 13/11/2026 (Malaysia time), 2026-11-13 or an ISO timestamp with an offset'
+const WHEN = `7d, 12h, 2w, 13/11/2026 (midnight, ${timeZone()} time), 2026-11-13 or an ISO timestamp with an offset`
 const when = z.string().describe(WHEN)
 
 function text(data: string) {
@@ -237,7 +238,7 @@ export function registerTools(
         .filter((s) => !type || s.spaceType === type)
         .filter((s) => !since || (s.lastActiveTime ?? '') >= since)
         .slice(0, limit)
-      const rows = await mapLimit(picked, 6, async (s) => `${s.name}  ${s.spaceType ?? '?'}  last ${klTime(s.lastActiveTime)}  ${await chat.label(s)}`)
+      const rows = await mapLimit(picked, 6, async (s) => `${s.name}  ${s.spaceType ?? '?'}  last ${localTime(s.lastActiveTime)}  ${await chat.label(s)}`)
       return rows.length ? rows.join('\n') : 'No spaces match.'
     }),
   )
@@ -247,7 +248,7 @@ export function registerTools(
     {
       title: 'Read messages in a space or DM',
       description:
-        'Messages from one space or DM, shown oldest to newest in Malaysia time, each with its thread name (pass that as thread to read or reply to one thread). It always returns the NEWEST messages within since/until, up to limit.',
+        `Messages from one space or DM, shown oldest to newest in ${timeZone()} time, each with its thread name (pass that as thread to read or reply to one thread). It always returns the NEWEST messages within since/until, up to limit.`,
       inputSchema: {
         space: spaceRef,
         since: when.optional(),
@@ -331,7 +332,7 @@ export function registerTools(
       }
       if (total > MAX_SEARCH_HITS) notes.push(`${total - MAX_SEARCH_HITS} matches not shown; narrow the search.`)
       const what = [needles.length ? needles.map((n) => `"${n}"`).join(' + ') : '', from ? `from ${from}` : ''].filter(Boolean).join(' ')
-      return [`Searched ${count(targets.length, 'space')} since ${klTime(after)} for ${what}.`, blocks.length ? blocks.join('\n\n') : 'No matches.', ...notes].join('\n')
+      return [`Searched ${count(targets.length, 'space')} since ${localTime(after)} for ${what}.`, blocks.length ? blocks.join('\n\n') : 'No matches.', ...notes].join('\n')
     }),
   )
 
@@ -424,7 +425,7 @@ export function registerTools(
       }
       const logNote = log('SENT', sent.name ?? '-')
       const withFiles = attachments.length ? ` with ${count(attachments.length, 'file')}` : ''
-      return `Sent to ${to}${withFiles} at ${klTime(sent.createTime)}. Message ${sent.name ?? '-'}, thread ${sent.thread?.name ?? '-'}.${logNote}`
+      return `Sent to ${to}${withFiles} at ${localTime(sent.createTime)}. Message ${sent.name ?? '-'}, thread ${sent.thread?.name ?? '-'}.${logNote}`
     }),
   )
 
@@ -468,7 +469,7 @@ export function registerTools(
       const files = m.attachment?.length ? ` It has ${count(m.attachment.length, 'file')}, which stay.` : ''
       const longer = current.length > MAX_SEND_CHARS ? ` The current text is over ${MAX_SEND_CHARS} characters; the new text must fit in ${MAX_SEND_CHARS}.` : ''
       return [
-        `Edit your message${m.threadReply ? ' (a reply in a thread)' : ''} in ${to}, sent ${klTime(m.createTime)}${m.lastUpdateTime ? `, last edited ${klTime(m.lastUpdateTime)}` : ''}. Now ${lines(current)}; new text ${lines(body)}.${files}${longer} Everyone in the chat sees the new text with an "Edited" label; nobody is notified again.`,
+        `Edit your message${m.threadReply ? ' (a reply in a thread)' : ''} in ${to}, sent ${localTime(m.createTime)}${m.lastUpdateTime ? `, last edited ${localTime(m.lastUpdateTime)}` : ''}. Now ${lines(current)}; new text ${lines(body)}.${files}${longer} Everyone in the chat sees the new text with an "Edited" label; nobody is notified again.`,
         `Current text:\n${current}`,
         `recipient: ${label}`,
         `version: ${version}`,
@@ -506,7 +507,7 @@ export function registerTools(
         if (isGoogleRefusal(msg)) return `NOT EDITED: Google refused the edit (${msg}). The message is unchanged. Give the user the text so it is not lost.`
         return `UNSURE WHETHER EDITED: ${msg}.${log('UNSURE-EDIT')} Re-read ${to} with messages_list before offering to edit again.`
       }
-      return `Edited your message in ${to} at ${klTime(edited.lastUpdateTime ?? edited.createTime)}. Message ${edited.name ?? message}.${log('EDITED')}`
+      return `Edited your message in ${to} at ${localTime(edited.lastUpdateTime ?? edited.createTime)}. Message ${edited.name ?? message}.${log('EDITED')}`
     }),
   )
 }

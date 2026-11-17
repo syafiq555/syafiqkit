@@ -28,6 +28,7 @@ These skills accept explicit user command:
 |-------|----------------|
 | `commit` | Create git commits from staged changes; `/commit push` also pushes |
 | `claude-server-token` | Give a server-side Claude agent a one-year `claude setup-token` token, or renew it, even when the owner is only on their phone |
+| `setup-tools` | Set up the plugin's gsheets, gchat and `remote` tools for whoever runs it: their own Google Cloud project and sign-in, step by step, until a real read works |
 | `write-summary` | Create a task summary document |
 | `update-summary` | Update an existing task summary |
 | `task-summary` | Create/update task summaries with full machinery |
@@ -98,6 +99,7 @@ These skills accept explicit user command:
 | `merge-task-docs` | Related task docs in a domain: classify by subsystem boundary, merge, delete sources, reconcile back-references |
 | `sweep-doc-overlaps` | Fleet-wide scan of all `tasks/` domains for cross-domain merge candidates; hands groups to `merge-task-docs` |
 | `ci-ssh-deploy-timeout` | "Deploy keeps timing out" or SSH intermittency in CI |
+| `setup-tools` | Someone asks how to get or set up the Sheets, Chat or `remote` tools, or one won't connect on their machine |
 | `claude-server-token` | A server's Claude agent reports "credentials expired", "OAuth session expired", a blank `refreshToken` or a 401, or keeps losing its login every few weeks |
 | `setup-playwright` | "E2E tests are flaky", "specs pass alone but fail together" |
 | `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, critique a screen (no edits), research. Public-facing page looks go to `taste`, whatever the verb. Also fires on a screenshot or a report of what someone saw |

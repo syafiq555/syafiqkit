@@ -27,7 +27,8 @@ export interface ClientCreds {
 
 export function readClient(path = clientPath()): ClientCreds {
   if (!existsSync(path)) {
-    throw new Error(`gchat: no OAuth client at ${path}. Run: gchat-mcp auth --client <Desktop-app client.json>`)
+    const reuse = existsSync(sheetsClientPath()) ? 'gchat-mcp auth (it reuses the Sheets tool\'s client)' : 'gchat-mcp auth --client <Desktop-app client.json> (the /setup-tools skill walks through making one)'
+    throw new Error(`gchat: no OAuth client at ${path}. Run: ${reuse}`)
   }
   const raw = JSON.parse(readFileSync(path, 'utf8'))
   const d = raw.installed ?? raw.web ?? raw
@@ -137,7 +138,11 @@ export async function consent(clientFile?: string): Promise<void> {
     }).toString()
 
   console.error(`\nGrant ONLY these:\n  ${SCOPES.join('\n  ')}\nIf the consent screen lists Gmail, Calendar or Drive, deny it. Managing your Chat messages (read, send, edit, delete) is expected.\n\n${url}\n`)
-  Bun.spawn(['open', url], { stdout: 'ignore', stderr: 'ignore' })
+  try {
+    Bun.spawn([process.platform === 'darwin' ? 'open' : 'xdg-open', url], { stdout: 'ignore', stderr: 'ignore' })
+  } catch {
+    console.error('Open the link above in your browser.')
+  }
 
   const timeout = setTimeout(() => rejectCode(new Error('gchat: sign-in timed out after 5 minutes. Run auth again.')), 5 * 60_000)
   try {

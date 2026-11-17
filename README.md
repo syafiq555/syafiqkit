@@ -43,6 +43,8 @@ It draws nothing in the VS Code panel or `claude -p`. It runs with your permissi
 
 ## Shell tools
 
+**To set any of these up, ask Claude "set up the Google Sheets / Google Chat / remote tool for me".** The `/setup-tools` skill walks you through it, including your own Google Cloud project, and checks it works. Google Chat needs a Google Workspace account; Sheets works with personal Gmail too.
+
 | Tool | Description |
 |------|-------------|
 | `remote` | Run commands on your servers over SSH, upload files and download one file. Needs Bun and a one-time setup: see [`tools/remote-cli/README.md`](tools/remote-cli/README.md) |
@@ -108,6 +110,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
 | `/ci-ssh-deploy-timeout` | Diagnose + fix flaky CI deploys that SSH-timeout to a server (rules out firewall, applies connect-only retry) |
+| `/setup-tools` | Set up the Google Sheets, Google Chat and `remote` tools on your machine: your own Google Cloud project, sign-in and switch-on, step by step, checked with a real read |
 | `/claude-server-token` | Move a server's Claude agent onto a one-year `claude setup-token` token, or renew it, including a phone-only login run from this Mac |
 | `/setup-playwright` | Set up a Playwright E2E suite, or harden a flaky one (per-worker fixtures, seeded test data, throttle-safe auth) |
 | `/setup-tracker` | Set up or fix a shared tracker spreadsheet for a project or for all projects: a status that says whose turn it is, a one-line latest update with history underneath, counts across the top so nobody needs a guide, built in one go from a settings file |

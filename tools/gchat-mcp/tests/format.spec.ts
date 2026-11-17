@@ -1,9 +1,38 @@
 import { describe, expect, test } from 'bun:test'
 import { grantedScopesMatch, SCOPES } from '../src/auth.ts'
-import { klTime, mapLimit, matchesAll, messageLine, parseWhen, safeFileName, terms } from '../src/format.ts'
+import { localTime, mapLimit, matchesAll, messageLine, parseWhen, safeFileName, terms } from '../src/format.ts'
+
+function inZone<T>(zone: string, run: () => T): T {
+  const was = process.env.SYAFIQKIT_TZ
+  process.env.SYAFIQKIT_TZ = zone
+  try {
+    return run()
+  } finally {
+    if (was === undefined) delete process.env.SYAFIQKIT_TZ
+    else process.env.SYAFIQKIT_TZ = was
+  }
+}
 
 describe('dates', () => {
   const now = new Date('2026-11-13T04:00:00Z')
+
+  test('a bare date is midnight in the configured zone, daylight saving included', () => {
+    inZone('America/New_York', () => {
+      expect(parseWhen('2026-07-01')).toBe('2026-07-01T04:00:00.000Z')
+      expect(parseWhen('2026-12-01')).toBe('2026-12-01T05:00:00.000Z')
+      expect(localTime('2026-12-01T05:30:00Z')).toBe('01/12/2026 00:30')
+    })
+    inZone('America/Sao_Paulo', () => {
+      expect(parseWhen('2018-11-04')).toBe('2018-11-04T03:00:00.000Z')
+    })
+    inZone('Asia/Gaza', () => {
+      expect(parseWhen('2018-10-27')).toBe('2018-10-26T21:00:00.000Z')
+    })
+  })
+
+  test('an unknown zone name says so', () => {
+    expect(() => inZone('Mars/Olympus', () => parseWhen('2026-07-01'))).toThrow('not a time zone')
+  })
 
   test('relative windows count back from now', () => {
     expect(parseWhen('7d', now)).toBe('2026-11-06T04:00:00.000Z')
@@ -11,7 +40,7 @@ describe('dates', () => {
     expect(parseWhen('2w', now)).toBe('2026-10-30T04:00:00.000Z')
   })
 
-  test('a bare date means Malaysia midnight, in either written order', () => {
+  test('a bare date means Kuala Lumpur midnight, in either written order', () => {
     expect(parseWhen('13/11/2026')).toBe('2026-11-12T16:00:00.000Z')
     expect(parseWhen('2026-11-13')).toBe('2026-11-12T16:00:00.000Z')
     expect(parseWhen('3/1/2026')).toBe('2026-01-02T16:00:00.000Z')
@@ -24,9 +53,9 @@ describe('dates', () => {
     expect(parseWhen('2026-11-13T10:00:00+08:00')).toBe('2026-11-13T02:00:00.000Z')
   })
 
-  test('shows Malaysia time as dd/MM/yyyy HH:mm', () => {
-    expect(klTime('2026-11-12T16:05:00Z')).toBe('13/11/2026 00:05')
-    expect(klTime(undefined)).toBe('-')
+  test('shows the time in the configured zone as dd/MM/yyyy HH:mm', () => {
+    expect(localTime('2026-11-12T16:05:00Z')).toBe('13/11/2026 00:05')
+    expect(localTime(undefined)).toBe('-')
   })
 })
 
