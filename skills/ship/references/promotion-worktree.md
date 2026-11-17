@@ -6,12 +6,28 @@ Read when Step 3 must merge or cherry-pick onto the deploy branch and the workin
 
 On a shared checkout carrying another session's in-flight files, `git checkout <deploy-branch>` succeeds and carries those files onto the deploy branch. Only the following `git merge` fails, listing files the merge never touches. By then a peer's work is already on the branch you are about to ship, and the promotion is half-started. The failure also reads as a conflict to resolve, which invites stashing someone else's work to clear the path.
 
-## Recipe
+## First choice: rebuild the commits in place, no checkout at all
+
+When the picks apply cleanly, git can build them on the deploy branch's tip without touching the working tree, the index or any branch, so a shared checkout stays exactly as it was:
+
+```bash
+tip=$(git rev-parse origin/<deploy-branch>)
+for c in <your SHAs, oldest first>; do
+  tree=$(git merge-tree --write-tree --merge-base "$c^" "$tip" "$c") || { echo "conflict on $c"; break; }
+  tip=$(git log -1 --format=%B "$c" | git commit-tree "$tree" -p "$tip")
+done
+git diff --name-only origin/<deploy-branch> "$tip"   # only your files
+git push origin "$tip:refs/heads/<deploy-branch>"
+```
+
+`merge-tree --write-tree` (git 2.38+) exits non-zero on a conflict, which is the moment to fall back to the worktree below. Pass the original author through `GIT_AUTHOR_*` if it matters. The local branch keeps the original commits under their old IDs; a later `git merge origin/<deploy-branch>` folds them in without conflict, since the content is identical. Prefer this route: a worktree needs its own dependencies to run the project's checks (a symlinked `vendor` or `node_modules` can make path-sensitive tests fail), and a user watching a shared checkout reads a new folder beside it as risk (17/11/2026: the worktree route was refused twice with "cannot inside here ?", and this route shipped the same four commits).
+
+## Recipe (worktree, when a pick conflicts)
 
 1. `git worktree add ../<repo>-ship <deploy-branch>` beside the repo, never under `/tmp`. A sandboxed session's `/tmp` can be gone by the next shell call while git still lists the worktree, and a `cd /tmp/<name> && ...` chain then skips silently and the rest of the line runs in the shared checkout. `git worktree prune` clears a stale entry.
 2. `cd` into the worktree in every call.
 3. `git cherry-pick <your SHAs>`.
-4. Verify `git diff --name-only origin/<deploy-branch>..HEAD` lists only your files.
+4. Verify `git diff --name-only origin/<deploy-branch>..HEAD` lists only your files. To run tests there, copy the gitignored dependency folder rather than symlinking it: Composer's autoloader resolves the source path from its own real location, so a `vendor/` symlinked from the main checkout runs the main checkout's code and the worktree's suite proves nothing (17/11/2026: identical test counts in both trees gave it away). Copy it and run `composer dump-autoload`; check the count moves with what the worktree adds.
 5. Push, then `git worktree remove --force`.
 
 ## Next leg

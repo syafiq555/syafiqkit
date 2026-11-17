@@ -288,6 +288,37 @@ describe('awaiting reply', () => {
     }
   })
 
+  test('with myNames, a link inside a signed client line keeps the rest of the line theirs', () => {
+    const head = 'Ana 17/11:\nPlease combine the terms, as per the attached PDF. '
+    const url = 'https://drive.google.com/file/d/abc/view'
+    const tail = '\n\nThe website T&C is plain text. Please fix this.'
+    const cell: CellData = {
+      userEnteredValue: { stringValue: head + url + tail },
+      textFormatRuns: [
+        { startIndex: 0, format: {} },
+        { startIndex: head.length, format: { foregroundColorStyle: { rgbColor: hexToRgb('#1155cc') }, link: { uri: url } } },
+        { startIndex: head.length + url.length, format: {} },
+      ],
+    }
+    const result = awaitingReply(cell, MINE, ['Syafiq'])
+    expect(result?.theirColours).toEqual(['signed:ana'])
+    expect(result?.theirs).toContain('Please fix this.')
+  })
+
+  test('with myNames, a link in your own reply stays yours', () => {
+    const head = 'Ana 17/11: q\nSyafiq 17/11: see '
+    const url = 'https://example.test/x'
+    const cell: CellData = {
+      userEnteredValue: { stringValue: head + url + ' for details.' },
+      textFormatRuns: [
+        { startIndex: 0, format: {} },
+        { startIndex: head.length, format: { foregroundColorStyle: { rgbColor: hexToRgb('#1155cc') }, link: { uri: url } } },
+        { startIndex: head.length + url.length, format: {} },
+      ],
+    }
+    expect(awaitingReply(cell, MINE, ['Syafiq'])).toBeNull()
+  })
+
   test('with myNames, a client line addressing you by name is not taken for your signature', () => {
     const cell: CellData = { userEnteredValue: { stringValue: 'Jasmine 13/11: still broken\nSyafiq please check: the link fails' }, userEnteredFormat: { textFormat: black } }
     expect(awaitingReply(cell, MINE, ['Syafiq'])?.theirColours).toEqual(['signed:jasmine'])

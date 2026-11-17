@@ -60,7 +60,7 @@ Apply two rules ON TOP of `/commit`, specific to the ship context:
 
 **Deploy target:** Read `CLAUDE.md`/`CLAUDE.local.md` for which branch deploys to which environment. Projects often have multiple targets (`main` → staging, `prod` → production) and CI goes green either way, so pushing to the wrong branch is silent. If the current branch isn't the deploy branch, merge onto it (`git checkout <deploy-branch> && git merge <current> --no-edit`), then push.
 
-⚠️ **Run `git status --short` before that checkout, and where the tree holds work that isn't yours, promote from a throwaway worktree beside the repo, never under `/tmp`.** A checkout carries a peer's in-flight files onto the deploy branch and only the following merge fails. Don't stash someone else's work to clear the path. In the worktree, cherry-pick only your SHAs and check `git diff --name-only origin/<deploy-branch>..HEAD` lists only your files before pushing. 📖 `references/promotion-worktree.md` for the recipe, the next-leg merge rule and why cherry-pick scopes the ship.
+⚠️ **Run `git status --short` before that checkout, and where the tree holds work that isn't yours, don't check anything out: rebuild only your SHAs on the deploy branch's tip with `git merge-tree --write-tree` and `git commit-tree`, which touch no file, index or branch, then push that commit.** A checkout carries a peer's in-flight files onto the deploy branch and only the following merge fails. Don't stash someone else's work to clear the path. A throwaway worktree beside the repo (never under `/tmp`) is the fallback for a pick that conflicts. Either way, check that the diff against `origin/<deploy-branch>` lists only your files before pushing. 📖 `references/promotion-worktree.md` for both recipes, the next-leg merge rule and why cherry-pick scopes the ship.
 
 **What's riding along:** Run `git diff --name-only <deploy-branch>..HEAD` and read those hunks. A commit message says *why* a change exists, not *what* changed, so a `chore:` or `docs:` subject can hide live behavior (feature flags, payout schedules, cron jobs, migrations, currency multipliers). Scan the changed paths for a runtime surface (`config/`, `Kernel.php`, migrations, `.env.example`) and read the hunks rather than the subject lines. Anything that moves money, mail, or user-visible state belongs in the user's decision before merging, not in the summary after. If uncertain, ask.
 
@@ -140,6 +140,7 @@ Scope the note to everything the push carried, and to whatever this session chan
 | CI/CD | ✅ | [deploy status per repo] |
 | Prod Verify | ✅ | [what you observed on the server — HEAD match, or the shipped behavior itself] |
 | Release Note | ✅ | [posted to <space> at <time>, or why not posted]; text below |
+| Images | ✅ | [captures sent as a thread reply, each opened first; or the ones dropped and why; or "none rendered this session"] |
 | Cards | ✅ | [cards flipped to done, from `Task:` lines; omit the row when the range named none] |
 
 [Operator commentary — open items, caveats, offers, status the user should know. Omit if none. This is the ONLY place commentary goes; a choice they have to make goes in the Decisions block above instead, since anything parked down here is something they can read past.]

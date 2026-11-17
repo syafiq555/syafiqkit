@@ -319,7 +319,9 @@ export function awaitingReply(cell: CellData, mine: string[], myNames: string[] 
   const names = myNames.map((n) => n.trim().toLowerCase()).filter(Boolean)
   const lead = { colour: d.baseColour, text: d.text.slice(0, d.runs[0]?.start ?? d.text.length) }
   let current = ''
+  let previous = 'default'
   const spoken = [lead, ...d.runs]
+    .map((r) => ('link' in r && r.link ? { ...r, colour: previous } : ((previous = r.colour), r)))
     .flatMap((r) => (names.length && own.has(r.colour) ? splitLines(r) : [r]))
     .map((r) => {
       if (!names.length) return r

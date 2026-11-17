@@ -38,6 +38,15 @@ So make the next prompt carry the evidence instead of your memory. After any pat
 
 Carry forward the same protected-fact list across all three prompts. Build it once before Pass 1 by reading the target; don't rebuild per pass. A fact that survives Pass 1 reworded needs the same protection in Pass 2's prompt even though its wording changed.
 
+## A target that holds credentials {#credential-targets}
+
+A machine-local companion or `CLAUDE.local.md` often carries passwords, API keys and test logins inline. Every pass reads it whole, and any line you print to check a pass (a `git diff`, a `grep`, a section dump) puts a secret into the transcript. So:
+
+- **Each pass's prompt** says: keep every secret byte-identical and edit around it, never quote one in the report or in tool output, read with the Read tool and never grep for one.
+- **Read for meaning from a masked copy.** Write one with a script that masks tokens mixing letter classes and digits, plus whatever follows `password`/`key`/`secret`/`token`, then read that copy rather than the target. The mask over-matches (quoted phrases, camel-case names). That costs nothing, because it only hides words from you.
+- **Check secret survival by token set, not by reading.** Every token the mask hid in the original is a candidate. After each pass, print only how many candidates are missing and their original line numbers. Then inspect each miss with its value hidden (first three characters, length, and the words before it). Measured 17/11/2026: of 150 candidates, 14 went missing after the condense pass, and all 14 were mask false positives (quoted phrases), which the hidden-value view showed without printing a secret.
+- **The masked reference is evidence until the last writer is done.** `/done`'s simplifier and reviewer write after Pass 3, so keep the masked copy and the check script until they return. Then delete every snapshot holding secrets, including any backup an agent made on its own (📖 `../../haiku/references/verifying.md` § Surplus writes). Deleting them at the end of Pass 3 left the post-simplifier state unchecked (17/11/2026).
+
 ## When to pause between passes — the real case
 
 Legitimate pauses are rare. Invoking this skill authorised the whole sequence, so the only pause is a failed verification — and saying "verification failed, I'm patching" is a different question from "should I continue with the next pass?" When verification passes clean, that's evidence the pass worked well and therefore reason to continue, not cause for re-asking.

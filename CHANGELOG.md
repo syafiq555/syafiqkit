@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.443.0
+
+**Builds start with research, and a ship from a busy checkout leaves it untouched.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `read-summary`, `tackle`: a build plan gets one `haiku` research agent per item (decision records, the spec rows, the code it touches, how strong products handle it, a URL per claim) before you approve it. On 17/11 a four-card plan had read a 15-day payout cycle as the payable wait; the research caught it, plus a missing permission and an unrouted payment callback
+- `haiku`: a research brief starts with `read-summary` on its topic, so large documents (a spec, a contract) are read through their outline, not grepped whole
+- `done`: a review question that changes who can do or see something is researched first, with the spec's and platforms' words quoted in the options
+- `ship`: on a checkout holding other sessions' work, your commits are rebuilt on the deploy branch with `git merge-tree` and `git commit-tree` and pushed, with no checkout, worktree or stash; a worktree is only the fallback for a conflict. The Ship Summary gains an Images row, so screenshots for the team post are either sent or named as dropped
+- `agent-setup`'s task-builder: every file change goes through Edit or Write, never `sed -i`, heredocs or `tee`, after six such writes in one day despite the rule in each brief
+- `gchat-format` and the Chat send and edit tools: a message posted through the tool joins two plain lines that have only a line break between them, so lines that must stay apart get a blank line (a release post's "Before:" and "Now:" ran together, twice)
+- `casual-message`: a URL, event name, key prefix or command the recipient must copy exactly goes in single or triple ticks, with a four-tick outer fence so the copy button keeps them
+- `haiku`'s research check: "the vendor's plugin can't do X" is kept apart from "the platform can't", so building your own integration is offered beside accepting the limit
+- `ship`: tests in a promotion worktree run against a copied `vendor/`, since a symlinked one loads the main checkout's code
+
 ## 1.442.0
 
 **You can now set up the Google Sheets, Google Chat and `remote` tools yourself.** Update with `claude plugin update syafiqkit@syafiqkit`, then ask Claude "set up the Google Sheets tool for me" (or Chat, or remote).
@@ -9,6 +22,14 @@
 - `gsheets-mcp check --read` and `gchat-mcp check --read` make one real Google call, so a missing API or Chat app page shows up right after signing in, not later in a session
 - Signing in on Linux no longer stops with an error when the browser can't be opened for you; the link is printed to open yourself
 - `setup-tracker` points anyone without a Google sign-in to `setup-tools`
+
+## 1.441.0
+
+**Refreshing a doc that holds passwords no longer means printing them.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `refresh-instructions` now has a procedure for a target holding credentials, such as a machine-local companion with sudo passwords, API keys or test logins. Each pass's brief keeps every secret byte-identical and never quotes one. You read the rewrite from a masked copy, and a token-set check reports only how many secret-like values went missing and on which lines, so a lost key shows without being displayed. The masked reference is kept until `/done`'s reviewers have also written, then every snapshot holding secrets is deleted
+- `claude-server-token`: the token test now names `--model haiku`, so a hook that refuses an unmodelled `claude -p` no longer blocks it. Before sending a phone link, the skill checks whether the login already finished in the Mac's own browser. It pulls the sign-in link line by line, so the next prompt's text no longer rides along and breaks it. Installing now starts by finding out when the server reads its env file, so a runner that sources it on every run gets no needless restart
+- `read-summary`: checking one claim against a large word-for-word copy (a spec, a quotation) now goes through its outline too. A keyword grep across the copy counts as skipping the outline, since its hits come back cut from their section and miss the neighbouring rows that narrow them
+- gsheets `cells_awaiting_reply`: a link pasted inside a client's signed line (Google's blue link styling) no longer ends their signature, so the rest of their line stops reading as yours and the row stays listed. Run `/mcp reconnect gsheets` after updating
 
 ## 1.440.0
 

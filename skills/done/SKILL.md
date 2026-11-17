@@ -82,7 +82,7 @@ Reconcile agents against each other and the work: each sees one repo, domain or 
 
 Cross-agent findings are applied *after* both return, by you or a fresh dispatch carrying the finding in its brief, never by messaging a running agent.
 
-Product-reviewer questions go through one `AskUserQuestion` call before Step 4, so the task doc records answers, not open questions. Before asking, open the code each question's premise rests on. **Tell: an option repeats a reviewer's claim about behaviour and you have not opened the file that decides it.**
+Product-reviewer questions go through one `AskUserQuestion` call before Step 4, so the task doc records answers, not open questions. Before asking, open the code each question's premise rests on. A question that changes who can do or see something (which role ships, who sets a status, what an exit from a stuck state is) is also researched before it is asked: one `haiku` agent per question for the spec or contract rows that govern it and how strong platforms handle it, with the quotes inside the options. Offered without that, the user answers "research" and the questions are asked twice (17/11/2026: three order-screen questions came back as "/haiku research", then "did u check brs or how other platform handle this?"). **Tell: an option repeats a reviewer's claim about behaviour and you have not opened the file that decides it, or a who-can-do option carries no quote from the spec or a platform.**
 
 ## Step 2: Clean up temp code
 

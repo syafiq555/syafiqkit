@@ -27,3 +27,7 @@ curl -sL -o /dev/null -w '%{http_code}' -H 'User-Agent: Mozilla/5.0 …' '<url>'
 A guessed URL 404s for reasons that say nothing about whether the page exists.
 
 **Tell: the report concludes something does not exist, and your evidence for that is the report's own failed fetches.**
+
+## "The plugin can't" is not "the platform can't"
+
+A negative finding about an integration (a vendor's plugin, SDK or connector lacks a feature) is a fact about that integration, and it relays as a limit of the platform behind it unless you separate the two. Before the finding reaches a recommendation, ask whether the platform's own API does the thing: if it does, "build our own integration" is an option the user needs to see, with a size, beside "accept the limit". Measured 17/11/2026: research found that WooCommerce's Stripe plugin has no FPX, the answer went out as "Stripe means cards only", and the user had to ask "is there no way for fpx to work?" before the own-gateway route (which the project had already taken once, for another gateway) was offered. **Tell: your options for a missing feature are "use the vendor's plugin without it" and nothing that names the platform's own API.**
