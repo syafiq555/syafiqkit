@@ -23,3 +23,7 @@ When genuinely unsure whether a target is this class or one of the other four, c
 
 **Not a sixth target type — a MADR/decision log is out of scope entirely, not a stricter case of one of the five above.** The "fact vs. constraint" test doesn't apply to it: a decision log records what was decided and why, it doesn't issue instructions to a reader, so there's nothing in it to unhobble. What puts it out of scope is that job, not its path — and the two come apart routinely, because a `tasks/**/current.md` carries ADR blocks *and* a symptom-indexed gotcha table in the same file. That table does instruct a reader ("you hit X, here's what's going on"), making it the fifth type living inside a file a path-based reading would exclude wholesale. So judge the section you were pointed at rather than the filename: ADR blocks stay untouched, a `| Symptom | Rule |` table beside them is fair game. A request that names only the file, or that arrives as a design question plus the asker's own reasoning, is worth one clarifying question — both about which section, and about whether they want this pass at all rather than help reasoning through the decision itself.
 
+## Task doc skeleton: the measured failure
+
+Measured 2026-10-01: three of six haiku passes on task docs did one of the forbidden things. They deleted LLM-CONTEXT, renamed sections to "Living Systems" and "Status", and deleted 11 rows "that would have moved if allowed", although the brief allowed the move.
+

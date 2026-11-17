@@ -33,3 +33,11 @@ A source the pass leans on gets the same end-to-end treatment as the target: an 
 A verdict built on a sample is a claim about that sample. "Well-shaped, no edit needed" after skimming several tables says nothing about the sections never opened, and a large target is exactly where this substitution happens — a file announcing its own recent restructure reads as already done, and the question quietly drifts from *are these rules judgement dressed as mandate* (this pass) to *is this file big* (`condense-claude-md`).
 
 A marker count locates candidates and nothing more; the densest file is often the healthiest and the one with no markers can be the badly shaped one. Only reading settles it. On a large file, open at least one table and actually attempt a conversion before concluding there are no clusters — a failed attempt is evidence, an unattempted one is a guess.
+
+## Degrees of freedom: where the principle stops
+
+The framing is *degrees of freedom*: match how tightly you specify something to how fragile it is. Where several approaches are valid and the right one depends on context, a rigid rule is worse than useless: it fires on the cases it was written for and misfires on every neighbour, and a reader who absorbed twenty of them reaches for an instrument instead of thinking. That is what the unhobble pass exists to undo. The same principle sends fragile, must-be-identical operations the other way: an exact command, a literal threshold or a specific sequence is *low* freedom by design, and converting it to judgement prose is the same error inverted. The test that separates them is what happens when the reader is wrong: a misjudged heuristic costs a rethink, a mangled command costs the operation.
+
+## Shape questions versus content questions
+
+The first four questions are about shape and the last two about content, and that split is why a pass can go wrong while looking thorough. Reordering sections, merging duplicate homes and regrouping a table all answer the shape questions completely, and a file can come out better organised with every rule it started with. That is reorganisation, not this pass.

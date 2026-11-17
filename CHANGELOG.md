@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.447.4
+
+**`unhobble-instructions` fits inside the 5,000-token limit again, and `ship` no longer switches the active GitHub account.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `unhobble-instructions` (5,009 to 4,330 tokens): sections now run in the order a pass works (read, assess, route, rewrite, verify), five dated stories moved to the references that already covered them, and the body carries no em dashes. New rule from 1.447.2's refresh: reconciling a hard rule with an exception writes in only an exception the file already states, and a sentence another skill quotes stays verbatim with nothing added beside it.
+- `ship` Step 3: when the wrong `gh` account is active, prefix the calls that need the other one with `GH_TOKEN=$(gh auth token --user <user>)` instead of `gh auth switch`, which changes the account for every session on the machine.
+
 ## 1.447.3
 
 **`watch-sheets` checks other sessions for a watch on the same sheets before starting its own.** Update with `claude plugin update syafiqkit@syafiqkit`.

@@ -70,7 +70,7 @@ Two rules ON TOP of `/commit`, specific to ship:
 
 **Safety: don't orphan commits.** `reset --hard origin/<branch>` is correct on the branch you merge *into* and destructive on the one you merge *from*, and `git status` reads clean after it, so the loss isn't visible. Before any reset, `git log --oneline @{u}..HEAD` must be empty; if not, merge directly (`git checkout <target> && git merge <this-branch> --no-edit`). 📖 `references/orphaned-commits.md` for the reachability check and recovery.
 
-**Check GitHub auth:** `gh auth status`. If the wrong account is active, `gh auth switch --user <personal-user>` (`gh` auth is independent of the SSH remote alias). Then push:
+**Check GitHub auth:** `gh auth status`. If the wrong account is active, prefix the `gh` calls that need the other one with `GH_TOKEN=$(gh auth token --user <user>)` rather than switching the active account, which other sessions share (`gh` auth is independent of the SSH remote alias). Then push:
 
 ```bash
 git push
