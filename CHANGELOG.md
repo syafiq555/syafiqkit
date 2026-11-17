@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.448.2
+
+**`uat-script` plans for testers running tabs in parallel.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- Seed one copy of every record per tab, keep global state (a payout cycle, a platform switch) to the tab that owns it and name it by role rather than date, and give the seeder a new-round mode instead of a reload, since append-only data can't be reset. Platform-wide switches (staff two-step, role permissions) run on the last test day. From a marketplace UAT seeder whose first version had one record per state and three tabs consuming the same orders.
+
 ## 1.448.1
 
 **A doc refresh no longer invents decision alternatives, keeps its restore baseline intact, and skips condense where it can't help.** Update with `claude plugin update syafiqkit@syafiqkit`.

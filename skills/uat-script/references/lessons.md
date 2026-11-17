@@ -13,6 +13,7 @@ Measured on two client projects (a WooCommerce plugin's UAT, October to November
 | A blank-field check expected the app's message, but the browser's own "Please fill out this field" stopped the form first | For a field marked required in the page, expect the browser prompt; the app's message shows only for a wrong value |
 | A quotation sentence with a straight apostrophe failed the word-for-word check against the signed text's curly one | Copy the sentence from the source file, never retype it |
 | Checks that switched a shop's set-up or a masking setting broke other testers' checks reading the same shop | Give settings checks their own seeded record, or a put-it-back step |
+| A marketplace's first seeder made one record per state: a product review found Logistics shipping the order Seller Centre checks needed Paid, two tabs closing the same payout cycle, and "ask TSB to reload" impossible because the seeder only added what was missing (18/11/2026) | One copy of each record per tab, shared global state owned by one tab and named by role, a new-round command instead of a reload, platform-wide switches on the last day |
 | A tester's remark "unable to test due to go-live mid of the month" | A check gated on a date gets a test-site switch so it runs any day |
 
 ## Status and sign-off {#status}
