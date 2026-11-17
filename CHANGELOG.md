@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.448.1
+
+**A doc refresh no longer invents decision alternatives, keeps its restore baseline intact, and skips condense where it can't help.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `task-summary` (templates, theme file): conforming someone else's recorded decision into a block takes Problem and Rejected only from the source; the "upgrade when unsure" rule is for decisions written now. A haiku restructure pass had added three "Option B, why not" entries nobody weighed.
+- `refresh-instructions`: after Pass 1, check every added `**Rejected**`/`**Problem**` line against the snapshot; each pass snapshots into its own folder, never an earlier one (a split's new files overwrote the pre-condense baseline Pass 3 needed); a decisions file under 40 KB made of decision blocks, quotes or a meeting record runs Pass 1 and 3 only, since condense keeps all three whole (under 2% across 30 such files).
+
 ## 1.448.0
 
 **New skill `uat-script`: build a client UAT script whose checks can't drift from the screen or the contract.** Update with `claude plugin update syafiqkit@syafiqkit`.
