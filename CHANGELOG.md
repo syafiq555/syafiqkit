@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.445.0
+
+**Watching a tracker now catches a client reopening a closed row by writing in it.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `watch-sheets`: each check also lists Closed rows with a client line after ours, keeps each one's last line, and raises a row only when that line is new and asks something. Before, a "still not working" written on a Closed row without a status change was never seen, because the reply check drops Closed rows first (17/11: 22 Closed rows on one tracker, all sign-offs, checked by hand).
+
 ## 1.444.0
 
 **A project's own release-post format wins over the default Chat formatting.** Update with `claude plugin update syafiqkit@syafiqkit`.
