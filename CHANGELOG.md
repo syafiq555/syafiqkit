@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.446.0
+
+**Pushing from a shared checkout no longer leaves local main behind its own pushed commits.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `commit`: when the branch is behind, the push step runs the new `scripts/sync-push.sh`, which rebuilds your commits on the remote tip without touching files, skips any already pushed, pushes, then moves the local branch to the pushed commit while leaving other sessions' unsaved edits alone. Before, a temporary worktree pushed a copy and the local branch stayed on the original, so the next push showed "ahead 1, behind 2" over work that was already upstream.
+- `ship`: a commit built with `commit-tree` and pushed by SHA onto the branch you're on is followed by `sync-push.sh --no-push`, so local `main` moves to it too.
+
 ## 1.445.0
 
 **Watching a tracker now catches a client reopening a closed row by writing in it.** Update with `claude plugin update syafiqkit@syafiqkit`.

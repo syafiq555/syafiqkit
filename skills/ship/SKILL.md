@@ -60,7 +60,9 @@ Apply two rules ON TOP of `/commit`, specific to the ship context:
 
 **Deploy target:** Read `CLAUDE.md`/`CLAUDE.local.md` for which branch deploys to which environment. Projects often have multiple targets (`main` → staging, `prod` → production) and CI goes green either way, so pushing to the wrong branch is silent. If the current branch isn't the deploy branch, merge onto it (`git checkout <deploy-branch> && git merge <current> --no-edit`), then push.
 
-⚠️ **Run `git status --short` before that checkout, and where the tree holds work that isn't yours, don't check anything out: rebuild only your SHAs on the deploy branch's tip with `git merge-tree --write-tree` and `git commit-tree`, which touch no file, index or branch, then push that commit.** A checkout carries a peer's in-flight files onto the deploy branch and only the following merge fails. Don't stash someone else's work to clear the path. A throwaway worktree beside the repo (never under `/tmp`) is the fallback for a pick that conflicts. Either way, check that the diff against `origin/<deploy-branch>` lists only your files before pushing. 📖 `references/promotion-worktree.md` for both recipes, the next-leg merge rule and why cherry-pick scopes the ship.
+⚠️ **Run `git status --short` before that checkout, and where the tree holds work that isn't yours, don't check anything out: rebuild only your SHAs on the deploy branch's tip with `git merge-tree --write-tree` and `git commit-tree`, which touch no file, index or branch, then push that commit.** A checkout carries a peer's in-flight files onto the deploy branch and only the following merge fails. Don't stash someone else's work to clear the path. A throwaway worktree beside the repo (never under `/tmp`) is the fallback for a pick that conflicts. Either way, check that the diff against `origin/<deploy-branch>` lists only your files before pushing.
+
+**A push by SHA leaves the checked-out branch behind, so follow it with `<this skill's base directory>/../commit/scripts/sync-push.sh --no-push`** whenever the pushed commit lands on the branch you're on (the deploy branch is your own, or one commit goes to both `main` and `staging`). Without it the files stay "modified" in the tree and the next session's push reads ahead and behind over work already upstream (beacon-mart 17/11, `4695c75e`). 📖 `references/promotion-worktree.md` for both recipes, the next-leg merge rule and why cherry-pick scopes the ship.
 
 **What's riding along:** Run `git diff --name-only <deploy-branch>..HEAD` and read those hunks. A commit message says *why* a change exists, not *what* changed, so a `chore:` or `docs:` subject can hide live behavior (feature flags, payout schedules, cron jobs, migrations, currency multipliers). Scan the changed paths for a runtime surface (`config/`, `Kernel.php`, migrations, `.env.example`) and read the hunks rather than the subject lines. Anything that moves money, mail, or user-visible state belongs in the user's decision before merging, not in the summary after. If uncertain, ask.
 
@@ -78,6 +80,8 @@ Apply two rules ON TOP of `/commit`, specific to the ship context:
 ```bash
 git push
 ```
+
+If `git status -sb` shows `[behind N]` or the push is rejected as non-fast-forward, run `<this skill's base directory>/../commit/scripts/sync-push.sh` from the repo root instead of pulling: it replays your commits on the remote tip, pushes, and moves the local branch without touching peers' files (exit 1 is a real conflict, exit 2 a peer's edit blocking the local move after the push succeeded).
 
 ### Step 4a: Kick Off CI/Deploy
 

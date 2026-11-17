@@ -18,9 +18,10 @@ for c in <your SHAs, oldest first>; do
 done
 git diff --name-only origin/<deploy-branch> "$tip"   # only your files
 git push origin "$tip:refs/heads/<deploy-branch>"
+"$SHIP_SKILL_DIR"/../commit/scripts/sync-push.sh --no-push   # ship's base directory; only when <deploy-branch> is checked out here
 ```
 
-`merge-tree --write-tree` (git 2.38+) exits non-zero on a conflict, which is the moment to fall back to the worktree below. Pass the original author through `GIT_AUTHOR_*` if it matters. The local branch keeps the original commits under their old IDs; a later `git merge origin/<deploy-branch>` folds them in without conflict, since the content is identical. Prefer this route: a worktree needs its own dependencies to run the project's checks (a symlinked `vendor` or `node_modules` can make path-sensitive tests fail), and a user watching a shared checkout reads a new folder beside it as risk (17/11/2026: the worktree route was refused twice with "cannot inside here ?", and this route shipped the same four commits).
+`merge-tree --write-tree` (git 2.38+) exits non-zero on a conflict, which is the moment to fall back to the worktree below. Pass the original author through `GIT_AUTHOR_*` if it matters. A push by SHA never moves a local branch. When `<deploy-branch>` is the branch checked out here (often `main`), the last line moves it to the pushed commit, leaving peers' unsaved files alone; skip it and the next push reads "ahead N, behind M" over work already upstream (beacon-mart 17/11). Never fold the old commits back in with `git merge origin/<deploy-branch>`: that adds a merge of identical work on a shared tree. A branch that is not checked out (a separate `staging`) needs nothing. Prefer this route: a worktree needs its own dependencies to run the project's checks (a symlinked `vendor` or `node_modules` can make path-sensitive tests fail), and a user watching a shared checkout reads a new folder beside it as risk (17/11/2026: the worktree route was refused twice with "cannot inside here ?", and this route shipped the same four commits).
 
 ## Recipe (worktree, when a pick conflicts)
 
@@ -28,7 +29,7 @@ git push origin "$tip:refs/heads/<deploy-branch>"
 2. `cd` into the worktree in every call.
 3. `git cherry-pick <your SHAs>`.
 4. Verify `git diff --name-only origin/<deploy-branch>..HEAD` lists only your files. To run tests there, copy the gitignored dependency folder rather than symlinking it: Composer's autoloader resolves the source path from its own real location, so a `vendor/` symlinked from the main checkout runs the main checkout's code and the worktree's suite proves nothing (17/11/2026: identical test counts in both trees gave it away). Copy it and run `composer dump-autoload`; check the count moves with what the worktree adds.
-5. Push, then `git worktree remove --force`.
+5. Push, then `git worktree remove --force`. If `<deploy-branch>` is checked out in the main tree, run `sync-push.sh --no-push` there, as above.
 
 ## Next leg
 
