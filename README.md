@@ -107,6 +107,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/explainer-deck` | Make a Google Slides deck that explains how a system or document works in a meeting: every rule drawn as a picture (a split, a fee cut, two options side by side) beside a worked example, figures checked against the source, and each slide checked as Google draws it |
 | `/reverse-engineer` | Rebuild something your client already does in another web app (their accounting, booking or POS system) inside your own: reads their real records without changing anything, finds the habits and hand-written workarounds that become your requirements, and writes it up in a task doc that a second reviewer checks before any design |
 | `/user-manual` | Write an end-user manual — scope, tutorials, E2E screenshots, Word/PDF editions |
+| `/uat-script` | Build a client UAT script: checks per role tied to the requirement and quotation line they prove, rendered to a workbook, with a check that quoted screen text still exists |
 | `/brainstorming` | Design exploration before creative/architectural work |
 | `/agent-setup` | Create/update project agents using Bootstrap pattern |
 | `/ci-ssh-deploy-timeout` | Diagnose + fix flaky CI deploys that SSH-timeout to a server (rules out firewall, applies connect-only retry) |

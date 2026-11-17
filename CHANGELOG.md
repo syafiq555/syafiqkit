@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.448.0
+
+**New skill `uat-script`: build a client UAT script whose checks can't drift from the screen or the contract.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- Checks are CSV rows rendered by `scripts/build_workbook.py <config.json>` to a workbook with a tab per role, a status dropdown (text plus colour), Summary and per-module counts, and a Defects tab. The build fills each requirement's scenario from the spec file and refuses a quotation cell that is not word for word in the signed quotation. `scripts/check_wording.py` lists quoted screen text the app source no longer contains.
+- Generalised from a marketplace's first UAT pass (173 checks, 17/11/2026), whose workbook it reproduces, and the rules learned on a WooCommerce plugin's UAT (`references/lessons.md`): quote the screen, seed the setup data, runnable means Not run, a refused-action check per role, never overwrite tester columns, answer a Fail in Remarks. Format research: TestRail on traceability, the Victorian Government's UAT guidance, WCAG 1.4.1.
+- `setup-tracker`'s description now points UAT scripts here.
+
 ## 1.447.4
 
 **`unhobble-instructions` fits inside the 5,000-token limit again, and `ship` no longer switches the active GitHub account.** Update with `claude plugin update syafiqkit@syafiqkit`.

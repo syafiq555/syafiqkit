@@ -55,6 +55,7 @@ These skills accept explicit user command:
 | `explainer-deck` | Deck (Google Slides or .pptx) explaining a system or document to a live audience: each mechanism drawn beside a worked example, written as a JSON spec that `scripts/build.js` checks against its sources and draws; Google's own render checked. A page read alone is `understanding-guide` |
 | `reverse-engineer` | Rebuild a web app's mechanism that the client already uses, read through REA, into a task doc a sonnet reviewer verifies before design |
 | `user-manual` | End-user manual from user tasks, Diátaxis shape, screenshots from an E2E capture spec. Distinct from `md-to-pdf` |
+| `uat-script` | Client UAT script: CSV checks rendered to a workbook (tab per role, Summary, Modules, Defects), each quoting the screen and the requirement and quotation line it proves; a wording check fails a quote the app no longer shows. Trackers are `setup-tracker`, watching testers is `watch-sheets` |
 | `design-handoff` | Brief for someone ELSE to design a screen, layout decisions withheld. Designing it yourself is `uiux` |
 | `taste` | Build, redesign or polish a public-facing page, any verb, with art direction and a browser-inspected look-and-fix loop. Vendored tasteskill v2 (MIT), source in `skills/taste/SOURCE.md`; needs Node 22+ and Chrome |
 | `impeccable` | Only when the user names it (`/impeccable polish`, `audit`, `critique`…): design-director toolkit vendored from impeccable 4.8.2 (Apache-2.0). A bare "polish" or "critique" is `uiux`'s |
@@ -92,6 +93,7 @@ These skills accept explicit user command:
 | `product-still` | Website or marketing images built from the product's screens are outdated or wanted ("update the images on our site", "feature image", "transparent version", "phone version"), without naming the skill |
 | `setup-tracker` | A tracker sheet is asked for or complained about ("set up a tracker", "issue log", "the remarks column is too long", "client can't tell what's waiting on them"), or a tracker screenshot arrives, without naming the skill. Not a per-person weekly huddle or timesheet |
 | `watch-sheets` | Asked to keep checking or monitor a tracker or UAT sheet ("check the tracker every 10m", "alert me when the client replies"), or a `/loop` prompt that checks one, without naming the skill |
+| `uat-script` | Test scenarios for a client's acceptance testing are asked for or out of date ("prepare UAT", "test cases for sign-off", "the UAT sheet is out of date"), or a contract promises a test scenario per module, without naming the skill |
 | `understanding-guide` | User faces more text than one sitting holds, or asks how it should be presented |
 | `explainer-deck` | Asked for slides or a deck to explain how something works to a meeting, without naming the skill |
 | `reverse-engineer` | "The same as <app> my client uses" built in our app, or "reverse engineer" / "utilize REA" about a web app someone is logged into |

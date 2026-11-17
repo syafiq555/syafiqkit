@@ -1,0 +1,37 @@
+{
+  "title": "Example Marketplace UAT script: Stage 1",
+  "cases_dir": "cases",
+  "output": "dist/UAT-Stage1.xlsx",
+  "tabs": ["Shopper", "Seller Centre", "Customer Service", "Finance", "Super Admin", "Journeys", "Still being built"],
+  "modules": ["1. Storefront", "2. Customer", "3. Sellers", "6. Cart and checkout", "7. Orders", "14. Payouts", "16. Roles and controls"],
+  "requirements": {
+    "file": "../../tasks/example/spec/decisions/requirements.md",
+    "label": "BRS",
+    "column": "brs",
+    "row_pattern": "^\\| \\*\\*((?:M\\d+\\.\\d+)|(?:C\\d{2}))[ *]",
+    "scenario_marker": "**Scenario:**"
+  },
+  "quotation": {
+    "file": "../../tasks/example/quotation/decisions/QUO-0001.md",
+    "label": "Quotation says"
+  },
+  "wording": {
+    "sources": ["../../app/lang/en", "../../app/resources/js", "../../app/app"],
+    "suffixes": [".php", ".tsx", ".ts"],
+    "fields": ["expected", "steps"]
+  },
+  "read_me": [
+    ["What this is", "A list of checks that the system does what the quotation agreed. Each row is one check: follow the steps, compare what you see with the expected result, and set the Status. The Modules tab shows the result per module."],
+    ["Where to test", "The test site. The team sends its address and the passwords separately. Nothing on the test site reaches real payments or deliveries."],
+    ["Test data", "Every name, email address and figure on the test site is made up. Email addresses end in @example.test. Do not type real customer details."],
+    ["How to run a check", "1) Open the tab for your role. 2) Sign in as the login in \"Log in as\". 3) Follow the Steps. 4) Set Status, your name and the date. 5) If it fails, add a row on the Defects tab with the check ID and a screenshot."],
+    ["Revised", "The team keeps this sheet up to date as the site changes. When a check's steps or expected result change, its Revised column shows the date. A check you already marked keeps your result, so look at it again."]
+  ],
+  "logins": [
+    ["Shopper", "A registered shopper with a delivery address"],
+    ["Finance", "Staff, Finance role"]
+  ],
+  "connections": [
+    ["Online payment", "Test mode only. No real money moves."]
+  ]
+}
