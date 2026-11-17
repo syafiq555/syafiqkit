@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.444.0
+
+**A project's own release-post format wins over the default Chat formatting.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `ship`, `gchat-format`: when a project's instructions write down how release posts look in a space (say, a plain first line with no bullets or bold), the release note follows that format and skips the `gchat-format` call. Before, the skill required the call every time, so a session had to work around it to match the team's posts (17/11). A user who names `gchat-format` still gets its formatting.
+
 ## 1.443.0
 
 **Builds start with research, and a ship from a busy checkout leaves it untouched.** Update with `claude plugin update syafiqkit@syafiqkit`.
