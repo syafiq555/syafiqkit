@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -11,12 +12,20 @@ QUOTE = re.compile(r'"([^"]{3,})"')
 PLACEHOLDER = re.compile(r'(:[a-z_]+|\{[a-zA-Z_.]+\}|%[sd])')
 
 
-def corpus(sources: list[Path], suffixes: set[str]) -> tuple[str, list[re.Pattern]]:
-    texts = []
+def source_files(sources: list[Path], suffixes: set[str]) -> list[Path]:
+    files: set[Path] = set()
     for base in sources:
-        for path in base.rglob('*'):
-            if path.is_file() and path.suffix in suffixes:
-                texts.append(path.read_text(encoding='utf-8', errors='ignore'))
+        listed = subprocess.run(
+            ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '--', '.'],
+            cwd=base, capture_output=True, text=True,
+        )
+        paths = (base / name for name in listed.stdout.splitlines()) if listed.returncode == 0 else base.rglob('*')
+        files.update(path for path in paths if path.is_file() and path.suffix in suffixes)
+    return sorted(files)
+
+
+def corpus(sources: list[Path], suffixes: set[str]) -> tuple[str, list[re.Pattern]]:
+    texts = [path.read_text(encoding='utf-8', errors='ignore') for path in source_files(sources, suffixes)]
     joined = '\n'.join(texts).replace("\\'", "'")
     templates = []
     for literal in set(re.findall(r"""['"]([^'"\n]*(?::[a-z_]+|\{[a-zA-Z_.]+\}|%[sd])[^'"\n]*)['"]""", joined)):
