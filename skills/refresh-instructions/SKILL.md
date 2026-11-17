@@ -58,7 +58,7 @@ This skill sequences the three; all mechanics live in `syafiqkit:haiku` (snapsho
    - The current-state facts you verified, in every pass's prompt, Pass 1 included: a restructure rewrites status lines too (04/11/2026: a Pass 1 agent called a feature live on production "switched off")
    - For Pass 3 on a task-doc set, or any target whose Pass 2 moved content out, the file as it stood BEFORE Pass 2 and an instruction to restore from it any rejected alternative, quoted wording, measured figure or stated reason whose loss changes what a reader would conclude, unless a 📖 pointer's destination now holds it: relocated text read as lost puts the file back over budget (04/11/2026: a frontend `CLAUDE.md` went 38.7 to 41.7 KB, duplicating its companions). Condense trims inside decision records even though `condense-task-doc` says they are kept whole, and no check between the passes reads for it; measured 2026-10-10 on two decisions files, where Pass 3 restored 12 and 4 such passages.
 
-4. **Dispatch Pass 1**, verify (byte/line diff, then read the whole file for meaning).
+4. **Dispatch Pass 1**, verify (byte/line diff, then read the whole file for meaning). A pass that split the file also gets 📖 `../_shared/references/verifying-a-relocation.md` before Pass 2: the split skill's own check never runs when `update-claude-docs` did the split.
 
 5. **Snapshot again**, load `Skill(haiku)` again before Pass 2's prompt.
 

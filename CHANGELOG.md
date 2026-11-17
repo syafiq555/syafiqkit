@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.447.0
+
+**Splitting a doc now checks that pointers reach the right file and that other files stop crediting the old one.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `verifying-a-relocation` (shared by the condense, unhobble and haiku skills): a new section covers two misses. One is a short path to the new file that, read from the repo root, matches another project's file with the same name. The other is agent routing tables and file lists that still describe the source as holding what moved. Before, a split CLAUDE.md passed every pointer check while five agent tables still pointed E2E work at the old file.
+- `refresh-instructions`: when Pass 1 splits the file, the relocation checks now run before Pass 2. Before, they ran only when `condense-claude-md` did the split, so a split during the restructure went unchecked.
+
 ## 1.446.0
 
 **Pushing from a shared checkout no longer leaves local main behind its own pushed commits.** Update with `claude plugin update syafiqkit@syafiqkit`.
