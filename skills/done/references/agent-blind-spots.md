@@ -32,6 +32,7 @@ A finding, a fix, and anything built in response to one are three separate momen
 - **Unchecked premise in a question (2026-10-23).** "Not now still gets pushes on older Android" went out as an option without being checked. The permission code showed that screen never appears there, so the question was asked again.
 - **Seeder stopped on its entry point (2026-09-17).** A test-mode seeder was stopped after its entry point merely navigated elsewhere, and five sub-pages still fetched its rows.
 - **Mirrored component not republished (2026-09-16).** Eleven mirrored files across four components were committed while the published system served the prior build.
+- **Product-reviewer questions asked bare (17/11/2026).** Three order-screen questions went out with no researched default and no quote from the spec or a platform. The answers came back as "/haiku research", then "did u check brs or how other platform handle this?", so the questions were asked a second time.
 
 ## Step 2 Consumer Checks
 

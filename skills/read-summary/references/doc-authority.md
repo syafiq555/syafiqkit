@@ -61,6 +61,8 @@ Each entry backs a rule in SKILL.md; the rule stays there, the story lives here.
 - **Delegated plan defaults** (SKILL.md {#plan-mode}): Measured 2026-10-07: six part-payment rules from a Plan agent went into an approved plan this way, including a fee that could be charged twice.
 - **Decision-first opens** (SKILL.md {#decision-first}): Measured 2026-09-14: ~12 consecutive replies opened that way before the user asked what the spam was.
 - **Sibling doc answers a question** (SKILL.md {#decision-first}): Measured 2026-10-21: a "build or reword" question went out while the owning domain held the opposite answer. The same holds for a defect reported as new: measured 2026-10-26, a stale receipt balance went out as a finding while the `Related:` payments doc held the bug and the user's decision from two weeks before.
+- **Build plan research** (SKILL.md {#what-comes-next}): 17/11/2026: a four-card plan treated a 15-day payout cycle as the payable wait; per-item research caught it, along with a missing permission and an unrouted payment callback. The user asked for this pass "everytime we want to build something".
+- **Open item about something nothing uses** (SKILL.md {#decision-first}): 15/11/2026: "redesign all 8" and "wire up the expired email" were both answered, then reversed once history showed the templates were preview-page leftovers and the email duplicated a live one.
 
 ## Reading a large verbatim copy through its outline
 

@@ -64,3 +64,5 @@ Either way the finding survives.
 The reusable part is often reaching an outside system (an API, a Google file, a vendor portal). `gsheets-mcp` gained its export tools this way, so a new or extended plugin MCP server can be the answer rather than a skill.
 
 Other reusable work built inside a project: a generator or checker whose logic names nothing project-specific; a multi-step procedure worked out by trial and error; an API call hand-rolled with `curl` and a minted token.
+
+The ask comes before the build because a skill is hours of work and ships to every project, so the choice between a skill, an extended skill and an MCP server belongs to the user.

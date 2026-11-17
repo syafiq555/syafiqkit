@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.447.1
+
+**`done` and `ship` fit inside the 5,000-token limit again, so their Output templates survive a compaction.** Update with `claude plugin update syafiqkit@syafiqkit`. No behaviour changes; earlier output stays valid.
+- `done` (5,018 to 4,494 tokens): the Design review's capture widths, deck case and merge scoring moved to the new `references/design-review-merge.md`, and a few mechanisms moved to the references that already cited them. Step numbers, Gates A to C and the Output template are unchanged, so "/done Step 3", "Step 4" and "Gate B" still point where they did.
+- `ship` (5,167 to 4,400 tokens): the Edge Cases table is folded into the steps it belonged to, the release-captures procedure moved to `references/ship-deploy-verification.md` § Release Captures, and Step 3's checkout rule now names both cases (someone else's work in the tree, or none) in one sentence.
+- `read-summary` (4,784 to 4,197 tokens): the rules about other sessions' work have their own section, `{#shared-checkout}`, and two incident stories moved to `references/doc-authority.md`. The decision-first sentence that `judgement` quotes is unchanged.
+
 ## 1.447.0
 
 **Splitting a doc now checks that pointers reach the right file and that other files stop crediting the old one.** Update with `claude plugin update syafiqkit@syafiqkit`.

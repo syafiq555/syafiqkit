@@ -4,7 +4,7 @@ Before running any agents, establish which files belong to this session by **dif
 
 ## Detecting Ownership
 
-A clean "no" (files aren't yours) is straightforward. What's missed is "partly" — a background agent still running from the prior step, git status showing files never touched (parallel session), a tree that already carried work before this session, or two sessions editing the same file so the content is mixed.
+A clean "no" (files aren't yours) is straightforward. What's missed is "partly": a background agent still running from the prior step, git status showing files never touched (parallel session), a tree that already carried work before this session, or two sessions editing the same file so the content is mixed. The harness auto-stages your own writes like a peer's, so an untracked file has no `git diff HEAD`, and after a compaction "files I remember editing" is the summary's list, not the tree's.
 
 **How to settle it:** Read `${CLAUDE_SKILL_DIR}/../_shared/references/diff-ownership.md` for the full logic and edge cases. The short version: compare file modification times against your session start for any file on the boundary, then `git diff HEAD -- <file>` on anything you don't remember editing, since a foreign edit is recognisable on sight.
 
@@ -30,7 +30,7 @@ Once the partition is decided, move to Emission shape and emit every agent from 
 
 ## Edits Against a Partitioned File
 
-Measured 2026-09-15: a restored figure landed beside a paragraph the simplifier had refolded, and only the harness's "modified on disk" notice showed it, after the write. Your own edits count as well: a partition reads as a rule about *them*, but an `Edit` against remembered text still applies cleanly to a string that survived a rewrite while its paragraph moved. Hold your edits to a granted file until the agent returns, or re-read before each one.
+Measured 2026-09-15: a restored figure landed beside a paragraph the simplifier had refolded, and only the harness's "modified on disk" notice showed it, after the write. Your own edits count as well: a partition reads as a rule about *them*, but an `Edit` against remembered text still applies cleanly to a string that survived a rewrite while its paragraph moved. Hold your edits to a granted file until the agent returns, or re-read before each one. Two writers on one file race even when reads overlap freely: the post-fan-out re-read cannot see transient diagnostics, so a shared write list is the failure, not a shared read list.
 
 **Mismatch between role and subagent_type goes undetected** — match the prompt's content to the subagent_type you're calling.
 
