@@ -10,7 +10,7 @@ Last updated: 2026-11-17
 
 ## Quick Start (read this first in next session)
 
-**Next action**: have one colleague run it cold ("set up the Google Chat tool for me") in a session started after updating, and note where they stall.
+**Next action**: hear back from Lyana, asked on 17/11/2026 to run it cold ("set up the google chat tool for me") after updating; note where she stalls.
 **Current state**: `skills/setup-tools/` (SKILL.md plus `references/google-cloud-console.md`) and the supporting tool changes ship in 1.442.0. Both tools' `check --read` passed live on Syafiq's sign-ins 17/11/2026.
 **Success looks like**: a colleague with no Google Cloud project ends with `check --read` passing and, in a new session, "list my Chat spaces" answering from real data.
 
@@ -39,7 +39,7 @@ Lets anyone who installs syafiqkit set up the gsheets, gchat and `remote` tools 
 ## Next Steps
 
 ### Blocking a confident rollout
-- [ ] A colleague's first cold run, Workspace account (where do they stall?)
+- [ ] A colleague's first cold run, Workspace account (where do they stall?). Lyana (TSB) was asked by Chat DM on 17/11/2026 to update, start a new session and say "set up the google chat tool for me", then report any issue: follow up with her
 - [ ] A personal Gmail run of the Sheets path: `drive.readonly` is a restricted scope, and an unverified External app signing in past the warning screen is assumed, not seen
 
 ### Deferred / accepted
