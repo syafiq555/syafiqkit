@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.456.5
+
+**Easier-to-find rule in the message writer.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- The rule against opening a message with a line about the message ("can paste as is") now has its own paragraph instead of the end of a long one.
+
 ## 1.456.4
 
 **The shared skill-editing checklist carries the worked examples behind its rules.** Update with `claude plugin update syafiqkit@syafiqkit`; nothing else to do.
