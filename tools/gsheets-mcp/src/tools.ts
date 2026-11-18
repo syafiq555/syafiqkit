@@ -580,7 +580,13 @@ export function registerTools(server: McpServer, g: Google): void {
       )) as { sheetId: number; title: string; index: number }
       const rename = copiedSheetProperties(copied.sheetId, title, index)
       if (!rename) return copied
-      await batchUpdate(g, destinationSpreadsheetId, [rename])
+      try {
+        await batchUpdate(g, destinationSpreadsheetId, [rename])
+      } catch (err) {
+        throw new Error(
+          `The tab was copied as "${copied.title}" (sheetId ${copied.sheetId}), but renaming or moving it failed, so don't copy again: ${(err as Error).message}`,
+        )
+      }
       return { ...copied, ...(title?.trim() ? { title: title.trim() } : {}), ...(index !== undefined ? { index } : {}) }
     }),
   )
