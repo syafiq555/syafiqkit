@@ -7,7 +7,7 @@ description: Read task summary context and project instructions before answering
 
 Task docs carry decisions and gotchas the code alone doesn't show. Reading them first prevents confident-but-wrong answers.
 
-When scope changes (a new domain, a second repo, or a claim that shifts mid-conversation), reread the docs for that scope; session-start docs are scoped to their domain. A regression starts fresh discovery rather than pivoting from prior findings, since the doc that explained the original behaviour rarely owns why it broke.
+When scope changes (a new domain, a second repo, a host a fleet sweep reached that another repo owns, or a claim that shifts mid-conversation), reread the docs for that scope before asking anything about it; session-start docs are scoped to their domain. A regression starts fresh discovery rather than pivoting from prior findings, since the doc that explained the original behaviour rarely owns why it broke.
 
 ⚠️ **Live measurement evades the rule above, because measuring is not a scope change and feels rigorous.** A DB query, controller read or column grep returns a true fact, so a run of them reads as research while the domain's decisions go unopened. A query result needs corroborating; it is not the corroboration. **Tell: every citation in your reply is a query or a line number, and the domain's docs are unopened.**
 

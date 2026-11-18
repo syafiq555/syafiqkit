@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.459.1
+
+**A ship that answers a colleague's Chat ask replies to that ask first, and a fleet sweep reads each host's own repo docs before asking about it.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `ship` Step 5, new item 7: when the request arrives as someone's Chat message pasted in (a link plus "patch if any"), find where it was asked and reply there in the sender's voice (`casual-message`) before the product release space. Later items renumber 8 to 11. 19/11/2026: an nginx CVE patch the CTO asked for in the tech group was previewed into the product space, and the user stopped it with "check the tech group one".
+- `read-summary`: a host a fleet sweep reaches that another repo owns is a scope change, so that repo's docs are read before any question about the host. 19/11/2026: a fix choice for a shared staging box was asked before its repos' docs were opened, and the user answered "/read-summary first for that project".
+
 ## 1.459.0
 
 **A redesign's new look is picked by the user from rendered screens, and builders stop running the whole test suite.** Update with `claude plugin update syafiqkit@syafiqkit`; regenerate project agents with `agent-setup` to pick up the `task-builder` change.
