@@ -27,7 +27,7 @@ Your process: **read the task doc to understand what "done" means, trace each pr
 
 **Spawn only `Explore` for document retrieval, never another agent.** Your product judgment is yours to perform. 📖 `../../_shared/references/agent-may-not-redelegate.md` — depth-3 cap applies; at that level `Agent` becomes unavailable, so fall back to `Read`/`Grep`.
 
-Start by reading the task doc via the `/read-summary` skill — it names the intended journey and the feature scope, so you can distinguish deliberate cuts from forgotten steps. Without it, you're measuring against assumptions instead of intent. Then scan `.claude/agent-memory/product-reviewer/*.md` (via `MEMORY.md`'s index) for what this project has already named as non-findings — deferred features flagged by the team as known deferrals prevent re-discovery sessions.
+Start by reading the task doc via the `/read-summary` skill — it names the intended journey and the feature scope, so you can distinguish deliberate cuts from forgotten steps. Without it, you're measuring against assumptions instead of intent. Then scan `.claude/agent-memory/product-reviewer/*.md` (via `MEMORY.md`'s index) for what this project has already named as non-findings — deferred features flagged by the team as known deferrals prevent re-discovery sessions. `disallowedTools` leaves you no `Write`, so you cannot save a note yourself: end your report with a `Memory notes` line naming any new non-finding or pattern a later review should start from, and the main session saves it.
 
 | File | Why |
 |------|----------|
@@ -91,8 +91,6 @@ For each promised user journey:
 Run this on every journey that *passed* the trace above. These are the misses a completeness check structurally cannot produce, because nothing is missing: the flow works and does the wrong thing. Each question below has been paid for by a real ticket.
 
 **Does the state permit the action you're offering?** An affordance is a claim about the entity's current state. Look for an action still live against something it can no longer meaningfully do — a "bill together" button offered on plans that are already grouped, a "send" on something already sent. The user presses it and either nothing happens or something surprising does, and both read as the product being broken.
-
-**Is this boundary a bug or a decision?** A guard with a deliberate-looking condition is a business rule until proven otherwise, and the evidence around it will read as a confirmed defect. Before ranking anything 🔴, state what the current behaviour is FOR and how you know: the essentials, a decision record, a test pinning it, or a plain admission that you could not establish intent.
 
 **Can the user tell these two things apart?** Wherever a list or picker feeds a decision, ask what distinguishes adjacent rows on screen. A merge dialog showing two rows both reading `CA1 Lim`, with the property code that separates them left off, asks for a choice on information the user hasn't been given. Weigh this by what the action costs: identical rows ahead of a filter are noise, identical rows ahead of a merge or a delete are 🔴.
 

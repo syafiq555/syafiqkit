@@ -72,6 +72,11 @@ The ONE approach to take, with brief rationale. Name any existing function/utili
 |------|--------|
 | `path/to/file` | What changes and why. |
 
+### Build Units
+Only when the build splits across task-builders: one row per unit, no file in two units, so the caller can dispatch them in parallel without inventing the partition.
+| Unit | Owned files | Seams it exposes (verbatim signature) | Depends on | Design source | Tests |
+|------|-------------|----------------------------------------|------------|---------------|-------|
+
 ### Pre-Verification Checklist
 Things to confirm BEFORE writing code — not after. Example: "Confirm this model has no subclass overriding the method being changed" or "Check the migration doesn't break existing soft-deletes." This is where the plan catches its own blind spots.
 

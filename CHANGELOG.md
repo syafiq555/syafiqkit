@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.456.3
+
+**Project agents set up from the templates hand off better.** Update with `claude plugin update syafiqkit@syafiqkit`, then run `/agent-setup` in a project to pick the changes up.
+- The Plan agent's plan now has a Build Units table (files each builder owns, signatures it exposes, design source, tests), so parallel builders get a partition instead of the main session inventing one.
+- The product reviewer, which cannot write files, now ends its report with memory notes for the main session to save, instead of being told to keep memory it has no way to write.
+- The product reviewer no longer asks "Is this boundary a bug or a decision?" twice.
+- When a template rule contradicts the project's own CLAUDE.md, agent setup now writes the project's rule.
+
 ## 1.456.2
 
 **Messages drafted in your voice stay to the point.** Update with `claude plugin update syafiqkit@syafiqkit`.
