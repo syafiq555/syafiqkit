@@ -77,7 +77,7 @@ Count changed files using the variants in 📖 `${CLAUDE_SKILL_DIR}/references/g
 **Now dispatch.** Your first token is an `Agent` call, not a sentence about `Agent` calls. Send every agent in ONE message so they run concurrently. Anything about partitioning goes in a message *before* the batch, never in a sentence sharing it. **Tell: you are writing a sentence and the next thing after it is an `Agent` call.**
 **While they run:** work the verification agenda below. Don't preview changes in parallel, since that destroys the check that makes delegation safe. When the agenda is done, **end the turn**: the harness re-invokes you on completion, so polling buys nothing. **Tell: your previous identical call returned nothing new and you have no other work queued.** 📖 `${CLAUDE_SKILL_DIR}/../_shared/references/explore-delegation.md` § The Waiting Game
 
-**After all agents complete:** re-read `git rev-parse HEAD` and `git status -sb`, since an agent that committed or pushed shifts every later check, and re-read this file's remaining steps.
+**After all agents complete:** re-read `git rev-parse HEAD` and `git status -sb`, since an agent that committed or pushed shifts every later check, and re-read this file's remaining steps. A reviewer that holds no `Write` (a product reviewer generated from `agent-setup`'s template) ends its report with a `Memory notes` line; save each note into `.claude/agent-memory/<agent>/` and its `MEMORY.md` index before Step 3, since nothing else will.
 
 Reconcile agents against each other: each sees one repo, domain or layer, so a universal "clean" proves little. Read 📖 `${CLAUDE_SKILL_DIR}/references/agent-blind-spots.md` for the nine blindness patterns and how to settle contradictions.
 

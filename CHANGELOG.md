@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.456.6
+
+**Product reviewer notes are no longer lost at wrap-up.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `/done` now saves the memory notes a product reviewer lists at the end of its report, since that reviewer cannot write files itself.
+
 ## 1.456.5
 
 **Easier-to-find rule in the message writer.** Update with `claude plugin update syafiqkit@syafiqkit`.
