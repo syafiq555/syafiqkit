@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.455.0
+
+**Claude no longer stops at "that can't be done" after one try.** Update with `claude plugin update syafiqkit@syafiqkit`; it applies from the next new session.
+- Before saying something is impossible, unsupported or blocked, Claude now lists at least three other ways to do it (building it against the provider's own API, a different plugin or tool, a workaround on the server side or on a schedule), each with how much work it is and what could go wrong, then recommends one (18/11/2026).
+
 ## 1.454.0
 
 **Google Chat posts can tag people for real.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.
