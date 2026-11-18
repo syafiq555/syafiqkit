@@ -248,6 +248,21 @@ export function sharePermission({ type, role, domain, emailAddress }: ShareReque
   return { type, role }
 }
 
+export function copiedSheetProperties(sheetId: number, title?: string, index?: number): Record<string, unknown> | null {
+  const properties: Record<string, unknown> = { sheetId }
+  const fields: string[] = []
+  if (title?.trim()) {
+    properties.title = title.trim()
+    fields.push('title')
+  }
+  if (index !== undefined) {
+    properties.index = index
+    fields.push('index')
+  }
+  if (fields.length === 0) return null
+  return { updateSheetProperties: { properties, fields: fields.join(',') } }
+}
+
 export function registerTools(server: McpServer, g: Google): void {
   server.registerTool(
     'values_get',
@@ -541,6 +556,33 @@ export function registerTools(server: McpServer, g: Google): void {
       annotations: DESTROY,
     },
     guarded(async ({ spreadsheetId, sheetId }) => batchUpdate(g, spreadsheetId, [{ deleteSheet: { sheetId } }])),
+  )
+
+  server.registerTool(
+    'sheet_copy_to',
+    {
+      description:
+        "Copy one tab, with its values, formulas, formatting, checkboxes, dropdowns and column widths, into another spreadsheet (or the same one), then optionally rename it and set its position. Google names the copy \"Copy of <title>\" and gives it a new sheetId, both returned. The source is left untouched, so put a \"moved\" note on it yourself if people should stop using it. Formulas pointing at other tabs of the source break in the copy. Needs read access to the source and edit access to the destination.",
+      inputSchema: {
+        spreadsheetId: id.describe('Spreadsheet holding the tab to copy'),
+        sheetId: z.number().int().describe('Numeric sheet id of the tab to copy, from sheets_list'),
+        destinationSpreadsheetId: z.string().describe('Spreadsheet to copy the tab into'),
+        title: z.string().optional().describe('New tab name; without it the copy keeps "Copy of <title>"'),
+        index: z.number().int().min(0).optional().describe('Zero-based tab position in the destination'),
+      },
+      annotations: WRITE,
+    },
+    guarded(async ({ spreadsheetId, sheetId, destinationSpreadsheetId, title, index }) => {
+      const copied = (await g.call(
+        'POST',
+        `${SHEETS}/${encodeURIComponent(spreadsheetId)}/sheets/${sheetId}:copyTo`,
+        { body: { destinationSpreadsheetId } },
+      )) as { sheetId: number; title: string; index: number }
+      const rename = copiedSheetProperties(copied.sheetId, title, index)
+      if (!rename) return copied
+      await batchUpdate(g, destinationSpreadsheetId, [rename])
+      return { ...copied, ...(title?.trim() ? { title: title.trim() } : {}), ...(index !== undefined ? { index } : {}) }
+    }),
   )
 
   server.registerTool(

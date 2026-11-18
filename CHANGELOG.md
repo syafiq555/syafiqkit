@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.457.0
+
+**The Google Sheets tool can copy a tab into another spreadsheet.** Update with `claude plugin update syafiqkit@syafiqkit`, then run `/mcp reconnect gsheets` in each project that has it switched on.
+- New `sheet_copy_to` copies one tab with its values, formulas, formatting, checkboxes, dropdowns and column widths, then renames it and sets its position if asked. Before this a tab was rebuilt cell by cell from a grid read, and the first rebuild put a row out of place (18/11/2026).
+- The source tab is left as it was, so a "moved" note on it is still yours to add. Formulas pointing at the source's other tabs break in the copy.
+
 ## 1.456.9
 
 **`refresh-instructions` checks a condense for rules it deleted without being told about them.** Update with `claude plugin update syafiqkit@syafiqkit`; nothing else to do.
