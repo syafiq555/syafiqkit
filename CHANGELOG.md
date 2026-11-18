@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.456.7
+
+**No change to anything you run: maintainer docs fixed.** Update with `claude plugin update syafiqkit@syafiqkit`; nothing else to do.
+- Restores six authoring rules the 1.456.4 `CLAUDE.md` condense dropped: `git -C` answering for an enclosing repo, prompting style, sweeping by the destructive act, the 3+ skills shared-rule threshold with path depth, routing `tasks/**` writes through `update-plugin`, and a skill that spawns agents needing no `Agent` grant. Three diagnosis sentences (reload output reading like confirmation, why asking a session cannot measure what it loaded, the cache-prune guard) are back inline beside their rules.
+- The checklist's history section is renamed "Why the rules are shaped this way", with duplicates merged.
+
 ## 1.456.6
 
 **Product reviewer notes are no longer lost at wrap-up.** Update with `claude plugin update syafiqkit@syafiqkit`.
@@ -12,9 +18,8 @@
 
 ## 1.456.4
 
-**The shared skill-editing checklist carries the worked examples behind its rules.** Update with `claude plugin update syafiqkit@syafiqkit`; nothing else to do.
-- `skills/_shared/references/editing-skills-checklist.md` gains an "Authoring Checklist incidents" section: the measured cases behind each authoring rule (git probes, shell snippets that inverted a result, renumbering that stranded citations, retractions that missed a file, sweeps whose checker was the bug). The rules themselves are unchanged.
-- Plugin maintainers only: the repo's own `CLAUDE.md` is back under budget (44.6 KB to 32 KB) with every rule kept, its incident stories moved to that checklist and to `docs/ARCHITECTURE.md`.
+**No change to anything you run: maintainer docs reorganised.** Update with `claude plugin update syafiqkit@syafiqkit`; nothing else to do.
+- The repo's own `CLAUDE.md` went from 44.6 KB to 32 KB, its incident stories moved to `skills/_shared/references/editing-skills-checklist.md` and `docs/ARCHITECTURE.md`. Review afterwards found six rules dropped rather than moved; 1.456.7 restores them.
 
 ## 1.456.3
 

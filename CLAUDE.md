@@ -175,7 +175,7 @@ Invoked as separate commands, not chained:
 Facts about how a skill is *read* and *registered*, none derivable from the file:
 
 - **The body enters context once and is never re-read**, so guidance meant to hold for a whole task must be a standing instruction.
-- **A mid-session reload registers a new skill's name but not its `description`**, so it is invocable but cannot auto-fire. **A trigger test is only meaningful in a session started after the file was written** (measured 2026-09-17). 📖 `docs/ARCHITECTURE.md` § Skill and Command Structure.
+- **A mid-session reload registers a new skill's name but not its `description`**, so it is invocable but cannot auto-fire, and the reload output reads like confirmation. **A trigger test is only meaningful in a session started after the file was written** (measured 2026-09-17). 📖 `docs/ARCHITECTURE.md` § Skill and Command Structure.
 - **After compaction only each skill's first 5,000 tokens re-attach** (25,000 shared, most recently invoked first). Count in tokens with a tokenizer, never `bytes ÷ 4`: this corpus runs 4.46 bytes per token, so the divisor over-reports by ~12%. Count command: `skills/update-plugin/references/harness-constraints.md`. **A recurrence: after disproving a figure, fix the method that computed it.** **Tell: your changelog entry lists corrected values and names no method.**
 
 ### Where a rule goes, by when it must fire {#rule-placement}
@@ -194,7 +194,7 @@ Every mechanism loads at a *moment*, and a rule in the wrong one is correct, pre
 
 A `📖` pointer defers a rule and never delivers one, so the sentence telling a reader they *have* a problem stays inline and only the fix procedure moves. A rule that must hold every turn has one home, a hook, the only mechanism the harness executes rather than the model choosing to consult. **Tell: you are about to reword a rule for the second time.**
 
-**`allowed-tools:` pre-approves; it never restricts.** Unlisted tools stay callable, and the grant waives the prompt only for what it names, until the user's next message. Use `disallowed-tools:` to remove a tool. Skills use hyphenated `disallowed-tools:`, subagents camelCase `disallowedTools:`, and each is inert in the other's file: a misspelling fails silently. *(Verified against `code.claude.com/docs/en/skills.md`, 2026-08-20.)*
+**`allowed-tools:` pre-approves; it never restricts.** Unlisted tools stay callable, and the grant waives the prompt only for what it names, until the user's next message. Use `disallowed-tools:` to remove a tool. Skills use hyphenated `disallowed-tools:`, subagents camelCase `disallowedTools:`, and each is inert in the other's file: a misspelling fails silently. A skill that spawns agents needs no `Agent` entry (`done`, `ship`, `agent-setup` omit the line); read as a whitelist, the grant makes an unlisted tool look blocked when it isn't. *(Verified against `code.claude.com/docs/en/skills.md`, 2026-08-20.)*
 
 **Agent templates** (`skills/agent-setup/templates/*.template.md`) define project-local agents that read CLAUDE.md at runtime. Frontmatter: `tools:` (allowlist; omit to inherit every tool), `disallowedTools:` (resolved before `tools`), `memory`, `skills` (preloads full text at spawn), `permissionMode` (ignored for plugin subagents). So verify a read-only agent by whether the enforcing line exists, never by how the file looks. Other fields: `code.claude.com/docs/en/sub-agents.md`.
 
@@ -214,7 +214,7 @@ A subagent inherits the CLAUDE.md hierarchy, never the parent's conversation (a 
 
 **A missing ruleset is expected to degrade, not block, but that is untested end-to-end.** `cat` exits 1 on ENOENT, and only exit 2 is documented to block. If a session fails to start, or `RULESET.md` moves behind a wrapper, rename the file, start a fresh session, and see whether it comes up.
 
-**A second `startup` entry runs `hooks/prune-caches.sh`**, which deletes this plugin's cached versions whose `.orphaned_at` marker is over 7 days old (never the running version) plus stale mod cache files (`hooks/CLAUDE.md#what-it-runs`). The 7-day window and the lack of an off-switch are the owner's call (2026-10-23): a long-running session still needs its loaded version. A typeset `.png` or `.json` goes only once no `<key>.ok` remains. It calls `/usr/bin/find` and `/bin/rm` by absolute path, since a hook gets no shell profile. 📖 `docs/ARCHITECTURE.md` § The SessionStart Hook for the orphan-sweep measurements.
+**A second `startup` entry runs `hooks/prune-caches.sh`**, which deletes this plugin's cached versions whose `.orphaned_at` marker is over 7 days old (never the running version) plus stale mod cache files (`hooks/CLAUDE.md#what-it-runs`). The 7-day window and the lack of an off-switch are the owner's call (2026-10-23): a long-running session still needs its loaded version. A typeset `.png` or `.json` goes only once no `<key>.ok` remains. The version-folder delete runs only when the plugin root's parent ends in `plugins/cache/syafiqkit/syafiqkit`, so a source checkout deletes nothing; keep that guard in any edit of the script. It calls `/usr/bin/find` and `/bin/rm` by absolute path, since a hook gets no shell profile. 📖 `docs/ARCHITECTURE.md` § The SessionStart Hook for the orphan-sweep measurements.
 
 ### The Mod {#mod}
 
@@ -250,14 +250,16 @@ Find the group for the moment you are in:
 
 #### Writing a skill's procedure {#checklist-writing}
 
-- **Git probes**: a git step must say what happens when git *errors*: `rev-parse --git-dir` asks whether a repo exists, `rev-parse HEAD` whether a commit does.
+- **Git probes**: `git -C <plugin-dir>` walks up to an enclosing repo and can answer about the wrong one; use `git rev-parse --show-toplevel`. A git step must say what happens when git *errors*: `rev-parse --git-dir` asks whether a repo exists, `rev-parse HEAD` whether a commit does. 📖 `skills/_shared/references/editing-skills-checklist.md` § Self-Diagnosis: Git Probes.
 - **State what to establish, not which command establishes it**: colleagues run these skills on their own setups.
-- **A guard belongs at the step that acts.** Re-derive it where the write, spawn or delete happens; a caller-side gate does not cover its callee.
+- **Prompting style**: constitutional constraints (`❌ Never / ✅ Always` tables) for routing decisions; numbered validation loops for file writes. A skill writing formatted output re-reads its own output against its style rule.
+- **A guard belongs at the step that acts.** Re-derive it where the write, spawn or delete happens; a caller-side gate does not cover its callee. Sibling sweeps key on the destructive act (`rm -rf`, whole-file rewrites, `Edit`), not `subagent_type`, which misses direct `Skill()` calls.
 - **A shell snippet in a SKILL.md is untested code**: its failure is a wrong number, not an error. Where a flag inverts a result, check one file on each side.
-- 📖 `skills/_shared/references/editing-skills-checklist.md` § Writing a skill's procedure: read before a git probe or sweep.
+- 📖 `skills/_shared/references/editing-skills-checklist.md` § Writing a skill's procedure: the incidents behind these.
 
 #### Placing a rule or extracting shared machinery {#checklist-placement}
 
+- **Shared rules**: a rule in 3+ skills moves to `skills/_shared/references/`. Paths resolve against the citing file (`../` from `skills/<name>/SKILL.md`, `../../` from `skills/<name>/references/*.md`), and a wrong depth never 404s at authoring time, so `ls` the target from the citing file's own directory.
 - **Extracting defers a rule; it does not deliver one.** The sentence telling a reader they *have* the problem stays inline; only the fix goes behind the citation.
 - **A rule governing every turn needs a host read early.** `read-summary` reaches most sessions; nothing re-injects a standing rule mid-session, so say where it is best-effort.
 - 📖 `skills/_shared/references/editing-skills-checklist.md` § Placing a rule or extracting shared machinery: read when a rule moves.
@@ -265,7 +267,7 @@ Find the group for the moment you are in:
 #### Registering and publishing a skill {#checklist-registry}
 
 - **Skill registry sync**: the registry is this file's Skills tables plus `README.md`; both drift independently, so check each against disk.
-- **Plugin-internal paths**: `tasks/**` is not shipped; verify against a git-sourced install, since a `directory` cache shows uncommitted files. A colleague's `tools/` link resolves to their marketplace clone, never the cache.
+- **Plugin-internal paths**: `tasks/**` is not shipped; verify against a git-sourced install, since a `directory` cache shows uncommitted files. Route writes there through `update-plugin`, the only skill with an ownership gate. A colleague's `tools/` link resolves to their marketplace clone, never the cache.
 - **Scope and naming**: a name that stops matching scope is renamed in the same change; a stale name under-fires forever. A command whose body becomes "run skill X" migrates to a skill.
 - **Model invocation**: never add `disable-model-invocation` without a user request; it kills auto-suggestion.
 - 📖 `skills/_shared/references/editing-skills-checklist.md` § Registering and publishing a skill: read for `tools/` paths.
@@ -290,7 +292,7 @@ Find the group for the moment you are in:
 
 **A passing control does not make every hit a defect.** Classify each hit first; a "broken" target that is not path-shaped means you are reading the classifier. (2026-09-11)
 
-**Asking the session cannot measure what it has in context.** Take load-state from outside the model: harness `Loaded <path>` report.
+**Asking the session cannot measure what it has in context.** A model that judges a rule irrelevant answers "there is no such rule" just as one that never received it. Take load-state from outside the model: the harness `Loaded <path>` report or `/context`.
 
 - 📖 `skills/_shared/references/editing-skills-checklist.md` § Verifying a sweep or a probe: read before trusting a sweep.
 
@@ -300,7 +302,7 @@ Find the group for the moment you are in:
 
 ### Version Bumping {#version-bumping}
 
-**Run the `core.hooksPath` command from Commands once per checkout.** It arms `.githooks/pre-commit`, which blocks a commit where the two manifests disagree (the drift recurred ten times). The setting is local config, so an unset `core.hooksPath` looks identical to a passing hook; a bare `/commit` on an unconfigured clone has no defence.
+**Run the `core.hooksPath` command from `## Commands` (`{#commands}`) once per checkout.** It arms `.githooks/pre-commit`, which blocks a commit where the two manifests disagree (the drift recurred ten times). The setting is local config, so an unset `core.hooksPath` looks identical to a passing hook; a bare `/commit` on an unconfigured clone has no defence.
 
 Version lives in two files and must match:
 

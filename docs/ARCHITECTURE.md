@@ -126,7 +126,7 @@ Skill families and which skills spawn which are in `CLAUDE.md` (invocation-patte
 | 📖 pointer | A reference the reader may choose to open; defers a rule, never delivers it |
 | Parity | A generated agent and its template agree; says nothing about either being right |
 | Consumer | Anyone running the plugin outside this checkout |
-| Doc set | Index file plus its `decisions/*.md` siblings, treated as one document
+| Doc set | Index file plus its `decisions/*.md` siblings, treated as one document |
 
 ## 13. Plugin design history {#plugin-history}
 
@@ -138,27 +138,27 @@ The repo's `CLAUDE.md` states each plugin rule as a rule. This section keeps the
 
 ### Skill and Command Structure {#history-skill-structure}
 
-- **Mid-session reload.** After `/reload-skills` a new skill's listing shows an empty description, and the description is what a request is matched against. The reload output reads like confirmation (measured 2026-09-17 on two skills created in-session).
-- **Token divisor.** 1.261.0 patched the numbers while `skills/update-plugin/references/harness-constraints.md` kept prescribing `bytes ÷ 4` for ten more versions.
+- **Mid-session reload.** The rule is under Crosscutting concepts. After `/reload-skills` the listing shows an empty description, yet the reload output reads like confirmation (measured 2026-09-17 on two skills created in-session).
+- **Token divisor.** The first fix corrected the figures and left the method: 1.261.0 patched the numbers while `skills/update-plugin/references/harness-constraints.md` kept prescribing `bytes ÷ 4` for ten more versions.
 - **Passing `name:` to `Agent`.** Six identical spawns gave one report and five silent completions (#27), so a run whose reports arrived proved nothing.
 
 ### Where a rule goes, by when it must fire {#history-rule-placement}
 
-- **Eight failed rewordings.** Failed at least eight times before 2026-09-10 (`grep -i "never reached\|re-attach" CHANGELOG.md`): each reword restated the rule or moved it nearer the act, and the next session failed through another door. Moving it within an equally unread file changes nothing.
+- **Eight failed rewordings.** A rule that failed in a read-once file was reworded and failed again at least eight times before 2026-09-10 (`grep -i "never reached\|re-attach" CHANGELOG.md`): each reword restated the rule or moved it nearer the act, and the next session failed through another door. Moving it within an equally unread file changes nothing.
 
 ### The SessionStart Hook {#history-session-start}
 
 - **Fork matcher.** Its behaviour was never verified, and an unverified matcher was the worse trade against a bounded gap. Adding it is a one-token change once someone confirms what a forked session does with hook output; then drop the "every session" carve-out from `README.md` and the changelog.
 - **No script.** `${CLAUDE_PLUGIN_ROOT}` expands in `hooks.json` but not in a script body, and a frontmatter-bearing ruleset would need strip logic. `cat` needs neither.
 - **Hook cap incident.** `RULESET.md` sat over the 10,000-character cap from 2026-09-17 to 2026-10-08, so every rule past the first was missing for three weeks.
-- **Node on PATH.** Bare Windows without Git Bash gets a silent no-op.
-- **Missing ruleset.** `cat` exits 1 on ENOENT (verified), and the docs say only exit 2 blocks. So the conclusion rests on a table, not on a session started without the file.
-- **Prune-caches incident.** Claude Code's own orphan sweep left versions 14 days old in place on 2026-10-23: 79 copies, 2.9 GB, each carrying the gitignored `tools/remote-cli/node_modules`, because a `directory` marketplace copies the working tree regardless of `.gitignore`. The 7 days keep a version a long-running session still has loaded, since deleting it breaks that session's hooks, skills and Typst templates until restart; 3 days was rejected as too short for a session left open over a weekend. The script runs for colleagues too. A typeset `.png` or `.json` is deleted only once no `<key>.ok` remains, because `typeset.js` writes pages before the marker and a blanket age cut could leave a fresh marker over deleted pages. The version-folder delete runs only when the plugin root's parent ends in `plugins/cache/syafiqkit/syafiqkit`, so a source-checkout root deletes nothing.
+- **Node on PATH.** The `cat` hook on bare Windows without Git Bash is a silent no-op.
+- **Missing ruleset.** The "degrades rather than blocks" claim in Runtime view rests on `cat` exiting 1 on ENOENT (verified) and the docs saying only exit 2 blocks: a table, not a session started without the file.
+- **Prune-caches incident.** Claude Code's own orphan sweep left versions 14 days old in place on 2026-10-23: 79 copies, 2.9 GB, each carrying the gitignored `tools/remote-cli/node_modules`, because a `directory` marketplace copies the working tree regardless of `.gitignore`. The 7-day window keeps a version a long-running session still has loaded, since deleting it breaks that session's hooks, skills and Typst templates until restart; 3 days was rejected as too short for a session left open over a weekend. The script runs for colleagues too. A typeset `.png` or `.json` is deleted only once no `<key>.ok` remains, because `typeset.js` writes pages before the marker and a blanket age cut could leave a fresh marker over deleted pages. The version-folder delete runs only when the plugin root's parent ends in `plugins/cache/syafiqkit/syafiqkit`, so a source-checkout root deletes nothing.
 
 ### Agent Definition Parity {#history-agent-parity}
 
 - **Reviewer verdict.** A reviewer's "word-for-word identical" verdict was once contradicted by a three-line comparison, so run the comparison yourself.
-- **YAML comment grant.** `- Agent  # lets this agent spawn Explore agents` reaches the agent as nothing. `grep '^  - Agent'` also misses `task-builder`, which omits `tools:` to receive the full set.
+- **YAML comment grant.** A comment is not a second statement of a grant: `- Agent  # lets this agent spawn Explore agents` reaches the agent as nothing. `grep '^  - Agent'` also misses `task-builder`, which omits `tools:` to receive the full set.
 - **Drift example.** An unhobbling run rewrites the template's prose while a live fix moves a guard in the generated file, so a wholesale copy either way discards the other's improvement.
 - **Guard stripped as prohibition.** A density or `unhobble-instructions` pass reads a YAML guard as prohibition-shaped and strips it with the sentence explaining it.
-- **Effort error.** A spawn error `effort 'xhigh'/'max' not supported` is worth diffing against the template before blaming the environment. |
+- **Effort error.** A spawn error `effort 'xhigh'/'max' not supported` is worth diffing against the template before blaming the environment.
