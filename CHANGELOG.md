@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.459.0
+
+**A redesign's new look is picked by the user from rendered screens, and builders stop running the whole test suite.** Update with `claude plugin update syafiqkit@syafiqkit`; regenerate project agents with `agent-setup` to pick up the `task-builder` change.
+- `uiux` § Scope: a new look (palette, type, layout language) is dealt by `taste`'s `draw.mjs` and shown as two or three real screens beside today's for the user to pick or reject. A score, tiebreak or "closest to current" rule never picks it. 19/11/2026: a tiebreak picked the variant nearest the existing look, three rounds of tokens and atoms followed, and the user saw "little visual change" and said "not polish".
+- `score-loop`: on a redesign the rubric scores how well a direction is built, never which direction, and round 1 changes screens the user sees. A foundations-only round reads as no progress however much it scores.
+- `task-builder` template, check 2: run the tests that cover the change in the foreground (touched files plus the route and permission guard tests), frontend-only work skips the backend suite, and the full suite is the caller's once before a push. On a shared checkout the formatter runs on the builder's own paths, never `--fix` over the whole tree. 19/11/2026: three builders in a row each ran a 1,400-test suite after CSS and component changes ("why not skip the one already confirmed ?"), and one `vp check --fix` reformatted a peer's unsaved files.
+
 ## 1.458.1
 
 **`posthog-replay-frames` fixes from its first review.** Update with `claude plugin update syafiqkit@syafiqkit`.
