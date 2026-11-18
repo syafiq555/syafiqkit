@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.456.2
+
+**Messages drafted in your voice stay to the point.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- A draft no longer opens with a line about the message itself, such as "can paste as is"; it starts on the first real line.
+- When a colleague asks about their own draft, Claude looks at what they shared first and answers in a line, instead of explaining each point back to them.
+
 ## 1.456.1
 
 **The background watcher is safer after review.** Update with `claude plugin update syafiqkit@syafiqkit`. If you already set up a background watcher, ask Claude to "reinstall the watcher job" once, so the job picks up the fixed script.
