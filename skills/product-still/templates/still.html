@@ -19,6 +19,7 @@ window.STILL = {
     // { slices: [{ src: 'shots/form.png', crop: [0, 360, 860, 180] }, { src: 'shots/form.png', crop: [0, 680, 860, 370] }], x: 30, y: 220, w: 722, radius: 28 },
     { src: '', crop: [0, 0, 1000, 600], x: 224, y: 243, w: 1000, radius: 18 },
   ],
+  images: [ /* { src: 'logo.png', x: 56, y: 40, w: 240, blend: 'multiply' } a plain picture with no card frame; multiply drops a logo's white box on a light background */ ],
   numbers: [ /* { n: 1, x: 710, y: 107, size: 44 } */ ],
   connectors: [ /* { d: 'M922 129 C990 140 1000 190 1000 246', dotEnd: true } */ ],
   badge: { x: 1200, y: 28, size: 220, icon: 'house' },   // null to omit; icon is 'house' or an SVG path in a 290x260 box centred on 160,135
@@ -74,6 +75,12 @@ body{position:relative;overflow:hidden;font-family:var(--font)}
     card.style.height = Math.round(h) + 'px';
     if (c.fade) card.appendChild(el('div', 'fade', { height: c.fade + 'px', background: 'linear-gradient(rgba(255,255,255,0),#fff)' }));
     body.appendChild(card);
+  }
+
+  for (const im of S.images || []) {
+    const img = el('img', '', { position: 'absolute', left: im.x + 'px', top: im.y + 'px', width: im.w + 'px', mixBlendMode: im.blend || 'normal' });
+    await new Promise((ok, fail) => { img.onload = ok; img.onerror = () => fail(new Error('image not found: ' + im.src)); img.src = im.src; });
+    body.appendChild(img);
   }
 
   const NS = 'http://www.w3.org/2000/svg';

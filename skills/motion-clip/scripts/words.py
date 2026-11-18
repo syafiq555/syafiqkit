@@ -40,7 +40,7 @@ for n, line in enumerate(lines, 1):
     if not os.path.exists(path):
         sys.exit(f"line {n} has no voice file at {line['file']}: run voice.mjs first")
     said = heard(path)
-    script = line["text"].split()
+    script = (line.get("say") or line["text"]).split()
     times = [None] * len(script)
     matcher = difflib.SequenceMatcher(a=[norm(w) for w in script], b=[norm(w) for w, _, _ in said], autojunk=False)
     for block in matcher.get_matching_blocks():
@@ -48,6 +48,7 @@ for n, line in enumerate(lines, 1):
             _, start, end = said[block.b + k]
             times[block.a + k] = (start, end)
     matched = sum(t is not None for t in times)
+    spoken = len(script)
     span = (said[0][1], said[-1][2]) if said else (0.0, 0.0)
     k = 0
     while k < len(times):
@@ -63,12 +64,26 @@ for n, line in enumerate(lines, 1):
         for j in range(k, run_end):
             times[j] = (prev + step * (j - k), prev + step * (j - k + 1))
         k = run_end
+    shown = line["text"].split()
+    if shown != script:
+        shown_times = [None] * len(shown)
+        pairs = difflib.SequenceMatcher(a=[norm(w) for w in shown], b=[norm(w) for w in script], autojunk=False)
+        for op, i1, i2, j1, j2 in pairs.get_opcodes():
+            if op == "equal":
+                shown_times[i1:i2] = times[j1:j2]
+            elif i2 > i1:
+                lo = times[j1][0] if j2 > j1 else (times[j1 - 1][1] if j1 else span[0])
+                hi = times[j2 - 1][1] if j2 > j1 else lo
+                step = (hi - lo) / (i2 - i1)
+                for k2 in range(i1, i2):
+                    shown_times[k2] = (lo + step * (k2 - i1), lo + step * (k2 - i1 + 1))
+        script, times = shown, shown_times
     words = [{"text": w, "start": round(line["at"] + s, 3), "end": round(line["at"] + e, 3)} for w, (s, e) in zip(script, times)]
     result.append({"at": line["at"], "text": line["text"], "words": words})
     if not words:
         print(f"{n:2}  no words in the script text, nothing to show")
         continue
-    flag ="" if matched == len(script) else f"  (heard {matched} of {len(script)} words; the rest are placed between their neighbours, so check this line)"
+    flag ="" if matched == spoken else f"  (heard {matched} of {spoken} spoken words; the rest are placed between their neighbours, so check this line)"
     print(f"{n:2}  {words[0]['start']:.2f}-{words[-1]['end']:.2f} s  {len(script)} words{flag}")
 
 os.makedirs(os.path.dirname(out_path), exist_ok=True)

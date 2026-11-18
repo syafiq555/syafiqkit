@@ -102,7 +102,7 @@ Run it with plain `python3`, not `python3 -I`: isolated mode drops the user site
 
 You cannot hear the result. Check what you can (a waveform showing the beat starting where the film says, the loudness figure, no clipping) and say the sound still needs a human ear.
 
-**Voice-over (only when the brief asks).** Add `voice: [{ at: 2.6, text: '...' }]` to the story, then generate the lines between `cues` and `score.py`:
+**Voice-over (only when the brief asks).** Add `voice: [{ at: 2.6, text: '...' }]` to the story, then generate the lines between `cues` and `score.py`. A word the voice misreads (a brand like `CRP45`, an acronym) gets a `say` beside `text` (`say: 'C R P 45'`): the voice speaks `say` and the subtitles show `text`, never the spelled-out form.
 
 ```
 node render.mjs cues 1080 1920 cues.json

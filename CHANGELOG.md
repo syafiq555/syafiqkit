@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.450.0
+
+**`motion-clip` voice lines can say a word differently from how it is shown; `product-still` places a logo without a card frame.** Update with `claude plugin update syafiqkit@syafiqkit`, then copy `film.html`, `voice.mjs` and `words.py` (motion-clip) or `still.html` (product-still) into a clip or still folder made before this version.
+- `motion-clip`: a voice line takes an optional `say` beside `text` (`{ at, text: 'The new CRP45 site', say: 'The new C R P 45 site' }`). The voice speaks `say`, and `words.py` lines the recording up on `say`, then shows `text`, so a brand spoken letter by letter appears once in the subtitles with the whole span. A launch clip's subtitles read "C R P 45" until a one-off script merged the words. Lines without `say` behave as before, and existing recordings stay cached.
+- `product-still`: an `images` key (`{ src, x, y, w, blend }`) places a logo or picture with no border or shadow; `blend: 'multiply'` drops a non-transparent logo's white box on a light background. A card set needed the logo added by hand outside the config.
+
 ## 1.449.2
 
 **`uat-script` warns that a repo-wide `*.csv` ignore can leave the checks out of git.** Update with `claude plugin update syafiqkit@syafiqkit`.

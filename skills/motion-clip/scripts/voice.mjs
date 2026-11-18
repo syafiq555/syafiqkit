@@ -90,17 +90,17 @@ for (const [i, line] of lines.entries()) {
     continue;
   }
   const stamp = `${file}.txt`;
-  const label = `${provider}|${process.env.VOICE || ''}|${process.env.VOICE_MODEL || ''}|${process.env.VOICE_STYLE || ''}|${provider === 'kokoro' ? `${process.env.VOICE_SPEED || ''}|` : ''}${line.text}`;
+  const label = `${provider}|${process.env.VOICE || ''}|${process.env.VOICE_MODEL || ''}|${process.env.VOICE_STYLE || ''}|${provider === 'kokoro' ? `${process.env.VOICE_SPEED || ''}|` : ''}${line.say || line.text}`;
   await mkdir(dirname(file), { recursive: true });
   if (existsSync(file) && existsSync(stamp) && (await readFile(stamp, 'utf8')) === label) kept.push({ i, line, file });
   else pending.push({ i, line, file, stamp, label, raw: `${file}.${provider === 'say' ? 'aiff' : 'src'}` });
 }
 
 if (provider === 'kokoro' && pending.length) {
-  try { speakLocally(pending.map((p) => ({ text: p.line.text, out: p.raw }))); } catch (e) { die(e.message); }
+  try { speakLocally(pending.map((p) => ({ text: p.line.say || p.line.text, out: p.raw }))); } catch (e) { die(e.message); }
 } else {
   for (const p of pending) {
-    try { await speak(p.line.text, p.raw); } catch (e) { die(`line ${p.i + 1} ("${p.line.text.slice(0, 40)}"): ${e.message}`); }
+    try { await speak(p.line.say || p.line.text, p.raw); } catch (e) { die(`line ${p.i + 1} ("${p.line.text.slice(0, 40)}"): ${e.message}`); }
   }
 }
 for (const p of pending) {

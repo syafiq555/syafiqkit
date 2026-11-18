@@ -1179,7 +1179,7 @@ function buildCues() {
   if (s.voice.length) {
     cues.voice = s.voice.map((v, i) => {
       const under = s.captions.find((c) => c.in <= Number(v.at) && Number(v.at) < c.out);
-      return { at: Number(v.at), text: String(v.text).trim(), file: v.file || `assets/voice/${String(i + 1).padStart(2, '0')}.wav`, captionOut: under ? under.out : undefined };
+      return { at: Number(v.at), text: String(v.text).trim(), say: String(v.say || v.text).trim(), file: v.file || `assets/voice/${String(i + 1).padStart(2, '0')}.wav`, captionOut: under ? under.out : undefined };
     });
   }
   const round = (x) => Math.round(x * 1000) / 1000;
