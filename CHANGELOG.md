@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.449.1
+
+**`ship`'s sheet-row step follows each sheet's own rules and never posts a guess.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- The reply cell, signature, colour and next status come from the project's rule for that sheet (a tracker hands the row on, a test workbook resets the check to runnable). The row is re-read right before writing. A partial fix, a row that was only context, a newer line from someone else, or a sheet with no documented rule gets a draft in the Decisions block instead of a write.
+- A fix answered as "live on staging" is answered again once production is verified (the "new ship" rule now lists the row).
+
 ## 1.449.0
 
 **`ship` answers the client's sheet row and waits for a chained deploy.** Update with `claude plugin update syafiqkit@syafiqkit`.
