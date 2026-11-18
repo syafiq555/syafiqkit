@@ -88,8 +88,8 @@ Casual Malay has its own register, and it is not formal Malay made shorter: part
 The defaults are for a short conversational reply to a peer, and the sender's own messages beat them. A question to a decision-maker, a reply carrying dates or estimates, and a client-group post keep the structure the sections above give them; only the spelling and particles carry over. Pronouns, and the recipient's name when the sender opens with it, are not defaults: they follow the ask rule in the pronouns paragraph below.
 
 - **One topic per bubble** (blank line between, so each pastes alone), each point answer first ("mmg issue", "x jadi issue kot"), the reason after `sbb`. A later bubble can carry a follow-up.
-- **No greeting beyond answering theirs** (`wsalam` to their salam, plus the name they call the recipient), and no closing line.
-- **Lowercase, almost no punctuation, no emoji.** English mixes in freely: tech nouns and verbs stay English and lowercase (issue, dashboard, check, display, fix), and a word kept in Malay is the plainest spoken one (`sama`, not `padan`). Test each word: would the sender say it to them out loud? Proof goes in brackets as names ("(db1, db2, db3)"), not links or tables.
+- **No greeting beyond answering theirs** (`wsalam` to their salam, plus the name they call the recipient), and no closing line. No numbered offers and no time estimate unless the peer asked for one; those read as AI.
+- **Lowercase, almost no punctuation, no emoji.** English mixes in freely: tech nouns and verbs stay English and lowercase (issue, dashboard, check, fix), and a word kept in Malay is the plainest spoken one. Test each word: would the sender say it to them out loud? Proof goes in brackets as names ("(db1, db2, db3)"), not links or tables.
 
 📖 `references/casual-malay.md`: the spelling, particle and possessive defaults (`x`, `mmg`, `sbb`, `dgn`, `kot`, `pulak`, "X punya Y", `yang` spelled out), the code-switching rules with formal-to-spoken word swaps, and a full example message that was accepted as written. Read it before drafting any casual Malay message.
 

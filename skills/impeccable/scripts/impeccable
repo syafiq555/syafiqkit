@@ -90,8 +90,6 @@ manifest="$dir/engine-checksums.txt"
 : "${IMPECCABLE_SELF:=$0}"
 export IMPECCABLE_SKILL_DIR IMPECCABLE_SELF
 
-# syafiqkit: with no system browser, point the engine at Playwright's newest
-# Chromium (`npx playwright install chromium`) instead of failing URL scans.
 system_browser_present() {
   for app in "Google Chrome" "Google Chrome Canary" "Chromium" "Microsoft Edge" "Brave Browser"; do
     [ -e "/Applications/$app.app" ] && return 0

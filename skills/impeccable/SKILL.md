@@ -23,6 +23,8 @@ Core principles:
 
 **`UPDATE_AVAILABLE` in the context output:** this copy is vendored into syafiqkit, so the update is a re-copy from upstream per `SOURCE.md` § Updating, never `npx impeccable update`, which writes a second copy into the current project's `.agent/` folder and leaves this one stale.
 
+**`detect` on a URL says "No Chrome … installation found":** the launcher already tried Playwright's Chromium, so none is installed. Set `IMPECCABLE_BROWSER` to a Chromium-based browser's executable (or run `npx playwright install chromium`) and retry; otherwise report the detector as not run and why.
+
 **Launcher unavailable:** On refusal or failure, send a separate message **before the next tool call**: “Context loading did not run; I’ll read the existing project context directly.” Then read existing PRODUCT.md and DESIGN.md without inventing missing context, follow applicable steps 2–3, including reading [reference/craft-floor.md](reference/craft-floor.md) immediately before any UI edit, and continue through permitted tools. This applies to planning and editing; launcher failure alone does not block either.
 
 ## How to design

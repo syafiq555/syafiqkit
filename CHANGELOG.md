@@ -1,9 +1,17 @@
 # Changelog
 
+## 1.452.1
+
+**Skill text catches up with 1.451.1.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `taste` no longer tells a session to skip the inspector on a Mac with only Playwright's Chromium; it falls back only when the inspector itself reports no browser or Node under 22, and says which.
+- `impeccable` says what to do if a URL scan still reports "No Chrome … installation found": point `IMPECCABLE_BROWSER` at a browser or install Playwright's Chromium, else report the detector as not run.
+- `casual-message`: a reply to a peer carries no numbered offers and no time estimate unless asked; the sender's own messages override the mixed-English default in either direction.
+- `motion-clip`: the `opening` logo shrinks to fit above the hook (a square or tall logo was drawn off the top of the frame), `out` is optional (leaving it out hid the logo silently), and `credit` without `windows` shows the credit for the whole film instead of failing every frame. Copy `film.html` into a clip folder made with 1.452.0.
+
 ## 1.452.0
 
 **`motion-clip` films no longer share as a blank thumbnail, and can carry the studio's credit.** Update with `claude plugin update syafiqkit@syafiqkit`, then copy `film.html` and `render.mjs` into a clip folder made before this version.
-- WhatsApp, Chat and most feeds use a video's first frame as its thumbnail, and every film opened on an empty page while its hook revealed, so a client's launch clip went round WhatsApp looking blank. `check` now warns when frame 0 is one flat colour (its flat-colour scan skipped the first half second, the thumbnail itself), the starter story's hook is complete at t = 0, and a new `opening: { logo, out }` draws the client's logo above the hook from frame 0.
+- WhatsApp, Chat and most feeds use a video's first frame as its thumbnail, and every film opened on an empty page while its hook revealed, so a client's launch clip went round WhatsApp looking blank. `check` now warns when frame 0 is one flat colour (its flat-colour scan skipped the first half second, the thumbnail itself), the starter story's first hook line is complete at t = 0, and a new `opening: { logo, out }` draws the client's logo above the hook from frame 0.
 - `credit: { file, label, windows }` puts a studio's logo bottom-centre ("Prepared by" + logo, at least 35 px tall) in each time window, for agencies that sign every client file.
 - A logo PNG with an off-white box shows as a pale rectangle on a tinted page even under `multiply`; the skill now says to turn its whiteness into alpha and draw it `source-over`.
 

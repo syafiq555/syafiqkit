@@ -37,7 +37,7 @@ One warning learned in testing: removing ornament without adding substance reads
 jurors prefer a richer page with tells over an empty one.
 
 In the commands below `<skill>` is this skill's folder. Run them from the project root; working files land
-in `.taste-skill/`. Requirements: Node 22+ and Chrome, Edge or Chromium; the scripts install nothing.
+in `.taste-skill/`. Requirements: Node 22+ and Chrome, Edge or Chromium (Playwright's own Chromium from `npx playwright install chromium` counts, found without setup); the scripts install nothing.
 `assets.mjs` needs network access and uses no API keys.
 
 ## Page or app screen
@@ -141,7 +141,7 @@ action, no bar chrome. The footer is a designed close, not a sitemap; most stron
 
 Every build passes the gate in step 7 before it is reported. Fix every `FAIL`. Treat each `WARN` as wrong unless you can defend it to a designer in one sentence. Re-run until there are no `FAIL`s. Do not argue with the meter and do not hide things from it.
 
-**No Chrome or Node 22.** Run `lint.mjs` (Node 18+), take screenshots with whatever browser tool you have, and critique those. Say in the report that the inspector could not run.
+**No browser at all, or Node under 22.** Only when `inspect.mjs` itself says so (a Playwright Chromium is enough): run `lint.mjs` (Node 18+), take screenshots with whatever browser tool you have, and critique those. Say in the report that the inspector could not run and which requirement was missing.
 
 **No network.** If `assets.mjs` reaches no source, draw the pictures and say in the report that the open collections could not be searched.
 

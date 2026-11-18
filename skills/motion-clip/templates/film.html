@@ -810,14 +810,16 @@ function opening(t) {
   const o = STORY.opening;
   const pic = img.openingLogo;
   if (!o || !pic) return;
-  const leave = easeIn((t - o.out) / 0.3);
+  const leave = o.out == null ? 0 : easeIn((t - o.out) / 0.3);
   if (leave >= 1) return;
   const size = L.hook;
   const cy = H * (L.vertical ? 0.44 : 0.46);
-  const w = L.vertical ? W * 0.62 : Math.min(W * 0.42, size * 3.6);
+  const bottom = cy - size * 0.8 - size * 0.55;
+  const maxW = L.vertical ? W * 0.62 : Math.min(W * 0.42, size * 3.6);
+  const w = Math.min(maxW, Math.max(0, bottom - H * 0.06) * pic.naturalWidth / pic.naturalHeight);
   const h = w * pic.naturalHeight / pic.naturalWidth;
   const x = L.vertical ? W / 2 - w / 2 : L.textX - w * 0.012;
-  const y = cy - size * 0.8 - size * 0.55 - h;
+  const y = bottom - h;
   g.save();
   g.globalAlpha = 1 - leave;
   g.drawImage(pic, x, y - leave * size * 0.3, w, h);
@@ -828,7 +830,7 @@ function credit(t) {
   const c = STORY.credit;
   const pic = img.creditLogo;
   if (!c || !pic) return;
-  for (const [from, to] of c.windows) {
+  for (const [from, to] of c.windows ?? [[0, null]]) {
     const enter = from <= 0 ? 1 : clamp(smooth(t - from));
     const leave = to == null ? 0 : easeIn((t - to) / 0.3);
     if (t < from || enter <= 0 || leave >= 1) continue;
