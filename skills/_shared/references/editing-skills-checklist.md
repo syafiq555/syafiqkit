@@ -137,3 +137,47 @@ After rewriting a skill or command:
 5. **Reconcile inbound references**: A `grep -rn "<basename>"` across the docs tree finds pointers to the file. Check each against what it now says. A merged section leaves old anchors landing nowhere, and nothing 404s — the reader arrives at something plausible and concludes the fact isn't there.
 
 6. **Re-read your own new prose**: A rewrite arguing against rigid imperatives while opening with bolded ALL-CAPS has undercut its own point. Apply the same test you ran on the target.
+
+## Authoring Checklist incidents (moved from CLAUDE.md) {#authoring-checklist-incidents}
+
+The rules behind each Authoring Checklist subsection of the repo's `CLAUDE.md` stay there. The incidents and worked examples that produced them live here.
+
+### Writing a skill's procedure {#incidents-writing}
+
+- **Worked example, state what to establish.** `stat -f '%Sm'` works on macOS and fails on Linux. The failures are quiet: a BSD flag meaning something else, or an unmatched glob reporting `0`.
+- **Guard at the step that acts.** Issue #24 had two siblings (an ungated folder delete, an unguarded whole-file condense) that the dispatch-shaped grep reported clean.
+- **Shell snippet tested on a real doc.** `grep -Ll` means `-l` on BSD (the later flag wins), so a coverage sweep listed every compliant file as non-compliant, while a file matching neither pattern vanished from both lists. Issue #22 restored a size check that undercounted every doc whose `## Next Steps` wasn't last.
+- **Git errors.** An unversioned project makes `git status` succeed while every `git diff HEAD` fails, so a git-reading step must name the error path. `rev-parse --git-dir` asks whether a repo exists; `rev-parse HEAD` asks whether a commit does, and a repo with no first commit has the first but not the second. Substitutes: `skills/_shared/references/verifying-a-write-landed.md`.
+- **Literal invocation.** Keep the literal form only where the invocation is itself the knowledge, such as a `mysqldump` flag set that took debugging.
+- **Sibling sweeps.** The dispatch-shaped grep for `subagent_type` misses direct `Skill()` calls and prose telling the reader to delete a file. A caller-side gate does not cover its callee, since a peer can edit between the two writes.
+
+### Placing a rule or extracting shared machinery {#incidents-placement}
+
+- **Shared-rule threshold.** A rule in 3+ skills moves to `skills/_shared/references/`.
+- **Path depth.** Paths resolve against the citing file: `../` from `skills/<name>/SKILL.md`, `../../` from `skills/<name>/references/*.md`. A wrong depth never 404s at authoring time, so `ls` the target from the citing file's own directory.
+- **Delivery.** "Cite the owner rather than duplicating" is right about duplication and wrong about delivery. A hop past the skill body lands well under half the time, a judgement stated in the Pointer citations bullet of this file's Review Checklist, not a dated measurement. Two-hop shape to avoid: a reference citing another reference.
+- **Host read.** `read-summary` runs at the start of most sessions and ships to consumers, the furthest-reaching host. A wrap-up skill reaches only sessions that invoke it, and this repo's `CLAUDE.md` never loads in a consumer's session. Nothing re-injects a standing rule mid-session, so say where it is best-effort.
+
+### Registering and publishing a skill {#incidents-registry}
+
+- **Marketplace clone.** A colleague's GitHub install keeps a shallow clone at `~/.claude/plugins/marketplaces/syafiqkit`, refreshed on update (measured on `superpowers-marketplace`: `.git` updated 15/10), beside the per-version cache. The official Anthropic marketplace is re-downloaded from GCS, not cloned. The folder name comes from `marketplace.json`'s `name`, unconfirmed while name and repo match.
+
+### Editing steps, citations or a restructure {#incidents-citations}
+
+- **Inlining rationale.** Pulling a fact up strands the file it pointed at, which keeps collecting edits. Dropping a citation to shared machinery leaves prose that reads complete while the reader is never routed to the machinery.
+- **Renumber incident.** Measured 2026-09-15 on `hooks/RULESET.md`: rule 10 moved to position 1, `grep "rule 10"` returned zero, and two `rule N` citations pointed at the wrong rule, one a cross-reference the pass had just rewritten.
+- **Scope of a cited claim.** "X is already the rule" claims the target's *scope*: if the sentence lives under a narrower heading than the claim, widen the heading at the source rather than editing the citation to match. Neither end of an inline shows in a resolve-check, a diff or a self-report.
+
+### Retracting or deleting a rule {#incidents-retraction}
+
+- **Retraction miss.** Measured 2026-09-03: 1.225.0 removed a token-diff step and patched the four files it named, while `unhobble-instructions/references/target-types.md` and `_shared/references/editing-skills-checklist.md` still prescribed it. A reviewer swept the four named files and found nothing else, so the changelog entry certified the wrong scope.
+- **Repo-only copy.** Measured 2026-09-11: an `unhobble-instructions` pass removed the house-style rule as redundant with this file's opening, a one-line summary and a mode table, not the rule.
+- **Dedup that stayed.** Measured 2026-09-11: `setup-playwright` shed its stale-bundle warning correctly, since `uiux` states the mechanism in full. The next `uiux` pass cut 24% and kept the warning only because its prompt named it as the last callout standing.
+
+### Verifying a sweep or a probe {#incidents-verification}
+
+- **Checker failure rate.** One sweep reported 38 of 127 pointers broken when the real number was two. Stripping `${CLAUDE_SKILL_DIR}` turns a valid absolute path into a bogus relative one, and a pointer sweep that keeps the `📖` inside the path tests a string that cannot exist.
+- **Both controls passing.** Both passing still does not clear a sweep, since a hand-rolled extractor feeds both cases through the same flaw. The method: resolve one known-good and one known-bad case first, then print the extracted values and read a few against the file.
+- **Classifier hits.** Measured 2026-09-11: `[ -e ]` reported seven hits, one real. The others were a repo-root path, a bare skill name and CHANGELOG prose.
+- **Asking the session.** This cost four agreeing probes and a near-shipped wrong finding about `.claude/rules/` loading.
+- **Judged-irrelevant rule.** A model that judges a rule irrelevant answers "there is no such rule" just as one that never received it, so an absence established by asking is unmeasured. Load-state comes from outside the model: the harness's `Loaded <path>` report or `/context`.

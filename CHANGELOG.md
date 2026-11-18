@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.456.4
+
+**The shared skill-editing checklist carries the worked examples behind its rules.** Update with `claude plugin update syafiqkit@syafiqkit`; nothing else to do.
+- `skills/_shared/references/editing-skills-checklist.md` gains an "Authoring Checklist incidents" section: the measured cases behind each authoring rule (git probes, shell snippets that inverted a result, renumbering that stranded citations, retractions that missed a file, sweeps whose checker was the bug). The rules themselves are unchanged.
+- Plugin maintainers only: the repo's own `CLAUDE.md` is back under budget (44.6 KB to 32 KB) with every rule kept, its incident stories moved to that checklist and to `docs/ARCHITECTURE.md`.
+
 ## 1.456.3
 
 **Project agents set up from the templates hand off better.** Update with `claude plugin update syafiqkit@syafiqkit`, then run `/agent-setup` in a project to pick the changes up.
