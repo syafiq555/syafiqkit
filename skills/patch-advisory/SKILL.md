@@ -1,6 +1,6 @@
 ---
 name: patch-advisory
-description: Answer a security advisory across the servers you can reach. Read the CVE into facts, find every host and container running the affected software, judge which are actually exposed (version AND the precondition AND reachability), patch or mitigate the ones the user owns, verify the running process, record it and report back where it was asked. Use when the user pastes a CVE, a vendor or researcher write-up (Wiz, oss-security, a vendor security release), or a colleague's "patch if got any nginx", "cve 9+ again", "are we affected by", "check our servers for", "PHP/nginx/OpenSSL/Node security release", "is this CVE on our box". Not for dependency advisories inside a repo (npm audit, composer audit, Dependabot: that is a code change shipped through the normal review and `ship`), not for deploying an app (`ship`), and not for a Mac's own disk or tooling.
+description: Answer a security advisory across the servers you can reach. Read the CVE into facts, find every host and container running the affected software, judge which are actually exposed (version AND the precondition AND reachability), patch or mitigate the ones the user owns, verify the running process, record it and report back where it was asked. Use when the user pastes a CVE id, a CVSS 9 headline, an NVD or GitHub advisory link, a vendor or researcher write-up (Wiz, oss-security, a vendor security release), or a colleague's "patch if got any nginx", "cve 9+ again", "are we affected by", "check our servers for", "any server running X", "PHP/nginx/OpenSSL/OpenSSH/Node/kernel security release", "is this CVE on our box". Not for dependency advisories inside a repo (npm audit, composer audit, Dependabot: a code change shipped through the normal review and `ship`, which also carries a base-image bump), not for deploying an app (`ship`), not for a Mac's own disk (`reclaim-disk`) or its tool setup (`setup-tools`).
 ---
 
 # Patch Advisory
@@ -15,17 +15,21 @@ A distro package carries its own revision string (`1.24.0-2ubuntu7.19`), and fix
 
 ## 2. Inventory every host, then probe it
 
-List every server alias the `remote` CLI knows (or the user's inventory), and dedupe by IP, since several aliases often share one box. Then run the read-only probe on each, at most four at a time:
+List every server alias the `remote` CLI knows (or the user's inventory), and dedupe by IP, since several aliases often share one box. `remote` follows an SSH `ProxyJump`, so a host reached through a jump box needs nothing special. Then ask once which hosts aren't in that list (a colleague's box, a Windows server, a managed database, a panel-only host): each gets a row marked "not probeable" with the vendor's own status page as its evidence, never a silent gap.
+
+Run the read-only probe on each reachable host, at most four at a time:
 
 ```bash
-P=<this skill's base directory>/scripts/probe.sh
+P=<this skill's base directory>/scripts/probe.sh; mkdir -p /tmp/adv
 for s in <alias> ...; do echo "$s"; done | xargs -P 4 -I{} sh -c \
-  "perl -e 'alarm 90; exec @ARGV' \"$(command -v remote)\" {} 'bash -s' < $P > /tmp/adv/{}.out 2>/tmp/adv/{}.err"
+  "perl -e 'alarm 90; exec @ARGV' \"$(command -v remote)\" {} 'SW=nginx bash -s' < $P > /tmp/adv/{}.out 2>/tmp/adv/{}.err"
 ```
 
-`SW=php CFG= bash -s` (or `SW=node`, `SW=openssl`, with `VER=version` where the flag differs) probes other software. `CFG` is a command whose output shows the precondition; for nginx it defaults to the effective `listen`/`http2` lines. macOS has no `timeout`, hence the `perl alarm`. The probe reports host binaries, packages, processes, every Podman and Docker container's copy (with `sudo -n` when not root), and what listens on 80 and 443.
+Change `SW=nginx` in the quoted remote command for other software (`SW=php CFG=`, `SW=node CFG=`; add `VER=--version` where the flag differs). `CFG` is a command whose output shows the precondition; for nginx it defaults to the effective `listen`/`http2` lines, falling back to the config files (marked `FILES-NOT-EFFECTIVE`) when `nginx -T` can't run. macOS has no `timeout`, hence the `perl alarm`. The probe reports host binaries (including `/usr/sbin` off a non-root PATH), packages, processes, every Podman and Docker container's copy (plain and through `sudo -n`), and what listens on 80 and 443. It writes nothing and restarts nothing.
 
-A host that printed nothing is not clean. Read its `.err`: an SSH timeout, a login without container access, or a platform-managed host where the binary sits off a non-root PATH all look like "not installed". List each unreachable host by name in the report.
+A host that printed nothing is not clean. Read its `.err`: an SSH timeout or a login without container access looks like "not installed", and the probe says `cannot list containers` or `cfg: unreadable` where it could tell. List each unreachable host by name in the report.
+
+**A library advisory (OpenSSL, glibc, zlib) is about what running processes load, not a binary's name.** `openssl version` says nothing about the copy nginx or PHP links. Check the loaded file per process (`grep -l libssl /proc/*/maps`, or `needrestart -b` where installed, which also lists processes still on a replaced library), and for images you build, read the base image in the repo's Containerfile: an image that isn't running is invisible to any host probe.
 
 ## 3. Judge exposure, host by host
 
@@ -35,13 +39,13 @@ One shared listener carries the most specific trap: a protocol flag on one virtu
 
 ## 4. Settle whose each host is
 
-Patching a box someone else runs is not yours to decide, even when you have root. For each exposed host, read the docs of the repo that owns it (`read-summary` for that project) before asking anything about it, and ask the user which hosts are theirs to patch. Platform-managed hosts (Cloudways and similar) without sudo are the platform's to patch: note the version and recheck later. Record the user's answer about ownership where the next sweep will read it.
+Patching a box someone else runs is not yours to decide, even when you have root. Read each exposed host's owning repo docs first (`read-summary`; a sweep host is a scope change), then ask once, in one batch, about the exposed hosts only: each option names the host, the evidence of who runs it (docs, who deploys), the proposed action and the blip it costs, so the user answers ownership and timing together. Platform-managed hosts (Cloudways and similar) without sudo are the platform's to patch: record the version and a recheck date in the task doc, offer to draft the platform ticket with the CVE ids and the exposure evidence, and offer a local `/loop` for the recheck (a cloud scheduled agent can't reach SSH hosts). Record the user's answer about ownership where the next sweep will read it.
 
 ## 5. Patch or mitigate
 
 Before a restart that blips shared sites, tell any live peer session working against that box. Then, by how the software was installed:
 
-- **Container on a floating tag:** keep a rollback copy (`podman tag <image> localhost/<name>:pre-<id>`), pull, test the live config on the new image in a throwaway container, then restart the unit. A reload never loads a new image, and a unit with no pull policy reuses the local image until you pull.
+- **Container on a floating tag:** keep a rollback copy (`podman tag <image> localhost/<name>:pre-<id>`), pull, test the live config on the new image in a throwaway container, then restart the unit, since a reload never loads a new image.
 - **Distro package:** `apt-get install --only-upgrade <pkg>` once the tracker lists a fix, then restart the service. With no fix yet, apply the vendor's mitigation (turn the feature off), test the config, reload, and say it is interim: NIST SP 800-40r4 §3.5.3 says to plan to replace emergency mitigations with permanent fixes once a patch exists (https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-40r4.pdf).
 - **Image you build:** bump the base image digest in that repo and ship it through its own deploy.
 
@@ -55,4 +59,4 @@ The installed package proves nothing about the running process: a container keep
 
 Write the outcome into the infrastructure task doc: CVE ids, the sweep result per host (patched, mitigated, not exposed with the reason, not ours, unreachable), the rollback copy, and the probe command for the next advisory.
 
-Then reply where the advisory was asked, usually a colleague's message in a team space, in the user's voice through `casual-message`. Cover what was patched, what was not exposed and why, and what waits on someone else. A short update in each affected product's space follows when the user wants one (`gchat-format` for the shape). Leave out hosts the user said aren't theirs unless they ask to flag them.
+Then answer the ask where it was posted and add any product-space note, per `ship` Step 5 items 7 and 8. Cover what was patched, what was not exposed and why, and what waits on someone else, and always carry one coverage line ("checked 12 of 15: 3 run by others, 2 waiting on the platform, recheck 26/11") so silence about a host never reads as covered. Hosts the user said aren't theirs are counted in that line, not named, unless they ask.

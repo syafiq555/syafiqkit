@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.460.1
+
+**`patch-advisory` fixes from its first review.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `probe.sh`: keeps `listen ... http2; # managed by Certbot` lines (a stray `grep -v '#'` hid HTTP/2 on Certbot hosts); lists containers both plain and through `sudo -n`, so a docker-group login and a sudo login both see them; reads the host config through sudo where it can; no temp file; every command reads `/dev/null` so it can't swallow the piped script; package match widened to `php8.3-fpm`-style names; prints `cannot list containers` and `cfg: unreadable` instead of reading as clean. Retested on a root host, a non-root Cloudways host and a sudo host.
+- `SKILL.md`: the sweep command creates its output folder and shows where `SW=` goes; hosts outside `remote` get a "not probeable" row; library advisories (OpenSSL, glibc) check what running processes load; ownership is asked once for exposed hosts with the evidence and the blip; platform-managed hosts get a recheck date, a drafted ticket and a local `/loop` offer; the report always carries a coverage line.
+
 ## 1.460.0
 
 **New `patch-advisory` skill: answer a CVE across every server you can reach.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/reload-skills`.
