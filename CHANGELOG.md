@@ -2,8 +2,10 @@
 
 ## 1.455.0
 
-**Claude no longer stops at "that can't be done" after one try.** Update with `claude plugin update syafiqkit@syafiqkit`; it applies from the next new session.
-- Before saying something is impossible, unsupported or blocked, Claude now lists at least three other ways to do it (building it against the provider's own API, a different plugin or tool, a workaround on the server side or on a schedule), each with how much work it is and what could go wrong, then recommends one (18/11/2026).
+**Claude offers other ways to get something done before saying it can't be.** Update with `claude plugin update syafiqkit@syafiqkit`; it applies from the next new, cleared or resumed session.
+- When a conclusion would stop work you want done, Claude now weighs at least three other ways in (building it against the provider's own API, a different plugin or tool, a workaround on the server side or on a schedule), opens with the one it recommends and gives the others a line each with how much work it is and what could go wrong. It names only routes it checked exist, and says what it ruled out when fewer than three are real (18/11/2026).
+- Not affected: a plain "does X support Y?" still gets a plain answer first, and anything you declined, a permission prompt or a safety control is reported as a stop, never worked around.
+- Expect slightly longer answers when something is blocked. The only off switch is uninstalling the plugin.
 
 ## 1.454.0
 
