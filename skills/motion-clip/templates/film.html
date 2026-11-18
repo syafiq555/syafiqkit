@@ -76,6 +76,10 @@ function start() {
   if (st && (![st.value, st.at, st.out].every((v) => v !== null && v !== '' && Number.isFinite(Number(v))) || (st.from != null && !Number.isFinite(Number(st.from))))) {
     throw new Error('STORY.stat needs numeric value, at and out (and from, if given)');
   }
+  const ot = STORY.outro;
+  if (ot && (ot.at === null || ot.at === '' || !Number.isFinite(Number(ot.at)) || (ot.lines != null && !Array.isArray(ot.lines)))) {
+    throw new Error('STORY.outro needs a numeric at, and lines (if given) as a list of strings or [label, value] arrays');
+  }
   if (STORY.shot && !(STORY.shot.w > 0 && STORY.shot.h > 0)) throw new Error('STORY.shot needs a positive w and h');
   STORY.hook = STORY.hook || [];
   STORY.taps = STORY.taps || [];
@@ -124,6 +128,8 @@ function start() {
   if (STORY.products) STORY.products.files.forEach((f, i) => loads.push(load(`product${i}`, f)));
   if (STORY.opening?.logo) loads.push(load('openingLogo', STORY.opening.logo));
   if (STORY.credit?.file) loads.push(load('creditLogo', STORY.credit.file));
+  if (STORY.outro?.logo) loads.push(load('outroLogo', STORY.outro.logo));
+  if (STORY.outro?.font) loads.push(loadFont(STORY.outro.font));
   if (STORY.subtitles) loads.push(loadWords(STORY.subtitles.file || 'assets/voice/words.json'));
   return Promise.all(loads).then(() => { resolveShot(); draw(0); });
 }
@@ -853,6 +859,73 @@ function credit(t) {
   }
 }
 
+function outro(t) {
+  const o = STORY.outro;
+  if (!o || t < o.at) return;
+  const k = clamp(smooth(t - o.at));
+  if (k <= 0) return;
+  const top = H * (1 - k);
+  g.save();
+  g.fillStyle = o.bg || C.accent;
+  g.fillRect(0, top, W, H);
+  const ink = o.ink || '#FFFFFF';
+  const family = o.font ? `"${o.font.family}", ` : '';
+  const face = (weight, size) => `${weight} ${size}px ${family}${STORY.fonts.heading.family}, sans-serif`;
+  const pic = img.outroLogo;
+  const short = Math.min(W, H);
+  const logoBoxW = L.vertical ? W * 0.72 : Math.min(W * 0.5, short * 1.15);
+  const logoScale = pic ? Math.min(logoBoxW / pic.naturalWidth, H * 0.28 / pic.naturalHeight) : 0;
+  const logoW = pic ? pic.naturalWidth * logoScale : 0;
+  const logoH = pic ? pic.naturalHeight * logoScale : 0;
+  const tagSize = short * (L.vertical ? 0.068 : 0.07);
+  const lineSize = short * (L.vertical ? 0.036 : 0.038);
+  const rows = [];
+  let offset = 0;
+  (o.lines || []).forEach((l, gi) => {
+    const group = Array.isArray(l) ? l : [l];
+    if (gi > 0) offset += lineSize * 1.0;
+    group.forEach((text, ri) => {
+      rows.push({ text, y: offset, label: group.length > 1 && ri < group.length - 1 });
+      offset += lineSize * 1.4;
+    });
+  });
+  const block = logoH + tagSize * 1.6 + (o.tagline ? tagSize * 0.4 + (rows.length ? lineSize * 1.6 : 0) : 0) + offset;
+  let y = top + (H - block) / 2;
+  const rise = (delay) => {
+    const p = clamp(smooth(t - o.at - delay));
+    return { a: p, dy: (1 - p) * short * 0.04 };
+  };
+  if (pic) {
+    const r = rise(0.2);
+    g.globalAlpha = r.a;
+    g.drawImage(pic, W / 2 - logoW / 2, y + r.dy, logoW, logoH);
+  }
+  y += logoH + tagSize * 1.6;
+  g.textAlign = 'center';
+  g.textBaseline = 'alphabetic';
+  if (o.tagline) {
+    const r = rise(0.45);
+    g.globalAlpha = r.a;
+    g.fillStyle = ink;
+    g.font = face(o.font?.tagWeight ?? 600, tagSize);
+    const m = g.measureText(o.tagline).width;
+    if (m > W * 0.88) g.font = face(o.font?.tagWeight ?? 600, tagSize * W * 0.88 / m);
+    g.fillText(o.tagline, W / 2, y + r.dy);
+    y += tagSize * 0.4 + lineSize * 1.6;
+  }
+  rows.forEach((row, i) => {
+    const r = rise(0.75 + i * 0.12);
+    const weight = row.label ? (o.font?.lineWeight ?? 400) : (o.font?.valueWeight ?? 600);
+    g.globalAlpha = r.a * (row.label ? (o.labelAlpha ?? 0.78) : 1);
+    g.fillStyle = ink;
+    g.font = face(weight, lineSize);
+    const m = g.measureText(row.text).width;
+    if (m > W * 0.88) g.font = face(weight, lineSize * W * 0.88 / m);
+    g.fillText(row.text, W / 2, y + row.y + r.dy);
+  });
+  g.restore();
+}
+
 function decimalsOf(v) {
   const [mantissa, exp = '0'] = String(v).split('e');
   return clamp((mantissa.split('.')[1] || '').length - Number(exp), 0, 100);
@@ -1169,6 +1242,7 @@ function drawFrame(t) {
   products(t);
   lockup(t);
   credit(t);
+  outro(t);
   subtitles(t);
 }
 
@@ -1218,6 +1292,10 @@ function buildCues() {
     ] : [],
     ending: s.lockup ? s.lockup.at : undefined,
   };
+  if (s.outro) {
+    cues.whooshes.push({ at: s.outro.at - 0.15, length: 0.55, rising: true, gain: 0.09 });
+    cues.chimes.push({ at: s.outro.at + 0.45, note: 84, gain: 0.08, length: 1.4 });
+  }
   if (s.number) {
     cues.ticks = { from: s.number.drop, every: s.number.every, count: s.number.count };
     cues.hit = s.number.pill;

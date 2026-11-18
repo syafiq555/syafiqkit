@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.453.0
+
+**`motion-clip` films can end on the studio's own card.** Update with `claude plugin update syafiqkit@syafiqkit`, then copy `film.html` into a clip folder made before this version.
+- A new `outro` (`at`, `bg`, `ink`, `logo`, `font`, `tagline`, `lines`) slides a full-frame panel in the studio's colour up after the client's lockup, with the studio's logo, tagline and contact lines in its own font, each contact group a lighter label over a bold value, plus a whoosh and chime in the score. Asked for by a studio that signs every client video ("our logo plus tagline", the website and the email); a logo whose accent mark matches the panel disappears, so the skill says to use an all-white version there.
+
 ## 1.452.1
 
 **Skill text catches up with 1.451.1.** Update with `claude plugin update syafiqkit@syafiqkit`.
