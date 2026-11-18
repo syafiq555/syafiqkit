@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.451.1
+
+**Design checks work on a Mac with only Playwright's browser; casual Malay drafts mix in English the way people text.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `taste` and `impeccable`: with no Chrome, Edge, Chromium or Brave installed, the page inspector and impeccable's URL scan now use the newest Chromium a project's `npx playwright install chromium` left in Playwright's cache, instead of stopping with "No Chrome found". The design review in `done` and `uiux` no longer loses those rows on such machines. Windows still needs `IMPECCABLE_BROWSER` set by hand for impeccable (#34).
+- `casual-message`: casual Malay keeps English verbs as well as nouns (check, display, fix), mixes whole English phrases by default, and picks the plainest spoken Malay word (`sama`, not `padan`). The test is whether the sender would say the word out loud to that person (#35).
+
 ## 1.451.0
 
 **`uiux` runs a website go-live check.** Update with `claude plugin update syafiqkit@syafiqkit`.

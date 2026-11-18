@@ -8,6 +8,7 @@ Vendored from Impeccable by Paul Bakaus: https://github.com/pbakaus/impeccable (
 - `reference/critique.md`, sub-agent gate: one added bullet routes Assessment A to the project's `product-reviewer` agent when one exists (syafiqkit's `agent-setup` generates it), with the rubric's return shape overriding its own report format; Assessment B stays general-purpose. Added 2026-10-20 after a critique had to hand-feed a general-purpose agent the project context that agent already loads.
 - `reference/critique.md` (Assessment B exit-code bullet and the "Deterministic scan" report line) and `reference/new-work.md` (the pre-review detect step): a note that on component source the detector runs regex rules only and `--json` drops the warning saying so, so an empty result is partial. Added 2026-10-21 after a critique's `[]` on `.tsx` pages read as clean until the scan was re-run in text mode.
 - `SKILL.md`, before "Launcher unavailable": a paragraph saying an `UPDATE_AVAILABLE` notice is answered by re-copying per § Updating, not by `npx impeccable update`, which writes into the current project. Added 2026-11-08 after the notice's own instruction would have dropped a second copy into a client repo.
+- `scripts/impeccable` (the launcher), right after it exports `IMPECCABLE_SKILL_DIR`: when none of `IMPECCABLE_BROWSER`, `CHROME_PATH` or `PUPPETEER_EXECUTABLE_PATH` is set and no system Chrome, Canary, Chromium, Edge or Brave is found, it exports `IMPECCABLE_BROWSER` as the newest Chromium in Playwright's cache. The engine binary otherwise stopped URL scans with "No Chrome … installation found" on a Mac whose only browser was Playwright's (issue #34, 18/11/2026). `impeccable.cmd` (Windows) is not patched; there, set `IMPECCABLE_BROWSER` by hand.
 - Everything else (scripts, the other references, data) is byte-identical to the commit above.
 
 ## The launcher
@@ -18,4 +19,4 @@ Vendored from Impeccable by Paul Bakaus: https://github.com/pbakaus/impeccable (
 
 ## Updating
 
-Re-copy `.agent/skills/impeccable/` from a newer upstream commit, re-apply the description and critique changes above (unless upstream now covers them), update the commit, version and date here, and note it in the plugin CHANGELOG.
+Re-copy `.agent/skills/impeccable/` from a newer upstream commit, re-apply the description, critique and launcher changes above (unless upstream now covers them), update the commit, version and date here, and note it in the plugin CHANGELOG.

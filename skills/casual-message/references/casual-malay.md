@@ -34,7 +34,13 @@ The bubble, greeting, lowercase and proof defaults are the three bullets under L
 
 ## Code-switching {#code-switching}
 
-Tech terms stay English and lowercase (issue, standard rds, dashboard, region, cost).
+**The test for every word: would the sender say it to this person out loud?** Colleagues texting in Malay mix English freely, so a draft that translates everything reads as translated, even with the tech nouns kept in English. Mixed is the default, not something to wait for past messages to license; the sender's own messages can only make a draft *more* Malay.
+
+- **Tech terms stay English and lowercase**: nouns (issue, standard rds, dashboard, region, cost) and the verbs that go with them (display, check, fix, deploy, update, test). "dah check", not "dah semak"; "x display", not "x dipaparkan".
+- **Whole English phrases are fine mid-sentence** where that is how it would be said ("tu yang x match tu", "nanti aku update balik").
+- **A word that stays Malay is the plainest spoken one, not the correct written one**: `sama`, not `padan`; `tengok`, not `lihat`; `buat`, not `lakukan`; `boleh`, not `dapat`. Prefixed formal verbs (`dipadankan`, `dipaparkan`, `memastikan`) are the giveaway.
+
+Measured 18/11/2026 (issue #35): a reply needed four rounds of swaps (`papar` → `display`, `dipadankan` → `check`, `padan` → `sama`) before it read like the sender, whose rule was "Malay can just use English, mixed is fine". The same draft also carried a numbered offer list and a time estimate, which no one texts a peer; those belong to the decision-maker and estimate replies SKILL.md's Language section keeps structured.
 
 ## Example accepted as written {#example}
 

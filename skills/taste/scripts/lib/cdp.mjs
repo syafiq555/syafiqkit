@@ -34,6 +34,43 @@ export function findChrome() {
     '/usr/bin/chromium-browser', '/snap/bin/chromium', '/usr/bin/microsoft-edge',
   ];
   for (const c of candidates) if (c && existsSync(c)) return c;
+  return findPlaywrightChromium(home, local);
+}
+
+function playwrightCacheDir(home, local) {
+  if (process.env.PLAYWRIGHT_BROWSERS_PATH && process.env.PLAYWRIGHT_BROWSERS_PATH !== '0') return process.env.PLAYWRIGHT_BROWSERS_PATH;
+  if (process.platform === 'darwin') return join(home, 'Library/Caches/ms-playwright');
+  if (process.platform === 'win32') return join(local, 'ms-playwright');
+  return join(process.env.XDG_CACHE_HOME || join(home, '.cache'), 'ms-playwright');
+}
+
+const PLAYWRIGHT_CHROMIUM_EXECUTABLES = [
+  'chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+  'chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+  'chrome-mac/Chromium.app/Contents/MacOS/Chromium',
+  'chrome-linux64/chrome',
+  'chrome-linux/chrome',
+  'chrome-win64/chrome.exe',
+  'chrome-win/chrome.exe',
+];
+
+export function findPlaywrightChromium(home = process.env.HOME || process.env.USERPROFILE || '', local = process.env.LOCALAPPDATA || '') {
+  const base = playwrightCacheDir(home, local);
+  let revisions;
+  try {
+    revisions = readdirSync(base)
+      .map((name) => /^chromium-(\d+)$/.exec(name))
+      .filter(Boolean)
+      .sort((a, b) => Number(b[1]) - Number(a[1]));
+  } catch {
+    return null;
+  }
+  for (const [name] of revisions) {
+    for (const rel of PLAYWRIGHT_CHROMIUM_EXECUTABLES) {
+      const exe = join(base, name, rel);
+      if (existsSync(exe)) return exe;
+    }
+  }
   return null;
 }
 
@@ -62,7 +99,7 @@ export class Browser {
     }
     const exe = findChrome();
     if (!exe) {
-      throw new Error('No Chrome/Edge/Chromium found. Install one or set CHROME_PATH to its executable.');
+      throw new Error('No Chrome/Edge/Chromium found, and no Playwright Chromium in its cache (npx playwright install chromium adds one). Install a browser, or set CHROME_PATH to its executable.');
     }
     // A throwaway profile per run. Its cache is capped (each run starts cold anyway), profiles left by
     // runs that were killed are swept once they are a few hours old, and the profile goes on exit.
