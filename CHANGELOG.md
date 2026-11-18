@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.456.1
+
+**The background watcher is safer after review.** Update with `claude plugin update syafiqkit@syafiqkit`. If you already set up a background watcher, ask Claude to "reinstall the watcher job" once, so the job picks up the fixed script.
+- A check that hangs is stopped after 15 minutes and counts as a failure, instead of quietly blocking every later check.
+- A second alert about the same item is no longer dropped because it happens to be worded the same as the last one.
+- A "watcher is failing" message names only the kind of problem (and says when it looks like a login problem); the details stay in the job's log, so nothing from the checked content goes to the chat.
+- Setup works outside work hours (`run <name> --now`), shows a sample settings file, covers turning a pasted crontab line into a job, and gives the exact stop command.
+- Saying "stop watching the tracker" in a session now also finds a background watcher, so it can't keep messaging your phone after you were told the watch is off.
+
 ## 1.456.0
 
 **New: run a check on a schedule with Claude closed, and hear about it only when it matters.** Update with `claude plugin update syafiqkit@syafiqkit`; ask for it in a new session ("check the tracker every 10 minutes during work hours and Telegram me").

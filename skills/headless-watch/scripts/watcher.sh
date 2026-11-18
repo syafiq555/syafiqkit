@@ -20,7 +20,8 @@ if [ "$cmd" = "status" ] && [ -z "$NAME" ]; then
     n=$(basename "$d")
     loaded=no
     launchctl print "gui/$(id -u)/$LABEL_PREFIX.$n" >/dev/null 2>&1 && loaded=yes
-    printf '%s\tscheduled=%s\tfailures=%s\tlast: %s\n' "$n" "$loaded" "$(cat "$d/fails" 2>/dev/null || echo 0)" "$(tail -1 "$d/run.log" 2>/dev/null)"
+    held=no; [ -s "$d/unsent.txt" ] && held=yes
+    printf '%s\tscheduled=%s\tfailures=%s\tunsent_alert=%s\tlast: %s\n' "$n" "$loaded" "$(cat "$d/fails" 2>/dev/null || echo 0)" "$held" "$(tail -1 "$d/run.log" 2>/dev/null)"
   done
   exit 0
 fi
@@ -78,7 +79,7 @@ run_claude() {
   local model=$1 prompt_file=$2 schema=$3 contract=$4 out=$5 state
   state=$(cat "$JOB/state.json" 2>/dev/null)
   [ -n "$state" ] || state='{}'
-  local pid watchdog rc
+  local pid watchdog rc limit
   {
     cat "$prompt_file"
     printf '\n\n---\nUnattended run by a scheduled watcher (job "%s"). Nobody is at the terminal, so never ask a question, never write to a shared document and never send a message yourself: the watcher sends whatever you return. %s\n\nState saved by the previous run (an empty object means this is the first run):\n%s\n' "$NAME" "$contract" "$state"
@@ -89,45 +90,51 @@ run_claude() {
     --json-schema "$schema" --permission-mode default --permission-prompts none --allowedTools="$ALLOWED_TOOLS" \
     --max-budget-usd "$MAX_BUDGET_USD" --no-session-persistence < "$JOB/.prompt.txt" > "$out" 2>>"$JOB/run.log" &
   pid=$!
-  ( sleep "${RUN_TIMEOUT_SEC:-$((RUN_TIMEOUT_MIN * 60))}"; kill -0 "$pid" 2>/dev/null && { touch "$JOB/.timedout"; kill -TERM "$pid"; sleep 10; kill -KILL "$pid"; } ) >/dev/null 2>&1 &
+  limit="${RUN_TIMEOUT_SEC:-$((RUN_TIMEOUT_MIN * 60))}"
+  ( sleep "$limit"; kill -0 "$pid" 2>/dev/null && { echo "$limit" > "$JOB/.timedout"; kill -TERM "$pid"; sleep 10; kill -KILL "$pid"; } ) >/dev/null 2>&1 &
   watchdog=$!
-  { wait "$pid"; rc=$?; kill "$watchdog"; wait "$watchdog"; } 2>/dev/null
+  { wait "$pid"; rc=$?; pkill -P "$watchdog"; kill "$watchdog"; wait "$watchdog"; } 2>/dev/null
   return "$rc"
 }
 
 record_failure() {
-  local reason=$1 n
+  local reason=$1 detail=${2:-} n
   n=$(( $(cat "$JOB/fails" 2>/dev/null || echo 0) + 1 ))
   echo "$n" > "$JOB/fails"
-  log "FAIL ($n in a row): $reason"
+  log "FAIL ($n in a row): $reason${detail:+ | $detail}"
   if [ "$n" -eq "$FAIL_ALERT_AFTER" ]; then
-    send "The watcher itself is failing ($n runs in a row): $reason. Log: $JOB/run.log" || true
+    send "The watcher itself is failing ($n runs in a row): $reason. Details in $JOB/run.log" || true
   fi
 }
 
 check_result() {
   local out=$1
   if [ -f "$JOB/.timedout" ]; then
+    local limit
+    limit=$(cat "$JOB/.timedout" 2>/dev/null)
     rm -f "$JOB/.timedout"
-    record_failure "claude ran longer than $RUN_TIMEOUT_MIN minutes and was stopped"
+    record_failure "claude ran longer than ${limit:-$((RUN_TIMEOUT_MIN * 60))} seconds and was stopped"
     return 1
   fi
   if ! jq -e . "$out" >/dev/null 2>&1; then
-    record_failure "claude returned no JSON (exit $2): $(tail -c 300 "$JOB/run.log" | tr '\n' ' ')"
+    record_failure "claude returned no JSON (exit $2)" "$(tail -c 300 "$JOB/run.log" | tr '\n' ' ')"
     return 1
   fi
   if [ "$(jq -r '.is_error' "$out")" = "true" ] || ! jq -e '.structured_output' "$out" >/dev/null 2>&1; then
-    record_failure "$(jq -r '(.subtype // "error") + ": " + ((.result // "") | tostring | .[0:300])' "$out")"
+    local short
+    short="claude reported $(jq -r 'if (.subtype // "success") == "success" then "an error" else .subtype end' "$out")"
+    jq -r '.result // ""' "$out" | grep -qi 'auth\|login\|credential\|401' && short="$short (looks like a login problem)"
+    record_failure "$short" "$(jq -r '(.result // "") | tostring | .[0:300]' "$out")"
     return 1
   fi
   return 0
 }
 
 do_run() {
-  local dow hour gate_out main_out cost msg last
+  local dow hour gate_out main_out cost msg last prev force=0
   dow=$(date +%u); hour=$((10#$(date +%H)))
   if [ "${3:-}" = "--now" ] || [ -f "$JOB/.force" ]; then
-    rm -f "$JOB/.force"
+    force=1
   elif ! { in_spec "$dow" "$DAYS" && in_spec "$hour" "$HOURS"; }; then
     [ -t 2 ] && echo "watcher: outside DAYS=$DAYS HOURS=$HOURS, nothing run (use: run $NAME --now)" >&2
     exit 0
@@ -138,17 +145,19 @@ do_run() {
       rmdir "$JOB/.lock" 2>/dev/null; mkdir "$JOB/.lock" 2>/dev/null || exit 0
       log "removed a lock older than 60 minutes"
     else
+      [ "$force" = 1 ] && rm -f "$JOB/.force"
       log "skipped: previous run still going"; exit 0
     fi
   fi
   trap 'rmdir "$JOB/.lock" 2>/dev/null' EXIT
+  [ "$force" = 1 ] && rm -f "$JOB/.force"
 
   [ -d "$PROJECT_DIR" ] || { record_failure "project folder $PROJECT_DIR is missing"; exit 1; }
   [ -x "$CLAUDE_BIN" ] || { record_failure "claude not found at $CLAUDE_BIN"; exit 1; }
 
   if [ -s "$JOB/unsent.txt" ]; then
     if send "$(cat "$JOB/unsent.txt") (held from an earlier check)"; then
-      mv "$JOB/unsent.txt" "$JOB/last-alert.txt"
+      rm -f "$JOB/unsent.txt"
     fi
   fi
 
@@ -160,7 +169,9 @@ do_run() {
       "$gate_out"
     check_result "$gate_out" $? || exit 1
     if [ "$(jq -r '.structured_output.changed' "$gate_out")" != "true" ]; then
-      jq -s '(.[0] // {}) * (.[1].structured_output.state // {})' "$JOB/state.json" "$gate_out" > "$JOB/state.json.tmp" 2>/dev/null \
+      prev=$(cat "$JOB/state.json" 2>/dev/null)
+      [ -n "$prev" ] || prev='{}'
+      jq --argjson prev "$prev" '($prev // {}) * (.structured_output.state // {})' "$gate_out" > "$JOB/state.json.tmp" 2>/dev/null \
         || jq '.structured_output.state' "$gate_out" > "$JOB/state.json.tmp"
       mv "$JOB/state.json.tmp" "$JOB/state.json"
       cost=$(jq -r '.total_cost_usd // 0' "$gate_out")
@@ -181,18 +192,19 @@ do_run() {
   cost=$(jq -r '.total_cost_usd // 0' "$main_out")
   if [ "$(jq -r '.structured_output.alert' "$main_out")" = "true" ]; then
     msg=$(jq -r '.structured_output.message' "$main_out")
-    last=$(cat "$JOB/last-alert.txt" 2>/dev/null)
-    if [ "$msg" = "$last" ]; then
-      log "alert suppressed (same text as the last one, \$$cost)"
-    elif send "$msg"; then
-      printf '%s' "$msg" > "$JOB/last-alert.txt"
+    [ -n "$msg" ] || msg="Something needs you (the check gave no details; see $JOB/run.log)."
+    if send "$msg"; then
       log "ALERT sent (\$$cost): $msg"
     else
-      if [ -s "$JOB/unsent.txt" ]; then printf '\n%s' "$msg" >> "$JOB/unsent.txt"; else printf '%s' "$msg" > "$JOB/unsent.txt"; fi
+      case "$(cat "$JOB/unsent.txt" 2>/dev/null)" in
+        *"$msg"*) ;;
+        *) if [ ! -s "$JOB/unsent.txt" ]; then printf '%s' "$msg" > "$JOB/unsent.txt"
+           elif [ "$(wc -c < "$JOB/unsent.txt")" -lt 3000 ]; then printf '\n%s' "$msg" >> "$JOB/unsent.txt"
+           else log "unsent.txt is full, dropped: $msg"; fi ;;
+      esac
       log "ALERT held for retry (\$$cost): $msg"
     fi
   else
-    rm -f "$JOB/last-alert.txt"
     log "quiet (\$$cost)"
   fi
   after_success
@@ -220,7 +232,13 @@ do_install() {
   case "$INTERVAL_MIN" in ''|*[!0-9]*) die "INTERVAL_MIN must be whole minutes" ;; esac
   mkdir -p "$ROOT/bin" "$HOME/Library/LaunchAgents"
   src="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
-  [ "$src" = "$ROOT/bin/watcher.sh" ] || cp "$src" "$ROOT/bin/watcher.sh"
+  if [ "$src" = "$ROOT/bin/watcher.sh" ]; then
+    echo "script not refreshed: run install from the plugin's copy (skills/headless-watch/scripts/watcher.sh) to update it"
+  elif cmp -s "$src" "$ROOT/bin/watcher.sh"; then
+    echo "script unchanged"
+  else
+    cp "$src" "$ROOT/bin/watcher.sh" && echo "script updated from $src"
+  fi
   chmod 700 "$ROOT/bin/watcher.sh"
   if [ "$INTERVAL_MIN" -ge 1 ] && [ "$INTERVAL_MIN" -le 60 ] && [ $((60 % INTERVAL_MIN)) -eq 0 ]; then
     schedule="<key>StartCalendarInterval</key>
@@ -263,8 +281,11 @@ case "$cmd" in
     launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null
     rm -f "$PLIST"
     echo "removed $LABEL (job folder $JOB kept)" ;;
-  kick) touch "$JOB/.force"; launchctl kickstart -k "gui/$(id -u)/$LABEL" && echo "started $LABEL now; see $JOB/run.log" ;;
+  kick)
+    touch "$JOB/.force"
+    if launchctl kickstart -k "gui/$(id -u)/$LABEL"; then echo "started $LABEL now; see $JOB/run.log"
+    else rm -f "$JOB/.force"; echo "not started: is $LABEL installed? (watcher.sh install $NAME)" >&2; exit 1; fi ;;
   test-alert) send "Test alert: this is where the watcher's alerts will arrive." && echo "sent" || { echo "send failed; see $JOB/run.log"; exit 1; } ;;
-  status) printf 'scheduled: %s\nfailures: %s\n' "$(launchctl print "gui/$(id -u)/$LABEL" >/dev/null 2>&1 && echo yes || echo no)" "$(cat "$JOB/fails" 2>/dev/null || echo 0)"; tail -5 "$JOB/run.log" 2>/dev/null ;;
+  status) printf 'scheduled: %s\nfailures: %s\nunsent alert held: %s\n' "$(launchctl print "gui/$(id -u)/$LABEL" >/dev/null 2>&1 && echo yes || echo no)" "$(cat "$JOB/fails" 2>/dev/null || echo 0)" "$([ -s "$JOB/unsent.txt" ] && echo yes || echo no)"; tail -5 "$JOB/run.log" 2>/dev/null ;;
   *) die "unknown command $cmd" ;;
 esac
