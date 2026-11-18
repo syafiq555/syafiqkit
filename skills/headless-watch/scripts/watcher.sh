@@ -1,0 +1,270 @@
+#!/bin/bash
+# Usage: watcher.sh run|install|uninstall|kick|test-alert|status <name>
+set -u
+umask 077
+
+ROOT="${WATCHERS_HOME:-$HOME/.claude/watchers}"
+CLAUDE_BIN="${CLAUDE_BIN:-$HOME/.local/bin/claude}"
+TELEGRAM_ENV="${TELEGRAM_ENV:-$HOME/.claude/channels/telegram/.env}"
+LABEL_PREFIX="syafiqkit.watcher"
+export PATH="$HOME/.local/bin:$HOME/.bun/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+cmd="${1:-}"
+NAME="${2:-}"
+
+die() { echo "watcher: $*" >&2; exit 64; }
+
+if [ "$cmd" = "status" ] && [ -z "$NAME" ]; then
+  for d in "$ROOT"/*/; do
+    [ -f "$d/job.env" ] || continue
+    n=$(basename "$d")
+    loaded=no
+    launchctl print "gui/$(id -u)/$LABEL_PREFIX.$n" >/dev/null 2>&1 && loaded=yes
+    printf '%s\tscheduled=%s\tfailures=%s\tlast: %s\n' "$n" "$loaded" "$(cat "$d/fails" 2>/dev/null || echo 0)" "$(tail -1 "$d/run.log" 2>/dev/null)"
+  done
+  exit 0
+fi
+
+[ -n "$NAME" ] || die "usage: watcher.sh run|install|uninstall|kick|test-alert|status <name>"
+case "$NAME" in *[!A-Za-z0-9._-]*) die "job name may use letters, digits, dot, dash, underscore" ;; esac
+
+JOB="$ROOT/$NAME"
+LABEL="$LABEL_PREFIX.$NAME"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+[ -f "$JOB/job.env" ] || die "no job at $JOB (job.env missing)"
+
+PROJECT_DIR="" MODEL="sonnet" GATE_MODEL="haiku" ALLOWED_TOOLS="" DAYS="1-7" HOURS="0-23"
+INTERVAL_MIN="10" ALERT="telegram" TELEGRAM_CHAT_ID="" NTFY_TOPIC="" NTFY_SERVER="https://ntfy.sh"
+MAX_BUDGET_USD="1" HEARTBEAT="daily" FAIL_ALERT_AFTER="2" RUN_TIMEOUT_MIN="15"
+# shellcheck disable=SC1091
+. "$JOB/job.env"
+
+log() { printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$JOB/run.log"; }
+
+in_spec() {
+  local v=$1 part lo hi
+  local IFS=','
+  for part in $2; do
+    case $part in
+      *-*) lo=${part%-*}; hi=${part#*-}; [ "$v" -ge "$lo" ] && [ "$v" -le "$hi" ] && return 0 ;;
+      *) [ "$v" -eq "$part" ] && return 0 ;;
+    esac
+  done
+  return 1
+}
+
+send() {
+  local msg="[$NAME] $1" token resp code
+  case "$ALERT" in
+    telegram)
+      token=$(sed -n 's/^TELEGRAM_BOT_TOKEN=//p' "$TELEGRAM_ENV" 2>/dev/null | head -1 | tr -d '"'"'"' \r')
+      [ -n "$token" ] || { log "send failed: no TELEGRAM_BOT_TOKEN in $TELEGRAM_ENV"; return 1; }
+      [ -n "$TELEGRAM_CHAT_ID" ] || { log "send failed: TELEGRAM_CHAT_ID not set"; return 1; }
+      resp=$(curl -sS --max-time 20 -K - --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" --data-urlencode "text=$msg" 2>&1 <<<"url = \"https://api.telegram.org/bot$token/sendMessage\"")
+      if printf '%s' "$resp" | jq -e '.ok == true' >/dev/null 2>&1; then return 0; fi
+      log "send failed: $(printf '%s' "$resp" | jq -r '.description // empty' 2>/dev/null || printf '%s' "$resp" | head -c 200)"
+      return 1 ;;
+    ntfy)
+      [ -n "$NTFY_TOPIC" ] || { log "send failed: NTFY_TOPIC not set"; return 1; }
+      code=$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' -H "Title: $NAME" --data-binary "$msg" "$NTFY_SERVER/$NTFY_TOPIC" 2>>"$JOB/run.log")
+      case "$code" in 2*) return 0 ;; esac
+      log "send failed: ntfy HTTP $code"
+      return 1 ;;
+    *) log "send failed: unknown ALERT=$ALERT"; return 1 ;;
+  esac
+}
+
+run_claude() {
+  local model=$1 prompt_file=$2 schema=$3 contract=$4 out=$5 state
+  state=$(cat "$JOB/state.json" 2>/dev/null)
+  [ -n "$state" ] || state='{}'
+  local pid watchdog rc
+  {
+    cat "$prompt_file"
+    printf '\n\n---\nUnattended run by a scheduled watcher (job "%s"). Nobody is at the terminal, so never ask a question, never write to a shared document and never send a message yourself: the watcher sends whatever you return. %s\n\nState saved by the previous run (an empty object means this is the first run):\n%s\n' "$NAME" "$contract" "$state"
+  } > "$JOB/.prompt.txt"
+  rm -f "$out" "$JOB/.timedout"
+  cd "$PROJECT_DIR" || return 1
+  "$CLAUDE_BIN" -p --model "$model" --output-format json \
+    --json-schema "$schema" --permission-mode default --permission-prompts none --allowedTools="$ALLOWED_TOOLS" \
+    --max-budget-usd "$MAX_BUDGET_USD" --no-session-persistence < "$JOB/.prompt.txt" > "$out" 2>>"$JOB/run.log" &
+  pid=$!
+  ( sleep "${RUN_TIMEOUT_SEC:-$((RUN_TIMEOUT_MIN * 60))}"; kill -0 "$pid" 2>/dev/null && { touch "$JOB/.timedout"; kill -TERM "$pid"; sleep 10; kill -KILL "$pid"; } ) >/dev/null 2>&1 &
+  watchdog=$!
+  { wait "$pid"; rc=$?; kill "$watchdog"; wait "$watchdog"; } 2>/dev/null
+  return "$rc"
+}
+
+record_failure() {
+  local reason=$1 n
+  n=$(( $(cat "$JOB/fails" 2>/dev/null || echo 0) + 1 ))
+  echo "$n" > "$JOB/fails"
+  log "FAIL ($n in a row): $reason"
+  if [ "$n" -eq "$FAIL_ALERT_AFTER" ]; then
+    send "The watcher itself is failing ($n runs in a row): $reason. Log: $JOB/run.log" || true
+  fi
+}
+
+check_result() {
+  local out=$1
+  if [ -f "$JOB/.timedout" ]; then
+    rm -f "$JOB/.timedout"
+    record_failure "claude ran longer than $RUN_TIMEOUT_MIN minutes and was stopped"
+    return 1
+  fi
+  if ! jq -e . "$out" >/dev/null 2>&1; then
+    record_failure "claude returned no JSON (exit $2): $(tail -c 300 "$JOB/run.log" | tr '\n' ' ')"
+    return 1
+  fi
+  if [ "$(jq -r '.is_error' "$out")" = "true" ] || ! jq -e '.structured_output' "$out" >/dev/null 2>&1; then
+    record_failure "$(jq -r '(.subtype // "error") + ": " + ((.result // "") | tostring | .[0:300])' "$out")"
+    return 1
+  fi
+  return 0
+}
+
+do_run() {
+  local dow hour gate_out main_out cost msg last
+  dow=$(date +%u); hour=$((10#$(date +%H)))
+  if [ "${3:-}" = "--now" ] || [ -f "$JOB/.force" ]; then
+    rm -f "$JOB/.force"
+  elif ! { in_spec "$dow" "$DAYS" && in_spec "$hour" "$HOURS"; }; then
+    [ -t 2 ] && echo "watcher: outside DAYS=$DAYS HOURS=$HOURS, nothing run (use: run $NAME --now)" >&2
+    exit 0
+  fi
+
+  if ! mkdir "$JOB/.lock" 2>/dev/null; then
+    if [ -n "$(find "$JOB/.lock" -maxdepth 0 -mmin +60 2>/dev/null)" ]; then
+      rmdir "$JOB/.lock" 2>/dev/null; mkdir "$JOB/.lock" 2>/dev/null || exit 0
+      log "removed a lock older than 60 minutes"
+    else
+      log "skipped: previous run still going"; exit 0
+    fi
+  fi
+  trap 'rmdir "$JOB/.lock" 2>/dev/null' EXIT
+
+  [ -d "$PROJECT_DIR" ] || { record_failure "project folder $PROJECT_DIR is missing"; exit 1; }
+  [ -x "$CLAUDE_BIN" ] || { record_failure "claude not found at $CLAUDE_BIN"; exit 1; }
+
+  if [ -s "$JOB/unsent.txt" ]; then
+    if send "$(cat "$JOB/unsent.txt") (held from an earlier check)"; then
+      mv "$JOB/unsent.txt" "$JOB/last-alert.txt"
+    fi
+  fi
+
+  if [ -f "$JOB/gate.md" ]; then
+    gate_out="$JOB/.gate.json"
+    run_claude "$GATE_MODEL" "$JOB/gate.md" \
+      '{"type":"object","properties":{"changed":{"type":"boolean"},"state":{"type":"object"}},"required":["changed","state"]}' \
+      'Return changed=true when anything might need the full check (including any read that failed, or no earlier value to compare with), and state: the previous state updated with what you just read.' \
+      "$gate_out"
+    check_result "$gate_out" $? || exit 1
+    if [ "$(jq -r '.structured_output.changed' "$gate_out")" != "true" ]; then
+      jq -s '(.[0] // {}) * (.[1].structured_output.state // {})' "$JOB/state.json" "$gate_out" > "$JOB/state.json.tmp" 2>/dev/null \
+        || jq '.structured_output.state' "$gate_out" > "$JOB/state.json.tmp"
+      mv "$JOB/state.json.tmp" "$JOB/state.json"
+      cost=$(jq -r '.total_cost_usd // 0' "$gate_out")
+      log "quiet (gate, \$$cost)"
+      after_success
+      exit 0
+    fi
+  fi
+
+  main_out="$JOB/.main.json"
+  run_claude "$MODEL" "$JOB/prompt.md" \
+    '{"type":"object","properties":{"alert":{"type":"boolean"},"message":{"type":"string"},"state":{"type":"object"}},"required":["alert","message","state"]}' \
+    'Return alert=true only when something needs the user now; message: the alert text, short and plain, naming the item and who acted, never quoting other people'"'"'s text or personal details (it goes to a third-party chat service); empty when alert is false; state: the full state the next run should start from, so it can tell new from already reported.' \
+    "$main_out"
+  check_result "$main_out" $? || exit 1
+
+  jq '.structured_output.state' "$main_out" > "$JOB/state.json.tmp" && mv "$JOB/state.json.tmp" "$JOB/state.json"
+  cost=$(jq -r '.total_cost_usd // 0' "$main_out")
+  if [ "$(jq -r '.structured_output.alert' "$main_out")" = "true" ]; then
+    msg=$(jq -r '.structured_output.message' "$main_out")
+    last=$(cat "$JOB/last-alert.txt" 2>/dev/null)
+    if [ "$msg" = "$last" ]; then
+      log "alert suppressed (same text as the last one, \$$cost)"
+    elif send "$msg"; then
+      printf '%s' "$msg" > "$JOB/last-alert.txt"
+      log "ALERT sent (\$$cost): $msg"
+    else
+      if [ -s "$JOB/unsent.txt" ]; then printf '\n%s' "$msg" >> "$JOB/unsent.txt"; else printf '%s' "$msg" > "$JOB/unsent.txt"; fi
+      log "ALERT held for retry (\$$cost): $msg"
+    fi
+  else
+    rm -f "$JOB/last-alert.txt"
+    log "quiet (\$$cost)"
+  fi
+  after_success
+}
+
+after_success() {
+  local n today
+  n=$(cat "$JOB/fails" 2>/dev/null || echo 0)
+  if [ "$n" -ge "$FAIL_ALERT_AFTER" ]; then
+    send "Working again after $n failed runs." || true
+  fi
+  rm -f "$JOB/fails"
+  today=$(date +%F)
+  if [ "$HEARTBEAT" = "daily" ] && [ "$(cat "$JOB/heartbeat" 2>/dev/null)" != "$today" ]; then
+    send "Watching today, first check OK at $(date +%H:%M). Silence after this means nothing needed you." && echo "$today" > "$JOB/heartbeat"
+  fi
+  return 0
+}
+
+do_install() {
+  [ -d "$PROJECT_DIR" ] || die "PROJECT_DIR $PROJECT_DIR does not exist"
+  [ -f "$JOB/prompt.md" ] || die "$JOB/prompt.md missing"
+  [ -n "$ALLOWED_TOOLS" ] || die "ALLOWED_TOOLS is empty; name the tools the check needs"
+  [ -x "$CLAUDE_BIN" ] || die "claude not found at $CLAUDE_BIN"
+  case "$INTERVAL_MIN" in ''|*[!0-9]*) die "INTERVAL_MIN must be whole minutes" ;; esac
+  mkdir -p "$ROOT/bin" "$HOME/Library/LaunchAgents"
+  src="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+  [ "$src" = "$ROOT/bin/watcher.sh" ] || cp "$src" "$ROOT/bin/watcher.sh"
+  chmod 700 "$ROOT/bin/watcher.sh"
+  if [ "$INTERVAL_MIN" -ge 1 ] && [ "$INTERVAL_MIN" -le 60 ] && [ $((60 % INTERVAL_MIN)) -eq 0 ]; then
+    schedule="<key>StartCalendarInterval</key>
+  <array>"
+    m=0
+    while [ "$m" -lt 60 ]; do
+      schedule="$schedule<dict><key>Minute</key><integer>$m</integer></dict>"
+      m=$((m + INTERVAL_MIN))
+    done
+    schedule="$schedule</array>"
+  else
+    schedule="<key>StartInterval</key><integer>$((INTERVAL_MIN * 60))</integer>"
+  fi
+  cat > "$PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$LABEL</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/bash</string><string>$ROOT/bin/watcher.sh</string><string>run</string><string>$NAME</string></array>
+  $schedule
+  <key>RunAtLoad</key><false/>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>$JOB/launchd.log</string>
+  <key>StandardErrorPath</key><string>$JOB/launchd.log</string>
+</dict>
+</plist>
+EOF
+  plutil -lint "$PLIST" >/dev/null || die "plist failed to validate: $PLIST"
+  launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null
+  launchctl bootstrap "gui/$(id -u)" "$PLIST" || die "launchctl bootstrap failed"
+  echo "installed $LABEL: every $INTERVAL_MIN min, days $DAYS, hours $HOURS"
+}
+
+case "$cmd" in
+  run) do_run "$@" ;;
+  install) do_install ;;
+  uninstall)
+    launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null
+    rm -f "$PLIST"
+    echo "removed $LABEL (job folder $JOB kept)" ;;
+  kick) touch "$JOB/.force"; launchctl kickstart -k "gui/$(id -u)/$LABEL" && echo "started $LABEL now; see $JOB/run.log" ;;
+  test-alert) send "Test alert: this is where the watcher's alerts will arrive." && echo "sent" || { echo "send failed; see $JOB/run.log"; exit 1; } ;;
+  status) printf 'scheduled: %s\nfailures: %s\n' "$(launchctl print "gui/$(id -u)/$LABEL" >/dev/null 2>&1 && echo yes || echo no)" "$(cat "$JOB/fails" 2>/dev/null || echo 0)"; tail -5 "$JOB/run.log" 2>/dev/null ;;
+  *) die "unknown command $cmd" ;;
+esac

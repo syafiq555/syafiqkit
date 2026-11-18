@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.456.0
+
+**New: run a check on a schedule with Claude closed, and hear about it only when it matters.** Update with `claude plugin update syafiqkit@syafiqkit`; ask for it in a new session ("check the tracker every 10 minutes during work hours and Telegram me").
+- `headless-watch` sets up a job per check on your Mac (launchd): it runs a skill or prompt with `claude -p`, remembers what it saw between runs in a small state file, checks cheaply first whether anything moved, and messages Telegram or ntfy only when something needs you. You also get one "still watching" line a day and a warning if the watcher itself starts failing, so silence means quiet, not broken.
+- Alerts go through Telegram's plain send call, not `--channels`: a `--channels` run on a timer would take the bot away from your open Telegram session every time it started.
+- `watch-sheets` can now run unattended: its memory comes from the job's state file, which holds only ids, statuses, counts and dates, never sheet text or names.
+- Measured on 18/11/2026 against three Google Sheets: a quiet check costs about $0.02, a full check after a change about $0.50 on Sonnet.
+
 ## 1.455.1
 
 **Chat tags are safer and checked live.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.
