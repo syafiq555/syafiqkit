@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.458.0
+
+**New `posthog-replay-frames` skill: check what one user actually did and saw in PostHog.** Update with `claude plugin update syafiqkit@syafiqkit`; it fires on "what did this user see", "check the replay", or a forwarded PostHog AI summary or shared replay link.
+- It reads the person's raw events first, because a session summary can miss events: on 18/11/2026 PostHog AI said a new user never created a property while the events held `property_created`, and the real exit was an upsell tap two steps later.
+- `scripts/capture.mjs` screenshots a shared replay link at chosen `?t=` offsets, waits out the player's buffering (the page never reaches `networkidle`), and packs the frames into contact sheets with ImageMagick.
+- Researched alternatives: PostHog's MP4/GIF export is UI-only with a monthly quota (https://posthog.com/docs/session-replay/sharing), and the snapshots API plus `rrvideo` renders offline but is marked internal (https://github.com/rrweb-io/rrweb/blob/master/packages/rrvideo/README.md).
+
 ## 1.457.0
 
 **The Google Sheets tool can copy a tab into another spreadsheet.** Update with `claude plugin update syafiqkit@syafiqkit`, then run `/mcp reconnect gsheets` in each project that has it switched on.

@@ -128,6 +128,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/unhobble-instructions` | Audit + rewrite a SKILL.md/agent/CLAUDE.md/command for overconstraint vs. genuine fact, per Anthropic's "Unhobbling Claude" framing |
 | `/refresh-instructions` | Full three-pass refresh on any living doc — CLAUDE.md, task doc, `docs/` set file, README or runbook — restructure, condense, then unhobble, each on haiku and verified in sequence |
 | `/skill-creator` | Create a new skill — place it, draft it, register it, and verify its trigger actually fires |
+| `/posthog-replay-frames` | What one user did and saw in PostHog: their raw events, then screenshots of the shared replay at the moments that matter, checked against any AI summary |
 | `/self-organize-agent-memory` | Dispatch a project agent onto its own bloated `.md` file to decide what stays inline vs. what moves to its own agent-memory |
 | `/taste` | Build, redesign, restyle, polish or improve a landing page, marketing site or portfolio with real art direction: deals researched directions from a 247-site library, finds real pictures in open collections, gates on a browser inspector. Vendored from tasteskill v2 (MIT); needs Node 22+ and Chrome |
 | `/impeccable` | Design-director toolkit for any interface, run only when named (`/impeccable`, `/impeccable polish`, `audit`, `bolder`…; a bare "polish" is `/uiux`): modes, a craft floor of bans, per-command playbooks. Vendored from impeccable 4.8.2 (Apache-2.0); its launcher downloads a binary on first use |
