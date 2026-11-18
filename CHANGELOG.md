@@ -11,7 +11,7 @@
 
 **`/done`'s task-doc step no longer trusts builder agents' doc edits as the update, and `task-summary` fixes stale derived views for any change the session made, not only its own.** Update with `claude plugin update syafiqkit@syafiqkit`.
 - `done` Step 4: a builder or other agent editing task docs is not `task-summary` having run, so the invoke stays bare and its args never call the agents' doc work complete. 19/11/2026: args saying "beyond what the builders already wrote" left a hub Quick Start listing two built features as not built and `ARCHITECTURE.md` on a superseded refund rule; a bare re-run found both, and the user asked how they were missed.
-- `task-summary` § After Writing: the derived-views grep covers every date, status or decision the session changed, whoever wrote it (a builder's `decisions/` line, a feature a builder shipped that the Quick Start still calls unbuilt), found from `git log --since=<session start> -- tasks/`.
+- `task-summary` § After Writing: the derived-views grep covers every date, status or decision the session changed, whoever wrote it (a builder's `decisions/` line, a feature a builder shipped that the Quick Start still calls unbuilt), found from `git log -- tasks/` back to the session's first commit.
 
 ## 1.459.1
 
