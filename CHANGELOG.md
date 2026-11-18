@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.454.0
+
+**Google Chat posts can tag people for real.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.
+- In `message_send` and `message_edit`, `@Full Name` of someone who has posted in that chat's newest 200 messages becomes a mention chip (`<chat-user data-user="users/{id}">`, from Google's "Format text messages" guide), which notifies them on a new post. Before, a typed "@Name" arrived as plain text and had to be tagged by hand in Chat (18/11/2026).
+- The preview lists each match (`mentions: @Name -> users/…`) and any `@name` it could not tag, and the send or edit passes that line back: it is refused if the names now resolve differently. Emails, partial names and two people sharing a name are never tagged, and an edit says it notifies nobody.
+- Not yet checked against the live API: the first tagged post is the test.
+
 ## 1.453.0
 
 **`motion-clip` films can end on the studio's own card.** Update with `claude plugin update syafiqkit@syafiqkit`, then copy `film.html` into a clip folder made before this version.

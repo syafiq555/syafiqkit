@@ -40,4 +40,6 @@ You need a **Google Workspace** (Business or Enterprise) account: Google's Chat 
 
 **What leaves the machine:** every message a tool reads goes into the Claude session and its local transcript. It is registered in every project, so a session in a client repo can read company chats too.
 
+**Mentions:** `@Full Name` in sent or edited text becomes a real mention (blue chip, and a notification on a send) when that person has posted in the space's newest 200 messages; the match is the whole display name, case-insensitive. The preview prints a `mentions: @Name -> users/ID` line and a `not tagged (...)` line for `@names` nobody by that name posted under; pass the mentions value to `message_send` / `message_edit`, which refuse if the names now resolve differently. Emails are never touched. An edit adds the chip but notifies nobody. Sent as `<chat-user data-user="users/ID">` (Google's form for Markdown text); not yet seen live.
+
 **Not built yet:** unread state and @-mentions of you (both need scopes not granted), nicknames for people (pass the email instead), a list of spaces it must never read, starting a new DM.

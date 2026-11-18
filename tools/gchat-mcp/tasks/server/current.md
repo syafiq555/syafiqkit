@@ -3,7 +3,7 @@ Status: ✅ Live (user scope, work account): read, search and send checked on re
 Domain: tools / gchat-mcp
 Gotchas: the send gate is Claude Code's permission prompt forced by `_meta["anthropic/requiresUserInteraction"]`, never a code the model can read; MCP elicitation hung over Remote Control (../../CLAUDE.md)
 Related: ../../README.md, ../../CLAUDE.md, ../../../gsheets-mcp/tasks/server/current.md, ../../../../tasks/plugin-maintenance/setup-tools/current.md, ~/.claude/references/google-sheets-access.md
-Last updated: 2026-11-17: times follow the machine's zone (`SYAFIQKIT_TZ` overrides), `check --read`, Workspace-only per-person setup through `setup-tools`; 2026-11-14: scope widened to `chat.messages` (signed in again 14/11), `message_edit_preview` and `message_edit` added, every `messages_list` line carries its message name, `message_send`'s formatting line corrected to Markdown; 2026-11-13: review fixes (timeouts, client messageId, 1000-char cap, refusal wording, download cleanup, wider secret-file list)
+Last updated: 2026-11-18: real @-mentions of people who posted in the space (preview shows the mapping, send and edit re-check it); 2026-11-17: times follow the machine's zone (`SYAFIQKIT_TZ` overrides), `check --read`, Workspace-only per-person setup through `setup-tools`; 2026-11-14: scope widened to `chat.messages` (signed in again 14/11), `message_edit_preview` and `message_edit` added, every `messages_list` line carries its message name, `message_send`'s formatting line corrected to Markdown; 2026-11-13: review fixes (timeouts, client messageId, 1000-char cap, refusal wording, download cleanup, wider secret-file list)
 -->
 
 # gchat-mcp: the server
@@ -12,7 +12,7 @@ Last updated: 2026-11-17: times follow the machine's zone (`SYAFIQKIT_TZ` overri
 
 **Next action**: `/mcp reconnect gchat`, then the live checks (Next Steps, first two items).
 **Blocked on**: nothing.
-**Current state**: signed in again 14/11 with the four scopes including `chat.messages` (`~/.config/syafiqkit/google-chat/`), registered at user scope in `~/.claude.json`, Chat API, People API and Chat app configuration done in `careful-yew-506703-e8`. Run `cd tools/gchat-mcp && bun test` (64 pass on 17/11; `tests/preload.ts` pins `SYAFIQKIT_TZ` because `bun test` forces UTC) and `bun x tsc --noEmit`; `bin/gchat-mcp check --read` proves Chat answers. A running Claude session keeps the old server until `/mcp reconnect gchat`. Text sent or edited through the API is Markdown (`**bold**`, `- ` items); a single `*x*` is italic.
+**Current state**: signed in again 14/11 with the four scopes including `chat.messages` (`~/.config/syafiqkit/google-chat/`), registered at user scope in `~/.claude.json`, Chat API, People API and Chat app configuration done in `careful-yew-506703-e8`. Run `cd tools/gchat-mcp && bun test` (79 pass on 18/11; `tests/preload.ts` pins `SYAFIQKIT_TZ` because `bun test` forces UTC) and `bun x tsc --noEmit`; `bin/gchat-mcp check --read` proves Chat answers. A running Claude session keeps the old server until `/mcp reconnect gchat`. Text sent or edited through the API is Markdown (`**bold**`, `- ` items); a single `*x*` is italic.
 **Next check, live**: the edit worked on a real message 14/11 (Next Steps lists what it didn't cover); one `attachment_download` of a real screenshot; one send with a file approved from the phone, confirming Google accepts the `client-` messageId (a 400 on every send would mean it doesn't).
 **Success looks like**: in any repo, "what did Hong Liang say in the Autorentic space this week" answers from real messages including posted screenshots, and a send shows Syafiq the preview and full text, then posts only after he taps Claude Code's permission prompt, on the Mac or the phone (the one confirmation since 17/11).
 
@@ -52,6 +52,7 @@ A first call before the Chat API was enabled answered 403 "Google Chat API has n
 
 ## Next Steps
 
+- [ ] 🟠 Mentions (built 18/11/2026, `src/mentions.ts`, `tests/mentions.spec.ts`, unit-tested only): live check after `/mcp reconnect gchat`. Send one message to Syafiq's own DM or a test space with "@" plus the full name of someone who posted there, and confirm a blue chip appears. The code writes `<chat-user data-user="users/ID">` (Google's Markdown form); if it renders as literal text, switch `mentionTag` to `<users/ID>`. Also confirm the 18/11 report that a chip on an edit notifies nobody.
 - [ ] 🟡 Edit still unchecked live: whether a reaction moves `lastUpdateTime` (a reaction between preview and edit would then refuse the edit), and that an attachment on an edited message survives. Checked 14/11/2026: preview and `message_edit` on the CRP45 release note (approved on the permission prompt) went through, `lastUpdateTime` was the earlier hand edit's, and `**bold**` with `- ` items rendered bold with a real list.
 - [ ] 🟡 A machine still on the 13/11 sign-in gets a bare Google 403 from `message_edit` (NOT EDITED); `google.ts`'s `hint()` has no scope case telling it to run `gchat-mcp auth` again.
 - [ ] 🟠 Live check after `/mcp reconnect gchat`: download one of Hong Liang's 13/11 screenshots in SaaS-Autorentic (SCR-20261113-pspu.png), send the 13/11 Autorentic release note there through the new flow approving from the phone, and send one file to Syafiq's own DM. The release note is over 1000 characters, so it goes as several messages: check each reads well on the phone prompt.
@@ -60,4 +61,4 @@ A first call before the Chat API was enabled answered 403 "Google Chat API has n
 - [ ] 🟡 Review leftovers, low: a timeout while reading a response body shows the raw "The operation timed out" (still classed UNSURE); `secrets*`/`credentials*`/`.key` also block innocent names like `secretariat.pdf` or a Keynote deck.
 
 - [ ] Later, if asked: accept times like "18:48 today" in since/until
-- [ ] Later, if asked: nicknames (`KL` → email), a never-read list of spaces, unread and @-mention views (need extra scopes)
+- [ ] Later, if asked: nicknames (`KL` → email), a never-read list of spaces, unread and mentions-of-you views (need extra scopes)
