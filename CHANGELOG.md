@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.451.0
+
+**`uiux` runs a website go-live check.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- "Is the site ready", "check it before launch" or a team's launch SOP now fires `uiux`, which measures the live site rather than listing items: search engines still blocked (checked first, since a launch that keeps the staging `noindex` hides every title written for it), titles and descriptions, sitemap URLs that redirect, demo slugs, Lighthouse on mobile and desktop (local, when Google's PageSpeed quota runs out), open security routes, tracking, email and backups. A WordPress section covers settings, leftover demo pages and plugins, and what a hidden login (WPS Hide Login) leaks: public pages printing `wp_login_url()`, WordPress's own new-user and reset emails, and test suites or sync scripts that sign in at `wp-login.php`. New reference `skills/uiux/references/go-live-check.md`.
+
 ## 1.450.0
 
 **`motion-clip` voice lines can say a word differently from how it is shown; `product-still` places a logo without a card frame.** Update with `claude plugin update syafiqkit@syafiqkit`, then copy `film.html`, `voice.mjs` and `words.py` (motion-clip) or `still.html` (product-still) into a clip or still folder made before this version.
