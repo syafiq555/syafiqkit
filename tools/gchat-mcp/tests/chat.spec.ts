@@ -95,3 +95,51 @@ test('a DM whose members cannot be read says so instead of "yourself", and is re
   fail = false
   expect(await chat.label(dm)).toBe('DM: Man Hou')
 })
+
+function memberRoutes(onMembers: (url: string) => unknown) {
+  const calls: string[] = []
+  const g = {
+    call: async (_m: string, url: string) => {
+      calls.push(url)
+      if (url.includes('/spaces?')) return { spaces: [{ name: 'spaces/D1', spaceType: 'DIRECT_MESSAGE' }, { name: 'spaces/D2', spaceType: 'DIRECT_MESSAGE' }] }
+      if (url.includes('spaces/D1/members')) return { memberships: [{ member: { name: 'users/9' } }, { member: { name: 'users/1', displayName: 'Syafiq' } }] }
+      if (url.includes('spaces/D2/members')) return { memberships: [{ member: { name: 'users/1', displayName: 'Syafiq' } }, { member: { name: 'users/8' } }] }
+      if (url.includes('listDirectoryPeople')) return { people: [{ resourceName: 'people/2', names: [{ displayName: 'Hong Liang' }] }] }
+      if (url.includes('spaces/AAA/members')) return onMembers(url)
+      throw new Error(`Google API 404: ${url}`)
+    },
+  } as unknown as Google
+  return { chat: new Chat(g), calls }
+}
+
+test('humanMembers pages through the members, filters to humans, and leaves out you, bots and repeats', async () => {
+  const { chat, calls } = memberRoutes((url) =>
+    url.includes('pageToken=t2')
+      ? { memberships: [{ member: { name: 'users/5', displayName: 'Ana Lee', type: 'HUMAN' } }, { member: { name: 'users/6', displayName: 'Bot', type: 'BOT' } }] }
+      : { memberships: [{ member: { name: 'users/1', displayName: 'Syafiq', type: 'HUMAN' } }, { member: { name: 'users/2', type: 'HUMAN' } }, { member: { name: 'users/2', type: 'HUMAN' } }], nextPageToken: 't2' },
+  )
+  const people = await chat.humanMembers('spaces/AAA')
+  expect(people).toEqual([
+    { id: 'users/2', name: 'Hong Liang' },
+    { id: 'users/5', name: 'Ana Lee' },
+  ])
+  const member = calls.filter((u) => u.includes('spaces/AAA/members'))
+  expect(member).toHaveLength(2)
+  expect(decodeURIComponent(member[0]!.replaceAll('+', ' '))).toContain('filter=member.type = "HUMAN"')
+})
+
+test('humanMembers retries without the filter when Google rejects it', async () => {
+  const { chat, calls } = memberRoutes((url) => {
+    if (url.includes('filter=')) throw new Error('Google API 400: bad filter')
+    return { memberships: [{ member: { name: 'users/5', displayName: 'Ana Lee', type: 'HUMAN' } }] }
+  })
+  expect(await chat.humanMembers('spaces/AAA')).toEqual([{ id: 'users/5', name: 'Ana Lee' }])
+  expect(calls.filter((u) => u.includes('spaces/AAA/members'))).toHaveLength(2)
+})
+
+test('humanMembers passes other Google errors on, so a mention is refused rather than guessed', async () => {
+  const { chat } = memberRoutes(() => {
+    throw new Error('Google API 403: no access')
+  })
+  await expect(chat.humanMembers('spaces/AAA')).rejects.toThrow('Google API 403')
+})

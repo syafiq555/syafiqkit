@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.455.1
+
+**Chat tags are safer and checked live.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.
+- `@Full Name` now matches a member of the chat (its member list), not only someone among its newest 200 messages, and only by the exact display name: typing more than a member's name ("@Ana Lee" when only "Ana" is a member) is never tagged as the shorter name.
+- A name that can't be tagged gets a hint ("@Hong Liang" suggests "@Hong Liang Ng") and a list of who can be tagged; nothing is guessed for you.
+- A raw Chat tag (`<users/...>`, `<chat-user ...>`) already in the text is refused, so nobody is tagged without appearing in the preview; `@` inside backticks or after a backslash is left alone; an edit says to post a new message when people should be notified.
+- Checked live on 18/11/2026: an edited Chat message stored the tag as a real mention of the named person.
+
 ## 1.455.0
 
 **Claude offers other ways to get something done before saying it can't be.** Update with `claude plugin update syafiqkit@syafiqkit`; it applies from the next new, cleared or resumed session.

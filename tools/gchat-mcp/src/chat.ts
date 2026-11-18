@@ -80,6 +80,30 @@ export class Chat {
     return { id: shared.name, name: shared.displayName ?? null }
   }
 
+  async humanMembers(space: string): Promise<{ id: string; name: string }[]> {
+    const { id: me } = await this.self()
+    const listAll = async (filter: string | undefined) => {
+      const out: any[] = []
+      let pageToken: string | undefined
+      do {
+        const res = await this.g.call('GET', `${CHAT}/${space}/members${query({ pageSize: 100, pageToken, filter })}`)
+        out.push(...(res.memberships ?? []))
+        pageToken = res.nextPageToken
+      } while (pageToken)
+      return out
+    }
+    const all = await listAll('member.type = "HUMAN"').catch((err: Error) => {
+      if (!err.message.startsWith('Google API 400')) throw err
+      return listAll(undefined)
+    })
+    const humans = new Map<string, any>()
+    for (const x of all) {
+      const u = x.member
+      if (u?.name && u.type !== 'BOT' && u.name !== me && !humans.has(u.name)) humans.set(u.name, u)
+    }
+    return Promise.all([...humans.values()].map(async (u) => ({ id: u.name as string, name: (await this.person(u.name, u.displayName)).trim() })))
+  }
+
   label(space: Space): Promise<string> {
     if (space.displayName) return Promise.resolve(space.displayName)
     let cached = this.labels.get(space.name)
