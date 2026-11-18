@@ -216,6 +216,9 @@ try {
     if (new Set(times.map((t) => first.get(t))).size === 1) errors.push('every frame is the same picture: nothing in the film changes with t');
     flat.sort((a, b) => a - b);
     if (flat.length) warnings.push(`one flat colour at ${flat.slice(0, 6).join(', ')}${flat.length > 6 ? ', ...' : ''} s: if that is not meant, nothing was drawn there`);
+    await page.evaluate(() => window.seek(0));
+    if (await flatNow()) warnings.push('frame 0 is one flat colour, and WhatsApp, Chat and most feeds use the first frame as the thumbnail, so the shared clip looks blank: show the logo or headline from t = 0 (an `opening` logo, hook lines with `in` below 0)');
+    else passed.push('frame 0 shows something, so the shared thumbnail is not blank');
     const fonts = await page.evaluate(() => {
       const c = document.createElement('canvas').getContext('2d');
       const width = (font) => { c.font = font; return c.measureText('Hamburgefonstiv 0123').width; };

@@ -122,6 +122,8 @@ function start() {
   });
   STORY.photos.forEach((p, i) => loads.push(load(`photo${i}`, p.file)));
   if (STORY.products) STORY.products.files.forEach((f, i) => loads.push(load(`product${i}`, f)));
+  if (STORY.opening?.logo) loads.push(load('openingLogo', STORY.opening.logo));
+  if (STORY.credit?.file) loads.push(load('creditLogo', STORY.credit.file));
   if (STORY.subtitles) loads.push(loadWords(STORY.subtitles.file || 'assets/voice/words.json'));
   return Promise.all(loads).then(() => { resolveShot(); draw(0); });
 }
@@ -804,6 +806,51 @@ function lockup(t) {
   }
 }
 
+function opening(t) {
+  const o = STORY.opening;
+  const pic = img.openingLogo;
+  if (!o || !pic) return;
+  const leave = easeIn((t - o.out) / 0.3);
+  if (leave >= 1) return;
+  const size = L.hook;
+  const cy = H * (L.vertical ? 0.44 : 0.46);
+  const w = L.vertical ? W * 0.62 : Math.min(W * 0.42, size * 3.6);
+  const h = w * pic.naturalHeight / pic.naturalWidth;
+  const x = L.vertical ? W / 2 - w / 2 : L.textX - w * 0.012;
+  const y = cy - size * 0.8 - size * 0.55 - h;
+  g.save();
+  g.globalAlpha = 1 - leave;
+  g.drawImage(pic, x, y - leave * size * 0.3, w, h);
+  g.restore();
+}
+
+function credit(t) {
+  const c = STORY.credit;
+  const pic = img.creditLogo;
+  if (!c || !pic) return;
+  for (const [from, to] of c.windows) {
+    const enter = from <= 0 ? 1 : clamp(smooth(t - from));
+    const leave = to == null ? 0 : easeIn((t - to) / 0.3);
+    if (t < from || enter <= 0 || leave >= 1) continue;
+    const h = Math.max(c.minHeight ?? 35, L.vertical ? W * 0.042 : Math.min(W, H) * 0.045);
+    const w = h * pic.naturalWidth / pic.naturalHeight;
+    const label = c.label || '';
+    const ls = h * 0.62;
+    g.save();
+    g.globalAlpha = enter * (1 - leave);
+    g.font = font(ls, false);
+    const lw = label ? g.measureText(label).width + ls * 0.6 : 0;
+    const x0 = W / 2 - (lw + w) / 2;
+    const y = H - H * (L.vertical ? 0.055 : 0.07) - h;
+    if (label) {
+      g.fillStyle = C.inkMuted; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      g.fillText(label, x0, y + h * 0.74);
+    }
+    g.drawImage(pic, x0 + lw, y, w, h);
+    g.restore();
+  }
+}
+
 function decimalsOf(v) {
   const [mantissa, exp = '0'] = String(v).split('e');
   return clamp((mantissa.split('.')[1] || '').length - Number(exp), 0, 100);
@@ -1109,6 +1156,7 @@ function drawFrame(t) {
   g.fillRect(0, 0, W, H);
   ambient(t);
   backdrops(t);
+  opening(t);
   hook(t);
   drawDevice(t);
   captions(t);
@@ -1118,6 +1166,7 @@ function drawFrame(t) {
   statScene(t);
   products(t);
   lockup(t);
+  credit(t);
   subtitles(t);
 }
 

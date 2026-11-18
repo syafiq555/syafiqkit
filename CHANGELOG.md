@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.452.0
+
+**`motion-clip` films no longer share as a blank thumbnail, and can carry the studio's credit.** Update with `claude plugin update syafiqkit@syafiqkit`, then copy `film.html` and `render.mjs` into a clip folder made before this version.
+- WhatsApp, Chat and most feeds use a video's first frame as its thumbnail, and every film opened on an empty page while its hook revealed, so a client's launch clip went round WhatsApp looking blank. `check` now warns when frame 0 is one flat colour (its flat-colour scan skipped the first half second, the thumbnail itself), the starter story's hook is complete at t = 0, and a new `opening: { logo, out }` draws the client's logo above the hook from frame 0.
+- `credit: { file, label, windows }` puts a studio's logo bottom-centre ("Prepared by" + logo, at least 35 px tall) in each time window, for agencies that sign every client file.
+- A logo PNG with an off-white box shows as a pale rectangle on a tinted page even under `multiply`; the skill now says to turn its whiteness into alpha and draw it `source-over`.
+
 ## 1.451.1
 
 **Design checks work on a Mac with only Playwright's browser; casual Malay drafts mix in English the way people text.** Update with `claude plugin update syafiqkit@syafiqkit`.

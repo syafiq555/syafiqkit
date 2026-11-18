@@ -11,7 +11,7 @@ window.STORY = {
   music: { bpm: 120, groove: [2.0, 11.0], hatsFrom: 1.0 },
 
   hook: [
-    { text: 'Your hook,', color: 'ink', in: 0.15, out: 2.0 },
+    { text: 'Your hook,', color: 'ink', in: -1, out: 2.0 },
     { text: 'in five words.', color: 'accent', in: 1.0, out: 2.05 },
   ],
   device: { enter: 2.05, leave: 11.5 },
