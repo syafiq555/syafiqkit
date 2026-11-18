@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.456.8
+
+**Wrap-up notices plugin work outside skill files, and client questions go to the tracker.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `/done` and `/quick-done` now check the whole plugin folder for this session's changes, committed work included, so a tool built and pushed still gets its plugin update.
+- `/ship` waits until `/done` has fully finished (knowledge, task docs, plugin check), not just its review.
+- A drafted team message no longer asks a colleague for something only the client can answer: that question goes in the client tracker with a suggested answer. Team posts start on the first point and tag only people who must act.
+
 ## 1.456.7
 
 **No change to anything you run: maintainer docs fixed.** Update with `claude plugin update syafiqkit@syafiqkit`; nothing else to do.

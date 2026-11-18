@@ -16,12 +16,13 @@ Capture if a skill misfired, a workflow step was wrong, a trigger missed, or an 
 
 For each signal: record what instruction the skill or docs lacked. The fix belongs in the agent file or docs, not in the prompt.
 
-## Gate B — Session Wrote to Skill Files
+## Gate B: Session Wrote to the Plugin Tree
 
-Measure it:
+Measure it over the whole tree, committed work included: a session that built a tool under `tools/` and shipped it leaves an empty status, and a filter on skill files never saw it (18/11/2026: a Chat tool feature was built, reviewed and pushed, and `update-plugin` never ran).
 ```bash
 # Run from the plugin checkout (CWD), not git -C <path>, which walks up to enclosing repos
-git status --short -- 'skills/**/*.md' 'commands/*.md' '.claude/agents/*.md'
+git status --short
+git log --oneline --since="<session start>"
 ```
 
 The checkout is shared by every project, so it may carry another session's work. **Settle ownership:**
