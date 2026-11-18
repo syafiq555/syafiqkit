@@ -91,6 +91,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/ship` | End-to-end ship: commit → changelog → push → CI verify → release note |
 | `/pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev |
 | `/reclaim-disk` | Free disk space on a developer's Mac: measure first, show a plan, clear the caches and build output you confirm, run an app's own temp cleanup, ask item by item before anything personal |
+| `/patch-advisory` | Answer a security advisory across your servers: probe every host and container read-only, judge which are really exposed (version, the precondition, reachability), patch or mitigate the ones you own with a rollback copy, verify the running process, record it and reply where it was asked |
 | `/commit-invoice-generator` | Generate invoice line items from git commits |
 | `/design-handoff` | Write a brief for someone ELSE to design a screen (external designer, Claude Design, contractor) — purpose, audience, business and legal rules, measured failures; layout, components and step count stay theirs. Designing it yourself is `/uiux` |
 | `/gchat-format` | Convert Markdown to Google Chat syntax — for a document posted to a thread (release note, status update, announcement) |

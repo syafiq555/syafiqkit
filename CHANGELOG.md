@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.460.0
+
+**New `patch-advisory` skill: answer a CVE across every server you can reach.** Update with `claude plugin update syafiqkit@syafiqkit`, then `/reload-skills`.
+- Reads the advisory into facts (fixed version per branch, precondition, mitigation, distro status), probes every `remote` host and container with a bundled read-only `scripts/probe.sh` (host binaries off a non-root PATH, packages, processes, Podman and Docker copies with `sudo -n`, the effective config, listeners), and judges exposure by version, precondition and reachability rather than score.
+- Distro packages are judged by the distro tracker, since a backported `1.24.0-2ubuntu7.x` can't be compared with upstream (Ubuntu's tracker lists per-release fixed versions, e.g. https://ubuntu.com/security/CVE-2024-7347). An exposure that can't be established counts as open (CERT/CC SSVC, https://certcc.github.io/SSVC/howto/bootstrap/collect). A mitigation is interim until a fix lands (NIST SP 800-40r4 §3.5.3).
+- Ownership comes from each host's own repo docs and the user's word before any patch; the running copy is verified, not the package; the reply goes where the advisory was asked. Built from the 19/11/2026 nginx HTTP/2 sweep (15 hosts, one patched, two platform-managed, three not the user's).
+
 ## 1.459.2
 
 **`/done`'s task-doc step no longer trusts builder agents' doc edits as the update, and `task-summary` fixes stale derived views for any change the session made, not only its own.** Update with `claude plugin update syafiqkit@syafiqkit`.

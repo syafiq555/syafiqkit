@@ -91,6 +91,7 @@ These skills accept explicit user command:
 | `continue-session` | Copy-paste prompt that starts a fresh session: task doc path, next goal, uncommitted state |
 | `pull-db` | MySQL/MariaDB transfer from a remote server to local dev |
 | `reclaim-disk` | Free disk on a developer's Mac: measure, one plan, confirmed caches cleared |
+| `patch-advisory` | Security advisory across servers: probe every host, judge real exposure, patch what the user owns, verify, report where asked. Repo dependency advisories are a code change through `ship` |
 | `notes-summary` | Personal session journal in `~/.claude/notes/`; powers `read-notes`/`update-notes` |
 | `skill-creator` | New skill: judges whether it should be one, drafts SKILL.md, registers it |
 | `update-plugin` | Capture plugin learnings and patch SKILL.md files |
@@ -115,6 +116,7 @@ These skills accept explicit user command:
 | `haiku` | Brute-force work over more items than one context reads well (every case of a script against the code, every commit since a date, every row of a register), unnamed: split across parallel haiku agents |
 | `pull-db` | Session involves remote database work |
 | `reclaim-disk` | Laptop storage low or full, "free up space", "what's eating my disk", Docker or System Data too large |
+| `patch-advisory` | A CVE, a vendor or researcher write-up, or a colleague's "patch if got any nginx" / "are we affected by" arrives |
 | `hobby-review` | User reports finishing a book, game, show or hobby item |
 | `motion-clip` | Asked for a launch clip, promo, explainer or reel, or to add music to one, without naming the skill |
 | `product-still` | Website or marketing images built from the product's screens are outdated or wanted ("update the images on our site", "feature image", "transparent version", "phone version"), without naming the skill |
