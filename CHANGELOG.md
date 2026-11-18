@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.456.9
+
+**`refresh-instructions` checks a condense for rules it deleted without being told about them.** Update with `claude plugin update syafiqkit@syafiqkit`; nothing else to do.
+- After the condense pass and before the last pass, a fresh reviewer now compares the file before and after, section by section, for rules deleted rather than moved, and checks that any sentence another file quotes or extracts still has its source. The count gate and the list of protected rules only cover what the session thought to name: a refresh earlier today passed both while six unnamed rules disappeared (18/11/2026).
+
 ## 1.456.8
 
 **Wrap-up notices plugin work outside skill files, and client questions go to the tracker.** Update with `claude plugin update syafiqkit@syafiqkit`.
