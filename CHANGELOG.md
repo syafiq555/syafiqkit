@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.449.2
+
+**`uat-script` warns that a repo-wide `*.csv` ignore can leave the checks out of git.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- A marketplace's 173 checks lived a day on disk only, because the repo ignores every `.csv` to keep client data out; the lesson says to confirm `git ls-files` lists the cases after the first commit and to exempt the folder by path.
+
 ## 1.449.1
 
 **`ship`'s sheet-row step follows each sheet's own rules and never posts a guess.** Update with `claude plugin update syafiqkit@syafiqkit`.
