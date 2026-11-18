@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.458.1
+
+**`posthog-replay-frames` fixes from its first review.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- The event query now finds the person's sessions first and reads each session whole, so events from before sign-in and a mixed-case email are no longer missed, and noisy events no longer push the end of a session past the row limit.
+- `capture.mjs` finds Playwright under the current directory when `--playwright` is left out, says plainly when a path is wrong, validates every flag, closes the browser on a failed load, and reports a failed sheet instead of claiming `montage` is missing.
+
 ## 1.458.0
 
 **New `posthog-replay-frames` skill: check what one user actually did and saw in PostHog.** Update with `claude plugin update syafiqkit@syafiqkit`; it fires on "what did this user see", "check the replay", or a forwarded PostHog AI summary or shared replay link.
