@@ -15,6 +15,12 @@ export function configDir(): string {
   return process.env.GMAIL_CONFIG_DIR || join(homedir(), '.config', 'syafiqkit', 'google-gmail')
 }
 
+export function expiredSignIn(): string {
+  const dir = configDir()
+  const shellDir = /^[\w@%+=:,./-]+$/.test(dir) ? dir : `'${dir.replace(/'/g, `'\\''`)}'`
+  return `The Gmail sign-in for ${dir} expired or was revoked. Ask the user to sign in again: GMAIL_CONFIG_DIR=${shellDir} gmail-mcp auth`
+}
+
 const sheetsClientPath = () => join(homedir(), '.config', 'syafiqkit', 'google', 'client.json')
 export const clientPath = () => join(configDir(), 'client.json')
 export const refreshPath = () => join(configDir(), 'refresh.json')
@@ -68,6 +74,7 @@ async function postToken(fetcher: Fetch, form: Record<string, string>): Promise<
   }
   const body: any = await res.json().catch(() => ({}))
   if (!res.ok) {
+    if (body.error === 'invalid_grant') throw new Error(`gmail: ${expiredSignIn()} (Google: invalid_grant).`)
     const reason = body.error_description || body.error || `HTTP ${res.status}`
     throw new Error(`gmail: Google refused the token request (${reason}). If the sign-in was revoked, run: gmail-mcp auth`)
   }

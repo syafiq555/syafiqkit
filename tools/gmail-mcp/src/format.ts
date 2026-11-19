@@ -123,6 +123,20 @@ export function bodyText(m: GmailMessage): string {
   return ''
 }
 
+export function forwardedText(m: GmailMessage): string {
+  const lines = [
+    '---------- Forwarded message ---------',
+    `From: ${oneLine(header(m, 'From')) || '-'}`,
+    `Date: ${oneLine(header(m, 'Date')) || sentAt(m)}`,
+    `Subject: ${oneLine(header(m, 'Subject')) || '(no subject)'}`,
+    `To: ${oneLine(header(m, 'To')) || '-'}`,
+  ]
+  const cc = oneLine(header(m, 'Cc'))
+  if (cc) lines.push(`Cc: ${cc}`)
+  lines.push('', bodyText(m) || '(no text body)')
+  return lines.join('\n')
+}
+
 export function searchLine(m: GmailMessage): string {
   const files = attachmentsOf(m).length
   return [

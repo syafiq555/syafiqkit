@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: live on the work account since 19/11/2026 (registered user-scope); four additions approved the same day, being built
+Status: live on the work account since 19/11/2026 (registered user-scope); four additions (replyMode, forward, enable [name], expired sign-in) built the same day, awaiting a live try
 Domain: tools / gmail-mcp
 Gotchas: the send gate is Claude Code's permission prompt forced by `_meta["anthropic/requiresUserInteraction"]`; Gmail has no idempotency key, so the duplicate guard reads `sent.log`; `gmail.readonly` is a restricted scope, so use an Internal OAuth client (../../CLAUDE.md)
 Related: ../../README.md, ../../CLAUDE.md, ../../../gchat-mcp/tasks/server/current.md
@@ -10,9 +10,9 @@ Last updated: 2026-11-19: first live send; review fixes; four additions approved
 
 ## Quick Start (read this first in next session)
 
-**Next action**: the four approved additions in Next Steps (Syafiq 19/11, all four picked from the product review).
+**Next action**: `/mcp reconnect gmail`, then try the four additions live (see Next Steps).
 **Blocked on**: nothing.
-**Current state**: signed in as the work address (`~/.config/syafiqkit/google-gmail/`), registered as `gmail` at user scope; proven live 19/11 by a search, reading a forwarded thread and two threaded replies, one with a PDF, confirmed in Sent. `bun test` (78 pass) and `tsc --noEmit` pass. Review fixes 19/11: parallel identical sends refused by an in-flight set, a 30 s token timeout, header folding, a wider attachment denylist (`.claude-companions/local/`, `wp-config*.php`, and others).
+**Current state**: signed in as the work address (`~/.config/syafiqkit/google-gmail/`), registered as `gmail` at user scope; proven live 19/11 by a search, reading a forwarded thread and two threaded replies, one with a PDF, confirmed in Sent. Built 19/11 (Syafiq's four picks): `replyMode` `sender`/`all` on preview and send (addresses resolved in `compose`, own address removed, explicit `to`/`cc` merged, still checked by `recipients` and the digest); `forwardOf` (Fwd: subject, quoted header block and text, original attachments re-fetched through the API and hashed into the digest, not threaded, recipients never filled); `bin/enable [name]` for a second account with its own `GMAIL_CONFIG_DIR`; `invalid_grant` and 401 reported as an expired or revoked sign-in with the `auth` command, a send in that state staying NOT SENT. `bun test` (112 pass) and `tsc --noEmit` pass. Review fixes 19/11: parallel identical sends refused by an in-flight set, a 30 s token timeout, header folding, a wider attachment denylist (`.claude-companions/local/`, `wp-config*.php`, and others).
 
 ## Overview
 
@@ -35,11 +35,7 @@ flowchart LR
 
 ## Next Steps
 
-- [ ] 🟠 Approved 19/11 (Syafiq picked all four from the product review):
-  - Reply helper: `replyMode` `sender` or `all` on the preview fills the addresses from the original (the user's own address left out), listed in the preview and still checked by `recipients`.
-  - Forward: send a message on with its original header block quoted and its attachments, without a download step.
-  - `bin/enable [name]`: a second account (a personal Gmail) registers under its own name with its own `GMAIL_CONFIG_DIR`.
-  - A 401 or `invalid_grant` says the sign-in expired or was revoked and to run `gmail-mcp auth`.
+- [ ] 🟠 The four 19/11 additions are built and unit-tested but not yet seen live: a `replyMode` reply, a forward with an attachment, `bin/enable gmail-personal` against a real second account, and an expired sign-in message from Google.
 - [ ] 🟡 Not yet seen live: an attachment download, a message over 4 MB (upload endpoint), a phone-approved send (what the phone prompt shows of the body), Google's wording for a 5xx or timeout, and that Gmail strips Bcc from delivered copies.
 - [ ] 🟡 Known low risks left by the review: the HTML-to-text regex is quadratic on a hostile email with thousands of unclosed tags; a hard-linked secret file passes the denylist; downloads are pruned only at server start.
 - [ ] Later, if asked: drafts, labels, HTML or a signature.

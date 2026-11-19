@@ -11,21 +11,48 @@ done
 root=$(cd "$(dirname "$self")/.." && pwd)
 launcher="$root/bin/gmail-mcp"
 
-"$launcher" check || {
-  echo "Sign in first: $launcher auth" >&2
-  exit 1
-}
+name=${1:-gmail}
+case $name in
+  -*|*[!a-z0-9-]*)
+    echo "Server name \"$name\" must use only lowercase letters, digits and hyphens (and not start with a hyphen), e.g. gmail-personal." >&2
+    exit 2
+    ;;
+esac
 
-if claude mcp get gmail >/dev/null 2>&1; then
-  echo "A server named gmail is already registered:" >&2
-  claude mcp get gmail >&2
-  echo "Remove it first (claude mcp remove gmail -s <scope>), then run this again." >&2
-  exit 1
-fi
-
-if [ -n "$GMAIL_CONFIG_DIR" ]; then
-  claude mcp add gmail --scope user --env GMAIL_CONFIG_DIR="$GMAIL_CONFIG_DIR" -- "$launcher"
+if [ "$name" != gmail ]; then
+  dir=${GMAIL_CONFIG_DIR:-$HOME/.config/syafiqkit/google-$name}
+elif [ -n "$GMAIL_CONFIG_DIR" ]; then
+  dir=$GMAIL_CONFIG_DIR
 else
-  claude mcp add gmail --scope user -- "$launcher"
+  dir=
 fi
-echo "Enabled in every project (user scope, this machine). In a running session: /mcp reconnect gmail, or start a new session."
+
+if claude mcp get "$name" >/dev/null 2>&1; then
+  echo "A server named $name is already registered:" >&2
+  claude mcp get "$name" >&2
+  echo "Remove it first (claude mcp remove $name -s <scope>), then run this again." >&2
+  exit 1
+fi
+
+if [ -n "$dir" ]; then
+  GMAIL_CONFIG_DIR=$dir "$launcher" check || {
+    if [ -f "$dir/client.json" ]; then
+      echo "Sign in first: GMAIL_CONFIG_DIR=\"$dir\" $launcher auth" >&2
+    else
+      echo "Sign in first: GMAIL_CONFIG_DIR=\"$dir\" $launcher auth --client <client.json of a Desktop-app OAuth client whose project allows this Google account>" >&2
+    fi
+    exit 1
+  }
+else
+  "$launcher" check || {
+    echo "Sign in first: $launcher auth" >&2
+    exit 1
+  }
+fi
+
+if [ -n "$dir" ]; then
+  claude mcp add "$name" --scope user --env GMAIL_CONFIG_DIR="$dir" -- "$launcher"
+else
+  claude mcp add "$name" --scope user -- "$launcher"
+fi
+echo "Enabled in every project (user scope, this machine). In a running session: /mcp reconnect $name, or start a new session."

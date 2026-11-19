@@ -1,4 +1,4 @@
-import type { TokenSource } from './auth.ts'
+import { expiredSignIn, type TokenSource } from './auth.ts'
 
 export const GMAIL = 'https://gmail.googleapis.com/gmail/v1/users/me'
 export const GMAIL_UPLOAD = 'https://gmail.googleapis.com/upload/gmail/v1/users/me'
@@ -57,6 +57,7 @@ export class Google {
 
 function apiError(status: number, text: string): Error {
   const parsed = text ? safeJson(text) : {}
+  if (status === 401) return new Error(`Google API 401: ${expiredSignIn()}. Google said: ${parsed?.error?.message || text || 'unauthorized'}`)
   return new Error(`Google API ${status}: ${hint(parsed?.error?.message || text || `HTTP ${status}`)}`)
 }
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.463.3
+
+**Gmail tool: reply to sender or all, forward with attachments, a second account, and a clear expired sign-in message.** Run `/mcp reconnect gmail` after `claude plugin update syafiqkit@syafiqkit`.
+- `replyMode` `sender` or `all` fills the reply's addresses from the original (your own left out, your extra `to`/`cc` merged in). The preview lists them and the send still refuses anything that changed. A preview warns when the original's Reply-To sends your reply somewhere other than its sender.
+- `forwardOf` forwards an email with its header block, text and attachments, fetched from Gmail rather than downloaded first. Never threaded, and recipients are never filled in.
+- `bin/enable gmail-personal` registers a second account under its own name and folder, and says the exact sign-in command if it isn't signed in yet.
+- When Google revokes or expires the sign-in, the tool says so and gives the `gmail-mcp auth` command; a send in that state is NOT SENT.
+
 ## 1.463.2
 
 **`ship` holds further pushes while CI verifies.** Step 4a now says to hold a later push to the branch (a `/done` docs commit included) until the run resolves, or fold it into the same push: a workflow with `cancel-in-progress` concurrency cancels the run being verified, so the watch ends "canceled" with no result for the fix (beacon-mart 19/11, a memory-cap fix's run cancelled by its own docs follow-up).

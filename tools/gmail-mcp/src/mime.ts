@@ -169,6 +169,12 @@ export function replySubject(original: string, given: string | undefined): strin
   return /^re:\s*/i.test(base) ? base : `Re: ${base}`
 }
 
+export function forwardSubject(original: string, given: string | undefined): string {
+  if (given !== undefined && given.trim()) return given.trim()
+  const base = original.trim() || '(no subject)'
+  return /^(fwd?)\s*:\s*/i.test(base) ? base : `Fwd: ${base}`
+}
+
 export function baseSubject(subject: string): string {
   return subject.replace(/^\s*((re|fwd?)\s*:\s*)+/i, '').trim().toLowerCase()
 }
