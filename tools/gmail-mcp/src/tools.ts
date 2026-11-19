@@ -287,7 +287,7 @@ export function registerTools(
       .describe(`Plain-text body, up to ${MAX_BODY_CHARS} characters (no Markdown or HTML: Gmail shows it exactly as typed); may be empty when files are attached`),
     files: z.array(z.string()).max(MAX_FILES).optional().describe(`Absolute paths of local files to attach (up to ${MAX_FILES}; the whole encoded message must stay under Gmail's 25 MB, so about 18 MB of files)`),
     replyTo: z.string().regex(/^[A-Za-z0-9_-]+$/).optional().describe('A message id to reply to: keeps the conversation threaded. Recipients are NOT filled in from it unless replyMode is also passed'),
-    replyMode: z.enum(['sender', 'all']).optional().describe('Only with replyTo. sender: To is the original\'s Reply-To, else its From. all: that plus the original\'s To, and Cc from its Cc. Your own address and duplicates are dropped; to and cc you pass are added. The preview lists the final addresses'),
+    replyMode: z.enum(['sender', 'all']).optional().describe('Only with replyTo. sender: To is the original\'s Reply-To, else its From. all: that plus the original\'s To, and Cc from its Cc. If the original is one you sent, sender and all use its To (all also its Cc) instead. Your own address and duplicates are dropped; to and cc you pass are added. The preview lists the final addresses'),
     forwardOf: z.string().regex(/^[A-Za-z0-9_-]+$/).optional().describe('A message id to forward (not together with replyTo): subject "Fwd: <original>", your body then the original\'s header block and text, and its attachments re-attached. A new conversation; recipients are never filled in, pass to yourself'),
   }
   type SendArgs = z.infer<z.ZodObject<typeof sendInput>>
