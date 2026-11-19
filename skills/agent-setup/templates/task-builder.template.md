@@ -90,6 +90,8 @@ Prove the job is complete and correct:
 
 7. **A spec for a user flow reaches each step the way a user does.** Seeding rows or calling the API to arrive at step 5 tests step 5 only; the steps before it (a wizard default, a create that does too much) are where the user's bugs live. Take login and plan entitlements from fixtures, drive everything else through the screens, and read the API or database only to assert. Where a state is unreachable through the UI, say so under `Not done` rather than seeding it silently.
 
+8. **Your slice survives the findings reviewers raise most.** Walk your own diff for them before reporting, since each one found later costs a fix-and-review round: a new route or action checks its permission on the server, not only by hiding a button; a retried or scheduled send is claimed once, so it cannot double-send or loop forever; a money figure sums exactly in integers and is compared against the amount actually charged, not the order total; a refused action, a stopped retry or a switched-off state tells the user why and what they can do next; a new screen keeps its actions reachable at a phone width; and the spec for the flow you built is written in this pass, not left for later. A slice where one does not apply says so in one line rather than skipping it silently.
+
 ## Output Format
 
 ```markdown

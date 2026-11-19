@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.461.1
+
+**`agent-setup`'s task-builder checks its own slice against the findings reviewers raise most before reporting done.** Re-run `agent-setup` in a project to pick it up. Update with `claude plugin update syafiqkit@syafiqkit`.
+- 19/11/2026: five builders' work came back from `/done` with server-side permission gaps, a send that could loop or double-send, money compared against the order total instead of what was charged, refused actions with no reason or next step, phone layouts losing their buttons, and specs left for later. Each needed a fix wave and a second review round. Item 8 of "Before You Report Done" names those classes, following Anthropic's harness article, where builder and evaluator agree what "done" means before any code is written.
+- The builders also broke the Edit-or-Write rule again (about eight scripted writes, two days after 1.443.0 added it). A recurring rule needs a different instrument, so a `PreToolUse` hook is proposed to the user rather than reworded here.
+
 ## 1.461.0
 
 **A question about how the product should behave now arrives with research into how real products or the regulator handle it, quoted inside each option.** Update with `claude plugin update syafiqkit@syafiqkit`.
