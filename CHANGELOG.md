@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.463.7
+
+**Design reviews check their screenshots before handing them out.** In a `/done` design review, four reviewers across `uiux` and `impeccable` were given captures that were all an error page or an empty list, and spent their runs reporting the captures instead of the screens.
+- `/uiux` critique: step 1 now opens each capture before dispatch and checks it shows the state under review.
+- `/done` design review: `impeccable` gets the capture set `uiux` already made, checked first, instead of a second one.
+
 ## 1.463.6
 
 **`/done` gets an e2e verdict from your own paths when other sessions share the checkout, and team progress posts credit the team.** A full suite run on a shared checkout tests every live session's unsaved code under their load, so its failing set changes from run to run; the verdict now comes from a worktree of the session's own files with peers paused.

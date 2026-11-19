@@ -11,7 +11,7 @@ Two separate reviews, so neither colours the other:
 
 Steps:
 
-1. Get screenshots at the three widths as files on disk, from a browser tool, a Playwright spec or the project's run skill. A subagent cannot see an image pasted into your conversation.
+1. Get screenshots at the three widths as files on disk, from a browser tool, a Playwright spec or the project's run skill. A subagent cannot see an image pasted into your conversation. Open each one before dispatch and check it shows the state under review: an error page, an empty result from a fixture id copied from another database, or a toggle that never toggled sends every reviewer to report the capture instead of the screen, and the run is wasted.
 2. Dispatch two `general-purpose` agents in one message, without `name:` (a named agent's report never reaches you), one per view. Tell both to report only: no edits, no git commands. Each prompt carries: the screenshot paths; the absolute paths of its reference files (this skill's `references/` directory); a one-line audience and job for the screen, from the user or inferred and labelled as inferred; and the return shape, one entry per finding with what is seen, the evidence, who is affected, the smallest change, plus a list of anything the screenshots cannot show. The design agent also gets the five questions from `SKILL.md` (Swap, Squint, Signature, Token, Exclude) and, for a landing page, portfolio or brochure site, `marketing-pages.md` as its yardstick for structure, proof, type and colour only, skipping its dials and design-read steps.
 3. Merge the two reports yourself, assign the heuristic scores from both, and rank the findings.
 
