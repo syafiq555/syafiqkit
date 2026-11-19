@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.2
+
+**`ship` holds further pushes while CI verifies.** Step 4a now says to hold a later push to the branch (a `/done` docs commit included) until the run resolves, or fold it into the same push: a workflow with `cancel-in-progress` concurrency cancels the run being verified, so the watch ends "canceled" with no result for the fix (beacon-mart 19/11, a memory-cap fix's run cancelled by its own docs follow-up).
+
 ## 1.463.1
 
 **Gmail tool review fixes, and `/setup-tools` now offers Gmail.** Run `/mcp reconnect gmail` after `claude plugin update syafiqkit@syafiqkit`.

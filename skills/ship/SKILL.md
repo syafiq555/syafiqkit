@@ -84,7 +84,7 @@ If `git status -sb` shows `[behind N]` or the push is rejected as non-fast-forwa
 
 **Before backgrounding, three checks decide whether polling tells you anything.** (1) Is CI the route? Polling for a deploy never queued hangs or reports a false negative. (2) Does the change carry an **irreversible ordering constraint** (a migration before the code reading it, a flag flipped in a fixed order)? A missed ordering cannot be repaired afterwards. (3) Does a task doc record a **standing manual step or go-live obligation** the diff doesn't touch? 📖 `references/ship-incidents.md` (Step 4a).
 
-**Once those pass, queue the deploy in the background** and proceed to Step 5 while it runs. A docs-only push (only the root repo changed) skips CI verify. Match the run to *your* commit's SHA before trusting it: a poll that reads the newest run exits green on its first tick while your deploy is still queued.
+**Once those pass, queue the deploy in the background** and proceed to Step 5 while it runs. A docs-only push (only the root repo changed) skips CI verify. Match the run to *your* commit's SHA before trusting it: a poll that reads the newest run exits green on its first tick while your deploy is still queued. Hold any further push to that branch (a `/done` docs commit included) until the run resolves, or fold it into the same push: a workflow with `cancel-in-progress` concurrency cancels the run you are verifying, and the watch reports "canceled", not a result for your fix.
 
 📖 `references/step4-polling-and-sequencing.md`, read once the background job completes and before Step 4b: polling commands, multi-run assertion, sequencing sweep, manual-step check.
 
