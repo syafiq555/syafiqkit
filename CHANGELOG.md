@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.460.5
+
+**`done` Step 5 answers all three plugin gates every run, Gate A from the session's own skill invocations and corrections.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- 19/11/2026: a `/done` checked the plugin tree, found it clean, and reported "Step 5 doesn't apply" over two real skill signals (a Chat draft changed at send time, a "check latest" the user redirected to Chat); the user ran `update-plugin` by hand. The rule that Gate A is recalled, not measured, was already there and was read as satisfied by the status command, while the Output template and the step5 reference both let the Plugin row be omitted ("omit if Step 5 didn't fire", "skip silently").
+- Step 5 opens with Gate A: list the session's skill invocations and user corrections or redirects, with a Tell for a Step 5 resting on a status command. The heading no longer says "optional".
+- The Plugin row is never omitted: it states A, B and C, and a "none" for A names what was checked, so a skipped check can't read as a clean one (SKILL.md template, `output-structure-rules.md`, `step5-gates-and-plugin-update.md`).
+
 ## 1.460.4
 
 **`read-summary` reads the team's chat when asked for the latest on a project.** Update with `claude plugin update syafiqkit@syafiqkit`.

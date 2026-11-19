@@ -103,12 +103,13 @@ Run Step 3 before Step 4: both scan the same conversation and route facts (CLAUD
 
 **Before leaving this step, measure what it wrote.** 📖 `${CLAUDE_SKILL_DIR}/references/task-doc-measurement.md` for the rules and the command. Over budget: run `condense-task-doc` in the same turn, or state in the Output that it was skipped.
 
-## Step 5: Capture plugin learnings (optional, only if a gate fires)
+## Step 5: Capture plugin learnings (every run answers all three gates)
+
+**Gate A first, and from the transcript, not a command.** List every skill this session invoked and every user correction or redirect ("i meant the chat", a draft changed at send time, a step the user added or had to run by hand); each one a skill owns is a signal for `update-plugin`. A clean `git status` of the plugin tree answers Gate B only, and running it feels like having done the step: 19/11/2026 a `/done` reported "plugin tree has no changes, so Step 5 doesn't apply" over two real skill signals, and the user had to run `update-plugin` by hand. **Tell: your Step 5 evidence is a status command's output.**
 
 Three gates. **Gate B** fires when this session wrote anywhere in the plugin tree (skills, commands, agents, `tools/`, `hooks/`), defect or no: a tool's code change carries the same routing and changelog duties as a skill's. **Gate A** fires on a real skill signal: something misfired, a step was wrong, you worked around an instruction. **Gate C** fires when the session built something inside a project that another project would reuse, and no skill or plugin tool carries it yet. Test: "would the next project have to rebuild this?" For each yes, recommend a skill (`skill-creator`), an extended skill, or a plugin MCP server where the reusable part is reaching an outside system, and ask in this step's `AskUserQuestion` before building, since a skill is hours of work and ships everywhere. Examples: 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` § Gate C Examples. **Tell: the session's most reusable artifact sits in a project folder, and your Plugin row says no gate fired.**
 
-**Gate A is answered by recalling the session** (did a skill send you somewhere wrong, or did you correct or work around a step?), not by a status command: Gate B only shows the plugin tree changed, and reverting a bad edit erases that evidence.
-Check the plugin tree with `cd`, not `git -C` (which walks up to an enclosing repo): `cd ~/.claude/plugins/syafiqkit && git status --short && git log --oneline --since=<session start>` (committed work counts: a session that built and shipped a tool shows an empty status). Any hit: check its mtime against session start, then `git diff HEAD -- <file>` on anything you don't remember editing (a bare `git diff` misses the auto-staged plane and reports your own work as foreign). 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` for ownership and "replaced/routed/grew" meanings.
+For Gate B, check the plugin tree with `cd`, not `git -C` (which walks up to an enclosing repo): `cd ~/.claude/plugins/syafiqkit && git status --short && git log --oneline --since=<session start>` (committed work counts: a session that built and shipped a tool shows an empty status). Any hit: check its mtime against session start, then `git diff HEAD -- <file>` on anything you don't remember editing (a bare `git diff` misses the auto-staged plane and reports your own work as foreign). 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` for ownership and "replaced/routed/grew" meanings.
 
 **Gate B re-fires on work already routed.** Ask what changed since the last `update-plugin` run: nothing new means the gate is satisfied. Check the CHANGELOG head too, since two bumps in one afternoon is a collision. 📖 `${CLAUDE_SKILL_DIR}/references/step5-gates-and-plugin-update.md` § Gate Rationale.
 
@@ -164,6 +165,6 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 | Step | Result |
 | Knowledge | [N entries → files] |
 | Task docs | [path → summary] |
-| Plugin | [files + bump or issue URL] (omit if Step 5 didn't fire) |
+| Plugin | A: [signals → update-plugin, or "none" naming the invocations and corrections checked] · B: [plugin tree writes or none] · C: [reusable artifact or none] · [files + bump or issue URL]; never omitted |
 | User args | [actions taken] (omit if none) |
 ```

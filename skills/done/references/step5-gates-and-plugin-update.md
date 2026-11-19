@@ -1,10 +1,10 @@
 # Step 5: Plugin Capture Gates and Update Logic
 
-Skip this step if no gate fires. Gate C's test question sits in the SKILL.md step, because it is answered in that moment rather than looked up; its examples are below. When a gate fires, invoke `syafiqkit:update-plugin`, which owns everything downstream.
+Every run answers all three gates in the Plugin row; only the `update-plugin` invoke is skipped when none fires. Gate C's test question sits in the SKILL.md step, because it is answered in that moment rather than looked up; its examples are below. When a gate fires, invoke `syafiqkit:update-plugin`, which owns everything downstream.
 
 ## Gate A — Skill Signal
 
-Capture if a skill misfired, a workflow step was wrong, a trigger missed, or an absent rule caused a mistake. Most runs have none — skip silently.
+Capture if a skill misfired, a workflow step was wrong, a trigger missed, or an absent rule caused a mistake. Most runs have none; the Plugin row then says "none" and names the invocations and corrections it checked, so a skipped check can't pass as a clean one.
 
 **What counts as a signal:**
 - A deviation you caught (you declined to follow a step or worked around something)
