@@ -736,7 +736,7 @@ test('a short task doc with a decisions file over 40 KB is listed for shrinking,
   await ui.unmount()
 })
 
-test('an oversized decisions file with a generated outline beside it says so in the list badge', async ($, on) => {
+test('an oversized decisions file with a fresh outline beside it is not flagged as over the limit', async ($, on) => {
   const sent: string[] = []
   await stubTaskDoc(
     $,
@@ -750,8 +750,29 @@ test('an oversized decisions file with a generated outline beside it says so in 
   await $.command.run({ command: 'sk', args: '' })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.press({ key: 'vb5' })
-  expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB · outline/})).length).toBe(1)
+  expect((await ui.findAll({ type: 'Text', text: /Nothing is over the limit/ })).length).toBe(1)
+  expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB/ })).length).toBe(0)
   await ui.unmount()
+  await $.command.run({ command: 'task-docs', args: '' })
+  const list = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await list.find({ key: 'r0b' })).toBeDefined()
+  expect(await list.find({ key: 'show-heavy' })).toBeUndefined()
+  await list.press({ key: 'r0b' })
+  await list.press({ key: 'decisions-toggle' })
+  const row = (await list.find({ key: 'dec0' }))?.props.label
+  expect(row).toContain('(kept whole, outline current)')
+  expect(row).not.toContain('⚠')
+  await list.press({ key: 'dec0' })
+  expect((await list.findAll({ type: 'Text', text: /^kept whole, outline current$/ })).length).toBe(1)
+  expect((await list.findAll({ type: 'Text', text: /⚠/ })).length).toBe(0)
+  await list.unmount()
+  await $.command.run({ command: 'task-docs', args: '' })
+  const desktop = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })
+  const drawn = JSON.stringify(await desktop.drawn())
+  expect(drawn).toContain('quote')
+  expect(drawn).not.toContain('⚠ decisions')
+  expect(drawn).not.toContain('⚠ outline stale')
+  await desktop.unmount()
 })
 
 test('an outline older than its copy by more than the slack reads as stale in the badge', async ($, on) => {
@@ -773,6 +794,20 @@ test('an outline older than its copy by more than the slack reads as stale in th
   await ui.press({ key: 'vb5' })
   expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB · outline stale/ })).length).toBe(1)
   await ui.unmount()
+  await $.command.run({ command: 'task-docs', args: '' })
+  const page = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await page.press({ key: 'r0b' })
+  await page.press({ key: 'decisions-toggle' })
+  const row = (await page.find({ key: 'dec0' }))?.props.label
+  expect(row).toContain('⚠')
+  expect(row).toContain('outline stale: Shrink regenerates it')
+  await page.press({ key: 'dec0' })
+  expect((await page.findAll({ type: 'Text', text: /^⚠ over 40 KB, outline stale: Shrink regenerates it$/ })).length).toBe(1)
+  await page.unmount()
+  await $.command.run({ command: 'task-docs', args: '' })
+  const desktop = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })
+  expect(JSON.stringify(await desktop.drawn())).toContain(' ⚠ outline stale ')
+  await desktop.unmount()
 })
 
 test('a copy kept whole with its outline offers no Split, and Shrink tells the session to leave it', async ($, on) => {
@@ -808,10 +843,10 @@ test('a copy kept whole with its outline offers no Split, and Shrink tells the s
 test('Shrink on a doc whose only oversized file is kept whole with its outline asks for no split or condense', async ($, on) => {
   const sent: string[] = []
   await stubTaskDoc($, on, sent, 'quote', 60, [fileEntry('copy.md', 163_000), fileEntry('copy-outline.md', 4_000)], '# T\n- [ ] one')
-  await $.command.run({ command: 'sk', args: '' })
+  await $.command.run({ command: 'task-docs', args: '' })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await ui.press({ key: 'vb5' })
-  await ui.press({ key: 'y0b' })
+  await ui.press({ key: 'r0b' })
+  await ui.press({ key: 'shrink' })
   expect(sent.length).toBe(1)
   expect(sent[0]).not.toContain('Over the limit')
   expect(sent[0]).not.toContain('judge what fits')

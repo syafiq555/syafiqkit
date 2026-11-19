@@ -1,6 +1,6 @@
 import { hostUiInvalidate, hostUiScroll } from '../core/api.js'
 import { ITEM_CAP_ROWS, PANE, TYPESET_WIDTH_STEP } from '../core/constants.js'
-import { condenseFileRequest, hasOutline, isInstructionFile, isOutlineStale, isOversizedDecision, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
+import { condenseFileRequest, decisionNeedsAction, decisionSizeNote, hasOutline, isInstructionFile, kb, refreshRequest, shrinkRequest, splitRequest, wrapWords } from '../core/format.js'
 import { state } from '../core/state.js'
 import { copyDocFile, openInEditor } from '../docs/export.js'
 import { fitImage, hashOf, svgPicture } from '../docs/images.js'
@@ -165,15 +165,11 @@ export function docView($, c) {
                 Button({
                   key: 'dec' + index,
                   label:
-                    (isOversizedDecision(file) ? '   ⚠ ' : '     ') +
+                    (decisionNeedsAction(state.current, file) ? '   ⚠ ' : '     ') +
                     file.name.replace(/\.md$/, '') +
                     '  ' +
                     kb(file.size) +
-                    (isOversizedDecision(file) ? (hasOutline(state.current, file)
-                      ? isOutlineStale(state.current, file)
-                        ? ' (over 40 KB, outline stale)'
-                        : ' (over 40 KB, has outline)'
-                      : ' (over 40 KB)') : '') +
+                    (decisionSizeNote(state.current, file) ? ' (' + decisionSizeNote(state.current, file) + ')' : '') +
                     '  ›',
                   plain: true,
                   onPress: () => openDecision(index),
@@ -447,9 +443,11 @@ export function decisionView($, c) {
         children: [
           Text({ bold: true, wrap: 'truncate-start', children: state.current.label + ' › ' + file.name.replace(/\.md$/, '') }),
           Text({ dimColor: true, children: kb(file.size) + ' · ' + (index + 1) + ' of ' + files.length }),
-          ...(isOversizedDecision(file)
-            ? [Text({ key: 'dec-over', color: 'yellow', children: '⚠ over 40 KB' })]
-            : []),
+          ...(decisionNeedsAction(state.current, file)
+            ? [Text({ key: 'dec-over', color: 'yellow', children: '⚠ ' + decisionSizeNote(state.current, file) })]
+            : decisionSizeNote(state.current, file)
+              ? [Text({ key: 'dec-over', dimColor: true, children: decisionSizeNote(state.current, file) })]
+              : []),
         ],
       }),
       Text({ children: ' ' }),

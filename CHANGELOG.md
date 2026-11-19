@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.462.2
+
+**`/task-docs` no longer warns about a big decisions file that already has an up-to-date outline beside it.** Run `/reload-plugins` after `claude plugin update syafiqkit@syafiqkit`.
+- Such a file (a contract or spec copy kept whole on purpose) used to show a yellow `⚠ decisions 170 KB · outline` badge and count toward "N over the size limit" and the folder's "⚠ N over limit", even though Shrink already says to leave it alone. It is now unflagged on both terminal and Desktop.
+- The doc page agrees: such a file shows `(kept whole, outline current)` with no ⚠, in the decisions list and on its own page.
+- Still flagged: a big file with no outline, and one whose outline is older than the file. On Desktop the chip reads `⚠ outline stale` when that is the only issue, and the doc page adds `Shrink regenerates it`.
+- "Older" is judged by file times, so a `git pull` that touches both files can make a lagging outline look current; Shrink's outline check is the backstop.
+
 ## 1.462.1
 
 **The 1.462.0 scripted-write hook is removed; nothing blocks Bash or Write calls any more.** Run `/reload-plugins` after `claude plugin update syafiqkit@syafiqkit`.

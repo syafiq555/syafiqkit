@@ -1,5 +1,5 @@
 import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, NEAR_LIMIT_SHARE, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, VERBS, WINDOW_ROWS } from '../core/constants.js'
-import { docAgeOf, docLabel, isInstructionFile, kb, oversizedDecisions } from '../core/format.js'
+import { docAgeOf, docLabel, flaggedDecisions, hasOutline, isInstructionFile, kb } from '../core/format.js'
 import { invalidatePane, state } from '../core/state.js'
 import { ensureSlice, openInViewer, saveGallery, sliceGeometry, slicesWanted } from '../docs/gallery.js'
 import { svgPicture } from '../docs/images.js'
@@ -653,7 +653,7 @@ export function docGauge(doc) {
 export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
   const { Box, Text, Button, pickAction } = c
   const gauge = docGauge(doc)
-  const decisionsHeavy = oversizedDecisions(doc).length
+  const flagged = flaggedDecisions(doc)
   return Box({
     key,
     flexDirection: 'row',
@@ -692,7 +692,9 @@ export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
         columnGap: 1,
         children: [
           ...(doc.hub ? [chip(c, key + 'hub', 'main doc', 'muted')] : []),
-          ...(decisionsHeavy ? [chip(c, key + 'dc', '⚠ decisions', 'warn')] : []),
+          ...(flagged.length
+            ? [chip(c, key + 'dc', flagged.every((file) => hasOutline(doc, file)) ? '⚠ outline stale' : '⚠ decisions', 'warn')]
+            : []),
           ...(withScope && doc.scope ? [Text({ key: key + 's', dimColor: true, wrap: 'truncate-end', children: doc.scope })] : []),
           ...(doc.status ? [Text({ key: key + 'st', wrap: 'truncate-end', children: doc.status })] : []),
         ],

@@ -147,8 +147,22 @@ export function oversizedDecisions(doc) {
   return (doc.decisions || []).filter(isOversizedDecision)
 }
 
+export function decisionNeedsAction(doc, file) {
+  return isOversizedDecision(file) && (!hasOutline(doc, file) || isOutlineStale(doc, file))
+}
+
+export function flaggedDecisions(doc) {
+  return (doc.decisions || []).filter((file) => decisionNeedsAction(doc, file))
+}
+
+export function decisionSizeNote(doc, file) {
+  if (!isOversizedDecision(file)) return ''
+  if (!hasOutline(doc, file)) return 'over 40 KB'
+  return isOutlineStale(doc, file) ? 'over 40 KB, outline stale: Shrink regenerates it' : 'kept whole, outline current'
+}
+
 export function isHeavy(doc) {
-  if (doc.group === 'Task docs' && oversizedDecisions(doc).length) return true
+  if (doc.group === 'Task docs' && flaggedDecisions(doc).length) return true
   if (typeof doc.lines !== 'number') return false
   if (isInstructionFile(doc)) return doc.lines > CLAUDE_MD_MAX_LINES || (doc.size || 0) > CLAUDE_MD_MAX_BYTES
   return doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES
@@ -169,14 +183,11 @@ export function isOutlineStale(doc, file) {
   return file.mtime - outline.mtime > OUTLINE_STALE_SLACK_MS
 }
 export function heavyNote(doc) {
-  const big = oversizedDecisions(doc).sort((a, b) => (b.size || 0) - (a.size || 0))
-  const outlined = big.filter((file) => hasOutline(doc, file))
-  const stale = outlined.filter((file) => isOutlineStale(doc, file)).length
+  const big = flaggedDecisions(doc).sort((a, b) => (b.size || 0) - (a.size || 0))
+  const staleOutlines = big.filter((file) => hasOutline(doc, file)).length
   const parts = []
   if (big.length) parts.push(big.length > 1 ? big.length + ' decisions, max ' + kb(big[0].size) : 'decisions ' + kb(big[0].size))
-  if (outlined.length) {
-    parts.push(big.length > 1 ? outlined.length + ' with outline' + (stale ? ', ' + stale + ' stale' : '') : stale ? 'outline stale' : 'outline')
-  }
+  if (staleOutlines) parts.push(big.length > 1 ? staleOutlines + ' outline stale' : 'outline stale')
   if (typeof doc.lines === 'number' && doc.group === 'Task docs' && doc.lines > TASK_DOC_MAX_LINES) parts.push(doc.lines + ' lines')
   if (!parts.length) parts.push(isInstructionFile(doc) && doc.lines <= CLAUDE_MD_MAX_LINES ? kb(doc.size) : doc.lines + ' lines')
   return '⚠ ' + parts.join(' · ')
@@ -185,7 +196,7 @@ export function heavyNote(doc) {
 export function heaviness(doc) {
   return isInstructionFile(doc)
     ? doc.size || 0
-    : oversizedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
+    : flaggedDecisions(doc).reduce((sum, file) => sum + (file.size || 0), 0) + (doc.lines || 0)
 }
 
 export function refreshRequest(doc) {
