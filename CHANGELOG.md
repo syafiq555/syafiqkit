@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.463.6
+
+**`/done` gets an e2e verdict from your own paths when other sessions share the checkout, and team progress posts credit the team.** A full suite run on a shared checkout tests every live session's unsaved code under their load, so its failing set changes from run to run; the verdict now comes from a worktree of the session's own files with peers paused.
+- `/done`: the red-suite rule names the shared-checkout case, and `references/exit-gate-rules.md` gives the worktree recipe and the tell (a failing set that changes between runs).
+- `/gchat-format`: new § Progress and milestone posts to a team: lead with the team outcome, group by area, never "my cards". `/casual-message` points at it for team notes.
+
 ## 1.463.5
 
 **Setting up a Google tool now says to start a new session, not `/mcp reconnect`.** For a server registered after the session started, `/mcp reconnect <name>` answers `MCP server "<name>" not found` (19/11/2026, `gmail-personal`), so the `enable` scripts, the three READMEs and `/setup-tools` step 7 now point at a new session and keep reconnect for a server the session already had.
