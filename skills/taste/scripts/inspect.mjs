@@ -15,6 +15,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync, createReadStream, readdirSync, unlinkSync } from 'node:fs';
 import { resolve, join, relative, dirname, extname, sep } from 'node:path';
 import { createServer } from 'node:http';
+import { fileURLToPath } from 'node:url';
 import { Browser, sleep } from './lib/cdp.mjs';
 import { probe, frame, layout, app, colourShare } from './lib/probe.mjs';
 import { judge, judgeLayout, judgeApp, APP_SKIP } from './lib/rules.mjs';
@@ -45,7 +46,14 @@ for (const p of ['.taste-skill/direction.json', join(outDir, '..', 'direction.js
 // assets, fetch() and module scripts behave as they will when the page is hosted.
 let url = target; let server = null;
 if (!/^https?:\/\//.test(target)) {
-  const file = resolve(target);
+  let filePart = target; let query = '';
+  if (/^file:/i.test(target)) {
+    const u = new URL(target); query = u.search + u.hash; u.search = ''; u.hash = '';
+    filePart = fileURLToPath(u);
+  } else if (!existsSync(resolve(target)) && /[?#]/.test(target)) {
+    const cut = target.search(/[?#]/); filePart = target.slice(0, cut); query = target.slice(cut);
+  }
+  const file = resolve(filePart);
   if (!existsSync(file)) { console.error('No such file: ' + file); process.exit(2); }
   const cwd = resolve('.');
   const root = file.startsWith(cwd + sep) ? cwd : dirname(file);
@@ -60,7 +68,7 @@ if (!/^https?:\/\//.test(target)) {
     } catch { res.writeHead(404); res.end('not found'); }
   });
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
-  url = `http://127.0.0.1:${server.address().port}/${relative(root, file).split(sep).map(encodeURIComponent).join('/')}`;
+  url = `http://127.0.0.1:${server.address().port}/${relative(root, file).split(sep).map(encodeURIComponent).join('/')}${query}`;
 }
 const HEIGHT = { 1440: 900, 1280: 800, 1024: 768, 768: 1024, 390: 844, 375: 812 };
 const name = (w) => (w >= 1100 ? 'desktop' : w >= 600 ? 'tablet' : 'mobile');

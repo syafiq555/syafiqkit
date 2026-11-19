@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.463.8
+
+**The `taste` inspector takes a `file://` address and a page path with a query string.** A prototype that switches screens by `?dir=a&state=two` was refused as "No such file", because any target without `http(s)://` was joined onto the current folder as a plain path.
+- `taste` `scripts/inspect.mjs`: a `file://` URL becomes its file path, and its `?query` and `#hash` are kept on the address the local server opens; a relative path ending in `?…` or `#…` is split the same way when no file has that literal name.
+
 ## 1.463.7
 
 **Design reviews check their screenshots before handing them out.** In a `/done` design review, four reviewers across `uiux` and `impeccable` were given captures that were all an error page or an empty list, and spent their runs reporting the captures instead of the screens.
