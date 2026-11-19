@@ -9,6 +9,7 @@ export const SCOPES = [
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const REFRESH_MARGIN_MS = 60_000
+const TOKEN_TIMEOUT_MS = 30_000
 
 export function configDir(): string {
   return process.env.GMAIL_CONFIG_DIR || join(homedir(), '.config', 'syafiqkit', 'google-gmail')
@@ -48,12 +49,23 @@ export function grantedScopesMatch(granted: string): boolean {
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>
 
+function writePrivate(path: string, data: string | Uint8Array): void {
+  writeFileSync(path, data, { mode: 0o600 })
+  chmodSync(path, 0o600)
+}
+
 async function postToken(fetcher: Fetch, form: Record<string, string>): Promise<any> {
-  const res = await fetcher(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams(form).toString(),
-  })
+  let res: Response
+  try {
+    res = await fetcher(TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(form).toString(),
+      signal: AbortSignal.timeout(TOKEN_TIMEOUT_MS),
+    })
+  } catch (err) {
+    throw new Error(`gmail: could not get a token from Google (${(err as Error)?.name === 'TimeoutError' ? `no answer within ${TOKEN_TIMEOUT_MS / 1000} s` : (err as Error).message}). Nothing was sent.`)
+  }
   const body: any = await res.json().catch(() => ({}))
   if (!res.ok) {
     const reason = body.error_description || body.error || `HTTP ${res.status}`
@@ -94,19 +106,17 @@ export function storeGrant(body: { scope?: string; refresh_token?: string }): vo
   }
   if (!body.refresh_token) throw new Error('gmail: Google returned no refresh token. Nothing was stored.')
   mkdirSync(configDir(), { recursive: true, mode: 0o700 })
-  writeFileSync(refreshPath(), JSON.stringify({ refresh_token: body.refresh_token }), { mode: 0o600 })
-  chmodSync(refreshPath(), 0o600)
+  writePrivate(refreshPath(), JSON.stringify({ refresh_token: body.refresh_token }))
 }
+
+const page = (heading: string) => new Response(`<h2>${heading}</h2>`, { headers: { 'Content-Type': 'text/html' } })
 
 export async function consent(clientFile?: string): Promise<void> {
   const dir = configDir()
   mkdirSync(dir, { recursive: true, mode: 0o700 })
   chmodSync(dir, 0o700)
   const source = clientFile ?? (!existsSync(clientPath()) && existsSync(sheetsClientPath()) ? sheetsClientPath() : undefined)
-  if (source) {
-    writeFileSync(clientPath(), readFileSync(source), { mode: 0o600 })
-    chmodSync(clientPath(), 0o600)
-  }
+  if (source) writePrivate(clientPath(), readFileSync(source))
   const { clientId, clientSecret } = readClient()
   const state = crypto.randomUUID()
 
@@ -125,10 +135,10 @@ export async function consent(clientFile?: string): Promise<void> {
       if (q.get('state') !== state) return new Response('Not found', { status: 404 })
       if (q.get('code')) {
         resolveCode(q.get('code')!)
-        return new Response('<h2>Signed in. You can close this tab.</h2>', { headers: { 'Content-Type': 'text/html' } })
+        return page('Signed in. You can close this tab.')
       }
       rejectCode(new Error(`gmail: sign-in failed (${q.get('error') || 'no code returned'})`))
-      return new Response('<h2>Sign-in failed.</h2>', { headers: { 'Content-Type': 'text/html' } })
+      return page('Sign-in failed.')
     },
   })
 

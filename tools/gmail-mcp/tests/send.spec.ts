@@ -230,6 +230,27 @@ describe('duplicate guard', () => {
     expect((await call('email_send', sendArgs(p))).text).toContain('Sent from')
     expect(sent.length).toBe(1)
   })
+
+  test('two identical email_send calls in flight at once send only one', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    let posts = 0
+    const { preview, call } = await connect({
+      send: async () => {
+        posts++
+        await gate
+        return { id: 'sent1', threadId: 'tnew' }
+      },
+    })
+    const p = await preview(NEW)
+    const first = call('email_send', sendArgs(p))
+    await Bun.sleep(30)
+    const second = await call('email_send', sendArgs(p))
+    expect(second.text).toStartWith('ALREADY SENT')
+    release()
+    expect((await first).text).toContain('Sent from')
+    expect(posts).toBe(1)
+  })
 })
 
 describe('outcomes', () => {
@@ -276,7 +297,7 @@ describe('outcomes', () => {
 describe('what email_send will attach', () => {
   test('keys, credentials and config folders are never sent', () => {
     const home = '/Users/me'
-    for (const p of ['/Users/me/.ssh/id_rsa', '/Users/me/.aws/credentials', '/Users/me/.config/syafiqkit/google-gmail/refresh.json', '/Users/me/.claude/settings.json', '/repo/.env', '/x/server.pem', '/Users/me/.SSH/config', '/repo/CLAUDE.local.md', '/Users/me/.claude.json', '/x/secrets.yaml']) {
+    for (const p of ['/Users/me/.ssh/id_rsa', '/Users/me/.aws/credentials', '/Users/me/.config/syafiqkit/google-gmail/refresh.json', '/Users/me/.claude/settings.json', '/repo/.env', '/x/server.pem', '/Users/me/.SSH/config', '/repo/CLAUDE.local.md', '/Users/me/.claude.json', '/x/secrets.yaml', '/repo/.claude-companions/local/CLAUDE-stripe.md', '/srv/site/wp-config.php']) {
       expect(isSecretPath(p, home)).toBe(true)
     }
     for (const p of ['/Users/me/Downloads/shot.png', '/repo/environment.md', '/repo/CLAUDE.md']) expect(isSecretPath(p, home)).toBe(false)

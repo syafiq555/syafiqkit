@@ -47,20 +47,20 @@ export class Gmail {
     return this.me
   }
 
-  profile(): Promise<{ emailAddress?: string; messagesTotal?: number }> {
-    return this.g.call('GET', `${GMAIL}/profile`)
+  private async list(q: string, max: number): Promise<{ refs: { id: string }[]; more: boolean }> {
+    const page = await this.g.call('GET', `${GMAIL}/messages${query({ q, maxResults: max })}`)
+    return { refs: page.messages ?? [], more: !!page.nextPageToken }
   }
 
   async countMatching(q: string, cap: number): Promise<{ count: number; more: boolean }> {
-    const page = await this.g.call('GET', `${GMAIL}/messages${query({ q, maxResults: cap })}`)
-    return { count: (page.messages ?? []).length, more: !!page.nextPageToken }
+    const { refs, more } = await this.list(q, cap)
+    return { count: refs.length, more }
   }
 
   async search(q: string, max: number): Promise<SearchResult> {
-    const page = await this.g.call('GET', `${GMAIL}/messages${query({ q, maxResults: max })}`)
-    const refs: { id: string }[] = page.messages ?? []
+    const { refs, more } = await this.list(q, max)
     const messages = await mapLimit(refs, 6, (r) => this.g.call('GET', `${GMAIL}/messages/${checked(r.id, ID, 'message id')}${query({ format: 'full', fields: SUMMARY_FIELDS })}`))
-    return { messages, more: !!page.nextPageToken }
+    return { messages, more }
   }
 
   async message(id: string): Promise<GmailMessage> {
@@ -74,7 +74,7 @@ export class Gmail {
   }
 
   async attachment(messageId: string, attachmentId: string): Promise<Uint8Array> {
-    const res = await this.g.call('GET', `${GMAIL}/messages/${checked(messageId, ID, 'message id')}/attachments/${checked(attachmentId, ATTACHMENT_ID, 'attachment id')}`)
+    const res = await this.g.call('GET', `${GMAIL}/messages/${checked(messageId, ID, 'message id')}/attachments/${checked(attachmentId, ATTACHMENT_ID, 'attachment id')}`, undefined, 'transfer')
     if (typeof res?.data !== 'string') throw new Error('Gmail returned no attachment data')
     return fromBase64Url(res.data)
   }

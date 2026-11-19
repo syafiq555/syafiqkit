@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.463.1
+
+**Gmail tool review fixes, and `/setup-tools` now offers Gmail.** Run `/mcp reconnect gmail` after `claude plugin update syafiqkit@syafiqkit`.
+- Two identical sends at the same moment can no longer both go out: the second answers ALREADY SENT.
+- Signing in to Google for a send now times out after 30 s instead of hanging, and reports NOT SENT.
+- Long To/Cc lists and long reply chains are folded to email's line limit, and a reply to a message whose subject wrapped is no longer refused.
+- Attachments are also refused from `.claude-companions/local/` and for `wp-config*.php`, `.vault-token`, `.dockercfg` and `.yarnrc`.
+- Downloading a large attachment gets 3 minutes instead of 30 s.
+- `/setup-tools` lists Gmail in its tool question and paths, and explains a second Google account (its own folder and server name).
+
 ## 1.463.0
 
 **New Gmail tool (`gmail-mcp`): Claude can search and read your mail and send an email or a threaded reply as you, each send behind Claude Code's permission prompt.** Set it up once with `/syafiqkit:setup-tools` (Gmail API in your Cloud project, `bin/gmail-mcp auth`, `bin/enable`), then `/mcp reconnect gmail`.

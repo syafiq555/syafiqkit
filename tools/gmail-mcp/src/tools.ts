@@ -171,6 +171,8 @@ export function registerTools(
     return null
   }
 
+  const sending = new Set<string>()
+
   pruneDownloads(downloadRoot)
 
   server.registerTool(
@@ -304,7 +306,7 @@ export function registerTools(
       references = [header(original, 'References'), inReplyTo].filter(Boolean).join(' ')
     }
 
-    const subject = original ? replySubject(header(original, 'Subject'), args.subject) : (args.subject ?? '').trim()
+    const subject = original ? replySubject(oneLine(header(original, 'Subject')), args.subject) : (args.subject ?? '').trim()
     if (!subject) throw new Error('A subject is required. Nothing was sent.')
     if (/[\r\n]/.test(subject)) throw new Error('The subject must be a single line. Nothing was sent.')
     if (subject.length > MAX_SUBJECT_CHARS) throw new Error(`The subject is over ${MAX_SUBJECT_CHARS} characters. Nothing was sent.`)
@@ -356,7 +358,7 @@ export function registerTools(
       ]
       if (m.original) {
         lines.push(`Reply: in thread ${m.threadId}, to message ${args.replyTo}. Original From: ${clip(oneLine(header(m.original, 'From')) || '-')}; To: ${clip(oneLine(header(m.original, 'To')) || '-')}; Cc: ${clip(oneLine(header(m.original, 'Cc')) || '-')}${header(m.original, 'Reply-To') ? `; Reply-To: ${clip(oneLine(header(m.original, 'Reply-To')))}` : ''}. Recipients above are exactly what you passed.`)
-        if (baseSubject(m.subject) !== baseSubject(header(m.original, 'Subject'))) lines.push('Note: the subject differs from the original, so Gmail may start a new conversation instead of threading this reply.')
+        if (baseSubject(m.subject) !== baseSubject(oneLine(header(m.original, 'Subject')))) lines.push('Note: the subject differs from the original, so Gmail may start a new conversation instead of threading this reply.')
       } else {
         lines.push('Reply: no, a new conversation.')
       }
@@ -393,6 +395,10 @@ export function registerTools(
         return `ALREADY SENT: this exact message was sent at ${localTime(earlier)} (under 10 minutes ago), so it was not sent again.${log('DUPLICATE', '-')} Check Sent with emails_search q "in:sent" if unsure. To send a deliberate repeat, change something and preview again after the window.`
       }
       const mime = buildMime({ from: m.from, to: m.to, cc: m.cc, bcc: m.bcc, subject: m.subject, body: m.body, files: m.data, inReplyTo: m.inReplyTo, references: m.references }, new Date(now()))
+      if (sending.has(m.digest)) {
+        return `ALREADY SENT: this exact message is being sent by another call right now, so this one was not sent. Check Sent with emails_search q "in:sent" before doing anything else.`
+      }
+      sending.add(m.digest)
       let sent
       try {
         sent = await gmail.send(mime, m.threadId)
@@ -400,6 +406,8 @@ export function registerTools(
         const message = (err as Error).message
         if (isGoogleRefusal(message)) return `NOT SENT: Google refused the email (${message}). Nothing was sent. Give the user the text so it is not lost.`
         return `UNSURE WHETHER SENT: ${message}. It may have gone out.${log('UNSURE', '-')} Check Sent with emails_search q "in:sent subject:..." before offering to send again; a retry is not blocked by the duplicate guard because this one is not recorded as sent.`
+      } finally {
+        sending.delete(m.digest)
       }
       const logNote = log('SENT', sent.id ?? '-')
       const withFiles = m.files.length ? ` with ${count(m.files.length, 'file')}` : ''

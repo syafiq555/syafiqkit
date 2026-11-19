@@ -22,7 +22,7 @@ The reader is usually a colleague setting this up for the first time, often not 
 
 ## 1. Find the tools
 
-The tools live in the plugin's install folder: read `~/.claude/plugins/known_marketplaces.json`, take `syafiqkit.installLocation`, and the tools are `<installLocation>/tools/gsheets-mcp`, `tools/gchat-mcp` and `tools/remote-cli`. For a GitHub install that is `~/.claude/plugins/marketplaces/syafiqkit`, and it stays put across plugin updates.
+The tools live in the plugin's install folder: read `~/.claude/plugins/known_marketplaces.json`, take `syafiqkit.installLocation`, and the tools are `<installLocation>/tools/gsheets-mcp`, `tools/gchat-mcp`, `tools/gmail-mcp` and `tools/remote-cli`. For a GitHub install that is `~/.claude/plugins/marketplaces/syafiqkit`, and it stays put across plugin updates.
 
 ⚠️ **Never register a tool from `~/.claude/plugins/cache/...`**, even though this skill's own folder is there. Cache folders are per version and old ones are deleted about a week after an update, so a server registered from one stops starting with no message beyond "failed to connect". If `known_marketplaces.json` has no `syafiqkit` entry, ask how they installed the plugin before guessing a path.
 
@@ -30,11 +30,11 @@ Then check the basics once: `bun` (the launchers also look in `~/.bun/bin`, `/op
 
 ## 2. Ask what they want
 
-One `AskUserQuestion` with two questions: which tools (multi-select: Sheets, Chat, remote), and which Google account they will sign in with (company Workspace, or personal Gmail). Skip the account question when only remote was picked.
+One `AskUserQuestion` with two questions: which tools (multi-select: Sheets, Chat, Gmail, remote), and which Google account they will sign in with (company Workspace, or personal Gmail). Skip the account question when only remote was picked.
 
 Gmail plus Chat: say plainly that Google Chat's API is for Workspace accounts only, and carry on with the rest. If Chat was all they wanted, stop here, before any console steps: nothing else would be of use to them. Should a Workspace account still be refused at Chat sign-in, capture Google's exact message rather than guessing.
 
-Chat reuses the Sheets tool's OAuth client file, so when they want Chat, the Google Cloud steps cover both APIs in one pass even if they only asked for Chat. Sheets itself is only switched on if they asked for it.
+Chat and Gmail reuse the Sheets tool's OAuth client file, so the Google Cloud steps enable every API they picked in one pass even if they skipped Sheets. Sheets itself is only switched on if they asked for it. A second Google account (a personal Gmail beside work) is its own sign-in: a separate `GMAIL_CONFIG_DIR`, a client from a project that account can use, and `claude mcp add <second name> --scope user --env GMAIL_CONFIG_DIR=… -- <tools>/gmail-mcp/bin/gmail-mcp`, since `enable` only registers the name `gmail`.
 
 ## 3. Google Cloud project and OAuth client (gsheets, gchat)
 

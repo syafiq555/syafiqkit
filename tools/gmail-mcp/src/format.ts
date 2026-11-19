@@ -24,10 +24,13 @@ export interface AttachmentInfo {
   attachmentId: string
 }
 
-export function localTime(iso: string | undefined): string {
-  if (!iso) return '-'
-  const parts = zoneParts(new Date(iso))
+function formatLocal(at: Date): string {
+  const parts = zoneParts(at)
   return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`
+}
+
+export function localTime(iso: string | undefined): string {
+  return iso ? formatLocal(new Date(iso)) : '-'
 }
 
 export function count(n: number, noun: string): string {
@@ -59,9 +62,13 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) =>
   return out
 }
 
-export function header(m: GmailMessage, name: string): string {
+function partHeader(part: Part | undefined, name: string): string {
   const wanted = name.toLowerCase()
-  return (m.payload?.headers ?? []).find((h) => h.name.toLowerCase() === wanted)?.value.trim() ?? ''
+  return (part?.headers ?? []).find((h) => h.name.toLowerCase() === wanted)?.value.trim() ?? ''
+}
+
+export function header(m: GmailMessage, name: string): string {
+  return partHeader(m.payload, name)
 }
 
 export function oneLine(text: string): string {
@@ -69,9 +76,9 @@ export function oneLine(text: string): string {
 }
 
 export function sentAt(m: GmailMessage): string {
-  if (m.internalDate && /^\d+$/.test(m.internalDate)) return localTime(new Date(Number(m.internalDate)).toISOString())
+  if (m.internalDate && /^\d+$/.test(m.internalDate)) return formatLocal(new Date(Number(m.internalDate)))
   const parsed = new Date(header(m, 'Date'))
-  return Number.isNaN(parsed.getTime()) ? header(m, 'Date') || '-' : localTime(parsed.toISOString())
+  return Number.isNaN(parsed.getTime()) ? header(m, 'Date') || '-' : formatLocal(parsed)
 }
 
 function walk(part: Part | undefined, visit: (p: Part) => void): void {
@@ -89,8 +96,7 @@ export function attachmentsOf(m: GmailMessage): AttachmentInfo[] {
 }
 
 function charsetOf(part: Part): string {
-  const type = (part.headers ?? []).find((h) => h.name.toLowerCase() === 'content-type')?.value ?? ''
-  return /charset\s*=\s*"?([^";\s]+)/i.exec(type)?.[1]?.toLowerCase() ?? 'utf-8'
+  return /charset\s*=\s*"?([^";\s]+)/i.exec(partHeader(part, 'content-type'))?.[1]?.toLowerCase() ?? 'utf-8'
 }
 
 function decode(part: Part): string {

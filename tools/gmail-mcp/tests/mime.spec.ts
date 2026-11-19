@@ -49,6 +49,15 @@ describe('headers', () => {
     const reply = decode(buildMime({ ...base, inReplyTo: '<a@x>', references: '<r@x> <a@x>' }, NOW))
     expect(reply).toContain('In-Reply-To: <a@x>\r\nReferences: <r@x> <a@x>\r\n')
   })
+
+  test('a long recipient list or References chain is folded under 78 characters, and a CR/LF in a reply id cannot start a header', () => {
+    const to = Array.from({ length: 40 }, (_, i) => `person${i}@example.test`)
+    const refs = Array.from({ length: 40 }, (_, i) => `<ref${i}@mail.example.test>`).join(' ')
+    const head = decode(buildMime({ ...base, to, inReplyTo: '<a@x>\r\nBcc: evil@x.test', references: refs }, NOW)).split('\r\n\r\n')[0]!
+    for (const line of head.split('\r\n')) expect(line.length).toBeLessThanOrEqual(78)
+    expect(head.replace(/\r\n /g, ' ')).toContain(`To: ${to.join(', ')}\r\n`)
+    expect(head).not.toMatch(/\r\nBcc:/)
+  })
 })
 
 describe('body', () => {

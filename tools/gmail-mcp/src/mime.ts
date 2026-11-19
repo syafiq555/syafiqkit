@@ -113,13 +113,35 @@ export function rfc2822Date(at: Date): string {
   return `${days[at.getUTCDay()]}, ${p(at.getUTCDate())} ${months[at.getUTCMonth()]} ${at.getUTCFullYear()} ${p(at.getUTCHours())}:${p(at.getUTCMinutes())}:${p(at.getUTCSeconds())} +0000`
 }
 
+function foldHeader(name: string, items: string[], separator = ''): string {
+  const lines: string[] = []
+  let line = `${name}:`
+  items.forEach((item, i) => {
+    const token = i < items.length - 1 ? `${item}${separator}` : item
+    if (i > 0 && line.length + 1 + token.length > 76) {
+      lines.push(line)
+      line = ` ${token}`
+    } else {
+      line += ` ${token}`
+    }
+  })
+  lines.push(line)
+  return lines.join('\r\n')
+}
+
+function idTokens(value: string | undefined): string[] {
+  return (value ?? '').split(/\s+/).filter(Boolean)
+}
+
 export function buildMime(m: Outgoing, now: Date = new Date(), boundary = `gmail-mcp-${crypto.randomUUID()}`): Uint8Array {
-  const headers = [`From: ${m.from}`, `To: ${m.to.join(', ')}`]
-  if (m.cc.length) headers.push(`Cc: ${m.cc.join(', ')}`)
-  if (m.bcc.length) headers.push(`Bcc: ${m.bcc.join(', ')}`)
+  const headers = [`From: ${m.from}`, foldHeader('To', m.to, ',')]
+  if (m.cc.length) headers.push(foldHeader('Cc', m.cc, ','))
+  if (m.bcc.length) headers.push(foldHeader('Bcc', m.bcc, ','))
   headers.push(`Subject: ${encodedWord(m.subject)}`, `Date: ${rfc2822Date(now)}`, 'MIME-Version: 1.0')
-  if (m.inReplyTo) headers.push(`In-Reply-To: ${m.inReplyTo}`)
-  if (m.references) headers.push(`References: ${m.references}`)
+  const inReplyTo = idTokens(m.inReplyTo)
+  const references = idTokens(m.references)
+  if (inReplyTo.length) headers.push(foldHeader('In-Reply-To', inReplyTo))
+  if (references.length) headers.push(foldHeader('References', references))
 
   const textPart = ['Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', wrap76(toBase64(encoder.encode(crlf(m.body))))].join('\r\n')
 

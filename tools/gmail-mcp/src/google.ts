@@ -12,10 +12,10 @@ export class Google {
     private readonly timeoutMs = { call: 30_000, transfer: 180_000 },
   ) {}
 
-  async call(method: string, url: string, body?: unknown): Promise<any> {
+  async call(method: string, url: string, body?: unknown, kind: 'call' | 'transfer' = 'call'): Promise<any> {
     const json = body === undefined ? undefined : JSON.stringify(body)
     return this.parse(
-      await this.retrying((force) => this.send(method, url, force, this.timeoutMs.call, json === undefined ? undefined : 'application/json', json)),
+      await this.retrying((force) => this.send(method, url, force, this.timeoutMs[kind], json === undefined ? undefined : 'application/json', json)),
     )
   }
 
