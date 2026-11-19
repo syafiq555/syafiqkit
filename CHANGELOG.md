@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.461.0
+
+**A question about how the product should behave now arrives with research into how real products or the regulator handle it, quoted inside each option.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- 19/11/2026: a five-card build plan put three decisions to the user (who issues gift cards, when an LHDN refund note goes out, who sees dashboards) with only the session's own recommendation behind each option. The user rejected the question to clarify, asked for research ("research how ppl do this"), and once each option quoted LHDN's FAQ, Shopee, EasyStore and Shopify, chose in one pass: "at least u can give me something that i can make confident decision". The per-item research pass covered the cards, not the decisions it surfaced.
+- `_shared/references/decision-first-output.md` § Earning the decision gains the rule (read by `read-summary`, `done`, `ship`, `judgement`, `update-plugin`), since the same shape had been patched one skill at a time before (`uiux` new controls, `done` reviewer questions, `read-summary` related docs). `read-summary`'s Task-description research brief points to it.
+
 ## 1.460.9
 
 **`read-summary` reads the team chat and fetches the remote for any question about where work stands, not only "what's the latest".** Update with `claude plugin update syafiqkit@syafiqkit`.
