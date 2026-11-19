@@ -60,9 +60,16 @@ describe('replyMode', () => {
     expect(p.recipients).toBe('to: ana@client.test, ops@tsb.test, boss@client.test, extra@x.test; cc: zed@client.test, more@x.test; bcc: hidden@x.test')
   })
 
-  test('a sender-only reply to your own message needs a to, and says why', async () => {
-    const mine = original({ From: 'me@tsb.test' })
-    const { call, preview } = await connect({ message: async () => mine })
+  test('a reply to your own sent message goes to the people you wrote to, as Gmail does', async () => {
+    const mine = original({ From: 'Me <me@tsb.test>', To: 'ana@client.test, ME@tsb.test', Cc: 'zed@client.test' })
+    const { preview } = await connect({ message: async () => mine })
+    expect((await preview({ body: 'ok', replyTo: 'm100', replyMode: 'sender' })).recipients).toBe('to: ana@client.test')
+    expect((await preview({ body: 'ok', replyTo: 'm100', replyMode: 'all' })).recipients).toBe('to: ana@client.test; cc: zed@client.test')
+  })
+
+  test('a reply that resolves to only your own address needs a to, and says why', async () => {
+    const toSelf = original({ From: 'me@tsb.test', To: 'me@tsb.test', Cc: null })
+    const { call, preview } = await connect({ message: async () => toSelf })
     const out = await call('email_send_preview', { body: 'ok', replyTo: 'm100', replyMode: 'sender' })
     expect(out.isError).toBe(true)
     expect(out.text).toContain('found no address other than yours')

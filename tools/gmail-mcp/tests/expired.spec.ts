@@ -21,7 +21,7 @@ describe('an expired or revoked sign-in', () => {
     const tokens = new TokenSource(async () => new Response(JSON.stringify({ error: 'invalid_grant', error_description: 'Token has been expired or revoked.' }), { status: 400 }), Date.now, creds, () => 'r')
     const err = await tokens.get().catch((e: Error) => e)
     expect((err as Error).message).toContain('gmail: The Gmail sign-in for /tmp/gmail-second-account expired or was revoked')
-    expect((err as Error).message).toContain('GMAIL_CONFIG_DIR=/tmp/gmail-second-account gmail-mcp auth')
+    expect((err as Error).message).toMatch(/on their Mac .*GMAIL_CONFIG_DIR=\/tmp\/gmail-second-account \/\S+\/bin\/gmail-mcp auth/)
   })
 
   test('other token errors keep their own wording', async () => {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.463.4
+
+**Gmail tool: replying to your own sent email works, and the expired sign-in message gives a command you can run.** Run `/mcp reconnect gmail` after `claude plugin update syafiqkit@syafiqkit`.
+- "Reply to sender" or "reply to all" on an email you sent now goes to the people you wrote to (and its Cc for reply-all), as Gmail does, instead of refusing.
+- An expired or revoked sign-in now gives the launcher's full path and says to run it on the Mac (it opens a browser).
+- The README and `/setup-tools` now agree on a personal Gmail: publish its sign-in app (In production) and click past Google's "unverified app" screen, rather than staying in Testing and signing in weekly. `/setup-tools` points at `bin/enable gmail-personal` for a second account.
+
 ## 1.463.3
 
 **Gmail tool: reply to sender or all, forward with attachments, a second account, and a clear expired sign-in message.** Run `/mcp reconnect gmail` after `claude plugin update syafiqkit@syafiqkit`.

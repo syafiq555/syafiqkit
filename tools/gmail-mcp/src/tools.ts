@@ -322,9 +322,16 @@ export function registerTools(
     let derivedCc: string[] = []
     if (args.replyMode && original) {
       const notMe = (a: string) => a.toLowerCase() !== from.toLowerCase()
-      const sender = parseAddressList(header(original, 'Reply-To') || header(original, 'From'))
-      derivedTo = (args.replyMode === 'all' ? [...sender, ...parseAddressList(header(original, 'To'))] : sender).filter(notMe)
-      derivedCc = args.replyMode === 'all' ? parseAddressList(header(original, 'Cc')).filter(notMe) : []
+      const originalTo = parseAddressList(header(original, 'To'))
+      const originalCc = args.replyMode === 'all' ? parseAddressList(header(original, 'Cc')) : []
+      const sentByMe = parseAddressList(header(original, 'From')).some((a) => !notMe(a))
+      if (sentByMe) {
+        derivedTo = originalTo.filter(notMe)
+      } else {
+        const sender = parseAddressList(header(original, 'Reply-To') || header(original, 'From'))
+        derivedTo = (args.replyMode === 'all' ? [...sender, ...originalTo] : sender).filter(notMe)
+      }
+      derivedCc = originalCc.filter(notMe)
     }
     const to = addressList('To', [...derivedTo, ...(args.to ?? [])])
     const inTo = new Set(to.map((a) => a.toLowerCase()))
@@ -339,25 +346,32 @@ export function registerTools(
     }
     if (to.length + cc.length + bcc.length > MAX_RECIPIENTS) throw new Error(`More than ${MAX_RECIPIENTS} recipients. Nothing was sent.`)
 
-    const subject = !original ? (args.subject ?? '').trim() : mode === 'forward' ? forwardSubject(oneLine(header(original, 'Subject')), args.subject) : replySubject(oneLine(header(original, 'Subject')), args.subject)
+    const subject = !original
+      ? (args.subject ?? '').trim()
+      : (mode === 'forward' ? forwardSubject : replySubject)(oneLine(header(original, 'Subject')), args.subject)
     if (!subject) throw new Error('A subject is required. Nothing was sent.')
     if (/[\r\n]/.test(subject)) throw new Error('The subject must be a single line. Nothing was sent.')
     if (subject.length > MAX_SUBJECT_CHARS) throw new Error(`The subject is over ${MAX_SUBJECT_CHARS} characters. Nothing was sent.`)
 
-    const body = mode === 'forward' && original ? [userBody.trim() ? userBody.replace(/\s+$/, '') : '', forwardedText(original)].filter(Boolean).join('\n\n') : userBody
+    const body = mode === 'forward' && original ? [userBody.trimEnd(), forwardedText(original)].filter(Boolean).join('\n\n') : userBody
 
     const ownData: MimeFile[] = files.map((f) => ({ name: f.name, contentType: f.contentType, data: new Uint8Array(readFileSync(f.path)) }))
     const ownBytes = ownData.reduce((sum, f) => sum + f.data.byteLength, 0)
     const encodedFor = (bytes: number) => Math.ceil((bytes + new TextEncoder().encode(body).byteLength) / 3) * 4 + 4096
-    const tooBig = (encoded: number) =>
-      new Error(`The message would be about ${fileSize(encoded)} once encoded, over Gmail's 25 MB limit (attachments grow by a third). Nothing was sent. Send fewer or smaller files.`)
-    if (encodedFor(ownBytes) > MAX_MESSAGE_BYTES) throw tooBig(encodedFor(ownBytes))
+    const assertFits = (bytes: number): number => {
+      const encoded = encodedFor(bytes)
+      if (encoded > MAX_MESSAGE_BYTES) {
+        throw new Error(`The message would be about ${fileSize(encoded)} once encoded, over Gmail's 25 MB limit (attachments grow by a third). Nothing was sent. Send fewer or smaller files.`)
+      }
+      return encoded
+    }
+    assertFits(ownBytes)
 
     const forwardData: MimeFile[] = []
     if (mode === 'forward' && original) {
       const wanted = attachmentsOf(original)
       const declared = wanted.reduce((sum, a) => sum + a.size, 0)
-      if (encodedFor(ownBytes + declared) > MAX_MESSAGE_BYTES) throw tooBig(encodedFor(ownBytes + declared))
+      assertFits(ownBytes + declared)
       for (const [i, a] of wanted.entries()) {
         const name = safeFileName(a.name, i)
         const bytes = await gmail.attachment(args.forwardOf!, a.attachmentId)
@@ -365,8 +379,7 @@ export function registerTools(
       }
     }
     const data = [...forwardData, ...ownData]
-    const encodedBytes = encodedFor(data.reduce((sum, f) => sum + f.data.byteLength, 0))
-    if (encodedBytes > MAX_MESSAGE_BYTES) throw tooBig(encodedBytes)
+    const encodedBytes = assertFits(data.reduce((sum, f) => sum + f.data.byteLength, 0))
 
     const partial = { to, cc, bcc, subject, body, threadId, inReplyTo, references }
     const digest = digestOf(partial, data.map((f) => ({ name: f.name, sha: sha256(f.data) })))

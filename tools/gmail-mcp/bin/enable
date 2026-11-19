@@ -35,20 +35,19 @@ if claude mcp get "$name" >/dev/null 2>&1; then
 fi
 
 if [ -n "$dir" ]; then
-  GMAIL_CONFIG_DIR=$dir "$launcher" check || {
-    if [ -f "$dir/client.json" ]; then
-      echo "Sign in first: GMAIL_CONFIG_DIR=\"$dir\" $launcher auth" >&2
-    else
-      echo "Sign in first: GMAIL_CONFIG_DIR=\"$dir\" $launcher auth --client <client.json of a Desktop-app OAuth client whose project allows this Google account>" >&2
-    fi
-    exit 1
-  }
-else
-  "$launcher" check || {
-    echo "Sign in first: $launcher auth" >&2
-    exit 1
-  }
+  export GMAIL_CONFIG_DIR=$dir
 fi
+
+"$launcher" check || {
+  if [ -z "$dir" ]; then
+    echo "Sign in first: $launcher auth" >&2
+  elif [ -f "$dir/client.json" ]; then
+    echo "Sign in first: GMAIL_CONFIG_DIR=\"$dir\" $launcher auth" >&2
+  else
+    echo "Sign in first: GMAIL_CONFIG_DIR=\"$dir\" $launcher auth --client <client.json of a Desktop-app OAuth client whose project allows this Google account>" >&2
+  fi
+  exit 1
+}
 
 if [ -n "$dir" ]; then
   claude mcp add "$name" --scope user --env GMAIL_CONFIG_DIR="$dir" -- "$launcher"

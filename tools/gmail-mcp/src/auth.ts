@@ -15,10 +15,12 @@ export function configDir(): string {
   return process.env.GMAIL_CONFIG_DIR || join(homedir(), '.config', 'syafiqkit', 'google-gmail')
 }
 
+const shellQuote = (value: string) => (/^[\w@%+=:,./-]+$/.test(value) ? value : `'${value.replace(/'/g, `'\\''`)}'`)
+
+export const authCommand = () => `GMAIL_CONFIG_DIR=${shellQuote(configDir())} ${shellQuote(join(import.meta.dir, '..', 'bin', 'gmail-mcp'))} auth`
+
 export function expiredSignIn(): string {
-  const dir = configDir()
-  const shellDir = /^[\w@%+=:,./-]+$/.test(dir) ? dir : `'${dir.replace(/'/g, `'\\''`)}'`
-  return `The Gmail sign-in for ${dir} expired or was revoked. Ask the user to sign in again: GMAIL_CONFIG_DIR=${shellDir} gmail-mcp auth`
+  return `The Gmail sign-in for ${configDir()} expired or was revoked. Ask the user to sign in again on their Mac (it opens a browser, so not from a phone): ${authCommand()}`
 }
 
 const sheetsClientPath = () => join(homedir(), '.config', 'syafiqkit', 'google', 'client.json')
@@ -76,7 +78,7 @@ async function postToken(fetcher: Fetch, form: Record<string, string>): Promise<
   if (!res.ok) {
     if (body.error === 'invalid_grant') throw new Error(`gmail: ${expiredSignIn()} (Google: invalid_grant).`)
     const reason = body.error_description || body.error || `HTTP ${res.status}`
-    throw new Error(`gmail: Google refused the token request (${reason}). If the sign-in was revoked, run: gmail-mcp auth`)
+    throw new Error(`gmail: Google refused the token request (${reason}). If the sign-in was revoked, run on the Mac: ${authCommand()}`)
   }
   return body
 }

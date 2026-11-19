@@ -34,7 +34,7 @@ One `AskUserQuestion` with two questions: which tools (multi-select: Sheets, Cha
 
 Gmail plus Chat: say plainly that Google Chat's API is for Workspace accounts only, and carry on with the rest. If Chat was all they wanted, stop here, before any console steps: nothing else would be of use to them. Should a Workspace account still be refused at Chat sign-in, capture Google's exact message rather than guessing.
 
-Chat and Gmail reuse the Sheets tool's OAuth client file, so the Google Cloud steps enable every API they picked in one pass even if they skipped Sheets. Sheets itself is only switched on if they asked for it. A second Google account (a personal Gmail beside work) is its own sign-in: a separate `GMAIL_CONFIG_DIR`, a client from a project that account can use, and `claude mcp add <second name> --scope user --env GMAIL_CONFIG_DIR=… -- <tools>/gmail-mcp/bin/gmail-mcp`, since `enable` only registers the name `gmail`.
+Chat and Gmail reuse the Sheets tool's OAuth client file, so the Google Cloud steps enable every API they picked in one pass even if they skipped Sheets. Sheets itself is only switched on if they asked for it. A second Google account (a personal Gmail beside work) is its own sign-in under its own name: `<tools>/gmail-mcp/bin/enable gmail-personal` uses its own config folder and prints the exact `auth` command (with a client from a project that account can use) when it isn't signed in yet.
 
 ## 3. Google Cloud project and OAuth client (gsheets, gchat)
 
