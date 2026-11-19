@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.460.3
+
+**`casual-message` drafts for a Chat send tool with the blank lines the send needs, so the approved draft is the posted text.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- Syntax: a send tool joins two lines separated by only a line break into one paragraph (`gchat-format` owns the fact); a draft going through one now separates its lines, numbered items included, before the sender approves it. 19/11/2026: a list draft approved as shown had blank lines added at send time.
+
 ## 1.460.2
 
 **`score-loop` builds a round's fixes in parallel, and checks a judge's "user's call" list against the approved plan.** Update with `claude plugin update syafiqkit@syafiqkit`.
