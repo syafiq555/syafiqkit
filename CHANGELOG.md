@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.462.1
+
+**The 1.462.0 scripted-write hook is removed; nothing blocks Bash or Write calls any more.** Run `/reload-plugins` after `claude plugin update syafiqkit@syafiqkit`.
+- The user decided against shipping the hook (19/11/2026). The Edit-or-Write rule stays in `agent-setup`'s task-builder template and in each builder brief, and builders' diffs keep being checked after each run.
+
 ## 1.462.0
 
 **A hook now blocks shell rewrites of repo files, so "Edit tool only" no longer depends on an agent remembering it.** Run `/reload-plugins` (or start a new session) after `claude plugin update syafiqkit@syafiqkit`.

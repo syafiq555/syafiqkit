@@ -1,20 +1,7 @@
 {
-  "description": "Injects syafiqkit's output-style ruleset at session start, loads the syafiqkit menu mod, and blocks shell rewrites of repo files.",
+  "description": "Injects syafiqkit's output-style ruleset at session start, and loads the syafiqkit menu mod.",
   "modules": ["./src/mod.js"],
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/usr/bin/env",
-            "args": ["python3", "-I", "${CLAUDE_PLUGIN_ROOT}/hooks/block-scripted-writes.py"],
-            "timeout": 10
-          }
-        ]
-      }
-    ],
     "SessionStart": [
       {
         "matcher": "startup|resume|clear|compact",
