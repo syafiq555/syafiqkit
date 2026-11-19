@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.460.2
+
+**`score-loop` builds a round's fixes in parallel, and checks a judge's "user's call" list against the approved plan.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- Step 4: one builder per surface with non-overlapping files, all at once. A shared test database, build folder or test server is split in the brief (own database each, a second builder adds new shared-component files only, one owner of the build and browser run) instead of queueing builders one after another. 19/11/2026: a redesign ran four page rounds back to back under the old "one at a time if builders share a database" wording until the user asked "is it really need to run sequentially?"
+- Step 3: a judge's list of "who can see or do" items is checked against the approved plan and recorded decisions before any question. The same day a judge listed five plan-approved features (approve from a side sheet, Buy again, a shopper timeline) as the user's call.
+
 ## 1.460.1
 
 **`patch-advisory` fixes from its first review.** Update with `claude plugin update syafiqkit@syafiqkit`.
