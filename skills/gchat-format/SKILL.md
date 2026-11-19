@@ -56,6 +56,10 @@ Regroup by feature instead of inheriting the source's `Added`/`Fixed` split. Tho
 
 If the source gives no before-state (a changelog rarely does), ask for it or pull it from the task doc — that contrast is what makes the rest legible. A note that opens with a bullet instead of a sentence, with every item at the same level, signals that the regroup didn't happen.
 
+### Work not shipped: research, a plan, a proposal
+
+**A post about work nothing shipped explains the situation and what was done; it never reads as decided.** Shape it as what was found (the situation, with the spec or requirement lines that ask for it quoted), what was done (research, a plan written, where it lives), and anything acted on in a teammate's name (a tracker row, a card) listed in full so they can change it. Open with "nothing confirmed yet" where that is true, and keep the sender's own caveats in their words ("have to check first, since ..."). A `Decided` heading over a proposal commits the team to it. Measured 19/11/2026: a plan post drafted as a `Decided` list was turned back four times before it said what the situation was, that nothing was confirmed, which requirement rows applied, and which tracker row was written under a colleague's name.
+
 Before delivering a condensed release note, count the distinct shipped items in the source (each `###`-level bullet under Added/Changed/Fixed, per repo if multi-repo) and count the bullets in the condensed output. A lower count is expected only if items were deliberately merged as near-duplicates or cut as a caveat/ops-step per the table above — if a genuine shipped item is simply missing, the condense went too far. Re-scan the source once before sending.
 
 ## Key Rules

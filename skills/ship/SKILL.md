@@ -108,6 +108,8 @@ Frame the note from the task doc, not the changelog: a CHANGELOG lists wins one 
 
 A repo with no `CHANGELOG.md` skips the changelog gate and the release note, except an internal repo (plugin, script, tooling), which still gets a release note: it ships too.
 
+**A docs-only push still owes the team post when the team acts on what it carries** (a proposal, a plan, a decision record, a tracker row someone owns); only a push the team never needs to know about (a typo, private working notes) skips it. "No screen changed" is a reason for no release note, not for no post: the post then explains the situation and what was done, per `gchat-format` § Work not shipped. **Tell: your Release Note row says "not posted" and the push carries something a named teammate must read or act on.**
+
 Scope the note to everything the push carried, and to whatever this session changed on production outside git (a setting flipped, a key added). Find the last-deployed version with `git log --oneline <pre-push-SHA>..<pushed-SHA> -- <version-file>`. Rely on the commit range, not a CHANGELOG heading this session just edited: a docs-only range can hide a live release made outside git. 📖 `references/ship-incidents.md` (2026-10-23).
 
 1. Read `tasks/**/current.md` (use `read-summary`) for what's done, deferred, and what the effort *was*.

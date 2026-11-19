@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.460.8
+
+**`ship` owes the team post on a docs-only push the team acts on, and `gchat-format` gives a post about unshipped work its own shape.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- 19/11/2026: a docs-only ship carrying a proposal and a tracker row written in a colleague's name skipped the Chat post because "no screen changed"; the user asked "u didnt update group ?". Ship Step 5 now says a docs-only push still gets a post when a teammate must read or act on what it carries.
+- The post was then drafted as a "Decided" list and turned back four times. `gchat-format` § Work not shipped: situation with the spec lines quoted, what was done, anything done in a teammate's name listed in full, "nothing confirmed yet", and the sender's caveats kept in their words.
+
 ## 1.460.7
 
 **`refresh-instructions` measures a formatter-padded table before judging a file's density, and `update-claude-docs`'s house style keeps long-celled rules out of tables in repos whose formatter pads them.** A 44.5 KB CLAUDE.md carried 11 KB of padding in one table that `vp fmt` re-pads to its widest cell; turning it into bullets in Pass 1 took the file to 33.6 KB with nothing cut, and condense then needed only 2.5 KB. Update with `claude plugin update syafiqkit@syafiqkit`.
