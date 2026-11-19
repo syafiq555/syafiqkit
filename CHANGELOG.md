@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.460.4
+
+**`read-summary` reads the team's chat when asked for the latest on a project.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- After Reading Docs, Investigation: "what's the latest on X" reads the chat space the project's instructions name, through a connected chat tool, beside the docs and git history, since decisions, client news and questions for the user land there first. 19/11/2026: a "check latest" answered from task docs and commits came back "check the chat i meant" (Syafiq chose the skill fix over a project note).
+
 ## 1.460.3
 
 **`casual-message` drafts for a Chat send tool with the blank lines the send needs, so the approved draft is the posted text.** Update with `claude plugin update syafiqkit@syafiqkit`.
