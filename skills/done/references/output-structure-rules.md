@@ -53,7 +53,7 @@
 |------|--------|
 | Knowledge | [N entries → target files; "0 new" if none] |
 | Task docs | [doc path → summary] |
-| Plugin | A / B / C answered (A from the session's skill invocations and user corrections, never from a status command) · owner: [files + bump] · consumer: [issue URL or why not]; never omitted |
+| Plugin | A / B / C answered · owner: [files + bump] · consumer: [issue URL or why not]; never omitted |
 | User args | [what was done about them] (only if args passed) |
 ```
 

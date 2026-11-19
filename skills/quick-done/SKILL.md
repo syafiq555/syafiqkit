@@ -32,7 +32,7 @@ Three questions, and only the ownership one has a command. **Did a skill mislead
 The ownership question is the one with a command. The checkout is shared across every project, so it may carry another session's concurrent work. Any file you don't remember editing must be read before assuming it's yours: a foreign edit is recognisable on sight, and shipping one under your version bump is the failure this gate exists to prevent.
 
 **Check ownership:**
-1. Run `git status --short` and `git log --oneline --since="<session start>"` (the whole tree, `tools/` and `hooks/` included, and committed work too) from the plugin checkout as CWD, not `git -C <path>`, which walks up to an enclosing repo and answers about the wrong tree. An empty list means no plugin file was edited — it says nothing about whether a skill misled you, so it closes the ownership question only. Omit the row if the first question was also a no.
+1. Run `git status --short` and `git log --oneline --since="<session start>"` (the whole tree, `tools/` and `hooks/` included, and committed work too) from the plugin checkout as CWD, not `git -C <path>`, which walks up to an enclosing repo and answers about the wrong tree. An empty list means no plugin file was edited — it says nothing about whether a skill misled you, so it closes the ownership question only. If the first question was also a no, the row says "none" and names the invocations and corrections checked, so a skipped check can't read as a clean one.
 
 2. For each file, verify you edited it this session:
    - **Mtime check:** read each file's modification time. Files predating your session start were edited by another. 
@@ -74,7 +74,7 @@ Where something was parked rather than finished and the session is ending, offer
 |------|--------|
 | CLAUDE.md | [file path → what was captured, or "nothing reusable surfaced"] |
 | Task doc | [doc path → one-line summary; derived views: old values searched and hits fixed, or "no date/status changed"] |
-| Plugin | [skill files patched + version bump — omit row if the gate didn't fire] |
+| Plugin | [skill files patched + version bump, or "none" + what was checked; never omitted] |
 
 Skipped by design: code review, simplify, product review, cleanup scan. The code was not read for defects.
 ```

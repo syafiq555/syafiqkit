@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.460.6
+
+**`quick-done` and `done`'s exit-gate reference no longer let the Plugin row be omitted either; the 19/11 rules lose their dated incidents.** Update with `claude plugin update syafiqkit@syafiqkit`.
+- `quick-done` Step 3 and its Output row, and `done/references/exit-gate-rules.md`, said to omit the Plugin row when no gate fired, the same silent skip 1.460.5 removed from `done`. Each now writes "none" with what was checked.
+- The 19/11 incidents added to `casual-message`, `read-summary` and `done` Step 5 move to this changelog (1.460.3 to 1.460.5 carry them), and two reference lines that repeated Step 5's Gate A rule are cut back.
+
 ## 1.460.5
 
 **`done` Step 5 answers all three plugin gates every run, Gate A from the session's own skill invocations and corrections.** Update with `claude plugin update syafiqkit@syafiqkit`.
