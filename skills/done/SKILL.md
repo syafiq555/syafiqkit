@@ -135,7 +135,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 
 **Quick rules:**
 - One to four open questions: one `AskUserQuestion` call. Five or more: `## Decisions` as well. If the session's brief was to finish everything, ask before wrapping up and build the answers. Don't park them in the task doc (📖 `../_shared/references/decision-first-output.md` § Where it goes).
-- Omit empty rows; never "N/A".
+- Omit empty rows; never "N/A". The Plugin row is the exception: it always states its three gates.
 - One change = one `### [Change]` + `### Session`. A change with only ✅ still gets its heading.
 - Multi-repo: name the repo and branch per change (the reader's next act is committing). Name where one repo's work is inert without the other.
 - Words the user still has to send are restated in full in Output, never pointed at (📖 `${CLAUDE_SKILL_DIR}/references/output-structure-rules.md` § Handoff Words).
