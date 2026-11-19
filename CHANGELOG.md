@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.460.9
+
+**`read-summary` reads the team chat and fetches the remote for any question about where work stands, not only "what's the latest".** Update with `claude plugin update syafiqkit@syafiqkit`.
+- 19/11/2026: "see my part, what's non blocking" was answered from task docs, the tracker board and code; the user had to add "check latest project too", and the chat held two new items for them (a ledger row a teammate raised, a role reset). 1.460.4's rule was worded around "what's the latest on X", so a "my part / what's open / what can I do" question read as outside it. Scope widened to the question's shape, with a tell on the answer.
+
 ## 1.460.8
 
 **`ship` owes the team post on a docs-only push the team acts on, and `gchat-format` gives a post about unshipped work its own shape.** Update with `claude plugin update syafiqkit@syafiqkit`.
