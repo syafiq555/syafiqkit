@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.463.5
+
+**Setting up a Google tool now says to start a new session, not `/mcp reconnect`.** For a server registered after the session started, `/mcp reconnect <name>` answers `MCP server "<name>" not found` (19/11/2026, `gmail-personal`), so the `enable` scripts, the three READMEs and `/setup-tools` step 7 now point at a new session and keep reconnect for a server the session already had.
+- `/setup-tools`: a second Google account that already has its own Sheets sign-in reuses that folder's published client with `--client`, leaving only the Gmail API to enable in its project.
+
 ## 1.463.4
 
 **Gmail tool: replying to your own sent email works, and the expired sign-in message gives a command you can run.** Run `/mcp reconnect gmail` after `claude plugin update syafiqkit@syafiqkit`.

@@ -28,4 +28,4 @@ if [ -n "$GCHAT_CONFIG_DIR" ]; then
 else
   claude mcp add gchat --scope user -- "$launcher"
 fi
-echo "Enabled in every project (user scope, this machine). In a running session: /mcp reconnect gchat, or start a new session."
+echo "Enabled in every project (user scope, this machine). Start a new Claude Code session to load it (/mcp reconnect gchat only works in a session that already had gchat when it started)."

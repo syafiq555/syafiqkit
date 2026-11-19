@@ -45,7 +45,7 @@ From inside the project (a subfolder works too: it registers the repo root):
 ```
 
 - **Why local scope:** the entry lives in this machine's Claude config for this project only. Nothing is written into the repo, so teammates who don't have the sign-in get no broken server.
-- **When it takes effect:** start a new Claude Code session in that project, or run `/mcp reconnect gsheets` in one. `/reload-plugins` restarts only plugin-bundled servers, not this one.
+- **When it takes effect:** start a new Claude Code session in that project. `/mcp reconnect gsheets` only reaches a server the session already had at start; for a first registration it answers "not found". `/reload-plugins` restarts only plugin-bundled servers, not this one.
 - **An existing `gsheets` server blocks it:** `enable` refuses while another server named `gsheets` is visible from the project (a user-scope one, for example). Remove that one first.
 
 The launcher finds bun on its own (`~/.bun/bin`, `/opt/homebrew/bin`, `/usr/local/bin`), because Claude Code starts MCP servers without your shell's PATH. On first start it installs the dependencies if they are missing.

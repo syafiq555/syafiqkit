@@ -54,4 +54,4 @@ if [ -n "$dir" ]; then
 else
   claude mcp add "$name" --scope user -- "$launcher"
 fi
-echo "Enabled in every project (user scope, this machine). In a running session: /mcp reconnect $name, or start a new session."
+echo "Enabled in every project (user scope, this machine). Start a new Claude Code session to load it (/mcp reconnect $name only works in a session that already had $name when it started)."

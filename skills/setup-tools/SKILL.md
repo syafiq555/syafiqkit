@@ -34,7 +34,7 @@ One `AskUserQuestion` with two questions: which tools (multi-select: Sheets, Cha
 
 Gmail plus Chat: say plainly that Google Chat's API is for Workspace accounts only, and carry on with the rest. If Chat was all they wanted, stop here, before any console steps: nothing else would be of use to them. Should a Workspace account still be refused at Chat sign-in, capture Google's exact message rather than guessing.
 
-Chat and Gmail reuse the Sheets tool's OAuth client file, so the Google Cloud steps enable every API they picked in one pass even if they skipped Sheets. Sheets itself is only switched on if they asked for it. A second Google account (a personal Gmail beside work) is its own sign-in under its own name: `<tools>/gmail-mcp/bin/enable gmail-personal` uses its own config folder and prints the exact `auth` command (with a client from a project that account can use) when it isn't signed in yet.
+Chat and Gmail reuse the Sheets tool's OAuth client file, so the Google Cloud steps enable every API they picked in one pass even if they skipped Sheets. Sheets itself is only switched on if they asked for it. A second Google account (a personal Gmail beside work) is its own sign-in under its own name: `<tools>/gmail-mcp/bin/enable gmail-personal` uses its own config folder and prints the exact `auth` command (with a client from a project that account can use) when it isn't signed in yet. If that account already has a Sheets sign-in under its own folder (a `GSHEETS_CONFIG_DIR` beside the work one), its published External client serves Gmail too: pass that folder's `client.json` as `--client` and the only console step left is enabling the Gmail API in its project.
 
 ## 3. Google Cloud project and OAuth client (gsheets, gchat)
 
@@ -75,7 +75,7 @@ Then prove each sign-in reads real data, which you can run yourself: `<tools>/gs
 
 ## 7. Hand over
 
-A server registered during this session does not load its tools here. Tell them to start a new Claude session (or type `/mcp reconnect gchat` / `/mcp reconnect gsheets` / `/mcp reconnect gmail`, which only they can do), then ask something real: "list my Chat spaces", or "read the tabs of <a sheet link>". Their DMs should show the other person's name.
+A server registered during this session does not load its tools here. Tell them to start a new Claude session, then ask. `/mcp reconnect <name>` only reaches a server the session already knew at start: for one added now it answers `MCP server "<name>" not found` (19/11/2026, `gmail-personal`), so offer it only after a re-registration of a name the session started with. Then ask something real: "list my Chat spaces", or "read the tabs of <a sheet link>". Their DMs should show the other person's name.
 
 Report what works in their words ("Claude can now read your Chat spaces"), what `check --read` already proved, and that one sentence to try next.
 

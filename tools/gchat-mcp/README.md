@@ -28,7 +28,7 @@ You need a **Google Workspace** (Business or Enterprise) account: Google's Chat 
 1. In that project, enable the **Google Chat API** and the **People API**.
 2. Open the Chat API's **Configuration** tab and fill in an app name, an avatar URL and a description. Pick the name with care: Google shows it beside your name on every message the tool sends, so use your own name. Leave every interactive feature off. Google refuses every Chat API call, user sign-ins included, until this page is saved ("Google Chat app not found").
 3. Sign in: `tools/gchat-mcp/bin/gchat-mcp auth`. With no `--client` it copies the Sheets tool's `client.json` from `~/.config/syafiqkit/google/`. It stores the token in `~/.config/syafiqkit/google-chat/` (`GCHAT_CONFIG_DIR` overrides). `tools/gchat-mcp/bin/gchat-mcp check --read` then confirms Chat answers (it prints how many spaces it saw).
-4. Register it in every project: `tools/gchat-mcp/bin/enable` (user scope). Then `/mcp reconnect gchat`, or start a new session.
+4. Register it in every project: `tools/gchat-mcp/bin/enable` (user scope). Then start a new session: `/mcp reconnect gchat` answers "not found" for a server added after the session started.
 
 **Times** are shown in this machine's time zone. Set `SYAFIQKIT_TZ` (an IANA name such as `Asia/Kuala_Lumpur`) in the registration's environment to override it.
 
