@@ -53,7 +53,7 @@ These skills accept explicit user command:
 |-------|----------------|
 | `commit` | Git commits from staged changes; `/commit push` also pushes |
 | `claude-server-token` | One-year `claude setup-token` for a server-side Claude agent, or its renewal, even from the owner's phone |
-| `setup-tools` | Set up the gsheets, gchat and `remote` tools for whoever runs it, until a real read works |
+| `setup-tools` | Set up the gsheets, gchat, gmail and `remote` tools for whoever runs it, until a real read works |
 | `write-summary` | Create a task summary document |
 | `update-summary` | Update an existing task summary |
 | `task-summary` | Create/update task summaries with full machinery |

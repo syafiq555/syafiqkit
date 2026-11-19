@@ -20,6 +20,7 @@ Open each link and press **Enable**:
 | Google Slides API | gsheets, optional (only `slides_thumbnails`) | https://console.cloud.google.com/apis/library/slides.googleapis.com |
 | Google Chat API | gchat | https://console.cloud.google.com/apis/library/chat.googleapis.com |
 | People API | gchat (turns user ids into names) | https://console.cloud.google.com/apis/library/people.googleapis.com |
+| Gmail API | gmail | https://console.cloud.google.com/apis/library/gmail.googleapis.com |
 
 Enable Sheets and Drive whenever Chat is wanted too: the Chat sign-in reuses the same OAuth client, and enabling costs nothing.
 

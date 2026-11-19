@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.463.0
+
+**New Gmail tool (`gmail-mcp`): Claude can search and read your mail and send an email or a threaded reply as you, each send behind Claude Code's permission prompt.** Set it up once with `/syafiqkit:setup-tools` (Gmail API in your Cloud project, `bin/gmail-mcp auth`, `bin/enable`), then `/mcp reconnect gmail`.
+- Tools: `emails_search` (Gmail search syntax), `email_read` (one message or a whole thread as plain text), `attachment_download`, `email_send_preview` and `email_send`.
+- Sending works like the Chat tool: the preview shows From, To, Cc, Bcc, subject, the body and each file; the send carries the preview's recipients and digest and is refused if any word, file or recipient changed. A reply is threaded (In-Reply-To, References, "Re:") but recipients are never filled in for you.
+- Gmail has no idempotency key, so the same message is refused as ALREADY SENT within 10 minutes of a recorded send; a timeout says UNSURE and asks you to check Sent first. Keys and credentials are never attached, and the 25 MB limit is checked on the encoded size.
+- Scopes are exactly `gmail.readonly` and `gmail.send`. Not yet tried against a live account.
+
 ## 1.462.2
 
 **`/task-docs` no longer warns about a big decisions file that already has an up-to-date outline beside it.** Run `/reload-plugins` after `claude plugin update syafiqkit@syafiqkit`.

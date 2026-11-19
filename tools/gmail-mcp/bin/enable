@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+self=$0
+while [ -L "$self" ]; do
+  target=$(readlink "$self")
+  case $target in
+    /*) self=$target ;;
+    *) self=$(dirname "$self")/$target ;;
+  esac
+done
+root=$(cd "$(dirname "$self")/.." && pwd)
+launcher="$root/bin/gmail-mcp"
+
+"$launcher" check || {
+  echo "Sign in first: $launcher auth" >&2
+  exit 1
+}
+
+if claude mcp get gmail >/dev/null 2>&1; then
+  echo "A server named gmail is already registered:" >&2
+  claude mcp get gmail >&2
+  echo "Remove it first (claude mcp remove gmail -s <scope>), then run this again." >&2
+  exit 1
+fi
+
+if [ -n "$GMAIL_CONFIG_DIR" ]; then
+  claude mcp add gmail --scope user --env GMAIL_CONFIG_DIR="$GMAIL_CONFIG_DIR" -- "$launcher"
+else
+  claude mcp add gmail --scope user -- "$launcher"
+fi
+echo "Enabled in every project (user scope, this machine). In a running session: /mcp reconnect gmail, or start a new session."

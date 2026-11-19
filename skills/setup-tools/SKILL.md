@@ -1,16 +1,17 @@
 ---
 name: setup-tools
-description: Set up syafiqkit's own tools on this machine for the person running it - the Google Sheets and Drive tool (gsheets), the Google Chat tool (gchat) and the `remote` SSH command - each with their own Google Cloud project and sign-in, step by step until a real read works. Fires on "set up the Google Sheets tool", "set up gchat / Google Chat for me", "how do I get the Chat tools", "gsheets tools are missing", "I want the remote command", "set up the plugin's tools", "the gchat server won't connect", "the Sheets or Chat tool stopped working" (repair: check its sign-in first), or a colleague asking how to use the Sheets, Chat or remote tools named in the syafiqkit README. Not for building a tracker sheet (`setup-tracker`), using the tools once they work, or a server's Claude login (`claude-server-token`).
+description: Set up syafiqkit's own tools on this machine for the person running it - the Google Sheets and Drive tool (gsheets), the Google Chat tool (gchat), the Gmail tool (gmail) and the `remote` SSH command - each with their own Google Cloud project and sign-in, step by step until a real read works. Fires on "set up the Google Sheets tool", "set up gchat / Google Chat for me", "set up the Gmail tool", "I want Claude to send email", "how do I get the Chat tools", "gsheets tools are missing", "I want the remote command", "set up the plugin's tools", "the gchat server won't connect", "the Sheets or Chat tool stopped working" (repair: check its sign-in first), or a colleague asking how to use the Sheets, Chat or remote tools named in the syafiqkit README. Not for building a tracker sheet (`setup-tracker`), using the tools once they work, or a server's Claude login (`claude-server-token`).
 ---
 
 # Set Up syafiqkit's Tools
 
-Three tools ship inside syafiqkit, all off until each person sets them up:
+Four tools ship inside syafiqkit, all off until each person sets them up:
 
 | Tool | Gives Claude | Needs |
 |---|---|---|
 | gsheets | Read and write Google Sheets, find and fetch Drive files, reply in shared tracker cells without wiping others' colours | Any Google account (Workspace or personal Gmail) and their own Google Cloud project |
 | gchat | Read, search, send and edit Google Chat messages as them, every send behind a permission prompt | A **Google Workspace** (Business or Enterprise) account. Google's Chat API guide lists that as a prerequisite, so a personal Gmail cannot use it |
+| gmail | Search and read their mail, download attachments, and send or reply in a thread as them, every send behind a permission prompt | The Gmail API in the same Cloud project. Its read scope is one Google calls restricted: fine for a Workspace (Internal) client; a personal Gmail must get past the unverified-app screen |
 | remote | `remote <server> "command"`, uploads and downloads over SSH | SSH access to their servers, `rsync` for uploads |
 
 Each person uses **their own** Google Cloud project and sign-in; nothing is shared through the plugin. Borrowing someone else's project shows that project's Chat app name beside every message they send, and ties their access to someone else's console.
@@ -57,22 +58,24 @@ Have them run each `auth` themselves by typing it with a `!` in front (`! <tools
 
 - **gsheets**: `<tools>/gsheets-mcp/bin/gsheets-mcp auth --client <their client_secret json>`
 - **gchat**: after a Sheets sign-in, `<tools>/gchat-mcp/bin/gchat-mcp auth` reuses that client file. **Chat without Sheets: pass `--client <their client_secret json>`**, or it finds no client.
+- **gmail**: `<tools>/gmail-mcp/bin/gmail-mcp auth`, reusing the Sheets client file the same way (or `--client …`).
 
 Once signed in, the downloaded `client_secret_….json` has been copied into the tool's private folder, so suggest deleting it from Downloads.
 
-Then prove each sign-in reads real data, which you can run yourself: `<tools>/gsheets-mcp/bin/gsheets-mcp check --read` (Drive and the Sheets API answer) and `<tools>/gchat-mcp/bin/gchat-mcp check --read` (Chat answers and says how many spaces it saw; 0 is fine for a new account). A "has not been used in project" error here means an API from step 2 of the console steps is still off.
+Then prove each sign-in reads real data, which you can run yourself: `<tools>/gsheets-mcp/bin/gsheets-mcp check --read` (Drive and the Sheets API answer) and `<tools>/gchat-mcp/bin/gchat-mcp check --read` (Chat answers and says how many spaces it saw; 0 is fine for a new account), and `<tools>/gmail-mcp/bin/gmail-mcp check --read` (prints the signed-in address and a count of the last day's mail). A "has not been used in project" error here means an API from step 2 of the console steps is still off.
 
 **Personal Gmail and Sheets**: the Drive read scope the tool asks for is one Google treats as restricted. An unverified app used by its own owner should still sign in past the warning screen, but this path is not yet tried on a real Gmail account. If Google blocks the sign-in outright, tell them it is a known gap and capture the exact message.
 
 ## 6. Switch on
 
 - **gchat**: `<tools>/gchat-mcp/bin/enable` once. It registers for every folder (user scope).
+- **gmail**: `<tools>/gmail-mcp/bin/enable` once, also user scope.
 - **gsheets**: registers per folder (local scope), so first ask which folders they start Claude in. `<tools>/gsheets-mcp/bin/enable` from inside each one (from a git repo's subfolder it takes the repo root). A colleague who isn't a developer and wants Sheets everywhere: `claude mcp add gsheets --scope user -- <tools>/gsheets-mcp/bin/gsheets-mcp` instead, after `claude mcp get gsheets` shows no existing one (this skips `enable`'s own checks). Say which they got: with `enable`, Sheets only appears in sessions started in those folders.
 - **remote**: follow `<tools>/remote-cli/README.md` § Setup (bun install, a link in `~/.local/bin`, `~/.config/remote-cli/servers.json`), using the step 1 path wherever it writes `~/.claude/plugins/marketplaces/syafiqkit`. Build `servers.json` with them from their `~/.ssh/config` hosts where they have some: ask which hosts, and write `sshAlias` entries. A password goes in `secrets.json`, which **they** write; never ask for a password in chat, since the transcript keeps it. A password-only server also needs `sshpass` for uploads (`brew install sshpass` on a Mac with Homebrew). Prove it with `~/.local/bin/remote --list`, then `~/.local/bin/remote <id> "hostname"`: the full path, because your shell won't see a PATH change made now. If `command -v remote` is empty in their own terminal, add `export PATH="$HOME/.local/bin:$PATH"` to their shell profile (`~/.zshrc` on a Mac); plain `remote` then works in a new terminal.
 
 ## 7. Hand over
 
-A server registered during this session does not load its tools here. Tell them to start a new Claude session (or type `/mcp reconnect gchat` / `/mcp reconnect gsheets`, which only they can do), then ask something real: "list my Chat spaces", or "read the tabs of <a sheet link>". Their DMs should show the other person's name.
+A server registered during this session does not load its tools here. Tell them to start a new Claude session (or type `/mcp reconnect gchat` / `/mcp reconnect gsheets` / `/mcp reconnect gmail`, which only they can do), then ask something real: "list my Chat spaces", or "read the tabs of <a sheet link>". Their DMs should show the other person's name.
 
 Report what works in their words ("Claude can now read your Chat spaces"), what `check --read` already proved, and that one sentence to try next.
 
