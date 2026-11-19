@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.462.0
+
+**A hook now blocks shell rewrites of repo files, so "Edit tool only" no longer depends on an agent remembering it.** Run `/reload-plugins` (or start a new session) after `claude plugin update syafiqkit@syafiqkit`.
+- `hooks/block-scripted-writes.py`, a `PreToolUse` hook on `Bash` and `Write`, refuses with exit 2 and says to use the Edit tool:
+  - `sed -i`, `perl -i`, `tee`, and `>`/`>>` redirects into a git work tree, plus Python `open(..., 'w')`, `write_text` and `.write(` aimed at a repo path. Heredocs count by their redirect, not their body.
+  - A `Write` over a file git already tracks, but only from a subagent (the call carries `agent_id`); the main session keeps whole-file rewrites.
+  - Not affected: `/tmp`, `/dev`, gitignored paths, paths outside any repo, reads (`sed -n`, `grep`), running scripts, and formatters that write through their own process.
+  - Any parse or git error lets the call through.
+- Why: the rule was in every builder brief and, since 1.443.0, in `agent-setup`'s task-builder template, and builders still made about eight such writes on 19/11/2026. Claude Code's best-practices guide: "if Claude still misses it, that's a sign the line belongs in a hook"; its hooks reference confirms plugin hooks "also run inside subagents". Needs `python3` on PATH; without it the hook errors without blocking.
+
 ## 1.461.1
 
 **`agent-setup`'s task-builder checks its own slice against the findings reviewers raise most before reporting done.** Re-run `agent-setup` in a project to pick it up. Update with `claude plugin update syafiqkit@syafiqkit`.
