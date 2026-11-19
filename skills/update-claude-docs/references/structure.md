@@ -92,6 +92,7 @@ Ordered by urgency: commands and boundaries first (a cold-start needs them immed
 | **File path + symbol** | `Invoice.php scopeOverdue()`, never line numbers (they drift). |
 | **Emphasis** | `⚠️` + `IMPORTANT` only for facts whose miss-cost is HIGH, and only while rare. Imperative restating prior reasoning flattens signal; state the consequence instead. |
 | **Code block for structure** | Directory trees and exact commands go in ` ``` ` blocks, not tables or prose. |
+| **Tables under a padding formatter** | Where the repo's formatter (Prettier, oxfmt, `vp fmt`) pads markdown tables to the widest cell, one long cell inflates every row, so rules with long cells go in bullets (`**rule**: mechanism`) and tables keep only short lookup cells. |
 | **`@path/import`** | Loads a file at launch (path relative to the importer, not the cwd). Use only for genuinely-always-needed content; no token savings, just DRY. Imports nest to a maximum of **four hops**. Wrap a path in backticks to mention it without importing it. An import resolving outside the project prompts for approval once. |
 | **No war stories** | State the rule, never its history ("this bit us twice"). The constraint is the deliverable. |
 

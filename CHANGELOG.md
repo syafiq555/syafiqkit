@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.460.7
+
+**`refresh-instructions` measures a formatter-padded table before judging a file's density, and `update-claude-docs`'s house style keeps long-celled rules out of tables in repos whose formatter pads them.** A 44.5 KB CLAUDE.md carried 11 KB of padding in one table that `vp fmt` re-pads to its widest cell; turning it into bullets in Pass 1 took the file to 33.6 KB with nothing cut, and condense then needed only 2.5 KB. Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.460.6
 
 **`quick-done` and `done`'s exit-gate reference no longer let the Plugin row be omitted either; the 19/11 rules lose their dated incidents.** Update with `claude plugin update syafiqkit@syafiqkit`.
