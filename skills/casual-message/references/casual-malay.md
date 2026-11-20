@@ -27,8 +27,7 @@ The bubble, greeting, lowercase and proof defaults are the three bullets under L
 
 ## Particles and connectors {#particles}
 
-- `kot` softens a claim; `je`, `kan`, `pun`, `pulak` carry tone. `je` after a time word is spoken emphasis: "baru je check", not "baru check" (sender's send-time edit, 20/11/2026).
-- `dah` closing a sentence marks that something has changed for good: "bukan X lagi dah", "x payah dah". A bare "bukan X lagi" reads written; the sender added the `dah` at send time (20/11/2026).
+- `kot` softens a claim; `je`, `kan`, `pun`, `pulak` carry tone.- `dah` closing a sentence marks that something has changed for good: "bukan X lagi dah", "x payah dah". A bare "bukan X lagi" reads written; the sender added the `dah` at send time (20/11/2026).
 - `tu` / `ni` after a noun ("db ni", "detective tu").
 - `so` and `tapi` join clauses.
 - "X punya Y" for possessive ("prepayment punya db").
@@ -40,7 +39,7 @@ The bubble, greeting, lowercase and proof defaults are the three bullets under L
 - **Tech terms stay English and lowercase**: nouns (issue, standard rds, dashboard, region, cost) and the verbs that go with them (display, check, fix, deploy, update, test). "dah check", not "dah semak"; "x display", not "x dipaparkan".
 - **Whole English phrases are fine mid-sentence** where that is how it would be said ("tu yang x match tu", "nanti aku update balik").
 - **A word that stays Malay is the plainest spoken one, not the correct written one**: `sama`, not `padan`; `tengok`, not `lihat`; `buat`, not `lakukan`; `boleh`, not `dapat`. Prefixed formal verbs (`dipadankan`, `dipaparkan`, `memastikan`) are the giveaway.
-- **Everyday adverbs and connectors switch too, not only tech words**: "still kosong", not "masih kosong lagi"; "service completed and testimony", not "dan testimony" (20/11/2026: the sender's edits before sending; `and` sits easiest between English nouns). A Malay phrase where every word is plain can still be the written form when a speaker would drop in the English word.
+- **Everyday adverbs switch too, not only tech words**: "still kosong", not "masih kosong lagi" (20/11/2026: the sender's edit before sending; `dan` between items stayed Malay). A Malay phrase where every word is plain can still be the written form when a speaker would drop in the English word.
 
 Measured 18/11/2026 (issue #35): a reply needed four rounds of swaps (`papar` → `display`, `dipadankan` → `check`, `padan` → `sama`) before it read like the sender, whose rule was "Malay can just use English, mixed is fine". A numbered offer list or time estimate is not texted to a peer either; SKILL.md's Language section keeps those for decision-maker and estimate replies.
 

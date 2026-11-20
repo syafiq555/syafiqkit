@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.39
+
+**Retracts 1.463.38's connector rule and 1.463.37's `je` example; a draft opens on the finding, not on the checking.** The text 1.463.38 was built from was a paste, not what went out: the sent WhatsApp kept "dan testimony", so "and, not dan" had no evidence and is removed. The recipients then replied that the opener "baru je check dkt prod" looked cliché and that every reply read automated; 1.463.37 had made that phrase the example to copy, so it is removed too. `casual-message`'s opener rule now names a checking-narration opener ("baru check kat prod") as the same slip as a line about the message, keeping "dah check" for an answer to a direct ask.
+
 ## 1.463.38
 
 **Connectors switch to English like adverbs do.** The same follow-up's sent version also changed "dan testimony" to "and testimony". The casual Malay reference's adverb rule now names connectors with it.
