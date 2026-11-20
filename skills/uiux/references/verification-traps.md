@@ -16,6 +16,14 @@ A full-page screenshot stitches the whole document into one image, but a `positi
 
 Judge any fixed or sticky element from viewport-sized shots at the scroll positions a user actually sees (top and bottom at minimum), plus a measured overlap check: `getBoundingClientRect()` of the fixed element against the content it might cover, after scrolling to the end. Never call a composite defect "just a capture artefact" without that check, because the dismissal and the real defect produce the same picture. Measured 2026-10-12: a sticky order bar was waved off as a full-page artefact, the user flagged it, and only a viewport capture at both scroll ends settled it.
 
+## Phone browser chrome: Playwright draws no Safari toolbar
+
+A bottom bar, a safe-area padding or a `100dvh` sheet can pass every Playwright phone viewport and still sit wrong on an iPhone, because Playwright's WebKit renders no Safari toolbar and no home indicator. Two facts decide it:
+- `env(safe-area-inset-*)` is 0 on iOS unless the viewport meta includes `viewport-fit=cover`. Padding written with it does nothing on the default `width=device-width, initial-scale=1`, and the CSS still reads correct.
+- iOS 26 Safari's toolbar floats; while it is expanded the page stops above it, so a fixed bottom bar looks fine. The risky state is after a scroll collapses the toolbar, when the page reaches the home-indicator strip. Adding `viewport-fit=cover` makes the page edge to edge, so landscape then needs left/right insets on the notch side.
+
+On a Mac with Xcode, `scripts/ios-safari-capture.sh open <url>` boots an iPhone simulator and opens the page in real Safari (Herd's `http://*.test` sites resolve inside it); `scripts/ios-safari-capture.sh shot <file.png>` captures it. Scroll, tap and rotate by hand in the Simulator window between shots: synthetic mouse drags reach the window but Safari does not scroll from them (20/11/2026). The simulator is one per machine and shared with every session, so check `ListAgents` for a peer driving it before typing into it (20/11/2026: a peer's tap and login typing landed on another session's page). Capture each fixed element with the toolbar expanded and collapsed.
+
 ## E2E vs screenshot
 
 Screenshots verify static state: spacing, alignment, readability, contrast. Where a browser-driving agent exists, verify flows with it — test that a click does what's intended.

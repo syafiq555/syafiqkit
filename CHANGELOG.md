@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.463.14
+
+**`uiux` checks phone bottom bars in real iOS Safari, which Playwright cannot draw.** A storefront's sticky Add bar was padded with `env(safe-area-inset-bottom)`, and the padding did nothing because the viewport meta had no `viewport-fit=cover`. Playwright's WebKit shows no Safari toolbar, so no capture could catch it.
+- `uiux` § Verify by Looking: a bottom bar, safe-area padding or `100dvh` sheet on a phone also gets a real iOS Safari check.
+- `uiux` `references/verification-traps.md` § Phone browser chrome: the `viewport-fit=cover` rule, iOS 26 Safari's collapsing toolbar, and that the simulator is shared by every session on the Mac.
+- New `uiux/scripts/ios-safari-capture.sh` (`open <url>` boots an iPhone simulator and opens Safari; `shot <file.png>` captures it). Scrolling stays a manual step, because Safari ignored synthetic mouse drags when tested.
+
 ## 1.463.13
 
 **`/done` checks git before anyone is told it already ran, and a release note about a changed screen carries its screenshots wherever it is sent from.** A peer session relayed a request to run `/done` with "reply done already" as an option; the reply said done, though a follow-up commit had landed after the last wrap-up, and the user's own `/done` then found four defects in it. Separately, a screen-change release note drafted outside `/ship` went to Chat text-only, and the user asked "no image ya ?".
