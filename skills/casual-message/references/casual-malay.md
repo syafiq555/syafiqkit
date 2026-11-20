@@ -40,7 +40,7 @@ The bubble, greeting, lowercase and proof defaults are the three bullets under L
 - **Tech terms stay English and lowercase**: nouns (issue, standard rds, dashboard, region, cost) and the verbs that go with them (display, check, fix, deploy, update, test). "dah check", not "dah semak"; "x display", not "x dipaparkan".
 - **Whole English phrases are fine mid-sentence** where that is how it would be said ("tu yang x match tu", "nanti aku update balik").
 - **A word that stays Malay is the plainest spoken one, not the correct written one**: `sama`, not `padan`; `tengok`, not `lihat`; `buat`, not `lakukan`; `boleh`, not `dapat`. Prefixed formal verbs (`dipadankan`, `dipaparkan`, `memastikan`) are the giveaway.
-- **Everyday adverbs switch too, not only tech words**: "still kosong", not "masih kosong lagi" (20/11/2026: the sender's edit before sending). A Malay phrase where every word is plain can still be the written form when a speaker would drop in the English word.
+- **Everyday adverbs and connectors switch too, not only tech words**: "still kosong", not "masih kosong lagi"; "service completed and testimony", not "dan testimony" (20/11/2026: the sender's edits before sending; `and` sits easiest between English nouns). A Malay phrase where every word is plain can still be the written form when a speaker would drop in the English word.
 
 Measured 18/11/2026 (issue #35): a reply needed four rounds of swaps (`papar` → `display`, `dipadankan` → `check`, `padan` → `sama`) before it read like the sender, whose rule was "Malay can just use English, mixed is fine". A numbered offer list or time estimate is not texted to a peer either; SKILL.md's Language section keeps those for decision-maker and estimate replies.
 

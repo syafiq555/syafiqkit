@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.38
+
+**Connectors switch to English like adverbs do.** The same follow-up's sent version also changed "dan testimony" to "and testimony". The casual Malay reference's adverb rule now names connectors with it.
+
 ## 1.463.37
 
 **Casual Malay drafts switch everyday adverbs to English and keep spoken `je`.** A second WhatsApp follow-up was edited before sending: "masih kosong lagi" became "still kosong" and "baru check" became "baru je check". The reference's plain-word rule listed only verbs and formal prefixes, so a phrase of plain Malay words passed it while still reading written. It now names everyday adverbs as switching too, and `je` after a time word.
