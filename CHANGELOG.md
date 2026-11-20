@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.28
+
+**`user-manual` builds an in-app edition: the manual served inside the product as a Help centre.** A session moved GB Mart's staff and seller guides from Word and PDF into the app; the procedure is now a reference any app can follow, extending `user-manual` rather than a new skill, since the in-app copy is one more edition of the same Markdown. It covers choosing in-app over a static docs site (Astro Starlight is public by default, and serving it privately needs on-demand rendering, which switches off its Pagefind search: starlight.astro.build/reference/configuration, docs.astro.build/en/guides/on-demand-rendering), moving the guides into what the deploy can read and out of the formatter's reach, sanitised per-role books with an image route that serves only that book's files, a cache key carrying a parser version, server search that folds hyphens and ranks the reader's own book first, a route-to-anchor map for "Help for this screen", one `h1` per page, a contents column only from the large breakpoint beside an app sidebar, and the tests that keep anchors and links honest. Triggers: "put the guide in the system", "a help centre in the app", "help for this screen".
+
 ## 1.463.27
 
 **`ship` skips `gchat-format` only for a plain-text release format.** Step 5 let a project's written release-post format replace the `gchat-format` call whatever that format said, so a GB Mart rule asking for "short bold sections" was drafted plain to match the space's last posts, sent, and then reformatted when the user asked for `/gchat-format` (20/11/2026). The skip now covers only a format with no bold or lists; one that names them still gets the call for the syntax, with the project's words setting the shape, and those words outrank the space's latest posts, as `gchat-format` already says.

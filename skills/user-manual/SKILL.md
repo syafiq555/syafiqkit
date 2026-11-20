@@ -1,7 +1,7 @@
 ---
 name: user-manual
 description: >
-  Write or extend an END-USER manual — a guide for the people who use the product, not the people who build it. Fires on "write a user manual", "buat guide", "we need a guide for the dealers/customers/staff", "document how to use X", "make a manual for the new module", and on requests for a shareable Word or PDF edition of one. Also fires when someone reports an existing guide is wrong in shape: "this reads like a reference not a manual", "there are no steps", "it's just a QnA", "where are the screenshots". Covers scoping against what users actually do, capturing screenshots from the E2E suite rather than by hand, and building .docx/.pdf editions. NOT for internal engineering docs (that is task-summary), NOT for CLAUDE.md instruction files (update-claude-docs), and NOT for plain format conversion of a document whose content is already settled (md-to-pdf), and NOT for a designed marketing composite of the screens (product-still).
+  Write or extend an END-USER manual — a guide for the people who use the product, not the people who build it. Fires on "write a user manual", "buat guide", "we need a guide for the dealers/customers/staff", "document how to use X", "make a manual for the new module", "put the guide in the system", "a help centre in the app", "help for this screen", "drop the PDF, show it in the app", and on requests for a shareable Word or PDF edition of one. Also fires when someone reports an existing guide is wrong in shape: "this reads like a reference not a manual", "there are no steps", "it's just a QnA", "where are the screenshots". Covers scoping against what users actually do, capturing screenshots from the E2E suite rather than by hand, and building .docx/.pdf editions. NOT for internal engineering docs (that is task-summary), NOT for CLAUDE.md instruction files (update-claude-docs), and NOT for plain format conversion of a document whose content is already settled (md-to-pdf), and NOT for a designed marketing composite of the screens (product-still).
 ---
 
 # User Manual
@@ -43,6 +43,10 @@ Two things decide whether the images are worth having:
 **Fixtures are often empty, and an empty screen teaches nothing.** A list rendering "no records found" shows layout and no content. Look for an account with real data, and prefer the state that shows the interesting case (a blocked order, a populated cart, an error banner) over the happy path.
 
 ⚠️ **Open every screenshot before writing prose around it.** A spec that passes proves the page returned 200, not that the image communicates: it can be mid-load, mid-animation, or of a screen that isn't what its route name suggested. Reading them also corrects your own model of the product: a screen labelled "purchase orders" may turn out to be a different journey than the one you assumed, and describing them as one thing sends readers to the wrong menu.
+
+## In-app edition
+
+When the readers are the app's own logged-in users, the manual can live inside the product instead of (or beside) a document: a Help centre built from the same Markdown, one page per heading, each role reading its own book, and a "Help for this screen" link on the screens it covers. Choose it over a static docs site when the guide is private and books differ by role; a public guide is the docs site's case. 📖 `references/in-app-edition.md` before building one: the route choice and its research, moving the guides into what the deploy can read, the server (sanitising, per-role books, cache key, search), the screens, and the tests.
 
 ## Word and PDF editions
 

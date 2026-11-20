@@ -81,7 +81,7 @@ These skills accept explicit user command:
 | `understanding-guide` | Large text the user must understand → offline question-and-answer page, every claim checked. Decisions wait until the reader understands |
 | `explainer-deck` | Deck explaining a system to a live audience, each mechanism beside a worked example. A page read alone is `understanding-guide` |
 | `reverse-engineer` | Rebuild a web app's mechanism the client uses, read through REA, into a task doc a sonnet reviewer verifies |
-| `user-manual` | End-user manual from user tasks, Diátaxis shape. Distinct from `md-to-pdf` |
+| `user-manual` | End-user manual from user tasks, Diátaxis shape; Word/PDF or an in-app Help centre edition. Distinct from `md-to-pdf` |
 | `uat-script` | Client UAT script rendered to a workbook, each check quoting the screen it proves. Trackers are `setup-tracker`, watching testers is `watch-sheets` |
 | `design-handoff` | Brief for someone ELSE to design a screen, layout decisions withheld. Designing it yourself is `uiux` |
 | `taste` | Build, redesign or polish a public-facing page, any verb, with a browser-inspected look-and-fix loop. Needs Node 22+ and Chrome |
