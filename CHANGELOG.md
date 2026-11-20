@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.463.15
+
+**`uiux` can drive iOS Safari in the simulator itself, so the collapsed-toolbar shot no longer waits on a person.** 1.463.14 said Safari ignores synthetic drags; an Autorentic session the same day showed otherwise once Simulator was in front.
+- `uiux` `references/verification-traps.md` § Phone browser chrome: clicks tap, System Events types, scroll-wheel events scroll without collapsing the toolbar, a drag collapses it (and a drag right after a tap zooms). `https://*.test` needs Herd's root certificate added with `simctl keychain`. Safari's zoom when a field under 16px takes focus is named as a defect to report, not a capture artefact.
+- `uiux/scripts/ios-safari-capture.sh`: header no longer says scrolling must be manual.
+
 ## 1.463.14
 
 **`uiux` checks phone bottom bars in real iOS Safari, which Playwright cannot draw.** A storefront's sticky Add bar was padded with `env(safe-area-inset-bottom)`, and the padding did nothing because the viewport meta had no `viewport-fit=cover`. Playwright's WebKit shows no Safari toolbar, so no capture could catch it.

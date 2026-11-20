@@ -2,8 +2,8 @@
 # iOS Safari in the Xcode Simulator: the only local way to see Safari's toolbar (Playwright's WebKit draws none).
 #   ios-safari-capture.sh open <url> [device-udid]   boot an iPhone simulator if needed, open <url> in Safari
 #   ios-safari-capture.sh shot <file.png>             screenshot the booted simulator at device resolution
-# Scroll, tap and rotate by hand in the Simulator window between shots: synthetic mouse drags reach the window
-# but Safari does not scroll from them (tested 20/11/2026).
+# Between shots, drive the Simulator window by hand or with CGEvents (terminal needs macOS Accessibility, Simulator
+# in front): scroll-wheel events scroll the page, a drag collapses Safari's toolbar. See references/verification-traps.md.
 set -euo pipefail
 command -v xcrun >/dev/null || { echo "xcrun not found: install Xcode" >&2; exit 1; }
 LAST="${TMPDIR:-/tmp}/ios-safari-capture.udid"
