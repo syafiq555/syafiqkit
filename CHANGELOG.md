@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.34
+
+**A doc set's "live" and "on staging" claims are checked against the deploy branch, not the task doc.** `setup-project-docs` told an update run to reconcile every status line against the owning task doc, and `task-summary`'s derived-view step copies a task doc's new status into `PRD.md`/`ARCHITECTURE.md`. On 20/11/2026 both directions failed together: two feature docs said "not on prod" and "nobody holds the roles" while the code was on prod and eight users held the roles, and a PRD edited on the staging branch described staging-only cash sales as built. Git ancestry against the deploy branch settled each claim, and a production count settled "in use" (master outlets: shipped, zero zones). Both skills now say so, and `setup-project-docs` adds that a roadmap row calling something ready names who judged it: a product reviewer caught our own critic score presented as pilot readiness.
+
 ## 1.463.33
 
 **The Done and Ship buttons say what to do when the skill answers "already loaded".** A second `/done` in a long session got "Skill /syafiqkit:done is already loaded above; instructions unchanged", which attaches nothing, while the body sat about 100k tokens up; twice on 20/11/2026 the wrap-up was then written from memory, with the Knowledge, Task docs and Plugin rows filled by direct edits and no `update-claude-docs`, `task-summary` or `update-plugin` call, until the user asked "why the done just now didnt run ?". The same "already loaded" answer hid a repeat `haiku` skill on 2026-10-07. `done`'s own contract cannot catch it, since its text is what failed to re-attach, so the instruction now rides on the prompt the button sends: the Done and Ship texts add "If the Skill tool answers that it is already loaded, open the skill's SKILL.md with Read and run every step from it, not from memory."
