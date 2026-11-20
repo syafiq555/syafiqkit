@@ -1,56 +1,100 @@
 #!/usr/bin/env python3
 """Secret-survival checker for refreshing files that hold credentials.
 
-  seccheck.py save  <file> <cands.json>   record every secret-shaped token, write <cands.json>.masked.md
-  seccheck.py mask  <file> <out.md>       write a masked copy to read instead of <file>
-  seccheck.py check <cands.json> <file>...  report how many recorded tokens are missing from the files
+  seccheck.py save  <file> <cands.json>
+      record every secret-shaped token and write <cands.json>.masked.md
+  seccheck.py mask  <file> <out.md>
+      write a masked copy to read instead of <file>
+  seccheck.py check <cands.json> <file>... [--tracked <file>...]
+      every recorded token must still appear in the files before --tracked,
+      and none may appear in a --tracked file (one git would publish)
 
-Never prints a token. A missing token is shown by its line number and the words before it;
-one of 12+ characters also shows its first three characters and its length.
-Over-matching is intended: a mask only hides words from the reader.
+Never prints a token or its neighbours: a finding is reported by line number
+and the masked text of that line. <cands.json> holds the original lines in
+plain text, so keep it in a private folder and delete it with the snapshots.
+Over-masking is intended: a mask only hides words from the reader.
 """
 import json
 import re
 import sys
 
-MIXED = re.compile(
-    r"(?<![\w/.-])(?=[\w!@#$%^&*+=/.-]*[A-Za-z])(?=[\w!@#$%^&*+=/.-]*\d)[\w!@#$%^&*+=/.-]{8,}"
-)
+KEYWORD = r"\w*(?:pass|secret|token|key|pin)\w*"
+WORDISH = re.compile(r"[\w!@#$%^&*+=/.-]{8,}")
 AFTER_KEYWORD = re.compile(
-    r"(?i)(password|passwd|pw|key|secret|token)\b[^\n`|]{0,12}?[`:=|]\s*`?([^\s`|]{4,})"
+    rf"(?i)\b{KEYWORD}\b[^\n`|]{{0,12}}?(?:[`:=|]|\s+is\s+)\s*`?([^`|\n,;)]{{4,}})"
 )
-TABLE_CELL = re.compile(r"\|\s*`([^`|]{4,})`\s*(?=\|)")
+BACKTICK_CELL = re.compile(r"\|\s*`([^`|]{4,})`\s*(?=\|)")
+ANY_CELL = re.compile(r"(?<=\|)([^|\n]+)(?=\|)")
+SEPARATOR_ROW = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
+
+
+def mixed_tokens(line):
+    for match in WORDISH.finditer(line):
+        token = match.group(0).strip(".")
+        if len(token) >= 8 and re.search(r"[A-Za-z]", token) and re.search(r"\d", token):
+            yield token
+
+
+def secret_tables(lines):
+    """Line numbers of table rows whose table header names a credential."""
+    rows, header_hit = set(), False
+    for number, line in enumerate(lines, 1):
+        if not line.lstrip().startswith("|"):
+            header_hit = False
+            continue
+        if number == 1 or not lines[number - 2].lstrip().startswith("|"):
+            header_hit = bool(re.search(KEYWORD, line, re.I))
+            continue
+        if header_hit and not SEPARATOR_ROW.match(line):
+            rows.add(number)
+    return rows
 
 
 def candidates(text):
+    lines = text.splitlines()
+    table_rows = secret_tables(lines)
     found = []
-    for number, line in enumerate(text.splitlines(), 1):
-        for match in MIXED.finditer(line):
-            found.append((number, match.group(0)))
-        for match in AFTER_KEYWORD.finditer(line):
-            found.append((number, match.group(2)))
+    for number, line in enumerate(lines, 1):
+        found += [(number, token) for token in mixed_tokens(line)]
+        found += [(number, m.group(1).strip()) for m in AFTER_KEYWORD.finditer(line)]
         if line.lstrip().startswith("|"):
-            for match in TABLE_CELL.finditer(line):
-                found.append((number, match.group(1)))
-    return list(dict.fromkeys(found))
+            found += [(number, m.group(1)) for m in BACKTICK_CELL.finditer(line)]
+        if number in table_rows:
+            for m in ANY_CELL.finditer(line):
+                cell = m.group(1).strip().strip("`")
+                if len(cell) >= 4:
+                    found.append((number, cell))
+    return [pair for pair in dict.fromkeys(found) if len(pair[1].strip()) >= 4]
+
+
+def mask_line(line, number, table_rows):
+    line = AFTER_KEYWORD.sub(lambda m: m.group(0).replace(m.group(1), "[MASK]"), line)
+    if number in table_rows:
+        line = ANY_CELL.sub(" [MASK] ", line)
+    elif line.lstrip().startswith("|"):
+        line = BACKTICK_CELL.sub("| `[MASK]` ", line)
+    for token in sorted(set(mixed_tokens(line)), key=len, reverse=True):
+        line = line.replace(token, "[MASK]")
+    return line
 
 
 def mask(text):
-    text = AFTER_KEYWORD.sub(lambda m: m.group(0).replace(m.group(2), "[MASK]"), text)
-    text = "\n".join(
-        TABLE_CELL.sub("| `[MASK]` ", line) if line.lstrip().startswith("|") else line
-        for line in text.split("\n")
-    )
-    return MIXED.sub("[MASK]", text)
+    lines = text.split("\n")
+    table_rows = secret_tables(lines)
+    return "\n".join(mask_line(line, n, table_rows) for n, line in enumerate(lines, 1))
+
+
+def present(token, text):
+    return re.search(rf"(?<![\w-]){re.escape(token)}(?![\w-])", text) is not None
 
 
 def read(path):
-    with open(path, encoding="utf-8") as handle:
+    with open(path, encoding="utf-8", errors="replace") as handle:
         return handle.read()
 
 
 def main(argv):
-    if len(argv) < 3:
+    if len(argv) < 4:
         sys.exit(__doc__)
     mode = argv[1]
     if mode == "save":
@@ -67,14 +111,22 @@ def main(argv):
             handle.write(mask(read(argv[2])))
     elif mode == "check":
         saved = json.load(open(argv[2], encoding="utf-8"))
-        now = "".join(read(path) for path in argv[3:])
-        missing = [(n, v) for n, v in saved["tokens"] if v not in now]
-        print(f"missing {len(missing)} of {len(saved['tokens'])}")
+        rest = argv[3:]
+        split = rest.index("--tracked") if "--tracked" in rest else len(rest)
+        holders, tracked = rest[:split], rest[split + 1:]
+        kept = "\n".join(read(path) for path in holders)
+        public = {path: read(path) for path in tracked}
+        lines = saved["lines"]
+        table_rows = secret_tables(lines)
+        missing = [(n, v) for n, v in saved["tokens"] if not present(v, kept)]
+        leaked = [(n, v, p) for n, v in saved["tokens"] for p, t in public.items() if present(v, t)]
+        print(f"missing {len(missing)} of {len(saved['tokens'])}; in tracked files {len(leaked)}")
         for number, value in missing:
-            line = saved["lines"][number - 1]
-            before = line[max(0, line.find(value) - 50):line.find(value)]
             shown = f"{value[:3]}… len {len(value)}" if len(value) >= 12 else "short token"
-            print(f"  line {number}: after {before!r} <{shown}>")
+            print(f"  missing, line {number} <{shown}>: {mask_line(lines[number - 1], number, table_rows)[:160]}")
+        for number, _value, path in leaked:
+            print(f"  LEAKED into {path}, from line {number}: {mask_line(lines[number - 1], number, table_rows)[:160]}")
+        sys.exit(1 if leaked else 0)
     else:
         sys.exit(__doc__)
 

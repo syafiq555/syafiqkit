@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.463.22
+
+**`seccheck.py` no longer prints a neighbouring secret, and catches one moved into a tracked file.** From `/done`'s review of 1.463.20.
+- `check` reports a finding by line number and the masked line, never the raw words before a token (a login row's previous cell printed a password in the review's test).
+- `check <cands> <files>... --tracked <files>...`: a recorded token found in a tracked file fails the run (exit 1); a token counts as present only on a word boundary, so a short value no longer passes by appearing inside another word.
+- The mask also covers keyword variants (`passwords`, `passphrase`, `pin`), "password is …", space-separated passphrases, and every cell of a table whose header names a credential.
+- The token pattern is linear: a 20,000-character run took 2.2 s before, 0.06 s now.
+
 ## 1.463.21
 
 **The skills that read and write CLAUDE.md files now know rules live in folder files on purpose.** The user asked to check the most-used skills, `read-summary` first, after 1.463.17 to 1.463.20 let refreshes move rules into folder-scoped `CLAUDE.md` files; the roles table for that change had named no reader.
