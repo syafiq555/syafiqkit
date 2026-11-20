@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.36
+
+**Casual Malay drafts close a "no longer" sentence with `dah`.** A WhatsApp release note drafted by `casual-message` ended "bukan "Quotation Sent" lagi"; the sender changed it to "lagi dah" before sending, the only edit to a three-bubble draft. The casual Malay reference's particles list now names sentence-final `dah` for a change of state.
+
 ## 1.463.35
 
 **A video handed in as evidence is listened to, not only watched.** `read-summary`'s investigation rule covered screenshots only. On 20/11/2026 two phone videos of a bug arrived as arguments; frames were extracted and diagnosis began, and the user had to point out the reporter was talking before the audio was transcribed, which held the actual report. A `whisper` binary was then searched for and not found, and a fresh one installed, although `motion-clip`'s setup already provides `mlx_whisper`. The rule now says a video's soundtrack is evidence, to transcribe it before diagnosing, and to reuse an installed speech-to-text model first, with a Tell.

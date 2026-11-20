@@ -28,6 +28,7 @@ The bubble, greeting, lowercase and proof defaults are the three bullets under L
 ## Particles and connectors {#particles}
 
 - `kot` softens a claim; `je`, `kan`, `pun`, `pulak` carry tone.
+- `dah` closing a sentence marks that something has changed for good: "bukan X lagi dah", "x payah dah". A bare "bukan X lagi" reads written; the sender added the `dah` at send time (20/11/2026).
 - `tu` / `ni` after a noun ("db ni", "detective tu").
 - `so` and `tapi` join clauses.
 - "X punya Y" for possessive ("prepayment punya db").
