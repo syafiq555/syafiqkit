@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.463.20
+
+**`refresh-instructions` ships the secret-survival checker it used to only describe.** A refresh of a project's credential companions wrote this checker by hand in `/tmp`; `/done`'s Gate C asked whether to ship it, and the user said yes.
+- New `refresh-instructions/scripts/seccheck.py`: `save` records every secret-shaped token (mixed letters and digits, a value after password/key/secret/token, every backticked table cell) and writes a masked copy; `mask` writes a masked copy to read; `check` reports how many recorded tokens are missing across the file and its destinations, never printing a token (context only under 12 characters). Tested on a fake file: table passwords, an all-digit PIN and an API key were masked and each removal was caught.
+- `references/process-details.md` § A target that holds credentials points at it, and notes that its saved `.json` holds raw secrets.
+
 ## 1.463.19
 
 **A refresh's reorganization step now checks that a moved rule stays reachable, and credential masking covers what slipped through.** From `/done`'s review of 1.463.17 and 1.463.18.
