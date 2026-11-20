@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.463.16
+
+**`uiux`'s iOS Safari script now drives the simulator itself, so a session can take the collapsed-toolbar shot without anyone scrolling by hand.** Built in an Autorentic session as a one-off helper, then lifted here so GB Mart and other projects reuse it.
+- `uiux/scripts/ios-safari-capture.sh`: new `collapse` (drag up to collapse Safari's toolbar), `scroll <px>`, `tap <x> <y>`, `type <text>` and `window` commands, through a small CGEvent driver compiled on first use into the user cache. `open` trusts Herd's local certificate for `https://*.test` addresses.
+- `uiux` `references/verification-traps.md` § Phone browser chrome: names the commands in place of the hand-driven steps.
+
 ## 1.463.15
 
 **`uiux` can drive iOS Safari in the simulator itself, so the collapsed-toolbar shot no longer waits on a person.** 1.463.14 said Safari ignores synthetic drags; an Autorentic session the same day showed otherwise once Simulator was in front.
