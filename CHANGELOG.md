@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.31
+
+**`ship`'s promotion recipe runs under zsh.** Its push line `"$tip:refs/heads/<deploy-branch>"` fails in zsh, macOS's default shell, which reads `$tip:r` as a modifier and pushes a mangled refspec ("src refspec … does not match any"; 20/11/2026, a GB Mart staging promotion). The line now braces the variable, `"${tip}:refs/heads/<deploy-branch>"`. `sync-push.sh` runs under bash and was never affected.
+
 ## 1.463.30
 
 **`motion-clip` delivers a long film, keeps its voice speed, and frames a web-app walkthrough as product stills.** A client walkthrough of a web app watched on phones now starts as full-frame `product-still` frames (claim, tight desktop crop, the real phone screen on customer beats, phone-first in 9:16) with a voice-over and subtitles, captured at 1440x900 and 390 wide: a browser-frame version scoring 16/20 was replaced by this at the user's ask. The voice step says lines are cached by `VOICE_SPEED` as well as text and voice, since one run without the speed silently re-recorded every line at 1. Delivery makes a share copy of each film under 30 MB (`-crf 26`), because the file-send tool refuses anything over 30 MiB and a 105 s 1080p film came to 41 to 44 MB. The camera reference shows a story giving the vertical cut its own keyframes by reading the window's shape. `score-loop`'s plateau question adds a research pass with the project's design critique as a fourth option, which found the next fixes when fresh judges sat at 14 to 15/20 for four rounds.

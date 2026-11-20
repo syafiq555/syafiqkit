@@ -17,7 +17,7 @@ for c in <your SHAs, oldest first>; do
   tip=$(git log -1 --format=%B "$c" | git commit-tree "$tree" -p "$tip")
 done
 git diff --name-only origin/<deploy-branch> "$tip"   # only your files
-git push origin "$tip:refs/heads/<deploy-branch>"
+git push origin "${tip}:refs/heads/<deploy-branch>"   # braces: zsh reads $tip:r as a modifier
 "$SHIP_SKILL_DIR"/../commit/scripts/sync-push.sh --no-push   # ship's base directory; only when <deploy-branch> is checked out here
 ```
 
