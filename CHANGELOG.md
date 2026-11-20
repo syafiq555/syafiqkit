@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.40
+
+**The casual Malay reference now covers three registers, and says its shorthand table is one person's.** Research run 20/11/2026 (two haiku passes, the second in Malay-language sources after the English pass came back thin, every link checked) added a casual / semi-casual / formal table: greeting, pronouns, shorthand, particles, English mixing, requests, close, emoji and timing for each, from Dewan Bahasa's messaging etiquette, JobStreet's Malay WhatsApp and letter guides, a client follow-up guide and a Malay grammar site, plus the wrong-register traps ("okiess" to a boss, "Noted" alone with a client, `serta`/`sila`/`untuk makluman` in a chat). A style read of one user's own messages showed he never writes `sbb`, `mmg`, `dgn` or `kot`, the table's defaults, so the reference now says to take shorthand from the sender's messages first; a UKM study backs that the same word is shortened differently by different writers. Also restores a line break lost in 1.463.39.
+
 ## 1.463.39
 
 **Retracts 1.463.38's connector rule and 1.463.37's `je` example; a draft opens on the finding, not on the checking.** The text 1.463.38 was built from was a paste, not what went out: the sent WhatsApp kept "dan testimony", so "and, not dan" had no evidence and is removed. The recipients then replied that the opener "baru je check dkt prod" looked cliché and that every reply read automated; 1.463.37 had made that phrase the example to copy, so it is removed too. `casual-message`'s opener rule now names a checking-narration opener ("baru check kat prod") as the same slip as a line about the message, keeping "dah check" for an answer to a direct ask.
