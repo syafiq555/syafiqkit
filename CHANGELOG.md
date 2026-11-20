@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.32
+
+**`product-still` generates a two-shape series from one config.** `scripts/series.mjs` renders each beat as a widescreen still (claim, desktop crop, real phone screen, optional lift card) and a phone-first vertical still, plus closing pages with a numbered list and labelled pictures such as a tracker export and a deck slide, all from one `series.json` (`templates/examples/series.example.json`). Lifted from the GB Mart progress clip, where sixteen stills in two shapes were rebuilt a dozen times through crop changes: a hand-edited HTML per image would have been thirty-two files to keep in step. The fixed slots keep the text column at the film's subtitle edge and the bottom of each frame clear.
+
 ## 1.463.31
 
 **`ship`'s promotion recipe runs under zsh.** Its push line `"$tip:refs/heads/<deploy-branch>"` fails in zsh, macOS's default shell, which reads `$tip:r` as a modifier and pushes a mangled refspec ("src refspec … does not match any"; 20/11/2026, a GB Mart staging promotion). The line now braces the variable, `"${tip}:refs/heads/<deploy-branch>"`. `sync-push.sh` runs under bash and was never affected.

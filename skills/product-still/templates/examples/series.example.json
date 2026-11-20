@@ -1,0 +1,30 @@
+{
+  "out": "out",
+  "look": { "background": "#F5F2EB", "accent": "#015D2D", "ink": "#1B1B1B", "inkDeep": "#0F2A1A", "font": "Figtree, system-ui, sans-serif" },
+  "fontFile": "assets/figtree.woff2",
+  "label": "Work in progress · test data",
+  "muted": "#5A5A55",
+  "chipBg": "#DDEBDF",
+  "glow": "#DDEBDF",
+  "phoneSize": [1170, 2532],
+  "beats": [
+    { "name": "01_product", "chip": "1 · Shopping", "title": "Add to cart\nor buy now",
+      "desktop": { "src": "shots/desktop/01_product.png", "crop": [1680, 370, 1010, 1020] },
+      "phone": "shots/phone/01_product.png" },
+    { "name": "02_tracking", "chip": "2 · Delivery", "title": "Parcels tracked\nseller by seller",
+      "phone": "shots/phone/02_tracking.png", "phoneLift": [40, 1000, 1090, 360] },
+    { "name": "03_payouts", "chip": "3 · Payouts", "title": "Seller money,\npending to paid",
+      "desktop": { "src": "shots/desktop/03_payouts.png", "crop": [560, 150, 1700, 940] },
+      "lift": { "crop": [2230, 160, 560, 270] },
+      "phone": "shots/phone/03_payouts.png" }
+  ],
+  "pages": [
+    { "name": "90_ask", "title": "Next, from\nthe client", "list": ["Payment gateway", "API access", "Rate card"],
+      "images": [{ "src": "shots/tracker.png", "crop": [60, 200, 2430, 1150], "label": "Decision tracker" }] },
+    { "name": "91_where", "title": "Answers go in\nthe decision tracker", "body": "Each point is explained, with examples, in the walkthrough deck.",
+      "images": [
+        { "src": "shots/tracker.png", "crop": [60, 200, 2430, 1150], "label": "Decision tracker" },
+        { "src": "shots/deck-slide.png", "crop": [0, 0, 1600, 900], "label": "Walkthrough deck" }
+      ] }
+  ]
+}

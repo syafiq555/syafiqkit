@@ -29,6 +29,8 @@ A product still is a program, the same way a `motion-clip` film is: one HTML pag
 
 For a series (six step images on one page), plan them together first: list each image's claim and the screen that shows it, and put the shared look (colours, font, glows, badge) in one `series.js` (`window.SERIES = { ... }`) that each image loads with a script tag above its `STILL` block. Delete those keys from each `STILL`, since keys left there override the series. A change to the look is then one edit.
 
+**A series that has to come out in two shapes** (the frames of a `motion-clip` film in 16:9 and 9:16, or a step set for desktop and phone pages) is generated, not hand-composed: `scripts/series.mjs <series.json>` renders every beat as a widescreen still (claim on the left, a desktop crop, the real phone screen, an optional `lift` card) and a phone-first vertical one, plus closing pages (a numbered `list`, up to two labelled `images` such as a tracker export and a deck slide). One config holds the look, the label line and each beat's crops; `templates/examples/series.example.json` shows every key, and naming beats on the command line re-renders only those. Its fixed slots keep the left text column at x 172 and the bottom of each frame clear, so a film's subtitles never cover a card.
+
 ## 2. Capture the real screens
 
 Shoot at `deviceScaleFactor: 2`, with demo data, never a real customer's account. Pick the route by what the product has:
