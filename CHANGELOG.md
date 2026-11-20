@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.33
+
+**The Done and Ship buttons say what to do when the skill answers "already loaded".** A second `/done` in a long session got "Skill /syafiqkit:done is already loaded above; instructions unchanged", which attaches nothing, while the body sat about 100k tokens up; twice on 20/11/2026 the wrap-up was then written from memory, with the Knowledge, Task docs and Plugin rows filled by direct edits and no `update-claude-docs`, `task-summary` or `update-plugin` call, until the user asked "why the done just now didnt run ?". The same "already loaded" answer hid a repeat `haiku` skill on 2026-10-07. `done`'s own contract cannot catch it, since its text is what failed to re-attach, so the instruction now rides on the prompt the button sends: the Done and Ship texts add "If the Skill tool answers that it is already loaded, open the skill's SKILL.md with Read and run every step from it, not from memory."
+
 ## 1.463.32
 
 **`product-still` generates a two-shape series from one config.** `scripts/series.mjs` renders each beat as a widescreen still (claim, desktop crop, real phone screen, optional lift card) and a phone-first vertical still, plus closing pages with a numbered list and labelled pictures such as a tracker export and a deck slide, all from one `series.json` (`templates/examples/series.example.json`). Lifted from the GB Mart progress clip, where sixteen stills in two shapes were rebuilt a dozen times through crop changes: a hand-edited HTML per image would have been thirty-two files to keep in step. The fixed slots keep the text column at the film's subtitle edge and the bottom of each frame clear.

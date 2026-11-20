@@ -152,14 +152,14 @@ export const VERBS = [
   {
     label: 'Done',
     hint: 'review, tidy, update docs',
-    text: 'Use the done skill to wrap up this session. Invoke it now even if it ran earlier: this run covers everything since the last one.',
+    text: 'Use the done skill to wrap up this session. Invoke it now even if it ran earlier: this run covers everything since the last one. If the Skill tool answers that it is already loaded, open the done skill\'s SKILL.md with Read and run every step from it, not from memory.',
     toast: 'Sent: done',
   },
   { label: 'Read a task doc', hint: 'pick a doc, then act on its open items', go: 'list' },
   {
     label: 'Ship',
     hint: 'changelog, push, CI check, release note',
-    text: 'Use the ship skill.',
+    text: 'Use the ship skill. If the Skill tool answers that it is already loaded, open the ship skill\'s SKILL.md with Read and run every step from it, not from memory.',
     effect: 'Commits, writes the changelog, pushes, checks CI and writes the release note.',
     danger: true,
     toast: 'Sent: ship',
