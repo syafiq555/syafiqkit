@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.23
+
+**`seccheck.py` masks everything after a credential keyword, whatever separates them.** From a re-review of 1.463.22: `passphrase correct horse …`, `PIN 4821`, `secret=ab;cd…` and `password: abc,def…` printed in part or whole. The keyword match now takes any separator (or none) and masks to the closing backtick, pipe or end of line; a compound token such as `user/Xk29!aab` also records its parts, so the half that moves alone into a tracked file is caught. Over-masking prose after a word like "secrets" is accepted: the mask only hides words from the reader.
+
 ## 1.463.22
 
 **`seccheck.py` no longer prints a neighbouring secret, and catches one moved into a tracked file.** From `/done`'s review of 1.463.20.

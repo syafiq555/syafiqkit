@@ -21,7 +21,7 @@ import sys
 KEYWORD = r"\w*(?:pass|secret|token|key|pin)\w*"
 WORDISH = re.compile(r"[\w!@#$%^&*+=/.-]{8,}")
 AFTER_KEYWORD = re.compile(
-    rf"(?i)\b{KEYWORD}\b[^\n`|]{{0,12}}?(?:[`:=|]|\s+is\s+)\s*`?([^`|\n,;)]{{4,}})"
+    rf"(?i)\b{KEYWORD}\b\s*(?:[:=]|is\b)?\s*`?([^`|\n]{{4,}})"
 )
 BACKTICK_CELL = re.compile(r"\|\s*`([^`|]{4,})`\s*(?=\|)")
 ANY_CELL = re.compile(r"(?<=\|)([^|\n]+)(?=\|)")
@@ -33,6 +33,9 @@ def mixed_tokens(line):
         token = match.group(0).strip(".")
         if len(token) >= 8 and re.search(r"[A-Za-z]", token) and re.search(r"\d", token):
             yield token
+            for part in re.split(r"[/:@]", token):
+                if len(part) >= 6 and part != token and re.search(r"\d", part):
+                    yield part
 
 
 def secret_tables(lines):
