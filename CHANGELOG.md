@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.24
+
+**"Update group" is a formatted top-level post, not a casual thread reply.** `gchat-format`'s rule that a bare invocation over your own last answer is a message (so `casual-message` shapes it) caught `/gchat-format update group` too, and a status update was drafted as lowercase prose inside the old discussion thread; the user refused it at send ("use gchat format, in main message"). `gchat-format` now treats an ask naming the group or team as a document: a new top-level post with a bold title, bold section labels and `- ` items, in the thread only when the user says reply. `casual-message`'s boundary paragraph carries the same exception.
+
 ## 1.463.23
 
 **`seccheck.py` masks everything after a credential keyword, whatever separates them.** From a re-review of 1.463.22: `passphrase correct horse …`, `PIN 4821`, `secret=ab;cd…` and `password: abc,def…` printed in part or whole. The keyword match now takes any separator (or none) and masks to the closing backtick, pipe or end of line; a compound token such as `user/Xk29!aab` also records its parts, so the half that moves alone into a tracked file is caught. Over-masking prose after a word like "secrets" is accepted: the mask only hides words from the reader.
