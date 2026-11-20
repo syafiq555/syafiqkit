@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.463.10
+
+**`/ship`'s release-note fence says it was posted when it was.** The Output always labelled the note "copy everything inside the fence below", so after Step 5 had already sent it to the team's Chat space, the user read it as still to post and asked to send it again.
+- `ship` § Output: the label above the fence names the space and time when the note was posted, and keeps the copy wording only when it went to the clipboard or was held back.
+
 ## 1.463.9
 
 **The `taste` inspector can measure a screen behind a login.** A `/done` design review of a shopper checkout scanned the login redirect instead, in both `taste` and `impeccable`, and the rendered half of the review never ran.

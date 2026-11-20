@@ -151,12 +151,14 @@ The release note is its own labelled fenced block after the Ship Summary table, 
 
 [Operator commentary: open items, caveats, offers, status the user should know. Omit if none. The ONLY place commentary goes; a choice the user must make goes in Decisions above, since anything parked here gets read past.]
 
-**Release note (copy everything inside the fence below, nothing outside it):**
+**Release note (posted to <space> at <time>, shown for reference; nothing to send):**
 
 ```
 [gchat-format output: Google Chat syntax, changes-only]
 ```
 ````
+
+The fence's label states what the user still has to do with it, because it is the last line they read. When the note was posted (Step 5 item 8), the label says where and when, so it reads as a record. Only a note that went to the clipboard, or was held back, keeps the copy label ("copy everything inside the fence below, nothing outside it"). A sent note under a copy label reads as still to post, and gets sent twice. **Tell: your Release Note row says posted, and the label above the fence says copy.**
 
 Nothing follows the release-note fence's closing backticks.
 
