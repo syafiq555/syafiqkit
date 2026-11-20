@@ -2801,3 +2801,118 @@ test('terminal docs list marks every task doc by its status, puts blocked docs f
   expect((await ui.findAll({ type: 'Text', text: /421\/300/ })).length).toBe(0)
   await ui.unmount()
 })
+
+const taskTree = (folders: { name: string; size: number; mtimeMs: number }[]) => {
+  const tree: Record<string, any[]> = { '/work/tasks': folders.map((folder) => dirEntry(folder.name)) }
+  folders.forEach((folder) => (tree['/work/tasks/' + folder.name] = [{ name: 'current.md', kind: 'file', size: folder.size, mtimeMs: folder.mtimeMs, isLink: false }]))
+  return tree
+}
+
+test('the docs pane opens before any doc is read, reads each task doc once, and a reopen of unchanged docs reads none', async ($, on) => {
+  const opened: string[] = []
+  const reads: { path: string; openedBefore: number }[] = []
+  stubSession(on, [], opened, [], ['fs.list'])
+  stubTree(on, taskTree([{ name: 'speed-big', size: 9_000, mtimeMs: 1_000 }, { name: 'speed-small', size: 60, mtimeMs: 1_000 }]))
+  on('fs.read', (_$: any, e: any) => {
+    if (String(e.path).startsWith('/work/tasks/')) reads.push({ path: e.path, openedBefore: opened.length })
+    return { value: '<!--\nStatus: 🔨 Building\n-->\n# T\n' + 'x\n'.repeat(400) }
+  })
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  expect(reads.length).toBe(2)
+  expect(reads.every((read) => read.openedBefore === 1)).toBe(true)
+  expect(new Set(reads.map((read) => read.path)).size).toBe(2)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.findAll({ type: 'Text', text: /Reading \d+ of \d+/ })).length).toBe(0)
+  expect((await ui.findAll({ type: 'Text', text: /40\d\/300/ })).length).toBeGreaterThan(0)
+  await ui.unmount()
+  await $.command.run({ command: 'task-docs', args: '' })
+  expect(reads.length).toBe(2)
+  const again = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await again.findAll({ type: 'Text', text: /40\d\/300/ })).length).toBeGreaterThan(0)
+  await again.unmount()
+})
+
+test('a task doc changed within two seconds of being cached is read again on reopen, even at the same size', async ($, on) => {
+  const reads: string[] = []
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, taskTree([{ name: 'racy-doc', size: 60, mtimeMs: 999_500 }]))
+  on('fs.read', (_$: any, e: any) => {
+    if (String(e.path).startsWith('/work/tasks/')) reads.push(e.path)
+    return { value: '<!--\nStatus: ✅ Done\n-->\n# T\n' }
+  })
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  await $.command.run({ command: 'task-docs', args: '' })
+  expect(reads.length).toBe(2)
+})
+
+test('the docs list says it is listing, not empty, while the first open is still reading', async ($, on) => {
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, taskTree([{ name: 'slow-doc', size: 60, mtimeMs: 1_000 }]))
+  let release: () => void = () => {}
+  const gate = new Promise<void>((resolve) => (release = resolve))
+  on('fs.read', async (_$: any, e: any) => {
+    if (String(e.path).startsWith('/work/tasks/')) await gate
+    return { value: '<!--\nStatus: ✅ Done\n-->\n# T\n' }
+  })
+  stubRender(on)
+  const running = $.command.run({ command: 'task-docs', args: '' })
+  let found = 0
+  for (let tries = 0; tries < 20 && !found; tries += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 25))
+    const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+    found = (await ui.findAll({ type: 'Text', text: /Reading 0 of 1/ })).length
+    await ui.unmount()
+  }
+  release()
+  await running
+  expect(found).toBeGreaterThan(0)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.findAll({ type: 'Text', text: /Reading \d+ of \d+|Listing docs/ })).length).toBe(0)
+  await ui.unmount()
+})
+
+test('a second open while the first is still reading takes over, and neither leaves the loading line behind', async ($, on) => {
+  const reads: string[] = []
+  stubSession(on, [], [], [], ['fs.list'])
+  stubTree(on, taskTree(['a', 'b', 'c', 'd', 'e', 'f'].map((letter) => ({ name: 'overlap-' + letter, size: 60, mtimeMs: 999_900 }))))
+  let releaseFirst: () => void = () => {}
+  let releaseSecond: () => void = () => {}
+  const firstGate = new Promise<void>((resolve) => (releaseFirst = resolve))
+  const secondGate = new Promise<void>((resolve) => (releaseSecond = resolve))
+  on('fs.read', async (_$: any, e: any) => {
+    if (String(e.path).startsWith('/work/tasks/')) {
+      reads.push(e.path)
+      await (reads.length <= 4 ? firstGate : secondGate)
+    }
+    return { value: '<!--\nStatus: ✅ Done\n-->\n# T\n' }
+  })
+  stubRender(on)
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 50))
+  const readsReach = async (count: number) => {
+    for (let tries = 0; tries < 60 && reads.length < count; tries += 1) await settle()
+  }
+  const first = $.command.run({ command: 'task-docs', args: '' })
+  await readsReach(4)
+  await settle()
+  expect(reads.length).toBe(4)
+  const second = $.command.run({ command: 'task-docs', args: '' })
+  await readsReach(8)
+  await settle()
+  expect(reads.length).toBe(8)
+  releaseFirst()
+  await first
+  await settle()
+  expect(reads.length).toBe(8)
+  const mid = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await mid.findAll({ type: 'Text', text: /Reading 0 of 6/ })).length).toBeGreaterThan(0)
+  await mid.unmount()
+  releaseSecond()
+  await second
+  expect(reads.length).toBe(10)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.findAll({ type: 'Text', text: /Reading \d+ of \d+|Listing docs|Refreshing/ })).length).toBe(0)
+  expect((await ui.findAll({ type: 'Text', text: /^✓$/ })).length).toBeGreaterThan(0)
+  await ui.unmount()
+})

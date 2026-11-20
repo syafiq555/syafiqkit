@@ -7,6 +7,8 @@ import { modLog } from './log.js'
 export const state = {
   view: 'list',
   docs: [],
+  docsRun: 0,
+  docsLoading: null,
   cwd: '',
   home: '',
   now: 0,

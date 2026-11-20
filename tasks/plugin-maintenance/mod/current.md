@@ -6,7 +6,7 @@ Gotchas (critical; full list in ## Critical Gotchas below):
   - A reload swaps the mod only when it reports "re-read from its folder" (directory source, measured 2026-10-16); otherwise only a new session loads a changed one
   - Older Claude Code versions are unverified against a `modules` key sharing `hooks.json` with the ruleset hook
 Related: ../project-docs/current.md (ESSENTIALS entry `{#mod-one-file}` extracts The Mod), ../output-style-hook/current.md (shares `hooks/hooks.json`)
-Last updated: 2026-11-16
+Last updated: 2026-11-21 (row 43, 1.463.44, not yet seen live)
 -->
 
 # Plugin Maintenance: The Mod Summary
@@ -16,6 +16,7 @@ Last updated: 2026-11-16
 **Where we are**: The mod is a Claude Code mod inside the main plugin: a band above the prompt, a `/sk` menu, a `/task-docs` reader, a `/changes` source-control view, an image gallery, an Enhance button, and Typst-rendered task docs and pictures under Claude's terminal answers.
 
 **Immediate next actions (in order)**:
+00. Live-check 1.463.44 (row 43, the docs pane opening at once on 121 docs; § Next Steps → Verify, row 43), then get Munajaf's `mod.log` `docs listed:` line.
 0. Live-check 1.437.2 (row 41, shipped before being seen): marks, attention order, one grid, a gentle scroll staying put, `u` (§ Next Steps → Verify, row 41); a fix found there ships as a new version.
 1. Live-check the wrap-up chips (row 37, § Next Steps → Verify). It shipped in 1.407.2 before being seen, so a fix found there ships as a new version.
 2. Live-check the 2026-10-19 work in iTerm2 (§ Next Steps → Verify, the 2026-10-19 item). It shipped in 1.405.7 before being seen (user's call); a fix found there ships as a new version.
@@ -180,14 +181,15 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ## Last Session
 
-- 19/11/2026: the user sent a screenshot of `/task-docs` (beacon-mart) with `⚠ decisions 170.2 KB · outline` on quotation, brs and crp45/delivery and asked "wont this be false if we already created outline ?". Row 42 (1.462.2). This reverses the 1.434.x "Leave it as is" call recorded in `../doc-condensation/decisions/structural-mechanics.md`, which was not opened before planning; it has been updated there.
-- Wrap-up review: the product review found the same false ⚠ on the doc page (fixed in the same build); the code review asked for a positive control and Desktop chip tests (added).
+- 21/11/2026: Munajaf's report of a docs pane that took very long to appear with about 90 task docs became row 43 (1.463.44). The cause, the research and the call are in `decisions/design-calls.md` § D-docs-open-first.
+- Wrap-up review: the code review found stale-run gaps after two awaits, reads continuing after a newer open, and `docAt` orphaning an in-flight pass. The product review found a false "Nothing is over the limit" while loading. All four were fixed in the same build, and a fourth test covers overlapping opens. Not live-checked yet.
 
 ---
 
 ## Next Steps
 
 ### Verify
+- [ ] Row 43 after `/reload-plugins` (`/sk` reads `mod v1.463.44`), in `~/herd/autorentic` (121 task docs), in a Desktop **New** session and in iTerm2: `/task-docs` opens at once, `Reading N of M` runs then goes, a doc opens mid-load, the size-limit count shows `…` until done, and `mod.log` has a `docs listed:` line; a second open logs mostly `cached`. Then ask Munajaf for his `docs listed:` line and whether he uses Desktop.
 - [ ] Row 41 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.437.2`), in beacon-mart `/task-docs`: every figure whole (`195/300`, `112/300`), ages in one column, no blank gap after `delivery`, `uat` or `quotation`, no wrapped bar, no `[ ↑ Top ]` over rows; a gentle wheel scroll leaves the top without snapping back; scrolled down, `u` jumps to the top (unverified: whether a hotkey on a button scrolled off screen fires). Also a ~60-column pane.
 - [ ] Row 40 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.414.0`): `/sk` has no Hand off and goes Merge docs → Changes; `w` sends done with no pane; Refresh and Shrink from a doc send at once and Docs reopens that doc; Push and Ship still confirm; no `↪ Handoff` row after `/clear`.
 - [ ] Row 37 in iTerm2 after `/reload-plugins` (`/sk` reads `mod v1.407.2`): press done; the chip turns blue and stays blue while review agents run (if it goes green early, `mod.log` lacks `wrap-up still running … agents open`, meaning subagent turns carry no `agentId` and the hold needs another signal); green when the last turn ends; edit a file, amber. Commit through the chip: green within 5 s; push: green; edit after: all amber. `git pull` and a branch switch must not light commit. In Desktop **New**: chips keep their tint and labels stay readable; a narrow pane wraps the strip.
@@ -229,7 +231,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 ### Missing failure signals
 - [ ] Review leftovers, 2026-10-19: rendered view is the default even where a terminal resolves `Image` but draws nothing, so the doc shows the fallback line until `t`; `$$` math inside `- [ ]` items and relative images in typeset docs from two folders share a cache key; `readLook` is read once per session (a theme switch needs a reload) and treats `auto` as dark (kept by the user's call), so on a light terminal the transparent dark Mermaid and Typst ink are hard to read (old Mermaid was always a white card); a `.ok` marker is trusted without its pages, so a naming change needs a `TYPESET_RENDER_VERSION` bump; a timed-out `sips`/`ffmpeg` can leave a partial preview that is then trusted; a 4-backtick fence holding a 3-backtick block leaks its tail into the math and path scan.
 - [ ] Surface silent caps in the list: discovery stops at 180 task docs (`MAX_ENTRIES * 3`) and filter matches at 40 with the header still saying `MATCHES (40)`; the first symptom would be a missing doc
-- [ ] Main-doc tag (row 20) review leftovers, 2026-10-12: a doc opened from `/changes` goes through `docAt` (`git/controller.js`), which re-runs `discover` without `readDocMeta`/`measureHeavy`, so a later list may show no `main doc`, status or size flags (status pre-existing, unconfirmed); `readDocMeta` reads every task doc in full on open, and docs over 8 KB twice (read only the head, or share the text, if opening feels slow); two hub docs in one folder both get the tag while the folder line names the first
+- [ ] Main-doc tag (row 20) review leftovers, 2026-10-12: a doc opened from `/changes` goes through `docAt` (`git/controller.js`), which still re-runs `discover` (listings only since row 43, which also gives it cached meta and keeps an in-flight list); a doc not yet cached shows no `main doc`, status or size flags until the next open; two hub docs in one folder both get the tag while the folder line names the first
 - [ ] Count a doc's decisions bytes toward the size badge (the shrink skill treats the set as one thing)
 - [ ] Re-read open decision pages on change, as the main doc already is
 - [ ] An edit to a file that is only untracked (`??`) changes neither the status line nor `numstat`, so the poll sees no change and its diff stays old until you press it (a press forces a re-read); folding `$.fs.stat` size and mtime of `??` entries into the status signature would catch it

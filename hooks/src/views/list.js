@@ -138,6 +138,13 @@ export function chainSections(docs) {
   }).filter((section) => section.docs.length)
 }
 
+export function loadingNote() {
+  const loading = state.docsLoading
+  if (!loading) return ''
+  if (loading.listing) return state.docs.length ? 'Refreshing…' : ''
+  return loading.total && loading.done < loading.total ? 'Reading ' + loading.done + ' of ' + loading.total : ''
+}
+
 export function listView($, c) {
   const { Box, Text, Button, Input, goto, redraw, bindField } = c
   const gap = (key) => Text({ key: 'gap-' + key, children: ' ' })
@@ -152,6 +159,7 @@ export function listView($, c) {
       ? Box({ key: 'sec-' + key, flexDirection: 'column', marginTop: 1, children: [strip(c, { key, title })] })
       : Box({ key: 'sec-' + key, flexDirection: 'column', children: [gap(key), Text({ key, bold: true, children: title })] })
   const needle = state.filter.trim().toLowerCase()
+  const note = loadingNote()
   const topRow = (prefix) =>
     Box({
       key: prefix + 'list-top',
@@ -172,6 +180,7 @@ export function listView($, c) {
         state.pick
           ? Text({ color: 'cyan', children: 'Pick a doc to ' + state.pick })
           : Text({ dimColor: true, children: 'Pick a doc to read' }),
+        ...(note ? [Text({ key: prefix + 'list-loading', dimColor: true, children: note })] : []),
         ...(!desktop && !prefix
           ? [Button({ key: 'list-top-u', label: '↑ Top', plain: true, hotkey: 'u', onPress: () => hostUiScroll($, { in: PANE, to: 'start', block: 'start' }).then(() => hostUiInvalidate($, 'ui.render')) })]
           : []),
@@ -199,10 +208,12 @@ export function listView($, c) {
     return Box({ flexDirection: 'column', children: rows })
   }
   const heavy = heavyDocs()
+  const counting = Boolean(state.docsLoading)
+  const heavyCount = heavy.length + (counting ? '…' : '')
   if (state.heavyOnly) {
-    rows.push(header('h-heavy', 'DOCS OVER THE SIZE LIMIT (' + heavy.length + ')'))
+    rows.push(header('h-heavy', 'DOCS OVER THE SIZE LIMIT (' + heavyCount + ')'))
     rows.push(...docRowsFor(c, heavy, 'y'))
-    if (!heavy.length) rows.push(Text({ dimColor: true, children: 'Nothing is over the limit.' }))
+    if (!heavy.length) rows.push(Text({ dimColor: true, children: counting ? 'Still reading docs…' : 'Nothing is over the limit.' }))
     rows.push(
       Button({
         key: 'show-all',
@@ -233,7 +244,7 @@ export function listView($, c) {
     push(
       Button({
         key: 'show-heavy',
-        label: '⚠ ' + heavy.length + ' over the size limit · show',
+        label: '⚠ ' + heavyCount + ' over the size limit · show',
         plain: true,
         onPress: () => {
           state.heavyOnly = true
@@ -319,6 +330,6 @@ export function listView($, c) {
       if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), Boolean(folder.showScope), true)))
     })
   })
-  if (!state.docs.length) push(Text({ dimColor: true, children: state.error || 'No docs found from here.' }))
+  if (!state.docs.length) push(Text({ dimColor: true, children: state.error || (state.docsLoading ? 'Listing docs…' : 'No docs found from here.') }))
   return Box({ flexDirection: 'column', children: [...rows, ...windowedRows(c, items, LIST_TOP_ROWS)] })
 }

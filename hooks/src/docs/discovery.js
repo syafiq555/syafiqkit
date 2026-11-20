@@ -1,5 +1,5 @@
 import { hostFsExists, hostFsList, hostFsRead, hostFsStat, hostPluginRoot, hostSessionCwd } from '../core/api.js'
-import { MAX_ENTRIES, MEASURE_FROM_BYTES, NESTED_SCAN_DEPTH, NESTED_SCAN_FOLDERS, NESTED_SCAN_SKIP, RECENT_COUNT } from '../core/constants.js'
+import { MAX_ENTRIES, MEASURE_FROM_BYTES, META_RACY_SLACK_MS, META_READ_LIMIT, NESTED_SCAN_DEPTH, NESTED_SCAN_FOLDERS, NESTED_SCAN_SKIP, RECENT_COUNT } from '../core/constants.js'
 import { heaviness, homeOf, isDirectory, isHeavy, isHubText, isInstructionFile, parentOf, statusLineOf, summaryOf } from '../core/format.js'
 import { state } from '../core/state.js'
 
@@ -196,18 +196,84 @@ export async function discover($) {
   return groups.flat()
 }
 
-export async function measureHeavy($) {
-  await Promise.all(
-    state.docs
-      .filter((doc) => (doc.size || 0) >= MEASURE_FROM_BYTES || isInstructionFile(doc))
-      .map(async (doc) => {
-        try {
-          doc.lines = (await hostFsRead($, doc.path)).split('\n').length
-        } catch {
-          doc.lines = undefined
-        }
-      }),
-  )
+export const metaCache = new Map()
+
+export function isTaskDoc(doc) {
+  return doc.group === 'Task docs'
+}
+
+export function wantsLines(doc) {
+  return (doc.size || 0) >= MEASURE_FROM_BYTES || isInstructionFile(doc)
+}
+
+export function wantsMeta(doc) {
+  return isTaskDoc(doc) || wantsLines(doc)
+}
+
+export function metaOfText(doc, text) {
+  return {
+    lines: wantsLines(doc) ? text.split('\n').length : undefined,
+    hub: isTaskDoc(doc) ? isHubText(text) : undefined,
+    status: isTaskDoc(doc) ? summaryOf(statusLineOf(text)) : undefined,
+  }
+}
+
+export function applyMeta(doc, meta) {
+  if (wantsLines(doc)) doc.lines = meta.lines
+  if (isTaskDoc(doc)) {
+    doc.hub = meta.hub
+    doc.status = meta.status
+  }
+}
+
+export function cachedMetaOf(doc) {
+  const hit = metaCache.get(doc.path)
+  if (!hit || typeof doc.mtime !== 'number') return null
+  if (hit.mtime !== doc.mtime || hit.size !== doc.size) return null
+  return hit.cachedAt - hit.mtime > META_RACY_SLACK_MS ? hit : null
+}
+
+export function applyCachedMeta(docs) {
+  for (const doc of docs) {
+    const hit = cachedMetaOf(doc)
+    if (hit) applyMeta(doc, hit)
+  }
+}
+
+export async function readMetaOf($, doc, now) {
+  try {
+    const meta = metaOfText(doc, String((await hostFsRead($, doc.path)) || ''))
+    applyMeta(doc, meta)
+    if (typeof doc.mtime === 'number') metaCache.set(doc.path, { ...meta, mtime: doc.mtime, size: doc.size, cachedAt: now })
+  } catch {
+    if (wantsLines(doc)) doc.lines = undefined
+    if (isTaskDoc(doc)) doc.status = ''
+  }
+}
+
+export async function fillDocMeta($, docs, now, isStale, onProgress) {
+  const wanted = docs.filter(wantsMeta)
+  const toRead = []
+  for (const doc of wanted) {
+    const hit = cachedMetaOf(doc)
+    if (hit) applyMeta(doc, hit)
+    else toRead.push(doc)
+  }
+  const cached = wanted.length - toRead.length
+  let done = cached
+  onProgress(done, wanted.length)
+  let next = 0
+  const worker = async () => {
+    while (next < toRead.length && !isStale()) {
+      const doc = toRead[next]
+      next += 1
+      await readMetaOf($, doc, now)
+      done += 1
+      onProgress(done, wanted.length)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(META_READ_LIMIT, toRead.length) }, worker))
+  return { read: toRead.length, cached }
 }
 
 export function heavyDocs() {
@@ -219,20 +285,4 @@ export function recentDocs() {
     .filter((doc) => doc.group === 'Task docs' && typeof doc.mtime === 'number')
     .sort((a, b) => b.mtime - a.mtime)
     .slice(0, RECENT_COUNT)
-}
-
-export async function readDocMeta($) {
-  await Promise.all(
-    state.docs
-      .filter((doc) => doc.group === 'Task docs')
-      .map(async (doc) => {
-        try {
-          const text = await hostFsRead($, doc.path)
-          doc.hub = isHubText(text)
-          doc.status = summaryOf(statusLineOf(text))
-        } catch {
-          doc.status = ''
-        }
-      }),
-  )
 }

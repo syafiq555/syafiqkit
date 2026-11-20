@@ -3,7 +3,7 @@ import { DIFF_BATCH, POLL_MS, REPO_COUNT_EVERY } from '../core/constants.js'
 import { messageOf, parentOf } from '../core/format.js'
 import { modLog } from '../core/log.js'
 import { invalidatePane, openPaneWindow, state } from '../core/state.js'
-import { discover, safeList } from '../docs/discovery.js'
+import { applyCachedMeta, discover, safeList } from '../docs/discovery.js'
 import { loadDoc, readDecision, stopWatch } from '../docs/reader.js'
 import { readLook } from '../docs/typeset.js'
 import { discardPath, stageAll, stagePaths, unstageAll, unstagePaths } from './actions.js'
@@ -321,10 +321,14 @@ export function docGroupOf(path) {
 }
 
 export async function docAt($, owner, path) {
+  let docs = []
   try {
-    state.docs = await discover($)
+    docs = await discover($)
+    applyCachedMeta(docs)
+    const loading = state.docsLoading && !state.docsLoading.listing
+    if (!loading) state.docs = docs
   } catch {}
-  const found = state.docs.find((item) => item.path === owner)
+  const found = state.docs.find((item) => item.path === owner) || docs.find((item) => item.path === owner)
   if (found) return found
   const folder = parentOf(owner)
   const files = docGroupOf(path) === 'Task docs' ? await safeList($, folder + '/decisions') : []
