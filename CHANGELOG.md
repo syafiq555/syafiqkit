@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.463.12
+
+**`uiux` grades the items inside one group against each other, not only the section against its page.** A builder's checkout voucher sheet passed a full screenshot grade with two radio tiles at different widths ("No voucher" sized to its text, the voucher tile full width); the user spotted it at once. The tile atom had been built for short product option chips and reused for long choices.
+- `uiux` § Verify by Looking: the sibling grade now covers tiles, cards or rows of one kind (same width, height and alignment), naming an atom reused from another shape as the usual cause.
+
 ## 1.463.11
 
 **`/ship` sends a changed screen's captures as their own step, and shows a dialog screen-sized.** A GB Mart release note went out with no screenshots: the project names its post format, and the captures rule sat in the same item as "skip the formatting call", so skipping the call skipped the captures. Its first correction then sent an address sheet captured full-page, dimmed only halfway down.
