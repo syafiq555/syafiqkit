@@ -30,7 +30,7 @@ A spotlight `rect` is in fractions of the screenshot. Overlay a grid on the shot
 
 ## Camera size and layouts {#camera-size}
 
-A whole screen shown at two-thirds of a 9:16 frame leaves its UI unreadable on a real phone, and a desktop screenshot in a vertical frame is smaller still, so zoom to the part the caption is about. Side-by-side layouts use smaller captions and less camera zoom (a quarter for `phone`, 60% for the wider frames), or the text runs into the picture. A browser shot in widescreen still needs a strong push-in for its UI text to read.
+A whole screen shown at two-thirds of a 9:16 frame leaves its UI unreadable on a real phone, and a desktop screenshot in a vertical frame is smaller still, so zoom to the part the caption is about. Side-by-side layouts use smaller captions and less camera zoom (a quarter for `phone`, 60% for the wider frames), or the text runs into the picture. A browser shot in widescreen still needs a strong push-in for its UI text to read. One camera rarely frames both shapes well, since the vertical cut uses the full zoom and pan while side-by-side damps them: the renderer sizes the page to the output, so a story wrapped in its IIFE can read `const V = window.innerHeight > window.innerWidth` and give 9:16 its own keyframes (or its own picture files) per beat.
 
 ## Room presentations {#room-presentation}
 
