@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.463.21
+
+**The skills that read and write CLAUDE.md files now know rules live in folder files on purpose.** The user asked to check the most-used skills, `read-summary` first, after 1.463.17 to 1.463.20 let refreshes move rules into folder-scoped `CLAUDE.md` files; the roles table for that change had named no reader.
+- `read-summary` pointer chain: a folder's `CLAUDE.md` loads only once a file under it is read, so before answering or acting on an area with no file opened yet, read that folder's `CLAUDE.md` and follow the root's pointers into it.
+- `update-claude-docs` Capture: a rule only work under one folder applies goes into that folder's `CLAUDE.md`; "landing budget" became "size trigger", matching the no-landing-figure rule.
+- Checked and unchanged: `done`, `task-summary`, `haiku` and the `claude-md-pruner` template only measure size or treat it as a trigger.
+
 ## 1.463.20
 
 **`refresh-instructions` ships the secret-survival checker it used to only describe.** A refresh of a project's credential companions wrote this checker by hand in `/tmp`; `/done`'s Gate C asked whether to ship it, and the user said yes.
