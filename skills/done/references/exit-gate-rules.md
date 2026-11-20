@@ -35,7 +35,7 @@ An agent that returns FAILURE leaves its row unfillable — re-run it. On spawn/
 
 ## Before Writing Output
 
-**Is the last full test run green?** Any failure left in it, pre-existing or not, means go back and fix it: the code if it's wrong, the test if it's stale or clock- or order-dependent. The Output then names each fix and says which side it was on. A clean run on a subset, or a failure explained as "fails on master too", doesn't pass this check.
+**Is every test covering what changed green on its last run?** That set is the tests whose covered code changed since their last green run (the folders this session or a merge touched, plus the project's architecture or guard tests); tests already confirmed on unchanged code need no re-run, and the project's CI runs the full suite on push. A change spread across many areas earns a full local run. Any failure left in the set, pre-existing or not, means go back and fix it: the code if it's wrong, the test if it's stale or clock- or order-dependent. The Output then names each fix and says which side it was on. A subset that leaves out tests whose code changed, or a failure explained as "fails on master too", doesn't pass this check.
 
 **Then read the message you're about to send, from the top.** Is there anything the user has to decide, and is it the first thing they hit? A gap the product reviewer surfaced, that survived triage, and that the Output never asks about was dropped rather than resolved — and the Product row now reads `✅` on a change with an open question, which is the one shape this gate can't infer from the rows above.
 

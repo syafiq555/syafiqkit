@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.26
+
+**Confirmed tests are not re-run before a push either.** The task-builder template left "the full suite" to the caller "once before a push", and `done`'s exit gate asked for "the last full test run" and refused a subset, so a session re-ran a whole suite before pushing even when only one area changed (20/11/2026: a second 15-minute run re-tested about 2,000 unchanged tests; the user asked "if confirmed already can just omit ?"). Both now ask for the tests whose covered code changed since their last green run (the touched folders, plus architecture or guard tests), with the project's CI running the full suite on push; a change spread across many areas still earns a full local run. Regenerate a project's `task-builder` agent (`agent-setup`) to pick up the template wording.
+
 ## 1.463.25
 
 **`motion-clip` films a phone screen recording, and a brand-required closing card is a beat, not an option.** A session cut a demo from an iPhone screen recording with nothing in the skill on that source; the method that worked (one frame a second, numbered contact sheets, crop the device's status bar, `shot` set to the crop) is now a capture bullet. The engine drew "9:41" when `statusTime` was `''` (`||` fallback, now `??`), and in a 9:16 phone film the spoken subtitles defaulted to 80% height, over the device's content; phone films now default to 94%. The studio closing card was left off a client-bound film until the user asked for it, because the skill offered `outro` as optional; the brief now lists any opening or closing card the user's own instructions require as story beats.
