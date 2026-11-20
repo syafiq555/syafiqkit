@@ -1,6 +1,6 @@
 # Casual Malay defaults
 
-Patterns from a colleague's real WhatsApp messages to another colleague (reported 05/11/2026). They are one sender's habits, so treat them as a starting point for a casual Malay draft, not a norm. Spelling and pronouns vary from person to person (`x` or `tak`, `aku` or `saya`), so the sender's own sent messages always win over this list. That variation is the norm, not noise: a 2024 UKM study of Gen Z WhatsApp found the same word shortened several ways by different writers ([PLM](https://plm.org.my/wp-content/uploads/2024/11/6.-Bahasa-Singkatan-dalam-Komunikasi-di-Media-Sosial-dalam-Kalangan-Generasi-Z.pdf)), and one sender measured 20/11/2026 used `tak`, `nak`, `tu`, `je`, `lah`, `kalau`, `dorang` but never `sbb`, `mmg`, `dgn` or `kot`. Where the sender's messages are available, take the shorthand from them, not from the table below. The section on registers below covers messages to a boss, a client or in writing.
+Patterns from a colleague's real WhatsApp messages to another colleague (reported 05/11/2026). They are one sender's habits, so treat them as a starting point for a casual Malay draft, not a norm. Spelling and pronouns vary from person to person (`x` or `tak`, `aku` or `saya`), so the sender's own sent messages always win over this list. That variation is the norm: the same word is shortened several ways by different writers ([UKM study, 2024](https://plm.org.my/wp-content/uploads/2024/11/6.-Bahasa-Singkatan-dalam-Komunikasi-di-Media-Sosial-dalam-Kalangan-Generasi-Z.pdf)), and another sender, measured, used none of this table's `sbb`, `mmg`, `dgn` or `kot`. See Registers below for a boss, a client or writing.
 
 ## Shape {#shape}
 
@@ -8,9 +8,10 @@ The bubble, greeting, lowercase and proof defaults are the three bullets under L
 
 ## Spelling {#spelling}
 
+One colleague's shorthand, a fallback only when the sender's own is unknown. Drop any form the sender never uses; spelling it out (`sebab`, `memang`, `dengan`) is always safe.
+
 | Written | Means |
 |---|---|
-| `aku` | common to colleagues, `saya` to clients; take it from the thread or ask (SKILL.md, Language, the pronouns paragraph) |
 | `x` | tak |
 | `x da` / `x de` | tak ada |
 | `mmg` | memang |
@@ -28,7 +29,7 @@ The bubble, greeting, lowercase and proof defaults are the three bullets under L
 ## Particles and connectors {#particles}
 
 - `kot` softens a claim; `je`, `kan`, `pun`, `pulak` carry tone.
-- `dah` closing a sentence marks that something has changed for good: "bukan X lagi dah", "x payah dah". A bare "bukan X lagi" reads written; the sender added the `dah` at send time (20/11/2026).
+- `dah` closing a sentence marks that something has changed for good: "bukan X lagi dah", "x payah dah". A bare "bukan X lagi" reads written.
 - `tu` / `ni` after a noun ("db ni", "detective tu").
 - `so` and `tapi` join clauses.
 - "X punya Y" for possessive ("prepayment punya db").
@@ -37,23 +38,21 @@ The bubble, greeting, lowercase and proof defaults are the three bullets under L
 
 **The test for every word: would the sender say it to this person out loud?** Colleagues texting in Malay mix English freely, so a draft that translates everything reads as translated, even with the tech nouns kept in English. Mixed is the default, not something to wait for past messages to license; the sender's own messages override it either way.
 
-- **Tech terms stay English and lowercase**: nouns (issue, standard rds, dashboard, region, cost) and the verbs that go with them (display, check, fix, deploy, update, test). "dah check", not "dah semak"; "x display", not "x dipaparkan".
+- **Tech terms stay English and lowercase**: nouns (issue, standard rds, dashboard, region, cost) and the verbs that go with them (display, check, fix, deploy, update, test). "dah fix", not "dah dibaiki"; "x display", not "x dipaparkan".
 - **Whole English phrases are fine mid-sentence** where that is how it would be said ("tu yang x match tu", "nanti aku update balik").
 - **A word that stays Malay is the plainest spoken one, not the correct written one**: `sama`, not `padan`; `tengok`, not `lihat`; `buat`, not `lakukan`; `boleh`, not `dapat`. Prefixed formal verbs (`dipadankan`, `dipaparkan`, `memastikan`) are the giveaway.
-- **Everyday adverbs switch too, not only tech words**: "still kosong", not "masih kosong lagi" (20/11/2026: the sender's edit before sending; `dan` between items stayed Malay). A Malay phrase where every word is plain can still be the written form when a speaker would drop in the English word.
-
-Measured 18/11/2026 (issue #35): a reply needed four rounds of swaps (`papar` → `display`, `dipadankan` → `check`, `padan` → `sama`) before it read like the sender, whose rule was "Malay can just use English, mixed is fine". A numbered offer list or time estimate is not texted to a peer either; SKILL.md's Language section keeps those for decision-maker and estimate replies.
+- **Everyday adverbs switch too, not only tech words**: "still kosong", not "masih kosong lagi" (`dan` between items stays Malay). A Malay phrase where every word is plain can still be the written form when a speaker would drop in the English word.
 
 ## Registers {#registers}
 
-The same sender writes three ways depending on who reads it, and the pronoun and the shorthand are where a wrong register shows first. Researched 20/11/2026; the quoted lines are on the linked pages.
+The same sender writes three ways depending on who reads it, and the pronoun and the shorthand are where a wrong register shows first. Researched 20/11/2026; the quoted lines are on the linked pages. This table is the fallback: where the user's own instructions record how they write to a given audience, those lines win, even where they are looser than the table (a client message with `x sure` and a question ending in `tak ?`).
 
 | | Casual (peer, close colleague) | Semi-casual (boss, a client contact you know, a work group) | Formal (client email, management, official) |
 |---|---|---|---|
 | Greeting | Answer theirs (`wsalam`), or none | "Salam", "Selamat pagi Puan", "Assalamualaikum Encik [nama]" | "Tuan/Puan", "Dengan hormatnya", subject line stating the purpose |
 | Pronouns | `aku`/`kau` only with real closeness, else `I`/`you` or names | `saya`; the person's title or name instead of `awak`; `kami` for the company | `saya`/`kami`, titles throughout |
 | Shorthand | The sender's own (`tak`/`x`, `nak`, `je`, `tu`, `dah`) | Plain words spelled out; JobStreet: "Elakkan penggunaan singkatan seperti 'nk', 'sy'" | None |
-| Particles | `lah`, `kot`, `je`, `pulak`, `eh` freely | `ya`/`ye` to soften; "Particle density that feels lively among friends may sound presumptuous in an official request" | None |
+| Particles | `lah`, `je`, `pun`, `pulak`, `eh` freely | `ya`/`ye` to soften; "Particle density that feels lively among friends may sound presumptuous in an official request" | None |
 | English | Mixed freely (tech words, `still`, `already`) | Work nouns stay English (quotation, meeting, follow up); one main language per message | One language; "Pilih satu bahasa utama" |
 | Requests | Bare: "check jap" | One clear ask, a choice offered: "Puan nak saya tetapkan pukul 10 pagi?" | Full sentence: "Jika diizinkan, saya ingin..." |
 | Close | None | "Terima kasih" when asking a favour; no sign-off on a quick update | "Sekian, terima kasih", "Yang benar" |
@@ -68,7 +67,7 @@ Sources: [Elon, digital register](https://elon.io/grammar/malay/interaction/digi
 
 ## Example accepted as written {#example}
 
-A reply to a colleague asking whether two AWS services were available in the Malaysia region. The recipient's name is made up.
+One colleague's reply, kept verbatim, to a colleague asking whether two AWS services were available in the Malaysia region. The recipient's name is made up. Copy its shape, not its words: the shorthand (`mmg`, `sbb`, `dgn`, `kot`, `sngt`) is that writer's, and the "dah check" opener answered an explicit request; as a habit across replies it reads automated (SKILL.md, the opener rule).
 
 ```
 wsalam ali, dah check
