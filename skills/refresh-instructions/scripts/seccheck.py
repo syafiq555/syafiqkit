@@ -7,7 +7,11 @@
       write a masked copy to read instead of <file>
   seccheck.py check <cands.json> <file>... [--tracked <file>...]
       every recorded token must still appear in the files before --tracked,
-      and none may appear in a --tracked file (one git would publish)
+      and none may newly appear in a --tracked file (one git would publish).
+      A token already in that file's committed copy is counted, not flagged:
+      generic flags and phrases match many tracked files and are not secrets.
+      Missing phrases (a candidate with a space) are counted apart from
+      missing secret-shaped tokens, since a reword drops them harmlessly.
 
 Never prints a token or its neighbours: a finding is reported by line number
 and the masked text of that line. <cands.json> holds the original lines in
@@ -15,7 +19,9 @@ plain text, so keep it in a private folder and delete it with the snapshots.
 Over-masking is intended: a mask only hides words from the reader.
 """
 import json
+import os
 import re
+import subprocess
 import sys
 
 KEYWORD = r"\w*(?:pass|secret|token|key|pin)\w*"
@@ -96,6 +102,19 @@ def read(path):
         return handle.read()
 
 
+def committed_copy(path):
+    """The file as last committed, or "" for a new file or no git."""
+    folder = os.path.dirname(os.path.abspath(path))
+    try:
+        top = subprocess.run(["git", "-C", folder, "rev-parse", "--show-toplevel"],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        relative = os.path.relpath(os.path.abspath(path), top)
+        return subprocess.run(["git", "-C", top, "show", f"HEAD:{relative}"],
+                              capture_output=True, text=True, check=True).stdout
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return ""
+
+
 def main(argv):
     if len(argv) < 4:
         sys.exit(__doc__)
@@ -119,12 +138,18 @@ def main(argv):
         holders, tracked = rest[:split], rest[split + 1:]
         kept = "\n".join(read(path) for path in holders)
         public = {path: read(path) for path in tracked}
+        committed = {path: committed_copy(path) for path in tracked}
         lines = saved["lines"]
         table_rows = secret_tables(lines)
         missing = [(n, v) for n, v in saved["tokens"] if not present(v, kept)]
-        leaked = [(n, v, p) for n, v in saved["tokens"] for p, t in public.items() if present(v, t)]
-        print(f"missing {len(missing)} of {len(saved['tokens'])}; in tracked files {len(leaked)}")
-        for number, value in missing:
+        found = [(n, v, p) for n, v in saved["tokens"] for p, t in public.items() if present(v, t)]
+        leaked = [(n, v, p) for n, v, p in found if not present(v, committed[p])]
+        already = len(found) - len(leaked)
+        secretish = [(n, v) for n, v in missing if " " not in v.strip()]
+        phrases = len(missing) - len(secretish)
+        print(f"missing {len(secretish)} of {len(saved['tokens'])} (plus {phrases} reworded phrases); "
+              f"new in tracked files {len(leaked)} ({already} already in the committed copy, not a new leak)")
+        for number, value in secretish:
             shown = f"{value[:3]}… len {len(value)}" if len(value) >= 12 else "short token"
             print(f"  missing, line {number} <{shown}>: {mask_line(lines[number - 1], number, table_rows)[:160]}")
         for number, _value, path in leaked:
