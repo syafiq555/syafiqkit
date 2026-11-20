@@ -12,6 +12,8 @@ Run the steps in one turn. Naming a remaining step instead of invoking it is a p
 **The contract.** A long session usually compacts before `/done`, and only this skill's opening survives that. You owe six rows: Simplify · Review · Product · Knowledge · Task docs · Plugin, plus Design whenever the diff changes something a person sees. Each row claims a step ran: an agent dispatched with the right kind of prompt, or a skill invoked *and confirmed to have changed something on disk*. Invoking is not updating. A row you cannot substantiate is a skipped step: go run it rather than writing `✅`.
 Re-read this file whenever its body is no longer in view (after a compaction, after agents return, after an interrupted turn). Recalled steps read as `✅` without having run.
 
+**"Has /done run?" is answered by git, not memory, whoever asks** (the user, a button, a peer session's broadcast offering "reply done already"). Find the commit this skill's last Output covered and list code commits after it (`git log --oneline <that-sha>..HEAD -- <code paths>`): any you wrote means run it now, and the reply is the run, not "done already". A small follow-up feels covered by the wrap-up before it, and the wrap-up never saw it. **Tell: you are about to reply "done already" and have not listed the commits since the last /done Output.**
+
 ## Mode selection (decide first)
 
 Read `git status --short` and recent commits, then match a mode.

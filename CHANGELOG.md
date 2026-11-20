@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.463.13
+
+**`/done` checks git before anyone is told it already ran, and a release note about a changed screen carries its screenshots wherever it is sent from.** A peer session relayed a request to run `/done` with "reply done already" as an option; the reply said done, though a follow-up commit had landed after the last wrap-up, and the user's own `/done` then found four defects in it. Separately, a screen-change release note drafted outside `/ship` went to Chat text-only, and the user asked "no image ya ?".
+- `/done`: "has it run?" is answered by listing code commits since its last Output, whoever asks; any you wrote means run it.
+- `/gchat-format`: a release note naming a changed screen attaches phone and desktop captures, opened first, even when sent straight through a Chat send tool.
+
 ## 1.463.12
 
 **`uiux` grades the items inside one group against each other, not only the section against its page.** A builder's checkout voucher sheet passed a full screenshot grade with two radio tiles at different widths ("No voucher" sized to its text, the voucher tile full width); the user spotted it at once. The tile atom had been built for short product option chips and reused for long choices.
