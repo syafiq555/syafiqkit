@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.27
+
+**`ship` skips `gchat-format` only for a plain-text release format.** Step 5 let a project's written release-post format replace the `gchat-format` call whatever that format said, so a GB Mart rule asking for "short bold sections" was drafted plain to match the space's last posts, sent, and then reformatted when the user asked for `/gchat-format` (20/11/2026). The skip now covers only a format with no bold or lists; one that names them still gets the call for the syntax, with the project's words setting the shape, and those words outrank the space's latest posts, as `gchat-format` already says.
+
 ## 1.463.26
 
 **Confirmed tests are not re-run before a push either.** The task-builder template left "the full suite" to the caller "once before a push", and `done`'s exit gate asked for "the last full test run" and refused a subset, so a session re-ran a whole suite before pushing even when only one area changed (20/11/2026: a second 15-minute run re-tested about 2,000 unchanged tests; the user asked "if confirmed already can just omit ?"). Both now ask for the tests whose covered code changed since their last green run (the touched folders, plus architecture or guard tests), with the project's CI running the full suite on push; a change spread across many areas still earns a full local run. Regenerate a project's `task-builder` agent (`agent-setup`) to pick up the template wording.
