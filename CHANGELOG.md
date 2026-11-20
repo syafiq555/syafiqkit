@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.25
+
+**`motion-clip` films a phone screen recording, and a brand-required closing card is a beat, not an option.** A session cut a demo from an iPhone screen recording with nothing in the skill on that source; the method that worked (one frame a second, numbered contact sheets, crop the device's status bar, `shot` set to the crop) is now a capture bullet. The engine drew "9:41" when `statusTime` was `''` (`||` fallback, now `??`), and in a 9:16 phone film the spoken subtitles defaulted to 80% height, over the device's content; phone films now default to 94%. The studio closing card was left off a client-bound film until the user asked for it, because the skill offered `outro` as optional; the brief now lists any opening or closing card the user's own instructions require as story beats.
+
 ## 1.463.24
 
 **"Update group" is a formatted top-level post, not a casual thread reply.** `gchat-format`'s rule that a bare invocation over your own last answer is a message (so `casual-message` shapes it) caught `/gchat-format update group` too, and a status update was drafted as lowercase prose inside the old discussion thread; the user refused it at send ("use gchat format, in main message"). `gchat-format` now treats an ask naming the group or team as a document: a new top-level post with a bold title, bold section labels and `- ` items, in the thread only when the user says reply. `casual-message`'s boundary paragraph carries the same exception.

@@ -349,7 +349,7 @@ function statusBar(x, y, w, h, fill) {
   g.font = font(h * 0.36, false);
   g.textAlign = 'left';
   g.textBaseline = 'middle';
-  g.fillText(STORY.statusTime || '9:41', x + w * 0.1, y + h * 0.55);
+  g.fillText(STORY.statusTime ?? '9:41', x + w * 0.1, y + h * 0.55);
   const bw = h * 0.5, bh = h * 0.24, bx = x + w * 0.9 - bw, by = y + h * 0.55 - bh / 2;
   g.strokeStyle = C.ink; g.lineWidth = h * 0.03;
   roundRect(bx, by, bw, bh, bh * 0.3); g.stroke();
@@ -1078,7 +1078,7 @@ function subtitles(t) {
     const padX = size * 0.45, padY = size * 0.3;
     const fit = (L.vertical ? W * 0.86 : W * 0.44 - L.textX) - padX * 2;
     const scale = total > fit ? fit / total : 1;
-    const y = H * (s.y ?? (L.vertical ? 0.8 : 0.72));
+    const y = H * (s.y ?? (L.vertical ? (STORY.frame === 'phone' ? 0.94 : 0.8) : 0.72));
     const pop = 0.94 + 0.06 * snappy(t - group[0].start + 0.05);
     g.translate(L.vertical ? W / 2 : L.textX + padX * scale + total * scale / 2, y);
     g.scale(scale * pop, scale * pop);
