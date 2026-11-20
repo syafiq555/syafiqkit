@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.37
+
+**Casual Malay drafts switch everyday adverbs to English and keep spoken `je`.** A second WhatsApp follow-up was edited before sending: "masih kosong lagi" became "still kosong" and "baru check" became "baru je check". The reference's plain-word rule listed only verbs and formal prefixes, so a phrase of plain Malay words passed it while still reading written. It now names everyday adverbs as switching too, and `je` after a time word.
+
 ## 1.463.36
 
 **Casual Malay drafts close a "no longer" sentence with `dah`.** A WhatsApp release note drafted by `casual-message` ended "bukan "Quotation Sent" lagi"; the sender changed it to "lagi dah" before sending, the only edit to a three-bubble draft. The casual Malay reference's particles list now names sentence-final `dah` for a change of state.
