@@ -84,9 +84,9 @@ Safety-critical prohibitions ("never edit generated files", "never push to main"
 
 List the genuine facts first, marking which are stated absolutely; that list is what verification checks against later. Then write it. Structural findings are the ones that go unexecuted most often, because moving a section feels like a bigger claim than softening a callout, but a file whose shape is wrong stays wrong when only its wording changes.
 
-**Don't propose; execute.** There is no approval step: the file is version-controlled, a bad rewrite is one `git checkout` away from gone, and asking costs more than reverting would.
+**Don't propose; execute.** There is no approval step: asking costs more than reverting would.
 
-When the rewrite touches many rules, use a full `Write` to replace the whole file; for one or two callouts, targeted `Edit`s suffice.
+Make the rewrite as a series of `Edit`s, even when it touches many rules: a revert to the last commit also discards whatever earlier, uncommitted passes or other sessions left in the file, and `Edit` refuses a stale anchor where a whole-file `Write` silently overwrites. A full `Write` is for a file whose uncommitted diff is entirely your own, after copying it aside, and never when your brief says `Edit` only (20/11/2026: a `refresh-instructions` Pass 3 agent replaced a root `CLAUDE.md` holding two earlier passes' uncommitted output with one `Write`, against its brief).
 
 **When moving content to a companion:**
 
