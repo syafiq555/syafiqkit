@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.463.17
+
+**A condense now has no landing figure, and a CLAUDE.md set includes its companions.** A refresh of a project's CLAUDE files quoted no target only because the user said "No budget see how max they can go", and resolved "all claude.md" to six files while fifteen companions sat beside them, until the user asked whether companions were included and then answered "Should always go with no budget, and all companions treated as claude.md too".
+- `condense-claude-md` Target: 40 KB still triggers a condense, but the pass cuts until the next cut would remove a fact; the file gets an intake rule, never a landing figure. Verification reports the stop by its reason, not by a byte figure.
+- `refresh-instructions`: every condense prompt says "no byte target" and quotes no figure or range; new **CLAUDE.md unit** bullet in Step 1 puts every `.claude-companions/**` file (credential ones included, through the credentials procedure) in the set, with parents condensing after their companions.
+- `_shared/references/declared-budget.md`: a declared budget decides when a condense runs, never where it stops.
+
 ## 1.463.16
 
 **`uiux`'s iOS Safari script now drives the simulator itself, so a session can take the collapsed-toolbar shot without anyone scrolling by hand.** Built in an Autorentic session as a one-off helper, then lifted here so GB Mart and other projects reuse it.

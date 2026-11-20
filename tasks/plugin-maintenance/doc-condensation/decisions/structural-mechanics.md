@@ -286,3 +286,18 @@ Before splitting any capture, grep the repo for its file name outside markdown a
 - One generic generator only, retiring project copies. Why not: a project gate must run for teammates without the plugin, so a project may keep its own generator, and the skills defer to it when the owning doc names it.
 
 **Status**: committed · **Reversible**: yes
+
+---
+
+## No landing figure; companions belong to a CLAUDE.md set (20/11/2026) {#no-landing-figure}
+
+**Problem**: condense prompts quoted a landing figure (about 32 KB under a 40 KB trigger), and agents stopped near it with movable narration left. A refresh of "all claude.md" also resolved to the CLAUDE files alone while companions sat beside them.
+
+**Decision**: a size budget only triggers a condense; the pass cuts until the next cut would remove a fact a future session acts on. Files carry an intake rule, never a landing figure. A CLAUDE.md set includes every companion, credential ones included, refreshed as CLAUDE.md in their own right; parents condense after their companions so moves land in files no agent is editing.
+
+**Rationale**: the user, 20/11/2026: "No budget see how max they can go", then "Should always go with no budget, and all companions treated as claude.md too". Any number in a prompt reads as a floor (the 23/10, 27/10 and 06/11 refreshes to ~39.5 KB were back over within days).
+
+**Rejected**:
+- Keep the 32 KB landing figure as a floor. Why not: the user overruled it; a figure caps the cut, it never protects a fact.
+
+**Status**: committed · **Reversible**: yes
