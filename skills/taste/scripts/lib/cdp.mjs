@@ -169,6 +169,19 @@ export class Browser {
     return () => this.listeners.get(k)?.delete(fn);
   }
 
+  // Signs every later page in: takes a Playwright storage-state file's `cookies` (the shape an e2e
+  // suite's saved login holds), so a screen behind a login is measured as its user sees it.
+  async useStorageState(state) {
+    const cookies = (state?.cookies || []).map((c) => {
+      const cookie = { name: c.name, value: c.value, domain: c.domain, path: c.path || '/', httpOnly: !!c.httpOnly, secure: !!c.secure };
+      if (c.sameSite) cookie.sameSite = c.sameSite;
+      if (typeof c.expires === 'number' && c.expires > 0) cookie.expires = c.expires;
+      return cookie;
+    });
+    if (cookies.length) await this.send('Storage.setCookies', { cookies });
+    return cookies.length;
+  }
+
   async newPage({ width = 1440, height = 900, dsf = 1, mobile = false, reducedMotion = false, scheme = 'light' } = {}) {
     const { targetId } = await this.send('Target.createTarget', { url: 'about:blank', newWindow: true });
     const { sessionId } = await this.send('Target.attachToTarget', { targetId, flatten: true });

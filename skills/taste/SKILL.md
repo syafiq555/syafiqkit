@@ -272,7 +272,9 @@ gradient, a violet accent), keep the brand asset, say so in the report, and pass
 rule only.
 
 **Redesign, restyle or review.** Record the before first: `inspect.mjs <url> --out .taste-skill/before`
-(with `--app` for an app screen), and lint the source. A review stops after the critique. A redesign keeps
+(with `--app` for an app screen), and lint the source. A screen behind a login takes `--storage-state <file>`,
+a Playwright storage-state file such as the project's e2e saved login; without it the inspector measures
+the login page and reports that as the screen. A review stops after the critique. A redesign keeps
 the stack, content and what works, then proceeds from step 2 with the real content; prove it by inspecting
 into `.taste-skill/after` and comparing at every width. 📖 references/run.md#redesign
 

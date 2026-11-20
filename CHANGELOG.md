@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.463.9
+
+**The `taste` inspector can measure a screen behind a login.** A `/done` design review of a shopper checkout scanned the login redirect instead, in both `taste` and `impeccable`, and the rendered half of the review never ran.
+- `taste` `scripts/inspect.mjs --storage-state <file>`: loads a Playwright storage-state file's cookies (the login an e2e suite saves) before any page opens.
+- `/taste` § Redesign, restyle or review and `/done` `references/design-review-merge.md`: a signed-in screen is measured signed in, and a result from a URL that redirected to the login page describes that page, not the screen.
+
 ## 1.463.8
 
 **The `taste` inspector takes a `file://` address and a page path with a query string.** A prototype that switches screens by `?dir=a&state=two` was refused as "No such file", because any target without `http(s)://` was joined onto the current folder as a plain path.

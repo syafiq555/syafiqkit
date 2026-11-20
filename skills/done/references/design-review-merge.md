@@ -6,6 +6,7 @@ Read this before dispatching the Design row's skills (capture widths, which scre
 
 - **`uiux`** grades the changed screens: capture each at 375, 768 and 1280 px, in every colour scheme the screen has, open every capture, and grade each against its sibling screens.
 - **`impeccable` critique** runs on the changed screens and starts its own two isolated reviewers. Hand it the capture set `uiux` made rather than a second one, after opening every capture to confirm it shows the changed state, not an error page or an empty list (20/11/2026: four reviewers across both skills were handed product captures that were all a 500 from an unrun migration and a listing emptied by a wrong fixture id, and spent their runs reporting the captures).
+- **A screen behind a login is measured signed in, or the measurement is of the login page.** `taste`'s `inspect.mjs` takes `--storage-state <file>` (the project's e2e saved login, which must be valid for the URL's host); `impeccable detect` takes `--cdp` against a signed-in browser. A `[]` or a clean report from a URL that redirected to `/login` describes the login page, so check the final URL before reporting the row (20/11/2026: both skills' rendered halves scanned a checkout's login redirect).
 - **`taste`'s review path** runs on any screen a customer sees. An email or document a customer receives counts as one: on 15/11/2026 tenant emails were graded by `uiux` and `impeccable` only, a fourth `taste` omission.
 
 ## Decks and rendered documents

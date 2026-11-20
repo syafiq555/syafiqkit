@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // tasteskill / inspect — render the page in a real browser, measure it, and photograph it.
 //
-//   node inspect.mjs <url | path/to/file.html> [--out DIR] [--widths 1440,768,390] [--scheme light|dark] [--allow rule,rule] [--app] [--film] [--json]
+//   node inspect.mjs <url | path/to/file.html> [--out DIR] [--widths 1440,768,390] [--scheme light|dark] [--allow rule,rule] [--app] [--film] [--json] [--storage-state auth.json]
 //
 // --film also photographs the scroll as a visitor sees it (a frame every third of a screen, real wheel
 // input) into desktop-film-NN.jpg, so a scroll scene is judged by its in-between states. A direction
@@ -9,6 +9,10 @@
 //
 // --app judges an app screen (dashboard, admin, settings) by the rules in references/app-screens.md; a
 // direction dealt with draw.mjs --app switches it on by itself.
+//
+// --storage-state signs the browser in before the page opens, from a Playwright storage-state file (the
+// login an e2e suite saves, such as e2e/.auth/<user>.json). Without it a screen behind a login measures
+// the login page instead.
 //
 // Exit code 0 = no FAIL findings. Exit code 1 = at least one FAIL (the page is not done).
 // Zero dependencies: drives an installed Chrome/Edge/Chromium. Node 22+.
@@ -28,13 +32,14 @@ const widths = flag('widths', '1440,768,390').split(',').map(Number).filter(Bool
 const scheme = flag('scheme', 'light');
 if (!['light', 'dark'].includes(scheme)) { console.error('--scheme takes light or dark'); process.exit(2); }
 let allow = flag('allow', '').split(',').filter(Boolean);
+const storageStatePath = flag('storage-state', '');
 const asJson = has('json');
 let appMode = has('app');
 let film = has('film');
 let dealtFonts = []; // the faces the saved sheet dealt, to catch a build that quietly fell back to a default
 const target = args[0];
 if (!target || target === '-h' || target.startsWith('--')) {
-  console.error('usage: node inspect.mjs <url | file.html> [--out DIR] [--widths 1440,768,390] [--scheme light|dark] [--allow rule,rule] [--app] [--film] [--json]');
+  console.error('usage: node inspect.mjs <url | file.html> [--out DIR] [--widths 1440,768,390] [--scheme light|dark] [--allow rule,rule] [--app] [--film] [--json] [--storage-state auth.json]');
   process.exit(2);
 }
 // Allowances granted by the drawn direction (written by draw.mjs) apply automatically.
@@ -77,6 +82,11 @@ mkdirSync(outDir, { recursive: true });
 // Screenshots from an earlier run would sit beside the new ones when the page got shorter.
 for (const f of readdirSync(outDir)) if (/^(desktop|tablet|mobile)-(fold|page-\d+|film-\d+)\.jpg$/.test(f)) unlinkSync(join(outDir, f));
 const browser = await Browser.launch();
+if (storageStatePath) {
+  if (!existsSync(storageStatePath)) { console.error('No such storage state: ' + storageStatePath); process.exit(2); }
+  const signedIn = await browser.useStorageState(JSON.parse(readFileSync(storageStatePath, 'utf8')));
+  if (!signedIn) console.error('Storage state ' + storageStatePath + ' holds no cookies; the page opens signed out.');
+}
 const helper = await browser.newPage({ width: 1600, height: 1000, scheme });
 const report = { url: server ? target : url, at: new Date().toISOString(), scheme, allow, viewports: [], findings: [], images: [] };
 
