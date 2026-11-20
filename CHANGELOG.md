@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.463.35
+
+**A video handed in as evidence is listened to, not only watched.** `read-summary`'s investigation rule covered screenshots only. On 20/11/2026 two phone videos of a bug arrived as arguments; frames were extracted and diagnosis began, and the user had to point out the reporter was talking before the audio was transcribed, which held the actual report. A `whisper` binary was then searched for and not found, and a fresh one installed, although `motion-clip`'s setup already provides `mlx_whisper`. The rule now says a video's soundtrack is evidence, to transcribe it before diagnosing, and to reuse an installed speech-to-text model first, with a Tell.
+
 ## 1.463.34
 
 **A doc set's "live" and "on staging" claims are checked against the deploy branch, not the task doc.** `setup-project-docs` told an update run to reconcile every status line against the owning task doc, and `task-summary`'s derived-view step copies a task doc's new status into `PRD.md`/`ARCHITECTURE.md`. On 20/11/2026 both directions failed together: two feature docs said "not on prod" and "nobody holds the roles" while the code was on prod and eight users held the roles, and a PRD edited on the staging branch described staging-only cash sales as built. Git ancestry against the deploy branch settled each claim, and a production count settled "in use" (master outlets: shipped, zero zones). Both skills now say so, and `setup-project-docs` adds that a roadmap row calling something ready names who judged it: a product reviewer caught our own critic score presented as pilot readiness.
