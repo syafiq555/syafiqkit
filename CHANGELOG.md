@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.463.18
+
+**A refresh may reorganize files without asking, judged by what it changes about loading.** The user, mid-refresh: "File organization also allowed if needed no limit, as long as it can improve harnesses".
+- `refresh-instructions` § Key Principles: split, merge, create a companion or move a rule between levels with no limit when it loads less every session or puts a rule where its moment finds it. The levers are named (always-loaded files keep only what every session needs; a folder's rule goes to that folder's `CLAUDE.md`; one-moment detail goes to a companion), and `.claude/rules/` `paths:` is named as not a lever, since it loads in full. New step 6b runs the reorganization across the whole set between Pass 2 and Pass 3.
+- `condense-claude-md` Verification: a file still over after compressing is split, no longer offered as a split.
+- `refresh-instructions` kept under the 5,000-token re-attach limit (4,997): five incident stories moved to `references/process-details.md` § Target-set incidents.
+
 ## 1.463.17
 
 **A condense now has no landing figure, and a CLAUDE.md set includes its companions.** A refresh of a project's CLAUDE files quoted no target only because the user said "No budget see how max they can go", and resolved "all claude.md" to six files while fifteen companions sat beside them, until the user asked whether companions were included and then answered "Should always go with no budget, and all companions treated as claude.md too".

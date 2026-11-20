@@ -16,6 +16,15 @@ A task doc's unit is `current.md` **plus its `decisions/*.md` siblings** — one
 
 The set's total is not a budget for condense: `condense-task-doc`'s size thresholds apply to the index's line count and to each decisions file's ~40 KB, and source-capture files are exempt from condensing for size, and a verbatim copy, or one a script or version diff reads at its path, is exempt from splitting too: it gets a generated outline instead, which no pass edits, so regenerate that outline rather than editing it. When a doc index is ≤300 lines but a 14-ADR set totals 408, the split needs to fire inside the dispatch, not as work invented after the user notices the file is still large. Name the threshold (≤300 lines, bytes grown from new ADRs) in the Pass 2 prompt as a number to check.
 
+## Target-set incidents {#target-set-incidents}
+
+- **CLAUDE.md unit** (20/11/2026): a set of six CLAUDE files left 15 companions out until the user asked "Is the all claude.md includes all companions too or not ?", then answered "all companions treated as claude.md too". Running parents after companions let the parents' condense move content into companions no other agent was editing.
+- **Source captures** (16/11/2026): a BRS task doc's twelve capture siblings were dropped from scope and its condense pass skipped because "it would reword the captures"; the user pointed out condense already handles captures (dedupe, keep every quote, never edit a verbatim copy, grep for scripts that read it before any split).
+- **Provenance churn** (12/11/2026): on a 35-file set, Pass 3 restored provenance notes in most scaffold files that Pass 2 had cut, because the condense prompt never said provenance was evidence.
+- **Body against description** (2026-10-27): an unhobble pass made `condense-task-doc`'s body put a split behind being asked, while its description says an oversized MADR is split; no byte, pointer or anchor check saw it.
+- **Pre-condense snapshot** (17/11/2026): split files copied into the pre-condense folder overwrote the one baseline Pass 3 needed.
+- **Skill unit** (15/11/2026): a bare refresh took two task docs and skipped the skills the session had rewritten; the user asked why, then widened it to "all the design skills". A silent exclusion reads as a missed file.
+
 ## Protecting facts when building the list
 
 A protection list distinguishes which parts of the file are facts (teachable only by this file) from constraints (derivable from context). Both matter; the distinction changes how to hand it to the agent.
