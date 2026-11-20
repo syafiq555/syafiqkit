@@ -33,7 +33,7 @@ A no-op result is not a success worth paying an agent for — it burns a run, an
 
 ⚠️ **A declared budget suppresses the DECISION, not the MEASUREMENT.** Still run `wc -lc`, still report the number, and still flag an overage — against the declared figure. A file 200 lines past its own stated 460 is over budget and must be told so; deferring to the owner's threshold is not deferring on whether it was met. **Tell: you skipped the size report entirely because the file declared a budget.**
 
-⚠️ **A budget decides when a condense runs, never where it stops.** Once condensing, cut until the next cut would remove a fact, whatever the declared figure; a "land at N KB" line in the file is a trigger, not a target to stop at (the user, 20/11/2026: "Should always go with no budget").
+⚠️ **A declared budget decides when a condense runs, never where it stops** (📖 `../../condense-claude-md/SKILL.md` Trigger paragraph).
 
 ⚠️ **A budget declared *below* the default is still authoritative.** The signal is "the owner decided", not "the owner wants more room" — a file declaring ~150 is held to 150, not to 200.
 

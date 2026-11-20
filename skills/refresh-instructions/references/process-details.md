@@ -18,8 +18,8 @@ The set's total is not a budget for condense: `condense-task-doc`'s size thresho
 
 ## Target-set incidents {#target-set-incidents}
 
-- **CLAUDE.md unit** (20/11/2026): a set of six CLAUDE files left 15 companions out until the user asked "Is the all claude.md includes all companions too or not ?", then answered "all companions treated as claude.md too". Running parents after companions let the parents' condense move content into companions no other agent was editing.
-- **Source captures** (16/11/2026): a BRS task doc's twelve capture siblings were dropped from scope and its condense pass skipped because "it would reword the captures"; the user pointed out condense already handles captures (dedupe, keep every quote, never edit a verbatim copy, grep for scripts that read it before any split).
+- **CLAUDE.md unit** (20/11/2026): a set of six CLAUDE files left 15 companions out until the user asked "Is the all claude.md includes all companions too or not ?", then answered "all companions treated as claude.md too".
+- **Source captures** (16/11/2026): a BRS task doc's twelve capture siblings were dropped from scope and its condense pass skipped because "it would reword the captures"; the user pointed out condense already handles captures.
 - **Provenance churn** (12/11/2026): on a 35-file set, Pass 3 restored provenance notes in most scaffold files that Pass 2 had cut, because the condense prompt never said provenance was evidence.
 - **Body against description** (2026-10-27): an unhobble pass made `condense-task-doc`'s body put a split behind being asked, while its description says an oversized MADR is split; no byte, pointer or anchor check saw it.
 - **Pre-condense snapshot** (17/11/2026): split files copied into the pre-condense folder overwrote the one baseline Pass 3 needed.
@@ -52,9 +52,20 @@ Carry forward the same protected-fact list across all three prompts. Build it on
 A machine-local companion or `CLAUDE.local.md` often carries passwords, API keys and test logins inline. Every pass reads it whole, and any line you print to check a pass (a `git diff`, a `grep`, a section dump) puts a secret into the transcript. So:
 
 - **Each pass's prompt** says: keep every secret byte-identical and edit around it, never quote one in the report or in tool output, read with the Read tool and never grep for one.
-- **Read for meaning from a masked copy.** Write one with a script that masks tokens mixing letter classes and digits, plus whatever follows `password`/`key`/`secret`/`token`, then read that copy rather than the target. The mask over-matches (quoted phrases, camel-case names). That costs nothing, because it only hides words from you.
-- **Check secret survival by token set, not by reading.** Every token the mask hid in the original is a candidate. After each pass, print only how many candidates are missing and their original line numbers. Then inspect each miss with its value hidden (first three characters, length, and the words before it). Measured 17/11/2026: of 150 candidates, 14 went missing after the condense pass, and all 14 were mask false positives (quoted phrases), which the hidden-value view showed without printing a secret.
+- **Read for meaning from a masked copy.** Write one with a script that masks tokens mixing letter classes and digits, whatever follows `password`/`key`/`secret`/`token`, and every backticked table cell in the file (a login table's password column carries no keyword, and an all-letter passphrase or all-digit PIN mixes no classes), then read that copy rather than the target. The mask over-matches (quoted phrases, camel-case names). That costs nothing, because it only hides words from you.
+- **Check secret survival by token set, not by reading.** Every token the mask hid in the original is a candidate. After each pass, print only how many candidates are missing and their original line numbers. Then inspect each miss with its value hidden (first three characters, length, and the words before it; under 12 characters, the words before it only, since a prefix of a short secret is most of it). Measured 17/11/2026: of 150 candidates, 14 went missing after the condense pass, and all 14 were mask false positives (quoted phrases), which the hidden-value view showed without printing a secret.
 - **The masked reference is evidence until the last writer is done.** `/done`'s simplifier and reviewer write after Pass 3, so keep the masked copy and the check script until they return. Then delete every snapshot holding secrets, including any backup an agent made on its own (📖 `../../haiku/references/verifying.md` § Surplus writes). Deleting them at the end of Pass 3 left the post-simplifier state unchecked (17/11/2026).
+
+- **A reorganization never carries a credential out of a gitignored folder.** A split or move of a credential file lands in the same gitignored folder (`.claude-companions/local/`), and a moved paragraph is checked for secrets before it goes anywhere tracked.
+
+## Reorganization checks (step 6b) {#reorganization-checks}
+
+A move can make a rule unreachable as easily as it saves bytes, and no prose test catches that, so each move passes two checks before it lands:
+
+1. **A rule moves into a folder's `CLAUDE.md` only if every task that applies it touches that folder.** A rule that also fires from the repo root (a push, a test run, a question answered without opening a file) stays where it loads, or leaves a pointer there.
+2. **A rule leaving an always-loaded file leaves a 📖 pointer that names the moment it applies** ("before running or checking anything in the app, or answering where to log in"), so reachability can be grepped and a session asking the question in its own words still finds it.
+
+Report each move with its loading effect ("root drops 2 KB; loads when work touches `resources/js`"), which also makes a no-op reorganization visibly empty.
 
 ## When to pause between passes — the real case
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.463.19
+
+**A refresh's reorganization step now checks that a moved rule stays reachable, and credential masking covers what slipped through.** From `/done`'s review of 1.463.17 and 1.463.18.
+- `refresh-instructions/references/process-details.md` § Reorganization checks (new, cited from step 6b): a rule moves into a folder's `CLAUDE.md` only if every task that applies it touches that folder; a rule leaving an always-loaded file leaves a pointer naming its moment; each move is reported with its loading effect.
+- § A target that holds credentials: the mask also covers every backticked table cell (a login table's password column has no keyword); a missing token under 12 characters is inspected by its context only; a reorganization never carries a credential out of a gitignored folder.
+- The no-landing-figure rule is stated once, in `condense-claude-md`'s paragraph now labelled **Trigger** (was "Target", which read as a goal); `declared-budget.md` and `refresh-instructions` point to it.
+- `refresh-instructions` description and opening name the reorganization step and the CLAUDE.md-plus-companions unit; a stale "setting the condense target" phrase is gone. 4,995 tokens.
+
 ## 1.463.18
 
 **A refresh may reorganize files without asking, judged by what it changes about loading.** The user, mid-refresh: "File organization also allowed if needed no limit, as long as it can improve harnesses".
