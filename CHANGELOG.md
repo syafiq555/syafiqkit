@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.463.11
+
+**`/ship` sends a changed screen's captures as their own step, and shows a dialog screen-sized.** A GB Mart release note went out with no screenshots: the project names its post format, and the captures rule sat in the same item as "skip the formatting call", so skipping the call skipped the captures. Its first correction then sent an address sheet captured full-page, dimmed only halfway down.
+- `ship` Step 5: item 6 says a project-named format skips only the formatting call; item 8 carries the captures as a thread reply under the post, with a **Tell** for a sent post with none, and asks for a screen-sized capture of any dialog, sheet, sticky bar or toast.
+- `ship` `references/ship-deploy-verification.md` § Release Captures: why a full-page capture misdraws fixed elements.
+
 ## 1.463.10
 
 **`/ship`'s release-note fence says it was posted when it was.** The Output always labelled the note "copy everything inside the fence below", so after Step 5 had already sent it to the team's Chat space, the user read it as still to post and asked to send it again.
