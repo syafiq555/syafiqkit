@@ -203,6 +203,16 @@ are from the study of 97 Sites of the Day (October 2026).
   sentence carry the rest.
 - A statement can open a section as its heading only when it names what the section holds.
 
+**Three planes on a subject screen.** Where a first screen or app screen is about one object or
+person (a product, a portrait, a building), build it in three layers that overlap: the name as display
+type at the back, the subject in the middle, the action (price and the one button) on top. The overlap
+reads as depth with no shadow or glow. The subject stands behind or beside the letters and may cover
+only a small part of the word: the inspector fails large text a fifth or more hidden, so the word must
+still read. The action sits on the top layer on its own ground at full contrast. Geometry for the
+middle layer is in `imagery.md` ("Picture inside or behind display type", "Cut-out object on a flat
+field"). Not for text sections, lists or forms. (Local addition, from a short video by @ayoships,
+21/11/2026.)
+
 ## 6. Sections: carry the idea, vary the arrangement
 
 The most common failure in every score band is a distinctive first screen followed by stock blocks:

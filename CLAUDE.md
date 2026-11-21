@@ -86,6 +86,7 @@ These skills accept explicit user command:
 | `design-handoff` | Brief for someone ELSE to design a screen, layout decisions withheld. Designing it yourself is `uiux` |
 | `taste` | Build, redesign or polish a public-facing page, any verb, with a browser-inspected look-and-fix loop. Needs Node 22+ and Chrome |
 | `impeccable` | Only when the user names it (`/impeccable polish`, `audit`…). A bare "polish" or "critique" is `uiux`'s |
+| `emil-design-eng` · `emil-animate` · `emil-choreograph` · `emil-gestures` · `emil-mobile-native` · `emil-remove-animations` · `emil-review-animations` | Emil Kowalski's motion and interaction skills (MIT, vendored): what should move and how, building one animation, several moving together, drag and sheets, phone feel, cutting motion, a strict motion review. `uiux` calls them for motion inside a polish; `done` runs the reviewer when a diff adds motion. `emil-pick-ui-library` is support only (read by path, not invoked) |
 | `gchat-format` | Document posted to a Chat thread. A message to a named person is `casual-message` |
 | `casual-message` | Casual 1:1 message in the sender's own voice. A document for Chat is `gchat-format` |
 | `continue-session` | Copy-paste prompt that starts a fresh session: task doc path, next goal, uncommitted state |
