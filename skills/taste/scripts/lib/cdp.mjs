@@ -169,8 +169,9 @@ export class Browser {
     return () => this.listeners.get(k)?.delete(fn);
   }
 
-  // Signs every later page in: takes a Playwright storage-state file's `cookies` (the shape an e2e
-  // suite's saved login holds), so a screen behind a login is measured as its user sees it.
+  // Signs every later page in from a Playwright storage-state file (the shape an e2e suite's saved
+  // login holds): its `cookies`, and its `origins[].localStorage`, which a single-page app holding a
+  // bearer token in localStorage needs, since cookies alone open such an app at its login page.
   async useStorageState(state) {
     const cookies = (state?.cookies || []).map((c) => {
       const cookie = { name: c.name, value: c.value, domain: c.domain, path: c.path || '/', httpOnly: !!c.httpOnly, secure: !!c.secure };
@@ -179,7 +180,10 @@ export class Browser {
       return cookie;
     });
     if (cookies.length) await this.send('Storage.setCookies', { cookies });
-    return cookies.length;
+    this.storageOrigins = (state?.origins || [])
+      .filter((o) => o?.origin && Array.isArray(o.localStorage) && o.localStorage.length)
+      .map((o) => ({ origin: o.origin, items: o.localStorage.map((i) => [i.name, i.value]) }));
+    return cookies.length + this.storageOrigins.reduce((n, o) => n + o.items.length, 0);
   }
 
   async newPage({ width = 1440, height = 900, dsf = 1, mobile = false, reducedMotion = false, scheme = 'light' } = {}) {
@@ -193,6 +197,10 @@ export class Browser {
     const features = [{ name: 'prefers-color-scheme', value: scheme }];
     if (reducedMotion) features.push({ name: 'prefers-reduced-motion', value: 'reduce' });
     await p.send('Emulation.setEmulatedMedia', { features });
+    if (this.storageOrigins?.length) {
+      const source = `(() => { const all = ${JSON.stringify(this.storageOrigins)}; const hit = all.find((o) => o.origin === location.origin); if (!hit) return; try { for (const [k, v] of hit.items) if (localStorage.getItem(k) === null) localStorage.setItem(k, v); } catch (e) {} })();`;
+      await p.send('Page.addScriptToEvaluateOnNewDocument', { source });
+    }
     return p;
   }
 

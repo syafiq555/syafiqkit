@@ -273,8 +273,10 @@ rule only.
 
 **Redesign, restyle or review.** Record the before first: `inspect.mjs <url> --out .taste-skill/before`
 (with `--app` for an app screen), and lint the source. A screen behind a login takes `--storage-state <file>`,
-a Playwright storage-state file such as the project's e2e saved login; without it the inspector measures
-the login page and reports that as the screen. A review stops after the critique. A redesign keeps
+a Playwright storage-state file such as the project's e2e saved login (its cookies and its localStorage both
+load, so an app that keeps its token in localStorage opens signed in); without it the inspector measures
+the login page and reports that as the screen. Open one screenshot before trusting the findings: a modal
+or a login page in the shot means the findings describe that, not the screen. A review stops after the critique. A redesign keeps
 the stack, content and what works, then proceeds from step 2 with the real content; prove it by inspecting
 into `.taste-skill/after` and comparing at every width. 📖 references/run.md#redesign
 

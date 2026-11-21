@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.464.2
+
+**Score loops can now run a kept judge and a fresh judge together, and judges send fixes while they review; the `taste` inspector measures pages behind a login; `/done` researches every product-behaviour question.**
+- **`score-loop`:** it now describes running the retained judge (resumed each round to re-check its own list) beside one fresh judge every round, with both scores and their mean reported. On a 12-round design run, fresh-only judges sat at 29–30/40 while each undid an earlier fix. With the pair, the kept judge went 31 to 38. A fresh judge's ask that reverses a settled round goes to the user as a call, not into the build. Judges can also message the main session with each improvement as they find it, but only an agent type with `ToolSearch` and `SendMessage` can; a generated `product-reviewer` reports at the end instead.
+- **`taste`:** its inspector now loads a login file's localStorage as well as its cookies, so a single-page app that keeps its session token there is measured signed in rather than at its login page. Open one screenshot before trusting the findings.
+- **`/done`:** it researches any reviewer question about how the product behaves (what moves on its own, what a switch keeps, which fields a form offers), not only who-can-do questions, before asking.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.464.1
 
 **`/done`'s motion review also runs when the work is already committed, and new skills take their trigger words from how you actually ask.** `done`'s Motion step searched only uncommitted changes, so a session that committed before wrap-up reported "no motion in diff" for a transition it had added. It now searches the session's commits too, and the Motion row is owed on every run ("no motion in diff" when there is none). `uiux` now says most of Emil's skills only greet when called without a task, not just one. `skill-creator` takes a new skill's trigger words from your past requests: a skill keyed on words you never type, an outside one copied in whole included, only runs if a skill you already use calls it. The skill-editing checklist gains how to test a routing change in a fresh session, including that a `/done` test must make its own change first. Prose in `uiux`, `done` and `taste` tightened, no rule removed. Update with `claude plugin update syafiqkit@syafiqkit`.

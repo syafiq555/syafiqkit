@@ -85,7 +85,7 @@ const browser = await Browser.launch();
 if (storageStatePath) {
   if (!existsSync(storageStatePath)) { console.error('No such storage state: ' + storageStatePath); process.exit(2); }
   const signedIn = await browser.useStorageState(JSON.parse(readFileSync(storageStatePath, 'utf8')));
-  if (!signedIn) console.error('Storage state ' + storageStatePath + ' holds no cookies; the page opens signed out.');
+  if (!signedIn) console.error('Storage state ' + storageStatePath + ' holds no cookies or localStorage; the page opens signed out.');
 }
 const helper = await browser.newPage({ width: 1600, height: 1000, scheme });
 const report = { url: server ? target : url, at: new Date().toISOString(), scheme, allow, viewports: [], findings: [], images: [] };
