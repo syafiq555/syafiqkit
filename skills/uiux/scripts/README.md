@@ -31,6 +31,14 @@ Renders the page at each width (default 320, 375, 768, 1280) in each colour sche
 
 Known limits: click listeners are seen only when attached directly (delegated React or jQuery handlers are invisible, so a clickable `div` there is caught only by `role`, `onclick` or framework attributes); a gradient or picture backdrop is reported as "cannot measure" and never as a pass; a bottom-of-page cover check needs a page that actually scrolls.
 
+## capture-references.mjs
+
+```
+node capture-references.mjs <name=url | url> ... [--product] [--out DIR] [--widths 390,1280] [--scroll 800] [--wait 6000]
+```
+
+Screenshots other products' live pages for the case-study leg of research, because a text fetch of a shop or admin built in the browser returns only its title. Per site and width it writes `<name>-<width>.png` (and `-scroll.png` with `--scroll`), sending a phone or desktop user agent, pressing Escape and clearing cookie, newsletter, postcode and app pop-ups (buttons such as "Accept" or "No thanks", then any fixed layer covering most of the screen). `--product` turns each home URL into one of its product pages: a Shopify shop's `/products.json` first, else the first home-page link shaped like a product (`/products/`, `/product/`, `/p/`, Lazada and Shopee item ids). `index.html` in `--out` shows every shot side by side. A bot wall (Cloudflare "Just a moment", "Access Denied") is captured as such: report the site as unreadable, never describe it from memory.
+
 ## probe-design-system.mjs
 
 ```

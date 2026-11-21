@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.466.0
+
+**The UI skill can now screenshot other shops and apps for design research, and looks past your own category by default.**
+- New `uiux/scripts/capture-references.mjs` opens live pages at phone and desktop width, clears cookie, postcode and sign-up pop-ups, can find a product page from a shop's home page, and writes a side-by-side contact sheet. Research agents reading shop pages as text got only a title, so layout questions (cards per row, button shape) went unanswered.
+- A redesign's research now includes strong brands and other categories with the same page job from the first round, instead of only the market's same-category shops, which show the baseline the current screen already matches.
+- A style deal that returns the look the app already uses is redealt rather than shown as an option.
+- The go-live check now flags markup for retired Google features (FAQ rich results, May 2026; sitelinks search box, 2024) and notes that AI Overviews need no special markup.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.465.2
 
 **taste's finish gate now runs when Node comes from Herd, nvm or Homebrew.**
