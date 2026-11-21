@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.464.5
+
+**Posts sent through the Chat tools put points as bullets under a heading instead of a blank line after every line.**
+- **`gchat-format` and the `gchat` send and edit tools:** a post sent through the API keeps separate points apart as `- ` items straight under their bold heading, with blank lines only between sections. A blank line after every plain line also kept them apart, but left a column of white space down the post.
+
+Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.
+
 ## 1.464.4
 
 **A short reply drafted by `casual-message` is now one paragraph, not split into bubbles.**
