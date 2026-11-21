@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.464.7
+
+**Asking Claude to study a tool and judge whether it helps your work now gets a real recommendation.**
+- You get what the tool would change for you (gains, costs, a recommendation), not only a check of whether an old blocker is gone.
+- A vendor's docs page is checked against its release notes, since the page can be several releases behind.
+- Also fixes the plugin-learnings step stalling in plan mode.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.464.6
 
 **The bullets-under-a-heading rule from 1.464.5 now applies only to multi-point posts.**

@@ -27,7 +27,7 @@ Last updated: 2026-11-21 (row 43, 1.463.44, not yet seen live)
 - Host: `hooks/src/mod.js` loads and follows its imports (folders `core`, `docs`, `git`, `prompt`, `views`, `answers`); every `$` call goes through `core/api.js`. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
 - Seen live: Desktop pages worked 2026-10-11 (overview, All diffs, file page, gallery). Most later builds are unseen; the ⏳ marks in Task Status say which. Not yet used by colleagues.
 - Tests: `claude plugin test .` from the repo root (`hooks/register.test.ts`); validate: `claude plugin validate .` (`--strict` fails on three standing warnings, so judge by the plain run).
-- Off switch: `SYAFIQKIT_MOD=0` keeps the skills and stops what the mod draws and runs, but its hooks still subscribe at load, so Code Mode (which refuses a mod with a `tool.call` hook) probably still won't start; `claude --safe-mode` drops everything (`decisions/design-calls.md` § D-code-mode-wait).
+- Off switch: `SYAFIQKIT_MOD=0` keeps the skills and stops what the mod draws and runs, but its hooks still subscribe at load; `claude --safe-mode` drops everything. Since Claude Code 2.1.327 the mod no longer stops Code Mode starting; the owner left Code Mode off anyway (`decisions/design-calls.md` § D-code-mode-not-now).
 
 **Gotchas that will trip you**:
 - Mods need Claude Code 2.1.287 or later (Desktop 2.1.286). Nothing draws in the VS Code panel, `claude -p`, a cloud session or on the phone (Remote Control draws only in the terminal on the Mac). Desktop draws only in a local session started there (see the Desktop row under Critical Gotchas).
@@ -136,7 +136,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 ## Key Technical Decisions
 
-`decisions/design-calls.md` holds the 39 calls, each with its reason and whether it was the user's. Five are marked removed in 1.414.0 (the handoff storage, claim and supersede calls, and two Resume calls). Topics, to find a call by name: wrap-up chips, mod placement, main-doc marker, button-vs-confirm, docs list layout, one bundled source tree, `/changes` toolbar, orders, discard, gallery, `sips` copies, windowing, diff caching, `Doc` button, Desktop colours and tokenizer, Desktop design, tree checks, multi-repo, CLAUDE.md chain, doc list rows, `isPromptCovered`, Code Mode.
+`decisions/design-calls.md` holds the 41 calls, each with its reason and whether it was the user's. Five are marked removed in 1.414.0 (the handoff storage, claim and supersede calls, and two Resume calls). Topics, to find a call by name: wrap-up chips, mod placement, main-doc marker, button-vs-confirm, docs list layout, one bundled source tree, `/changes` toolbar, orders, discard, gallery, `sips` copies, windowing, diff caching, `Doc` button, Desktop colours and tokenizer, Desktop design, tree checks, multi-repo, CLAUDE.md chain, doc list rows, `isPromptCovered`, Code Mode.
 
 ---
 
@@ -257,7 +257,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 - [ ] Dart and Vue have no Claude Code language-server plugin (only `php-lsp` and `typescript-lsp` are installed), though `dart` and `vue-language-server` exist on this machine
 
 ### Deferred / accepted
-- [ ] Code Mode beside the mod: the owner chose to wait (16/11/2026). When anthropics/claude-code#110347 (observe-only tool hooks in mods) ships, rework only the `show_image` `tool.call` handler, then test `CLAUDE_CODE_EXPERIMENTAL_CODE_MODE=1 claude` (`decisions/design-calls.md` § D-code-mode-wait)
+- [ ] Code Mode: not adopted (22/11/2026). Revisit if it gains Remote Control or the Desktop app; before relying on it, test that a Gmail or Chat send from a script still prompts under `bypassPermissions` (`decisions/design-calls.md` § D-code-mode-not-now)
 - [ ] Product review, 2026-10-19: answer pictures are macOS-first by the user's call; a colleague with both cc-intelligent-ui and syafiqkit sees ours stand aside silently, and the README should say so.
 - [ ] One `git diff` for many paths per batch, and backing the poll off while a diff load runs, were planned for 1.386.0 and not built; measure on a 200+ file tree first
 - [ ] Narrow layout (under 100 columns) has no toolbar and no tree-plus-diff: a file press opens its own page with Stage/Discard; add the toolbar there only if narrow use is real
