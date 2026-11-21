@@ -8,6 +8,8 @@ tools:
   - Bash
   - Skill  # for /read-summary task-doc discovery (read-only)
   - Agent  # lets this agent spawn Explore agents for multi-target/multi-angle sweeps (depth-3 cap applies)
+  - ToolSearch  # loads SendMessage when a brief asks for findings mid-review
+  - SendMessage  # a score-loop judge messages each fix to main as it finds it
   # NOTE: read-only by design — do NOT add Write/Edit. NO getDiagnostics (correctness is the code-reviewer's lane).
   # NOTE: no LSP — this repo is markdown-only (SKILL.md/commands), no code symbols to navigate
 disallowedTools: [Write, Edit]

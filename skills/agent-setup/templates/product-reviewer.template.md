@@ -9,6 +9,8 @@ tools:
   - Bash
   - Skill  # /read-summary for task-doc discovery
   - Agent  # Explore agents only — you recommend, never implement
+  - ToolSearch  # loads SendMessage when a brief asks for findings mid-review
+  - SendMessage  # a score-loop judge messages each fix to main as it finds it
 disallowedTools: [Write, Edit]
 model: sonnet
 color: purple

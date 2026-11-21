@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.464.3
+
+**Score loops report the kept judge and the fresh judge as two lines instead of averaging them, and fresh judges stop undoing settled fixes.**
+- **`score-loop`:** with a kept and a fresh judge, the report shows two lines: the kept judge's score with how many of its items closed (progress), and the fresh judge's score with how many items are new (discovery). A one-point move counts as no change, since the same judge gives the same verdict only about 61% of the time. With both judges, your stop target is met only when both scores reach it in the same round. The kept judge never sees the builder's "fixed" list, and a fresh judge that finds an item the kept judge closed is reported as drift. Fresh judges get a settled list (criterion, decision, why, date, who decided, when to revisit); an ask that names no rubric criterion is a `Nit`, and one that undoes a settled entry is a `reversal` for you to decide. Neither costs points. The settled list holds only your decisions, never fixes a judge accepted. Design and storefront rubrics now split each criterion into yes/no checks, which judges agree on far more, and the score is still shown on the scale you asked for (`16/20 (24 of 30 checks)`); documents and everything else keep 0/1/2 with an example at every level. The judge-panel study the skill quoted used three model families, so the skill no longer implies that extra Claude tiers add the same benefit.
+- **`agent-setup`:** the `product-reviewer` template now carries `ToolSearch` and `SendMessage`, so a generated reviewer can send fixes mid-review in a score loop. It still cannot edit files. Re-run `agent-setup` to pick this up.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.464.2
 
 **Score loops can now run a kept judge and a fresh judge together, and judges send fixes while they review; the `taste` inspector measures pages behind a login; `/done` researches every product-behaviour question.**

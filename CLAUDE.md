@@ -59,7 +59,7 @@ These skills accept explicit user command:
 | `task-summary` | Create/update task summaries with full machinery |
 | `ship` | End-to-end release: commit → changelog → push → CI verify → release note |
 | `plan-worklist` | Pre-scoped list (findings, backlog, ClickUp paste) → `product-reviewer` sizes each → present the plan, don't build |
-| `score-loop` | "Score it out of 20 and keep improving": frozen rubric, fresh judge per round. A single review is `done`/`uiux`/`impeccable` |
+| `score-loop` | "Score it out of 20 and keep improving": frozen rubric, fresh judge per round (or a kept judge beside a fresh one, scored separately). A single review is `done`/`uiux`/`impeccable` |
 | `posthog-replay-frames` | "What did this user see", "check the replay": one person's PostHog events, then screenshots of the shared replay at the moments they point to |
 | `done` | Post-task cleanup orchestrator |
 | `quick-done` | Fast cleanup for sessions known to be small and low-risk |

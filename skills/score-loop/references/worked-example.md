@@ -25,3 +25,9 @@ A colleague's run (reported 05/11/2026) on a 40-page user manual PDF. Judge pers
 **Claims checked against the source.** Before acting, the session caught a judge's wrong UI direction (it described a "side dot" where the app has a bottom handle), a warning from the screen capture tool read as a real app error, and a builder's claim about autosave that nothing had shown.
 
 **One builder across rounds.** Reusing the same builder kept its file context from round to round; its report was still checked against the rendered PDF before each new score.
+
+# Worked example: a design run with a retained and a fresh judge
+
+A 12-round Autorentic design run (21/11/2026), scored out of 40. Fresh-only judges sat at 29–30 for seven rounds and reversed each other's asks: a button moved up, then down; "(optional)" labels removed, then asked back. The orchestrator kept a "settled across rounds" list by hand for each fresh brief.
+
+**The pair.** With a retained judge beside one fresh judge, the retained line went 31, 33, 35, 37, 38 while fresh judges stayed near 31 by finding new small points. The mean, about 34.5, understated progress, which is why the skill now reports the two lines separately. The project's generated `product-reviewer` had no `ToolSearch` or `SendMessage`, so it could not message fixes mid-review; the `agent-setup` template now grants both.

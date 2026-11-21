@@ -8,7 +8,7 @@ Related:
   - ../agent-architecture/current.md (sibling feature — dispatch and delegation; issue #27 closed from here)
   - ../doc-condensation/current.md (sibling feature — the pointer-defers-a-rule finding behind the deferred `skill-creator` item)
   - ../motion-clip/current.md (a skill created 2026-10-15 from one real run, then generalised after review)
-Last updated: 06/11/2026
+Last updated: 21/11/2026
 -->
 
 # Plugin Maintenance — Skill Authoring
@@ -18,7 +18,7 @@ Last updated: 06/11/2026
 **Next action**: Trigger-test both new skills in a session started AFTER 2026-09-17 — say "reply to syazwan, make it like my standard whatsapp message" and confirm `casual-message` wins over `gchat-format`; say "let's continue" and confirm `tackle` wins over `continue-session`. This cannot be done in the authoring session — a mid-session reload registers the name but not the description (first Gotcha row).
 **Current state**: Live. `134631f` on `origin/master`; `git show origin/master:.claude-plugin/plugin.json` reads 1.291.0 and both manifests agree there. One release covering twelve versions (1.280.0–1.291.0) accumulated across several sessions. Consumers pick it up with `claude plugin update syafiqkit@syafiqkit`.
 **Success looks like**: Each of the four phrasings routes to the intended skill.
-**Also unblocked**: research how to improve `score-loop`'s judge mechanism (Next Steps § Score-loop judges). Research first, then a proposal to the user before any edit to the skill.
+**Also**: `score-loop`'s judge changes are built as 1.464.3 (Key Technical Decisions); the first real loop after it is their test.
 
 ## Overview
 
@@ -51,6 +51,8 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 **D70 — the hidden-overlap check moved to where the skill is drafted, and a second copy went to `update-plugin`.** The rule was correct and unreached: `skill-creator` line 16 prescribed grepping your own feature's vocabulary, and the caveat that a sibling claims the *category* word instead sat in `references/trigger-testing.md`, cited at line 46 — after "Registering it". A session finds it only by opening the reference out of order, which is how the `tackle` overlap was caught here, late. The grep isn't just insufficient, it is actively misleading: it returns clean and reads as a completed check. Fixed at line 16 where the act happens, with the reference kept for the rest. The sweep for who else owns the mechanism found `update-plugin` **maintains** descriptions with zero overlap coverage — a session widening a trigger there can collide exactly the same way — so its Step 5 now carries it too, including that a shared boundary belongs in both descriptions.
 
 **`score-loop` keeps the fresh judge as default and offers a retained one, rather than switching.** #32's run plateaued at 8–9/10 for six rounds with fresh judges (each docked a different handful), then reached 10 in five rounds with one judge resumed by agent ID and told to re-check its own list. Fresh stays the default because independence is the reason the loop exists; the retained judge needs the user's yes (an unattended run stays fresh), is recorded in the task doc with its agent ID, and the switch round is a new baseline. Plateau and a suggested cap became report-and-ask, because the run's user wanted "stop at 10" and extended the cap 5 → 10 → 15 past a plateau stop the session had added; a cap the user sets still ends the loop. A second user (21/11/2026) ran the retained judge and a fresh judge together every round "so that it wont be bias", and asked judges to message fixes as they found them ("critique meant to improve too not scoring only"); `score-loop` now describes that pair and the messaging brief, keeping the user's-yes rule, because the retained line converged (31 to 38/40) while the fresh line kept finding new points.
+
+**`score-loop` judges, 1.464.3 (researched 21/11/2026, Syafiq approved the proposal).** Two judges are reported separately, never as a mean: the retained score is progress (with its items closed), the fresh score is discovery (with its new items), and a one-point move is noise (same verdict on only 61.3% of three runs, arxiv.org/html/2510.27106; about 40% flips on close calls, arxiv.org/abs/2609.33044). The retained judge never sees the builder's fix list, since judges are "substantially reversible under targeted post-decision challenge" (arxiv.org/abs/2606.05384). The drift check, a fresh judge finding an item the retained judge closed, is our own inference and labelled so. Settled-list fields follow Nygard's decision records, and an ask that names no criterion is a `Nit`, after Google's review guide. Rubric shape: Syafiq chose "Offer both", yes/no checks for UI and design runs (CheckEval, +0.45 agreement, arxiv.org/abs/2403.18771) and 0/1/2 with an example at every level for documents (a one-level example shifts unrelated scores, arxiv.org/html/2506.22316v4). The Verga panel was three model families and nothing tests a Claude-tier panel, so no multi-tier jury. The `product-reviewer` template gained `ToolSearch` and `SendMessage` and stays read-only. Three `/done` review questions were answered by Syafiq the same day: with both judges, a stop target is met only when **both** scores reach it in the same round (the retained line alone converges first and is the likeliest to be lenient); a yes/no design rubric is shown on the scale the user named, with the raw count beside it (`16/20 (24 of 30 checks)`); and the settled list holds **only the user's decisions**, never a fix the retained judge accepted, since an open fix is what the drift check reads. You (the orchestrator) run the drift check after both reports; a confirmed case reopens the item, and a second one goes to the user. An unattended run holds reversals unbuilt and lists them in the final report.
 
 **No `ExitPlanMode` hook for a plan missing its research pass (Syafiq 21/11/2026).** The rule that a build plan needs per-item research, and that plan mode does not cancel it, sits in `read-summary` and had been reworded seven times when an eighth plan reached the user without research. A warning-only hook on `ExitPlanMode` was offered and declined, so the remedy stays the written rule plus the user's own check; don't offer the hook again without a new reason.
 
@@ -87,17 +89,12 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 - The orchestrator triaged reversals by hand with a "settled across rounds" list in each fresh brief.
 - Agents generated from the `product-reviewer` template have no `ToolSearch`/`SendMessage`, so they could not message mid-run.
 
-- [ ] 🟡 Research, with haiku agents and a URL per claim, then propose to the user before editing `score-loop`:
-  - How to combine two judges' scores (mean, retained line as progress, or report both).
-  - How to stop fresh-judge reversals: the settled-list format, calibration anchors, rubric levels with worked examples.
-  - Juries of diverse models: Verga et al., arxiv.org/abs/2404.18796, says a panel "outperforms a single large judge, exhibits less intra-model bias".
-  - Measuring and countering a retained judge's drift toward leniency.
-  - Whether `agent-setup`'s `product-reviewer` template should gain `ToolSearch` and `SendMessage`.
+- [x] Researched with four haiku agents (21/11/2026), proposal approved, built as 1.464.3 (decision under Key Technical Decisions). Not yet tested on a real loop: the next score-loop run should confirm the two-line report and the drift check read clearly.
 
 ### Deferred / accepted
 
 - [ ] 🟡 `done`'s one-message dispatch rule failed a seventh time this session (reviewer sent alone, then two). Count corrected in the skill; deliberately **not** reworded — 1.288.0 ruled that a further restatement makes it less followed, and the sixth and seventh both came after the paragraph was already moved to the dispatch. The next person changes the instrument or accepts it as a model-side lapse
 
-## Last Session (06/11/2026)
+## Last Session (21/11/2026)
 
-Resolved a colleague's issues #32 (`score-loop`) and #33 (`casual-message`) in 1.420.0 (54a7a59), both closed with a comment; decisions above. The checkout carried another session's uncommitted `setup-tracker` and `understanding-guide` work and an unreleased 1.418.0 changelog entry, so only this session's hunks of CHANGELOG.md, CLAUDE.md and README.md were staged (zero-context patch applied to the index). A `/done` review-and-simplify pass after the push shipped as 1.420.1 (density, and scoping the bubble defaults to short peer replies).
+Researched `score-loop`'s judges with four haiku agents (score combining, reversals, juries, leniency drift). Spot checks found every relied-on quote on its page. Built and shipped 1.464.3 from the approved proposal (decision above). The `/done` reviewers raised three questions, which Syafiq answered. The skill-upgrade score pass ran a haiku judge for two rounds, scoring 1/5 then 4/5, with the last point fixed after. A fresh headless haiku session given a round-4 scenario applied the new rules: two separate scores, no stop with only one at 80%, and the item found again checked first. That run also exposed a clash about where a drift note goes, which is now fixed. `tasks/plugin-maintenance/mod/current.md` carries another session's edit and was left alone.
