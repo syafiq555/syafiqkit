@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.464.4
+
+**A short reply drafted by `casual-message` is now one paragraph, not split into bubbles.**
+- **`casual-message`:** a reply of up to about three sentences goes as one paragraph, even when it acknowledges one thing and asks another. A second bubble, after a blank line, is only for a longer reply whose next topic stands apart. The Malay defaults say the same.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.464.3
 
 **Score loops report the kept judge and the fresh judge as two lines instead of averaging them, and fresh judges stop undoing settled fixes.**
