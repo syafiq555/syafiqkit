@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.464.6
+
+**The bullets-under-a-heading rule from 1.464.5 now applies only to multi-point posts.**
+- **`gchat-format` and the `gchat` send and edit tools:** a short reply stays one paragraph, prose stays prose, and a Before/Now pair or a numbered list keeps a blank line between its lines. Only a post with headings and several points under each uses `- ` items.
+
+Update with `claude plugin update syafiqkit@syafiqkit`, then `/mcp reconnect gchat`.
+
 ## 1.464.5
 
 **Posts sent through the Chat tools put points as bullets under a heading instead of a blank line after every line.**
