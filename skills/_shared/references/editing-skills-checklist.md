@@ -138,6 +138,8 @@ After rewriting a skill or command:
 
 6. **Re-read your own new prose**: A rewrite arguing against rigid imperatives while opening with bolded ALL-CAPS has undercut its own point. Apply the same test you ran on the target.
 
+7. **Test a routing change in a fresh headless session, and read its tool calls**: `claude -p "<the user's own words>" --model sonnet --output-format stream-json --verbose` in a throwaway worktree, then list its `Skill` calls and plugin `Read`s from the stream; the reply text describes intent. Phrase the prompt as the user actually asks (their transcripts), not with the skill's trigger word. A wrap-up skill under test must make its change in the same session: `/done` wraps up only the session's own work, so on a diff prepared beforehand it reports nothing to wrap up and tests nothing (21/11/2026). With the version unchanged, copy edited files into the plugin cache before a rerun, or the session loads the old copy.
+
 ## Why the rules are shaped this way {#authoring-checklist-incidents}
 
 The measured cases behind the authoring rules, one subsection per topic: what went wrong, how it was found, and what it cost.

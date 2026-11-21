@@ -1,14 +1,14 @@
 # Composition moves for a flat or default screen {#composition-moves}
 
-Three moves for a screen that is correct and still reads flat, generic or "default": a product page, a profile, a hero, an onboarding or empty-state screen, a booking or event detail. Each is a judgement, not a rule: it spends the screen's one moment of distinctiveness (see The Tension in `../SKILL.md`), so it belongs where the screen's job is to make one thing land, never on the screens people work in all day.
+Three moves for a screen that is correct and still reads flat or "default": a product page, a profile, a hero, an onboarding or empty-state screen, a booking or event detail. Each is a judgement, not a rule: it spends the screen's one moment of distinctiveness (see The Tension in `../SKILL.md`), so it belongs where the screen's job is to make one thing land, never on screens people work in all day.
 
-Source: a short video by the creator @ayoships (21/11/2026 intake), showing each move as a before-and-after on phone screens (a headphone product page, a church service page, a coach profile). The numbers below are not from the video; they point to `taste`'s measured references.
+Source: a short video by @ayoships (21/11/2026 intake), showing each move before and after on phone screens (a headphone product page, a church service page, a coach profile). The numbers below are not from the video; they point to `taste`'s measured references.
 
 ## 1. Three planes, overlapping {#three-planes}
 
-**The move:** build the screen in three layers. At the back, one large word set as display type (the product name, the person's name, the day); in the middle, the subject (the product cut-out, the portrait, the building); on top, the actions (price, the main button, the options). Let the layers overlap a little: the subject rises into the back word, the action bar sits over the subject's lower edge. The overlap is what makes the screen read deep instead of stacked boxes.
+**The move:** build the screen in three layers. At the back, one large word set as display type (the product name, the person's name, the day); in the middle, the subject (the product cut-out, the portrait, the building); on top, the actions (price, the main button, the options). Let the layers overlap a little: the subject rises into the back word, the action bar sits over the subject's lower edge. The overlap makes the screen read deep instead of as stacked boxes.
 
-**Keep the back word readable.** The subject may stand behind the letters, touch the word's edge, or cover a small part of it, never so much that the word stops reading: `taste`'s inspector fails large text a fifth or more hidden, and the same line holds here. The actions on top always stay on the top layer, with their own ground and full contrast.
+**Keep the back word readable.** The subject may stand behind the letters, touch the word's edge, or cover a small part of it, never so much that the word stops reading: `taste`'s inspector fails large text a fifth or more hidden, and the same line holds here. The actions stay on the top layer, on their own ground at full contrast.
 
 **How to build it:** z-order and position (`position: relative` with a stacking order, negative margins or transforms), not shadows or glows; depth comes from overlap and size, so no drop shadow is added to a cut-out. On a phone, keep the overlap and check the word still reads at the screen's width (`taste` keeps display type at about 15vw on a phone).
 
