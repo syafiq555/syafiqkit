@@ -18,6 +18,7 @@ Last updated: 06/11/2026
 **Next action**: Trigger-test both new skills in a session started AFTER 2026-09-17 — say "reply to syazwan, make it like my standard whatsapp message" and confirm `casual-message` wins over `gchat-format`; say "let's continue" and confirm `tackle` wins over `continue-session`. This cannot be done in the authoring session — a mid-session reload registers the name but not the description (first Gotcha row).
 **Current state**: Live. `134631f` on `origin/master`; `git show origin/master:.claude-plugin/plugin.json` reads 1.291.0 and both manifests agree there. One release covering twelve versions (1.280.0–1.291.0) accumulated across several sessions. Consumers pick it up with `claude plugin update syafiqkit@syafiqkit`.
 **Success looks like**: Each of the four phrasings routes to the intended skill.
+**Also unblocked**: research how to improve `score-loop`'s judge mechanism (Next Steps § Score-loop judges). Research first, then a proposal to the user before any edit to the skill.
 
 ## Overview
 
@@ -77,6 +78,21 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 ### Blocking issue closure
 
 - [ ] 🔴 Trigger-test all four phrasings in a fresh session (see Quick Start) — the one check that settles the overlap risk
+
+### Score-loop judges
+
+`score-loop` (1.464.2) runs a retained judge beside one fresh judge each round, with judges messaging fixes to `main` mid-review. Evidence from a 12-round Autorentic design run (21/11/2026):
+- Fresh-only judges sat at 29–30/40 for 7 rounds and reversed each other's asks (a button moved up, then down; "(optional)" labels removed, then asked back).
+- With the pair, the retained judge went 31, 33, 35, 37, 38 while fresh judges stayed near 31, so the mean (~34.5) understated progress.
+- The orchestrator triaged reversals by hand with a "settled across rounds" list in each fresh brief.
+- Agents generated from the `product-reviewer` template have no `ToolSearch`/`SendMessage`, so they could not message mid-run.
+
+- [ ] 🟡 Research, with haiku agents and a URL per claim, then propose to the user before editing `score-loop`:
+  - How to combine two judges' scores (mean, retained line as progress, or report both).
+  - How to stop fresh-judge reversals: the settled-list format, calibration anchors, rubric levels with worked examples.
+  - Juries of diverse models: Verga et al., arxiv.org/abs/2404.18796, says a panel "outperforms a single large judge, exhibits less intra-model bias".
+  - Measuring and countering a retained judge's drift toward leniency.
+  - Whether `agent-setup`'s `product-reviewer` template should gain `ToolSearch` and `SendMessage`.
 
 ### Deferred / accepted
 
