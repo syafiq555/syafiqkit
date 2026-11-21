@@ -24,6 +24,8 @@ Form a platform hypothesis: `web`, `ios`, `android`, or `adaptive` (one product 
 
 ## Step 3: Interview for product truth
 
+**Never ask the person to sign in.** This vendored copy does not use an Impeccable account: ignore an `ACCOUNT:` line in `impeccable context` and say nothing about `login`.
+
 Ask the user directly to clarify what you cannot infer. Ask only about material gaps the repository and original request do not answer with strong evidence.
 
 Use the structured question tool when available; otherwise ask and wait. Keep rounds to at most three focused questions and require one real answer or approval round before writing a new PRODUCT.md. Confirm inferences.

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.465.0
+
+**UI work now ends in fixed screens you can see, checked by a measuring script rather than by eye.**
+- **A design pass fixes, then shows.** "Use the design skills", "polish" or a screenshot with a complaint now means the problems get fixed in the same pass, and you get before and after pictures. Only a change to who can see or do something, or a new look you haven't picked, comes back as a question. `/done`'s design review works the same way.
+- **New screen check (`uiux`'s `check-render`).** Runs on every changed screen at 320, 375, 768 and 1280 px, and in dark mode too where the page has one. It measures what was getting missed: faint text on its real background, clipped or cut-off text, overlapping buttons, tap targets that are too small, buttons without a pointer cursor, cards in a row with uneven heights, a card inside a card, sideways scroll and em dashes.
+- **New design probe.** Before styling inside an existing app, Claude lists the app's real tokens and shared components (with how often each is used) and where raw colours and inline styles have crept in. If the repo has no lint rule against raw values, it asks once whether to add one and remembers the answer.
+- **`impeccable` updated to 4.10.0.** Adds `foundations`, `shot` (desktop and phone captures) and `doctor`, a design-drift report, and a new critique rubric.
+- **`taste` updated to 2.5.1.** Rebuilt around company and product websites, with licensed stand-in photos, real logos and a finish gate that checks layout, copy and phone views before the page is reported done. Screens inside an app now go to `uiux`, which keeps the older app-screen tools (the direction dealer and app inspector) in `uiux/app-kit/`.
+- **Signed-in screens and missing servers are handled.** The screen check stops if a page bounced it to a login screen (so it never grades the login page by mistake). Claude finds or starts the project's local URL first and notes how to run and sign in to the app in that project's `CLAUDE.md`. Without Node 22 or Chrome it says the pass was not measured, rather than skipping quietly.
+- Builders re-run only the tests for the files they touched; the full suite runs once at the end.
+
+Update with `claude plugin update syafiqkit@syafiqkit`. A `taste` direction sheet made before this version (`.taste-skill/direction.json`) is from the old pipeline; deal again.
+
 ## 1.464.7
 
 **Asking Claude to study a tool and judge whether it helps your work now gets a real recommendation.**

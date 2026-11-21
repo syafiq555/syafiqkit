@@ -41,7 +41,7 @@
 | Review | [issues found + fixed, or ✅ clean; docs-only ALSO appends referential-integrity; ops-only = live read-back] |
 | Simplify | [changes made, or ✅ none needed] |
 | Product | [✅ journeys complete, or → question] |
-| Design | score [N/M (P%), merged] · uiux: [screens and widths graded] · impeccable: [critique findings + fixes] · taste: [review-path findings, or "not run: <reason>"] · [top merged findings + fixes]; omit the row only when nothing a person sees changed |
+| Design | score [before → after, N/M merged] · check-render: [FAIL count before → after, or "not run: <reason>"] · uiux: [screens and widths graded] · impeccable: [critique findings + fixes] · taste: [review-path findings, or "not run: <reason>"] · changed: [finding → fix, top items] · before/after shown: [yes, or why not]; omit the row only when nothing a person sees changed |
 | Cleanup | [removed, or omit] |
 | Test | [exact command or steps the user runs] |
 

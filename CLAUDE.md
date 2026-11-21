@@ -135,7 +135,7 @@ These skills accept explicit user command:
 | `setup-tools` | Someone asks how to get or set up the Sheets, Chat or `remote` tools, or one won't connect on their machine |
 | `claude-server-token` | A server's Claude agent reports "credentials expired", "OAuth session expired", a blank `refreshToken` or a 401, or keeps losing its login every few weeks |
 | `setup-playwright` | "E2E tests are flaky", "specs pass alone but fail together" |
-| `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, critique a screen (no edits), research. Public-facing page looks go to `taste`. Also fires on a screenshot or a report of what someone saw |
+| `uiux` | Design judgement for UI work at any scope: polish, rethink, redesign, critique a screen (no edits), research. Public-facing page looks go to `taste`. Also fires on a screenshot or a report of what someone saw. A pass fixes what it finds, measures with `scripts/check-render.mjs` (Node 22+, Chrome) and shows before and after |
 | `taste` | Asked to build, redesign or polish a public-facing page, or told one looks generic, cheap or "AI-made" |
 | `design-handoff` | About to volunteer a layout or component list for a screen someone else designs, or asked for "the prompt" for another designer |
 | `gchat-format` | Asked to send, post or format anything for Google Chat |
@@ -257,6 +257,7 @@ Find the group for the moment you are in:
 
 - **Git probes**: `git -C <plugin-dir>` walks up to an enclosing repo and can answer about the wrong one; use `git rev-parse --show-toplevel`. A git step must say what happens when git *errors*: `rev-parse --git-dir` asks whether a repo exists, `rev-parse HEAD` whether a commit does. 📖 `skills/_shared/references/editing-skills-checklist.md` § Self-Diagnosis: Git Probes.
 - **State what to establish, not which command establishes it**: colleagues run these skills on their own setups.
+- **The exception is a step that hands work to a sibling skill: name a command it runs, not a Skill call to make.** Measured 22/11/2026 in headless runs of `uiux`: its script commands ran every time, while "also invoke `impeccable` and `taste`" was skipped twice even with the rule in the procedure, as `taste` had been five times before (`tasks/plugin-maintenance/external-guidance/decisions/source-13-ui-handling.md`).
 - **Prompting style**: constitutional constraints (`❌ Never / ✅ Always` tables) for routing decisions; numbered validation loops for file writes. A skill writing formatted output re-reads its own output against its style rule.
 - **A guard belongs at the step that acts.** Re-derive it where the write, spawn or delete happens; a caller-side gate does not cover its callee. Sibling sweeps key on the destructive act (`rm -rf`, whole-file rewrites, `Edit`), not `subagent_type`, which misses direct `Skill()` calls.
 - **A shell snippet in a SKILL.md is untested code**: its failure is a wrong number, not an error. Where a flag inverts a result, check one file on each side.

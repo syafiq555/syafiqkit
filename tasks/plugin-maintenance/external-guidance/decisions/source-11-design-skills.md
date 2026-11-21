@@ -10,7 +10,7 @@ Last updated: 2026-11-16: merge reverted (`#reverted`). Before that, 2026-11-15:
 
 ## Current state {#current}
 
-As of 2026-11-16, verified against the tree: the merge is reverted (`#reverted`). `uiux`, `impeccable` (4.8.2) and `taste` (2.1) are three separate skills again, routed by `#vendored`'s table; `taste-web` 2.5.1 is not in the plugin, apart from its scroll scenes, now in `taste` (`#after-revert`). `done`'s Design row merges the three reviews into one score (`#after-revert`). A Sonnet retest on the restored skills ran `taste`'s procedure through to its inspector (`#after-revert`). The checks and decisions below describe the merged shape and stay as the record of why it was reverted.
+Since 22/11/2026, `impeccable` is 4.10.0 and `taste` is 2.5.1 (public pages only; its 2.1 app-screen tools live in `uiux/app-kit/`), per `source-13-ui-handling.md`. As of 2026-11-16, verified against the tree: the merge is reverted (`#reverted`). `uiux`, `impeccable` (then 4.8.2) and `taste` (then 2.1) are three separate skills again, routed by `#vendored`'s table; `taste-web` 2.5.1 is not in the plugin, apart from its scroll scenes, now in `taste` (`#after-revert`). `done`'s Design row merges the three reviews into one score (`#after-revert`). A Sonnet retest on the restored skills ran `taste`'s procedure through to its inspector (`#after-revert`). The checks and decisions below describe the merged shape and stay as the record of why it was reverted.
 
 ## Fresh-session checks, 2026-11-15 {#checks}
 
