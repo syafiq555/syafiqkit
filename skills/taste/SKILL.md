@@ -15,7 +15,7 @@ hooks:
   Stop:
     - hooks:
         - type: command
-          command: 'command -v node >/dev/null 2>&1 || exit 0; for f in ${CLAUDE_SKILL_DIR:+"$CLAUDE_SKILL_DIR/scripts/gate.mjs"} ${CLAUDE_PLUGIN_ROOT:+"$CLAUDE_PLUGIN_ROOT/skills/taste/scripts/gate.mjs"} ${CLAUDE_PROJECT_DIR:+"$CLAUDE_PROJECT_DIR/.claude/skills/taste/scripts/gate.mjs"} ${HOME:+"$HOME/.claude/skills/taste/scripts/gate.mjs" "$HOME/.claude/plugins/syafiqkit/skills/taste/scripts/gate.mjs"}; do if [ -f "$f" ]; then exec node "$f" --hook claude; fi; done; for d in .taste-skill */.taste-skill; do if [ -f "$d/build.json" ]; then echo "taste gate: gate.mjs not found; the build in $d is not checked" >&2; break; fi; done; exit 0'
+          command: 'N=$(command -v node 2>/dev/null); for c in /opt/homebrew/bin/node /usr/local/bin/node "$HOME/Library/Application Support/Herd/config/nvm/versions/node/"*/bin/node "$HOME/.nvm/versions/node/"*/bin/node; do [ -z "$N" ] && [ -x "$c" ] && N="$c"; done; [ -n "$N" ] || exit 0; for f in ${CLAUDE_SKILL_DIR:+"$CLAUDE_SKILL_DIR/scripts/gate.mjs"} ${CLAUDE_PLUGIN_ROOT:+"$CLAUDE_PLUGIN_ROOT/skills/taste/scripts/gate.mjs"} ${CLAUDE_PROJECT_DIR:+"$CLAUDE_PROJECT_DIR/.claude/skills/taste/scripts/gate.mjs"} ${HOME:+"$HOME/.claude/skills/taste/scripts/gate.mjs" "$HOME/.claude/plugins/syafiqkit/skills/taste/scripts/gate.mjs"}; do if [ -f "$f" ]; then exec "$N" "$f" --hook claude; fi; done; for d in .taste-skill */.taste-skill; do if [ -f "$d/build.json" ]; then echo "taste gate: gate.mjs not found; the build in $d is not checked" >&2; break; fi; done; exit 0'
           timeout: 600
 ---
 

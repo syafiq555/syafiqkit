@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.465.2
+
+**taste's finish gate now runs when Node comes from Herd, nvm or Homebrew.**
+- Hooks don't load your shell profile, so the gate couldn't find a version-managed Node and quietly never checked a page. It now also looks in Homebrew, `/usr/local/bin`, Herd's nvm and `~/.nvm`.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.465.1
 
 **The UI skill's core steps now survive a long session.**
