@@ -326,6 +326,8 @@ Release notes state the reader's action, since consumers install without repo ac
 
 After modifying commands or skills, run the plugin update from Commands. No build step: markdown is interpreted directly.
 
+**A plan that adds or changes what a skill does includes a `score-loop` pass before it ships** (Syafiq, 21/11/2026: "Always for skill upgrades"): a rubric frozen from the brief, fresh judges, and at least one check that is a fresh headless session given the user's own words, read from its tool calls (📖 `skills/_shared/references/editing-skills-checklist.md` § Verifying Edits After Writing, item 7). Ask the stop rule when planning. A wording fix with no behaviour change does not need one. **Tell: your plan for a skill change ends at "code-reviewer + product-reviewer".**
+
 ## Dependencies {#dependencies}
 
 Optional external plugins:
