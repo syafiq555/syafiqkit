@@ -52,6 +52,18 @@ Every interactive element shows, visibly and distinctly:
 
 Screenshots of a settled page miss clipping and sequence. Open a dropdown or picker inside a scrolling modal, step through each stage of a multi-step modal, and check the colour mode the user actually runs (not only the default). A reused or secondary surface is where defects cluster, so those shots are graded too.
 
+## Grading a builder's set
+
+Grade each of the builder's screenshots against its siblings on the same page (does it read as one of them, for this reader?), not against "does it render", and the items inside one group against each other: tiles, cards or rows of one kind share width, height and alignment, and a mismatch usually means an atom built for another shape (short option chips) was reused for long choices.
+
+## Flows and recordings
+
+Verify flows with `browser-verifier` only on an explicit ask this turn, otherwise run the flow yourself. Screenshots verify static state (spacing, alignment, readability, contrast); E2E recordings catch what assertions miss (markup rendering as text, copy the product never delivers).
+
+## Parallel builders and specs
+
+Builders on screens whose files don't overlap run in parallel, and each re-runs only the specs for the files it touched; a spec already green on an untouched surface is not run again until the final pass ("is there a need ... to keep running full test again and again ?", 18/11/2026).
+
 ## Sources
 
 - State and colour checks: https://github.com/jezweb/claude-skills/blob/main/plugins/frontend/skills/design-review/SKILL.md

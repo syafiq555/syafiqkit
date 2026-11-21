@@ -2,7 +2,7 @@
 
 Read this only for landing pages, portfolios and client brochure sites. Any look change to one (build, redesign, polish, improve) is `taste`'s job (dealt layouts, licensed pictures, a finish gate in a real browser inspector); this file is the yardstick when `uiux` critiques such a page or judges one `taste` built. Business tools (dashboards, tables, multi-step forms, admin) inherit the app's language and do not use this file: their job is getting work done, and these choices spend distinctiveness a tool does not need.
 
-In a critique (`critique-mode.md`), this file is only the yardstick for the sections below the dials: structure, proof, type and colour. The design read, dials and approval steps belong to building.
+In a critique (`critique-mode.md`), this file is only the yardstick for the sections below the dials (Structure and rhythm, Material, Type and colour). The design read, dials and approval steps belong to building.
 
 A marketing page has one job: persuade one visitor to take one action, usually in under a minute. Everything below serves that.
 
@@ -18,7 +18,7 @@ State each as low, middle or high before designing:
 - **Motion:** how much moves. A calm professional-services page sits low; a product launch can go higher. Motion needs a purpose either way (telling the eye where to go), and respects reduced-motion.
 - **Density:** how much shows per screen. Phones push this down regardless.
 
-Brief words map to dials: "clean", "calm" and "trustworthy" lower all three; "bold", "playful" and "launch" raise variance and motion. If the brief gives no signal, ask one question through `AskUserQuestion` with the dial settings as options, not five questions. A redesign of an existing marketing page still waits for approval like any page redesign.
+Brief words map to dials: "clean", "calm" and "trustworthy" lower all three; "bold", "playful" and "launch" raise variance and motion. If the brief gives no signal, ask one question through `AskUserQuestion` with the dial settings as options, not five questions. A redesign of an existing marketing page still waits for approval like any page redesign (`direction-approval.md` for what runs before it goes).
 
 ## Structure and rhythm
 

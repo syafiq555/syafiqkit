@@ -29,3 +29,15 @@ Measured 2026-10-16: a storefront-branding run researched only the client's site
 ## Research-only invocations are followed by builders
 
 Measured 2026-10-10: a research-only invocation was followed by two builders. One reused an end-user form in a staff modal, and the screenshots were graded "renders fine" from memory. The user then sent five screenshots of defects.
+
+## Findings handed back with no diff
+
+Syafiq, 15/11/2026, after a run of reports with nothing built: "Why does all other design skills only audit like that ?, is uiux alone enough ?".
+
+## A control the app lacks is researched before it is offered
+
+Measured 2026-10-22: a category-picker proposal cited only the app's own components. The user asked "did u research or not?", and the research then changed the starter list and option order.
+
+## The stale slider reads as a bug
+
+An image slider kept the previous photo until the next one loaded, and users reported it as broken. Show a pending state in its place, at the final size.

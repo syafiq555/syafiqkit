@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.465.1
+
+**The UI skill's core steps now survive a long session.**
+- After Claude Code compacts a long conversation, only the start of a skill comes back. `uiux` was rearranged so its design pass and its "check what you built" rules all fall inside that part. Rarer topics (go-live checks, motion, porting a design, starting from nothing, research method, getting a direction approved) moved to reference files, each with a pointer that says when to open it.
+- A question about a screen ("why is it aligned like this") is now treated as a request to fix it, while a screenshot sent with an unrelated question still gets answered first.
+- `/done` spots a few more kinds of motion code when deciding whether to run the motion review.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.465.0
 
 **UI work now ends in fixed screens you can see, checked by a measuring script rather than by eye.**

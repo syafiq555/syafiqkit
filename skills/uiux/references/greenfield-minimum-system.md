@@ -2,6 +2,10 @@
 
 Read this when there is no app language to inherit. The aim is the smallest set of decisions that keeps every later screen consistent without anyone re-deciding them.
 
+## Audience, subject and job
+
+Asked in that order, before any decision below: pin down the audience (who, their situation), the subject matter (what the surface represents), and the job (what friction it solves). An 8-year-old's surface reads differently from a surgeon's; a hospital dashboard differs from a social network.
+
 ## Decide these first
 
 **Typography.** One typeface, two at most. Prefer a variable font or one with five or more weights, so hierarchy comes from weight and size rather than from a second face. Build a type scale from a ratio (1.125 to 1.25 is the usual range) and name the steps by role — display, heading, label, body — not by size, so a component asks for "label" and never for "13px".

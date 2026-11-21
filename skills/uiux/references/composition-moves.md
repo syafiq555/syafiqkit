@@ -8,9 +8,9 @@ Source: a short video by @ayoships (21/11/2026 intake), showing each move before
 
 **The move:** build the screen in three layers. At the back, one large word set as display type (the product name, the person's name, the day); in the middle, the subject (the product cut-out, the portrait, the building); on top, the actions (price, the main button, the options). Let the layers overlap a little: the subject rises into the back word, the action bar sits over the subject's lower edge. The overlap makes the screen read deep instead of as stacked boxes.
 
-**Keep the back word readable.** The subject may stand behind the letters, touch the word's edge, or cover a small part of it, never so much that the word stops reading: `app-kit/scripts/inspect.mjs` fails large text a fifth or more hidden, and the same line holds here. The actions stay on the top layer, on their own ground at full contrast.
+**Keep the back word readable.** The subject may stand behind the letters, touch the word's edge, or cover a small part of it, never so much that the word stops reading: `../app-kit/scripts/inspect.mjs` fails large text a fifth or more hidden, and the same line holds here. The actions stay on the top layer, on their own ground at full contrast.
 
-**How to build it:** z-order and position (`position: relative` with a stacking order, negative margins or transforms), not shadows or glows; depth comes from overlap and size, so no drop shadow is added to a cut-out. On a phone, keep the overlap and check the word still reads at the screen's width (size the display type to the phone's width, not the desktop's).
+**How to build it:** z-order and position (`position: relative` with a stacking order, negative margins or transforms), not shadows or glows; depth comes from overlap and size, and a drop shadow on the cut-out would be a second depth cue competing with the overlap. On a phone, keep the overlap and check the word still reads at the screen's width (size the display type to the phone's width, not the desktop's).
 
 **Not for:** lists, tables, forms, settings, dashboards and anything read repeatedly; text-heavy screens; a subject photographed on a busy background (it needs a clean cut-out or a flat field first). 📖 `../../taste/references/backgrounds.md` ("Lit studio sweep") for the ground behind a cut-out.
 
