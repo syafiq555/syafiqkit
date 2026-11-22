@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.466.12
+
+**A long Chat message is shown already split before you approve it.**
+- `casual-message` and `gchat-format`: a draft headed for a Chat send tool stays within its limit of about 1,000 characters per message, and a longer one is shown as the separate messages that will post, one block each. Before, a longer draft was approved as one block and only the send step cut it in two, so what posted wasn't what was approved.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.11
 
 **Photo search can return only photos that need no credit, and release notes show a long page in full.**
