@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.466.13
+
+**A team message no longer tags a colleague with an ask the sender never made, and a CI run refused for billing is recognised.**
+- `gchat-format` (§ Whose thread is this) and `casual-message`: an `@` tag asking a colleague to act (check billing, approve, decide) goes in only when the user's request named that ask; one you inferred is offered above the fence instead. An edit removes the line but not the notification already sent. A release follow-up had tagged a colleague to check the org's billing on a guessed cause, and the sender had it edited out.
+- `ship` (`references/ci-provider-polling.md`, Traps): a GitHub run that "fails" within seconds with "The job was not started because recent account payments have failed or your spending limit needs to be increased" means hosted-runner minutes are used up or billing failed, not a code failure. Self-hosted jobs still run, and a deploy goes out by replaying the workflow's own steps by hand once the user agrees.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.12
 
 **A long Chat message is shown already split before you approve it.**

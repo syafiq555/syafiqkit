@@ -25,6 +25,8 @@ The common case is a vendor or support engineer answering into a **customer's** 
 
 Ask who the participants are to the sender before drafting, not after a rejected draft. A draft that tells a named person on the other side what to do, or ends with a summary block closing out their conversation, has the standing wrong.
 
+The same holds inside the sender's own team for an ask the sender never made: an `@` tag asking a colleague to act (check billing, approve, decide) goes in only when the user's request named that ask, and an ask you inferred goes above the fence as an offer. An edit later removes the line but not the notification it already sent (23/11/2026: a release follow-up tagged a colleague to check the org's billing on a guessed cause, and the sender had it edited out: "no need lol, we are not gonna upgrade"). **Tell: the draft tags someone with a request that appears nowhere in the user's words.**
+
 ## Is this a document, or a message in your own voice?
 
 Settling standing answers who receives this. It does not answer how dressed-up it should be, and those are different axes — conflating them is why this section exists. A correct "client" audience answer still produced a fenced, headed, formally-closed draft for a one-line reply to a single named colleague, and the shape was the thing that was wrong.
