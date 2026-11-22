@@ -309,7 +309,10 @@ export function defects(opts) {
       if (lab && lab.control === el) continue;
       if (hit.closest(MODAL) && !el.closest(MODAL)) continue;
       let fixed = false;
-      for (let p = hit; p && p !== document.documentElement; p = p.parentElement) { const pos = cs(p).position; if (pos === 'fixed' || pos === 'sticky') { fixed = true; break; } }
+      let bar = null;
+      for (let p = hit; p && p !== document.documentElement; p = p.parentElement) { const pos = cs(p).position; if (pos === 'fixed' || pos === 'sticky') { fixed = true; bar = p; break; } }
+      // scrolled to the bottom, a bar pinned to the top covers only what the visitor scrolled past; scrolling back up reaches it
+      if (phase === 'hit' && bar && window.scrollY > 0) { const br = bar.getBoundingClientRect(); if (br.top <= 1 && br.bottom < vh / 2) continue; }
       add('covered', fixed ? 'FAIL' : 'WARN', el, (fixed ? 'A fixed or sticky element (' + sel(hit) + ') covers this control ' : 'Another element (' + sel(hit) + ') sits on top of this control ') + label + ': "' + snip(el.innerText || el.value || el.getAttribute('aria-label')) + '"', fixed ? 'Add scroll padding or offset so the bar never lies over a control, or move the control.' : 'Fix the stacking order or layout so the control is reachable.', 'cover');
     }
   };

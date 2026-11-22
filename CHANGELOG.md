@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.466.7
+
+**`check-render` stops failing a page because its sticky top bar sits over content you scrolled past.**
+- `uiux` `check-render.mjs` (shared `app-kit/scripts/lib/defects.mjs`, the covered-control check): in the pass taken after scrolling to the bottom, a control under a fixed or sticky bar pinned to the top of the screen is no longer reported. Scrolling back up reaches it. A bar along the bottom still fails, since the page's last controls can't scroll out from under it. On a back-office home this removed 2 to 4 `covered` FAILs per run, all a sticky header over the first cards, and the page now passes.
+- `uiux` step 2: says the app-screen inspector and lint (`app-kit/scripts/inspect.mjs`, `lint.mjs`) are in `uiux`'s own folder. The sentence named them as `taste`'s review path, so they were looked for under `../taste` and not found.
+- `impeccable` critique, Assessment B: how to scan a page behind a login (`detect` takes no storage state; open it in a debug-port Chromium with the saved login, then `detect --cdp`).
+- `score-loop` step 2: add up the judge's criterion lines yourself before recording its total (a judge wrote 20/20 over lines that summed to 19).
+
+Update with `claude plugin update syafiqkit@syafiqkit`. Earlier `check-render` reports with a `covered` FAIL naming a `sticky top-0` header "at the bottom of the page" were this false alarm.
+
 ## 1.466.6
 
 **`check-render` stops flagging screen-reader-only text, and a shop's storefront is no longer scored on marketing-page rules.**
