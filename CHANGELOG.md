@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.466.5
+
+**The getting-started guide now explains how to set up a new repo.**
+- `docs/GETTING-STARTED.md`: new section 4 says what `/setup-project-docs` writes (PRD, architecture, the essentials rules, CLAUDE.md) and which agents `/agent-setup` creates and what each does. Before, both were named in one line with no explanation.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.4
 
 **A one-page getting-started guide for someone new to the plugin.**

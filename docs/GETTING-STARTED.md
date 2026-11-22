@@ -37,9 +37,26 @@ tasks/<area>/decisions/*.md      ← the longer reasoning, one theme per file
 
 Almost every skill reads these before acting and updates them after. That is what lets a fresh session (or a new teammate) pick up work without you re-explaining it.
 
-New repo with no docs yet? Run `/setup-project-docs` once, then `/agent-setup` to create the project's reviewer and builder agents.
+## 4. Setting up a new repo (once per project) {#new-repo}
 
-## 4. Your daily loop {#daily-loop}
+Skip this if the repo already has `docs/ARCHITECTURE-ESSENTIALS.md` and a `.claude/agents/` folder.
+
+1. **`/setup-project-docs`** writes the project's core docs. It works for a brand-new project (from scope docs and meeting notes) or an existing codebase that never had docs (by reading the code):
+   - `docs/PRD.md`: what the product must do, for whom, and what is deliberately left out.
+   - `docs/ARCHITECTURE.md`: how it is built, and what is still undecided.
+   - `docs/ARCHITECTURE-ESSENTIALS.md`: the short list of rules that break things silently in one line (money handling, who can see whose data). Claude reads this whole before writing code.
+   - `CLAUDE.md`, plus an `AGENTS.md` that points to it for other AI tools.
+2. **`/agent-setup`** creates the project's own helper agents in `.claude/agents/`. Each one reads your `CLAUDE.md` when it runs, so it follows your project's rules instead of generic ones:
+   - **Explore**: finds files and code. **Plan**: designs an approach before building.
+   - **task-builder**: builds a planned slice of work.
+   - **code-reviewer** and **code-simplifier**: hunt bugs, then tidy. `/done` runs these.
+   - **product-reviewer**: checks the feature against its purpose (dead ends, wrong permissions).
+   - **claude-md-pruner**: removes stale lines from the docs.
+3. Commit the new `docs/` and `.claude/agents/` files so teammates get them too.
+
+Run `/agent-setup` again later when the plugin updates its agent templates or an agent keeps misbehaving. Adding a gotcha to `CLAUDE.md` doesn't need it, since the agents read that file fresh each time.
+
+## 5. Your daily loop {#daily-loop}
 
 1. **Start:** `/read-summary <area or question>`. Claude finds the right task doc and reads it before touching anything. Example: `/read-summary why do refunds skip the ledger?`
 2. **Work:** ask for what you need in plain words. If you only know "carry on from the doc", use `/tackle`.
@@ -49,7 +66,7 @@ New repo with no docs yet? Run `/setup-project-docs` once, then `/agent-setup` t
 
 Running out of context mid-task? `/continue-session` gives you a prompt to paste into a fresh session.
 
-## 5. The ten skills worth learning first {#first-ten}
+## 6. The ten skills worth learning first {#first-ten}
 
 | You want to | Type |
 |---|---|
@@ -66,11 +83,11 @@ Running out of context mid-task? `/continue-session` gives you a prompt to paste
 
 You don't always need to type the name: most skills fire on their own when you describe the job ("wrap up", "ship it", "this page looks off").
 
-## 6. Optional: connect Google and your servers {#tools}
+## 7. Optional: connect Google and your servers {#tools}
 
 Say "set up the Google Sheets / Google Chat / remote tool for me". `/setup-tools` walks you through your own Google Cloud project and sign-in, and checks it works with a real read. Sending a Chat message or email always stops at Claude Code's permission prompt for you to approve.
 
-## 7. When something goes wrong {#troubleshooting}
+## 8. When something goes wrong {#troubleshooting}
 
 - **A skill didn't fire, or did the wrong thing:** say so, then run `/update-plugin` at the end of the session. It patches the skill so the next person doesn't hit it.
 - **Answers feel too terse or too long:** tell Claude in plain words; your stated preference wins over the default style.
