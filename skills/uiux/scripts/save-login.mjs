@@ -4,6 +4,8 @@
 //   node save-login.mjs --url http://app.test/login --email someone@app.test --out admin.json
 //        [--password <pw> | LOGIN_PASSWORD=<pw>] [--email-field css] [--password-field css] [--submit css]
 // Save it right before each check-render batch: a server can drop a session within minutes.
+// Handles email-first logins too: when no password field is visible, it submits the email,
+// waits for the password step to appear, then submits again.
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Browser, sleep } from '../app-kit/scripts/lib/cdp.mjs';
@@ -32,32 +34,47 @@ try {
   const page = await browser.newPage({ width: 1280, height: 800 });
   await page.goto(url, { settleMs: 800 });
 
-  const filled = await page.eval(({ emailField, passwordField, email, password }) => {
+  const fill = ({ emailField, passwordField, email, password }) => {
     const set = (el, value) => {
       const proto = Object.getPrototypeOf(el);
       Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     };
+    const visible = (el) => el && el.getClientRects().length > 0;
     const e = document.querySelector(emailField);
     const p = document.querySelector(passwordField);
-    if (!e || !p) return false;
-    set(e, email);
-    set(p, password);
-    return true;
-  }, { emailField, passwordField, email, password });
-  if (!filled) throw new Error('No login fields found on ' + url + ' (pass --email-field / --password-field).');
-
-  await page.eval((submit) => document.querySelector(submit)?.click(), submit);
-
+    if (visible(e) && e.value !== email) set(e, email);
+    if (visible(p)) set(p, password);
+    return { email: visible(e), password: visible(p) };
+  };
   const loginPath = new URL(url).pathname;
-  let landed = '';
-  for (let i = 0; i < 40; i++) {
-    await sleep(250);
-    landed = await page.eval('location.href').catch(() => '');
-    if (landed && new URL(landed).pathname !== loginPath) break;
+  const leftLogin = async (ticks) => {
+    for (let i = 0; i < ticks; i++) {
+      await sleep(250);
+      const href = await page.eval('location.href').catch(() => '');
+      if (href && new URL(href).pathname !== loginPath) return href;
+    }
+    return '';
+  };
+
+  const first = await page.eval(fill, { emailField, passwordField, email, password });
+  if (!first.email && !first.password) throw new Error('No login fields found on ' + url + ' (pass --email-field / --password-field).');
+  await page.eval((submit) => document.querySelector(submit)?.click(), submit);
+  let landed = await leftLogin(first.password ? 40 : 12);
+
+  if (!landed) {
+    let second = { password: false };
+    for (let i = 0; i < 20 && !second.password; i++) {
+      await sleep(250);
+      second = await page.eval(fill, { emailField, passwordField, email, password });
+    }
+    if (second.password) {
+      await page.eval((submit) => document.querySelector(submit)?.click(), submit);
+      landed = await leftLogin(40);
+    }
   }
-  if (!landed || new URL(landed).pathname === loginPath) throw new Error('Still on the login page after submitting: wrong credentials, a second step, or a different submit button (--submit).');
+  if (!landed) throw new Error('Still on the login page after submitting: wrong credentials, a code or captcha step, or a different submit button (--submit).');
 
   const { cookies } = await browser.send('Storage.getCookies');
   const origin = new URL(landed).origin;

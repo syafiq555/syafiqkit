@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.466.9
+
+**`uiux` `save-login.mjs` signs in to email-first logins.**
+- `uiux` `scripts/save-login.mjs`: when the password field is not visible yet, it submits the email, waits for the password step, fills it and submits again. It used to click submit once and stop, so a login that asks for the email first and reveals the password after "Continue" always ended "Still on the login page", even with valid credentials, and a signed-in check-render could not run. Verified on such a login: it now saves the localStorage session token and lands on the home page. One-page logins behave as before.
+
 ## 1.466.8
 
 **`casual-message` checks what a user did, and any count, at the source before the line goes in.**
