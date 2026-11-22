@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.466.11
+
+**Photo search can return only photos that need no credit, and release notes show a long page in full.**
+- `taste` `scripts/photos.mjs search --no-credit`: keeps only CC0 and public-domain Wikimedia Commons photos, which owe no credit line where shown (seeded demo data, stand-ins nobody will credit). Before, the search mixed CC0 with CC BY and CC BY-SA results and the CC0 ones had to be picked out by hand; the credited ones no longer take result slots, so a query returns more usable photos. Documented in `references/photos.md`, Live search.
+- `ship` release captures (`references/ship-deploy-verification.md` § Release Captures): a long page whose point is below the first screen (a shop home of rails and sections) also goes as one full-page capture per width, with fixed bars hidden for that shot. A capture may be rendered at ship time when the project's own instructions ask for fresh captures of the built screen.
+
+Update with `claude plugin update syafiqkit@syafiqkit`. Earlier searches are unchanged without the flag.
+
 ## 1.466.10
 
 **`refresh-instructions` hands a large set to one manager agent per unit, and "already tight" is no longer an exit.** In a 20-doc refresh, 3 of the first 6 managers hand-edited an over-budget file, called it tight, skipped the haiku passes and the fresh reviewer, and reported done.

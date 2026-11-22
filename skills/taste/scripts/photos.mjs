@@ -9,7 +9,8 @@
                                     [--count 6] [--tone light|dark] [--place "Lofoten, Norway"] [--setting coast,mountain]
                                     [--pictures 12] [--brief BRIEF.md] [--draft-lead | --no-client-photos] [--own-land] [--shop] [--mono] [--commons-only] [--json]
     node <skill>/scripts/photos.mjs pick --product-without-photos   a physical product with no photographs: no library frame; prints the search for stand-ins
-    node <skill>/scripts/photos.mjs search "yoga studio interior" [--trade wellness] [--count 12] [--min 1600] [--orientation landscape|portrait] [--out .]
+    node <skill>/scripts/photos.mjs search "yoga studio interior" [--trade wellness] [--count 12] [--min 1600] [--orientation landscape|portrait] [--no-credit] [--out .]
+                                    --no-credit keeps only CC0 and public-domain photos, which owe no credit line where they are shown
     node <skill>/scripts/photos.mjs search --trade hotel          a live search of Wikimedia Commons (CC0, CC BY, CC BY-SA, public domain JPEGs), by
                                                                   the trade's own search words when no words are given; writes .taste-skill/found.json
     node <skill>/scripts/photos.mjs fetch 326,m61713103,f12345 --out <site folder> [--hero 326] [--big id] [--lqip] [--dir assets/img]
@@ -90,7 +91,7 @@ const byId = new Map(lib.photos.map((p) => [p.id, p]));
 
 const argv = process.argv.slice(2);
 const cmd = argv[0];
-const FLAGS = ['shop', 'mono', 'json', 'product-without-photos', 'detail-only', 'draft-lead', 'no-client-photos', 'own-land', 'commons-only', 'lqip', 'text', 'places', 'write', 'no-recent'];
+const FLAGS = ['shop', 'mono', 'json', 'product-without-photos', 'detail-only', 'draft-lead', 'no-client-photos', 'own-land', 'commons-only', 'lqip', 'text', 'places', 'write', 'no-recent', 'no-credit'];
 const opt = (k, d) => { const i = argv.indexOf('--' + k); return i < 0 ? d : (!FLAGS.includes(k) && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : true); };
 const positional = () => { const out = []; for (let i = 1; i < argv.length; i++) { if (argv[i].startsWith('--')) { if (argv[i + 1] && !argv[i + 1].startsWith('--') && !FLAGS.includes(argv[i].slice(2))) i++; continue; } out.push(argv[i]); } return out; };
 const die = (m) => { console.error('photos: ' + m); process.exit(1); };
@@ -661,6 +662,7 @@ async function searchCmd() {
   const per = Math.max(3, Math.ceil(count / queries.length));
   const min = Math.max(800, parseInt(opt('min', 1600), 10) || 1600);
   const orient = opt('orientation');
+  const noCredit = opt('no-credit') === true;
   const recent = recentIds(readRecent(), '');
   const seen = new Set(), results = [], failed = [];
   for (const [qi, q] of queries.entries()) {
@@ -689,6 +691,7 @@ async function searchCmd() {
       const id = 'f' + pg.pageid, title = String(pg.title || '').replace(/^File:/, '').replace(/\.[a-z0-9]+$/i, '').replace(/_/g, ' ');
       const licence = val('LicenseShortName');
       if (seen.has(id) || ii.mime !== 'image/jpeg' || ii.width < min || !LICENCE_OK.test(licence) || /\b(nc|nd)\b/i.test(licence)) continue;
+      if (noCredit && !/^cc0|public domain|^pd/i.test(licence)) continue;
       if (/personality|trademark|insignia/i.test(val('Restrictions')) || NOT_A_PHOTO.test(title)) continue;
       const ratio = Math.round((ii.width / ii.height) * 100) / 100;
       const orientation = ratio >= 1.05 ? 'landscape' : ratio <= 0.95 ? 'portrait' : 'square';
