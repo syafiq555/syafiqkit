@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.466.6
+
+**`check-render` stops flagging screen-reader-only text, and a shop's storefront is no longer scored on marketing-page rules.**
+- `uiux` `check-render.mjs` (shared `app-kit/scripts/lib/defects.mjs` `isVisible`): an element clipped to nothing (`clip-path: inset(50%)`, `clip: rect(0 0 0 0)`, or a 1px absolute box with hidden overflow), such as a "Skip to content" link, is no longer measured. It was reported as clipped text, a 32x16 tap target, an overlap and a covered control at every width. On a grocery storefront home the findings at 375px went from 18 to 13, all four skip-link ones gone.
+- `done` design review (`references/design-review-merge.md`) and `taste`'s description: a marketplace or grocery storefront (rails, deals, grids) takes `uiux`'s app-screen path, as `uiux` already routed it. `taste`'s `consistency.mjs` had scored one such home at 37 FAIL, nearly all one-hero, one-CTA and headline-copy rules.
+
+Update with `claude plugin update syafiqkit@syafiqkit`. Earlier `check-render` reports that listed a skip link are safe to ignore for that element.
+
 ## 1.466.5
 
 **The getting-started guide now explains how to set up a new repo.**

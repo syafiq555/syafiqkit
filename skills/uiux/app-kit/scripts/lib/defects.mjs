@@ -78,7 +78,10 @@ export function defects(opts) {
     const c = cs(el);
     if (c.display === 'none' || c.visibility === 'hidden' || c.visibility === 'collapse') return false;
     if (effOp(el) < 0.05) return false;
+    // screen-reader-only text (sr-only, visually-hidden): clipped to nothing until it gets focus
+    if (/inset\(50%/.test(c.clipPath) || /rect\(0(px)?,? 0(px)?,? 0(px)?,? 0(px)?\)/.test(c.clip)) return false;
     const r = el.getBoundingClientRect();
+    if (r.width <= 1 && r.height <= 1 && c.position === 'absolute' && c.overflow === 'hidden') return false;
     return r.width >= 1 && r.height >= 1;
   };
   // the part of an element a visitor can see: its box clipped by every overflow-clipping ancestor

@@ -9,7 +9,8 @@ description: >-
   moments, with a checker and a finish gate that run in a real browser. Vendored from tasteskill
   2.5.1 (MIT). NOT for screens inside an existing app (dashboard, admin, settings, an in-product
   form) or for working within an app's own design language: that is `uiux`, which owns the app-screen
-  kit. Not for a scored critique with no rebuild (`uiux`), nor when the user names impeccable
+  kit. A marketplace or grocery storefront of product rails, deals and grids is a shop screen and also
+  `uiux`'s ("shop" above means a small brand's site). Not for a scored critique with no rebuild (`uiux`), nor when the user names impeccable
   (`impeccable`). An image composed from the product's own screens is `product-still`.
 hooks:
   Stop:
