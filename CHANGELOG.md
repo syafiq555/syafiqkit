@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.466.4
+
+**A one-page getting-started guide for someone new to the plugin.**
+- New `docs/GETTING-STARTED.md`: install, what changes straight away, what task docs are, the daily loop (`read-summary` → work → `done` → `commit` → `ship`) and the ten skills to learn first. The README links to it from the top.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.3
 
 **The UI skill can now sign in for you before measuring a page behind a login.**

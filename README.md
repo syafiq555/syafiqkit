@@ -2,6 +2,8 @@
 
 Personal workflow toolkit for Claude Code — commits, task docs, invoicing, PDF export, Google Chat formatting, remote DB sync, and end-to-end shipping.
 
+**New here?** Start with [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md): install, the daily loop and the ten skills to learn first, on one page.
+
 ## Prerequisites
 
 `/syafiqkit:done` uses project agents if available, otherwise requires:
