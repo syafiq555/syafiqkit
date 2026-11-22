@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.466.2
+
+**Design loops now grade with the design skills, and pictures reach a user on their phone.**
+- `score-loop`: on a UI, design or storefront run, each round's evidence includes `uiux`'s check-render, an `impeccable` critique and `taste`'s review path beside the judge, so a round is never graded by a screenshot-reading reviewer alone. In a 22/11/2026 loop the user had to say "Use design skills".
+- `uiux` (step 6) and `done`'s Design row: when the user may be on a phone or another device, before/after pictures go through `SendUserFile`, since local paths and the gallery pane do not load in the mobile app. The user asked twice to see the shots.
+- `uiux` and `taste`: a shop's own storefront home (a marketplace or grocery home of product rails and deals) stays with `uiux`, which deals its directions as rendered prototypes and may borrow `taste`'s photo search and capture scripts; `taste`'s one-section-per-screen page rules don't fit a shop.
+- `uiux` verification traps: a saved login that check-render finds on the sign-in page is re-saved right before each batch, one render per account, or the screens are measured from the e2e captures instead.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.1
 
 **Product questions asked during a build now come with the spec row or research, not only access questions in a plan.**

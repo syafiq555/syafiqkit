@@ -23,7 +23,7 @@ hooks:
 
 > This file is longer than the 5,000 tokens that survive a compaction. After one, re-read the step you are on in `SKILL.md` before continuing.
 
-Screens inside an app (dashboard, admin, settings, a form within the product) are not this skill's: they go to `uiux`, which owns the app-screen kit.
+Screens inside an app (dashboard, admin, settings, a form within the product) are not this skill's: they go to `uiux`, which owns the app-screen kit. So does a shop's own storefront home (a marketplace or grocery home of product rails and deals): `uiux` keeps it and may borrow `photos.mjs` and `shoot.mjs` from here.
 
 Build the website a good company would ship: it says plainly what is sold, shows the real thing on
 every screen, and looks made for this client, not from a template and not like an art piece.
