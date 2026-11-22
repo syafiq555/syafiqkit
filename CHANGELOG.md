@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.466.1
+
+**Product questions asked during a build now come with the spec row or research, not only access questions in a plan.**
+- `read-summary`: the rule "quote the spec rows inside the options before asking" moved from the Plan Mode section, which a normal build session never reads, to the section that governs every later turn, and widened from who may see or do something to any question about how the product behaves (what a customer is told, how a list groups records, a visual convention). Where the spec is silent, the options carry how two or three strong products handle it. In a 22/11/2026 build session three such questions were asked bare and the user sent each back ("Check brs", "Research rbs", "Research") before choosing.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.0
 
 **The UI skill can now screenshot other shops and apps for design research, and looks past your own category by default.**
