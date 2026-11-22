@@ -26,7 +26,7 @@ On a Mac with Xcode, `scripts/ios-safari-capture.sh open <url>` boots an iPhone 
 
 ## Saved login: check-render measures the sign-in page
 
-`check-render --storage-state` runs each width and scheme in a fresh browser context from the saved file, so a session the server has since dropped measures the login screen at every width (the script says "Redirected to a sign-in page" and exits 2). On 22/11/2026 a freshly saved Laravel session died within minutes, four times, with and without tests running, cause not found. Save the login immediately before each batch, run one render per account at a time, and when it still redirects, measure those screens from the project's e2e captures instead and say so in the Design row; never report the login page's findings as the screen's.
+`check-render --storage-state` runs each width and scheme in a fresh browser context from the saved file, so a session the server has since dropped measures the login screen at every width (the script says "Redirected to a sign-in page" and exits 2). On 22/11/2026 a freshly saved Laravel session died within minutes, four times, with and without tests running, cause not found. Save the login with `scripts/save-login.mjs` immediately before each batch, run one render per account at a time, and when it still redirects, measure those screens from the project's e2e captures instead and say so in the Design row; never report the login page's findings as the screen's.
 
 ## E2E vs screenshot
 

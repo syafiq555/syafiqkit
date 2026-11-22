@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.466.3
+
+**The UI skill can now sign in for you before measuring a page behind a login.**
+- `uiux`: new `scripts/save-login.mjs` opens a login page, fills the email and password (the password from `LOGIN_PASSWORD`), submits, and saves the session in the file `check-render --storage-state` reads. Step 0 and the saved-login trap point at it, and it is meant to run right before each batch. Before this, each session hand-wrote its own login script.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.2
 
 **Design loops now grade with the design skills, and pictures reach a user on their phone.**

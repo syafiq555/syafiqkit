@@ -2,6 +2,15 @@
 
 Deterministic instruments for the defects a screenshot read misses. Node 22+, no npm install. Chrome, Edge or a Playwright Chromium must be installed.
 
+## save-login.mjs
+
+```
+LOGIN_PASSWORD=<pw> node save-login.mjs --url <login page> --email <login> --out <file.json>
+                    [--email-field css] [--password-field css] [--submit css]
+```
+
+Opens the login page, fills the email and password fields (defaults: an email/`name=email` input and the password input), submits, waits until the page leaves the login path, and writes the cookies and that origin's localStorage as a Playwright storage-state file for `check-render --storage-state`. Exit 1 when it stays on the login page (wrong credentials, a second step, a different submit button). Pass the password through `LOGIN_PASSWORD`, not `--password`, so it stays out of shell history. Save it right before each batch: a server can drop a session within minutes.
+
 ## check-render.mjs
 
 ```
