@@ -68,6 +68,20 @@ A move can make a rule unreachable as easily as it saves bytes, and no prose tes
 
 Report each move with its loading effect ("root drops 2 KB; loads when work touches `resources/js`"), which also makes a no-op reorganization visibly empty.
 
+## A manager per unit {#manager-per-unit}
+
+A set of a dozen or more units (22/11/2026: 20 docs) is too much for one context to verify pass by pass, so each unit gets one manager agent (`sonnet`, named in the call) that loads this skill and dispatches its own `haiku` passes. The caller keeps one shared brief file on disk and a queue file, so each dispatch prompt is a few lines naming the unit and the brief, and a wave resumes after a slot frees. Cap the managers so managers plus their pass agents stay under the harness's 20, and tell each manager how many pass agents it may run at once.
+
+A manager reads its own judgement as an exit: in that run, 3 of the first 6 hand-edited an over-budget file, called it "already tight" or "risk higher than gain", skipped the passes and the fresh reviewer, and reported done. The brief carries, in so many words:
+
+- a file over budget is never too tight to skip; a hand edit does not replace a pass;
+- if the `Agent` tool is unavailable, say so in the first line and stop, rather than doing the passes by hand;
+- the between-pass reviewer is a fresh agent, not the manager's own read;
+- both budgets the reader's dashboard checks (for a task doc: about 300 lines for `current.md` and about 40 KB per `decisions/` file), since a unit cut under one can still end over the other (two units ended at 317 and 301 lines);
+- the Edit-only rule and the banned git verbs. One manager still rewrote with `head`/`sed`, so for any shell-touched file, check that every removed line is in its destination before accepting it.
+
+The cross-file citation sweep and every commit stay with the caller.
+
 ## When to pause between passes — the real case
 
 Legitimate pauses are rare. Invoking this skill authorised the whole sequence, so the only pause is a failed verification — and saying "verification failed, I'm patching" is a different question from "should I continue with the next pass?" When verification passes clean, that's evidence the pass worked well and therefore reason to continue, not cause for re-asking.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.466.10
+
+**`refresh-instructions` hands a large set to one manager agent per unit, and "already tight" is no longer an exit.** In a 20-doc refresh, 3 of the first 6 managers hand-edited an over-budget file, called it tight, skipped the haiku passes and the fresh reviewer, and reported done.
+
+- `SKILL.md`: the skip rule now names "already tight" and "risk higher than gain" and says a hand edit never stands in for a pass. The parallel-set paragraph points to the new section.
+- `references/process-details.md` § A manager per unit: a shared brief file plus a queue on disk, a cap on managers plus pass agents, and the brief lines that held the rest of the run. Those lines are: no skip on an over-budget file, stop if `Agent` is unavailable, a fresh reviewer, both dashboard budgets (lines and KB), and a moved-line check for any shell-touched file.
+
 ## 1.466.9
 
 **`uiux` `save-login.mjs` signs in to email-first logins.**
