@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.466.8
+
+**`casual-message` checks what a user did, and any count, at the source before the line goes in.**
+- `casual-message` § Speaking for the sender: a draft that states what a user did in a session, or quotes a figure, reads the session's own events (`posthog-replay-frames` § 1) and re-measures the figure over the whole population, not the slice a colleague counted. A team reply had said a lister "never clicked next" from a colleague's account (the events showed one click) and quoted "5 of the last 8 drafts" until the sender asked for all of them (14 of 55 over 90 days).
+
 ## 1.466.7
 
 **`check-render` stops failing a page because its sticky top bar sits over content you scrolled past.**
