@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.467.7
+
+**A reply full of figures per case reads as labelled blocks, not packed lines.**
+- `casual-message`: a reply whose body is several scenarios or options, each with three or more numbers, takes a bold label per case with one line per figure, even as a thread reply to one person; the sender's voice stays for the lead and bottom lines. A four-scenario cost reply sent as lowercase lines came back as hard to understand.
+- `gchat-format`: names the same exception where a typed `/gchat-format` reply to a colleague otherwise takes `casual-message`'s one-line-a-point shape.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.6
 
 **Editing a sent Chat message drafts through the same skill as sending one.**
