@@ -13,6 +13,9 @@ Read this before declaring a surface done. A layout that only works with a point
 - Three to five primary destinations go in a bottom tab bar, not behind a hamburger; a hamburger hides the product. More than five means the information architecture needs a decision, not a wider bar.
 - Icons carry a visible text label. Labels only in tooltips do not exist on a phone.
 - Hover-only affordances do not exist on a phone either. Anything revealed on hover needs a visible state or a tap path.
+- **One sheet at a time.** A choice opened from inside a bottom sheet becomes a step in the same sheet, with a back arrow. It never becomes a second sheet stacked on the first: Apple HIG, eBay Playbook and NN/g all advise against stacking, and the stack shows two handles, two close buttons and a cut-off list.
+- **A stepped sheet keeps one height on a phone.** Size it to the screen (`dvh`), not to its content, so a short step doesn't shrink the sheet and read as a different one (23/11/2026, "a bit weird ux"). Check it by opening a long step and a short one and comparing the panel's box.
+- **A drag handle promises a swipe.** A sheet that shows one must close on a swipe down (`emil-gestures`), or drop the handle: users try to drag it.
 
 ## Layout and CSS
 

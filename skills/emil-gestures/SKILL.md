@@ -9,7 +9,11 @@ How to build gestures that feel physical. A gesture is direct manipulation: whil
 
 ## First decision: build it, or use a solution that exists?
 
-Doing a drawer gesture *right* means momentum-based dragging, overlay opacity matched to drag progress, velocity-aware dismissal, focus trapping, and Escape-to-close. That is weeks of edge cases, not an afternoon. **For a bottom sheet / drawer, default to [Vaul](https://vaul.emilkowal.ski/)** — it exists precisely because this is hard to hand-roll. Build the gesture yourself only when no library covers the interaction (custom swipe cards, bespoke drag interactions). When unsure, read `../emil-pick-ui-library/SKILL.md`.
+Doing a drawer gesture *right* means momentum-based dragging, overlay opacity matched to drag progress, velocity-aware dismissal, focus trapping, and Escape-to-close. That is weeks of edge cases, not an afternoon. **For a bottom sheet / drawer, default to [Vaul](https://vaul.emilkowal.ski/)** — it exists precisely because this is hard to hand-roll. Build the gesture yourself only when no library covers the interaction (custom swipe cards, bespoke drag interactions). When unsure, read `../emil-pick-ui-library/SKILL.md`. **Before adding Vaul, check the headless library the project already uses**: Base UI (1.9+) ships its own swipeable `Drawer`, so a project on it needs no second library.
+
+⚠️ **A drawer library moves the panel itself while it is dragged.** Base UI's `Drawer.Popup` writes the drag offset as an inline transform. It also publishes `--drawer-swipe-movement-*` and `--drawer-swipe-progress`, and those are for *linked* values (the overlay's opacity), not for moving the panel. CSS that also translates the popup by `--drawer-swipe-movement-y` moves it twice as far as the finger. The doubled distance reads as "not smooth", while frame times look perfect. Your CSS owns only the enter and exit offset and the settle transition (with `[data-swiping]` at 0ms). **Measure the track phase, don't eyeball it**: send a scripted touch swipe (CDP `Input.dispatchTouchEvent`) and compare each finger step with the panel's `getBoundingClientRect().top`. 1:1 after the library's start threshold is the pass. **Tell: your drawer CSS reads a `--*-swipe-movement` variable on the element the library drags.**
+
+A sheet that shows a drag handle promises the gesture. Ship the swipe with it, or remove the handle: users try to drag it.
 
 ## The two phases of every gesture
 

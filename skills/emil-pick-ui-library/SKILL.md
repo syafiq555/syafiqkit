@@ -32,7 +32,7 @@ A lookup skill. When invoked with a task ("I need toasts", "what should I use fo
 | Unstyled, accessible UI components (dialogs, popovers, menus, selects…) | [base-ui](https://base-ui.com) |
 | Command menus (⌘K palettes) | [cmdk](https://cmdk.paco.me) |
 | Toasts / notifications | [Sonner](https://sonner.emilkowal.ski) |
-| Drawers / bottom sheets | [Vaul](https://vaul.emilkowal.ski) |
+| Drawers / bottom sheets | [Vaul](https://vaul.emilkowal.ski), or base-ui's own `Drawer` (1.9+, swipe built in) when the project already uses base-ui |
 | One-time password / verification code inputs | [input-otp](https://input-otp.rodz.dev) |
 | Customizable GUIs / control panels | [Leva](https://github.com/pmndrs/leva) |
 

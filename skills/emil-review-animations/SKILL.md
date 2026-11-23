@@ -59,6 +59,8 @@ Flag these on sight, hard:
 - Animating layout properties (`width`/`height`/`margin`/`padding`/`top`/`left`), except a measured-height accordion
 - Motion `x`/`y`/`scale` props (before `motion` 14.2) or layout animations on motion that runs while the page is busy
 - Updating a CSS variable on a parent to drive a child transform (style recalc storm)
+- CSS that translates a drawer panel by the library's `--*-swipe-movement-*` variable while the library also moves that panel inline (Base UI `Drawer.Popup`): it moves twice as far as the finger. The variables are for linked values (overlay opacity)
+- A drawer overlay that eases to its swipe-progress opacity during the drag instead of tracking it (0ms while `[data-swiping]`), or that fades on a different duration and curve from the panel on open and close
 - Missing `prefers-reduced-motion` handling on movement
 - Ungated `:hover` motion
 - Symmetric enter/exit timing on a press-and-release or hold interaction

@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.467.3
+
+**Bottom sheets: one at a time, one height, and a drag that tracks the finger.**
+- `emil-gestures`:
+  - Before adding Vaul, check the headless library the project already has; base-ui 1.9+ ships its own swipeable `Drawer`.
+  - New warning: a drawer library moves the panel itself while it is dragged. CSS that also translates the panel by the library's `--*-swipe-movement-*` variable moves it twice as far as the finger. The doubled distance felt "not smooth" while frame times were perfect. Measure the drag with a scripted touch swipe.
+  - A drag handle must come with the swipe it promises.
+- `emil-review-animations` flags that double translate, and a drawer overlay that lags the drag or fades on a different timing from the panel.
+- `emil-pick-ui-library` lists base-ui's `Drawer` beside Vaul.
+- `uiux` mobile-first checks:
+  - A choice inside a sheet becomes a step in the same sheet, never a second sheet.
+  - A stepped sheet keeps one height on a phone.
+  - A drag handle must close the sheet on a swipe.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.2
 
 **A refresh's restore and citation checks are proved, not claimed.**
