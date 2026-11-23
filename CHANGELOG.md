@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.466.14
+
+**A message points back at a past meeting or a tracker row in words the reader recognises.**
+- `casual-message`: a past meeting is named by what happened in it, not its date, and a tracker row by what it asks, not its number, since both are lookups only the sender can do. A reply arguing someone already said something quotes their own words. A reply citing "our meeting on 21 oct" and "row 2, 3, 11 and 12" was sent back twice before it read naturally.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.13
 
 **A team message no longer tags a colleague with an ask the sender never made, and a CI run refused for billing is recognised.**
