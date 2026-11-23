@@ -6,7 +6,7 @@ Gotchas (critical; full list in ## Critical Gotchas below):
   - A reload swaps the mod only when it reports "re-read from its folder" (directory source, measured 2026-10-16); otherwise only a new session loads a changed one
   - Older Claude Code versions are unverified against a `modules` key sharing `hooks.json` with the ruleset hook
 Related: ../project-docs/current.md (ESSENTIALS entry `{#mod-one-file}` extracts The Mod), ../output-style-hook/current.md (shares `hooks/hooks.json`)
-Last updated: 2026-11-21 (row 43, 1.463.44, not yet seen live)
+Last updated: 2026-11-21 (row 43, 1.463.44, pushed to master as ecb1222; local install updated; not yet seen live)
 -->
 
 # Plugin Maintenance: The Mod Summary
