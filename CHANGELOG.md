@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.466.15
+
+**A casual message keeps a list of options as bullets, so the recipient can answer each one.**
+- `casual-message`: three or more choices or questions the recipient answers one by one now stay as `- ` bullets under the question, even in a casual message to a colleague. The rest of the message stays plain prose, and headers or bullets for your own points are still left out. Before, four options came back joined into one long sentence with commas and "atau".
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.14
 
 **A message points back at a past meeting or a tracker row in words the reader recognises.**
