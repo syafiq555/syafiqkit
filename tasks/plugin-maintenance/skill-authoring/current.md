@@ -36,6 +36,7 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 | #29 / #30 closure | ✅ Closed 17/09/2026 |
 | `score-loop` from a colleague's run (#32, 1.420.0) | ✅ Shipped, issue closed. User's stop rule, measured thresholds, retained-judge option, builder claims checked, builder kept across rounds |
 | `casual-message` casual-Malay defaults (#33, 1.420.0) | ✅ Shipped, issue closed. Sender's sent messages first, defaults for short peer replies, `references/casual-malay.md` |
+| `casual-message` bullets for options (#36, 1.466.16) | ✅ Shipped, issue closed. Score-loop: fresh headless runs via `--plugin-dir` on the issue example plus five controls, fresh judge 18/20 |
 | `doc-to-md` (1.399.0) | ✅ Both stdlib scripts ran on generated `.docx`/`.xlsx` under python 3.9 and 3.14 (headings, bold, pipe table, shared/inline strings, cached values, `--formulas`); lists, images, merged cells and dates untested. Covers the no-repo case (convert both, `diff -u`) and says which check was skipped when `pdftotext`/`pandoc` is absent. ⏸️ Trigger test ("what changed between these two docx versions") in a fresh session |
 
 ## Key Technical Decisions
@@ -57,6 +58,8 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 **No `ExitPlanMode` hook for a plan missing its research pass (Syafiq 21/11/2026).** The rule that a build plan needs per-item research, and that plan mode does not cancel it, sits in `read-summary` and had been reworded seven times when an eighth plan reached the user without research. A warning-only hook on `ExitPlanMode` was offered and declined, so the remedy stays the written rule plus the user's own check; don't offer the hook again without a new reason.
 
 **`casual-message`'s Malay defaults are one sender's habits, scoped and outranked.** #33's checklist came from one colleague's WhatsApps, so the skill reads the sender's own sent messages first and uses the defaults only without them. Inline in Language: bubble shape, greeting, lowercase; the spelling and particle table and the example live in `references/casual-malay.md`, read before any casual Malay draft. The defaults cover short peer replies only: a decision-maker question, a dates or estimates reply and a client-group post keep their structure and borrow just the spelling. Pronouns and the greeting name stay on the existing ask rule, since a default `aku` would contradict it. A reviewer's "4.5 is unsourced" was wrong: it is in #32's title.
+
+**`casual-message` bans bullets that organise the sender's points, not bullets the recipient answers (#36, 23/11/2026).** The blanket "no bullet structure" joined four options into one comma-and-"atau" sentence the colleague couldn't answer point by point. Three or more alternatives answered item by item keep `- ` bullets (`* ` in Chat's composer, numbers in a client group); two options, and lists of what the sender did, steps or offers, stay prose. The threshold is three because two options read naturally inline ("pdf ke excel?"), and the tell includes back-to-back "... ke?" questions since that is the natural Malay shape and has no commas. Headless controls (status reply, steps, what-I-did, two options) all stayed prose.
 
 ## Gotchas
 

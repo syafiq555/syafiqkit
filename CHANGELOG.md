@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.466.16
+
+**The bullets-for-options rule now knows where it stops.**
+- `casual-message`: only lists the recipient replies to item by item get bullets. Two options, what you did, steps to follow and things you offer stay as plain text. A client group still gets numbered questions, and Chat's composer gets `* ` bullets. Options written as back-to-back "... ke?" questions are now caught too.
+- Testing a skill change in a fresh session now loads your edited copy with `--plugin-dir`, since the installed copy can be several versions behind.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.15
 
 **A casual message keeps a list of options as bullets, so the recipient can answer each one.**
