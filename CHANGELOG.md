@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.467.0
+
+**A meeting board you copy onto a real whiteboard now takes a minute to write, with your talking notes beside it.**
+- `excalidraw-board`: a new meeting layout. The left panel is the whiteboard as you will write it: about five numbered topics with one short cue each, plus empty Decided and Actions. Beside it, one note card per topic for you alone, opening with the problem the topic solves and how it works today in a real example, then the options and the suggestion.
+- Questions from a tracker are grouped into topics and named by what they ask, never by row number.
+- `build_board.py` draws it from a spec with `topics` instead of `columns`, so a one-off script is no longer needed.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.466.16
 
 **The bullets-for-options rule now knows where it stops.**

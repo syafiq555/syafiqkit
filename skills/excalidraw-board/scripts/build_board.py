@@ -15,6 +15,14 @@ Spec shape (see ../assets/example-sprint-board.json):
   "strips":  [ {"id": "dec", "head": "ALREADY DECIDED", "lines": ["..."], "blank": 2} ]
 }
 One point per box. Main boxes hold a short noun phrase; each branch holds one fact about it.
+
+Meeting mode (a spec with "topics" instead of "columns"): a whiteboard panel to copy by hand, plus one
+speaker-note card per topic beside it:
+{
+  "topics": [ {"text": "1. Pay first or next invoice?", "cue": "RM 2.50 mid-month",
+               "notes": [["The issue", "..."], ["Example", "..."], ["Suggest", "..."]]} ],
+  "dont_reopen": ["...already decided..."], "decided_blank": 3, "actions_blank": 4
+}
 """
 import json, subprocess, sys
 
@@ -102,9 +110,61 @@ def column(cx, col):
     return y
 
 
+def rule(id_, x, y, w):
+    E.append({"id": id_, "type": "line", "x": x, "y": y, "width": w, "height": 0, "strokeWidth": 1,
+              "points": [[0, 0], [w, 0]]})
+
+
+def write_lines(id_, x, y, head, n, w=380):
+    txt(id_ + "h", x, y, head, 20)
+    for i in range(n):
+        rule(f"{id_}l{i}", x, y + 48 + i * 34, w)
+
+
+def note_block(notes, chars):
+    entries = []
+    for label, text in notes:
+        first, *rest = wrap(f"{label}: {text}" if text else label, chars).split("\n")
+        entries.append("\n".join([first] + ["    " + r for r in rest]))
+    return "\n\n".join(entries)
+
+
+def meeting(spec):
+    txt("wbt", 0, 0, spec.get("whiteboard_head", "WHITEBOARD (copy this)"), 22)
+    y = 50
+    for i, t in enumerate(spec["topics"]):
+        txt(f"wb{i}", 0, y, t["text"], 26)
+        if t.get("cue"):
+            txt(f"wbc{i}", 30, y + 36, t["cue"], 18)
+        y += 90
+    write_lines("dec", 0, y + 20, "DECIDED", spec.get("decided_blank", 3))
+    write_lines("act", 0, y + 200, "ACTIONS (what / owner / date)", spec.get("actions_blank", 4))
+    E.append({"id": "wbframe", "type": "rectangle", "x": -30, "y": -30, "width": 470, "height": y + 400,
+              "strokeWidth": 2, "roundness": None, "backgroundColor": "transparent"})
+    txt("nt", 520, 0, spec.get("notes_head", "MY NOTES (not for the board)"), 22)
+    cards = [(t["text"], note_block(t.get("notes", []), 74)) for t in spec["topics"]]
+    if spec.get("dont_reopen"):
+        cards.append(("Don't reopen", "\n".join("- " + d for d in spec["dont_reopen"])))
+    cw, cy = 640, 50
+    for r in range(0, len(cards), 2):
+        pair = cards[r:r + 2]
+        h = max((body.count("\n") + 1) * 15 * 1.25 for _, body in pair) + 90
+        for j, (head, body) in enumerate(pair):
+            i, cx = r + j, 520 + j * (cw + 30)
+            E.append({"id": f"card{i}", "type": "rectangle", "x": cx, "y": cy, "width": cw, "height": h,
+                      "strokeWidth": 1, "roundness": {"type": 3}, "backgroundColor": "#ffffff"})
+            txt(f"ch{i}", cx + 20, cy + 16, head, 20)
+            rule(f"cl{i}", cx + 20, cy + 50, cw - 40)
+            txt(f"cn{i}", cx + 20, cy + 64, body, 15)
+        cy += h + 30
+
+
 def main():
     spec = json.load(open(sys.argv[1]))
     out = sys.argv[2]
+    if "topics" in spec:
+        meeting(spec)
+        return save(out)
     txt("title", 20, 0, spec["title"], 26)
     if spec.get("subtitle"):
         txt("sub", 20, 38, spec["subtitle"], 15)
@@ -145,6 +205,10 @@ def main():
         sy += h + 20
     if spec.get("footer"):
         txt("footer", 20, bottom + 24, spec["footer"], 15)
+    save(out)
+
+
+def save(out):
     doc = {"type": "excalidraw", "version": 2, "source": "syafiqkit/excalidraw-board", "elements": E,
            "appState": {"viewBackgroundColor": "#ffffff"}, "files": {}}
     json.dump(doc, open(out, "w"), indent=1)
