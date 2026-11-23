@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.4
+
+**Client replies about a fix report the result, not the internals.**
+- `casual-message`: a reply to a client after the team fixed something says what they can now see or do. A caveat the team can close is closed before the reply, never handed to the client, and the draft does not explain why the system works the way it does.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.3
 
 **Bottom sheets: one at a time, one height, and a drag that tracks the finger.**
