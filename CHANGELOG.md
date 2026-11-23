@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.2
+
+**A refresh's restore and citation checks are proved, not claimed.**
+- `refresh-instructions`: Pass 3's restore brief makes the agent grep the pointer's destination and quote the hit or the zero before restoring "lost" text (an agent restored a bullet its companion already held word for word). The caller's citation sweep now covers citations an agent says it corrected (one "fixed" a router row to a heading that exists only in a sibling file). The Report step reminds that a credential target's snapshots stay until `/done`'s reviewers return, since the reminder had lived only in a reference and fired too late twice. Incident stories moved to `references/process-details.md`, so the skill body shrank.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.1
 
 **Meeting-board note cards are short, and every suggestion carries a number.**
