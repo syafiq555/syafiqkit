@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.5
+
+**Tracker replies keep everyone's colour, including the writer's own.**
+- `gsheets` `cell_append_line` and `cell_replace_text`: a cell coloured as a whole (no text runs) now gets that colour pinned as a run at the start before the new line is added, so its earlier text no longer turns grey. The server instructions and both tools' `colour` parameter say to pass the writer's own colour (a tracker's `person_colours` entry, or the colour their earlier lines carry), since both write black when it is left out.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.4
 
 **Client replies about a fix report the result, not the internals.**

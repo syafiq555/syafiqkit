@@ -146,6 +146,17 @@ function linkSpansOf(cell: CellData, text: string): LinkSpan[] {
   })
 }
 
+/**
+ * Text before a cell's first run takes the cell-wide colour only while the cell has no runs;
+ * once a write adds a run, Sheets shows that leading text in its default colour. So a cell
+ * coloured as a whole gets that colour pinned as an explicit run at 0 before anything is added.
+ */
+function withBaseRunAtZero(cell: CellData, old: string, runs: TextRun[]): TextRun[] {
+  const base = rgbOf(cell.userEnteredFormat?.textFormat)
+  if (!old || !base || runs.some((r) => (r.startIndex ?? 0) === 0)) return runs
+  return [{ startIndex: 0, format: { foregroundColorStyle: { rgbColor: base } } }, ...runs]
+}
+
 function colouredRuns(offset: number, length: number, colour: Rgb, links: LinkSpan[]): TextRun[] {
   const plain = { foregroundColorStyle: { rgbColor: colour } }
   const runs: TextRun[] = [{ startIndex: offset, format: plain }]
@@ -181,7 +192,7 @@ export function planAppend(cell: CellData, line: string, colour: Rgb): AppendPla
   const old = textOf(cell)
   const text = old ? `${old}\n${line}` : line
   const newRunStart = old.length
-  const runs: TextRun[] = [...(cell.textFormatRuns ?? [])]
+  const runs: TextRun[] = withBaseRunAtZero(cell, old, [...(cell.textFormatRuns ?? [])])
   const lineStart = old ? newRunStart + 1 : 0
   const lineLinks = linksForNewText(line).map((l) => ({ ...l, start: l.start + lineStart - newRunStart, end: l.end + lineStart - newRunStart }))
   runs.push(...colouredRuns(newRunStart, text.length - newRunStart, colour, lineLinks))
@@ -220,7 +231,7 @@ export function planReplace(cell: CellData, find: string, replace: string, colou
   const newEnd = start + replace.length
   const text = old.slice(0, start) + replace + old.slice(oldEnd)
   const shift = newEnd - oldEnd
-  const original = cell.textFormatRuns ?? []
+  const original = withBaseRunAtZero(cell, old, [...(cell.textFormatRuns ?? [])])
   let resume: TextRun | undefined
   for (const r of original) if ((r.startIndex ?? 0) <= oldEnd) resume = r
   const runs: TextRun[] = original.filter((r) => (r.startIndex ?? 0) < start)

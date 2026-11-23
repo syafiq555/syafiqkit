@@ -34,6 +34,17 @@ describe('append', () => {
     expect(plan.runs[1]).toEqual({ startIndex: 9, format: { foregroundColorStyle: { rgbColor: BLACK } } })
   })
 
+  test('pins a cell-wide colour as a run at 0 so the earlier text keeps it after the append', () => {
+    const GREEN = { red: 55 / 255, green: 117 / 255, blue: 28 / 255 }
+    const cell: CellData = {
+      userEnteredValue: { stringValue: 'Syafiq 23/11: first' },
+      userEnteredFormat: { textFormat: { foregroundColorStyle: { rgbColor: GREEN } } },
+    }
+    const plan = planAppend(cell, 'Syafiq 23/11: second', GREEN)
+    expect(plan.runs[0]).toEqual({ startIndex: 0, format: { foregroundColorStyle: { rgbColor: GREEN } } })
+    expect(plan.runs[1]).toEqual({ startIndex: 19, format: { foregroundColorStyle: { rgbColor: GREEN } } })
+  })
+
   test('counts an emoji as two UTF-16 units', () => {
     const plan = planAppend({ userEnteredValue: { stringValue: 'ok 👍' } }, 'next', BLACK)
     expect(plan.newRunStart).toBe(5)
