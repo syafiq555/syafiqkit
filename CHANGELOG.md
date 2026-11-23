@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.6
+
+**Editing a sent Chat message drafts through the same skill as sending one.**
+- `gchat` server instructions and `message_edit_preview`: an edit's new text goes through `casual-message` (a reply in the user's voice) or `gchat-format` (a posted document), like a new send. An edit that only corrects a fact still counts, since facts found while checking leaked into a reply as a route name, a method and a vendor list.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.5
 
 **Tracker replies keep everyone's colour, including the writer's own.**
