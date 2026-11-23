@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.1
+
+**Meeting-board note cards are short, and every suggestion carries a number.**
+- `excalidraw-board`: each speaker-note card is about four one-sentence lines: the issue, the suggestion with a real figure, and why with a real figure. Long cards carrying every reason were too much to read, and suggestions without numbers gave the presenter nothing to defend.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.0
 
 **A meeting board you copy onto a real whiteboard now takes a minute to write, with your talking notes beside it.**
