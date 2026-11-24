@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.468.22
+
+**`motion-clip` walkthroughs show the real page a tap opens and stop failing half-second reviews; `score-loop` counts its own rubric; `casual-message` stops asking a recipient what the sender knows.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `motion-clip` (`references/capture-web-ui.md`): a button that leaves the site (WhatsApp, a payment page) gets its real destination captured from the button's `href` in the same phone context, so the order beat ends on WhatsApp's own page with the prefilled message instead of a pan to the button.
+- `motion-clip` (`references/review-lenses.md` § Render pitfalls): a fade lasts 0.18 s, so stills on a 0.5 s grid caught screens overlapping; put each `from` 0.2 s before a grid time, and start camera moves on the screen change, since the spring lands about 0.5 s late.
+- `motion-clip` (SKILL.md § 1): the brand voice holds for a family audience (no owner's name on screen), and local-language captions use the words people post, not the formal register.
+- `score-loop`: a frozen rubric's check count is counted from the written list; a header saying 30 over 29 checks had a judge score a phantom check as 0.
+- `casual-message` (§ Speaking for the sender): a researched question about the recipient's own identity goes to the sender first, who usually knows.
+
 ## 1.468.21
 
 **`taste`: photo fetches keep their large sizes when ffmpeg has no WebP encoder, the gate re-checks a server-rendered site after its templates change, and clothing stand-ins have a better source.**
