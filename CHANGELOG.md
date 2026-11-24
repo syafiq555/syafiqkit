@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.468.19
+
+**`commit`: a long list of paths to commit goes through `--pathspec-from-file`.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. Nothing you made needs redoing.
+- Committing only your own files from a long list used to be typed as a shell expansion in the command. With deleted files in the list, Claude Code's safety check refused it as a possible mass removal. The skill now writes the list to a file and passes it with `--pathspec-from-file`, adding new files the same way first.
+
 ## 1.468.18
 
 **`score-loop`: when a round's fixes change code, a code reviewer joins that round.**
