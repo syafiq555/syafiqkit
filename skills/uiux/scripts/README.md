@@ -11,6 +11,15 @@ LOGIN_PASSWORD=<pw> node save-login.mjs --url <login page> --email <login> --out
 
 Opens the login page, fills the email and password fields (defaults: an email/`name=email` input and the password input), submits, waits until the page leaves the login path, and writes the cookies and that origin's localStorage as a Playwright storage-state file for `check-render --storage-state`. Exit 1 when it stays on the login page (wrong credentials, a second step, a different submit button). Pass the password through `LOGIN_PASSWORD`, not `--password`, so it stays out of shell history. Save it right before each batch: a server can drop a session within minutes.
 
+## record-clickthrough.mjs
+
+```
+node record-clickthrough.mjs <url> --steps steps.json [--widths 375,1280] [--storage-state auth.json]
+                             [--fps 6] [--pause 1500] [--out DIR] [--scheme light|dark]
+```
+
+Plays a scripted click-through and records it through Chrome's screencast, then samples the frames at `--fps` and tiles them into `sheet-<width>.png` per width (needs `ffmpeg` on PATH; without it the frames stay), with `timeline.json` naming the frame each step started on. `steps.json` is an array of `{ "click": "css" }`, `{ "clickLabel": "Select Almonds" }` (the first visible control whose aria-label, label or text starts with it; a screen-reader-only label is followed to its control), `{ "wait": ms }` or `{ "scroll": px }`; each click records `--pause` ms after it. Phone widths (under 768) tap through touch events, since touch emulation drops synthetic mouse clicks. Read a sheet left to right, top to bottom: a control that greys, a label that shows for one frame, or a card that jumps after a click is the finding a still capture cannot carry. Exit 1 when a step's target was not found.
+
 ## check-render.mjs
 
 ```

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.1
+
+**A screen people click through (tick boxes, steppers, toggles, a drawer) is now judged from a recording of the clicks, not only from still screenshots.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. No earlier output becomes invalid.
+- New `uiux` script `record-clickthrough.mjs`: give it a page and a short list of clicks, and it records them at a phone and a desktop width and lays the frames out as contact sheets. A control that greys, a label that flashes for a moment or a card that jumps after a click shows up there, which a still capture never can. It needs no install beyond Chrome (and ffmpeg for the sheets), taps on phone widths, and follows a screen-reader-only label to the control it names.
+- `score-loop` and `/done`'s design review now ask for that recording on interactive screens, with an interaction criterion in the score, and grade the live page as well as any component preview, since a preview can leave out what the page pins (a phone pay bar, say).
+
 ## 1.468.0
 
 **Say a screen or page looks boring, plain, busy or "doesn't stand out", and the design skills now pick the fix for that complaint.**
