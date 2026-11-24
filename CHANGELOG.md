@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.10
+
+**Meeting boards read at a glance and leave settled items closed.**
+- `excalidraw-board`: every speaker-note card uses the same labels in order (Question, Where in the product, Today, Suggest, Why), whiteboard topics carry two or three cue lines so every open question shows, and each topic is checked against what the decider already said before it goes up; answered items go on Don't reopen.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.9
 
 **Meeting boards without the new sections render as before.**
