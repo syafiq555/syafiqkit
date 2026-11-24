@@ -27,7 +27,7 @@ hooks:
 
 Screens inside an app (dashboard, admin, settings, a form within the product) are not this skill's: they go to `uiux`, which owns the app-screen kit. So does a shop's own storefront home (a marketplace or grocery home of product rails and deals): `uiux` keeps it and may borrow `photos.mjs` and `shoot.mjs` from here.
 
-A page that draws a complaint about how it looks (boring, plain, flat, busy, "doesn't stand out", "no focal point") is diagnosed before it is rebuilt: read `../uiux/references/composition-moves.md` (relative to this skill's folder), name the symptom and the move its table maps it to, and carry that move into the plan at run step 3 ("Plan the page as screens"). Three moves break `layout-v4.md`'s "nothing staggered, cut off or overlapping" on purpose, so the section that carries one names it: `data-move="break-layout"` (staggered heading lines, a subject crossing the screen edge), `data-move="scale-crop"` (a huge word or subject cropped at the edge) or `data-move="three-planes"` (the subject over the back word). The checker then reports those findings in that section as WARNs naming the move, not FAILs, and a crop still FAILs once more than a fifth of the text is hidden. Nothing crosses into the next section even then. One such section per page, only where the plan names the user's complaint; every other section keeps the rules. One odd element, detail from the subject and one tap colour need no marker. Rebuilding without naming the symptom deals a new page with the same failure.
+A page that draws a complaint about how it looks (boring, plain, flat, busy, "doesn't stand out", "no focal point") is diagnosed before it is rebuilt: read `../uiux/references/composition-moves.md` (relative to this skill's folder), name the symptom and the move its table maps it to, and carry that move into the plan at run step 3 ("Plan the page as screens"). Three moves break `layout-v4.md`'s "nothing staggered, cut off or overlapping" on purpose, so the section that carries one names it: `data-move="break-layout"` (staggered heading lines, a subject crossing the screen edge), `data-move="scale-crop"` (a huge word or subject cropped at the edge) or `data-move="three-planes"` (the subject over the back word). Both checkers then let the move through in that section: `consistency.mjs` reports its own findings (the stagger, the crop at the screen edge, the overlap, the container line the move leaves) as WARNs naming the move, and `check.mjs` skips its edge rules for the section's heading and subject. A crop or an overlap still FAILs once more than a fifth of the text is hidden, and so do a page that scrolls sideways, `off-grid` and `one-section`. Nothing crosses into the next section even then: the plan keeps that, and you check it by eye in the captures, since the checker downgrades by the section a finding's element sits in and does not test crossing. The marker goes on a `section`, never `main` or `body` (the checker ignores it there). One such section per page, only where the plan names the user's complaint; every other section keeps the rules. One odd element, detail from the subject and one tap colour need no marker. Rebuilding without naming the symptom deals a new page with the same failure.
 
 Build the website a good company would ship: it says plainly what is sold, shows the real thing on
 every screen, and looks made for this client, not from a template and not like an art piece.
@@ -171,7 +171,7 @@ Read `copy.md`, `copy-voice.md`, `system.md`, `layout-v4.md` and `sections.md` i
    (`public/assets`) and loaded from there as plain files. A brief that asks for Next.js builds a
    static export (`output: 'export'`), checked on its built page (`--root out`).
 
-1. **Read the brief.** Write down the kind (section 1), what is sold, who buys it, the one main
+1. **Read the brief.** When the brief is a complaint about how an existing page looks (boring, plain, flat, busy, "doesn't stand out", "no focal point"), run `cat <skill>/../uiux/references/composition-moves.md` first and write down the symptom, its mapped move and the section that will carry it (with its `data-move` when the move staggers, crops or overlaps); the plan at step 3 builds that move. Write down the kind (section 1), what is sold, who buys it, the one main
    action (the transaction: Book a room, Order a cake, Start a free trial; a place with neither:
    Get directions) and the real material: logo, screens, photographs, prices, address, hours.
    Then arm the finish gate, before any page exists:
@@ -272,7 +272,7 @@ Read `copy.md`, `copy-voice.md`, `system.md`, `layout-v4.md` and `sections.md` i
    node <skill>/scripts/perf.mjs index.html --profile <dir>
    ```
 
-   Shoot 1024, 820x1180, 768x1024 and 390 as well. Every `check.mjs` finding fails the page (no `--no-stress`).
+   Shoot 1024, 820x1180, 768x1024 and 390 as well. Every `check.mjs` finding fails the page (no `--no-stress`); inside a `data-move` section it skips the edge rules for the move's heading and subject.
    copy-lint opens no browser and takes under a second. Fix every FAIL (a copy-lint WARN too, or say
    why it stays) and read the copy aloud (`copy-voice.md` section 6); shoot again and read every
    screenshot against the checklist. In the fix rounds run `consistency.mjs --quick --widths
@@ -368,7 +368,7 @@ Each line names its checks: `consistency.mjs` ids in brackets, `check.mjs` findi
   (`layout-v4.md`); splits stack text first, no row half empty; one column at 390, buttons full
   width, a full-screen menu; the place action bar.
 - **Your eyes:** beside the figma.com and x.ai frames it reads as a professional company site;
-  nothing tilted, staggered, cut or overlapping; the hero is the work, not a mood.
+  nothing tilted, staggered, cut or overlapping outside a `data-move` section; the hero is the work, not a mood.
 
 ## 6. Never
 

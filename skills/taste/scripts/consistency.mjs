@@ -4497,6 +4497,24 @@ async function run(ctx) {
 // the checks kept as blocks of their own: each runs on the walked tab at every width it names (phase 'width') or opens
 // its own tab (phase 'pass'); --no-<id> skips one
 const MODULES = [visualMod, addressMod, rhythmMod, motionMod, tilesMod, areaMod, basicsMod];
+// a section marked data-move (SKILL.md, the paragraph on complaints about how a page looks) may break these for its move
+const MOVE_ALLOWS = {
+  'break-layout': ['stagger', 'top-stagger', 'spill', 'off-viewport', 'container-edges'],
+  'scale-crop': ['cut-text', 'spill', 'off-viewport', 'container-edges', 'row-lines'],
+  'three-planes': ['overlap-text'],
+};
+const TEXT_CROPS = new Set(['cut-text', 'overlap-text']);
+const MOVABLE = new Set(Object.values(MOVE_ALLOWS).flat());
+// on a tab with the page and its lib loaded: a FAIL a marked section's move allows becomes a WARN naming the move
+async function applyMoves(F, tab) {
+  if (!F.some((f) => f.sev === 'FAIL' && MOVABLE.has(f.check))) return;
+  const moves = (await tab.eval(`window.__cc.moveOf(${JSON.stringify(F.map((f) => [f.id || 0, f.sel || '', f.coveredId || 0]))})`)) || [];
+  F.forEach((f, i) => {
+    const m = moves[i]; if (!m || f.sev !== 'FAIL' || !(MOVE_ALLOWS[m.move] || []).includes(f.check)) return;
+    if (TEXT_CROPS.has(f.check) && m.share < 0.8) { f.msg += ` (data-move="${m.move}" allows ${f.check === 'cut-text' ? 'a crop' : 'an overlap'}, but ${Math.round((1 - m.share) * 100)}% of this text is hidden; keep at least four fifths visible)`; return; }
+    f.sev = 'WARN'; f.msg += ` (allowed by data-move="${m.move}" on its section: a composition move the plan names)`;
+  });
+}
 
 const OUT = opt('out', null);
 // --root: a built site's folder, served instead of the page's own so its root-relative links (/style.css) resolve
@@ -5371,11 +5389,6 @@ function lib() {
     return { kind: 'solid', e: null, col: bb.a >= 0.9 ? bb : hb.a >= 0.9 ? hb : { r: 255, g: 255, b: 255, a: 1 } };
   }
 
-  const MOVE_ALLOWS = {
-    'break-layout': ['stagger', 'top-stagger', 'spill', 'off-viewport'],
-    'scale-crop': ['cut-text', 'spill', 'off-viewport'],
-    'three-planes': ['overlap-text'],
-  };
   const visibleShare = (el) => {
     const r = el.getBoundingClientRect(); if (r.width * r.height < 1) return 1;
     let L = Math.max(r.left, 0), T = Math.max(r.top, -1e6), Rr = Math.min(r.right, innerWidth), B = r.bottom;
@@ -5385,14 +5398,22 @@ function lib() {
     }
     return Math.max(0, Rr - L) * Math.max(0, B - T) / (r.width * r.height);
   };
+  function moveOf(list) {
+    const bySel = (s) => { try { return s && /^[a-z]/i.test(s) ? document.querySelector(s) : null; } catch (e) { return null; } };
+    const uncovered = (box, text) => {
+      const a = box.getBoundingClientRect(), t = text.getBoundingClientRect(), area = t.width * t.height; if (area < 1) return 1;
+      const w = Math.max(0, Math.min(a.right, t.right) - Math.max(a.left, t.left)), h = Math.max(0, Math.min(a.bottom, t.bottom) - Math.max(a.top, t.top));
+      return 1 - (w * h) / area;
+    };
+    return list.map(([id, sel, coveredId]) => {
+      const el = (id && els.get(id)) || bySel(sel); if (!el || !el.closest) return null;
+      const m = el.closest('[data-move]'); if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName)) return null;
+      const covered = coveredId && els.get(coveredId);
+      const share = !el.isConnected ? 1 : covered && covered.isConnected ? uncovered(el, covered) : visibleShare(el);
+      return { move: m.getAttribute('data-move'), share };
+    });
+  }
   function add(out, check, sev, el, msg, rects, extra) {
-    const mover = sev === 'FAIL' && el && el.closest ? el.closest('[data-move]') : null;
-    const move = mover && mover.getAttribute('data-move');
-    if (move && (MOVE_ALLOWS[move] || []).includes(check)) {
-      const share = check === 'cut-text' || check === 'overlap-text' ? visibleShare(el) : 1;
-      if (share >= 0.8) { sev = 'WARN'; msg += ` (allowed by data-move="${move}" on its section: a composition move the plan names)`; }
-      else msg += ` (data-move="${move}" allows a crop, but ${Math.round((1 - share) * 100)}% of this text is hidden; keep at least four fifths visible)`;
-    }
     out.findings.push(Object.assign({ check, sev, id: el ? idOf(el) : 0, sel: sel(el), text: label(el), msg, rects: rects.map((r) => Object.assign(R(r), r.ref ? { ref: true } : {})) }, extra || {}));
   }
 
@@ -6112,7 +6133,7 @@ function lib() {
       }
       if (!hit || told.box.has(hit.box)) continue;
       told.box.add(hit.box);
-      add(out, 'overlap-text', 'FAIL', hit.box, `lies over the text "${label(el).slice(0, 40)}" (${sel(el).split(' > ').slice(-2).join(' > ')})`, [hit.box.getBoundingClientRect(), Object.assign({}, hit.L, { ref: true })]);
+      add(out, 'overlap-text', 'FAIL', hit.box, `lies over the text "${label(el).slice(0, 40)}" (${sel(el).split(' > ').slice(-2).join(' > ')})`, [hit.box.getBoundingClientRect(), Object.assign({}, hit.L, { ref: true })], { coveredId: idOf(el) });
     }
   }
 
@@ -9020,7 +9041,7 @@ function lib() {
     return { sig: parts.join('#'), r: R(r) };
   }
 
-  window.__cc = { measure, phoneLook, arrive, probe, findHeld, holdPass, revealList, scrollTimelines, noVisual, seam, stmtSecs, insideMoving, insideScene, momentOf, placeOf, rectOf, scrollTo: scrollToY, prescroll, hideText, navCollapse, closedAnchors, fontLoad,
+  window.__cc = { measure, phoneLook, arrive, probe, findHeld, holdPass, revealList, scrollTimelines, noVisual, seam, stmtSecs, insideMoving, insideScene, moveOf, momentOf, placeOf, rectOf, scrollTo: scrollToY, prescroll, hideText, navCollapse, closedAnchors, fontLoad,
     pageInfo, hiddenCands, isShownNow, hoverCands, hoverBox, hoverSig, hoverXf, loopCands, pauseFor, viewRect, formsList, trySubmit, audit, ioReveals, moreChecks, hoverKinds, lookSig,
     picsReady, heroFill, seams, extras, glInfo, glHosts, hideVis, stripHost, canvasArea, ghostPics, moverAt, motionNow, imgDone: (list) => list.map((id) => { const e = els.get(id); return !!(e && e.complete && e.naturalWidth); }) };
   return true;
@@ -11230,6 +11251,7 @@ async function runWidth(cdp, helper, { w: width, h }, first) {
       const scene = (await safe('scene', () => tab.eval(`window.__cc.insideScene(${JSON.stringify(ids)})`))) || [];
       F.forEach((f, i) => { if (scene[i] && !inside[i]) { f.msg += ' (inside a held section or scroll scene, whose motion --quick does not check)'; f.sev = 'WARN'; } });
     }
+    await safe('data-move', () => applyMoves(F, tab));
     groupSame(F);
   } catch (e) {
     errors.push(e.message);
@@ -11448,6 +11470,15 @@ try {
       let got = (await pctx.safe(M.id, () => M.run(pctx))) || [];
       // a hero taller or shorter than the screen (SR-1 T1) is the fault: its rows past the content line (T4) follow from it
       if (got.some((f) => f.check === 'hero-screen' && f.rule === 'SR-1 T1')) got = got.filter((f) => !(f.check === 'hero-screen' && f.rule === 'SR-1 T4'));
+      if (got.some((f) => f.sev === 'FAIL' && MOVABLE.has(f.check))) {
+        const mt = await pctx.safe('data-move', () => pctx.openTab());
+        if (mt) {
+          try {
+            await mt.goto(url); await waitReady(mt); await pctx.safe('data-move lib', () => pctx.loadLib(mt));
+            await pctx.safe('data-move', () => applyMoves(got, mt));
+          } finally { await mt.close().catch(() => {}); }
+        }
+      }
       r.findings.push(...got.map(clean));
     }
     // a phone over a slow mobile line: once, at the first phone width (skipped with --quick or --no-slow)

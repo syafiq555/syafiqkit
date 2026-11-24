@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.5
+
+**A headline you crop, stagger or set behind the subject on purpose now passes `taste`'s finish check, as long as its section carries `data-move`.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- In 1.468.3 such a page still failed other parts of the check, so it could never pass. Now the whole check lets the headline and the subject of a marked section through, while other cards and blocks in that section keep the usual rules.
+- The marker goes on the section, not `main` or the whole page. Still failing on purpose: a word more than a fifth hidden, anything crossing into the next section (checked by eye), and a page that scrolls sideways.
+
 ## 1.468.4
 
 **`uiux` now tells you how to run impeccable's detector on a screen behind a login, at the step where saved logins come up.**
