@@ -21,8 +21,11 @@ speaker-note card per topic beside it:
 {
   "topics": [ {"text": "1. Pay first or next invoice?", "cue": "RM 2.50 mid-month",
                "notes": [["The issue", "..."], ["Example", "..."], ["Suggest", "..."]]} ],
-  "dont_reopen": ["...already decided..."], "decided_blank": 3, "actions_blank": 4
+  "dont_reopen": ["...already decided..."], "decided_blank": 3, "actions_blank": 4,
+  "decided": ["..."], "actions": ["what · owner · date"]
 }
+"decided" and "actions" write lines onto the panel after the meeting (under about 42 characters each);
+the blanks follow them.
 """
 import json, subprocess, sys
 
@@ -115,10 +118,14 @@ def rule(id_, x, y, w):
               "points": [[0, 0], [w, 0]]})
 
 
-def write_lines(id_, x, y, head, n, w=380):
+def write_lines(id_, x, y, head, n, w=380, filled=()):
     txt(id_ + "h", x, y, head, 20)
-    for i in range(n):
-        rule(f"{id_}l{i}", x, y + 48 + i * 34, w)
+    top = y + (60 if filled else 48)
+    for i, line in enumerate(filled):
+        txt(f"{id_}t{i}", x, top + i * 34 - 24, line, FS_LINE)
+    for i in range(len(filled) + n):
+        rule(f"{id_}l{i}", x, top + i * 34, w)
+    return top + (len(filled) + n) * 34
 
 
 def note_block(notes, chars):
@@ -137,9 +144,13 @@ def meeting(spec):
         if t.get("cue"):
             txt(f"wbc{i}", 30, y + 36, t["cue"], 18)
         y += 90
-    write_lines("dec", 0, y + 20, "DECIDED", spec.get("decided_blank", 3))
-    write_lines("act", 0, y + 200, "ACTIONS (what / owner / date)", spec.get("actions_blank", 4))
-    E.append({"id": "wbframe", "type": "rectangle", "x": -30, "y": -30, "width": 470, "height": y + 400,
+    dec_end = write_lines("dec", 0, y + 20, "DECIDED", spec.get("decided_blank", 3),
+                          filled=spec.get("decided", ()))
+    act_y = max(y + 200, dec_end + 30)
+    act_end = write_lines("act", 0, act_y, "ACTIONS (what / owner / date)", spec.get("actions_blank", 4),
+                          filled=spec.get("actions", ()))
+    E.append({"id": "wbframe", "type": "rectangle", "x": -30, "y": -30, "width": 470,
+              "height": max(y + 400, act_end + 60),
               "strokeWidth": 2, "roundness": None, "backgroundColor": "transparent"})
     txt("nt", 520, 0, spec.get("notes_head", "MY NOTES (not for the board)"), 22)
     cards = [(t["text"], note_block(t.get("notes", []), 74)) for t in spec["topics"]]

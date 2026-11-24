@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.8
+
+**A meeting board can carry what the meeting decided.**
+- `excalidraw-board`: meeting-mode specs take `decided` and `actions` lists, written onto the whiteboard panel's lines with the blanks after them; the panel grows to fit. Before, those sections could only be drawn empty.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.7
 
 **A reply full of figures per case reads as labelled blocks, not packed lines.**
