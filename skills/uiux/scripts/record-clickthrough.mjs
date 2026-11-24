@@ -8,7 +8,9 @@
 //   { "clickLabel": "Select Almonds" }     click the first visible control whose accessible text or aria-label starts with this
 //   { "wait": 800 }                        pause (ms) with recording on
 //   { "scroll": 600 }                      wheel down (negative goes up)
-// Every click is followed by --pause ms of recording. Writes per width: frames/, sheet-<width>.png (needs ffmpeg on PATH;
+//   { "type": "sel" }                      type into the focused element one key at a time (a search box, a combobox)
+//   { "press": "Escape" }                  press one key: Escape, Enter, Tab, Backspace, ArrowDown, ArrowUp
+// Every click, type and press is followed by --pause ms of recording. Writes per width: frames/, sheet-<width>.png (needs ffmpeg on PATH;
 // without it the frames stay and the sheet is skipped) and timeline.json (which frame each step started on).
 import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -34,6 +36,8 @@ const pauseMs = Number(flag('pause', '1500'));
 const scheme = flag('scheme', 'light');
 const out = resolve(flag('out', join(tmpdir(), 'uiux-clickthrough', String(Date.now()))));
 const storage = flag('storage-state');
+
+const KEYS = { Escape: 27, Enter: 13, Tab: 9, Backspace: 8, ArrowDown: 40, ArrowUp: 38 };
 
 const FIND = ({ css, label }) => {
   const visible = (el) => {
@@ -93,7 +97,20 @@ try {
       const at = Date.now();
       if (step.wait) await sleep(step.wait);
       else if (step.scroll) await page.wheel(step.scroll);
-      else {
+      else if (typeof step.type === 'string') {
+        for (const char of step.type) {
+          await page.send('Input.dispatchKeyEvent', { type: 'char', text: char });
+          await sleep(60);
+        }
+        await sleep(pauseMs);
+      } else if (step.press) {
+        const code = KEYS[step.press];
+        if (!code) { timeline.push({ step, at, error: 'unknown key' }); continue; }
+        for (const type of ['rawKeyDown', 'keyUp']) {
+          await page.send('Input.dispatchKeyEvent', { type, key: step.press, code: step.press, windowsVirtualKeyCode: code });
+        }
+        await sleep(pauseMs);
+      } else {
         const point = await page.eval(FIND, { css: step.click || '', label: step.clickLabel || '' });
         if (!point) { timeline.push({ step, at, error: 'not found' }); continue; }
         await sleep(150);

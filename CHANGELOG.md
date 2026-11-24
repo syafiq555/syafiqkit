@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.20
+
+**`uiux`: the click-through recorder can type and press keys, so a search box or dropdown can be recorded being used.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. Nothing you made needs redoing.
+- `scripts/record-clickthrough.mjs` steps now include `{ "type": "sel" }`, typed into the focused field one key at a time, and `{ "press": "Escape" }` (also `Enter`, `Tab`, `Backspace`, `ArrowDown`, `ArrowUp`). Before, only clicks, waits and scrolls existed, so a searchable dropdown's results, loading and no-match states needed a hand-written browser script.
+- Example: `[{"click":"[role=combobox]"},{"type":"ra"},{"type":"zzq"},{"press":"Escape"}]` records opening a field, the matches, the no-match message and closing. An unknown key name counts as a step not found (exit 1).
+
 ## 1.468.19
 
 **`commit`: a long list of paths to commit goes through `--pathspec-from-file`.**
