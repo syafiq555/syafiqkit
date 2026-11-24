@@ -5371,7 +5371,28 @@ function lib() {
     return { kind: 'solid', e: null, col: bb.a >= 0.9 ? bb : hb.a >= 0.9 ? hb : { r: 255, g: 255, b: 255, a: 1 } };
   }
 
+  const MOVE_ALLOWS = {
+    'break-layout': ['stagger', 'top-stagger', 'spill', 'off-viewport'],
+    'scale-crop': ['cut-text', 'spill', 'off-viewport'],
+    'three-planes': ['overlap-text'],
+  };
+  const visibleShare = (el) => {
+    const r = el.getBoundingClientRect(); if (r.width * r.height < 1) return 1;
+    let L = Math.max(r.left, 0), T = Math.max(r.top, -1e6), Rr = Math.min(r.right, innerWidth), B = r.bottom;
+    for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+      const c = getComputedStyle(a); if (c.overflowX === 'visible' && c.overflowY === 'visible') continue;
+      const q = a.getBoundingClientRect(); L = Math.max(L, q.left); Rr = Math.min(Rr, q.right); T = Math.max(T, q.top); B = Math.min(B, q.bottom);
+    }
+    return Math.max(0, Rr - L) * Math.max(0, B - T) / (r.width * r.height);
+  };
   function add(out, check, sev, el, msg, rects, extra) {
+    const mover = sev === 'FAIL' && el && el.closest ? el.closest('[data-move]') : null;
+    const move = mover && mover.getAttribute('data-move');
+    if (move && (MOVE_ALLOWS[move] || []).includes(check)) {
+      const share = check === 'cut-text' || check === 'overlap-text' ? visibleShare(el) : 1;
+      if (share >= 0.8) { sev = 'WARN'; msg += ` (allowed by data-move="${move}" on its section: a composition move the plan names)`; }
+      else msg += ` (data-move="${move}" allows a crop, but ${Math.round((1 - share) * 100)}% of this text is hidden; keep at least four fifths visible)`;
+    }
     out.findings.push(Object.assign({ check, sev, id: el ? idOf(el) : 0, sel: sel(el), text: label(el), msg, rects: rects.map((r) => Object.assign(R(r), r.ref ? { ref: true } : {})) }, extra || {}));
   }
 

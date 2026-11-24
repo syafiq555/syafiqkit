@@ -2,7 +2,7 @@
 
 ## Current state {#current}
 
-24/11/2026: shipped as 1.468.0 after a 5-round score loop (18, 19, 19, 19, 20 of 20), then 1.468.2 from the `/done` review. `uiux/references/composition-moves.md` holds the moves, indexed by the complaint a user makes; `uiux`, `taste`, `uiux`'s critique mode and `done`'s design review point at it; check-render writes `-blur8`/`-blur20` captures on every run. Open: whether `taste` should bend its layout rules for the moves (below); each trigger test ran once.
+24/11/2026: shipped as 1.468.0 after a 5-round score loop (18, 19, 19, 19, 20 of 20), then 1.468.2 from the `/done` review and 1.468.3 (`taste` bends for a move on a section marked `data-move`). `uiux/references/composition-moves.md` holds the moves, indexed by the complaint a user makes; `uiux`, `taste`, `uiux`'s critique mode and `done`'s design review point at it; check-render writes `-blur8`/`-blur20` captures on every run. Open: the `three-planes` allowance is untested on a page where `overlap-text` fires; each trigger test ran once.
 
 ## The source {#sources}
 
@@ -25,9 +25,9 @@ No data behind any claim; graded as judgement. It is a poster lesson, so each mo
 
 Users describe the symptom ("boring", "plain", "doesn't stand out", "no focal point", "flat"), never the technique, and both videos are written as symptom then fix. So the reference's headings become the complaints, the existing anchors stay (citations resolve), and `taste` points at the `uiux` copy rather than holding a second one.
 
-### 2026-11-24: `taste`'s layout rules win on its pages, for now {#taste-rules-win}
+### 2026-11-24: `taste` bends for a move, one marked section at a time {#taste-rules-win}
 
-The `/done` product review found three moves `taste` bans: `layout-v4.md` says nothing is staggered, cut off, crossing a section edge or overlapping, and its checker fails `stagger`, `cut-text`, `overlap-text` and `one-section`. Told to apply them, a session would fail its own finish gate or drop the move silently. Default chosen (today's `taste` behaviour unchanged): on a `taste` page, one odd element, detail from the subject, one tap colour and a bigger display size within `system.md` § Type apply; break the layout means the subject off-centre or text beside it inside the `.wrap`; scale stops short of cropping a word; three planes does not apply (a full-width `img.layer` is its depth). Whether `taste` should bend is Syafiq's call.
+The `/done` product review found three moves `taste` banned: `layout-v4.md` said nothing is staggered, cut off, crossing a section edge or overlapping, and its checker failed `stagger`, `cut-text`, `overlap-text` and `one-section`, so a session told to apply them would fail its own finish gate or drop the move silently. 1.468.2 shipped the safe default (`taste`'s rules win); Syafiq then chose "Let taste bend" (24/11/2026). Built in 1.468.3: a section carrying a move is marked `data-move="break-layout" | "scale-crop" | "three-planes"`, and `consistency.mjs`'s `add()` reports that move's findings there as WARNs naming it; a crop or overlap that hides more than a fifth of the text stays a FAIL (the same line `uiux`'s inspector draws). A marker rather than a blanket loosening, so every other section keeps the rules and a reviewer sees which section asked for the exception. Tested: staggered heading lines FAIL plain and WARN marked; a word cropped 10% WARNs, 40% FAILs. Not tested on a firing case: `three-planes` (the overlap fixture raised no `overlap-text` either way).
 
 ### 2026-11-24: working screens get the moves that fit them {#working-screens}
 

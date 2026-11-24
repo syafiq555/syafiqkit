@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.3
+
+**Public pages built with `taste` can now use the bold poster moves (a staggered headline, a huge word cropped at the edge, a subject over the big word) where you complained a page is boring or doesn't stand out.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. Pages built before are unaffected.
+- The section using the move is marked with `data-move`, and `taste`'s finish check then reports that move as a warning naming it instead of failing the page. Every other section keeps the usual rules. A cropped word still fails once more than a fifth of it is hidden.
+- Replaces 1.468.2's "taste's own layout rules win" for these three moves.
+
 ## 1.468.2
 
 **The complaint-to-fix moves now fit the screen they land on, and `/done`'s design review uses them.**

@@ -238,7 +238,11 @@ once on load like every hero (`motion.md`, The hero's entrance); no moment in th
   Never out to one side only: a cut window is cut by its frame inside the `.wrap`. A picture wall
   is `.wall` (gap 0 or 2px), from line to line.
 - **Nothing** crosses a section edge, is cut off (no sliced heading, no ellipsis), staggered or
-  peeking out behind another, and there is no dead space beside a short text.
+  peeking out behind another, and there is no dead space beside a short text. The one exception is
+  a section marked `data-move` for a composition move the plan names (`SKILL.md`, the paragraph on
+  complaints about how a page looks): there the move may stagger, crop at the screen edge or
+  overlap, with at least four fifths of any cropped text visible, and still never crosses into
+  the next section.
 - **1024 to 1279:** span-4 cards with a panel go two-up. **640 to 1023** (checked at 820 and 768):
   splits stack text first, panel cards take the full row, no row half empty. Nothing scrolls
   sideways at any width; no swipe rows.
