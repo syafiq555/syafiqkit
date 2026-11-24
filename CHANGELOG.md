@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.468.11
+
+**Two edge cases in `taste`'s bold-headline marker fixed, and the design moves say what a `taste` page needs.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- A headline with an italic or bold word inside no longer counts as a staggered headline, so a section around it with wrong spacing fails as it should.
+- A grouped finding that also names a heading from an unmarked section now keeps failing.
+- The design moves now say that on a `taste` page the big word behind the subject must be a real heading and the subject a picture (or marked `data-move-subject`), and that a cropped word fails past a fifth hidden, phone included.
+
 ## 1.468.10
 
 **A `taste` section marked for a bold headline gets its allowance only for the headline and picture that actually do the move.**
