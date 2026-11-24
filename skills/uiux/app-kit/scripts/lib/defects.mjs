@@ -349,6 +349,15 @@ export function defects(opts) {
     }
     const overlapOf = (a, b) => ({ w: Math.min(a.right, b.right) - Math.max(a.left, b.left), h: Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) });
     const own = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.nodeValue.trim());
+    // a stretched link (absolute, covering its positioned card) makes the whole card clickable by design;
+    // a control inside that card painted above it, and the card's own text under it, are not collisions
+    const stretchedCard = (el) => {
+      const p = el.offsetParent;
+      if (!p || cs(el).position !== 'absolute') return null;
+      const r = el.getBoundingClientRect(), q = p.getBoundingClientRect();
+      return Math.abs(r.left - q.left) <= 2 && Math.abs(r.top - q.top) <= 2 && Math.abs(r.right - q.right) <= 2 && Math.abs(r.bottom - q.bottom) <= 2 ? p : null;
+    };
+    const reachable = (el, r) => { const h = document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2); return !!h && (h === el || el.contains(h)); };
     let pairs = 0;
     for (let i = 0; i < interactives.length && pairs < 40; i++) {
       const A = interactives[i];
@@ -368,6 +377,8 @@ export function defects(opts) {
         const o = overlapOf(ar, br);
         if (o.w > 4 && o.h > 4) {
           if (A.closest('label') && A.closest('label') === B.closest('label')) continue;
+          const sa = stretchedCard(A), sb = stretchedCard(B);
+          if ((sa && sa.contains(B) && reachable(B, br)) || (sb && sb.contains(A) && reachable(A, ar))) continue;
           // an icon button inside a text field (show password, clear, picker) overlays it by design
           const field = (e) => e.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]), textarea, select');
           const within = (inner, outer) => inner.left >= outer.left - 1 && inner.right <= outer.right + 1 && inner.top >= outer.top - 1 && inner.bottom <= outer.bottom + 1;
@@ -379,6 +390,7 @@ export function defects(opts) {
         if (T.tagName === 'LABEL' || T.closest('label') === A.closest('label') && A.closest('label')) continue;
         if (interactives.includes(T)) continue;
         if (cs(T).pointerEvents === 'none') continue;
+        if (stretchedCard(A)?.contains(T)) continue;
         const o = overlapOf(ar, tr);
         if (o.w > 4 && o.h > 4) {
           const tPos = cs(T).position;

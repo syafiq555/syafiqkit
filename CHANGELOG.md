@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.16
+
+**`uiux`'s render check no longer fails a card that is clickable as a whole and also has its own small button.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- A whole-card link (a link stretched over its card, `position: absolute; inset: 0`) with a button raised above it, such as an info icon on a stat card, used to report an `overlap` FAIL for every card. The usual workaround, `--allow overlap`, also hid real collisions. Earlier runs that needed that flag can drop it.
+- Still reported: a button that sits under the stretched link (it can't be clicked), and any two controls that overlap outside such a card. The card's own text under its link is no longer a WARN.
+
 ## 1.468.15
 
 **`taste`'s bold-headline marker: a warning that lists three or more other items always keeps failing, as the instructions already said.**
