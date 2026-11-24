@@ -2,11 +2,12 @@
 
 ## 1.468.13
 
-**`taste`'s own hero headline now gets the bold-headline marker's allowance, and staggered display headlines are recognised again.**
+**`taste`'s own hero headline can now use the bold poster moves, and staggered display headlines are recognised again.**
 - Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- How to use it: mark the one section with `data-move="break-layout"` (staggered headline), `"scale-crop"` (huge word cropped at the edge) or `"three-planes"` (picture over the big word). Still failing on purpose: more than a fifth of a word hidden or covered, cards and buttons, a page that scrolls sideways, and a broken section layout.
 - A headline inside `taste`'s standard `.hero-text` block now counts as the section's headline.
-- A staggered headline set tight (line height 1, the usual for display type) or built from block lines is recognised as staggered again; 1.468.12 missed it and failed the section's spacing.
-- A grouped finding passes only when every member is named in full; a group that names only the first few stays failing.
+- A headline staggered with tight line spacing (the usual for display type) is recognised as staggered again; 1.468.12 missed it and failed the section's margins.
+- A warning that also names something from another section, or names only the first few of a list, keeps failing.
 
 ## 1.468.12
 
