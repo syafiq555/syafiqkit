@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.467.12
+
+**A "done" reply to a colleague's request says the result only.**
+- `casual-message`: the result-not-internals rule now covers a colleague who asked for a task, not just clients. The draft says what changed for the customer, leaves out side cleanup, and doesn't tell a third party what to do next.
+
 ## 1.467.11
 
 **Explainer decks read clearly in Google Slides, and score loops catch a lenient judge.**
