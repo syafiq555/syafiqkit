@@ -4,7 +4,8 @@ description: >-
   Build, redesign, restyle, polish or improve a public-facing web page: a company or product site,
   landing page, marketing page, portfolio, shop, cafe, studio or SaaS one-pager, in any stack. Fires
   whatever the verb, even mid-way through `uiux`, and when the user calls a page generic, templated,
-  cheap or "AI-made", or asks for premium, bold or "wow". Builds to the figma.com and x.ai bar: plain
+  cheap, boring, plain or "AI-made", says it doesn't stand out or has no focal point, or asks for
+  premium, bold or "wow". Builds to the figma.com and x.ai bar: plain
   copy, one system, one section per screen, real photographs and product UI, a hero entrance and dealt
   moments, with a checker and a finish gate that run in a real browser. Vendored from tasteskill
   2.5.1 (MIT). NOT for screens inside an existing app (dashboard, admin, settings, an in-product
@@ -25,6 +26,8 @@ hooks:
 > This file is longer than the 5,000 tokens that survive a compaction. After one, re-read the step you are on in `SKILL.md` before continuing.
 
 Screens inside an app (dashboard, admin, settings, a form within the product) are not this skill's: they go to `uiux`, which owns the app-screen kit. So does a shop's own storefront home (a marketplace or grocery home of product rails and deals): `uiux` keeps it and may borrow `photos.mjs` and `shoot.mjs` from here.
+
+A page that draws a complaint about how it looks (boring, plain, flat, busy, "doesn't stand out", "no focal point") is diagnosed before it is rebuilt: read `../uiux/references/composition-moves.md` (relative to this skill's folder), name the symptom and the move it maps to (break the layout, exaggerate the scale, add detail from the subject, one odd element, one tap colour, three planes), and carry that move into the plan at run step 3 (section 4, "Plan the page as screens"). Rebuilding without naming the symptom deals a new page with the same failure.
 
 Build the website a good company would ship: it says plainly what is sold, shows the real thing on
 every screen, and looks made for this client, not from a template and not like an art piece.

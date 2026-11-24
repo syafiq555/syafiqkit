@@ -530,9 +530,19 @@ export function defects(opts) {
           if (offenders.length > 400) break;
         }
       }
+      if (!offenders.length) {
+        for (const el of document.body.querySelectorAll('*')) {
+          if (SKIP.test(el.tagName) || cs(el).position === 'fixed') continue;
+          const r = el.getBoundingClientRect(), c = cs(el);
+          const reach = Math.max(r.left + el.scrollWidth, r.right + (parseFloat(c.marginRight) || 0));
+          const pseudo = ['::before', '::after'].some((p) => { const s = getComputedStyle(el, p); return s.content !== 'none' && s.content !== 'normal' && /absolute|fixed/.test(s.position); });
+          if (reach > vw + 1 || (pseudo && r.right > vw - 40)) offenders.push({ el, over: Math.max(reach - vw, 0), hint: pseudo ? 'a positioned ::before/::after on it' : el.scrollWidth > el.clientWidth + 1 ? 'its content is wider than the box' : 'its right margin' });
+          if (offenders.length > 400) break;
+        }
+      }
       offenders.sort((a, b) => b.over - a.over);
       const named =offenders.filter((o, i) => !offenders.some((p) => p !== o && o.el.contains(p.el) && p.over >= o.over - 1)).slice(0, 4);
-      add('h-overflow', 'FAIL', 'document', 'The page scrolls sideways at ' + vw + 'px: content is ' + (de.scrollWidth - vw) + 'px wider than the screen. Widest: ' + (named.map((o) => sel(o.el) + ' (+' + Math.round(o.over) + 'px' + (o.escaped ? ', position:absolute escaping a scroll box that is not positioned' : '') + ')').join('; ') || 'unknown'), 'Find the fixed width / nowrap / min-width that exceeds the container; let it wrap or scroll inside its own box.');
+      add('h-overflow', 'FAIL', 'document', 'The page scrolls sideways at ' + vw + 'px: content is ' + (de.scrollWidth - vw) + 'px wider than the screen. Widest: ' + (named.map((o) => sel(o.el) + ' (+' + Math.round(o.over) + 'px' + (o.escaped ? ', position:absolute escaping a scroll box that is not positioned' : '') + (o.hint ? ', ' + o.hint : '') + ')').join('; ') || 'no element box crosses the edge, so look for a transform, a negative margin on body, or a 100vw width plus a scrollbar'), 'Find the fixed width / nowrap / min-width that exceeds the container; let it wrap or scroll inside its own box.');
     } else {
       for (const [T, tr] of (typeof textEls !== 'undefined' ? textEls : [])) {
         if (tr.left < vw - 2 && tr.right > vw + 2 && !clipped(T) && cs(T).overflowX === 'visible' && cs(T).position !== 'fixed') add('h-overflow', 'FAIL', T, 'Text runs past the right edge of the screen (hidden by overflow-x on html/body): "' + snip(T.innerText) + '"', 'The page is wider than the screen and the overflow is hidden, so the content is cut. Fix the width instead of hiding the scroll.');

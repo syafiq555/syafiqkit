@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.468.0
+
+**Say a screen or page looks boring, plain, busy or "doesn't stand out", and the design skills now pick the fix for that complaint.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. No earlier output becomes invalid.
+- `uiux` and `taste` recognise the complaint words, and each complaint maps to one move: boring → break the layout; doesn't stand out → exaggerate the scale (crop and bleed included); plain → add detail drawn from the subject; no focal point → one odd element; can't tell what to tap → one tap colour; flat → three planes. Each move says which screens it would harm (tables, forms, dashboards) and how to keep it readable (no words split into letters, reading order kept, text sized so the reader's font setting still applies).
+- The screen check (`uiux`'s check-render) now also saves blurred captures at 8px and 20px. A blurred screen still shows its main element and groups if the hierarchy works, and a vague "it's meh" is diagnosed from them first.
+- When a redesign offers two or three directions, each one is now critiqued by running impeccable's detector at phone and desktop width plus its scoring rubric before you see the options, so the critique can no longer be skipped.
+- A page that scrolls sideways now names the cause even when it comes from a `::before`/`::after`, a margin or content wider than its box, instead of "Widest: unknown".
+- Critiques name the complaint and the move, so the fix pass starts from the right one.
+
 ## 1.467.16
 
 **A meeting worked from a deck or agenda gets every listed question answered or asked, never "not discussed".**
