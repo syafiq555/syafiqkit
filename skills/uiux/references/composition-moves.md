@@ -11,15 +11,17 @@ Moves for a screen that is correct and still draws a complaint about how it look
 | "can't tell what to tap" | [One signal colour](#signal-colour) |
 | "flat", "stacked boxes", "no depth" | [Three planes](#three-planes) |
 
-**When the user names the symptom, the move this table maps to it leads the answer, by name**, in a fix and in a critique alike: apply or recommend it first, and add other moves after it. If the screen shows another move fits better, still name the mapped one and say in one line why it loses here; silently swapping in a different move leaves the user's complaint unanswered in their own words. A vague complaint ("it's meh", "make it nicer") is diagnosed before it is fixed: run the blur check below on the before capture and name the symptom it shows, since each fix answers a different failure and the wrong one adds noise.
+**On a working screen** (a dashboard, list, table, form or settings page, where the layout, scale and detail moves are "Not for"), the same complaints get the moves that fit there: one odd element (the figure or action the screen is for), one tap colour, and a pass on spacing, weight and grouping through the app's tokens. **On a page `taste` builds**, its layout rules win: no staggered lines, cropped words, crossed section edges or overlap (its `SKILL.md` names what remains of each move).
+
+**When the user names the symptom, the move this table maps to it leads the answer, by name**, in a fix and in a critique alike: apply or recommend it first, and add other moves after it. If another move fits better, still name the mapped one and say in one line why it loses here, so the complaint is answered in the user's own words. A vague complaint ("it's meh", "make it nicer") is diagnosed before it is fixed: run the blur check below on the before capture and name the symptom it shows, since each fix answers a different failure and the wrong one adds noise.
 
 Each move is a judgement, not a rule: it spends the screen's one moment of distinctiveness (see The Tension in `../SKILL.md`), so it belongs where the screen's job is to make one thing land, never on screens people work in all day. Use one move per screen, two at most; "if everything is contrasted, then nothing stands out" (NN/g, visual hierarchy). Inside a named `impeccable` run, its `bolder` and `delight` commands are the equivalents for "doesn't stand out" and "plain".
 
-Sources: two short videos showing each move before and after: @ayoships (21/11/2026: three planes, signal colour, skip the middle sizes, on phone screens) and @createwithalena (24/11/2026: layout, scale, detail, contrast, on posters). The videos carry no data; the limits and figures below come from NN/g, MDN, Axess Lab and `taste`'s measured references. Both videos are posters or showcase screens, so every move carries the screens it would harm.
+Sources: two short videos showing each move before and after: @ayoships (21/11/2026: three planes, signal colour, skip the middle sizes, on phone screens) and @createwithalena (24/11/2026: layout, scale, detail, contrast, on posters). The videos carry no data; the limits and figures below come from NN/g, MDN, Axess Lab and `taste`'s measured references.
 
 ## Break the layout {#break-layout}
 
-**The symptom:** "boring". Everything is centred, stacked and the same width, so the eye has nothing to travel across.
+**The cause:** everything is centred, stacked and the same width, so the eye has nothing to travel across.
 
 **The move:** let the subject and the headline use the whole frame instead of a centred column: place the subject off-centre, let it cross an edge or the boundary between sections, run the headline across two lines at different indents, or set the text beside the subject rather than above it. The video's poster spread its tomatoes across the frame and staggered the word down it as TO / MA / TO; on a poster that is fine, but on a web page stagger whole lines of one heading instead, as below.
 
@@ -29,7 +31,7 @@ Sources: two short videos showing each move before and after: @ayoships (21/11/2
 
 ## Exaggerate the scale, skip the middle sizes {#size-extremes}
 
-**The symptom:** "doesn't stand out" or "still looks default". Five close sizes (12, 14, 16, 18, 20) give no hierarchy a glance can read.
+**The cause:** five close sizes (12, 14, 16, 18, 20) give no hierarchy a glance can read.
 
 **The move:** make one thing huge and everything else small, with nothing in between. Choose the one element the screen is about (the name, the price, the date, the product), set it very large, and bring every other label down to the body size or one step under it, separated by weight, colour and space instead of size. NN/g's working limit: no more than three sizes, and make the most important element the biggest. For a showcase moment, go further than feels safe: let the display word or the subject run off the edge and be cropped, as the video's poster title ran off the frame and its record was cut in half. A cropped subject reads as bigger than the frame.
 
@@ -39,7 +41,7 @@ Sources: two short videos showing each move before and after: @ayoships (21/11/2
 
 ## Add detail from the subject {#add-detail}
 
-**The symptom:** "plain" or "empty". The layout and hierarchy are fine, and there is nothing to look at beyond them.
+**The cause:** the layout and hierarchy are fine, and there is nothing to look at beyond them.
 
 **The move:** add one device that belongs to the subject: a frame or border that suits it, rule lines, real step numbers, an edition or date mark, a pattern or texture drawn from the product itself (the fabric, the map, the label). The video's poster put its plain label inside an ornamented frame. One device per section, used the same way each time it appears.
 
@@ -49,7 +51,7 @@ Sources: two short videos showing each move before and after: @ayoships (21/11/2
 
 ## One odd element {#odd-one-out}
 
-**The symptom:** "no focal point" or "busy". Everything has the same weight, or everything is emphasised, so nothing is.
+**The cause:** everything has the same weight, or everything is emphasised, so nothing is.
 
 **The move:** keep the set uniform and change one thing: one item in a different colour, size or treatment while the rest stay alike, as the video's grid of blue dots gained a few red ones. A difference is only seen against sameness, so the work is usually removing emphasis from everything else (the bold, the badges, the coloured icons) before adding it to the one. Give the focal element space as well; NN/g: "An element that has more space around it will be perceived as one group and thus will receive more attention."
 
@@ -59,7 +61,7 @@ Sources: two short videos showing each move before and after: @ayoships (21/11/2
 
 ## One signal colour, only for "tap this" {#signal-colour}
 
-**The symptom:** "can't tell what to tap". Colour is spent on decoration (headings, icons, borders, badges), so the action no longer stands out.
+**The cause:** colour is spent on decoration (headings, icons, borders, badges), so the action no longer stands out.
 
 **The move:** pick one colour that only ever means "you can tap this": the main button, the active option, a link. Everything else is ink and paper: text in one or two neutrals on a neutral ground.
 
@@ -69,7 +71,7 @@ Sources: two short videos showing each move before and after: @ayoships (21/11/2
 
 ## Three planes, overlapping {#three-planes}
 
-**The symptom:** "flat", or the screen reads as stacked boxes.
+**The cause:** the screen reads as stacked boxes, with no layer in front of another.
 
 **The move:** build the screen in three layers. At the back, one large word set as display type (the product name, the person's name, the day); in the middle, the subject (the product cut-out, the portrait, the building); on top, the actions (price, the main button, the options). Let the layers overlap a little: the subject rises into the back word, the action bar sits over the subject's lower edge. The overlap makes the screen read deep instead of as stacked boxes.
 

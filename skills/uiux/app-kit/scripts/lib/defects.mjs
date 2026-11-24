@@ -532,11 +532,14 @@ export function defects(opts) {
       }
       if (!offenders.length) {
         for (const el of document.body.querySelectorAll('*')) {
-          if (SKIP.test(el.tagName) || cs(el).position === 'fixed') continue;
-          const r = el.getBoundingClientRect(), c = cs(el);
-          const reach = Math.max(r.left + el.scrollWidth, r.right + (parseFloat(c.marginRight) || 0));
-          const pseudo = ['::before', '::after'].some((p) => { const s = getComputedStyle(el, p); return s.content !== 'none' && s.content !== 'normal' && /absolute|fixed/.test(s.position); });
-          if (reach > vw + 1 || (pseudo && r.right > vw - 40)) offenders.push({ el, over: Math.max(reach - vw, 0), hint: pseudo ? 'a positioned ::before/::after on it' : el.scrollWidth > el.clientWidth + 1 ? 'its content is wider than the box' : 'its right margin' });
+          const c = cs(el);
+          if (SKIP.test(el.tagName) || c.position === 'fixed' || clipped(el)) continue;
+          const r = el.getBoundingClientRect();
+          const contentReach = c.overflowX === 'visible' ? r.left + el.scrollWidth : r.right;
+          if (contentReach > vw + 1) {
+            const pseudo = ['::before', '::after'].some((p) => { const s = getComputedStyle(el, p); return s.content !== 'none' && s.content !== 'normal' && s.position === 'absolute'; });
+            offenders.push({ el, over: contentReach - vw, hint: pseudo ? 'its content or a positioned ::before/::after on it is wider than the box' : 'its content is wider than the box' });
+          }
           if (offenders.length > 400) break;
         }
       }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.468.2
+
+**The complaint-to-fix moves now fit the screen they land on, and `/done`'s design review uses them.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. No earlier output becomes invalid.
+- On a page `taste` builds, its own layout rules win: no staggered lines, cropped words or overlap, so its finish gate no longer fails a move it was told to make. On a dashboard, list, table or form, "boring" or "plain" gets the moves that fit there (one standout element, one tap colour, spacing and weight through the app's tokens) instead of a move marked "not for" those screens.
+- `/done`'s design review opens the blurred capture and names the complaint and its fix; impeccable's reviewers are handed only the sharp captures.
+- The screen check writes two extra pictures per width and colour scheme (the blurred ones). Its sideways-scroll finding no longer blames a carousel or scroll box that scrolls inside itself.
+- For skill authors: a headless routing test is capped (`--max-turns 6` and a timeout), since a build skill given the user's own words otherwise runs its whole build.
+
 ## 1.468.1
 
 **A screen people click through (tick boxes, steppers, toggles, a drawer) is now judged from a recording of the clicks, not only from still screenshots.**

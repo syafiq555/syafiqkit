@@ -85,20 +85,19 @@ async function run(width, scheme) {
     await page.screenshot({ path: top, format: 'png' });
     await page.screenshot({ path: full, format: 'png', fullPage: true });
     const blur = {};
-    {
-      for (const px of [8, 20]) {
-        await page.eval(`document.documentElement.style.filter = 'blur(${px}px)'`).catch(() => {});
-        await sleep(120);
-        blur[px] = join(outDir, `${tag}-blur${px}.png`);
-        await page.screenshot({ path: blur[px], format: 'png' }).catch(() => { delete blur[px]; });
-      }
-      await page.eval(`document.documentElement.style.filter = ''`).catch(() => {});
+    const priorFilter = await page.eval('document.documentElement.style.filter').catch(() => '');
+    for (const px of [8, 20]) {
+      await page.eval(`document.documentElement.style.filter = 'blur(${px}px)'`).catch(() => {});
+      await sleep(120);
+      blur[px] = join(outDir, `${tag}-blur${px}.png`);
+      await page.screenshot({ path: blur[px], format: 'png' }).catch(() => { delete blur[px]; });
     }
+    await page.eval(`document.documentElement.style.filter = ${JSON.stringify(priorFilter || '')}`).catch(() => {});
     const counts = {};
     for (const f of found) { (counts[f.id] ||= { FAIL: 0, WARN: 0 })[f.level]++; f.width = width; f.scheme = scheme; }
     const shown = [], per = {};
     for (const f of found) { per[f.id + f.level] = (per[f.id + f.level] || 0) + 1; if (per[f.id + f.level] <= CAP) shown.push(f); }
-    runs.push({ width, scheme, title, url: finalUrl, status, pageHeight, screenshots: { top, full, ...(blur[8] && { blur8: blur[8] }), ...(blur[20] && { blur20: blur[20] }) }, counts, findings: shown, omitted: found.length - shown.length, consoleErrors: page.consoleErrors.length });
+    runs.push({ width, scheme, title, url: finalUrl, status, pageHeight, screenshots: { top, full, blur8: blur[8], blur20: blur[20] }, counts, findings: shown, omitted: found.length - shown.length, consoleErrors: page.consoleErrors.length });
   } catch (e) {
     if (!runs.length) loadError = e;
     runs.push({ width, scheme, error: String(e.message || e), findings: [], counts: {} });
@@ -139,7 +138,7 @@ else {
   }
   console.log('\nScreenshots:');
   for (const r of runs) if (r.screenshots) console.log('  ' + r.screenshots.top + '\n  ' + r.screenshots.full);
-  const blurred = runs.filter((r) => r.screenshots && r.screenshots.blur8);
+  const blurred = runs.filter((r) => r.screenshots && (r.screenshots.blur8 || r.screenshots.blur20));
   if (blurred.length) console.log('\nBlur check (open these: at 8px the main element and the groups should still separate; 20px shows any hierarchy you did not intend):\n' + blurred.flatMap((r) => [r.screenshots.blur8, r.screenshots.blur20].filter(Boolean).map((p) => '  ' + p)).join('\n'));
   console.log('\nreport: ' + join(outDir, 'report.json'));
   const warns = all.filter((f) => f.level === 'WARN' && !allow.includes(f.id));

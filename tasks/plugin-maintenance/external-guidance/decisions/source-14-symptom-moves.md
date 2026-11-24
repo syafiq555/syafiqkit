@@ -2,7 +2,7 @@
 
 ## Current state {#current}
 
-24/11/2026: shipped as 1.468.0 after a 5-round score loop (18, 19, 19, 19, 20 of 20). The video's four moves are being folded into `uiux/references/composition-moves.md`, re-indexed by the complaint a user makes, with `taste` and `uiux`'s critique pointing at it. Score loop below.
+24/11/2026: shipped as 1.468.0 after a 5-round score loop (18, 19, 19, 19, 20 of 20), then 1.468.2 from the `/done` review. `uiux/references/composition-moves.md` holds the moves, indexed by the complaint a user makes; `uiux`, `taste`, `uiux`'s critique mode and `done`'s design review point at it; check-render writes `-blur8`/`-blur20` captures on every run. Open: whether `taste` should bend its layout rules for the moves (below); each trigger test ran once.
 
 ## The source {#sources}
 
@@ -24,6 +24,18 @@ No data behind any claim; graded as judgement. It is a poster lesson, so each mo
 ### 2026-11-24: index the moves by the complaint, keep one home {#symptom-index}
 
 Users describe the symptom ("boring", "plain", "doesn't stand out", "no focal point", "flat"), never the technique, and both videos are written as symptom then fix. So the reference's headings become the complaints, the existing anchors stay (citations resolve), and `taste` points at the `uiux` copy rather than holding a second one.
+
+### 2026-11-24: `taste`'s layout rules win on its pages, for now {#taste-rules-win}
+
+The `/done` product review found three moves `taste` bans: `layout-v4.md` says nothing is staggered, cut off, crossing a section edge or overlapping, and its checker fails `stagger`, `cut-text`, `overlap-text` and `one-section`. Told to apply them, a session would fail its own finish gate or drop the move silently. Default chosen (today's `taste` behaviour unchanged): on a `taste` page, one odd element, detail from the subject, one tap colour and a bigger display size within `system.md` § Type apply; break the layout means the subject off-centre or text beside it inside the `.wrap`; scale stops short of cropping a word; three planes does not apply (a full-width `img.layer` is its depth). Whether `taste` should bend is Syafiq's call.
+
+### 2026-11-24: working screens get the moves that fit them {#working-screens}
+
+"Boring" maps to break the layout, which is "Not for" dashboards, lists, tables, forms and settings, so the same complaint there had no positive answer. There it gets one odd element (the figure or action the screen is for), one tap colour, and spacing, weight and grouping through the app's tokens.
+
+### 2026-11-24: the h-overflow fallback names only what it can measure {#overflow-fallback}
+
+The first 1.468.0 fallback flagged any element within 40px of the edge carrying a positioned pseudo-element, counted right margins and read a scroll box's `scrollWidth`, so a carousel could be blamed. Narrowed in 1.468.2: skip clipped and scrolling boxes, count only content reach; the hint says "its content or a positioned ::before/::after" when a pseudo-element is present, since Chrome does not return a pseudo-element's resolved width for every case.
 
 ## Score loop {#score-loop}
 
