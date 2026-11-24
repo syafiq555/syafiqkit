@@ -144,7 +144,7 @@ def meeting(spec):
         txt(f"wb{i}", 0, y, t["text"], 26)
         if t.get("cue"):
             txt(f"wbc{i}", 30, y + 36, t["cue"], 18)
-        y += 90
+        y += 67 + 23 * (t.get("cue", "").count("\n") + 1)
     dec_end = write_lines("dec", 0, y + 20, "DECIDED", spec.get("decided_blank", 3),
                           filled=spec.get("decided", ()))
     act_y = max(y + 200, dec_end + 30)
