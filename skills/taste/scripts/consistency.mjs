@@ -4503,14 +4503,14 @@ const MOVE_ALLOWS = {
   'three-planes': ['overlap-text', 'container-edges', 'spill'],
 };
 const TEXT_CROPS = new Set(['cut-text', 'overlap-text']);
-const MOVABLE = new Set(Object.values(MOVE_ALLOWS).flat());
+const MOVE_CHECKS = new Set(Object.values(MOVE_ALLOWS).flat());
 const STRUCTURE_MSG = /needs exactly one|in-flow child|holds \d+ (child|background layer)|no valid background layer/;
 async function applyMoves(F, tab) {
-  if (!F.some((f) => f.sev === 'FAIL' && MOVABLE.has(f.check))) return;
+  if (!F.some((f) => f.sev === 'FAIL' && MOVE_CHECKS.has(f.check))) return;
   const moves = (await tab.eval(`window.__cc.moveOf(${JSON.stringify(F.map((f) => [f.id || 0, f.sel || '', f.coveredId || 0]))})`)) || [];
+  const allowed = (f, m) => m && f.sev === 'FAIL' && (MOVE_ALLOWS[m.move] || []).includes(f.check) && !(f.check === 'container-edges' && STRUCTURE_MSG.test(f.msg || ''));
   F.forEach((f, i) => {
-    const m = moves[i]; if (!m || f.sev !== 'FAIL' || !(MOVE_ALLOWS[m.move] || []).includes(f.check)) return;
-    if (f.check === 'container-edges' && STRUCTURE_MSG.test(f.msg || '')) return;
+    const m = moves[i]; if (!allowed(f, m)) return;
     if (TEXT_CROPS.has(f.check) && m.share < 0.8) { f.msg += ` (data-move="${m.move}" allows ${f.check === 'cut-text' ? 'a crop' : 'an overlap'}, but ${Math.round((1 - m.share) * 100)}% of this text is hidden; keep at least four fifths visible)`; return; }
     f.sev = 'WARN'; f.msg += ` (allowed by data-move="${m.move}" on its section: a composition move the plan names)`;
   });
@@ -5405,16 +5405,34 @@ function lib() {
       const w = Math.max(0, Math.min(a.right, t.right) - Math.max(a.left, t.left)), h = Math.max(0, Math.min(a.bottom, t.bottom) - Math.max(a.top, t.top));
       return 1 - (w * h) / area;
     };
-    const SUBJECT = 'figure, picture, img, video, svg, canvas, .hero__media, .hero__art, [data-move-subject]';
-    const isSubject = (el) => !el.closest('a, button') && (el.matches(SUBJECT) || !!el.closest('[data-move-subject]'));
-    const sectionHeading = (el, m) => { const h = el.closest('h1, h2, h3'); if (!h || !m.contains(h)) return false; const p = h.parentElement; return p === m || p.parentElement === m || p.matches('.wrap, .hero__head, .hero__text, .section-head'); };
-    const partOfMove = (el, m) => el === m || sectionHeading(el, m) || isSubject(el);
+    const MARK = '[data-move="break-layout"], [data-move="scale-crop"], [data-move="three-planes"]';
+    const ownPlace = (x, m) => { if (x === m) return true; const p = x.parentElement; return !!p && (p === m || p.parentElement === m || p.matches('.wrap, .hero__head, .hero__text, .section-head, header')); };
+    const sectionHeading = (el, m) => { const h = el.closest('h1, h2, h3'); return !!h && m.contains(h) && ownPlace(h, m); };
+    const isSubject = (el, m) => {
+      if (el.closest('a, button')) return false;
+      const named = el.closest('[data-move-subject], .hero__media, .hero__art');
+      if (named) return m.contains(named);
+      return el.matches('figure, picture, img, video, svg, canvas') && ownPlace(el, m);
+    };
+    const acting = new Map();
+    const partsAct = (m) => {
+      if (acting.has(m)) return acting.get(m);
+      const mr = m.getBoundingClientRect(), move = m.getAttribute('data-move');
+      const parts = [...m.querySelectorAll('h1, h2, h3, figure, picture, img, video, svg, canvas, [data-move-subject], .hero__media, .hero__art')].filter((x) => x.getBoundingClientRect().width > 0 && (sectionHeading(x, m) || isSubject(x, m)));
+      const out = (r) => r.left < -1 || r.right > innerWidth + 1 || r.left < mr.left - 1 || r.right > mr.right + 1;
+      let act = parts.some((x) => out(x.getBoundingClientRect()) || visibleShare(x) < 0.99);
+      if (!act && move === 'break-layout') act = parts.some((x) => { if (!/^H[1-3]$/.test(x.tagName)) return false; const rg = document.createRange(); rg.selectNodeContents(x); const ls = [...rg.getClientRects()].map((r) => r.left); return ls.length > 1 && Math.max(...ls) - Math.min(...ls) > 48; });
+      if (!act && move === 'three-planes') { const hs = parts.filter((x) => /^H[1-3]$/.test(x.tagName)), ss = parts.filter((x) => !/^H[1-3]$/.test(x.tagName)); act = ss.some((s) => hs.some((h) => uncovered(s, h) < 1)); }
+      acting.set(m, act); return act;
+    };
     return list.map(([id, sel, coveredId]) => {
       const el = (id && els.get(id)) || bySel(sel); if (!el || !el.closest) return null;
-      const m = el.closest('[data-move]'); if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName)) return null;
+      const m = el.closest(MARK); if (!m || !(m.tagName === 'SECTION' || (m.parentElement && m.parentElement.tagName === 'MAIN'))) return null;
       const covered = coveredId && els.get(coveredId);
       if (coveredId && !covered) return null;
-      if (covered ? !(isSubject(el) && sectionHeading(covered, m)) : !partOfMove(el, m)) return null;
+      const self = el === m;
+      if (self && !partsAct(m)) return null;
+      if (covered ? !(isSubject(el, m) && sectionHeading(covered, m)) : !(self || sectionHeading(el, m) || isSubject(el, m))) return null;
       const share = !el.isConnected ? 1 : covered && covered.isConnected ? uncovered(el, covered) : visibleShare(el);
       return { move: m.getAttribute('data-move'), share };
     });
@@ -11478,7 +11496,7 @@ try {
       let got = (await pctx.safe(M.id, () => M.run(pctx))) || [];
       // a hero taller or shorter than the screen (SR-1 T1) is the fault: its rows past the content line (T4) follow from it
       if (got.some((f) => f.check === 'hero-screen' && f.rule === 'SR-1 T1')) got = got.filter((f) => !(f.check === 'hero-screen' && f.rule === 'SR-1 T4'));
-      if (got.some((f) => f.sev === 'FAIL' && MOVABLE.has(f.check))) {
+      if (got.some((f) => f.sev === 'FAIL' && MOVE_CHECKS.has(f.check))) {
         const mt = await pctx.safe('data-move', () => pctx.openTab());
         if (mt) {
           try {

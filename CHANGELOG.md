@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.10
+
+**A `taste` section marked for a bold headline gets its allowance only for the headline and picture that actually do the move.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- A card's own picture or icon no longer counts as the section's picture, and the marker no longer excuses a section whose margins are simply wrong: the section's spacing is excused only when its headline or picture really is cropped, staggered, off the screen edge or overlapping.
+- The `taste` instructions now list which checks each of the three markers covers, and say that a crop which passes on desktop can still fail on a phone.
+
 ## 1.468.9
 
 **A card's own heading no longer rides on a marked `taste` section's allowance, and a regression from 1.468.8 is fixed.**
@@ -48,7 +55,7 @@
 
 **Public pages built with `taste` can now use the bold poster moves (a staggered headline, a huge word cropped at the edge, a subject over the big word) where you complained a page is boring or doesn't stand out.**
 - Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. Pages built before are unaffected.
-- The section using the move is marked with `data-move`, and `taste`'s finish check then reports that move as a warning naming it instead of failing the page. Every other section keeps the usual rules. A cropped word still fails once more than a fifth of it is hidden.
+- The section using the move is marked with `data-move="break-layout"`, `"scale-crop"` or `"three-planes"` (one section, only for the complaint), and `taste`'s finish check then reports that move as a warning naming it instead of failing the page. Every other section keeps the usual rules. A cropped word still fails once more than a fifth of it is hidden.
 - Replaces 1.468.2's "taste's own layout rules win" for these three moves.
 
 ## 1.468.2

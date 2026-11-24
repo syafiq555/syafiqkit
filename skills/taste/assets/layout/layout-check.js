@@ -36,11 +36,15 @@ window.lyCheck = function lyCheck(opts = {}) {
   const vw = document.documentElement.clientWidth, vh = innerHeight, sy = scrollY;
   const out = [], add = (rule, where, detail) => out.push({ rule, where, detail });
   const movedEdge = (el) => {
-    const m = el.closest('[data-move]');
-    if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName) || !/^(break-layout|scale-crop|three-planes)$/.test(m.getAttribute('data-move'))) return false;
+    const m = el.closest('[data-move="break-layout"], [data-move="scale-crop"], [data-move="three-planes"]');
+    if (!m || !(m.tagName === 'SECTION' || (m.parentElement && m.parentElement.tagName === 'MAIN'))) return false;
+    const ownPlace = (x) => { if (x === m) return true; const p = x.parentElement; return !!p && (p === m || p.parentElement === m || p.matches('.wrap, .hero__head, .hero__text, .section-head, header')); };
     const h = el.closest('h1, h2, h3');
-    if (h && m.contains(h) && (h.parentElement === m || h.parentElement.parentElement === m || h.parentElement.matches('.wrap, .hero__head, .hero__text, .section-head'))) return true;
-    return !el.closest('a, button') && (el.matches('figure, picture, img, video, svg, canvas, .hero__media, .hero__art') || !!el.closest('[data-move-subject]'));
+    if (h && m.contains(h) && ownPlace(h)) return true;
+    if (el.closest('a, button')) return false;
+    const named = el.closest('[data-move-subject], .hero__media, .hero__art');
+    if (named) return m.contains(named);
+    return el.matches('figure, picture, img, video, svg, canvas') && ownPlace(el);
   };
   const R1 = n => Math.round(n * 10) / 10;
   const name = el => {
