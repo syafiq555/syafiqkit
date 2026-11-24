@@ -57,7 +57,7 @@
   never the lead and never dealt to a trade that has the client's own room, counter or product.
   --commons-only: Wikimedia Commons files only (--detail-only is accepted and does nothing: it is the default).
   fetch copies a library file (assets/photos/img: WebP, always a 1200, some also 1600, 1800, 2144 or 2400) or downloads
-  the older ones (500, 960 and 1280 wide, the --hero one 1920; WebP when ffmpeg is on the path, else JPEG), keeps every
+  the older ones (500, 960 and 1280 wide, the --hero one 1920; WebP when ffmpeg has libwebp, else JPEG re-encoded smaller by ffmpeg), keeps every
   file inside the weight caps (a hero 400 KB, any other 250 KB: a larger one is left out of the srcset; the page's
   images together stay under 2,400 KiB at 1440, the figure perf.mjs FAILs above: fetch prints the estimate), writes
   credits.json and prints the <img> to paste, with data-source="library-057" (a search result: data-source="stand-in")
@@ -809,15 +809,24 @@ async function download(url) {
 // the width the browser should fetch for: the shown width, or for a wide photograph cropped into a taller box
 // (a hero that fills the screen, a 4:5 frame on a phone) the box's height times the photograph's ratio
 const FFMPEG = (() => { try { return spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status === 0; } catch { return false; } })();
+// some ffmpeg builds (Homebrew's 8.x) ship without libwebp: then every WebP step fails while ffmpeg itself runs
+const WEBP = FFMPEG && (() => { try { return /\blibwebp\b/.test(spawnSync('ffmpeg', ['-hide_banner', '-encoders'], { encoding: 'utf8' }).stdout || ''); } catch { return false; } })();
+const NO_WEBP_WHY = !FFMPEG ? 'ffmpeg is not on the path' : 'this ffmpeg has no libwebp encoder (Homebrew ffmpeg 8 ships without it)';
 // the hero is Recipe 3's top photograph: the full width of the screen and 480 px tall, so the browser is told 100vw, never a vh term
 // (a vh term sends a tablet and a 3x phone to the largest file). On a phone a place hero's photograph grows from 4:3 to at most 4:5
 // into what its words leave, so its crop is 4:5 (a 4:3 one shown that tall is blown up 1.7x)
 const HERO_CROP = { w: 780, h: 975, media: '(max-width: 639px)' }; // PH-28: the phone's crop at twice its width
 const kb = (f) => Math.round(fs.statSync(f).size / 1024);
-// a JPEG as WebP (smaller at the same look) when ffmpeg is on the path
+// a JPEG as WebP (smaller at the same look) when ffmpeg can write WebP
 function toWebp(buf) {
-  if (!FFMPEG) return null;
+  if (!WEBP) return null;
   const r = spawnSync('ffmpeg', ['-loglevel', 'error', '-i', 'pipe:0', '-c:v', 'libwebp', '-quality', '78', '-compression_level', '6', '-f', 'webp', 'pipe:1'], { input: buf, maxBuffer: 1 << 28 });
+  return r.status === 0 && r.stdout.length > 1000 && r.stdout.length < buf.length ? r.stdout : null;
+}
+// without WebP, the served JPEG re-encoded at ffmpeg's -q:v 5 when that is smaller, so the 1280 and 1920 files stay under the weight caps
+function toSmallerJpeg(buf) {
+  if (!FFMPEG || WEBP) return null;
+  const r = spawnSync('ffmpeg', ['-loglevel', 'error', '-i', 'pipe:0', '-q:v', '5', '-f', 'mjpeg', 'pipe:1'], { input: buf, maxBuffer: 1 << 28 });
   return r.status === 0 && r.stdout.length > 1000 && r.stdout.length < buf.length ? r.stdout : null;
 }
 // the phone crop of a hero: cover-cropped to 780x975 around the photograph's focus, from the first file at least that tall
@@ -826,7 +835,8 @@ function cropFile(from, to, focus) {
   const [fx, fy] = (focus || '50% 50%').split(/\s+/).map((v) => Math.min(1, Math.max(0, parseFloat(v) / 100)));
   const { w, h } = HERO_CROP;
   const vf = `scale=${w}:${h}:force_original_aspect_ratio=increase:flags=lanczos,crop=${w}:${h}:'(iw-${w})*${fx}':'(ih-${h})*${fy}'`;
-  const r = spawnSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', from, '-vf', vf, '-c:v', 'libwebp', '-quality', '74', '-compression_level', '6', to]);
+  const enc = WEBP ? ['-c:v', 'libwebp', '-quality', '74', '-compression_level', '6'] : ['-q:v', '4'];
+  const r = spawnSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', from, '-vf', vf, ...enc, to]);
   return r.status === 0 && fs.existsSync(to);
 }
 function sizesFor(p, hero) {
@@ -893,8 +903,8 @@ async function fetchCmd() {
         const sizes = [...STEPS.filter((w) => w < big), big];
         for (const w of sizes) {
           let buf = await download(fileUrl(p, w));
-          const webp = toWebp(buf); // WebP when ffmpeg is on the path (PH-27), else the JPEG as served
-          if (webp) buf = webp;
+          const webp = toWebp(buf); // WebP when ffmpeg can write it (PH-27), else the JPEG re-encoded smaller, else as served
+          if (webp) buf = webp; else buf = toSmallerJpeg(buf) || buf;
           const ext = webp ? '.webp' : '.jpg';
           const file = w === big ? 'photo-' + id + ext : 'photo-' + id + '-' + w + ext;
           fs.writeFileSync(path.join(dir, file), buf);
@@ -914,7 +924,7 @@ async function fetchCmd() {
     // the hero's phone crop (PH-28): 780x975 around the subject, for a <picture> source at 639px and under
     let crop = null;
     if (isHero) {
-      const from = files.find((f) => f.w / p.ratio >= HERO_CROP.h) || files.at(-1), name = 'photo-' + id + '-' + HERO_CROP.w + 'x' + HERO_CROP.h + '.webp';
+      const from = files.find((f) => f.w / p.ratio >= HERO_CROP.h) || files.at(-1), name = 'photo-' + id + '-' + HERO_CROP.w + 'x' + HERO_CROP.h + (WEBP ? '.webp' : '.jpg');
       if (cropFile(path.join(dir, from.file), path.join(dir, name), p.focus)) crop = { file: name, kb: kb(path.join(dir, name)) };
     }
     names = [...files.map((f) => f.file), ...(crop ? [crop.file] : [])];
@@ -933,8 +943,8 @@ async function fetchCmd() {
     const over = files.filter((f) => f.kb > capKb);
     if (over.length) console.log('  over the weight cap (' + capKb + ' KB): ' + over.map((f) => f.file + ' ' + f.kb + ' KB').join(', ') + ' (every file of this photograph is over it: pick another, or re-encode it)');
     if (isHero && srcW < 1440) console.log('  the hero is ' + srcW + ' wide: a 1440 screen at 2x would want 2880, which the library does not hold (PH-27); the page keeps the largest file within the cap');
-    if (isHero && !crop) console.log('  no phone crop: ffmpeg is not on the path (the phone sizes term on the img fetches a file that covers a 4:5 box at 390 until a 780x975 crop exists)');
-    if (!isHero && !p.files && p.source === 'commons' && !FFMPEG) console.log('  JPEG: ffmpeg is not on the path, so no WebP (PH-27 asks for WebP or AVIF)');
+    if (isHero && !crop) console.log('  no phone crop: ' + (FFMPEG ? 'ffmpeg could not crop the photograph' : 'ffmpeg is not on the path') + ' (the phone sizes term on the img fetches a file that covers a 4:5 box at 390 until a 780x975 crop exists)');
+    if (!isHero && !p.files && p.source === 'commons' && !WEBP) console.log('  JPEG: ' + NO_WEBP_WHY + ', so no WebP (PH-27 asks for WebP or AVIF)' + (FFMPEG ? '; the JPEGs were re-encoded at -q:v 5 to stay under the caps' : ''));
     if (p.standIn) console.log('  a live search result: a STAND-IN for the client\'s own photograph; list it in the build report, write its alt text new');
     saved.push(id);
   }

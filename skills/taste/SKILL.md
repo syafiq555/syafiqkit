@@ -110,7 +110,8 @@ The full plans, deal lists and section order: `references/sections.md`.
   still diagram at most; flat grounds and one brand band. No shader effect, print, grain, gradient,
   scene or loop (the dealt moments only); WebGL only for a product render the brief asks for. **A
   physical product with no photographs is shown in photographs:** stand-ins of the same kind of
-  thing from `photos.mjs search`, each listed in the report, on the full product page; a render
+  thing from `photos.mjs search` (clothing: a studio shot from Pexels or Unsplash when Commons has none,
+  `photos.md`, Live search), each listed in the report, on the full product page; a render
   (`assets/objects/product-render`, stills) only when the brief asks for 3D or a render; never a
   drawing, mood stock or a set of props (`sections.md`, Product).
 - **Every product page** (photographed, in stand-ins or rendered on a 3D ask, hardware too; the bar is Figure and 1X;

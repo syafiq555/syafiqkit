@@ -103,6 +103,19 @@ passed off as the client's place; one light and grade with the rest of the page.
 title names someone else's place). It is a **stand-in**: the report lists it with the photograph to shoot in its
 place; nothing on the page says so; its credit goes in the one footer line like any other.
 
+**Clothing comes back thin from Commons**, since its photographs of worn garments are mostly events, market stalls and
+candid strangers. Look at the candidates before building, and when none is a clean shot of the garment whole, look on
+Pexels or Unsplash (their licences allow commercial use without a credit) for a studio or plain-backdrop shot of the
+same kind of garment, searched by its own name ("baju kurung", "kebaya", "abaya"); the file comes straight from
+`https://images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?auto=compress&w=<width>`. It is still a stand-in (the
+model stands in for the client's own), listed in the report, and its source joins the credits line. A portrait shot
+on a plain backdrop becomes a landscape hero by extending the backdrop beside the model:
+`ffmpeg -i in.jpg -vf "scale=-1:1400,pad=2240:1400:1120:0,fillborders=left=1120:mode=smear" -q:v 3 hero.jpg` (the
+model on the right, the words on the calm left). A full-length garment on a model is portrait by nature, so
+`product-shown`'s 60 to 80% width cannot hold for it: waive that one finding with the reason, never shrink the page
+around it (in testing, 25/11/2026: a baju kurung shop whose Commons stand-ins drew "the images really not nice" from
+the user was fixed by one Pexels studio shot).
+
 ## Pick and fetch
 
 ```bash

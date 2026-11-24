@@ -184,7 +184,7 @@ function activeIn(d) {
   return !!(s && typeof s.start === 'string' && OPEN_STATES.test(s.status || ''));
 }
 const lastTouch = d => Math.max(0, ...['build.json', 'gate.json'].map(f => { try { return fs.statSync(path.join(dotOf(d), f)).mtimeMs; } catch { return 0; } }));
-const SKIP_DIR = /^(node_modules|\.git|\.taste-skill|\.next|\.astro|\.svelte-kit|\.cache)$/;
+const SKIP_DIR = /^(node_modules|vendor|storage|\.git|\.taste-skill|\.next|\.astro|\.svelte-kit|\.cache)$/;
 function findProject() {
   if (positional && !isUrl(positional)) { const d = path.dirname(path.resolve(base, positional)); if (activeIn(d)) return { dir: d, others: 0 }; }
   if (activeIn(base)) return { dir: base, others: 0 };
@@ -285,7 +285,7 @@ function walk(page, root) {
   return [...seen];
 }
 // a framework project's own source: the static checks read it, the fingerprint covers it (a dev server serves it)
-const SRC_EXT = /\.(m?js|cjs|jsx|tsx?|vue|svelte|astro|css|scss|html?|json|mdx?)$/i;
+const SRC_EXT = /\.(m?js|cjs|jsx|tsx?|vue|svelte|astro|css|scss|html?|json|mdx?|php|twig|erb|liquid|njk|hbs)$/i;
 function sourceFiles(proj) {
   const out = [];
   const go = (d, depth) => {
@@ -297,7 +297,7 @@ function sourceFiles(proj) {
       else if (SRC_EXT.test(e.name) && !/^(package-lock|pnpm-lock|yarn)\b/.test(e.name)) out.push(p);
     }
   };
-  for (const d of ['src', 'app', 'pages', 'components', 'lib', 'public']) go(path.join(proj, d), 0);
+  for (const d of ['src', 'app', 'pages', 'components', 'lib', 'public', 'resources', 'lang', 'templates', 'views', 'config']) go(path.join(proj, d), 0);
   try { for (const n of fs.readdirSync(proj)) if (/\.(html?|m?[jt]s|json)$/i.test(n) && !/lock/i.test(n)) out.push(path.join(proj, n)); } catch { /* none */ }
   return out;
 }

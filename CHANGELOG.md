@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.468.21
+
+**`taste`: photo fetches keep their large sizes when ffmpeg has no WebP encoder, the gate re-checks a server-rendered site after its templates change, and clothing stand-ins have a better source.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. Photos fetched before keep working; re-fetch a hero that came out at 960 or 1280 wide if you want the larger files.
+- `photos.mjs fetch`: Homebrew's ffmpeg 8 ships without libwebp, so WebP silently failed, the larger JPEGs went over the weight caps and were deleted, and the phone crop was skipped with the wrong message ("ffmpeg is not on the path"). It now checks for the encoder, re-encodes the JPEGs at `-q:v 5` so the 1280 and 1920 files fit, makes the phone crop as a JPEG, and names the real reason.
+- `gate.mjs`: a page checked by URL (a Laravel, Rails or Django app) was fingerprinted only from `src`, `app`, `pages`, `components`, `lib` and `public`, so editing `resources/views` or `lang` kept returning the old result. It now also reads `resources`, `lang`, `templates`, `views` and `config`, and template files (`.php`, `.blade.php`, `.twig`, `.erb`, `.liquid`, `.njk`, `.hbs`); `vendor` and `storage` are skipped.
+- `references/photos.md` (Live search): when Commons has no clean shot of a garment, take a studio shot from Pexels or Unsplash, widen a portrait backdrop into a landscape hero with one ffmpeg line, and waive `product-shown` for a full-length garment on a model rather than shrinking the page.
+
 ## 1.468.20
 
 **`uiux`: the click-through recorder can type and press keys, so a search box or dropdown can be recorded being used.**
