@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.15
+
+**A spec counts as silent on a product question only after the whole spec was searched, and "follow the spec" means build from it.**
+- Update with `claude plugin update syafiqkit@syafiqkit`. No earlier output becomes invalid.
+- `read-summary`: before an option says the spec is silent, search the whole spec by the behaviour's nouns (who is told, who may see, who approves, when it locks, what is configurable), since the governing rows usually sit in general, access, approval or integration modules rather than the item's own row. A reply pointing back at the spec means read those rows, build what they say and quote them in the task doc, not ask again. Third breach of the same rule (21/11, 22/11, 24/11): this changes what the "silent" check measures rather than rewording it.
+- `done`: reviewer-question research searches the governing spec rows across the whole spec, not only the item's row.
+
 ## 1.467.14
 
 **`uiux`'s render check no longer fails a phone pay bar, and `save-login` survives a slow app.**
