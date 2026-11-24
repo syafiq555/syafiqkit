@@ -297,6 +297,19 @@ export function defects(opts) {
       }
     }
   }
+  // a fixed or sticky bar pinned to the bottom of the viewport while the page can still scroll down:
+  // what it lies over is content the visitor has not scrolled to yet, so only the bottom-of-page pass judges it
+  const scrollRoom = () => { const se = document.scrollingElement || document.documentElement; return se.scrollHeight - (window.scrollY + vh) > 1; };
+  const bottomBarOf = (el) => {
+    if (!scrollRoom()) return null;
+    for (let p = el; p && p !== document.documentElement; p = p.parentElement) {
+      const pos = cs(p).position;
+      if (pos !== 'fixed' && pos !== 'sticky') continue;
+      const r = p.getBoundingClientRect();
+      return r.top > vh / 2 ? p : null;
+    }
+    return null;
+  };
   // overlap and covered-by: what a visitor would actually hit at the centre of each control
   const hitTest = (label) => {
     for (const el of interactives) {
@@ -313,6 +326,7 @@ export function defects(opts) {
       for (let p = hit; p && p !== document.documentElement; p = p.parentElement) { const pos = cs(p).position; if (pos === 'fixed' || pos === 'sticky') { fixed = true; bar = p; break; } }
       // scrolled to the bottom, a bar pinned to the top covers only what the visitor scrolled past; scrolling back up reaches it
       if (phase === 'hit' && bar && window.scrollY > 0) { const br = bar.getBoundingClientRect(); if (br.top <= 1 && br.bottom < vh / 2) continue; }
+      if (bar && bottomBarOf(bar)) continue;
       add('covered', fixed ? 'FAIL' : 'WARN', el, (fixed ? 'A fixed or sticky element (' + sel(hit) + ') covers this control ' : 'Another element (' + sel(hit) + ') sits on top of this control ') + label + ': "' + snip(el.innerText || el.value || el.getAttribute('aria-label')) + '"', fixed ? 'Add scroll padding or offset so the bar never lies over a control, or move the control.' : 'Fix the stacking order or layout so the control is reachable.', 'cover');
     }
   };
@@ -346,6 +360,7 @@ export function defects(opts) {
       for (let j = i + 1; j < interactives.length; j++) {
         const B = interactives[j];
         if (A.contains(B) || B.contains(A) || !!A.closest(MODAL) !== !!B.closest(MODAL)) continue;
+        if (!!bottomBarOf(A) !== !!bottomBarOf(B)) continue;
         const bPos = cs(B).position;
         if (!own(B) && B.childElementCount === 0 && (bPos === 'absolute' || bPos === 'fixed') && !B.matches('input, select, textarea')) continue;
         const br = visibleRect(B);
@@ -360,6 +375,7 @@ export function defects(opts) {
       }
       for (const [T, tr] of shownText) {
         if (A.contains(T) || T.contains(A) || !!A.closest(MODAL) !== !!T.closest(MODAL)) continue;
+        if (!!bottomBarOf(A) !== !!bottomBarOf(T)) continue;
         if (T.tagName === 'LABEL' || T.closest('label') === A.closest('label') && A.closest('label')) continue;
         if (interactives.includes(T)) continue;
         if (cs(T).pointerEvents === 'none') continue;

@@ -58,10 +58,20 @@ try {
     return '';
   };
 
-  const first = await page.eval(fill, { emailField, passwordField, email, password });
+  const kept = ({ emailField, passwordField, email }) => {
+    const e = document.querySelector(emailField);
+    const p = document.querySelector(passwordField);
+    return (!e || e.getClientRects().length === 0 || e.value === email) && (!p || p.getClientRects().length === 0 || p.value !== '');
+  };
+  let first = await page.eval(fill, { emailField, passwordField, email, password });
   if (!first.email && !first.password) throw new Error('No login fields found on ' + url + ' (pass --email-field / --password-field).');
+  for (let i = 0; i < 20; i++) {
+    await sleep(300);
+    if (await page.eval(kept, { emailField, passwordField, email })) break;
+    first = await page.eval(fill, { emailField, passwordField, email, password });
+  }
   await page.eval((submit) => document.querySelector(submit)?.click(), submit);
-  let landed = await leftLogin(first.password ? 40 : 12);
+  let landed = await leftLogin(first.password ? 120 : 12);
 
   if (!landed) {
     let second = { password: false };
@@ -71,7 +81,7 @@ try {
     }
     if (second.password) {
       await page.eval((submit) => document.querySelector(submit)?.click(), submit);
-      landed = await leftLogin(40);
+      landed = await leftLogin(120);
     }
   }
   if (!landed) throw new Error('Still on the login page after submitting: wrong credentials, a code or captcha step, or a different submit button (--submit).');

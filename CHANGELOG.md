@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.14
+
+**`uiux`'s render check no longer fails a phone pay bar, and `save-login` survives a slow app.**
+- Update with `claude plugin update syafiqkit@syafiqkit`. Earlier check-render reports that failed `covered` or `overlap` on content under a bar pinned to the bottom of a phone screen, at the first screenful, were false; re-run them.
+- `check-render`: a fixed or sticky bar pinned in the lower half of the screen (a pay bar, a tab bar, the two stacked) no longer counts as covering or overlapping content while the page can still scroll down, since the visitor scrolls that content clear. The bottom-of-page pass still fails a page whose last content cannot clear the bar.
+- `save-login`: it re-checks the email and password are still in their fields before submitting, and fills them again when an app's JavaScript cleared them while taking over the page, then waits up to 30 seconds (was 10) for the redirect. A busy local machine had made it report "Still on the login page" against a login that works.
+
 ## 1.467.13
 
 **Old plugin copies no longer pile up on disk.**
