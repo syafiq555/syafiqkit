@@ -321,7 +321,7 @@ Re-read both before editing: working copies may disagree from an uncommitted bum
 
 ### Release Notes {#release-notes}
 
-Release notes state the reader's action, since consumers install without repo access: (1) the CLI command to update, (2) which prior output becomes invalid, (3) edge cases a reader would wonder about. Mention regeneration only when agents or templates changed.
+Release notes state the reader's action, since consumers install without repo access: (1) the CLI command to update, (2) which prior output becomes invalid, (3) edge cases a reader would wonder about. Mention regeneration only when agents or templates changed. A release that continues a feature from an earlier one repeats how to use it (the switch, its values, what still fails), since a colleague reads only the newest entry (25/11/2026: two fresh judges docked a fix-only entry that pointed back to an older one).
 
 ### Testing Changes {#testing-changes}
 

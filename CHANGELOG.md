@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.17
+
+**`taste`'s bold-headline marker: the list of what it excuses now matches what it can actually excuse.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- How it works: mark the one section with `data-move="break-layout"` (staggered headline), `"scale-crop"` (huge word cropped at the edge) or `"three-planes"` (picture over the big word). Still failing on purpose: more than a fifth of a word hidden or covered, cards and buttons, a page that scrolls sideways, a broken section layout, and crossing into the next section (check that by eye).
+- A row of boxes starting at different heights is no longer listed as excused under `break-layout`; it never could be, since the check points at the row, not the headline or picture.
+
 ## 1.468.16
 
 **`uiux`'s render check no longer fails a card that is clickable as a whole and also has its own small button.**

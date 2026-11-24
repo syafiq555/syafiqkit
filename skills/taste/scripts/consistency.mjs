@@ -4498,7 +4498,7 @@ async function run(ctx) {
 // its own tab (phase 'pass'); --no-<id> skips one
 const MODULES = [visualMod, addressMod, rhythmMod, motionMod, tilesMod, areaMod, basicsMod];
 const MOVE_ALLOWS = {
-  'break-layout': ['stagger', 'top-stagger', 'spill', 'off-viewport', 'container-edges'],
+  'break-layout': ['stagger', 'spill', 'off-viewport', 'container-edges'],
   'scale-crop': ['cut-text', 'spill', 'off-viewport', 'container-edges', 'row-lines'],
   'three-planes': ['overlap-text', 'container-edges', 'spill'],
 };
