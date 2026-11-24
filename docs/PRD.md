@@ -58,8 +58,8 @@ Re-derive the list with `ls skills commands`; exact counts are deliberately not 
 ## Out of scope {#out-of-scope}
 
 - **Self-contained plugin, no reliance on the author's global instructions.** [SOURCED] Skills never reference `~/.claude/CLAUDE.md`, because colleagues do not have it.
-- **No off-switch for the output-style ruleset.** [SOURCED] A deliberate decision: a `cat` hook cannot read an env var, and a guard means adding a script back. A request to make it optional reopens the design.
-- **No script in the hook.** [SOURCED] Interpreter availability inside a hook is not guaranteed.
+- **No off-switch for the output-style ruleset.** [SOURCED] A deliberate decision, the owner's call: the hook could read an env var, but an off-switch is a second guard and reopens the design. A request to make it optional reopens the design.
+- **No script file in the hook** (one inline `/bin/sh -c` line). [SOURCED] Interpreter availability inside a hook is not guaranteed.
 - **No CI and no deploy chain.** [SOURCED] The push to `master` is the ship.
 - **No `fork` matcher on the hook.** [SOURCED] Unverified behaviour; a bounded, nameable gap was chosen over an unverified matcher.
 - **No `disable-model-invocation` unless the user asks.** [SOURCED] It kills auto-suggestion.

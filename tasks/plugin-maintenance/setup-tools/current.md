@@ -1,7 +1,7 @@
 <!--LLM-CONTEXT
 Status: 🚀 Built and reviewed (1.442.0); no colleague has run it yet
 Domain: plugin-maintenance / setup-tools
-Gotchas: register tools from the plugin's installLocation, never plugins/cache (old versions are deleted about a week after an update)
+Gotchas: register tools from the plugin's installLocation, never plugins/cache (old versions are deleted as soon as a day after an update)
 Related: ../../../tools/gchat-mcp/tasks/server/current.md, ../../../tools/gsheets-mcp/tasks/server/current.md, ../../../skills/setup-tools/SKILL.md
 Last updated: 2026-11-17
 -->

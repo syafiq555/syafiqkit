@@ -94,7 +94,7 @@ Alerts are one-way. Answering happens in an interactive session.
 |----------|-----------|
 | Model returns a verdict; script sends | The model never holds the token or a send tool, so allowed tools stay read-only |
 | launchd, not cron | cron skips runs during sleep and has no profile PATH |
-| `install` copies the script to `~/.claude/watchers/bin/` | the plugin cache version folder is pruned 7 days after the next update |
+| `install` copies the script to `~/.claude/watchers/bin/` | the plugin cache version folder can be pruned a day after the next update |
 | Failure alert at the 2nd failure in a row, plus a daily heartbeat | one transient blip stays quiet; a missing heartbeat catches a dead alert route, which can't report itself |
 | No text dedup in the script | the skill's state already keeps a raised row quiet until it moves; a text match swallowed a client's second reply worded the same (review 18/11) |
 | Failure alerts carry a short reason, details stay in `run.log` | a claude error result can quote sheet text, and the alert goes to a third-party chat |

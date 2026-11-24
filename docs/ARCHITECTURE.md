@@ -4,7 +4,7 @@ Frame: arc42 sections, with a C4-style context diagram. Written by adoption on 2
 
 ## 1. Introduction & goals {#goals}
 
-A Claude Code plugin made of markdown. No build step for the skills, and the only runtime code is one `cat` hook plus the mod in `hooks/src/` (entry `mod.js`, loaded as ES modules with no build step): [SOURCED] "markdown files are interpreted directly". Its product is instructions a model reads, so the architecture is about *when* each instruction reaches the reader.
+A Claude Code plugin made of markdown. No build step for the skills, and the only runtime code is two small shell hooks (print the ruleset, prune old copies) plus the mod in `hooks/src/` (entry `mod.js`, loaded as ES modules with no build step): [SOURCED] "markdown files are interpreted directly". Its product is instructions a model reads, so the architecture is about *when* each instruction reaches the reader.
 
 Quality goals, ranked [INFERRED]:
 
@@ -30,7 +30,7 @@ Quality goals, ranked [INFERRED]:
         ▼
  ┌───────────────── Claude Code (harness) ─────────────────┐
  │  loads CLAUDE.md hierarchy ◄── project + global + local │
- │  SessionStart hook ──► cat hooks/RULESET.md ──► context │
+ │  SessionStart hook ──► sh: cat RULESET.md   ──► context │
  │  skill match ──► SKILL.md body ──► references/ (📖)     │
  │  Agent tool ──► .claude/agents/*.md (project agents)    │
  └───────────┬─────────────────────────────┬───────────────┘
@@ -70,7 +70,7 @@ Skill families and which skills spawn which are in `CLAUDE.md` (invocation-patte
 
 ## 6. Runtime view {#runtime}
 
-**Session start.** Harness fires `SessionStart` on `startup|resume|clear|compact` → `cat hooks/RULESET.md` → stdout becomes context, up to 10,000 characters (past that, a file path and a 2,000-character preview). `fork` is unwired. A missing file is expected to degrade rather than block; [TBD] never observed end-to-end.
+**Session start.** Harness fires `SessionStart` on `startup|resume|clear|compact` → an inline `/bin/sh -c` that `cat`s `hooks/RULESET.md` → stdout becomes context, up to 10,000 characters (past that, a file path and a 2,000-character preview). `fork` is unwired. A missing file prints a restart line and exits 0 (tested from `env -i`; [TBD] not yet seen in a live session).
 
 **Wrap-up and release.** `/done` fans out simplifier, reviewer and product-reviewer agents, cleans temp code, captures knowledge via `update-claude-docs`, updates task docs via `task-summary`, and gates a plugin-learnings pass via `update-plugin`. `/ship` includes its own commit, then changelog, push, CI verify and release note. Consumers pick the release up with `claude plugin update syafiqkit@syafiqkit`.
 
@@ -149,10 +149,11 @@ The repo's `CLAUDE.md` states each plugin rule as a rule. This section keeps the
 ### The SessionStart Hook {#history-session-start}
 
 - **Fork matcher.** Its behaviour was never verified, and an unverified matcher was the worse trade against a bounded gap. Adding it is a one-token change once someone confirms what a forked session does with hook output; then drop the "every session" carve-out from `README.md` and the changelog.
-- **No script.** `${CLAUDE_PLUGIN_ROOT}` expands in `hooks.json` but not in a script body, and a frontmatter-bearing ruleset would need strip logic. `cat` needs neither.
+- **No script file.** `${CLAUDE_PLUGIN_ROOT}` expands in `hooks.json` but not in a script body, and a frontmatter-bearing ruleset would need strip logic. The inline `/bin/sh -c` line takes the path as `$1` from `args`, so it needs neither. Its one branch (24/11/2026) prints a restart line when the file is gone: a version folder deleted under an open session by `prune-caches.sh` used to leave it without rules after `/clear`, silently. It can't be a script file, since that file would be deleted along with the folder.
 - **Hook cap incident.** `RULESET.md` sat over the 10,000-character cap from 2026-09-17 to 2026-10-08, so every rule past the first was missing for three weeks.
-- **Node on PATH.** The `cat` hook on bare Windows without Git Bash is a silent no-op.
-- **Missing ruleset.** The "degrades rather than blocks" claim in Runtime view rests on `cat` exiting 1 on ENOENT (verified) and the docs saying only exit 2 blocks: a table, not a session started without the file.
+- **Node on PATH.** The `/bin/sh` hook on bare Windows without Git Bash is a silent no-op.
+- **Missing ruleset.** Since 24/11/2026 the hook prints a restart line and exits 0 when the file is gone (run from `env -i PATH=/usr/bin:/bin`). Before, it rested on `cat` exiting 1 and the docs saying only exit 2 blocks. Not yet seen in a live session.
+- **Prune-caches count cap (24/11/2026).** The 7-day rule worked as written and still let 105 copies build up: 142 releases in 7 days, each copy 287 MB because four `tools/*/node_modules` now ride along. `du` read 22 GB, while deleting them freed 12 GB on `df`, since copies share blocks. The script now also deletes a version whose marker is over 24 hours old once 10 newer markers exist (owner's choice over a size cap or a 2-day window), so the cache holds the 10 newest retired copies plus whatever retired in the last 24 hours (about 30 copies at 20 releases a day, against 105 before).
 - **Prune-caches incident.** Claude Code's own orphan sweep left versions 14 days old in place on 2026-10-23: 79 copies, 2.9 GB, each carrying the gitignored `tools/remote-cli/node_modules`, because a `directory` marketplace copies the working tree regardless of `.gitignore`. The 7-day window keeps a version a long-running session still has loaded, since deleting it breaks that session's hooks, skills and Typst templates until restart; 3 days was rejected as too short for a session left open over a weekend. The script runs for colleagues too. A typeset `.png` or `.json` is deleted only once no `<key>.ok` remains, because `typeset.js` writes pages before the marker and a blanket age cut could leave a fresh marker over deleted pages. The version-folder delete runs only when the plugin root's parent ends in `plugins/cache/syafiqkit/syafiqkit`, so a source-checkout root deletes nothing.
 
 ### Agent Definition Parity {#history-agent-parity}

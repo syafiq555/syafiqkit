@@ -8,8 +8,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md"],
+            "command": "/bin/sh",
+            "args": ["-c", "if [ -f \"$1\" ]; then /bin/cat \"$1\"; else echo 'The syafiqkit files this session loaded from are gone, usually because the plugin was updated while the session was open, so its skills and output-style rules are missing here. Tell the user once: restart this session (or start a new one) to get them back.'; fi", "sh", "${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md"],
             "timeout": 5,
             "statusMessage": "Loading syafiqkit output style..."
           }

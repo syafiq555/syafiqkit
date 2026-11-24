@@ -4,7 +4,13 @@ versions_dir=$(/usr/bin/dirname "$plugin_root")
 
 case "$versions_dir" in
   */plugins/cache/syafiqkit/syafiqkit)
-    /usr/bin/find "$versions_dir" -mindepth 2 -maxdepth 2 -type f -name .orphaned_at -mtime +7 2>/dev/null |
+    {
+      /bin/ls -1t "$versions_dir"/*/.orphaned_at 2>/dev/null | /usr/bin/tail -n +11 |
+        while IFS= read -r marker; do
+          /usr/bin/find "$marker" -mmin +1440 2>/dev/null
+        done
+      /usr/bin/find "$versions_dir" -mindepth 2 -maxdepth 2 -type f -name .orphaned_at -mtime +7 2>/dev/null
+    } |
       while IFS= read -r marker; do
         case "$marker" in
           "$versions_dir"/*/.orphaned_at) ;;

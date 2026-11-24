@@ -34,8 +34,8 @@ Each entry names the `CLAUDE.md` section it extracts. Placing a rule by when it 
 ## A mid-session reload cannot test a trigger {#reload-no-trigger-test}
 *Extracts: Skill and Command Structure.* It registers the skill's name but not its description. Test auto-fire only in a session started after the file was written.
 
-## The hook is `cat`, with no off-switch {#hook-shape}
-*Extracts: The SessionStart Hook.* No script, no `node`, no guard. Adding any of them reopens the design. `fork` is deliberately unwired. Hook stdout over 10,000 characters is silently replaced by a file path and a 2,000-character preview, so `RULESET.md` must stay under it; measure with `wc -m` before landing any pass on it.
+## The hook is one inline `/bin/sh -c` line, with no off-switch {#hook-shape}
+*Extracts: The SessionStart Hook.* No script file, no `node`, and no guard beyond the one inline fallback that prints a restart line when `RULESET.md` is gone. Adding any of them reopens the design. `fork` is deliberately unwired. Hook stdout over 10,000 characters is silently replaced by a file path and a 2,000-character preview, so `RULESET.md` must stay under it; measure with `wc -m` before landing any pass on it.
 
 ## The mod loads from `hooks/src/mod.js` and its imports {#mod-one-file}
 *Extracts: `hooks/CLAUDE.md`, The Mod.* `hooks.json` lists `./src/mod.js`, and the host follows its ES imports; there is no build step. Past an import, `$` is followed only into a `function name($)` declaration, so every top-level function is a declaration, never an arrow `const`. `$` is never put in an object and is passed only to a function called by its literal name, never to a callee picked by a ternary or a wrapper. Every `$` call goes through a `host*` wrapper in `core/api.js`, and each state atom is declared in `types/index.d.ts`. A save that leaves a call to a function not yet written fails the reload and the old version keeps running. Run `claude plugin validate .` and `claude plugin test .` after any edit.

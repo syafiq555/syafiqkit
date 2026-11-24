@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.467.13
+
+**Old plugin copies no longer pile up on disk.**
+- Nothing to do. If a session left open for days suddenly can't find a syafiqkit skill, restart it. That session now tells you so itself: after a `/clear` or compaction it asks you to restart instead of silently dropping the output-style rules.
+- The session-start cleanup used to keep every retired syafiqkit version for 7 days. At about 20 releases a day that reached 105 copies on one machine. It now also deletes any copy retired more than 24 hours ago once 10 newer ones exist. If you update rarely, you will barely notice the change.
+- `reclaim-disk` lists the Claude Code plugin cache as a place to look, and how to clear it safely.
+- `setup-tools` warns that cache folders can go a day after an update, not a week.
+
 ## 1.467.12
 
 **A "done" reply to a colleague's request says the result only.**

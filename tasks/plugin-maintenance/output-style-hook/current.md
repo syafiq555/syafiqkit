@@ -2,27 +2,27 @@
 Status: 🔨 Ruleset shipped at 1.455.0; adherence unverified, last measured 84% (2026-09-15)
 Domain: plugin-maintenance/output-style-hook
 Gotchas (critical; full list in ## Critical Gotchas below):
-  - The hook is `cat` with no script: no off-switch, and the payload must stay under the 10,000-char hook-output cap
+  - The hook is one inline `/bin/sh -c` line with no script file: no off-switch, and the payload must stay under the 10,000-char hook-output cap
   - Adherence cannot be judged from inside the session that read the ruleset; judge from outside transcripts
 Related: ../agent-architecture/current.md (sibling feature: how agents are defined and dispatched), ../external-guidance/current.md (sibling feature: grading outside guidance against local evidence), ../../../hooks/RULESET.md (the injected payload), ../mod/current.md (sibling: the mod now shares `hooks/hooks.json` with this hook; older-client behaviour of the `modules` key is unverified)
-Last updated: 2026-11-18 (condense pass: adherence measurements moved to their own section; Last Session cut to the 1.455.0 change; stale cut-ship check rewritten against the current payload)
+Last updated: 2026-11-24 (prune count cap and stale-session restart line, 1.467.13)
 -->
 
 # Plugin Maintenance: Output-Style Hook Summary
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: syafiqkit ships a `SessionStart` hook that `cat`s an output-style ruleset into every session. The ruleset is at 1.455.0 (pushed to `master` 2026-11-18): 8,983 characters, 10 numbered rules, 8 exceptions. Hook stdout is capped at 10,000 characters (Architecture, Critical Gotchas). A `SessionStart:clear` delivered the whole file in full on 2026-08-17. The 2026-10-08 cut to 8,149 characters shipped in 1.371.0 at the user's call; the pre-cut wording is `git show bd98189:hooks/RULESET.md` (13,240 characters). Whether output actually *follows* the ruleset is still open (Adherence Measurements), and the session reading it cannot settle that.
+**Where we are**: syafiqkit ships a `SessionStart` hook that prints an output-style ruleset into every session, or a restart line when the session's version folder has been pruned (1.467.13, D-stale-session-notice). A second hook prunes retired version folders: older than 7 days, or older than 24 hours once 10 newer ones exist (D-prune-hook, amended 24/11/2026). The ruleset is at 1.455.0 (pushed to `master` 2026-11-18): 8,983 characters, 10 numbered rules, 8 exceptions. Hook stdout is capped at 10,000 characters (Architecture, Critical Gotchas). A `SessionStart:clear` delivered the whole file in full on 2026-08-17. The 2026-10-08 cut to 8,149 characters shipped in 1.371.0 at the user's call; the pre-cut wording is `git show bd98189:hooks/RULESET.md` (13,240 characters). Whether output actually *follows* the ruleset is still open (Adherence Measurements), and the session reading it cannot settle that.
 
 **Next actions** (detail in Next Steps):
 1. Judge adherence from outside transcripts, never from the session that read the ruleset.
 2. In a fresh session after `claude plugin update`, confirm the start banner shows the full ruleset with no "Output too large" line.
-3. If a session fails to start, rename `hooks/RULESET.md` and retry. The missing-file path has not been observed end-to-end.
+3. See the restart line once in a live session (Next Steps), then pick up the copy-size follow-up: each cached copy is 287 MB, mostly `tools/*/node_modules`.
 
 **Key facts for cold start**: the size check is `wc -m hooks/RULESET.md` under a UTF-8 locale; it must stay under 10,000. The headroom is about 1,000 characters; if a session misses a detail the 2026-10-08 cut dropped, `git show bd98189:hooks/RULESET.md` holds the pre-cut wording to restore from.
 
 **Gotchas that will trip you**:
-- The hook is `cat` with no script, so there is **no off-switch** (see D-no-off-switch)
+- The hook is one inline `/bin/sh -c` line with no script file, so there is **no off-switch** (see D-no-off-switch)
 - `node` is not a safe hook interpreter on this machine even though it is on the interactive PATH (see D-cat-not-node)
 - `fork` is the fifth `SessionStart` matcher and is deliberately unwired, so forked sessions get no ruleset (see D-fork-excluded)
 
@@ -37,7 +37,7 @@ Skills are procedural and reach only the sessions that invoke them, so no skill 
 ## Architecture / Data Model {#architecture}
 
 ```
-hooks/hooks.json     exec form → cat + ${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md
+hooks/hooks.json     exec form → /bin/sh -c (cat the file, else print a restart line) + ${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md
 hooks/RULESET.md     the injected payload, plain markdown, no frontmatter
 hooks/prune-caches.sh  second SessionStart entry (matcher startup), silent cache pruning (D-prune-hook)
 ```
@@ -56,11 +56,13 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 **Rejected**: Node primary: Claude Code now ships as a native binary, so installing the CLI brings no Node, and a version-managed `node` (nvm, Herd) lives on the PATH only because the shell profile puts it there. Exec-form hooks source no profile. A shell-form interpreter probe was also rejected: it reintroduces the quoting hazards exec form avoids, and shell form on Windows needs Git Bash anyway, so the gap only moves.
 **Consequences**: `/bin/cat` resolves from a clean environment on macOS and Linux, so coverage holds there and on Windows-with-Git-Bash while bare Windows gets a silent no-op. Removing the script also removed the reasons a script needs machinery: `${CLAUDE_PLUGIN_ROOT}` expands in `hooks.json` but not inside a script body, and a frontmatter-bearing payload would need strip logic whose edge cases are what the upstream test suite exists to catch.
 
+**Amended 24/11/2026 (D-stale-session-notice)**: the hook is now `/bin/sh -c 'if [ -f "$1" ]; then /bin/cat "$1"; else echo <restart line>; fi' sh ${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md`. Problem: `prune-caches.sh` (count cap, same day) can delete the version folder under a session still open, and that session then lost its rules on `/clear` or `compact` with no sign why. A live-session guard was ruled out because neither `ps` arguments nor `~/.claude/sessions/*.json` show which plugin version a session loaded. The owner chose the restart line over a changelog note only. It stays inline because a script file would be deleted with the folder. Bare Windows without Git Bash is still a silent no-op, unchanged from `cat`.
+
 ### D-no-off-switch: On by default with no toggle · 2026-08-17
 
 **Status**: shipped 2026-08-17
 **Problem**: syafiqkit has colleague users who installed it for `/commit` and `/ship`. On-by-default reshapes their output on the next update.
-**Decision**: No off-switch. `cat` cannot check an env var, and a guard means a script.
+**Decision**: No off-switch. In 2026-08 `cat` could not check an env var and a guard meant a script. Since the 24/11/2026 `/bin/sh -c` line it could check one, so this now stands as the owner's call alone.
 **Rejected**: A flag file or env var gate, which would have restored the script and every problem it carries.
 **Consequences**: The release note and README carry the weight instead: both name `claude plugin uninstall syafiqkit@syafiqkit` as the only escape, because a section promising "no way back" while the actual off-ramp sits under an unrelated heading strands the reader who most needs it. Any request to make the style optional reopens the shape rather than patching it.
 
@@ -86,6 +88,7 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 **Problem**: Claude Code marks an old plugin version with `.orphaned_at` but did not delete it: on 2026-10-23 versions orphaned 14 days earlier were still cached, 79 copies and 2.9 GB, each 63 MB because a `directory` marketplace copies the gitignored `tools/remote-cli/node_modules` too. The mod's `doc-pane-cache/typeset` held 1.4 GB of pages from under a week, with nothing pruning it.
 **Decision**: `/bin/sh hooks/prune-caches.sh ${CLAUDE_PLUGIN_ROOT}` on matcher `startup` only, printing nothing. It deletes version folders whose marker is over 7 days old, never the running one and only under `plugins/cache/syafiqkit/syafiqkit`. It also deletes typeset keys, answer previews and `sips` copies untouched for 7 days. It runs for colleagues and has no off-switch; the owner chose both on 2026-10-23.
 **Rejected**: 3 days, because a session left open over a weekend would lose the version its skills and Typst templates load from. Pruning inside the mod, which has no delete call and would add a new host API to what colleagues run. Moving remote-cli's `node_modules` out of the plugin, because with pruning only a handful of copies remain.
+**Amended 24/11/2026**: also delete a version whose marker is over 24 hours old and outside the 10 newest markers. The 7-day window alone held 105 copies (22 GB of `du`) at about 20 releases a day; the owner picked "newest 10 + last 24 h" over a 3 GB size cap and a 2-day window. Cost: a session open over a day across 10+ releases loses its version until restart.
 **Consequences**: Unlike the ruleset entry this is a script, so it takes the plugin root as an argument (the variable does not expand inside a script) and calls `/usr/bin/find` and `/bin/rm` by absolute path. A doc page read daily still re-renders weekly, since a cache hit does not touch the file's mtime.
 
 **Simple decisions** (no meaningful alternatives):
@@ -127,9 +130,9 @@ Measured from outside the sessions. Log further recurrences here; do not re-prop
 
 ---
 
-## Last Session (2026-11-18)
+## Last Session (2026-11-24)
 
-Syafiq asked, through `update-plugin`, that a session never conclude something can't be done without first weighing at least three checked routes. Added that as the "It can't be done" exception to `RULESET.md` as an eighth exception, shipped as 1.455.0 (payload 8,983 of 10,000 characters). It went into the payload rather than `judgement`, because a "can't" conclusion can land at any turn and only the payload is in context for all of them. The carve-outs and their reasons are in Simple decisions above.
+A `reclaim-disk` run found 105 retired syafiqkit copies in the plugin cache (22 GB by `du`; deleting them freed 12 GB). The prune hook had worked as written: 142 releases in 7 days outran its age-only window. Syafiq picked the count cap (D-prune-hook amendment). Then, on the product reviewer's finding that a session whose folder is pruned loses its rules silently, he picked the restart line (D-stale-session-notice). Both are shipped as 1.467.13. The copy-size fix was parked as a Next Steps item at his choice.
 
 ---
 
@@ -141,7 +144,8 @@ Syafiq asked, through `update-plugin`, that a session never conclude something c
 - [ ] Treat the register recurrences (2026-09-20, 2026-09-21) and the 1.311.0 pass as **untested, not failed**: rule 2's callout sits past char 2,000, which the capped payload did not deliver then. The first real test is a transcript from a session that received the full payload
 - [ ] After any pass, count to ten and count eight exceptions (Critical Gotchas)
 - [ ] Measure the "It can't be done" exception (1.455.0) from outside, on a transcript started after it shipped: of the replies that conclude something is impossible or unsupported, how many open with a recommended route and name other checked routes. It sits seventh of eight in the least-recalled section, so expect decay like rule 1; log the rate in Adherence Measurements before rewording it
-- [ ] Observe missing-file behaviour end-to-end (rename `RULESET.md`, start a session). Today it is inferred from `cat` exiting 1 plus the documented exit-code table
+- [ ] See the restart line in a live session (D-stale-session-notice): rename `RULESET.md` in the installed version folder, run `/clear`, and check that the model tells the user to restart. Today it is tested only from `env -i`
+- [ ] 🟡 Shrink each cached copy (owner chose this as the follow-up, 24/11/2026): about 225 MB of each 287 MB copy is `tools/*/node_modules`, which a `directory` marketplace copies every release. D-prune-hook's "only a handful of copies remain" reason for not moving them was disproved at 105 copies. Options: keep dependencies outside the copied tree, or bump the version less often than every commit
 
 ### Deferred / accepted
 - [ ] 🟡 `fork` matcher, add once its behaviour is confirmed (D-fork-excluded)

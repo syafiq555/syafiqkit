@@ -24,7 +24,7 @@ The reader is usually a colleague setting this up for the first time, often not 
 
 The tools live in the plugin's install folder: read `~/.claude/plugins/known_marketplaces.json`, take `syafiqkit.installLocation`, and the tools are `<installLocation>/tools/gsheets-mcp`, `tools/gchat-mcp`, `tools/gmail-mcp` and `tools/remote-cli`. For a GitHub install that is `~/.claude/plugins/marketplaces/syafiqkit`, and it stays put across plugin updates.
 
-⚠️ **Never register a tool from `~/.claude/plugins/cache/...`**, even though this skill's own folder is there. Cache folders are per version and old ones are deleted about a week after an update, so a server registered from one stops starting with no message beyond "failed to connect". If `known_marketplaces.json` has no `syafiqkit` entry, ask how they installed the plugin before guessing a path.
+⚠️ **Never register a tool from `~/.claude/plugins/cache/...`**, even though this skill's own folder is there. Cache folders are per version and old ones are deleted as soon as a day after an update, so a server registered from one stops starting with no message beyond "failed to connect". If `known_marketplaces.json` has no `syafiqkit` entry, ask how they installed the plugin before guessing a path.
 
 Then check the basics once: `bun` (the launchers also look in `~/.bun/bin`, `/opt/homebrew/bin`, `/usr/local/bin`; if absent, the install command is on bun.sh) and the `claude` command on PATH (the enable scripts call `claude mcp add`).
 
