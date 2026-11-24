@@ -89,7 +89,7 @@ module.exports = function makeKinds(ctx) {
     });
     bars.push({ label: v.end.label, from: 0, to: v.end.amount, fill: T.accent, ink: T.onAccent, end: true });
     const max = Math.max(0, ...bars.map((b) => Math.max(b.from, b.to))), min = Math.min(0, ...bars.map((b) => Math.min(b.from, b.to)));
-    const top = y + 0.35, plotH = h - 1.3, floor = top + plotH, scale = plotH / (max - min), zeroY = top + max * scale;
+    const top = y + 0.35, plotH = h - 1.3, floor = top + plotH, scale = plotH / ((max - min) || 1), zeroY = top + max * scale;
     const gap = 0.2, bw = (w - gap * (bars.length - 1)) / bars.length;
     if (min < 0) slide.addShape(pres.shapes.LINE, { x, y: zeroY, w, h: 0, line: { color: T.soft, width: 1, dashType: 'dash' } });
     bars.forEach((b, i) => {
@@ -97,7 +97,7 @@ module.exports = function makeKinds(ctx) {
       const by = zeroY - hi * scale, bh = Math.max((hi - lo) * scale, 0.04);
       slide.addShape(pres.shapes.RECTANGLE, { x: bx, y: by, w: bw, h: bh, fill: { color: b.fill }, line: { color: b.end ? T.accent : b.ink, width: 1 } });
       const below = b.end && b.to < 0;
-      slide.addText(money(b.delta !== undefined ? b.delta : b.to), txt({ x: bx - 0.1, y: below ? by + bh + 0.02 : by - 0.34, w: bw + 0.2, h: 0.32, fontSize: 13, bold: true, align: 'center', valign: below ? 'top' : 'bottom', color: b.end && b.to < 0 ? T.open : b.delta !== undefined ? b.ink : T.ink }));
+      slide.addText(money(b.delta !== undefined ? b.delta : b.to), txt({ x: bx - 0.1, y: below ? by + bh + 0.02 : by - 0.34, w: bw + 0.2, h: 0.32, fontSize: 13, bold: true, align: 'center', valign: below ? 'top' : 'bottom', color: below ? T.open : b.delta !== undefined ? b.ink : T.ink }));
       const lab = [{ text: b.label, options: { breakLine: !!b.by } }];
       if (b.by) lab.push({ text: `paid by ${b.by}`, options: { fontSize: 10.5, bold: true, color: b.ink } });
       slide.addText(lab, txt({ x: bx - 0.05, y: floor + 0.36, w: bw + 0.1, h: 0.6, fontSize: fit(b.label, bw + 0.1, 0.4, 11.5, 10), align: 'center', valign: 'top', color: T.ink }));

@@ -196,7 +196,7 @@ function checkJourney(s, where) {
   words(s.person, 3, `${where} person`);
   isParty(s.actor, `${where} actor`);
   words(s.goal, 14, `${where} goal`);
-  if (s.sub && s.sub.length > 100) bad(where, 'sub (the point, shown instead of the goal) max 100 characters');
+  if (s.sub !== undefined && (typeof s.sub !== 'string' || s.sub.length > 100)) bad(where, 'sub (the point, shown instead of the goal) max 100 characters');
   if (s.heading) words(s.heading, 5, `${where} heading`);
   const ms = Array.isArray(s.moments) ? s.moments : [];
   const mains = ms.filter((m) => !m.under);
@@ -246,7 +246,7 @@ function checkJourney(s, where) {
   const kind = s.numbers || 'quoted';
   if (kind === 'made_up' || !allSourceText) return;
   const allowed = kind === 'quoted' ? factText : allSourceText;
-  for (const f of new Set(JSON.stringify([s.goal, ms, behind, s.rule, s.notes]).match(FIGURE) || [])) {
+  for (const f of new Set(JSON.stringify([s.goal, s.sub, ms, behind, s.rule, s.notes]).match(FIGURE) || [])) {
     if (!holds(near, f) && !holds(allowed, f)) bad(where, `${f} is not near its cited lines or in the files its numbers kind allows`);
   }
 }
@@ -370,7 +370,7 @@ function dark(slide) { slide.background = { color: T.ink }; }
 function bottomStrip(slide, s) {
   const waits = s.waits_on || [], rw = waits.length ? 3.6 : 0;
   if (s.rule) slide.addText([{ text: `${STRIP}  `, options: { bold: true, color: T.accent } }, { text: s.rule, options: { color: T.ink } }], txt({ x: M, y: 6.25, w: CW - rw - (rw ? 0.15 : 0), h: 0.85, fontSize: fit(`${STRIP}  ${s.rule}`, CW - rw - 0.4, 0.75, 12, 10.5), valign: 'middle', fill: { color: T.ground }, margin: [6, 12, 6, 12], shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
-  if (waits.length) slide.addText([{ text: WAITS, options: { bold: true, breakLine: true } }, { text: waits.join('\n'), options: { bold: true, fontSize: waits.length > 1 ? 14 : 17 } }], txt({ x: M + CW - rw, y: 6.22, w: rw, h: 0.92, fontSize: 11.5, color: T.onAccent, valign: 'middle', align: 'center', fill: { color: T.open }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
+  if (waits.length) slide.addText([{ text: WAITS, options: { bold: true, breakLine: true } }, { text: waits.join('\n'), options: { bold: true, fontSize: waits.length > 2 ? 11.5 : waits.length > 1 ? 14 : 17 } }], txt({ x: M + CW - rw, y: 6.22, w: rw, h: 0.92, fontSize: 11.5, color: T.onAccent, valign: 'middle', align: 'center', fill: { color: T.open }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
 }
 
 const LAYOUT = {
