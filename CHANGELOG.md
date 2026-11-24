@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.12
+
+**A marked `taste` headline grouped with its own lead line passes again.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- 1.468.11 failed every finding the checker groups together, even when all of it belonged to the marked section (a staggered headline's own lines, the headline and its lead paragraph). Now a grouped finding fails only when it names something from another section, as 1.468.11's note said.
+- The stagger test also reads a headline's lines more reliably when it mixes word sizes.
+
 ## 1.468.11
 
 **Two edge cases in `taste`'s bold-headline marker fixed, and the design moves say what a `taste` page needs.**

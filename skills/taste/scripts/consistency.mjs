@@ -4505,11 +4505,16 @@ const MOVE_ALLOWS = {
 const TEXT_CROPS = new Set(['cut-text', 'overlap-text']);
 const MOVE_CHECKS = new Set(Object.values(MOVE_ALLOWS).flat());
 const STRUCTURE_MSG = /needs exactly one|in-flow child|holds \d+ (child|background layer)|no valid background layer/;
-const GROUPED_MSG = /\(and \d+ more like it|\(also "/;
+const GROUPED_MSG = /\(and \d+ more (like it|of this check)|\(also "/;
+const groupNames = (msg) => {
+  const at = msg.search(GROUPED_MSG); if (at < 0) return [];
+  const names = [...msg.slice(at).matchAll(/"([^"]+)"/g)].map((x) => x[1].replace(/(\.\.\.|…)$/, '').trim()).filter((s) => s.length > 1);
+  return names.length ? names : null;
+};
 async function applyMoves(F, tab) {
   if (!F.some((f) => f.sev === 'FAIL' && MOVE_CHECKS.has(f.check))) return;
-  const moves = (await tab.eval(`window.__cc.moveOf(${JSON.stringify(F.map((f) => [f.id || 0, f.sel || '', f.coveredId || 0]))})`)) || [];
-  const allowed = (f, m) => m && f.sev === 'FAIL' && (MOVE_ALLOWS[m.move] || []).includes(f.check) && !(f.check === 'container-edges' && STRUCTURE_MSG.test(f.msg || '')) && !GROUPED_MSG.test(f.msg || '');
+  const moves = (await tab.eval(`window.__cc.moveOf(${JSON.stringify(F.map((f) => [f.id || 0, f.sel || '', f.coveredId || 0, groupNames(f.msg || '')]))})`)) || [];
+  const allowed = (f, m) => m && f.sev === 'FAIL' && (MOVE_ALLOWS[m.move] || []).includes(f.check) && !(f.check === 'container-edges' && STRUCTURE_MSG.test(f.msg || ''));
   F.forEach((f, i) => {
     const m = moves[i]; if (!allowed(f, m)) return;
     if (TEXT_CROPS.has(f.check) && m.share < 0.8) { f.msg += ` (data-move="${m.move}" allows ${f.check === 'cut-text' ? 'a crop' : 'an overlap'}, but ${Math.round((1 - m.share) * 100)}% of this text is hidden; keep at least four fifths visible)`; return; }
@@ -5422,13 +5427,16 @@ function lib() {
       const parts = [...m.querySelectorAll('h1, h2, h3, figure, picture, img, video, svg, canvas, [data-move-subject], .hero__media, .hero__art')].filter((x) => x.getBoundingClientRect().width > 0 && (sectionHeading(x, m) || isSubject(x, m)));
       const out = (r) => r.left < -1 || r.right > innerWidth + 1 || r.left < mr.left - 1 || r.right > mr.right + 1;
       let act = parts.some((x) => out(x.getBoundingClientRect()) || visibleShare(x) < 0.99);
-      if (!act && move === 'break-layout') act = parts.some((x) => { if (!/^H[1-3]$/.test(x.tagName)) return false; const rg = document.createRange(); rg.selectNodeContents(x); const lines = new Map(); for (const r of rg.getClientRects()) { if (r.width < 1) continue; const k = Math.round(r.top / 8); lines.set(k, Math.min(lines.has(k) ? lines.get(k) : Infinity, r.left)); } const ls = [...lines.values()]; return ls.length > 1 && Math.max(...ls) - Math.min(...ls) > 48; });
+      if (!act && move === 'break-layout') act = parts.some((x) => { if (!/^H[1-3]$/.test(x.tagName)) return false; const rg = document.createRange(); rg.selectNodeContents(x); const rs = [...rg.getClientRects()].filter((r) => r.width >= 1).sort((a, b) => a.top - b.top); const ls = []; let bottom = -Infinity; for (const r of rs) { if (r.top < bottom - 1) { ls[ls.length - 1] = Math.min(ls[ls.length - 1], r.left); bottom = Math.max(bottom, r.bottom); } else { ls.push(r.left); bottom = r.bottom; } } return ls.length > 1 && Math.max(...ls) - Math.min(...ls) > 48; });
       if (!act && move === 'three-planes') { const hs = parts.filter((x) => /^H[1-3]$/.test(x.tagName)), ss = parts.filter((x) => !/^H[1-3]$/.test(x.tagName)); act = ss.some((s) => hs.some((h) => uncovered(s, h) < 1)); }
       acting.set(m, act); return act;
     };
-    return list.map(([id, sel, coveredId]) => {
+    const norm = (s) => s.replace(/\s+/g, ' ').trim();
+    return list.map(([id, sel, coveredId, members]) => {
       const el = (id && els.get(id)) || bySel(sel); if (!el || !el.closest) return null;
       const m = el.closest(MARK); if (!m || !(m.tagName === 'SECTION' || (m.parentElement && m.parentElement.tagName === 'MAIN'))) return null;
+      if (members === null) return null;
+      if (members.length) { const own = norm(m.textContent || ''); if (members.some((n) => !own.includes(norm(n)))) return null; }
       const covered = coveredId && els.get(coveredId);
       if (coveredId && !covered) return null;
       const self = el === m;
