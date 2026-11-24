@@ -4505,12 +4505,15 @@ const MOVE_ALLOWS = {
 };
 const TEXT_CROPS = new Set(['cut-text', 'overlap-text']);
 const MOVABLE = new Set(Object.values(MOVE_ALLOWS).flat());
+// container-edges also tells the page's structure (how many .wrap, what a .wrap holds): a move never excuses that
+const STRUCTURE_MSG = /needs exactly one|in-flow child|holds \d+ child|no valid background layer/;
 // on a tab with the page and its lib loaded: a FAIL a marked section's move allows becomes a WARN naming the move
 async function applyMoves(F, tab) {
   if (!F.some((f) => f.sev === 'FAIL' && MOVABLE.has(f.check))) return;
   const moves = (await tab.eval(`window.__cc.moveOf(${JSON.stringify(F.map((f) => [f.id || 0, f.sel || '', f.coveredId || 0]))})`)) || [];
   F.forEach((f, i) => {
     const m = moves[i]; if (!m || f.sev !== 'FAIL' || !(MOVE_ALLOWS[m.move] || []).includes(f.check)) return;
+    if (f.check === 'container-edges' && STRUCTURE_MSG.test(f.msg || '')) return;
     if (TEXT_CROPS.has(f.check) && m.share < 0.8) { f.msg += ` (data-move="${m.move}" allows ${f.check === 'cut-text' ? 'a crop' : 'an overlap'}, but ${Math.round((1 - m.share) * 100)}% of this text is hidden; keep at least four fifths visible)`; return; }
     f.sev = 'WARN'; f.msg += ` (allowed by data-move="${m.move}" on its section: a composition move the plan names)`;
   });
@@ -11306,6 +11309,7 @@ async function sweepWidth(cdp, w) {
       if (m.nav.rowsWrap) F.push({ check: 'nav', sev: 'FAIL', id: m.nav.id, sel: m.nav.rowsWrap.sel, text: '', rects: [m.nav.rowsWrap.rect], msg: `nav links wrap onto ${m.nav.rowsWrap.rows} rows` });
     }
     if (m.docWidth > m.vw + 1) F.push({ check: 'off-viewport', sev: 'FAIL', id: 0, sel: '(the page)', text: '', rects: [], msg: `the page is ${m.docWidth}px wide on a ${m.vw}px screen and scrolls sideways` });
+    await applyMoves(F, tab).catch((e) => errors.push(`${w}: data-move: ${e.message}`));
   } catch (e) {
     lose(errors, 'first screen', e);
   } finally {
@@ -11376,6 +11380,7 @@ async function narrowPass(cdp, helper, w) {
       F.push(f);
     }
     if (!m.list.length && m.docW > m.vw + 1) F.push({ check: 'off-viewport', sev: 'FAIL', id: 0, sel: '(the page)', text: '', rects: [], msg: `the page is ${m.docW}px wide on a ${m.vw}px screen and scrolls sideways` });
+    await applyMoves(F, tab).catch((e) => errors.push(`${w}: data-move: ${e.message}`));
   } catch (e) {
     lose(errors, 'narrow', e);
   } finally {

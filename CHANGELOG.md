@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.7
+
+**A marked bold headline or subject now passes at every width `taste` checks, the smallest phone included.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- The allowance covers the marked section itself, its headline and its subject, at every width including the 320 px phone walk, which 1.468.6 still failed.
+- A marked section still fails if its layout is broken (it needs exactly one content wrapper), as well as for the limits listed under 1.468.6.
+
 ## 1.468.6
 
 **The bold-headline allowance in `taste` now covers only the headline and its subject, exactly as described.**

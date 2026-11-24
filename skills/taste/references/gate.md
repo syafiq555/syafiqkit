@@ -35,8 +35,10 @@ node <skill>/scripts/gate.mjs --start index.html --kind <kind> --category "<what
   `empty-area` (a section over 35% empty inside its container WARNs, over 50% FAILs) and the `basics`
   block (names, alt, labels, heading order, the Tab walk, lang, head tags, map links, assumed facts):
   their FAILs block like the others; their WARNs (skip-link, share-meta, action-repeat at two,
-  assumed, the form's `.example` stand-in) never do. Inside a section marked `data-move` (`SKILL.md`), the findings of
-  that section's heading and subject arrive as WARNs naming the move and `check.mjs` skips their edge rules; a card or button there keeps every rule. The quick run leaves out what only step 6's full
+  assumed, the form's `.example` stand-in) never do. Inside a section marked `data-move` (`SKILL.md`), the move's
+  findings on the section itself, its heading and its subject arrive as WARNs naming the move (at every width, the
+  320 walk included) and `check.mjs` skips their edge rules; a card or button there keeps every rule, and so do a word
+  more than a fifth hidden or covered and the section's structure (one `.wrap`, what it holds). The quick run leaves out what only step 6's full
   run checks: `forms`, `reduced-motion`, `hover-move`, `hover-spill`, `loop-pause`, `hidden-visual`, the scroll walks. The 390 width brings the phone checks (`collide`,
   `tap-size`) and a walk at 320 for anything past the screen (`off-viewport`); `hidden-content` also
   loads the page with scripts off. Plus two read from the files:

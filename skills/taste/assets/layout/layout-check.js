@@ -38,7 +38,7 @@ window.lyCheck = function lyCheck(opts = {}) {
   const movedEdge = (el) => {
     const m = el.closest('[data-move]');
     if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName) || !/^(break-layout|scale-crop|three-planes)$/.test(m.getAttribute('data-move'))) return false;
-    return /^H[1-3]$/.test(el.tagName) || el.matches('figure, picture, img, video, svg, canvas, .hero__media, .hero__art, [data-move-subject]');
+    return /^H[1-3]$/.test(el.tagName) || el.matches('figure, picture, img, video, svg, canvas, .hero__media, .hero__art') || !!el.closest('h1, h2, h3, [data-move-subject]');
   };
   const R1 = n => Math.round(n * 10) / 10;
   const name = el => {
@@ -106,7 +106,7 @@ window.lyCheck = function lyCheck(opts = {}) {
     const sec = el.closest('main > *');
     if (sec) { if (!bySection.has(sec)) bySection.set(sec, []); bySection.get(sec).push({ el, r, full, bleedR, bleedL, text, cen }); }
     if (full) continue;
-    if (movedEdge(el)) continue;   // a section marked data-move="break-layout" or "scale-crop" may leave the lines for its move (SKILL.md)
+    if (movedEdge(el)) continue;   // a section marked data-move may leave the lines for its move's heading and subject (SKILL.md)
     if (bleedR) { add('bleed-one-side', name(el), `runs from x ${R1(r.left)} out to the right viewport edge; the left side stays at ${R1(L)}`); continue; }
     if (bleedL) { add('bleed-one-side', name(el), `runs from the left viewport edge to x ${R1(r.right)}; the right side stays at ${R1(vw - R)} from the edge`); continue; }
     if (r.left < L - tol || r.right > R + tol) {
