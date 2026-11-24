@@ -3,7 +3,7 @@
 ## 1.467.8
 
 **A meeting board can carry what the meeting decided.**
-- `excalidraw-board`: meeting-mode specs take `decided` and `actions` lists, written onto the whiteboard panel's lines with the blanks after them; the panel grows to fit. Before, those sections could only be drawn empty.
+- `excalidraw-board`: meeting-mode specs take `decided` and `actions` lists, written onto the whiteboard panel's lines with the blanks after them; the panel grows to fit. Before, those sections could only be drawn empty. An `open` list adds a "still open" section per owner below Actions, for questions the meeting left waiting.
 
 Update with `claude plugin update syafiqkit@syafiqkit`.
 

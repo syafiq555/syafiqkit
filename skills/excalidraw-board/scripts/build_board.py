@@ -22,10 +22,11 @@ speaker-note card per topic beside it:
   "topics": [ {"text": "1. Pay first or next invoice?", "cue": "RM 2.50 mid-month",
                "notes": [["The issue", "..."], ["Example", "..."], ["Suggest", "..."]]} ],
   "dont_reopen": ["...already decided..."], "decided_blank": 3, "actions_blank": 4,
-  "decided": ["..."], "actions": ["what · owner · date"]
+  "decided": ["..."], "actions": ["what · owner · date"],
+  "open": [ {"head": "STILL OPEN · Hong Liang", "lines": ["..."], "blank": 0} ]
 }
 "decided" and "actions" write lines onto the panel after the meeting (under about 42 characters each);
-the blanks follow them.
+the blanks follow them. "open" adds sections below Actions for questions still waiting, one per owner.
 """
 import json, subprocess, sys
 
@@ -149,6 +150,8 @@ def meeting(spec):
     act_y = max(y + 200, dec_end + 30)
     act_end = write_lines("act", 0, act_y, "ACTIONS (what / owner / date)", spec.get("actions_blank", 4),
                           filled=spec.get("actions", ()))
+    for k, s in enumerate(spec.get("open", ())):
+        act_end = write_lines(f"open{k}", 0, act_end + 40, s["head"], s.get("blank", 0), filled=s["lines"])
     E.append({"id": "wbframe", "type": "rectangle", "x": -30, "y": -30, "width": 470,
               "height": max(y + 400, act_end + 60),
               "strokeWidth": 2, "roundness": None, "backgroundColor": "transparent"})
