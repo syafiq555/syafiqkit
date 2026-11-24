@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.468.8
+
+**Only the real subject of a marked `taste` section may sit over its headline.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- In a section marked `data-move="three-planes"`, a card or other box over the headline now fails; only the subject (a picture, video, `svg`, or anything marked `data-move-subject`) may cover it. The same goes for an icon inside a button in any marked section: it counts as the button, which keeps every rule.
+- Place a `data-move-subject` inside the section's content wrapper; beside it, the section's layout fails as before.
+- The markers are `data-move="break-layout"`, `"scale-crop"` and `"three-planes"`.
+
 ## 1.468.7
 
 **A marked bold headline or subject now passes at every width `taste` checks, the smallest phone included.**
@@ -13,14 +21,14 @@
 - Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
 - Mark the section with one of `data-move="break-layout"` (staggered headline lines), `data-move="scale-crop"` (a huge word or subject cropped at the screen edge) or `data-move="three-planes"` (the subject over a big headline word).
 - Only the section's headline (`h1` to `h3`) and its subject (a picture, video, `svg` or anything marked `data-move-subject`) get through. Cards and buttons in the same section keep every rule; 1.468.5 let a card with a title slip through.
-- Still failing on purpose: more than a fifth of a word hidden or covered, anything crossing into the next section (checked by eye), and a page that scrolls sideways.
+- Still failing on purpose: more than a fifth of a word hidden or covered, and a page that scrolls sideways. Nothing may cross into the next section either, but no tool tests that: check it by eye.
 
 ## 1.468.5
 
 **A headline you crop, stagger or set behind the subject on purpose now passes `taste`'s finish check, as long as its section carries `data-move`.**
 - Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
 - In 1.468.3 such a page still failed other parts of the check, so it could never pass. Now the whole check lets the headline and the subject of a marked section through, while other cards and blocks in that section keep the usual rules.
-- The marker goes on the section, not `main` or the whole page. Still failing on purpose: a word more than a fifth hidden, anything crossing into the next section (checked by eye), and a page that scrolls sideways.
+- The marker goes on the section, not `main` or the whole page. Still failing on purpose: a word more than a fifth hidden, and a page that scrolls sideways. Crossing into the next section is yours to check by eye; no tool tests it.
 
 ## 1.468.4
 

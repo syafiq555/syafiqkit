@@ -4497,7 +4497,6 @@ async function run(ctx) {
 // the checks kept as blocks of their own: each runs on the walked tab at every width it names (phase 'width') or opens
 // its own tab (phase 'pass'); --no-<id> skips one
 const MODULES = [visualMod, addressMod, rhythmMod, motionMod, tilesMod, areaMod, basicsMod];
-// a section marked data-move (SKILL.md, the paragraph on complaints about how a page looks) may break these for its move
 const MOVE_ALLOWS = {
   'break-layout': ['stagger', 'top-stagger', 'spill', 'off-viewport', 'container-edges'],
   'scale-crop': ['cut-text', 'spill', 'off-viewport', 'container-edges', 'row-lines'],
@@ -4505,9 +4504,7 @@ const MOVE_ALLOWS = {
 };
 const TEXT_CROPS = new Set(['cut-text', 'overlap-text']);
 const MOVABLE = new Set(Object.values(MOVE_ALLOWS).flat());
-// container-edges also tells the page's structure (how many .wrap, what a .wrap holds): a move never excuses that
-const STRUCTURE_MSG = /needs exactly one|in-flow child|holds \d+ child|no valid background layer/;
-// on a tab with the page and its lib loaded: a FAIL a marked section's move allows becomes a WARN naming the move
+const STRUCTURE_MSG = /needs exactly one|in-flow child|holds \d+ child|no valid background layer|background layers/;
 async function applyMoves(F, tab) {
   if (!F.some((f) => f.sev === 'FAIL' && MOVABLE.has(f.check))) return;
   const moves = (await tab.eval(`window.__cc.moveOf(${JSON.stringify(F.map((f) => [f.id || 0, f.sel || '', f.coveredId || 0]))})`)) || [];
@@ -5402,19 +5399,20 @@ function lib() {
     return Math.max(0, Rr - L) * Math.max(0, B - T) / (r.width * r.height);
   };
   function moveOf(list) {
-    const bySel = (s) => { try { return s && /^[a-z]/i.test(s) ? document.querySelector(s) : null; } catch (e) { return null; } };
+    const bySel = (s) => { try { if (!s || !/^[a-z]/i.test(s)) return null; const all = document.querySelectorAll(s); return all.length === 1 ? all[0] : null; } catch (e) { return null; } };
     const uncovered = (box, text) => {
       const a = box.getBoundingClientRect(), t = text.getBoundingClientRect(), area = t.width * t.height; if (area < 1) return 1;
       const w = Math.max(0, Math.min(a.right, t.right) - Math.max(a.left, t.left)), h = Math.max(0, Math.min(a.bottom, t.bottom) - Math.max(a.top, t.top));
       return 1 - (w * h) / area;
     };
     const SUBJECT = 'figure, picture, img, video, svg, canvas, .hero__media, .hero__art, [data-move-subject]';
-    const partOfMove = (el, m) => el === m || !!el.closest('h1, h2, h3, [data-move-subject]') || el.matches(SUBJECT);
+    const isSubject = (el) => !el.closest('a, button') && (el.matches(SUBJECT) || !!el.closest('[data-move-subject]'));
+    const partOfMove = (el, m) => el === m || !!el.closest('h1, h2, h3') || isSubject(el);
     return list.map(([id, sel, coveredId]) => {
       const el = (id && els.get(id)) || bySel(sel); if (!el || !el.closest) return null;
       const m = el.closest('[data-move]'); if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName)) return null;
       const covered = coveredId && els.get(coveredId);
-      if (!(partOfMove(el, m) || (covered && covered.closest('h1, h2, h3')))) return null;
+      if (covered ? !(isSubject(el) && covered.closest('h1, h2, h3')) : !partOfMove(el, m)) return null;
       const share = !el.isConnected ? 1 : covered && covered.isConnected ? uncovered(el, covered) : visibleShare(el);
       return { move: m.getAttribute('data-move'), share };
     });
@@ -10258,7 +10256,7 @@ ORDER.splice(ORDER.indexOf('hover') + 1, 0, 'hover-move');
 ORDER.splice(ORDER.indexOf('overlap-text') + 1, 0, 'collide', 'tap-size');
 for (const M of MODULES) for (const c of M.checks) if (!ORDER.includes(c.id)) ORDER.push(c.id);
 const bySev = (a, b) => (a.sev === b.sev ? 0 : a.sev === 'FAIL' ? -1 : 1) || ORDER.indexOf(a.check) - ORDER.indexOf(b.check);
-const clean = ({ id, rects, merge, lines, ...rest }) => Object.assign(rest, { fix: rest.fix || FIX[rest.check] || '' });
+const clean = ({ id, rects, merge, lines, coveredId, ...rest }) => Object.assign(rest, { fix: rest.fix || FIX[rest.check] || '' });
 async function cropTo(helper, shot, f, vw, vh, name) {
   const reg = region(f.rects, vw, vh); if (!reg) return;
   await helper.eval(`window.__h.use("shot", ${JSON.stringify(shot)})`);
@@ -11482,8 +11480,7 @@ try {
         const mt = await pctx.safe('data-move', () => pctx.openTab());
         if (mt) {
           try {
-            await mt.goto(url); await waitReady(mt); await pctx.safe('data-move lib', () => pctx.loadLib(mt));
-            await pctx.safe('data-move', () => applyMoves(got, mt));
+            await pctx.safe('data-move', async () => { await mt.goto(url); await waitReady(mt); await pctx.loadLib(mt); await applyMoves(got, mt); });
           } finally { await mt.close().catch(() => {}); }
         }
       }
