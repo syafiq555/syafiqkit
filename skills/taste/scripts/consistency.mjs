@@ -4508,8 +4508,12 @@ const STRUCTURE_MSG = /needs exactly one|in-flow child|holds \d+ (child|backgrou
 const GROUPED_MSG = /\(and \d+ more (like it|of this check)|\(also "/;
 const groupNames = (msg) => {
   const at = msg.search(GROUPED_MSG); if (at < 0) return [];
-  const names = [...msg.slice(at).matchAll(/"([^"]+)"/g)].map((x) => x[1].replace(/(\.\.\.|…)$/, '').trim()).filter((s) => s.length > 1);
-  return names.length ? names : null;
+  const tail = msg.slice(at);
+  const names = [...tail.matchAll(/"([^"]+)"/g)].map((x) => x[1].replace(/(\.\.\.|…)$/, '').trim());
+  if (!names.length || names.some((s) => s.length < 3)) return null;
+  const count = tail.match(/^\(and (\d+) more/);
+  if (count ? Number(count[1]) !== names.length : names.length >= 3) return null;
+  return names;
 };
 async function applyMoves(F, tab) {
   if (!F.some((f) => f.sev === 'FAIL' && MOVE_CHECKS.has(f.check))) return;
@@ -5412,7 +5416,7 @@ function lib() {
       return 1 - (w * h) / area;
     };
     const MARK = '[data-move="break-layout"], [data-move="scale-crop"], [data-move="three-planes"]';
-    const ownPlace = (x, m) => { if (x === m) return true; const p = x.parentElement; return !!p && (p === m || p.parentElement === m || p.matches('.wrap, .hero__head, .hero__text, .section-head, header')); };
+    const ownPlace = (x, m) => { if (x === m) return true; const p = x.parentElement; return !!p && (p === m || p.parentElement === m || p.matches('.wrap, .hero__head, .hero__text, .hero-text, .section-head, header')); };
     const sectionHeading = (el, m) => { const h = el.closest('h1, h2, h3'); return !!h && m.contains(h) && ownPlace(h, m); };
     const isSubject = (el, m) => {
       if (el.closest('a, button')) return false;
@@ -5427,7 +5431,7 @@ function lib() {
       const parts = [...m.querySelectorAll('h1, h2, h3, figure, picture, img, video, svg, canvas, [data-move-subject], .hero__media, .hero__art')].filter((x) => x.getBoundingClientRect().width > 0 && (sectionHeading(x, m) || isSubject(x, m)));
       const out = (r) => r.left < -1 || r.right > innerWidth + 1 || r.left < mr.left - 1 || r.right > mr.right + 1;
       let act = parts.some((x) => out(x.getBoundingClientRect()) || visibleShare(x) < 0.99);
-      if (!act && move === 'break-layout') act = parts.some((x) => { if (!/^H[1-3]$/.test(x.tagName)) return false; const rg = document.createRange(); rg.selectNodeContents(x); const rs = [...rg.getClientRects()].filter((r) => r.width >= 1).sort((a, b) => a.top - b.top); const ls = []; let bottom = -Infinity; for (const r of rs) { if (r.top < bottom - 1) { ls[ls.length - 1] = Math.min(ls[ls.length - 1], r.left); bottom = Math.max(bottom, r.bottom); } else { ls.push(r.left); bottom = r.bottom; } } return ls.length > 1 && Math.max(...ls) - Math.min(...ls) > 48; });
+      if (!act && move === 'break-layout') act = parts.some((x) => { if (!/^H[1-3]$/.test(x.tagName)) return false; const rg = document.createRange(), tw = document.createTreeWalker(x, NodeFilter.SHOW_TEXT), rs = []; for (let n = tw.nextNode(); n; n = tw.nextNode()) { if (!n.nodeValue.trim()) continue; rg.selectNodeContents(n); for (const r of rg.getClientRects()) if (r.width >= 1) rs.push(r); } rs.sort((a, b) => a.top - b.top); const ls = []; let top = -Infinity, bottom = -Infinity; for (const r of rs) { const overlap = Math.min(bottom, r.bottom) - Math.max(top, r.top); if (overlap > Math.min(bottom - top, r.height) / 2) { ls[ls.length - 1] = Math.min(ls[ls.length - 1], r.left); } else { ls.push(r.left); top = r.top; bottom = r.bottom; } } return ls.length > 1 && Math.max(...ls) - Math.min(...ls) > 48; });
       if (!act && move === 'three-planes') { const hs = parts.filter((x) => /^H[1-3]$/.test(x.tagName)), ss = parts.filter((x) => !/^H[1-3]$/.test(x.tagName)); act = ss.some((s) => hs.some((h) => uncovered(s, h) < 1)); }
       acting.set(m, act); return act;
     };

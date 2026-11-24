@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.468.13
+
+**`taste`'s own hero headline now gets the bold-headline marker's allowance, and staggered display headlines are recognised again.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- A headline inside `taste`'s standard `.hero-text` block now counts as the section's headline.
+- A staggered headline set tight (line height 1, the usual for display type) or built from block lines is recognised as staggered again; 1.468.12 missed it and failed the section's spacing.
+- A grouped finding passes only when every member is named in full; a group that names only the first few stays failing.
+
 ## 1.468.12
 
 **A marked `taste` headline grouped with its own lead line passes again.**
