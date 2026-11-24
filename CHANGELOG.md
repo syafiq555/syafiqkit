@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.468.4
+
+**`uiux` now tells you how to run impeccable's detector on a screen behind a login, at the step where saved logins come up.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `impeccable detect` takes no saved login, and pointing it at the component file instead runs only its text-matching rules (no contrast or tiny-text checks). `uiux` step 0 now sends you to the `--cdp` route: open a Chromium signed in with the saved login, then let `detect` read that page. The steps already lived in impeccable's `critique.md` and `/done`'s design reference; `uiux` was the one place a session reads at that moment, and it never named them.
+
 ## 1.468.3
 
 **Public pages built with `taste` can now use the bold poster moves (a staggered headline, a huge word cropped at the edge, a subject over the big word) where you complained a page is boring or doesn't stand out.**
