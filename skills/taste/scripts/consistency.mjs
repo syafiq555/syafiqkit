@@ -4504,7 +4504,7 @@ const MOVE_ALLOWS = {
 };
 const TEXT_CROPS = new Set(['cut-text', 'overlap-text']);
 const MOVABLE = new Set(Object.values(MOVE_ALLOWS).flat());
-const STRUCTURE_MSG = /needs exactly one|in-flow child|holds \d+ child|no valid background layer|background layers/;
+const STRUCTURE_MSG = /needs exactly one|in-flow child|holds \d+ (child|background layer)|no valid background layer/;
 async function applyMoves(F, tab) {
   if (!F.some((f) => f.sev === 'FAIL' && MOVABLE.has(f.check))) return;
   const moves = (await tab.eval(`window.__cc.moveOf(${JSON.stringify(F.map((f) => [f.id || 0, f.sel || '', f.coveredId || 0]))})`)) || [];
@@ -5407,12 +5407,14 @@ function lib() {
     };
     const SUBJECT = 'figure, picture, img, video, svg, canvas, .hero__media, .hero__art, [data-move-subject]';
     const isSubject = (el) => !el.closest('a, button') && (el.matches(SUBJECT) || !!el.closest('[data-move-subject]'));
-    const partOfMove = (el, m) => el === m || !!el.closest('h1, h2, h3') || isSubject(el);
+    const sectionHeading = (el, m) => { const h = el.closest('h1, h2, h3'); if (!h || !m.contains(h)) return false; const p = h.parentElement; return p === m || p.parentElement === m || p.matches('.wrap, .hero__head, .hero__text, .section-head'); };
+    const partOfMove = (el, m) => el === m || sectionHeading(el, m) || isSubject(el);
     return list.map(([id, sel, coveredId]) => {
       const el = (id && els.get(id)) || bySel(sel); if (!el || !el.closest) return null;
       const m = el.closest('[data-move]'); if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName)) return null;
       const covered = coveredId && els.get(coveredId);
-      if (covered ? !(isSubject(el) && covered.closest('h1, h2, h3')) : !partOfMove(el, m)) return null;
+      if (coveredId && !covered) return null;
+      if (covered ? !(isSubject(el) && sectionHeading(covered, m)) : !partOfMove(el, m)) return null;
       const share = !el.isConnected ? 1 : covered && covered.isConnected ? uncovered(el, covered) : visibleShare(el);
       return { move: m.getAttribute('data-move'), share };
     });

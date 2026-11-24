@@ -38,7 +38,8 @@ window.lyCheck = function lyCheck(opts = {}) {
   const movedEdge = (el) => {
     const m = el.closest('[data-move]');
     if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName) || !/^(break-layout|scale-crop|three-planes)$/.test(m.getAttribute('data-move'))) return false;
-    if (!!el.closest('h1, h2, h3')) return true;
+    const h = el.closest('h1, h2, h3');
+    if (h && m.contains(h) && (h.parentElement === m || h.parentElement.parentElement === m || h.parentElement.matches('.wrap, .hero__head, .hero__text, .section-head'))) return true;
     return !el.closest('a, button') && (el.matches('figure, picture, img, video, svg, canvas, .hero__media, .hero__art') || !!el.closest('[data-move-subject]'));
   };
   const R1 = n => Math.round(n * 10) / 10;

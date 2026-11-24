@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.468.9
+
+**A card's own heading no longer rides on a marked `taste` section's allowance, and a regression from 1.468.8 is fixed.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Only the section's own headline counts (the heading sitting in the section or its content wrapper); a heading inside a card keeps every rule.
+- 1.468.8 made the checker fail a marked headline that runs past the page's edge lines; that is allowed again, as intended.
+- Only `scale-crop` may crop text and only `three-planes` may cover it; a `break-layout` headline cut off at a phone width still fails. The `taste` instructions now say so in a short list.
+
 ## 1.468.8
 
 **Only the real subject of a marked `taste` section may sit over its headline.**
