@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.468.6
+
+**The bold-headline allowance in `taste` now covers only the headline and its subject, exactly as described.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Mark the section with one of `data-move="break-layout"` (staggered headline lines), `data-move="scale-crop"` (a huge word or subject cropped at the screen edge) or `data-move="three-planes"` (the subject over a big headline word).
+- Only the section's headline (`h1` to `h3`) and its subject (a picture, video, `svg` or anything marked `data-move-subject`) get through. Cards and buttons in the same section keep every rule; 1.468.5 let a card with a title slip through.
+- Still failing on purpose: more than a fifth of a word hidden or covered, anything crossing into the next section (checked by eye), and a page that scrolls sideways.
+
 ## 1.468.5
 
 **A headline you crop, stagger or set behind the subject on purpose now passes `taste`'s finish check, as long as its section carries `data-move`.**

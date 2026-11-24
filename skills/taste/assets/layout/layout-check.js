@@ -37,8 +37,8 @@ window.lyCheck = function lyCheck(opts = {}) {
   const out = [], add = (rule, where, detail) => out.push({ rule, where, detail });
   const movedEdge = (el) => {
     const m = el.closest('[data-move]');
-    if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName) || !/^(break-layout|scale-crop)$/.test(m.getAttribute('data-move'))) return false;
-    return /^H[1-3]$/.test(el.tagName) || el.matches('figure, picture, img, video, svg, canvas, .hero__media, .hero__art, .hero__head, [data-move-subject]') || !!el.querySelector(':scope > :is(h1, h2, h3)');
+    if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName) || !/^(break-layout|scale-crop|three-planes)$/.test(m.getAttribute('data-move'))) return false;
+    return /^H[1-3]$/.test(el.tagName) || el.matches('figure, picture, img, video, svg, canvas, .hero__media, .hero__art, [data-move-subject]');
   };
   const R1 = n => Math.round(n * 10) / 10;
   const name = el => {

@@ -4501,7 +4501,7 @@ const MODULES = [visualMod, addressMod, rhythmMod, motionMod, tilesMod, areaMod,
 const MOVE_ALLOWS = {
   'break-layout': ['stagger', 'top-stagger', 'spill', 'off-viewport', 'container-edges'],
   'scale-crop': ['cut-text', 'spill', 'off-viewport', 'container-edges', 'row-lines'],
-  'three-planes': ['overlap-text'],
+  'three-planes': ['overlap-text', 'container-edges', 'spill'],
 };
 const TEXT_CROPS = new Set(['cut-text', 'overlap-text']);
 const MOVABLE = new Set(Object.values(MOVE_ALLOWS).flat());
@@ -5405,10 +5405,13 @@ function lib() {
       const w = Math.max(0, Math.min(a.right, t.right) - Math.max(a.left, t.left)), h = Math.max(0, Math.min(a.bottom, t.bottom) - Math.max(a.top, t.top));
       return 1 - (w * h) / area;
     };
+    const SUBJECT = 'figure, picture, img, video, svg, canvas, .hero__media, .hero__art, [data-move-subject]';
+    const partOfMove = (el, m) => el === m || !!el.closest('h1, h2, h3, [data-move-subject]') || el.matches(SUBJECT);
     return list.map(([id, sel, coveredId]) => {
       const el = (id && els.get(id)) || bySel(sel); if (!el || !el.closest) return null;
       const m = el.closest('[data-move]'); if (!m || /^(HTML|BODY|MAIN)$/.test(m.tagName)) return null;
       const covered = coveredId && els.get(coveredId);
+      if (!(partOfMove(el, m) || (covered && covered.closest('h1, h2, h3')))) return null;
       const share = !el.isConnected ? 1 : covered && covered.isConnected ? uncovered(el, covered) : visibleShare(el);
       return { move: m.getAttribute('data-move'), share };
     });
