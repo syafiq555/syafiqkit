@@ -27,6 +27,7 @@ speaker-note card per topic beside it:
 }
 "decided" and "actions" write lines onto the panel after the meeting (under about 42 characters each);
 the blanks follow them. "open" adds sections below Actions for questions still waiting, one per owner.
+A cue may hold several short lines ("\n"); the topics below it move down to make room.
 """
 import json, subprocess, sys
 
@@ -144,16 +145,16 @@ def meeting(spec):
         txt(f"wb{i}", 0, y, t["text"], 26)
         if t.get("cue"):
             txt(f"wbc{i}", 30, y + 36, t["cue"], 18)
-        y += 67 + 23 * (t.get("cue", "").count("\n") + 1)
+        y += 67 + 23 * len(t.get("cue", "").split("\n"))
     dec_end = write_lines("dec", 0, y + 20, "DECIDED", spec.get("decided_blank", 3),
                           filled=spec.get("decided", ()))
     act_y = max(y + 200, dec_end + 30)
     act_end = write_lines("act", 0, act_y, "ACTIONS (what / owner / date)", spec.get("actions_blank", 4),
                           filled=spec.get("actions", ()))
     for k, s in enumerate(spec.get("open", ())):
-        act_end = write_lines(f"open{k}", 0, act_end + 40, s["head"], s.get("blank", 0), filled=s["lines"])
+        act_end = write_lines(f"open{k}", 0, act_end + 40, s["head"], s.get("blank", 0), filled=s.get("lines", ()))
     E.append({"id": "wbframe", "type": "rectangle", "x": -30, "y": -30, "width": 470,
-              "height": max(y + 400, act_end + 60),
+              "height": max(y + 400, act_end + 16),
               "strokeWidth": 2, "roundness": None, "backgroundColor": "transparent"})
     txt("nt", 520, 0, spec.get("notes_head", "MY NOTES (not for the board)"), 22)
     cards = [(t["text"], note_block(t.get("notes", []), 74)) for t in spec["topics"]]

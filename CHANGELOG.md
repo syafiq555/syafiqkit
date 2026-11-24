@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.9
+
+**Meeting boards without the new sections render as before.**
+- `excalidraw-board`: the whiteboard frame keeps its old height when `decided`, `actions` and `open` are unused; an `open` section without `lines` no longer fails; the docstring says a cue may hold several lines.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.8
 
 **A meeting board can carry what the meeting decided.**
