@@ -69,12 +69,13 @@ module.exports = function makeKinds(ctx) {
 
   function compare(slide, v, x, y, w, h) {
     const cw = (w - 0.3) / 2;
+    h = Math.min(h, 1.45 + Math.max(...['left', 'right'].map((k) => v[k].lines.reduce((a, l) => a + Math.ceil(l.length / 46) * 0.3 + 0.12, 0))));
     ['left', 'right'].forEach((side, i) => {
       const c = v[side], t = TONE[c.tone], cx = x + i * (cw + 0.3);
       slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: cx, y, w: cw, h, fill: { color: T.surface }, line: { color: t[1], width: 1.5 }, rectRadius: 0.08 });
-      if (t[2]) slide.addText(t[2], txt({ x: cx + 0.2, y: y + 0.15, w: cw - 0.4, h: 0.3, fontSize: 10, bold: true, color: t[1] }));
+      if (t[2]) slide.addText(t[2], txt({ x: cx + 0.2, y: y + 0.15, w: cw - 0.4, h: 0.3, fontSize: 11.5, bold: true, color: t[1] }));
       slide.addText(c.heading, txt({ x: cx + 0.2, y: y + 0.45, w: cw - 0.4, h: 0.6, fontSize: fit(c.heading, cw - 0.4, 0.6, 17, 12), bold: true, color: T.ink }));
-      slide.addText(c.lines.map((l, j) => ({ text: l, options: { bullet: true, breakLine: j < c.lines.length - 1, paraSpaceAfter: 8 } })), txt({ x: cx + 0.2, y: y + 1.15, w: cw - 0.4, h: h - 1.3, fontSize: fit(c.lines, cw - 0.7, h - 1.3, 13, 9.5), color: T.ink }));
+      slide.addText(c.lines.map((l, j) => ({ text: l, options: { bullet: true, breakLine: j < c.lines.length - 1, paraSpaceAfter: 8 } })), txt({ x: cx + 0.2, y: y + 1.15, w: cw - 0.4, h: h - 1.3, fontSize: fit(c.lines, cw - 0.7, h - 1.3, 17, 11), color: T.ink }));
     });
   }
 
@@ -87,16 +88,19 @@ module.exports = function makeKinds(ctx) {
       run += s.delta;
     });
     bars.push({ label: v.end.label, from: 0, to: v.end.amount, fill: T.accent, ink: T.onAccent, end: true });
-    const max = Math.max(...bars.map((b) => Math.max(b.from, b.to))), plotH = h - 1.2, floor = y + 0.35 + plotH;
-    const gap = 0.2, bw = (w - gap * (bars.length - 1)) / bars.length, scale = plotH / max;
+    const max = Math.max(0, ...bars.map((b) => Math.max(b.from, b.to))), min = Math.min(0, ...bars.map((b) => Math.min(b.from, b.to)));
+    const top = y + 0.35, plotH = h - 1.3, floor = top + plotH, scale = plotH / (max - min), zeroY = top + max * scale;
+    const gap = 0.2, bw = (w - gap * (bars.length - 1)) / bars.length;
+    if (min < 0) slide.addShape(pres.shapes.LINE, { x, y: zeroY, w, h: 0, line: { color: T.soft, width: 1, dashType: 'dash' } });
     bars.forEach((b, i) => {
       const lo = Math.min(b.from, b.to), hi = Math.max(b.from, b.to), bx = x + i * (bw + gap);
-      const by = floor - hi * scale, bh = Math.max((hi - lo) * scale, 0.04);
+      const by = zeroY - hi * scale, bh = Math.max((hi - lo) * scale, 0.04);
       slide.addShape(pres.shapes.RECTANGLE, { x: bx, y: by, w: bw, h: bh, fill: { color: b.fill }, line: { color: b.end ? T.accent : b.ink, width: 1 } });
-      slide.addText(money(b.delta !== undefined ? b.delta : b.to), txt({ x: bx - 0.1, y: by - 0.32, w: bw + 0.2, h: 0.3, fontSize: 12, bold: true, align: 'center', valign: 'bottom', color: b.delta !== undefined ? b.ink : T.ink }));
+      const below = b.end && b.to < 0;
+      slide.addText(money(b.delta !== undefined ? b.delta : b.to), txt({ x: bx - 0.1, y: below ? by + bh + 0.02 : by - 0.34, w: bw + 0.2, h: 0.32, fontSize: 13, bold: true, align: 'center', valign: below ? 'top' : 'bottom', color: b.end && b.to < 0 ? T.open : b.delta !== undefined ? b.ink : T.ink }));
       const lab = [{ text: b.label, options: { breakLine: !!b.by } }];
-      if (b.by) lab.push({ text: `paid by ${b.by}`, options: { fontSize: 9, bold: true, color: b.ink } });
-      slide.addText(lab, txt({ x: bx - 0.05, y: floor + 0.06, w: bw + 0.1, h: 0.8, fontSize: fit(b.label, bw + 0.1, 0.55, 10, 8), align: 'center', color: T.ink }));
+      if (b.by) lab.push({ text: `paid by ${b.by}`, options: { fontSize: 10.5, bold: true, color: b.ink } });
+      slide.addText(lab, txt({ x: bx - 0.05, y: floor + 0.36, w: bw + 0.1, h: 0.6, fontSize: fit(b.label, bw + 0.1, 0.4, 11.5, 10), align: 'center', valign: 'top', color: T.ink }));
     });
   }
 
@@ -107,13 +111,14 @@ module.exports = function makeKinds(ctx) {
     v.points.forEach((p, i) => {
       const px = x0 + i * step;
       slide.addShape(pres.shapes.OVAL, { x: px - 0.2, y: ly - 0.2, w: 0.4, h: 0.4, fill: { color: i === n - 1 ? ink : T.surface }, line: { color: ink, width: 3 } });
-      slide.addText(p.when, txt({ x: px - lw / 2, y: ly - 0.95, w: lw, h: 0.65, fontSize: fit(p.when, lw, 0.65, 20, 12), bold: true, align: 'center', valign: 'bottom', color: ink }));
-      slide.addText(p.what, txt({ x: px - lw / 2, y: ly + 0.38, w: lw, h: h - (ly - y) - 0.4, fontSize: fit(p.what, lw - 0.1, h - (ly - y) - 0.5, 16, 11), align: 'center', color: T.ink }));
+      const lx = Math.min(Math.max(px - lw / 2, x), x + w - lw);
+      slide.addText(p.when, txt({ x: lx, y: ly - 0.95, w: lw, h: 0.65, fontSize: fit(p.when, lw, 0.65, 20, 12), bold: true, align: 'center', valign: 'bottom', color: ink }));
+      slide.addText(p.what, txt({ x: lx, y: ly + 0.38, w: lw, h: h - (ly - y) - 0.4, fontSize: fit(p.what, lw - 0.1, h - (ly - y) - 0.5, 16, 11), align: 'center', color: T.ink }));
     });
   }
 
   function ledger(slide, v, x, y, w, h) {
-    const head = v.columns.map((c) => ({ text: c.toUpperCase(), options: { bold: true, color: T.soft, fill: { color: T.ground }, fontSize: 11, charSpacing: 1 } }));
+    const head = v.columns.map((c) => ({ text: c.toUpperCase(), options: { bold: true, color: T.soft, fill: { color: T.ground }, fontSize: 11.5, charSpacing: 1 } }));
     const cell = (c, j) => {
       const pc = partyIn(c);
       if (pc) return { text: c, options: { bold: true, fill: { color: pc[0] }, color: pc[1] } };
@@ -139,7 +144,7 @@ module.exports = function makeKinds(ctx) {
       });
       if (i < n - 1) {
         arrow(slide, x + ind + 0.28, ty + th - 0.05, x + ind + 0.63, ty + th + gap + (th - 0.55) / 2 - 0.02, T.soft);
-        slide.addText('if not', txt({ x: x + ind + 0.75, y: ty + th + 0.06, w: 1.2, h: 0.3, fontSize: 9.5, italic: true, color: T.soft }));
+        slide.addText('if not', txt({ x: x + ind + 0.75, y: ty + th + 0.04, w: 1.2, h: 0.3, fontSize: 12, italic: true, color: T.soft }));
       }
     });
   }
@@ -192,7 +197,7 @@ module.exports = function makeKinds(ctx) {
       slide.addText(b.label, txt({ x, y: by, w: 2.0, h: 0.42, fontSize: fit(b.label, 2.0, 0.42, 12, 9), bold: true, align: 'right', valign: 'middle' }));
       slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: x0, y: by + 0.04, w: bw, h: 0.34, fill: { color: open ? T.surface : T.ours }, line: { color: open ? T.soft : T.accent, width: 1.25, dashType: open ? 'dash' : 'solid' }, rectRadius: 0.05 });
       slide.addText(open ? 'length not set yet' : b.end, txt({ x: barEnd - 2.2, y: by + 0.04, w: 2.1, h: 0.34, fontSize: 11, bold: true, align: 'right', valign: 'middle', color: open ? T.soft : T.oursInk }));
-      slide.addText(b.note, txt({ x: x0, y: by + 0.42, w: barEnd - x0, h: Math.max(0.3, rowH - 0.46), fontSize: 10, color: T.soft }));
+      slide.addText(b.note, txt({ x: x0 + 0.05, y: by + 0.5, w: barEnd - x0, h: Math.max(0.3, rowH - 0.46), fontSize: 12, color: T.soft }));
     });
   }
 

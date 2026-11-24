@@ -196,6 +196,7 @@ function checkJourney(s, where) {
   words(s.person, 3, `${where} person`);
   isParty(s.actor, `${where} actor`);
   words(s.goal, 14, `${where} goal`);
+  if (s.sub && s.sub.length > 100) bad(where, 'sub (the point, shown instead of the goal) max 100 characters');
   if (s.heading) words(s.heading, 5, `${where} heading`);
   const ms = Array.isArray(s.moments) ? s.moments : [];
   const mains = ms.filter((m) => !m.under);
@@ -270,7 +271,7 @@ slides.forEach((s, i) => {
   if (s.owner != null) isParty(s.owner, `${where} owner`);
   if (s.type === 'title') { words(s.title, 12, `${where} title`); if (s.tagline != null) words(s.tagline, 14, `${where} tagline`); checkFigures([s.tagline], where); }
   else if (s.type === 'section') { words(s.heading, 5, `${where} heading`); if (s.items) count(s.items, 1, 5, where, 'items').forEach((t) => words(t, 6, `${where} item`)); checkFigures([s.sub, s.items], where); }
-  else if (s.type === 'hero') { words(s.big, 3, `${where} big`); words(s.heading, 6, `${where} heading`); if (s.bullets) count(s.bullets, 1, 4, where, 'bullets').forEach((b) => words(b, 14, `${where} bullet`)); checkFigures([s.sub, s.bullets], where); }
+  else if (s.type === 'hero') { words(s.big, 3, `${where} big`); words(s.heading, 6, `${where} heading`); if (s.bullets) count(s.bullets, 1, 5, where, 'bullets').forEach((b) => words(b, 14, `${where} bullet`)); checkFigures([s.sub, s.bullets], where); }
   else if (s.type === 'text') { words(s.heading, 5, `${where} heading`); count(s.bullets, 1, 6, where, 'bullets').forEach((b) => words(b, 18, `${where} bullet`)); checkFigures([s.sub, s.bullets], where); }
   else if (s.type === 'table') { words(s.heading, 5, `${where} heading`); checkVisual({ kind: 'ledger', columns: s.columns, rows: s.rows, total: s.total }, where); checkFigures([s.sub, s.rows, s.total], where); }
   else if (s.type === 'mechanism') checkMechanism(s, where);
@@ -352,7 +353,7 @@ function strip(slide, current) {
     const on = i + 1 === current, done = current && i + 1 < current;
     const x = M + i * (w + gap);
     slide.addShape(pres.shapes.RECTANGLE, { x, y: 0.32, w, h: 0.05, fill: { color: on || done ? T.accent : T.sunk }, line: { color: on || done ? T.accent : T.sunk, width: 0 } });
-    slide.addText(`${i + 1}  ${name}`, txt({ x, y: 0.42, w, h: 0.24, fontSize: 9.5, bold: on, color: on ? T.accent : T.soft }));
+    slide.addText(`${i + 1}  ${name}`, txt({ x, y: 0.42, w, h: 0.26, fontSize: 11.5, bold: on, color: on ? T.accent : T.soft }));
   });
 }
 const ownerOf = (s) => (s.owner ? party(s.owner) : null);
@@ -360,16 +361,16 @@ function heading(slide, s, y) {
   const own = ownerOf(s);
   if (own) slide.addShape(pres.shapes.RECTANGLE, { x: 0, y: y - 0.3, w: 0.16, h: 1.25, fill: { color: own[1] }, line: { color: own[1], width: 0 } });
   const kick = [s.owner, s.kicker].filter(Boolean).join('  ·  ');
-  if (kick) slide.addText(kick.toUpperCase(), txt({ x: M, y: y - 0.26, w: 7, h: 0.24, fontSize: 10.5, bold: true, color: own ? own[1] : T.accent, charSpacing: 2 }));
+  if (kick) slide.addText(kick.toUpperCase(), txt({ x: M, y: y - 0.28, w: 9, h: 0.26, fontSize: 11.5, bold: true, color: own ? own[1] : T.accent, charSpacing: 2 }));
   slide.addText(s.heading, txt({ x: M, y, w: CW, h: 0.56, fontSize: 30, bold: true, valign: 'middle' }));
   if (s.sub) slide.addText(s.sub, txt({ x: M, y: y + 0.58, w: CW, h: 0.38, fontSize: fit(s.sub, CW, 0.38, 16, 12), color: T.soft, valign: 'middle' }));
 }
 function dark(slide) { slide.background = { color: T.ink }; }
 
 function bottomStrip(slide, s) {
-  const waits = s.waits_on || [], rw = waits.length ? 2.6 : 0;
-  if (s.rule) slide.addText([{ text: `${STRIP}  `, options: { bold: true, color: T.accent } }, { text: s.rule, options: { color: T.ink } }], txt({ x: M, y: 6.25, w: CW - rw - (rw ? 0.15 : 0), h: 0.85, fontSize: fit(`${STRIP}  ${s.rule}`, CW - rw - 0.4, 0.75, 12.5, 10), valign: 'middle', fill: { color: T.surface }, margin: [6, 12, 6, 12], shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
-  if (waits.length) slide.addText([{ text: WAITS, options: { bold: true, breakLine: true } }, { text: waits.join(', ') }], txt({ x: M + CW - rw, y: 6.25, w: rw, h: 0.85, fontSize: 12, color: T.open, valign: 'middle', align: 'center', fill: { color: T.openBg }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
+  const waits = s.waits_on || [], rw = waits.length ? 3.6 : 0;
+  if (s.rule) slide.addText([{ text: `${STRIP}  `, options: { bold: true, color: T.accent } }, { text: s.rule, options: { color: T.ink } }], txt({ x: M, y: 6.25, w: CW - rw - (rw ? 0.15 : 0), h: 0.85, fontSize: fit(`${STRIP}  ${s.rule}`, CW - rw - 0.4, 0.75, 12, 10.5), valign: 'middle', fill: { color: T.ground }, margin: [6, 12, 6, 12], shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
+  if (waits.length) slide.addText([{ text: WAITS, options: { bold: true, breakLine: true } }, { text: waits.join('\n'), options: { bold: true, fontSize: waits.length > 1 ? 14 : 17 } }], txt({ x: M + CW - rw, y: 6.22, w: rw, h: 0.92, fontSize: 11.5, color: T.onAccent, valign: 'middle', align: 'center', fill: { color: T.open }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
 }
 
 const LAYOUT = {
@@ -382,7 +383,7 @@ const LAYOUT = {
   },
   section(slide, s, n) {
     dark(slide);
-    slide.addText(String(s.section || n).padStart(2, '0'), txt({ x: M, y: 1.0, w: 4, h: 2.2, fontSize: 120, bold: true, color: T.accent, valign: 'bottom' }));
+    slide.addText(String(s.section || n).padStart(2, '0'), txt({ x: M, y: 1.0, w: 4, h: 2.2, fontSize: 120, bold: true, color: 'A9C3F2', valign: 'bottom' }));
     slide.addText(s.heading, txt({ x: M, y: 3.35, w: CW, h: 0.9, fontSize: 44, bold: true, color: T.onAccent, valign: 'middle' }));
     if (s.sub) slide.addText(s.sub, txt({ x: M, y: 4.25, w: CW * 0.8, h: 0.6, fontSize: fit(s.sub, CW * 0.8, 0.6, 20, 14), color: 'C9C6BF' }));
     (s.items || []).forEach((it, i) => {
@@ -392,7 +393,7 @@ const LAYOUT = {
   },
   hero(slide, s) {
     dark(slide);
-    slide.addText(s.big, txt({ x: M, y: 0.9, w: CW, h: 2.4, fontSize: fit(s.big, CW, 2.4, 150, 60), bold: true, color: T.accent, valign: 'bottom' }));
+    slide.addText(s.big, txt({ x: M, y: 0.9, w: CW, h: 2.4, fontSize: fit(s.big, CW, 2.4, 150, 60), bold: true, color: 'A9C3F2', valign: 'bottom' }));
     slide.addText(s.heading, txt({ x: M, y: 3.4, w: CW, h: 0.8, fontSize: 38, bold: true, color: T.onAccent, valign: 'middle' }));
     if (s.sub) slide.addText(s.sub, txt({ x: M, y: 4.2, w: CW, h: 0.5, fontSize: 18, color: 'C9C6BF' }));
     if (s.bullets) slide.addText(s.bullets.map((b, i) => ({ text: b, options: { bullet: true, breakLine: i < s.bullets.length - 1, paraSpaceAfter: 8 } })), txt({ x: M, y: 4.85, w: CW * 0.85, h: 2.2, fontSize: fit(s.bullets, CW * 0.85 - 0.3, 2.2, 20, 14), color: 'E8E6E0' }));
@@ -408,7 +409,7 @@ const LAYOUT = {
     kinds.ledger(slide, { columns: s.columns, rows: s.rows, total: s.total, fill: true }, M, y, CW, 7.05 - y);
   },
   journey(slide, s) {
-    heading(slide, { kicker: s.kicker || 'User journey', heading: s.heading || `${possessive(s.person)} journey`, sub: s.goal, owner: s.owner }, 1.05);
+    heading(slide, { kicker: s.kicker || 'User journey', heading: s.heading || `${possessive(s.person)} journey`, sub: s.sub || s.goal, owner: s.owner }, 1.05);
     if (s.numbers === 'made_up') slide.addText(LABELS.made_up, txt({ x: M + CW - 1.9, y: 0.8, w: 1.9, h: 0.3, fontSize: 10, bold: true, align: 'center', valign: 'middle', color: BADGE.made_up[0], fill: { color: BADGE.made_up[1] }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
     journeyMap(slide, s, M, 2.15, CW, s.rule || (s.waits_on || []).length ? 6.08 : 6.9);
     bottomStrip(slide, s);
@@ -418,13 +419,18 @@ const LAYOUT = {
     const hasEx = !!s.example, vx = M, vy = 2.2, vw = hasEx ? 8.55 : CW, vh = 3.9;
     const own = ownerOf(s);
     kinds[s.visual.kind](slide, own ? { ...s.visual, accent: own[1] } : s.visual, vx, vy, vw, vh);
-    if (!hasEx) { bottomStrip(slide, s); return; }
+    if (!hasEx) {
+      const nb = s.numbers && s.numbers !== 'quoted' ? s.numbers : null;
+      if (nb) slide.addText(LABELS[nb], txt({ x: M + CW - 2.4, y: 0.8, w: 2.4, h: 0.3, fontSize: 10.5, bold: true, align: 'center', valign: 'middle', color: BADGE[nb][0], fill: { color: BADGE[nb][1] }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
+      bottomStrip(slide, s); return;
+    }
     const ex = 9.3, ew = M + CW - ex, badge = BADGE[s.example.kind];
-    slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: ex, y: vy, w: ew, h: vh, fill: { color: T.surface }, line: { color: T.sunk, width: 1 }, rectRadius: 0.08 });
+    const exH = Math.min(vh, 0.8 + s.example.lines.reduce((a, l) => a + Math.ceil(l.length / 26) * 0.27 + 0.12, 0));
+    slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: ex, y: vy, w: ew, h: exH, fill: { color: T.surface }, line: { color: T.sunk, width: 1 }, rectRadius: 0.08 });
     slide.addText('Example', txt({ x: ex + 0.18, y: vy + 0.14, w: 1.2, h: 0.32, fontSize: 14, bold: true, color: T.accent }));
-    slide.addText(LABELS[s.example.kind], txt({ x: ex + ew - 2.05, y: vy + 0.15, w: 1.87, h: 0.28, fontSize: fit(LABELS[s.example.kind], 1.8, 0.28, 9, 7), bold: true, align: 'center', valign: 'middle', color: badge[0], fill: { color: badge[1] }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
+    slide.addText(LABELS[s.example.kind], txt({ x: ex + ew - 2.05, y: vy + 0.15, w: 1.87, h: 0.28, fontSize: fit(LABELS[s.example.kind], 1.8, 0.28, 10.5, 9), bold: true, align: 'center', valign: 'middle', color: badge[0], fill: { color: badge[1] }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
     const lines = s.example.lines;
-    slide.addText(lines.map((l, i) => ({ text: l, options: { bullet: { type: 'number' }, breakLine: i < lines.length - 1, paraSpaceAfter: 7 } })), txt({ x: ex + 0.18, y: vy + 0.6, w: ew - 0.36, h: vh - 0.75, fontSize: fit(lines.map((l) => `${l}   `), ew - 0.7, vh - 0.75 - lines.length * 0.1, 12.5, 9), color: T.ink }));
+    slide.addText(lines.map((l, i) => ({ text: l, options: { bullet: { type: 'number' }, breakLine: i < lines.length - 1, paraSpaceAfter: 7 } })), txt({ x: ex + 0.18, y: vy + 0.6, w: ew - 0.36, h: exH - 0.7, valign: 'top', fontSize: fit(lines.map((l) => `${l}   `), ew - 0.7, exH - 0.75 - lines.length * 0.1, 14, 11), color: T.ink }));
     bottomStrip(slide, s);
   },
 };
