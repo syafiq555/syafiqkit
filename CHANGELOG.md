@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.15
+
+**`taste`'s bold-headline marker: a warning that lists three or more other items always keeps failing, as the instructions already said.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Reminder of how it works: mark the one section with `data-move="break-layout"` (staggered headline), `"scale-crop"` (huge word cropped at the edge) or `"three-planes"` (picture over the big word). Still failing on purpose: more than a fifth of a word hidden or covered, cards and buttons, a page that scrolls sideways, a broken section layout, and crossing into the next section (check that by eye).
+- `taste`'s house rule on equal left and right edges now names the marked headline and picture as the exception.
+
 ## 1.468.14
 
 **Wording only: `taste`'s instructions for the bold-headline marker are clearer.**

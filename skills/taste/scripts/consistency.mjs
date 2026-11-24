@@ -4512,7 +4512,7 @@ const groupNames = (msg) => {
   const names = [...tail.matchAll(/"([^"]+)"/g)].map((x) => x[1].replace(/(\.\.\.|…)$/, '').trim());
   if (!names.length || names.some((s) => s.length < 3)) return null;
   const count = tail.match(/^\(and (\d+) more/);
-  if (count ? Number(count[1]) !== names.length : names.length >= 3) return null;
+  if (names.length >= 3 || (count && Number(count[1]) !== names.length)) return null;
   return names;
 };
 async function applyMoves(F, tab) {

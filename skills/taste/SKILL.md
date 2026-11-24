@@ -49,7 +49,7 @@ These nine win over everything else in this skill.
 3. **One section per screen:** the hero alone on the first screen, every section exactly one or
    two screens tall at 1440x900, no second section heading peeking in. The one exception is a
    live `photo-chapters` section, three or four screens, set by the moment.
-4. **Equal left and right content edges.**
+4. **Equal left and right content edges** (the heading and subject of a `data-move` section excepted, below).
 5. **Hover micro-animations:** a linked card lifts 2px, a photo zooms 1.02-1.03 inside its frame,
    buttons step on hover and press on click, underlines draw, card loops cycle in 2.5-4 s, repeat
    and restart on hover. The motion layer does it; never strip or override it. No tilt, carousels

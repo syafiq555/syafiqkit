@@ -241,7 +241,7 @@ once on load like every hero (`motion.md`, The hero's entrance); no moment in th
   peeking out behind another, and there is no dead space beside a short text. The one exception is
   a section marked `data-move` for a composition move the plan names, where its heading and subject
   may stagger, crop at the screen edge or overlap within the limits `SKILL.md` gives (the paragraph
-  on complaints about how a page looks).
+  on complaints about how a page looks); crossing into the next section stays forbidden even there.
 - **1024 to 1279:** span-4 cards with a panel go two-up. **640 to 1023** (checked at 820 and 768):
   splits stack text first, panel cards take the full row, no row half empty. Nothing scrolls
   sideways at any width; no swipe rows.
