@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.468.14
+
+**Wording only: `taste`'s instructions for the bold-headline marker are clearer.**
+- Update with `claude plugin update syafiqkit@syafiqkit`. No behaviour changed and nothing you made needs redoing.
+- They now say the marker may also sit on another direct child of the page's `main`, and that a warning listing three or more other items keeps failing.
+
 ## 1.468.13
 
 **`taste`'s own hero headline can now use the bold poster moves, and staggered display headlines are recognised again.**
