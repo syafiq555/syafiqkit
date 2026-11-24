@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.468.18
+
+**`score-loop`: when a round's fixes change code, a code reviewer joins that round.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session. Nothing you made needs redoing.
+- Judges score behaviour on the test pages they think of; a reviewer reading the code diff catches what no test page hit. In a long loop this week, two judges passed a change that quietly disabled the feature, and only the code reviewer caught it.
+
 ## 1.468.17
 
 **`taste`'s bold-headline marker: the list of what it excuses now matches what it can actually excuse.**
