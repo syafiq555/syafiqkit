@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.467.16
+
+**A meeting worked from a deck or agenda gets every listed question answered or asked, never "not discussed".**
+- Update with `claude plugin update syafiqkit@syafiqkit`. No earlier output becomes invalid.
+- `read-summary`: new "Meeting record" shape. Every question on the meeting's deck, board or agenda gets an outcome with its timestamp; each one left undiscussed, parked or ambiguous goes to the user through `AskUserQuestion` before the plan or record is done. An auto-summary action item naming a screen or button is checked against the code first.
+- `task-summary`: a deck's or agenda's questions count as capture units beside the transcript's timestamp blocks.
+
 ## 1.467.15
 
 **A spec counts as silent on a product question only after the whole spec was searched, and "follow the spec" means build from it.**
