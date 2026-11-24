@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.467.11
+
+**Explainer decks read clearly in Google Slides, and score loops catch a lenient judge.**
+- `explainer-deck`:
+  - Text stays legible: the progress strip, kickers, tags, captions and badges get larger minimum sizes.
+  - Charts stay on the slide: a waterfall that ends below zero is drawn with a zero line and its label underneath. An all-zero waterfall no longer breaks the slide.
+  - Boxes fit their text: compare cards, example panels and journey cards shrink to their content, and timeline labels stay inside the margins.
+  - The "To decide today" box is solid, with each question on its own line.
+  - A mechanism slide with no example still shows its "worked" or "made-up" badge.
+  - Journey slides take an optional `sub`: the slide's point, shown in place of the goal and checked for figures.
+  - The hero slide takes 5 bullets.
+  - `currency` is matched literally, so a source writing "RM 8.00" with a space needs `"RM "`.
+- `score-loop`:
+  - A retained judge scores every check from scratch each round. Re-checking only its own list let it reach 30/30 while a fresh judge gave 23, and a full rescore gave 25.
+  - A threshold names a tool the judge can run, such as a PIL pixel crop, because "measure it" alone still got guesses by eye.
+
+Update with `claude plugin update syafiqkit@syafiqkit`.
+
 ## 1.467.10
 
 **Meeting boards read at a glance and leave settled items closed.**

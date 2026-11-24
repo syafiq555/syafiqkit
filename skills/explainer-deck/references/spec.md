@@ -13,7 +13,7 @@ One JSON file. Paths inside it are relative to the spec. Word limits are enforce
 | `sources` | Files quotes are checked against (the spec, contract, quotation as text) |
 | `facts` | Files holding the running example's fixed facts (order lines, totals): figures a `quoted` example may use |
 | `workings` | Files holding figures we calculated from the sources: figures a `worked` example may use |
-| `currency` | Prefix for amounts, default `RM` |
+| `currency` | Prefix for amounts, default `RM`. It is matched literally, so a source that writes `RM 8.00` with a space needs `"RM "`: with the default, every spaced amount fails as "not in the sources". It also counts as its own word in word limits, so a `waits_on` of "Keep RM 0 line?" is four words |
 | `figure_pattern` | Regex for what counts as a figure to check; default is currency amounts (whole or two decimals), percentages and durations (`3 days`, `24 hours`). Matching is by whole number, so `0%` never matches inside `80%` |
 | `example_labels` | Badge text per example kind: `{"quoted": "From the quotation", "worked": "Worked from quotation rates", "made_up": "Made-up numbers"}` |
 | `strip_label`, `waits_label` | Bottom-strip labels on mechanism and journey slides, default "In the source" and "Waiting on" |
