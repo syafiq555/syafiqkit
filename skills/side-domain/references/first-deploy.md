@@ -9,8 +9,8 @@ Read the shared server's own record first: it lives in the repo that first set t
 | Database | its own database and user in the shared MySQL container |
 | Image | CI builds and pushes `ghcr.io/<owner>/<app>`; the deploy job SSHes in and runs `deploy.sh` (pull, `up -d`, wait healthy, migrate, cache rebuild) |
 | php-fpm (PHP apps) | a `php:*-fpm` image listens on 9000 on every interface, so any container on the shared networks could run code in it: bind it to `127.0.0.1:9000` with a `php-fpm.d` override, as every app on that box does |
-| Health | a health route Traefik and Docker can poll (Laravel's `/up`; any stack needs one that returns 200 without a login) |
+| Health | a health route Traefik and Docker can poll (Laravel's `/up`). A stack without one gets a route returning 200 with no login and no database call, or the checks point at `/` if that page is public and cheap |
 
-Start the app on its temporary sslip.io host (`<app>.<ip>.sslip.io`) only if the real subdomain is not ready; otherwise give it `<name>.<umbrella>` from the first deploy and skip the redirect step.
+Deploy on the final `<name>.<umbrella>` from the first deploy, with no temporary sslip.io host (Syafiq, 25/11/2026): the `*` record already resolves, and a host that never served pages needs no redirect.
 
 Simply Rozie's server files are a worked set: 📖 `example-simply-rozie.md`.

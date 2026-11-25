@@ -10,7 +10,3 @@ A Laravel 13 shop with Filament admin and spatie medialibrary photos, already li
 | Photos | 3 media rows, 9 files (each original plus a `card` and a `large` WebP), copied with sizes compared; rows set to `r2` |
 | Redirect | Added after the owner asked whether SEO was fine: the old host was still serving pages with itself as canonical. Old home and `/en/koleksi?x=1` then returned 301 with path and query |
 | Checks | New host 200 with a valid certificate; photo URLs 200 from the photo host; `robots.txt` still `Disallow: /`; canonical and sitemap on the new host; plain http on both hosts upgraded first |
-
-What the run got wrong first, and the skill now does up front: the redirect came only after the question about SEO, and the move script was run as `tinker <file>`, which ran nothing.
-
-The project's own record: simply-rozie's `tasks/infrastructure/deployment/current.md`.

@@ -102,7 +102,7 @@ If `git status -sb` shows `[behind N]` or the push is rejected as non-fast-forwa
 
 If CI failed: report the error and suggest `gh run rerun <id> --failed`. If prod HEAD doesn't match or behavior is wrong: report the mismatch.
 
-**A personal side project still served from a temporary address (an sslip.io host, a raw IP) gets its real one in this ship, once Prod Verify passes:** run `side-domain`, which routes `<name>.<umbrella>`, 301s the old host and moves uploads to R2 only when the app stores any. Whether the project is a side project and which umbrella domain it uses come from the global `CLAUDE.md` `#side-domain`; a client or employer app keeps its own deploy docs. Leave search hiding as it is unless the owner chose to open it. **Tell: your Prod Verify row names an sslip.io URL for a side project, and `side-domain` did not run.**
+**A personal side project with no real address yet (its first deploy, or still on an sslip.io host or a raw IP) gets one in this ship, once Prod Verify passes:** run `side-domain`, which routes `<name>.<umbrella>`, 301s any old host and moves uploads to R2 only when the app stores any. Whether the project is a side project and which umbrella domain it uses come from the global `CLAUDE.md` `#side-domain` (check `git remote -v` against it); a client or employer app keeps its own deploy docs. Leave search hiding as it is unless the owner chose to open it. **Tell: your Prod Verify row names an sslip.io URL for a side project, and `side-domain` did not run.**
 
 ### Step 5: Release Note
 

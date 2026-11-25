@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.470.1
+
+**`side-domain` now covers a new project's first deploy, a missing DNS record, the bare domain, a dedicated domain later, and retiring a project.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- New projects deploy on their final subdomain from the start, with no temporary sslip.io host, and `ship` now fires on a side project's first deploy too, not only on one still on sslip.io (Syafiq, 25/11/2026).
+- Step 1 walks the owner through adding a missing DNS record one click at a time. The bare umbrella domain and `www` are kept for a future landing page, never a project.
+- New `references/retire.md`: container down, database dumped, deploy workflow off, and the R2 bucket kept until the owner confirms each time (Syafiq, 25/11/2026). A dedicated domain later becomes the main router and the subdomain a 301.
+- Fixes from review: the http redirect check now follows the redirect chain through; a health-wait loop command; the key file is removed by a `trap` even when the copy fails, and `.r2.tmp` is made mode 600 before use; the sample port is a placeholder; a stack with no health route gets one. Duplicates folded into one place each (the script-editing advice now lives in `redirect-labels.md`, the R2 summary in `r2.md`).
+
 ## 1.470.0
 
 **New `side-domain` skill: a side project gets its own address in one run, with R2 for its photos only when it has any, and `ship` runs it at go-live.**
