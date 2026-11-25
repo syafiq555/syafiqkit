@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.26
+
+**How a screen handles a state for its user is designed in the `uiux` pass, not asked as a menu; `record-clickthrough` warns about steps that change saved data.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `done` (Step 1 question batch) and `read-summary` (decision-first): a reviewer's question like "block, warn or leave" for a failed action, or what an error says, goes to `uiux` to design and build unless it changes who can do or see something or what a customer is promised. A block, warn or leave menu for a failed photo upload came back "improve use uiux skill".
+- `uiux` `scripts/README.md`: `record-clickthrough.mjs` plays each width against the same server, so a step that publishes, deletes or submits runs only at the first width; use a fresh record per width, one width per run.
+
 ## 1.468.25
 
 **A "where do I get X" answer lists every screen that offers it, and a client reply describes the client's account from its records.**
