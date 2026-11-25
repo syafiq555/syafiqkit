@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.468.31
+
+**UI research now always looks outside your own domain, including products known for great UX, not only when redesigning.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `uiux` § research: every research run (a redesign, a critique, a design-system choice, one control) keeps at least two products renowned for their UX from other domains (Apple, Aesop, Airbnb, Stripe, Linear, Our Place) beside the domain's best. The rule existed, but only for redesigns and mid-paragraph, so a shop's page-system decision was briefed as "fashion brands" only and the user had to ask, the second time after 22/11/2026. It now sits in the bolded research rule with its tell; `references/case-study-research.md` keeps the worked example and points back.
+
 ## 1.468.30
 
 **A score loop's first round can no longer end a retained-plus-fresh run, and tap targets are grown on the element itself.**
