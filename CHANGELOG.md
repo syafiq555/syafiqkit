@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.470.2
+
+**A header or menu change is now also checked at laptop widths, where desktop menus run out of room first.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `uiux` step 4: a change to a shared header or nav also runs `check-render --widths 1024,1366`, once per language. The defaults (320 to 1280) and `taste`'s gate (1440, 390) both skip that range; on 25/11/2026 a shop's menu overlapped its header button from 1024 to 1439 px in English while every default check passed.
+
 ## 1.470.1
 
 **`side-domain` now covers a new project's first deploy, a missing DNS record, the bare domain, a dedicated domain later, and retiring a project.**
