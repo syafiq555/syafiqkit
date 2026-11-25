@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.470.0
+
+**New `side-domain` skill: a side project gets its own address in one run, with R2 for its photos only when it has any, and `ship` runs it at go-live.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `side-domain`: routes `<name>.<umbrella>` to the app on the VPS (the umbrella domain, server and IP come from the global `CLAUDE.md` `#side-domain`), redirects the temporary sslip.io host with a 301 that keeps path and query, then checks from outside: certificate, redirect over http and https, canonical and sitemap on the new host, search hiding unchanged. R2 is a branch taken only when the app stores uploads: the owner clicks the bucket, a one-level photo subdomain and a bucket-scoped token, the keys come in through hidden macOS dialogs, and existing medialibrary files are copied at the same paths before the disk switches. References hold the exact Traefik labels with their YAML quoting, the R2 steps, a first-deploy checklist for a new app on the box, and Simply Rozie's 25/11/2026 run as the worked example.
+- Why: Simply Rozie's move took about ten hand steps, and the old host kept serving pages that named themselves canonical until the owner asked about SEO. The redirect now comes before the checks, not after.
+- Sources checked: Traefik redirectRegex docs ("all dollar signs need to be doubled") and `redirect.go` (301 for GET, 308 otherwise); Cloudflare Universal SSL limitations (first-level subdomains only on a full setup); Cloudflare R2 public buckets (the domain must be a zone in the bucket's account) and API tokens; AWS SDK for PHP 3.337.0 changelog (default CRC32 checksums); Google Search Central site moves (301 and a self-referencing canonical).
+- `ship` Step 4b: a side project still served from a temporary address gets `side-domain` once Prod Verify passes.
+
 ## 1.469.0
 
 **UI research now starts from a library of 27 pages known for great UX, filed by what each page does.**

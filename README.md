@@ -61,6 +61,7 @@ It draws nothing in the VS Code panel or `claude -p`. It runs with your permissi
 | Commit what's staged | `/commit` |
 | Commit and push | `/commit push` |
 | Release to production (commit, changelog, push, check CI) | `/ship` |
+| Give a side project its own address (and R2 for its photos, if it has any) | `/side-domain` |
 | Wrap up after a task (review, tidy, update docs) | `/done` — or `/quick-done` for a small session |
 | Read a task doc before answering or building | `/read-summary <path>` |
 | Carry on from a doc, picking what is buildable | `/tackle` |
@@ -92,6 +93,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/update-claude-docs` | Create / rewrite-to-best-practice / condense / capture-into CLAUDE.md files — the CLAUDE.md analog of task-summary |
 | `/update-plugin` | Scan the session for plugin learnings and patch the affected skill files — the plugin equivalent of update-claude-docs |
 | `/ship` | End-to-end ship: commit → changelog → push → CI verify → release note |
+| `/side-domain` | Put a side project on its own subdomain of your umbrella domain (Docker and Traefik on your VPS), permanently redirect the temporary address it had, and move uploaded files to Cloudflare R2 only when the app keeps any. You click in Cloudflare; it does the server, the app settings and every check. `/ship` runs it when a side project goes live on a temporary address |
 | `/pull-db` | Transfer MySQL/MariaDB DB from remote server to local dev |
 | `/reclaim-disk` | Free disk space on a developer's Mac: measure first, show a plan, clear the caches and build output you confirm, run an app's own temp cleanup, ask item by item before anything personal |
 | `/patch-advisory` | Answer a security advisory across your servers: probe every host and container read-only, judge which are really exposed (version, the precondition, reachability), patch or mitigate the ones you own with a rollback copy, verify the running process, record it and reply where it was asked |
