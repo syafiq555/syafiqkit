@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.29
+
+**Parallel judges and reviewers no longer each run the test suite in one checkout.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `done` Step 1, next to the banned git verbs: a batch names one suite runner (usually the main session after the agents return), since a file partition does not cover a shared test database or fake-storage folder. The rule lived only in `references/emission-and-agent-counts.md`, which the dispatching session did not open, and four agents running a Pest suite at once made photo tests fail at random.
+- `score-loop` step 1: the main session runs the suite once before dispatching the round's judges and code reviewer and hands them the saved output; judges run single test files at most. A judge had docked a check for failures caused by its sibling judges' runs.
+
 ## 1.468.28
 
 **`/done` now researches every round of reviewer questions, not just the first, and a default borrowed from a sibling feature says who set it.**
