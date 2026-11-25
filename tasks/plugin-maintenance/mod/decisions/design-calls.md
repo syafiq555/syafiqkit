@@ -198,6 +198,7 @@ Decisions with their reasoning, most of them the user's calls. Routed from `../c
 - Unverified: whether a Gmail or Chat send made from a script still raises its `requiresUserInteraction` prompt under the owner's `bypassPermissions` default.
 - Who decided: the owner, offered a trial, a scored recommendation, or not now; chose "Not worth it now".
 - Revisit when Code Mode supports Remote Control or Desktop, or a session regularly runs out of context on measuring work.
+- Rechecked 25/11/2026 on 2.1.332: the docs still say "experimental and off by default" and still exclude Remote Control, Claude in Chrome, computer use, Desktop and VS Code; 2.1.329 to 2.1.332 only fixed Code Mode bugs. The trigger has not fired, so the owner's call stands.
 
 ### D-docs-open-first: The docs list opens at once and fills in; no spinner · 2026-11-21
 - Prompted by: Munajaf (a colleague, about 90 task docs) reported over WhatsApp that the docs pane "kdg2 keluar", disappeared after he condensed, and came back only after a long wait. The user confirmed it was the docs pane and slow loading.

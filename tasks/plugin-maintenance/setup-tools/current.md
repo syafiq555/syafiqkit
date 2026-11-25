@@ -3,7 +3,7 @@ Status: 🚀 Built and reviewed (1.442.0); no colleague has run it yet
 Domain: plugin-maintenance / setup-tools
 Gotchas: register tools from the plugin's installLocation, never plugins/cache (old versions are deleted as soon as a day after an update)
 Related: ../../../tools/gchat-mcp/tasks/server/current.md, ../../../tools/gsheets-mcp/tasks/server/current.md, ../../../skills/setup-tools/SKILL.md
-Last updated: 2026-11-17
+Last updated: 2026-11-25
 -->
 
 # plugin-maintenance: setup-tools
@@ -28,6 +28,7 @@ Lets anyone who installs syafiqkit set up the gsheets, gchat and `remote` tools 
 | Tool paths come from `installLocation` in `~/.claude/plugins/known_marketplaces.json` | The skill's own folder is the versioned cache, which the prune hook deletes after an update |
 | `gsheets-mcp check --read` / `gchat-mcp check --read` prove a read in the same session | A server registered mid-session doesn't load its tools until a new session or `/mcp reconnect`, so without a CLI read the setup session could only prove a token. The Sheets probe asks for a nonexistent spreadsheet and treats Google's `404: Requested entity was not found.` (measured) as "API on" |
 | The user runs `auth` as `! <command>` | Inside Claude's Bash call the printed sign-in link stays hidden until the command ends; fallback is a background run whose output file Claude reads |
+| The servers keep their how-to-send rules in server instructions, not MCP skills (25/11/2026) | Claude Code 2.1.331+ lets a server ship skills (beta, Skills extension, MCP revision 2026-07-28+, stdio works, no hosting). Everyone who has these servers got them by installing syafiqkit, so they already have the skills; the only saving is the always-loaded instruction blocks (gchat plus two gmail, about 6,000 characters a session). MCP skills also lose `!` lines and frontmatter. Owner agreed "not worth it now"; revisit if a server is ever given to people who don't install the plugin |
 
 ## Gotchas
 
