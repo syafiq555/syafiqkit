@@ -1,0 +1,1304 @@
+[
+ {
+  "id": "ux-patagonia-stories",
+  "name": "Patagonia Stories",
+  "url": "https://www.patagonia.com/stories/",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "fashion",
+  "mechanisms": [
+   "brand-story",
+   "editorial-home",
+   "collection-grid"
+  ],
+  "idea": "A magazine-style story index that puts the brand's activism and expedition narratives ahead of its product catalogue, reached from the main shop nav.",
+  "mood": "Documentary, outdoorsy, unhurried, earnest",
+  "archetype": "Editorial journal inside a shop",
+  "hero": "Full-bleed video still of a person in a knit beanie over a winter forest, with the 'patagonia Stories' wordmark in white across the middle (1280). On 390 the hero rendered as a flat grey block at capture time (video not loaded).",
+  "layout": "Full-bleed hero, then a 'Some Favorites' horizontal rail of story cards (name plus read-time pill, photo on the right, carousel arrow), then full-bleed photo bands between rail rows. A sticky 'Patagonia Stories' header appears on scroll.",
+  "type": "Sans-serif throughout (logotype and nav); card titles in a light serif-like face, as seen in the 1280 rail.",
+  "colour": "#000000 (top utility bar), #FFFFFF (header and page), #F4F4F4 (story card background), with the photography supplying almost all colour; hex values are eyeballed from the screenshot, not sampled. The page is black and white, so the photos carry the colour.",
+  "imagery": "Real expedition and outdoor photography of named athletes and climbers, plus night-sky and landscape frames.",
+  "media": "Hero video (autoplay expected, playback not observed at capture); still images on cards and bands.",
+  "motion": "Hero video; horizontal rail with a carousel arrow; sticky header that reveals on scroll (observed in the scroll capture). Easing not observed.",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Full-bleed video with the 'patagonia Stories' wordmark, under a utility bar that links 'Activism' and 'Stories'."
+   },
+   {
+    "role": "story rail",
+    "description": "'Some Favorites' horizontal rail; each card gives the person or story name and a read-time pill."
+   },
+   {
+    "role": "photo band",
+    "description": "Full-bleed dark night-sky photograph as a pause between card rows."
+   },
+   {
+    "role": "nav bridge",
+    "description": "The shop nav (Gift Guide, Women's, Men's, Packs & Gear, Used Clothing) sits above the stories, so the story index is one click from products."
+   }
+  ],
+  "steal": [
+   "Put the brand's own story index in the main shop nav, labelled by its content ('Stories'), not in the footer.",
+   "Give each story card a read-time pill so a visitor knows the commitment before opening it.",
+   "Open the index with a full-bleed film or photo, then drop into a rail of cards with names as the headline.",
+   "Keep a sticky header that reappears when the visitor scrolls back up through a long editorial page."
+  ],
+  "slice": "brand-story"
+ },
+ {
+  "id": "ux-our-place-about",
+  "name": "Our Place About (A Note from Shiza)",
+  "url": "https://www.fromourplace.com/pages/about",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "founder-note",
+   "brand-story"
+  ],
+  "idea": "A signed founder note placed directly under the hero, beside a cooking photo, so the origin story arrives before any product grid.",
+  "mood": "Warm, homely, hospitable, personal",
+  "archetype": "Founder's kitchen table",
+  "hero": "Full-bleed photo of hands reaching over a table of shared dishes, with the serif headline 'Welcome to Our Place' and the small eyebrow 'WE SAVED YOU A SEAT.' (1280; 390 shows the same frame cropped).",
+  "layout": "Hero, then a two-column split: left column 'A Note from Shiza' (body copy and signature), right column a full-height photo of a woman cooking with a red patterned sleeve. Below, a centred line 'For connections made across the kitchen table.' followed by the product row.",
+  "type": "Serif display for headings ('Welcome to Our Place', 'A Note from Shiza', 'For connections made across the kitchen table.'), sans-serif body.",
+  "colour": "#FBF9F5 (cream page), #3A3430 (charcoal text), with saturated colour from the photography (red patterned fabric, green cookware); hex values are eyeballed, not sampled.",
+  "imagery": "Real people cooking and eating, the founder photographed at work, product shots on cream backgrounds.",
+  "media": "Still photography; no video observed on the about page.",
+  "motion": "not observed",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Full-bleed table photo with serif headline and eyebrow line."
+   },
+   {
+    "role": "founder note",
+    "description": "'A Note from Shiza': first-person paragraphs, then the signature line 'Shiza Shahid, Co-Founder' (preceded by a dash)."
+   },
+   {
+    "role": "promise",
+    "description": "'For connections made across the kitchen table.' sets the brand's purpose in one serif statement."
+   },
+   {
+    "role": "product row",
+    "description": "Cookware grid on cream, the catalogue the note leads into."
+   }
+  ],
+  "steal": [
+   "Sign the origin note with the founder's full name and role under the last line, in the same column as the text.",
+   "Set a cooking photo of the founder beside the note, not a stock image.",
+   "Follow the note with one short serif promise line, then the product row."
+  ],
+  "slice": "brand-story"
+ },
+ {
+  "id": "ux-brightland-about",
+  "name": "Brightland About Us",
+  "url": "https://www.brightland.co/pages/about-brightland-olive-oil",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "brand-story",
+   "editorial-home"
+  ],
+  "idea": "An origin page that states sourcing in short declarative headlines, each set beside its own photograph in alternating halves, linked from the main nav beside the store locator.",
+  "mood": "Sunny, clean, measured, artisanal",
+  "archetype": "Honest provenance page",
+  "hero": "Full-bleed sunlit still life of olive oil, vinegar and honey bottles with oranges and a grapefruit half, headline 'You bring the food. We'll bring the sunshine.' in a condensed serif (1280). The capture shows the same hero as the brand's homepage; the about-page body starts below it.",
+  "layout": "Hero, centred intro 'Welcome to the Golden State' paragraph, then alternating 50/50 blocks: product photo left and headline right ('Fueled by sunshine, great soil and the highest standards.'), then text left and olive-branch photo right ('Consciously crafted from the best stuff in nature.').",
+  "type": "Condensed serif headlines, sans-serif body in a light weight.",
+  "colour": "#FDF6F2 (cream intro band), #FFFFFF (text blocks), #E2481E (red-orange promo bar, approx), #000000 text; hex values eyeballed, not sampled. The warm bands and orange product photography carry the palette.",
+  "imagery": "Product still lifes with citrus and herbs, close-up olive branches, bottles with label detail visible.",
+  "media": "Still photography; product bottle video loop on the homepage was not checked here.",
+  "motion": "not observed",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Sunlit still life with the one-line promise."
+   },
+   {
+    "role": "intro",
+    "description": "'Welcome to the Golden State' paragraph: origin in two sentences."
+   },
+   {
+    "role": "claim 1",
+    "description": "'Fueled by sunshine, great soil and the highest standards.' beside a product photo."
+   },
+   {
+    "role": "claim 2",
+    "description": "'Consciously crafted from the best stuff in nature.' beside an olive-tree photo, naming family farmers and beekeepers."
+   }
+  ],
+  "steal": [
+   "Write each origin claim as one short declarative headline and set it over or beside its own photo.",
+   "Alternate image and text halves down the page so each claim gets its own visual rhythm.",
+   "Link 'Our Story' in the main nav next to 'Find in Store', so origin sits at shopping level."
+  ],
+  "slice": "brand-story"
+ },
+ {
+  "id": "ux-apple-environment",
+  "name": "Apple Environment",
+  "url": "https://www.apple.com/environment/",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "other",
+  "mechanisms": [
+   "brand-story",
+   "scroll-story"
+  ],
+  "idea": "A scroll-driven sustainability report where one headline claim, backed by a concrete target against a base year, sits over full-bleed landscape before any product appears.",
+  "mood": "Calm, scientific, confident, minimal",
+  "archetype": "Long-form sustainability report",
+  "hero": "Pale blue-to-white gradient with the '2030' Apple lockup and 'Our planet deserves our best thinking.' over a forest horizon (1280). A pause control sits top right, and a sticky subnav shows 'Environment' and a green '2026 Report (PDF)' pill.",
+  "layout": "Hero, then full-bleed aerial forest photo with the headline 'Innovation is up. Emissions are down.' and a paragraph on the 75% reduction target against 2015, then a light grey section 'A comprehensive approach. From design to disassembly.'",
+  "type": "Bold sans-serif display headings (SF-style), regular sans body.",
+  "colour": "#F5F5F7 (light grey section), #1D1D1F (text), pale blue gradient in the hero; hex values eyeballed, not sampled. Colour comes mostly from the landscape photography.",
+  "imagery": "Aerial and landscape photography of forests and fog, with a credit line for the project location (Apple's Restore Fund, California).",
+  "media": "Looping hero (the pause control implies motion; playback itself not observed).",
+  "motion": "Hero loop with a pause control; full-bleed photo band reads as a scroll pause. Scroll-linked animation not observed.",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "'2030' lockup and the one-line goal on a calm gradient."
+   },
+   {
+    "role": "claim with figure",
+    "description": "Full-bleed landscape with 'Innovation is up. Emissions are down.' and the 75% target against 2015 in the body."
+   },
+   {
+    "role": "approach",
+    "description": "'A comprehensive approach. From design to disassembly.' on light grey, the section that explains how."
+   },
+   {
+    "role": "report link",
+    "description": "Sticky subnav keeps the '2026 Report (PDF)' pill visible for anyone who wants the source."
+   }
+  ],
+  "steal": [
+   "Lead the story with one measurable target stated against a base year in the body copy.",
+   "Give a full-bleed motion hero a visible pause control, so the visitor can stop it.",
+   "Keep one 'Report (PDF)' pill in the sticky subnav for the readers who want the source."
+  ],
+  "slice": "brand-story"
+ },
+ {
+  "id": "ux-christy-dawn-values",
+  "name": "Christy Dawn Honoring Mother Earth",
+  "url": "https://christydawn.com/pages/our-values-earth",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "fashion",
+  "mechanisms": [
+   "brand-story"
+  ],
+  "idea": "A values page that opens on one centred serif commitment paragraph, then runs each principle as a photo of real practice (soil, a washing line, a stream), so the page reads as a manifesto, not a checklist.",
+  "mood": "Soft, earnest, feminine, quiet",
+  "archetype": "Values manifesto",
+  "hero": "Centred all-caps serif headline 'HONORING MOTHER EARTH' with a four-line intro paragraph on white, then a full-width photo of two pairs of hands holding garden soil (1280).",
+  "layout": "Centred heading and paragraph; full-width photo; a centred uppercase serif statement under the heading 'Beyond Sustainability'; a split photo row (clothes drying on a line left, a sunlit stream right).",
+  "type": "All-caps serif for the headline and statement; sans-serif for the 'Beyond Sustainability' heading (observed in the scroll capture); serif body.",
+  "colour": "#FFFFFF (page), #4E5E4A (sage-green announcement bar, approx), #2B2B2B (text, approx); hex values eyeballed, not sampled. Earthy photography (soil, ivy, sunlit stone) supplies the rest.",
+  "imagery": "Unposed photos of hands in soil, clothes drying outdoors, rock and water; no studio product shots on the page.",
+  "media": "Still photographs.",
+  "motion": "not observed",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Serif headline and a four-line commitment paragraph."
+   },
+   {
+    "role": "full-width photo",
+    "description": "Hands holding soil as the emotional anchor under the commitment."
+   },
+   {
+    "role": "principle",
+    "description": "'Beyond Sustainability': the brand says sustainability is not enough and names regenerative practice as the next goal."
+   },
+   {
+    "role": "practice photos",
+    "description": "Split row of real practice (washing line, sunlit stream) that stand in for proof."
+   }
+  ],
+  "steal": [
+   "Open the values page with one commitment sentence in serif, not a bullet list.",
+   "Pair each principle with a photo of real practice (soil, washing line), not a studio shot.",
+   "Name the next goal in a bold sentence ('regenerative, not just sustainable') so the page admits its limits."
+  ],
+  "slice": "brand-story"
+ },
+ {
+  "id": "ux-christy-dawn-journal",
+  "name": "Christy Dawn Journal",
+  "url": "https://christydawn.com/blogs/journal",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "fashion",
+  "mechanisms": [
+   "editorial-home",
+   "collection-grid",
+   "filtering"
+  ],
+  "idea": "A journal index that files each video or feature under topic chips and names recurring series ('Welcome to My Closet with X'), so the archive reads as a set of named stories.",
+  "mood": "Warm, film-like, intimate, curated",
+  "archetype": "Editorial archive with filters",
+  "hero": "Centred serif heading 'Journal' over a row of italic topic chips (A Moment With, Collaborations, Community, Farm-to-Closet Initiative, Moon Cycle, Self-Care, Sustainability, Travel, Webinars, All), with the first two large tiles below ('Welcome to My Closet with Mecca Cox', 'Thailand Travel Diary') (1280).",
+  "layout": "Centred title; italic filter row with the active chip underlined; two-column grid of large tiles with the feature title printed below each; further rows of series tiles on scroll ('Welcome to My Closet with Beatrice Valenzuela', 'Amsterdam and Beyond').",
+  "type": "Serif display for 'Journal' and tile titles; italic serif for filter chips.",
+  "colour": "#FFFFFF (page), #4E5E4A (sage-green announcement bar, approx), #000000 (text); hex values eyeballed, not sampled. Film-still photography supplies most of the colour.",
+  "imagery": "Film stills of people in wardrobes, cafés and travel locations, with the series title overlaid in white serif.",
+  "media": "Video thumbnails (the series are film pieces); playback not observed.",
+  "motion": "not observed",
+  "sections": [
+   {
+    "role": "masthead",
+    "description": "'Journal' heading over the topic filter row."
+   },
+   {
+    "role": "filter row",
+    "description": "Italic topic chips with 'All' at the end, active chip underlined."
+   },
+   {
+    "role": "feature grid",
+    "description": "Two-column large tiles, each with an overlaid title and a printed title beneath."
+   },
+   {
+    "role": "series",
+    "description": "Recurring 'Welcome to My Closet' tiles, one per guest, so a new feature joins a known set."
+   }
+  ],
+  "steal": [
+   "Name recurring features with a fixed format ('Welcome to My Closet with X') so each new one joins a recognisable series.",
+   "Filter the archive with italic topic chips ending in 'All', and underline the active one.",
+   "Print the feature title under each large tile in the same type for every tile, so the grid reads as one set."
+  ],
+  "slice": "brand-story"
+ },
+ {
+  "id": "ux-mailchimp-about",
+  "name": "Mailchimp About",
+  "url": "https://mailchimp.com/about/",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "saas",
+  "mechanisms": [
+   "brand-story",
+   "founder-note"
+  ],
+  "idea": "A plain-text company history with a named founder story and a culture section, placed under one team photo, so the owner's facts and the origin story sit on the same page.",
+  "mood": "Plain, warm, factual, understated",
+  "archetype": "Company history",
+  "hero": "Pale blue band with the serif headline 'About Mailchimp' on the left and a photo of three people laughing on a sofa on the right (1280). On 390 the photo stacks below the headline.",
+  "layout": "Hero band; a large-drop-cap intro paragraph; 'Founder story' heading with three paragraphs (Ben Chestnut and Dan Kurzius, Rocket Science Group, Atlanta 2001, the 2021 Intuit acquisition); 'Culture' heading with a hiring link; a floating 'Chat with Sales' button.",
+  "type": "Serif headings ('About Mailchimp', 'Founder story', 'Culture'), sans-serif body, serif drop cap.",
+  "colour": "#D5ECFD (pale blue hero band, approx), #FFFFFF (body), #1B1B1B (text, approx); hex values eyeballed, not sampled. Restrained palette, one photo of people.",
+  "imagery": "One team photograph in the hero; no product shots on the page.",
+  "media": "Still image.",
+  "motion": "not observed",
+  "sections": [
+   {
+    "role": "hero band",
+    "description": "Serif title and team photo on pale blue."
+   },
+   {
+    "role": "intro",
+    "description": "Drop-cap paragraph: what the company does, in plain words, with the acquisition stated in the last sentence."
+   },
+   {
+    "role": "founder story",
+    "description": "Three paragraphs naming both founders, the 2001 start, and the 2021 acquisition as a factual step."
+   },
+   {
+    "role": "culture",
+    "description": "Short 'Culture' section ending in a hiring link."
+   }
+  ],
+  "steal": [
+   "Name the founders and the founding year in plain sentences under a 'Founder story' heading.",
+   "State an acquisition or ownership change as one factual sentence in the story, not in a legal footer.",
+   "Open the about page with a drop-cap intro paragraph so the reader enters the text."
+  ],
+  "slice": "brand-story"
+ },
+ {
+  "id": "ux-apple-buy-iphone",
+  "name": "Apple Store, Buy iPhone",
+  "url": "https://www.apple.com/shop/buy-iphone",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "collection-grid",
+   "filtering",
+   "product-reveal",
+   "pricing-compare"
+  ],
+  "idea": "A buy page is a model chooser: every model is a card with its colour dots, a monthly price and a Buy button, so the visitor compares and buys without opening a product page first.",
+  "mood": "calm, precise, confident, spacious",
+  "archetype": "premium device catalogue with a chooser",
+  "hero": "Large burgundy 'Shop iPhone' heading on light grey, two blue text links on the right ('Connect with a Specialist', 'Find an Apple Store'), a row of tab filters, then 'All models. Take your pick.' above a row of model cards with product renders (1280 capture: iPhone Duo, iPhone 18 Pro, iPhone Air). Captured at /shop/buy-iphone, which is the chooser landing, not a single product detail page.",
+  "layout": "Heading block left with text links right; horizontal filter tabs (All Models, iPhone Picks, Ways to Save, Only at Apple, Setup and Support); horizontal carousel of model cards cut at the right edge to signal scroll, with prev/next arrows below. Each card: NEW tag, model name, product render, colour dots, a 'Buy from $X or $Y/mo.' line, lease line and a Buy button. Below: 'iPhone picks' carousel of accessory cards.",
+  "type": "not observed (display sans, large bold heading with a two-tone line: burgundy for the verb, grey for the rest, e.g. 'All models.' then 'Take your pick.')",
+  "colour": "#F5F5F7 #8B0F3A #0066CC #1D1D1F #E8601C (approximate, read by eye from the capture). Light grey page, burgundy headings, one blue action colour for Buy, orange for the NEW tag. Product colour is carried by the device, not the layout.",
+  "imagery": "Product renders on white rounded cards; one editorial accessory tile in pink with a lifestyle photo; no lifestyle hero photo on this page.",
+  "media": "Static product renders; video not observed.",
+  "motion": "not observed (only static captures; carousel arrows suggest horizontal scroll)",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Big two-tone heading, two action text links, no photo."
+   },
+   {
+    "role": "filter tabs",
+    "description": "Five text tabs that narrow the model set (All Models, iPhone Picks, Ways to Save, Only at Apple, Setup and Support)."
+   },
+   {
+    "role": "model chooser",
+    "description": "Horizontal card carousel: render, colour dots, monthly price, lease line, Buy button on each card."
+   },
+   {
+    "role": "accessory picks",
+    "description": "A second carousel of cross-sell cards (cases, folio) under the heading 'iPhone picks. Dial in the perfect gift.'"
+   }
+  ],
+  "steal": [
+   "Show each option's colour dots on its card, so colour choice is visible before any click.",
+   "Put the monthly price and the lease alternative on the card itself, in the same line as the Buy button.",
+   "Use a row of filter tabs above a card carousel instead of a sidebar, so the filter fits a phone width.",
+   "Give every card its own Buy button; do not rely on a separate detail page to buy."
+  ],
+  "slice": "product-page"
+ },
+ {
+  "id": "ux-our-place-wonder-oven-pro",
+  "name": "Our Place, Wonder Oven Pro",
+  "url": "https://fromourplace.com/products/wonder-oven-pro",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "buy-column",
+   "variant-picker",
+   "product-reveal",
+   "social-proof",
+   "pricing-compare"
+  ],
+  "idea": "Bundles are the variant: each kit is a selectable card that shows what is inside and what it is worth, with the colour choice nested in the selected card.",
+  "mood": "warm, homely, crafted, confident",
+  "archetype": "warm kitchen brand with bundle-led selling",
+  "hero": "Product photo of a dark-grey oven on cream at left, with a 'SALE | $50 OFF' tag and a 'PLAY VIDEO' button; right column: product name in serif, one-line benefit, star rating with review count, price with strike-through and a Black Friday tag, then 'Select Option' with three bundle cards (Baker's Kit marked MOST SAVINGS, Chef's Kit marked BESTSELLER and open, plain Wonder Oven Pro).",
+  "layout": "Two columns on desktop: gallery left (main image, video button, then two smaller lifestyle images below), buy column right. On phone the gallery is a single image with dot pagination and the bundle cards stack under the title and price.",
+  "type": "serif display for the product name and section heads ('Add Accessories', 'What Sets It Apart'); clean sans for body and labels; caps for badges.",
+  "colour": "#FAF8F4 #B5573A #2B2A28 #1F3A4D (approximate, read by eye). Warm cream page, terracotta for sale and CTA, near-black text, a muted blue appears only in the product's own colour swatch.",
+  "imagery": "Product on a neutral cream backdrop, then lifestyle shots of food in the oven; accessory thumbnails on a beige tile.",
+  "media": "Hero has a PLAY VIDEO button over the gallery; video itself not observed.",
+  "motion": "not observed (static captures)",
+  "sections": [
+   {
+    "role": "gallery and title",
+    "description": "Main image with sale tag and video button; name, benefit line, stars, price."
+   },
+   {
+    "role": "bundle picker",
+    "description": "Three cards with inclusions, value comparison, a badge per card, and the colour swatch row inside the selected card."
+   },
+   {
+    "role": "add-ons",
+    "description": "Checkbox cards for accessories with a thumbnail and sale price, between the options and the CTA."
+   },
+   {
+    "role": "buy line",
+    "description": "Solid terracotta ADD TO CART, then free-shipping line with a Klarna instalment line and a 'last offered' note."
+   },
+   {
+    "role": "features",
+    "description": "Three-point feature tiles (no PFAS, faster cooking) and a bulleted 'What Sets It Apart' list."
+   }
+  ],
+  "steal": [
+   "Show a bundle's value beside its price, for example '$349 ($438 value)', so the saving is read without arithmetic.",
+   "Nest the colour swatch row inside the bundle card it belongs to, so the choice and its product stay together.",
+   "Place add-on checkboxes with thumbnails between the options and the add-to-cart button, not after it.",
+   "Put the instalment line directly under the solid CTA, with the shipping promise on the same line."
+  ],
+  "slice": "product-page"
+ },
+ {
+  "id": "ux-glossier-boy-brow",
+  "name": "Glossier, Boy Brow",
+  "url": "https://www.glossier.com/products/boy-brow",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "variant-picker",
+   "buy-column",
+   "product-reveal",
+   "social-proof"
+  ],
+  "idea": "Shade swatches sit directly above the purchase options, and the chosen shade's name is printed under them, so the choice and the buy decision sit in one column.",
+  "mood": "playful, bold, clean, modern",
+  "archetype": "beauty brand, product-first with bold accent colour",
+  "hero": "Left column: product name 'Boy Brow', subtitle 'Grooming pomade', star rating (7173), tags 'UP TO 30% OFF' and 'BEST SELLER', a row of seven shade swatches with 'Dark Brown' named beneath; right: large close-up photo with '1 / 8' counter and a thumbnail strip. Bright electric-blue announcement bar across the top.",
+  "layout": "Two columns: text and buy controls left, gallery right (image fills the column height). Below the swatches: one-time vs subscribe radio rows, then the black-outline 'Add to bag $22' button, then the Afterpay line. Description and benefit chips under that. On phone: gallery on top at full width, then title, rating, tags, swatches, then the rest of the buy column.",
+  "type": "grotesque sans throughout; bold for the product name at large size; small caps-like labels for tags.",
+  "colour": "#0000FF #F7DCE0 #3A2A22 #FFFFFF (approximate, read by eye). Electric blue announcement bar, pale pink best-seller tag, near-black text on white; the shade swatches supply all the other colour.",
+  "imagery": "Close-up beauty photography of a real face, product packshot in the gallery's first thumbnail with an award badge.",
+  "media": "Gallery of photos and one how-to strip; video not observed.",
+  "motion": "not observed (announcement bar has prev/next and pause controls, so it rotates)",
+  "sections": [
+   {
+    "role": "title and proof",
+    "description": "Name, one-line type, rating, two tags (discount and bestseller)."
+   },
+   {
+    "role": "shade picker",
+    "description": "Row of real shade chips with the selected name printed under the row."
+   },
+   {
+    "role": "purchase options",
+    "description": "Two radio rows: One-time purchase and Subscribe and save 25%, then Add to bag with price and Afterpay line."
+   },
+   {
+    "role": "gallery",
+    "description": "Large image with count and thumbnails; the description and benefit chips come after the buy controls."
+   },
+   {
+    "role": "save with sets",
+    "description": "A list of bundles with a SAVE percentage on each row, shown on scroll below the description."
+   }
+  ],
+  "steal": [
+   "Print the chosen shade's name under the swatch row in the same typeface as the rest of the buy column, so the selection is confirmed without a tooltip.",
+   "Make one-time and subscribe two radio rows with the discount in the label, not a separate toggle.",
+   "Put the instalment line (Afterpay) directly under the Add to bag button and keep the price on the button.",
+   "Show bundles on the product page as a list of rows with a save percentage, not a separate sales page."
+  ],
+  "slice": "product-page"
+ },
+ {
+  "id": "ux-allbirds-tree-runner-nz",
+  "name": "Allbirds, Women's Tree Runner NZ",
+  "url": "https://www.allbirds.com/products/womens-tree-runner-nz-medium-grey",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "variant-picker",
+   "buy-column",
+   "product-reveal"
+  ],
+  "idea": "The CTA reads 'Select a size' and is disabled until a size is chosen, so the one missing decision is named where the buy button is.",
+  "mood": "calm, natural, material-honest, quiet",
+  "archetype": "sustainable footwear, material-led direct-to-consumer",
+  "hero": "Large grey sneaker photo on warm stone background at left. Right column: serif title 'Women's Tree Runner NZ', 'ALSO AVAILABLE IN: MEN'S SIZES' link, $100 with a + FREE SHIPPING pill, COLOR 'Medium Grey (Classic Edition)' with a swatch grid grouped as Tree, Jersey and Stripe (sale swatches badged), WOMEN'S / MEN'S SIZES toggle, size grid with unavailable sizes struck through, a greyed 'SELECT A SIZE' button.",
+  "layout": "Two columns: gallery left (main image plus a 2x grid of angle shots below), buy column right in a white card. Under the gallery: 'Why we love this' accordion with a product image and bullet features; then Materials and Care Instructions accordions. On phone: single gallery image with dots, then the buy column as a bottom card.",
+  "type": "serif display for the product title; monospaced caps for labels ('COLOR', 'WOMEN'S SIZES', accordion heads); sans for body.",
+  "colour": "#ECE8E1 #FFFFFF #2B2B2B #C9C9C9 (approximate, read by eye). Warm stone page, white buy card, near-black text; the product's own colourway supplies the accent.",
+  "imagery": "Packshot on plain stone backdrop, then on-foot and sole shots; a lifestyle image sits inside the 'Why we love this' accordion.",
+  "media": "Gallery of product angles; video not observed.",
+  "motion": "not observed (static captures; a floating 'Explore this product' AI chip sits over the page)",
+  "sections": [
+   {
+    "role": "gallery",
+    "description": "Main angle with a 2x grid of further views below."
+   },
+   {
+    "role": "buy column",
+    "description": "Title, sibling-line link to the other size set, price with free-shipping pill, colour swatches grouped by family, size grid, disabled CTA with a shipping threshold line."
+   },
+   {
+    "role": "why we love this",
+    "description": "Accordion open by default: short paragraph, best-for chips, four bullets, a product image in a ringed circle."
+   },
+   {
+    "role": "materials and care",
+    "description": "Collapsed accordions, same visual weight as the fold-out sections above."
+   }
+  ],
+  "steal": [
+   "Make the disabled add-to-bag button say what is missing ('Select a size') instead of looking like a dead button.",
+   "Strike through unavailable sizes in the size grid rather than hiding them, so the buyer sees the size exists but is sold out.",
+   "Group colour swatches under small family labels (Tree, Jersey, Stripe) and badge only the sale colours.",
+   "Keep the 'also available in' link for a sibling range directly above the price."
+  ],
+  "slice": "product-page"
+ },
+ {
+  "id": "ux-everlane-box-cut-tee",
+  "name": "Everlane, The Box-Cut Tee in Essential Cotton",
+  "url": "https://www.everlane.com/products/womens-organic-cotton-box-cut-tee-peyote",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "fashion",
+  "mechanisms": [
+   "variant-picker",
+   "buy-column",
+   "product-reveal",
+   "social-proof",
+   "pricing-compare"
+  ],
+  "idea": "A sold-out state is shown on the CTA itself and the model's size is printed next to the size grid, so the stock message and the fit cue sit where the buyer decides.",
+  "mood": "minimal, neutral, editorial, honest",
+  "archetype": "fashion basics with transparent pricing and fit notes",
+  "hero": "2x2 photo grid at left: model full-length, product flat-lay, model three-quarter, and a fabric close-up. Right column: breadcrumb 'WOMENS / TEES', title in caps, crossed-out RM180 with RM105 MYR, 4.5 stars (1990 reviews), 'BLACK FRIDAY EXCLUSIVE' tag, COLOR 'PEYOTE' with a 36-swatch grid, STYLE 'POCKET / NO POCKET', SIZE grid with every size struck through, 'Model is 5'9\", wearing a size S' and SIZE GUIDE link, then a grey SOLD OUT button.",
+  "layout": "Two columns: 2x2 gallery (images bleed to the column edge) left, buy column right. Below the buy button: accordion stack (Description open, then Fit, Materials and Care, Factory, Certifications). On phone: title and price move above a single full-width image, then the colour row, then the rest.",
+  "type": "grotesque sans throughout; all caps for the title and labels; body in sentence case.",
+  "colour": "#F2F0EC #111111 #C8102E #8E8E8E #D8CFC0 (approximate, read by eye). Off-white page, black text, red for the sale line, grey disabled CTA, and the peyote swatch as the product's accent.",
+  "imagery": "Model photography on a light grey studio backdrop, flat-lay product shot, fabric macro.",
+  "media": "Photo grid only; video not observed.",
+  "motion": "not observed (static captures)",
+  "sections": [
+   {
+    "role": "gallery",
+    "description": "2x2 grid of model and product shots; the first image is a full-length model."
+   },
+   {
+    "role": "buy column",
+    "description": "Title, price with currency, rating, a colour swatch grid, a two-option style toggle, size grid, fit note with size guide link, and the CTA."
+   },
+   {
+    "role": "accordion",
+    "description": "Description open, then Fit, Materials and Care, Factory and Certifications as collapsed rows."
+   },
+   {
+    "role": "sustainability",
+    "description": "A single icon-and-label line (ORGANIC COTTON) under the accordion."
+   }
+  ],
+  "steal": [
+   "Keep a sold-out state on the CTA itself ('SOLD OUT', greyed) so the buyer does not hunt for a button that is missing.",
+   "Print the model's height and the size worn beside the size grid, so the fit cue is read before the size is chosen.",
+   "Show a style or fit toggle (Pocket / No Pocket) as two equal buttons, with the selected one filled black.",
+   "Show the price in the local currency with the struck-through original, for example 'RM180 RM105 MYR'."
+  ],
+  "slice": "product-page"
+ },
+ {
+  "id": "ux-brightland-alive-olive-oil",
+  "name": "Brightland, Alive Extra Virgin Olive Oil",
+  "url": "https://brightland.co/products/alive",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "variant-picker",
+   "buy-column",
+   "pricing-compare",
+   "product-reveal",
+   "social-proof"
+  ],
+  "idea": "Pack size is a price ladder of three tiles, each with its per-bottle saving and a badge, so the buyer chooses quantity by comparing price rather than reading a dropdown.",
+  "mood": "bright, warm, editorial, generous",
+  "archetype": "food brand, editorial product page with a pack-size ladder",
+  "hero": "Square product photo of the bottle on a plate of olives at left, a 'BLACK FRIDAY · 25% OFF' tag and 'OCT 2025 HARVEST' label. Right column: title in a condensed serif, 4.8 stars (700 reviews), $28.50 with $38 struck through and a 'Save $9.50' chip, a short tagline, a 2x2 grid of variant tiles (Awake, Alive, Kalamata, Castelvetrano), then three size tiles (Single bottle, 2 pack, 4 pack) each with price and a '25% Off' bar.",
+  "layout": "Two columns: gallery left with a 2-up lower grid, buy column right. Under size tiles: frequency radio (one-time vs subscribe), black full-width 'Add to Cart', benefit line, accordions (Product details, Tasting notes, Ways to use, Sourcing, Nutrition), a gifting banner, then a 'Complete Your Kitchen' upsell row. On phone a sticky bottom bar appears with a bottle thumbnail, the price and an 'Add to Cart' button.",
+  "type": "condensed serif display for the product title; grotesque sans for body and labels; caps for tags.",
+  "colour": "#E0401E #000000 #F5EDE2 #0A5C8C #CFE3E6 (approximate, read by eye). Orange-red promo bar and sale price, black CTA, cream selected tile, blue dot for the selected variant, pale aqua bottle.",
+  "imagery": "Bottle on olives and on a cutting board, pouring lifestyle shots, a quote card in the gallery.",
+  "media": "Gallery of photos with one quote card; video not observed.",
+  "motion": "not observed (promo bar rotates; static captures)",
+  "sections": [
+   {
+    "role": "gallery",
+    "description": "Hero packshot in context plus a grid of lifestyle images and a quote card."
+   },
+   {
+    "role": "variant tiles",
+    "description": "Four oil variants as tiles with a colour dot, the selected one filled cream."
+   },
+   {
+    "role": "pack-size ladder",
+    "description": "Three price tiles with per-bottle saving, a 'Most popular' and a 'Buy 3 get 1' badge."
+   },
+   {
+    "role": "subscribe and cart",
+    "description": "One-time vs subscribe radio rows with the 10% saving in the label, then the black Add to Cart with the price."
+   },
+   {
+    "role": "upsell",
+    "description": "'Complete Your Kitchen' row with a one-tap Add button and a struck price, after the accordions."
+   }
+  ],
+  "steal": [
+   "Lay out pack sizes as a price ladder of tiles, each showing the per-unit saving and a badge ('Most popular').",
+   "Pin a compact add-to-cart bar with thumbnail, price and button to the bottom of the phone screen once the main CTA scrolls out of view.",
+   "Put the subscribe radio directly under the size tiles and put the saving inside its label.",
+   "Add a 'complete the set' upsell row after the accordions, with its own one-tap Add button and struck price."
+  ],
+  "slice": "product-page"
+ },
+ {
+  "id": "ux-stripe-home",
+  "name": "Stripe home",
+  "url": "https://stripe.com",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "saas",
+  "mechanisms": [
+   "feature-tour",
+   "product-reveal",
+   "social-proof",
+   "editorial-home"
+  ],
+  "idea": "A financial-infrastructure home that proves each claim with a realistic product mock (checkout, card reader, billing plan) placed directly under the headline.",
+  "mood": "confident, dense, gradient-lit, enterprise-calm",
+  "archetype": "platform feature tour with proof strip",
+  "hero": "Headline 'Financial infrastructure to grow your revenue.' in a two-tone navy and slate, with a primary 'Get started' and an outline 'Sign up with Google' side by side, over a large orange-pink-blue gradient ribbon on the right. A small stat line sits above the headline ('Global GDP running on Stripe: 1.75559068%'). A logo strip (Amazon, NVIDIA, Ford, Decathlon, Google, Shopify, Toyota) runs under the hero (stripe-home-1280.png).",
+  "layout": "Full-width hero, then a logo strip, then a two-card 'Flexible solutions' block. Each card holds a product mock: a phone card reader showing 'US$5.46' with line items, and a checkout page for a merchant with email, payment method list and order summary. The right card shows a 'Pro Plan' billing card with a usage meter and a 30-day token bar chart. Below that, a 4 by 2 grid of icon-led feature columns, each with 3 to 4 check bullets carrying numbers ('195 countries', '99.999% average historical uptime'). Desktop uses a faint vertical column rule behind the content.",
+  "type": "Large sans headline with tight tracking and a two-tone treatment (first line dark, continuation in lighter slate). Small bold labels for column headings; body is light grey-blue sans. Font family not observed.",
+  "colour": "Estimated from the capture (visual estimate, not sampled): #0A2540 (navy text), #635BFF (primary purple button), #FF8A3D to #F56FB8 to #7AB8FF (hero gradient ribbon), #F6F9FC (page wash). One sentence: a navy-and-purple brand system with a saturated gradient reserved for the hero and product-card backgrounds, so the white UI mocks stand out.",
+  "imagery": "Product UI mocks rendered as flat illustrations (phone, browser window, billing card) plus small flat icons for each feature column. No stock photography on the home page as captured.",
+  "media": "Static product mocks; the captures show no video. Motion not observed (still captures only).",
+  "motion": "not observed (still captures only); the hero gradient is likely animated (from memory)",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Claim headline, two CTAs (filled primary and Google sign-up outline), gradient ribbon on the right."
+   },
+   {
+    "role": "proof strip",
+    "description": "Logo row of large customers directly under the hero, before any feature copy."
+   },
+   {
+    "role": "feature cards",
+    "description": "Two large cards, each with a headline, a short sentence and a realistic product mock (card reader and checkout; billing plan with usage meter)."
+   },
+   {
+    "role": "feature grid",
+    "description": "Four columns by two rows of icon, title and 3 to 4 numeric check bullets."
+   }
+  ],
+  "steal": [
+   "Put two sign-up routes side by side under the hero: a filled 'Get started' and an outline 'Sign up with Google', so the entry point works for both password and social users.",
+   "Make each feature card show a real-looking screen with the copy's own numbers inside it (a line item total, a usage meter value) instead of an abstract icon.",
+   "Place a logo strip of recognisable customers directly under the hero, before any feature copy, to answer 'is this for companies like mine' first.",
+   "Turn the feature section into a four-column grid where each column has an icon, a bold title and three or four numeric facts, so a visitor can scan counts without reading paragraphs."
+  ],
+  "slice": "saas"
+ },
+ {
+  "id": "ux-stripe-pricing",
+  "name": "Stripe pricing",
+  "url": "https://stripe.com/pricing",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "saas",
+  "mechanisms": [
+   "pricing-compare",
+   "feature-tour"
+  ],
+  "idea": "Two plans only: a standard price stated as one sentence, and a custom plan that lists the levers (volume, country, product) instead of prices.",
+  "mood": "clear, financial, reassuring, quietly bold",
+  "archetype": "two-plan pricing with a custom tier",
+  "hero": "Headline 'Pricing built for businesses of all sizes' in dark navy. Below it, two cards: Standard (white) with the price '3% + RM1.00 per successful card charge', and Custom (navy) with a row of four lever chips on the right ('IC+ pricing', 'Volume discounts', 'Multi-product discounts', 'Country-specific rates'). Behind the cards a diagonal blue-to-yellow gradient band. A floating pill nav sits under the cards ('Standard pricing', 'Custom pricing', 'FAQs') (stripe-pricing-1280.png).",
+  "layout": "Hero with headline, then two side-by-side plan cards, then a floating anchor pill. Below the fold: a 4 by 2 'Features available out of the box' grid with icons, then a 'Standard pricing for all products' block. The phone version stacks the Standard card, its price panel, then the Custom card (stripe-pricing-390.png).",
+  "type": "Large dark navy sans headline in two lines, card titles in semibold, body in a light grey sans. Font family not observed.",
+  "colour": "Estimated from the capture (visual estimate): #0A2540 (navy card and headline), #F6F9FC (page background), #635BFF (Get started button), #00D4FF (Custom 'Contact sales' cyan button), white card surfaces. One sentence: navy for the premium plan, white for the standard plan, purple and cyan for actions, so the two plans read as different tiers at a glance.",
+  "imagery": "No photography; the gradient band is the only decoration and sits behind the cards, not in the copy.",
+  "media": "Static. Motion not observed.",
+  "motion": "not observed (still captures only)",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Headline and two plan cards in the first screen."
+   },
+   {
+    "role": "plan cards",
+    "description": "Standard card with one price sentence and a single CTA; Custom card with a four-item lever list and 'Contact sales'."
+   },
+   {
+    "role": "section anchors",
+    "description": "Floating pill with three jump links (Standard pricing, Custom pricing, FAQs)."
+   },
+   {
+    "role": "feature grid",
+    "description": "Four columns of icon-led bullets showing what every plan includes."
+   }
+  ],
+  "steal": [
+   "State the standard price as one sentence with its unit inside the card ('3% + RM1.00 per successful card charge') instead of a table, so the cost reads in the buyer's own terms.",
+   "For the tier that needs a quote, list the four levers that change the price (volume, country, product bundle) as chips, and show only one CTA, 'Contact sales'.",
+   "Add a floating pill of three anchor links under the plan cards to jump to plans, custom pricing and FAQs without a separate navigation bar."
+  ],
+  "slice": "saas"
+ },
+ {
+  "id": "ux-linear-home",
+  "name": "Linear home",
+  "url": "https://linear.app",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "saas",
+  "mechanisms": [
+   "product-reveal",
+   "feature-tour",
+   "social-proof"
+  ],
+  "idea": "The real product screen, with a live-looking issue and an AI agent panel, sits directly under a short headline so the product is the hero.",
+  "mood": "dark, precise, calm, product-first",
+  "archetype": "dark product-led home with the app as hero",
+  "hero": "Black page, headline 'The product development system for teams and agents' in white, a muted sub line ('Purpose-built for planning and building products. Designed for the AI era.') and a 'New Loops' pill link. Below the copy, a full app screenshot starts to show: sidebar (Pulse, Inbox, My issues, Reviews), an issue titled 'Faster app launch' with an activity feed and an agent chat panel overlapping the lower right (linear-home-1280.png).",
+  "layout": "Hero copy, then a large product screenshot that breaks the grid and bleeds off the right edge, then a logo row of seven customers with a mono overline ('POWERING THE COMPANIES BUILDING THE FUTURE'), then a two-tone statement paragraph. On phone, the screenshot is scaled down and its sidebar becomes a simple list (linear-home-390.png). Further down, three-up isometric line-art cards illustrate the points (linear-home-390-scroll.png).",
+  "type": "Large geometric sans headline with tight tracking; body in a muted grey sans; a monospaced uppercase overline for the logo label. Font families not observed.",
+  "colour": "Estimated from the capture (visual estimate): #08090A (page black), #F7F8F8 (headline white), #8A8F98 (muted copy), #5E6AD2 (indigo accent on toggles in pricing, from memory). One sentence: near-black with white type and grey secondary text, so the bright product UI and the customer logos carry all the colour.",
+  "imagery": "A real app screenshot as the hero image (the product itself); customer logos in white; isometric line illustrations in the feature cards.",
+  "media": "Static app screenshot at desktop; scaled at phone. Animation not observed in still captures.",
+  "motion": "not observed (still captures only); the agent panel may animate (from memory)",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Short headline and sub line, with a 'New' pill link to a launch."
+   },
+   {
+    "role": "product screenshot",
+    "description": "Full app window with a real issue, activity feed and a floating agent panel overlapping its edge."
+   },
+   {
+    "role": "customer logos",
+    "description": "Seven white logos under a mono overline, with a 'Customer stories' link."
+   },
+   {
+    "role": "statement",
+    "description": "Two-tone paragraph: the first claim in full white, the continuation in grey."
+   }
+  ],
+  "steal": [
+   "Put a full-width screenshot of the real product directly below the hero copy, with a real item title and a real activity line inside it, instead of an abstract illustration.",
+   "Let a second surface (an agent or chat panel) overlap the bottom edge of the main screenshot to show two things happening at once in one frame.",
+   "Write the statement paragraph in two tones: the claim in full contrast, the rest in muted grey, so the eye lands on the claim first."
+  ],
+  "slice": "saas"
+ },
+ {
+  "id": "ux-linear-pricing",
+  "name": "Linear pricing",
+  "url": "https://linear.app/pricing",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "saas",
+  "mechanisms": [
+   "pricing-compare",
+   "social-proof"
+  ],
+  "idea": "Four tiers side by side where each higher tier says 'All X features +' and only lists what it adds, with one filled CTA on the recommended tier.",
+  "mood": "dark, orderly, technical, restrained",
+  "archetype": "four-tier pricing grid with inheritance",
+  "hero": "Black page, 'Pricing' headline, then four columns (Free $0, Basic US$10 per user/month, Business US$16 per user/month, Enterprise Custom). Paid columns have a 'Billed yearly' toggle. Each column lists check-marked features; Basic starts with 'All Free features +' and Business with 'All Basic features +'. The bottom row has 'Get started' on Free, Basic and Business (Business is the filled white button) and 'Contact sales' on Enterprise (linear-pricing-1280.png).",
+  "layout": "Headline, then a four-column tier grid with thin vertical dividers, then (below the fold) a logo row and 'Customer stories' link, then a comparison table with Features as the left column and the four tiers across, and rows for Members, File upload, Issues, Teams, then a 'Core' section (linear-pricing-1280-scroll.png). On phone, tiers stack vertically, Free first, each with its full list (linear-pricing-390.png).",
+  "type": "Large white sans 'Pricing' heading; tier names in a medium sans; prices in a larger weight; feature text in a small grey sans. Font families not observed.",
+  "colour": "Estimated from the capture (visual estimate): #08090A (page), #F7F8F8 (headline and filled button), #2A2B2E (outline button edges), #8A8F98 (secondary text), #5E6AD2 (toggle, from memory). One sentence: a monochrome grey scale with one white filled button for the recommended tier, so the eye goes to the CTA without any colour.",
+  "imagery": "None; the page relies on type, dividers and check icons.",
+  "media": "Static. Motion not observed.",
+  "motion": "not observed (still captures only)",
+  "sections": [
+   {
+    "role": "tier grid",
+    "description": "Four columns with price, billing toggle, a one-line tagline and the feature list with check icons."
+   },
+   {
+    "role": "trust row",
+    "description": "Logo row with a count ('Trusted by more than 50,000 companies') and a 'Customer stories' link."
+   },
+   {
+    "role": "comparison table",
+    "description": "Features down the left, tiers across the top, check or value cell in each intersection."
+   },
+   {
+    "role": "core features",
+    "description": "A 'Core' block that repeats the table pattern for the remaining rows."
+   }
+  ],
+  "steal": [
+   "In each higher tier, open the list with 'All [previous tier] features +' and list only what is new, so the buyer reads the increments and not four full lists.",
+   "Use a single filled CTA on the recommended tier and an outline or text-only CTA on the others; keep the custom tier as 'Contact sales' only.",
+   "Place a count-based trust line ('Trusted by more than 50,000 companies') between the tier grid and the comparison table."
+  ],
+  "slice": "saas"
+ },
+ {
+  "id": "ux-notion-pricing",
+  "name": "Notion pricing",
+  "url": "https://www.notion.com/pricing",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "saas",
+  "mechanisms": [
+   "pricing-compare",
+   "social-proof",
+   "onboarding"
+  ],
+  "idea": "Plans are grouped into two families with their own headline each, with a billing toggle and currency stated above, and a customer quote placed between the groups.",
+  "mood": "airy, editorial, friendly, serious",
+  "archetype": "grouped plan families with quote break",
+  "hero": "Large black headline 'One tool to run your company.' with a 'Trusted by teams at' logo row (OpenAI, Figma, Volvo, ramp, Cursor). Below: a pill toggle 'Pay monthly | Pay yearly' with 'Save up to 20% with yearly' and 'Price in USD' at the right. Two card groups follow: 'Essentials for staying organized.' (Free, Plus) on white, and 'The AI workspace for work that matters.' (Business, marked 'Recommended', and Enterprise) on a warm grey tint with a small illustration (notion-pricing-1280.png).",
+  "layout": "Hero and logo row, billing toggle row, then two large group cards side by side, each with two tier columns. Each tier has price, one-line description, CTA and a bullet list that starts 'Everything in Free, and:'. Below the cards: a customer quote in serif type with a 'Watch video' link, then 'Plans and features' heading (notion-pricing-1280-scroll.png). Phone: toggle first, then the Free tier card with its full list (notion-pricing-390.png).",
+  "type": "Heavy black grotesk headline with tight tracking; group headings in a bold sans; a serif face for the customer quote; body in a light sans. Font families not observed.",
+  "colour": "Estimated from the capture (visual estimate): #FFFFFF (page), #F6F5F2 (warm grey group card), #000000 (filled Business CTA and headline), #F4F3EF (grey secondary buttons). One sentence: black type and one black filled button on white and warm grey, so the only accent is the recommended badge and the illustration.",
+  "imagery": "A small hand-drawn style illustration on the recommended group card; no photography on the pricing block.",
+  "media": "Static. A 'Watch video' link on the customer quote is the only media cue; motion not observed.",
+  "motion": "not observed (still captures only)",
+  "sections": [
+   {
+    "role": "hero and trust",
+    "description": "Headline with a logo row of recognisable teams above the billing controls."
+   },
+   {
+    "role": "billing controls",
+    "description": "Pill toggle for monthly or yearly, with the saving and currency stated beside it."
+   },
+   {
+    "role": "plan families",
+    "description": "Two grouped cards, each with its own heading, two tiers and an 'Everything in X, and:' list."
+   },
+   {
+    "role": "customer quote",
+    "description": "Serif quote from a named customer with role and a watch link, placed between plans and the features table."
+   }
+  ],
+  "steal": [
+   "Split plans into two families, each with its own one-line heading ('for staying organized' and 'for work that matters'), so a personal buyer and a team buyer each find their group.",
+   "Put the billing toggle and the currency ('Price in USD') in one row directly above the cards, with the yearly saving written beside the toggle.",
+   "Place one named customer quote between the plan groups and the feature table, with a 'Watch video' link if one exists, to answer trust before the detailed comparison.",
+   "Open each higher tier's list with 'Everything in [previous tier], and:' so the buyer sees the inheritance without repeating the earlier list."
+  ],
+  "slice": "saas"
+ },
+ {
+  "id": "ux-mercury-home",
+  "name": "Mercury home",
+  "url": "https://mercury.com",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "finance",
+  "mechanisms": [
+   "onboarding",
+   "brand-story"
+  ],
+  "idea": "The sign-up is a single line in the hero (email plus 'Open account'), with a 'Launch demo' ghost button beside it for buyers who want to see the product first.",
+  "mood": "calm, outdoor, premium, reassuring",
+  "archetype": "photo-led fintech hero with inline sign-up",
+  "hero": "Full-bleed landscape photo (misty valley, a desk with an office chair and an open laptop on a grassy hill). Headline 'Radically different banking' in white, sub line 'Apply online in 10 minutes to experience banking unlike anything that's come before.' Below it, an email field with a blue 'Open account' button inside the field, and a ghost 'Launch demo' button beside it. The nav has 'Log in' and a blue 'Open account' pill. A dark disclosure strip sits at the bottom ('Mercury is a fintech company, not an FDIC-insured bank...') (mercury-home-1280.png).",
+  "layout": "One full-viewport hero. On phone, the nav collapses to a menu icon, the email field and 'Open account' stack full width, and 'Launch demo' sits on the next row. Below the fold the capture shows only a laptop photo band and a dark empty area (mercury-home-1280-scroll.png, mercury-home-390-scroll.png); the lower sections did not render in the capture and are not observed.",
+  "type": "Light to regular sans, sentence case, large centred headline; sub line with a superscript footnote marker. Font family not observed.",
+  "colour": "Estimated from the capture (visual estimate): #5B6CF6 (Open account button, blue-violet), #1A1B22 (dark disclosure strip), #E9ECF2 (headline white on the photo), photo tones of slate, sage and warm peach. One sentence: a single cool blue action colour over a muted photograph, so the photo carries the mood and the button stays the only saturated element.",
+  "imagery": "Full-bleed landscape photograph (mountains, mist, a desk and a chair) as the entire hero background; no product UI in the hero.",
+  "media": "Static photo. The footer disclosure is a text strip, not video.",
+  "motion": "not observed (still captures only)",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Photo background, centred headline, sub line with 'apply in 10 minutes', inline email plus primary button, ghost demo button."
+   },
+   {
+    "role": "disclosure",
+    "description": "Dark strip at the bottom of the hero stating the regulatory status and the bank partners."
+   },
+   {
+    "role": "below the fold",
+    "description": "Not observed: the capture shows a laptop photo band and an empty dark area."
+   }
+  ],
+  "steal": [
+   "Put the email field and the primary action in one line in the hero, with the action as a button inside the field's right edge, so the sign-up is one step.",
+   "State the time cost in the sub line ('Apply online in 10 minutes') to lower the perceived effort before the visitor clicks.",
+   "Give a ghost 'Launch demo' button beside the sign-up for buyers who want to see the product before they commit.",
+   "Show the regulatory disclosure as a dark strip pinned at the bottom of the first screen, readable at phone width, instead of hiding it in a footer."
+  ],
+  "slice": "saas"
+ },
+ {
+  "id": "ux-raycast-home",
+  "name": "Raycast home",
+  "url": "https://www.raycast.com",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "dev-tool",
+  "mechanisms": [
+   "feature-tour",
+   "product-reveal",
+   "onboarding"
+  ],
+  "idea": "A dark launcher-style page that shows the real search window at scale and states the install requirement in mono under the download button, so the wrong machine leaves before downloading.",
+  "mood": "dark, kinetic, precise, playful",
+  "archetype": "launcher app with dark kinetic hero and window mock",
+  "hero": "Near-black page with red-coral diagonal light streaks behind the centred headline 'Your shortcut to everything.' A sub line ('A collection of powerful productivity tools all within an extendable launcher. Fast, ergonomic and reliable.'), a white 'Download for Mac' button, and mono text beneath it ('macOS Tahoe and Apple Silicon required', 'Install via Homebrew | Download V1'). A floating rounded nav sits at the top (raycast-home-1280.png).",
+  "layout": "Full-screen hero, then a 'Take shortcuts, not detours' statement, then a macOS menu-bar frame holding the launcher search field ('Type to filter entries...' with a filter dropdown 'All Types'). On phone, the same statement and a 'Clipboard History' card with a window mock, a dropdown of entry types, and a row of five icon tiles for the feature set, each tile labelled (raycast-home-390-scroll.png).",
+  "type": "Bold sans headline in white with a soft shadow; sub copy light and centred; mono for the requirement lines and the status bar. Font families not observed.",
+  "colour": "Estimated from the capture (visual estimate): #07080A (page), #FF6363 (coral swatch shown inside the launcher mock and the hero streaks), #FFFFFF (headline and download button), #1B1C21 (window frame). One sentence: near-black with a single coral accent taken from the product's own UI, so the page and the app look like one thing.",
+  "imagery": "Abstract red and teal light streaks in the hero; the real launcher UI drawn as a window mock in the scroll section; a set of feature icons on phone.",
+  "media": "Static window mock in the captures; a product demo video is likely in the scroll section (from memory). Motion not observed.",
+  "motion": "not observed (still captures only); the hero streaks are likely animated (from memory)",
+  "sections": [
+   {
+    "role": "hero",
+    "description": "Headline, sub line, download button and mono system-requirement lines in one centred block."
+   },
+   {
+    "role": "statement",
+    "description": "Short two-line statement ('Take shortcuts, not detours.') before the product window."
+   },
+   {
+    "role": "product window",
+    "description": "macOS menu-bar frame with the launcher search and filter dropdown, shown at full width."
+   },
+   {
+    "role": "feature tiles",
+    "description": "Phone version: a feature card with a window mock and a row of five labelled icon tiles."
+   }
+  ],
+  "steal": [
+   "Print the system requirement in a small mono line directly under the download button ('macOS [version] and Apple Silicon required'), so a visitor on the wrong machine sees it before clicking.",
+   "Show the real product window at its real size with a live-looking search field and results, placed directly under a one-line statement.",
+   "Use the product's own accent colour (the coral from the launcher) as the only saturated colour on the page, so the marketing and the app read as one system.",
+   "On phone, pair one feature card with a row of five labelled icon tiles so each feature has a name the visitor can tap or scan."
+  ],
+  "slice": "saas"
+ },
+ {
+  "id": "ux-airbnb-home",
+  "name": "Airbnb home",
+  "url": "https://www.airbnb.com",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "consumer-app",
+  "mechanisms": [
+   "collection-grid",
+   "filtering",
+   "social-proof",
+   "editorial-home"
+  ],
+  "idea": "A single pill search (where, when, who) sits above horizontal rails of destinations and listings, where each card shows a total price for the stay length and a rating.",
+  "mood": "warm, local, photographic, trusted",
+  "archetype": "marketplace home with search pill and rails",
+  "hero": "White page with a category row (All, Homes, Hotels, Experiences, Services, with icons; 'All' underlined) and a large floating search pill with three segments: 'Where: Search destinations', 'When: Add dates', 'Who: Add guests', and a red search button. Below: a 'Destinations for you' rail of Malaysian places (Kuala Lumpur, Malacca, George Town, Ipoh, and more) with short captions, then 'Check out homes in Johor Bahru District' with photo cards (airbnb-home-1280.png).",
+  "layout": "Search pill, then horizontal rails each with a heading and a round arrow button at the right. Listing cards show a photo, a 'Guest favorite' badge, a heart save button, a title, a price line 'RM 2,539 for 2 nights · ★ 4.94', and a floating 'Prices include all fees' tag over the rail. Phone: a 'Start your search' pill, category chips in a scrolling row, two-up listing cards, and a bottom tab bar (Explore, Wishlists, Log in) (airbnb-home-390.png).",
+  "type": "Medium-weight sans for headings, small grey sans for captions; prices in regular weight with stars in the same line. Font family not observed.",
+  "colour": "Estimated from the capture (visual estimate): #FFFFFF (page), #222222 (text), #FF385C (search button and active tab, from memory and visible pink on the phone tab bar), #F7F7F7 (search band). One sentence: a white page with near-black text and one warm red for search and the active state, so the photos carry all the colour.",
+  "imagery": "Listing and destination photographs as the main content; small flat category icons in the top row.",
+  "media": "Static photos; the rails are horizontally scrolled. Video not observed.",
+  "motion": "not observed (still captures only)",
+  "sections": [
+   {
+    "role": "search",
+    "description": "Category row above a single pill with three segments (where, when, who) and a round search button."
+   },
+   {
+    "role": "destination rail",
+    "description": "Horizontal row of round-cornered place photos with a name and a one-line caption each."
+   },
+   {
+    "role": "listing rails",
+    "description": "Titled rails of listing cards, each with a badge, a save heart, a title, a total price and a rating."
+   },
+   {
+    "role": "fee note",
+    "description": "Floating 'Prices include all fees' tag over the rail, so the price is understood as all-in."
+   }
+  ],
+  "steal": [
+   "Show each listing's price as a total for the stay length with the rating in the same line ('RM 2,539 for 2 nights · 4.94'), not as a nightly rate, so the visitor compares the full cost, and pin a 'Prices include all fees' tag over the rail to answer the hidden-fee question where it is asked.",
+   "Keep search as one pill with three labelled segments (where, when, who) at the top of the page, and put category tabs directly above it.",
+   "Give each horizontal rail a heading and a round arrow button at the right, so scrolling sideways is a visible action.",
+   "Test a sign-up discount interstitial before copying it: the phone home shows a 10% off modal with a 'Log in to claim offer' button over the content (airbnb-home-390-scroll.png), so measure its effect on sign-ups first."
+  ],
+  "slice": "saas"
+ },
+ {
+  "id": "ux-airpods-pro-scroll",
+  "name": "AirPods Pro 3 product page (Apple)",
+  "url": "https://www.apple.com/airpods-pro/",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "scroll-story",
+   "product-reveal",
+   "sticky-stage",
+   "scrubbed-sequence",
+   "feature-tour",
+   "buy-column"
+  ],
+  "idea": "One product rotates on a pinned stage while the headline stays fixed, then each feature gets its own full-bleed beat as the scroll moves on, so the product is shown before it is sold.",
+  "mood": "calm, premium, cinematic, quiet",
+  "archetype": "pinned product hero with feature beats",
+  "hero": "Light grey stage with the AirPods Pro 3 pair rendered centre, a Black Friday banner above the nav (the nav carries a region picker modal on first load). Headline 'The world's best in-ear Active Noise Cancellation.' bottom-left, a floating price and Buy pill bottom-right (measured from the 1280 still).",
+  "layout": "Full-width sticky stage; text block anchored bottom-left; floating buy pill; feature sections stacked full-bleed below.",
+  "type": "Large grotesque sans, tight tracking, sentence-case headlines (from memory: SF Pro).",
+  "colour": "Estimated by eye from the still, not sampled: #F5F5F7 (stage), #1D1D1F (type), #0071E3 (Buy and Learn more), #000000 (dark feature beat). Light page, one dark cinematic section, one blue action colour.",
+  "imagery": "Studio 3D render of the earbuds, then a dark silhouette video of a dancer, then a close-up black earbud model, then a rainbow ring graphic.",
+  "media": "Video (dancer silhouette, spatial audio clip) and a 3D model scrubbed to a colourway; still images for the stat blocks.",
+  "motion": "From the 1280 sheet (6 fps, 800 px steps at 600 px per step): the earbud pair turns front-to-side over roughly the first four scroll steps while the headline stays put. A dancer silhouette fades in behind the headline and grows across the next steps. 'Get the highlights' rises in with a spatial-audio video card. 'Take a closer look' pins a black 3D earbud that rotates and resolves to the chrome colourway as the scroll advances. A rainbow ring ripples behind 'The best thing you've never heard.' and the two stat blocks ('2x more', '4x more') fade up last. Timing is rough, read from frame order, not measured in milliseconds.",
+  "sections": [
+   {
+    "role": "Pinned hero",
+    "description": "Product rotates on a sticky light stage; headline and buy pill stay fixed while the object turns."
+   },
+   {
+    "role": "Lifestyle beat",
+    "description": "A dark silhouette video crossfades on the same stage behind the headline."
+   },
+   {
+    "role": "Feature highlight",
+    "description": "Spatial audio video card with a short 'Get the highlights' heading."
+   },
+   {
+    "role": "Scrubbed close-up",
+    "description": "A black 3D earbud rotates and resolves into the chrome finish as the user scrolls."
+   },
+   {
+    "role": "Feature statement",
+    "description": "Rainbow ring animation behind a one-line claim, then stat blocks ('2x more', '4x more') rise in."
+   }
+  ],
+  "steal": [
+   "Pin the product on a sticky stage and keep the headline and price fixed while the object rotates, so the visitor watches the product, not the page scroll.",
+   "Swap the stage content (video, then 3D model, then graphic) as the scroll advances instead of stacking one static image per section.",
+   "End the story with two large numeric stats that fade up last, so the scroll finishes on a claim the buyer can repeat."
+  ],
+  "slice": "scroll-motion"
+ },
+ {
+  "id": "ux-macbook-pro-scroll",
+  "name": "MacBook Pro product page (Apple)",
+  "url": "https://www.apple.com/macbook-pro/",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "product-reveal",
+   "variant-picker",
+   "buy-column",
+   "pricing-compare",
+   "sticky-stage",
+   "scroll-story"
+  ],
+  "idea": "Two models sit side by side with a dot pager, each with its own price and lease line, and the spec detail unfolds below as the visitor scrolls, so comparing and choosing happens in one column.",
+  "mood": "dark, technical, precise, showroom",
+  "archetype": "side-by-side product picker with spec scroll",
+  "hero": "Black page, two laptops side by side (the left one with a PROLED display, the right one the 14 inch M6). Each has a dot pager, an orange 'New' eyebrow, a name, a tagline, a from-price with monthly figure, a lease line, and a blue 'Learn more' pill. A regional banner and modal sit above the nav (measured from the 1280 still). Prices show in $ on the Malaysia locale.",
+  "layout": "Two equal product columns centred under a full-width hero; spec tiles in a grid below; legal footnotes at the foot.",
+  "type": "Bold sans for product names, small caps eyebrow in orange (from memory: SF Pro).",
+  "colour": "Estimated by eye from the still, not sampled: #000000 (page), #F5F5F7 (type on dark), #FF6A00-ish orange (New eyebrow), #0071E3 (Learn more). Dark page, one accent for status, one for action.",
+  "imagery": "Product renders of the laptops with their screens lit (abstract wallpaper), then icon-based spec tiles.",
+  "media": "Still product renders with screen content; icon set for the spec grid; no video observed in the first frames.",
+  "motion": "From the 1280 sheet: the hero holds as the first few scroll steps pass. The spec grid (screen size, battery, weight, ports) then rises from below the hero as the scroll advances, with rows appearing one after another. The 'Learn more' buttons repeat mid-page. The legal footnote block runs to the bottom. No mid-scroll rotation of the laptop was seen in the frames; the drama is in the hero carousel dots, not a scrubbed object.",
+  "sections": [
+   {
+    "role": "Model picker",
+    "description": "Two laptops with dot pager, eyebrow, name, tagline and price per model."
+   },
+   {
+    "role": "Spec grid",
+    "description": "Icon tiles for screen size, battery, weight and ports, one row per model pair."
+   },
+   {
+    "role": "Repeat CTA",
+    "description": "Learn more buttons repeat between spec blocks so the visitor never has to scroll back to act."
+   },
+   {
+    "role": "Legal footnotes",
+    "description": "Long footnote text carries the price, battery and lease conditions at the foot."
+   }
+  ],
+  "steal": [
+   "Put every model's price, monthly figure and lease line in its own column on the same row, so the visitor compares by scanning across rather than by reading down.",
+   "Repeat the primary action between spec blocks, not only in the hero, so a buyer who has just read a spec can act at once.",
+   "Use a dot pager on the product image for variants instead of a separate variant selector page."
+  ],
+  "slice": "scroll-motion"
+ },
+ {
+  "id": "ux-iphone-17-pro-scroll",
+  "name": "iPhone page (Apple, iPhone Duo hero)",
+  "url": "https://www.apple.com/iphone-17-pro/",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "physical-product",
+  "mechanisms": [
+   "product-reveal",
+   "collection-grid",
+   "scroll-story",
+   "sticky-stage",
+   "feature-tour",
+   "variant-picker",
+   "buy-column"
+  ],
+  "idea": "The page opens on the hub (a row of model icons, then one hero), and as the visitor scrolls a folding phone changes state in a pinned stage while the lineup, accessories and a sticky product image take over the rest of the page.",
+  "mood": "clean, airy, retail-grade, orderly",
+  "archetype": "hub with a pinned hero then product rails",
+  "hero": "The URL now serves the iPhone hub: a title 'iPhone' with a row of model icons (iPhone Duo, iPhone 18 Pro, iPhone Air, iPhone 17, iPhone 17e, iPhone 16, Compare, Accessories, Shop iPhone, iOS 27), then the 'iPhone Duo' card with a Buy and Learn more pair and a phone photo in two hands (measured from the 1280 still). A black card on the right edge shows the next model.",
+  "layout": "Top model-icon row, then a large rounded hero card; below it horizontal carousels of product cards; a sticky product image with accordion rows near the end.",
+  "type": "Large sans title 'iPhone', headline and sub-line 'Hello, hello.' (from memory: SF Pro).",
+  "colour": "Estimated by eye from the still, not sampled: #FFFFFF (page), #F5F5F7 (hero card), #1D1D1F (headline), #0071E3 (Learn more), #000000 (next-model card). Light page with one dark card for the next model.",
+  "imagery": "Phone photography in hands, product renders on white, carrier-deal artwork in pink and blue.",
+  "media": "Still photos and product renders; the hero phone changes state (closed to open) in the pinned stage.",
+  "motion": "From the 1280 sheet: the model icon row holds at the top while the hero phone in hands changes from closed to open across the first several scroll steps. Then 'Explore the lineup' fades in with three phones (iPhone Duo, iPhone 18 Pro, iPhone Air) that slide into a row. 'Why Apple is the best place to shop iPhone' is a horizontal card rail whose cards slide in one at a time. 'iPhone essentials' tiles fade up. 'Significant others' pins a large device image on the right while the left accordion rows (iPhone and Mac, iPhone and Apple Watch) open in turn and the image changes. Timing is rough, read from frame order.",
+  "sections": [
+   {
+    "role": "Hub nav",
+    "description": "Icon row of models, Compare and Shop iPhone links above the hero."
+   },
+   {
+    "role": "Pinned hero",
+    "description": "Foldable phone in hands changes state as the scroll advances, with Buy and Learn more beside it."
+   },
+   {
+    "role": "Lineup row",
+    "description": "Three phones in a row with a one-line spec each and a Buy pill."
+   },
+   {
+    "role": "Deal rail",
+    "description": "Horizontal cards for lease, carrier deals and trade-in, each with one action."
+   },
+   {
+    "role": "Sticky accordion",
+    "description": "Left accordion rows drive the right device image, so the visitor sees the matching product as they open each row."
+   }
+  ],
+  "steal": [
+   "Pin the product image on one side and let the accordion rows on the other side drive its state, so the visitor opens a topic and sees the matching product at once.",
+   "Show the lineup as three side-by-side items that slide into a row on scroll, each with one line of spec and one action.",
+   "Put offers (lease, trade-in, carrier deal) in a horizontal card rail, one action per card."
+  ],
+  "slice": "scroll-motion"
+ },
+ {
+  "id": "ux-linear-home-scroll",
+  "name": "Linear home page",
+  "url": "https://linear.app",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "saas",
+  "mechanisms": [
+   "scroll-story",
+   "feature-tour",
+   "product-reveal",
+   "sticky-stage",
+   "brand-story",
+   "social-proof"
+  ],
+  "idea": "Each feature is a pinned headline with a live-looking product panel that assembles beside it as the scroll advances, so the visitor sees the product working rather than reading about it.",
+  "mood": "dark, precise, calm, engineered",
+  "archetype": "dark product-led home with pinned feature sections",
+  "hero": "Near-black page, the headline 'The product development system for teams and agents' large and left-aligned, a grey subline 'Purpose-built for planning and building products. Designed for the AI era.', a 'New Loops' link at right, and a cut-off application panel (sidebar, issue DRV-8852) starting below the fold (measured from the 1280 still).",
+  "layout": "Left-aligned headline block, a large app window below it, then pinned feature sections alternating text and product panels.",
+  "type": "Large geometric sans with tight tracking (from memory: Inter Display style), grey body copy.",
+  "colour": "Estimated by eye from the still, not sampled: #0A0A0B (page), #F5F5F5 (headline), #8A8F98 (subline), #F2C94C (star accent in the app panel). Dark-only, one warm accent.",
+  "imagery": "Real-looking application UI screenshots and 3D wireframe icon objects in the feature grid.",
+  "media": "Static UI panels and short-looped animated panels; logo strip at the top of the feature band.",
+  "motion": "From the 1280 sheet (83 frames, the longest run): the headline stays put at the top while the app panel moves up and the logo band (OpenAI, Vercel, Figma and others) slides in above. 'A new species of product tool.' then appears with a row of wireframe 3D objects that fade in one by one. 'Intake and integrations' keeps its headline on the left while product cards (triage, Slack-style threads) slide in on the right. 'Planning and monitoring' animates a chart panel into place. 'AI and automations' ends with an agent UI. Timing is rough, read from frame order.",
+  "sections": [
+   {
+    "role": "Hero",
+    "description": "Headline, subline and an app window that sits partly below the fold."
+   },
+   {
+    "role": "Logo band",
+    "description": "Customer logos slide in above the feature stack as social proof."
+   },
+   {
+    "role": "Product statement",
+    "description": "One-line positioning with a grid of wireframe objects that fade in per feature."
+   },
+   {
+    "role": "Feature pin",
+    "description": "A feature headline stays on the left while its product cards slide in on the right."
+   },
+   {
+    "role": "Agents section",
+    "description": "Agent UI and automation panel closes the scroll."
+   }
+  ],
+  "steal": [
+   "Pin each feature's headline on one side and slide its product panel in on the other, so the visitor reads and sees the product in one view.",
+   "Show the product working (cards arriving, a chart drawing in) rather than a still screenshot, so the scroll is the demo.",
+   "Put customer logos in a band above the feature stack, so social proof is seen before the first claim."
+  ],
+  "slice": "scroll-motion"
+ },
+ {
+  "id": "ux-stripe-sessions-scroll",
+  "name": "Stripe Sessions conference page",
+  "url": "https://stripe.com/sessions",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "other",
+  "mechanisms": [
+   "scroll-story",
+   "feature-tour",
+   "collection-grid",
+   "sticky-stage",
+   "editorial-home",
+   "brand-story"
+  ],
+  "idea": "A generative ribbon artwork carries the whole page, and the sections between it swap their media as the reader moves through a sticky list, so an event page reads like a film with chapters.",
+  "mood": "vivid, editorial, confident, art-led",
+  "archetype": "generative-art event page with sticky chapter list",
+  "hero": "Off-white page, the headline 'The internet economy conference' in deep purple at left, date 'May 4-6, 2027' and venue 'Moscone North & South, San Francisco' at right, and a large rounded panel of a 3D ribbon gradient (purple, blue, pink, orange) filling the width below (measured from the 1280 still).",
+  "layout": "Full-width hero with generative art panel; then a two-column sticky section (left list, right media); horizontal carousels for speakers and passes; a sponsor grid at the foot.",
+  "type": "Large sans display headline, tight tracking, deep purple on off-white (from memory: a custom Stripe sans).",
+  "colour": "Estimated by eye from the still, not sampled: #F8F6F8 (page), #1A0536 (headline and buttons), #7A3CFF to #FF4FD8 to #FFB020 (ribbon gradient). One brand purple plus the ribbon gradient.",
+  "imagery": "Procedural 3D ribbon artwork (no photography in the hero), then event video and photos of the venue in the chapter panels.",
+  "media": "Generative art that re-forms with scroll, a looping event video, and still photography of the venue and speakers.",
+  "motion": "From the 1280 sheet (69 frames): the ribbon artwork re-forms across the first several scroll steps while the headline holds. 'Why attend' then pins on the left with a video panel on the right; as each left-column item becomes active ('Join main stage keynotes', 'Build an agenda around your business priorities', 'Expand your skills', 'Test ideas, ask questions') the right panel swaps to that item's still or video. The 'Speakers' carousel slides horizontally, enlarging the centre card (a speaker named Ben Gilbert). 'Conference passes' and 'Agenda at a glance' use the same ribbon art as a sticky decoration. Timing is rough, read from frame order.",
+  "sections": [
+   {
+    "role": "Generative hero",
+    "description": "Headline and date block over a full-width ribbon artwork that re-forms with scroll."
+   },
+   {
+    "role": "Chapter list",
+    "description": "Left column of short chapters that each light up as the reader scrolls; right column swaps the matching media."
+   },
+   {
+    "role": "Speaker carousel",
+    "description": "Portrait cards slide sideways and the centre card enlarges."
+   },
+   {
+    "role": "Passes",
+    "description": "Three or four pass cards with price and a single action, using the ribbon art as a backdrop."
+   },
+   {
+    "role": "Agenda",
+    "description": "Day-by-day list beside a sticky ribbon, then a sponsor grid."
+   }
+  ],
+  "steal": [
+   "Let the hero artwork change shape with scroll rather than standing still, so the first screen already rewards scrolling.",
+   "Pair a sticky chapter list with a media panel that swaps per item, so each reason to attend gets its own picture without new pages.",
+   "Show speakers as a sideways carousel where the active card enlarges, so the browsing action carries the narrative."
+  ],
+  "slice": "scroll-motion"
+ },
+ {
+  "id": "ux-vercel-home-scroll",
+  "name": "Vercel home page",
+  "url": "https://vercel.com",
+  "source": "Renowned UX, captured 25/11/2026 (390 and 1280 px, scroll frames for motion)",
+  "kind": "dev-tool",
+  "mechanisms": [
+   "scroll-story",
+   "sticky-stage",
+   "feature-tour",
+   "social-proof",
+   "product-reveal",
+   "brand-story"
+  ],
+  "idea": "A quiet hero with one mark gives way to customer-proof cards that slide in one at a time, each headline naming a customer type, so the scroll moves from brand to use case to proof.",
+  "mood": "minimal, technical, confident, spacious",
+  "archetype": "minimal hero with customer-case scroll",
+  "hero": "Off-white page, 'Agentic Infrastructure' headline left, a single large black triangle mark in the centre on a soft shadow, three short lines at right ('For coding agents', 'To ship apps and agents', 'Automated by agents'), 'Deploy now' and 'Talk to sales' buttons, and a customer logo band (Meta, DoorDash, OpenAI, SpaceX, The Weather Company, Polymarket) along the bottom (measured from the 1280 still).",
+  "layout": "Three-column hero with the mark in the middle; logo band; then full-width headline sections each with a product card on one side.",
+  "type": "Large grotesque sans with tight tracking, sentence case (from memory: Geist).",
+  "colour": "Estimated by eye from the still, not sampled: #FAFAFA (page), #000000 (mark and Deploy now), #171717 (headline), #E5E5E5 (shadow). Achromatic; colour comes only from customer logos and the product cards.",
+  "imagery": "One abstract black mark; then product UI cards (chat, a Notion-style panel, a docs site, a Zapier-style sign-in) and small illustrated cards.",
+  "media": "Static product card images and a few looped UI animations; no video observed.",
+  "motion": "From the 1280 sheet (54 frames): the triangle mark holds centre for the first several steps while the logo band slides up and out. The headline then changes to 'Build agents on infrastructure that thinks like them' with a Notion-style product card sliding in on the left. 'Ship apps that scale from zero to millions instantly' takes over with a Zapier-style card. 'Host platforms that serve every customer' follows with a documentation card. 'Recently shipped' tiles (Agents, Backends, Sandbox) rise in a grid. The page ends on 'Built by you, or your agents' with a Deploy button and the footer. Timing is rough, read from frame order.",
+  "sections": [
+   {
+    "role": "Hero",
+    "description": "Headline, one mark, three benefit lines and two CTAs."
+   },
+   {
+    "role": "Logo band",
+    "description": "Customer logos as social proof directly under the hero."
+   },
+   {
+    "role": "Customer case",
+    "description": "A headline naming a customer type with that customer's product card, one per scroll stage."
+   },
+   {
+    "role": "Recently shipped",
+    "description": "Grid of short case tiles (Agents, Backends, Sandbox) that rise in."
+   },
+   {
+    "role": "Closing CTA",
+    "description": "One line with a Deploy button and a secondary action, then footer."
+   }
+  ],
+  "steal": [
+   "Use one sparse brand mark in the hero and let the scroll bring in customer product cards, so the proof replaces decoration as the reader goes down.",
+   "Give each scroll stage a headline that names the buyer type (for example 'Host platforms that serve every customer') with a card that shows that buyer's product.",
+   "Close with a one-line call to action and one primary button rather than a second feature section."
+  ],
+  "slice": "scroll-motion"
+ }
+]

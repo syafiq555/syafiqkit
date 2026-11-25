@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.469.0
+
+**UI research now starts from a library of 27 pages known for great UX, filed by what each page does.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `uiux/app-kit/library/ux-patterns.json`: Apple (AirPods, MacBook, iPhone, Store, Environment), Stripe, Linear, Vercel, Notion, Mercury, Raycast, Airbnb, Our Place, Glossier, Allbirds, Everlane, Brightland, Patagonia, Christy Dawn and Mailchimp, captured at phone and desktop width (scroll recordings for the moving ones) and tagged by mechanism: scroll story with a pinned product that changes as you scroll, colour and size pickers, buy column, founder note, pricing tiers, feature tour, sign-up. Each entry lists moves another site can borrow. Kept apart from `sites.json` because it has no Awwwards score, so `draw.mjs` deals are unchanged.
+- `uiux` § research points at it as the first stop for the outside-the-domain leg, and asks each run to append what it verifies.
+
 ## 1.468.31
 
 **UI research now always looks outside your own domain, including products known for great UX, not only when redesigning.**
