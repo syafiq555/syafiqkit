@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.468.23
+
+**`watch-sheets` stops reporting a teammate's own lines as client lines waiting on you.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `watch-sheets` (§ Setup): reads the tracker's own task doc as well as CLAUDE.md and the config, since teammates who joined later are recorded there; a listed line signed by someone on your side gets their name into `myNames` and their colour into `mine`, then the check runs again before anything is reported. A teammate's green one shade off the owner's had listed 16 of our own suggestion rows as awaiting a reply.
+
 ## 1.468.22
 
 **`motion-clip` walkthroughs show the real page a tap opens and stop failing half-second reviews; `score-loop` counts its own rubric; `casual-message` stops asking a recipient what the sender knows.**
