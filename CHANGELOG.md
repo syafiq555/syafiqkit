@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.470.4
+
+**A product question now reads the signed quotation or contract before it goes out, even when its default is backed by research; and taste's app lint is given source files, not a page.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `read-summary` § Decision-First and `_shared/references/decision-first-output.md` § Earning the decision: the governing spec rows and the signed quotation or contract's line are read by the behaviour's nouns and quoted before outside research is offered. New Tell: a researched default with no line from the signed quotation. On 25/11/2026 a split link window was recommended from a competitor's help page, built, then reverted over the signed quotation's "within the same attribution window as product links".
+- `uiux` § A design pass step 2 and `done`'s design-review reference: `app-kit/scripts/lint.mjs --app` takes the changed source files or folders and `inspect.mjs --app` the page; a URL passed to lint returned "Not found".
+
 ## 1.470.3
 
 **`ship` now closes the release-note card it posts, so release notes stop piling up as open work.**
