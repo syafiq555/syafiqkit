@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.470.3
+
+**`ship` now closes the release-note card it posts, so release notes stop piling up as open work.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `ship` step 5 item 9: a release-note card on the project's tracker is set to the list's done status once posted and read back. On 25/11/2026, 18 GB Mart release-note cards had sat in "to do" and were closed by hand during a board tidy.
+
 ## 1.470.2
 
 **A header or menu change is now also checked at laptop widths, where desktop menus run out of room first.**
