@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.30
+
+**A score loop's first round can no longer end a retained-plus-fresh run, and tap targets are grown on the element itself.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `score-loop` stop rule: round 1 has two fresh judges and no retained line, so it cannot meet "both reach the band in the same round"; its fixes are built and one of its judges becomes the retained judge from round 2. Both round-1 judges of a storefront run scored 18/20, and round 2's retained judge then found a regression at 16.7.
+- `uiux` mobile-first and the `check-render` README: an `::after` hit area takes taps but `check-render` measures the element's own box and keeps flagging it, so a control whose look must stay (a switch track) is grown with padding or transparent borders and `background-clip: padding-box`.
+
 ## 1.468.29
 
 **Parallel judges and reviewers no longer each run the test suite in one checkout.**

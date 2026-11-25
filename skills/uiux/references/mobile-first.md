@@ -4,7 +4,7 @@ Read this before declaring a surface done. A layout that only works with a point
 
 ## Touch and reach
 
-- **Touch targets** are 44 to 48px square with at least 8px between neighbours. 44px is the recommended target; WCAG 2.2's AA floor is 24px and its AAA criterion is 44px, so 44 is a design choice, not the legal minimum. A 24px icon inside a 48px hit area is fine; a 24px icon *as* the hit area is not.
+- **Touch targets** are 44 to 48px square with at least 8px between neighbours. 44px is the recommended target; WCAG 2.2's AA floor is 24px and its AAA criterion is 44px, so 44 is a design choice, not the legal minimum. A 24px icon inside a 48px hit area is fine; a 24px icon *as* the hit area is not. Grow the element's own box, not a pseudo-element: an `::after` hit area takes taps but `check-render` measures the box and still flags it, so a control whose look must stay (a switch track) gets padding or transparent borders with `background-clip: padding-box` instead.
 - **Thumb zones.** Most touches are made with one thumb. Primary actions sit in the bottom third of the screen where the thumb rests; secondary actions in the middle; destructive actions away from easy reach, never beside a primary one. A sticky bottom action bar is the usual way to keep the primary action reachable on a long page.
 - **Safe areas.** Pad above the home indicator and around notches. A bottom bar that sits under the gesture area gets swiped away instead of tapped.
 

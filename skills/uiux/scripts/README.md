@@ -38,7 +38,7 @@ Renders the page at each width (default 320, 375, 768, 1280) in each colour sche
 | `truncated` | WARN | ellipsis or line-clamp with no `title` / `aria-label` to read the full text |
 | `overlap` | FAIL / WARN | a control intersects another control (FAIL) or text (WARN) by more than 4px |
 | `covered` | FAIL / WARN | something sits over the centre of a control at the top or bottom of the page; a fixed or sticky cover is FAIL |
-| `tap-target` | FAIL / WARN | widths up to 430px: under 24x24 FAIL, under 44x44 WARN |
+| `tap-target` | FAIL / WARN | widths up to 430px: under 24x24 FAIL, under 44x44 WARN; measures the element's own box, so an `::after` hit area does not count |
 | `cursor` | FAIL / WARN | clickable element without a pointer cursor (FAIL for `button` and `a[href]`) |
 | `sibling-size`, `sibling-align`, `uneven-gap` | WARN | three or more consecutive look-alike siblings with uneven heights, off-grid edges or unequal gaps; the odd one is named |
 | `card-in-card` | WARN | a bordered or shadowed rounded box inside another within two levels, both over 120px wide |
