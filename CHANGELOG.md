@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.468.27
+
+**`setup-playwright`'s isolated-database run no longer hangs under Playwright's `webServer`, and names four traps a Laravel run hits.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `setup-playwright` `references/isolated-database-run.md` step 5: the "own process group" advice is now scoped to a standalone runner. When Playwright's `webServer` starts the runner, the server stays in the runner's group, since a detached server held Playwright's stderr pipe and the run never exited after every test passed.
+- Same step: `php artisan serve` drops exported variables such as `DB_DATABASE` unless `--no-reload`; `php -S` with Laravel's `server.php` keeps them.
+- New trap rows: a file store keyed by row id (medialibrary) shared by both databases overwrites the developer's photos; SQLite `database is locked` on concurrent uploads (use file cache and sessions); a raised test-server time limit hides a production timeout.
+
 ## 1.468.26
 
 **How a screen handles a state for its user is designed in the `uiux` pass, not asked as a menu; `record-clickthrough` warns about steps that change saved data.**
