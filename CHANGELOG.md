@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.468.28
+
+**`/done` now researches every round of reviewer questions, not just the first, and a default borrowed from a sibling feature says who set it.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `done` Step 1, the reviewer-questions paragraph: the research-and-quote rule binds every later question round in the same run. An option that carries a design over from a sibling feature names its source, the spec row or the user's own dated call. A follow-up question went out bare twice in one run, and its borrowed "second approver" default read as the spec's when it was the user's earlier call. This is the third recurrence of the research rule (see 1.4xx entries for `read-summary` and `/done`), so a `PreToolUse` check on `AskUserQuestion` is the next instrument if it recurs.
+
 ## 1.468.27
 
 **`setup-playwright`'s isolated-database run no longer hangs under Playwright's `webServer`, and names four traps a Laravel run hits.**
