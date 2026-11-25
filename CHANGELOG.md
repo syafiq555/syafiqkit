@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.470.5
+
+**A findings reply into a team thread now goes out as headed messages with full bullets, not casual prose.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `gchat-format` § Is this a document and `casual-message` § What this produces: a reply into the sender's own team thread that carries data across several topics, or answers questions a colleague posed to the space, takes a `**heading**` per topic, full-sentence bullets saying what each figure means, split into messages at headings, and names no colleague. On 26/11/2026 such a reply was refused as casual prose, then as "fragmented", then as 3-word bullets, before nine headed messages went out.
+
 ## 1.470.4
 
 **A product question now reads the signed quotation or contract before it goes out, even when its default is backed by research; and taste's app lint is given source files, not a page.**
