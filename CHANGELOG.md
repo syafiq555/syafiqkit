@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.468.25
+
+**A "where do I get X" answer lists every screen that offers it, and a client reply describes the client's account from its records.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `read-summary` (Investigation): a "where do I get X" or "is there a way to" question is answered from the app's own menu or route definitions, opening each candidate screen, not from the first doc that names one.
+- `casual-message` (Speaking for the sender): what a draft says about the recipient's own account (whose bank a payout reaches, their role, their screens) is read off their records, never off a name. A client reply had named one export as the only way and called an agency "the landlord" because of its name, and was corrected three times.
+
 ## 1.468.24
 
 **`uiux`'s app checks (`app-kit/scripts/inspect.mjs`, `scenes.mjs`) now open local HTTPS sites with a self-signed certificate.**
