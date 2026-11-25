@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.468.24
+
+**`uiux`'s app checks (`app-kit/scripts/inspect.mjs`, `scenes.mjs`) now open local HTTPS sites with a self-signed certificate.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Both scripts stopped with `net::ERR_CERT_COMMON_NAME_INVALID` on a Laravel Herd `*.test` site, so `taste`'s app review path could not run on a local admin while `check-render.mjs`, `save-login.mjs` and `record-clickthrough.mjs` worked. They now launch Chrome with `--ignore-certificate-errors`, as those three already did. Public sites are unaffected.
+
 ## 1.468.23
 
 **`watch-sheets` stops reporting a teammate's own lines as client lines waiting on you.**

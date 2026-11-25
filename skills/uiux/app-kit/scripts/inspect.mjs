@@ -81,7 +81,7 @@ const name = (w) => (w >= 1100 ? 'desktop' : w >= 600 ? 'tablet' : 'mobile');
 mkdirSync(outDir, { recursive: true });
 // Screenshots from an earlier run would sit beside the new ones when the page got shorter.
 for (const f of readdirSync(outDir)) if (/^(desktop|tablet|mobile)-(fold|page-\d+|film-\d+)\.jpg$/.test(f)) unlinkSync(join(outDir, f));
-const browser = await Browser.launch();
+const browser = await Browser.launch({ extraArgs: ['--ignore-certificate-errors'] });
 if (storageStatePath) {
   if (!existsSync(storageStatePath)) { console.error('No such storage state: ' + storageStatePath); process.exit(2); }
   const signedIn = await browser.useStorageState(JSON.parse(readFileSync(storageStatePath, 'utf8')));

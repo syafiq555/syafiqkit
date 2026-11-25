@@ -47,7 +47,7 @@ if (!/^https?:\/\//.test(target)) {
   url = `http://127.0.0.1:${server.address().port}/${relative(root, file).split(sep).map(encodeURIComponent).join('/')}`;
 }
 mkdirSync(outDir, { recursive: true });
-const browser = await Browser.launch();
+const browser = await Browser.launch({ extraArgs: ['--ignore-certificate-errors'] });
 const helper = await browser.newPage({ width: 1600, height: 1000, scheme });
 const problems = [];
 
