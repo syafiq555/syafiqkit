@@ -10,6 +10,7 @@ import { claimedMentions, mentionLines, mentionMismatch, rawTagRefusal, resolveM
 import { timeZone } from './zone.ts'
 
 const MENTIONS_NOTE = '@Full Name of a member of this chat becomes a real mention.'
+const WORK_LOG_NOTE = " If this finished work or set or moved a meeting, date or plan, and the user's instructions name a daily work log, update today's and the affected day's rows from what the thread agreed, not the earlier plan."
 const READ = { readOnlyHint: true, openWorldHint: true }
 const SAVES_LOCALLY = { readOnlyHint: false, destructiveHint: false, openWorldHint: true }
 const DOWNLOAD_PREFIX = 'gchat-attachments-'
@@ -438,7 +439,7 @@ export function registerTools(
       }
       const logNote = log('SENT', sent.name ?? '-')
       const withFiles = attachments.length ? ` with ${count(attachments.length, 'file')}` : ''
-      return `Sent to ${to}${withFiles} at ${localTime(sent.createTime)}. Message ${sent.name ?? '-'}, thread ${sent.thread?.name ?? '-'}.${logNote} If this message finished a piece of work or set or moved a meeting, date or plan, and the user's instructions name a daily work log (a huddle sheet, a standup doc), update today's and the affected day's rows now, from what the thread agreed rather than the earlier plan.`
+      return `Sent to ${to}${withFiles} at ${localTime(sent.createTime)}. Message ${sent.name ?? '-'}, thread ${sent.thread?.name ?? '-'}.${logNote}${WORK_LOG_NOTE}`
     }),
   )
 
@@ -530,7 +531,7 @@ export function registerTools(
         if (isGoogleRefusal(msg)) return `NOT EDITED: Google refused the edit (${msg}). The message is unchanged. Give the user the text so it is not lost.`
         return `UNSURE WHETHER EDITED: ${msg}.${log('UNSURE-EDIT')} Re-read ${to} with messages_list before offering to edit again.`
       }
-      return `Edited your message in ${to} at ${localTime(edited.lastUpdateTime ?? edited.createTime)}. Message ${edited.name ?? message}.${log('EDITED')}`
+      return `Edited your message in ${to} at ${localTime(edited.lastUpdateTime ?? edited.createTime)}. Message ${edited.name ?? message}.${log('EDITED')}${WORK_LOG_NOTE}`
     }),
   )
 }

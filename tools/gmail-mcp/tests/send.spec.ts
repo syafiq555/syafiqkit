@@ -129,7 +129,7 @@ describe('email_send', () => {
     const args = { ...NEW, subject: 'Tuntutan RM50 é diluluskan' }
     const p = await preview(args)
     const out = await call('email_send', sendArgs(p, args))
-    expect(out.text).toBe('Sent from me@tsb.test to to: ana@client.test at 19/11/2026 12:00. Message sent1, thread tnew.')
+    expect(out.text).toStartWith('Sent from me@tsb.test to to: ana@client.test at 19/11/2026 12:00. Message sent1, thread tnew. If this finished work')
     expect(sent.length).toBe(1)
     expect(sent[0]!.threadId).toBeUndefined()
     expect(sent[0]!.mime).toContain('Subject: =?UTF-8?B?')

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.482.1
+
+**The work-log reminder from 1.482.0 now also follows a Google Chat edit and a Gmail send, since an edited post or an email can move a date as easily as a new message.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Google Chat edit and Gmail send: the confirmation carries the same shorter reminder as Chat send.
+
 ## 1.482.0
 
 **After a Chat message is sent, Claude is reminded to update your daily work log (a huddle sheet, a standup doc) when the message finished work or set or moved a meeting or plan. Before this, the log was only checked at `/done` and `/ship`, so a reply sent after the wrap-up left it stale.**

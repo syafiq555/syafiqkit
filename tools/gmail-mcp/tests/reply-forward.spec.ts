@@ -93,6 +93,7 @@ describe('replyMode', () => {
     expect(sent).toEqual([])
     const ok = await call('email_send', sendArgs(p, args))
     expect(ok.text).toContain('Sent from me@tsb.test to to: ana@client.test, ops@tsb.test, boss@client.test; cc: zed@client.test')
+    expect(ok.text).toContain('daily work log')
     expect(sent[0]!.threadId).toBe('t100')
     expect(sent[0]!.mime).toContain('To: ana@client.test, ops@tsb.test, boss@client.test\r\nCc: zed@client.test\r\n')
   })

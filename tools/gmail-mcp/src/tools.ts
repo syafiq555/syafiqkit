@@ -500,7 +500,7 @@ export function registerTools(
       }
       const logNote = log('SENT', sent.id ?? '-')
       const withFiles = m.data.length ? ` with ${count(m.data.length, 'file')}` : ''
-      return `Sent from ${m.from} to ${m.recipients}${withFiles} at ${localTime(new Date(now()).toISOString())}. Message ${sent.id ?? '-'}, thread ${sent.threadId ?? '-'}.${logNote}`
+      return `Sent from ${m.from} to ${m.recipients}${withFiles} at ${localTime(new Date(now()).toISOString())}. Message ${sent.id ?? '-'}, thread ${sent.threadId ?? '-'}.${logNote} If this finished work or set or moved a meeting, date or plan, and the user's instructions name a daily work log, update today's and the affected day's rows from what the thread agreed, not the earlier plan.`
     }),
   )
 }

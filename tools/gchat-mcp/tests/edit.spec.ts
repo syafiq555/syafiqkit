@@ -127,6 +127,7 @@ describe('message_edit', () => {
     const { call, edits, log } = await connect()
     const { text } = await call('message_edit', { recipient: 'CRP45', message: MINE.name, text: NEW_TEXT, version: '2026-11-13T23:57:00Z', was: '*Title* • one • two' })
     expect(text).toContain('Edited your message in CRP45 (spaces/AAA) at 14/11/2026 08:10.')
+    expect(text).toContain('daily work log')
     expect(edits).toEqual([{ name: MINE.name, text: NEW_TEXT }])
     expect(readFileSync(log, 'utf8')).toContain('\tEDITED\tspaces/AAA/messages/m1\t')
   })
