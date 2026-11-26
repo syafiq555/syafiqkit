@@ -103,7 +103,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 | `/casual-message` | Write a casual 1:1 message in your own voice — a WhatsApp reply, a colleague DM, "tell X that…"; short, in a copyable fence, matches how you actually talk (including casual Malay/Manglish) |
 | `/continue-session` | Produce the copy-paste prompt that starts a fresh session where this one stopped — doc path, next goal, uncommitted state; next session asks open decisions |
 | `/md-to-pdf` | Convert Markdown to PDF with rendered Mermaid diagrams |
-| `/doc-to-md` | Convert a Word, PDF or Excel file to Markdown, so versions can be compared as git diffs |
+| `/doc-to-md` | Convert a Word, PDF, Excel file, scan or photo of a document to Markdown, so versions can be compared as git diffs; scanned pages are read by OCR on your own machine |
 | `/docx-red-edits` | Edit someone else's Word file with every change in red (deletions struck through in red), keeping their formatting byte for byte |
 | `/sign-pdf` | Sign, initial and date a PDF form with your own signature, found on your laptop. You confirm the signature and the boxes first, and get a signed copy checked by eye; the original stays untouched |
 | `/excalidraw-board` | Draw a task doc or worklist as a black-and-white Excalidraw discussion board (gates, waiting-on, parked-with-revive-trigger, live decisions strip), pasted into the user's excalidraw.com tab |

@@ -62,7 +62,7 @@ Chosen by the user from a ranked list of five (flash check left out):
 
 **Rejected**
 - A hard error for reading time. Why not: the thresholds come from subtitle guides for long-form TV; a short promo may break them on purpose.
-- Checking text inside captured screens for prices and dates. Why not: no OCR; the reference tells the session to read the sheet (the Autorentic screens show "RM 1,649.91" and due dates).
+- Checking text inside captured screens for prices and dates inside `check` itself. Why not: `check` stays a fast story-words linter. Since 1.478.0 (26/11/2026) `references/store-presets.md` has the session OCR each captured screen with `doc-to-md`'s `ocr_to_md.py` (Apple Vision on a Mac) and search for `RM`, currency signs and dates, then look at the sheet (the Autorentic screens show "RM 1,649.91" and due dates). See `tasks/plugin-maintenance/doc-to-md/current.md`.
 
 **Consequences**
 Two App Store questions stay open for the user per film: the engine animates still screenshots rather than recording the app, and draws a device frame; Apple's pages name neither. Nothing checks the muxed MP4 (size, audio bitrate) for a store upload.

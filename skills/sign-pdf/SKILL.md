@@ -32,7 +32,7 @@ A small source image stamped wide prints soft. If the image's width in pixels di
 
 `pdftotext -bbox form.pdf out.html` lists every word with its coordinates in PDF points from the page's top-left; each `<page>` tag starts a page. Find the "Signature", "Initials" and "Date" labels, then render those pages (`pdftoppm -r 70 -f N -l N`) and look: the label says where the box is, the picture says whether the mark goes above a line, inside a table cell or beside the label.
 
-A scanned form has no text layer, so the bbox file comes back empty. Render the page instead and read positions off the picture: a pixel position times `72 / dpi` is the point coordinate. (`tesseract page.png - tsv` gives word positions in pixels if the labels need finding.)
+A scanned form has no text layer, so the bbox file comes back empty. Render the page instead and read positions off the picture: a pixel position times `72 / dpi` is the point coordinate. (`tesseract page.png - tsv` gives word positions in pixels if the labels need finding.) When the form's wording matters too (what is being agreed to, which box is whose), make a text copy with `python3 -I ${CLAUDE_SKILL_DIR}/../doc-to-md/scripts/ocr_to_md.py form.pdf /tmp/form.md`, which reads scanned pages through OCR, and read that rather than guessing from the picture.
 
 Then **list the boxes for the user and wait for a yes**: page, label, and what goes in each. Leave any box meant for someone else (joint applicant, guarantor, witness, bank officer) empty and say so. On tick boxes, judge by what the tick commits them to:
 

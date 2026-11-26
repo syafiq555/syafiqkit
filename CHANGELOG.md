@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.478.0
+
+**`/doc-to-md` now reads scanned PDFs, photos and screenshots of documents, using OCR on your own machine. Before this, a scanned PDF converted to an empty Markdown file with no warning.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Ask in plain words: "convert this scanned pdf to md", "OCR this", "read this scan", "extract the text from this photo". A PDF with both typed and scanned pages is handled page by page: typed pages keep their own text, scanned pages go through OCR. An all-typed PDF converts byte for byte as before, so copies already kept in git show no false diff.
+- **Uses Apple Vision, the text reader built into macOS**: files never leave your machine and there is no page limit. Photos and screenshots need nothing installed; PDFs need poppler (`brew install poppler`), which the earlier PDF converter already used. Measured on an Apple M4: about 90 MB of memory; under a second for a photo, 1 to 3 s for a scanned PDF page, about 7 s for a sideways one, and up to 30 s extra for the first page after a restart. Sideways, upside-down and slightly tilted pages are straightened, table rows are rebuilt as Markdown tables, and English and Malay are read by default. On Linux it uses `tesseract` (`apt install tesseract-ocr`), plain text only.
+- **Diagrams, charts and stamps**: OCR reads only their words, so each scanned page (and each photo you convert) is also saved as a picture in a `pages/` folder beside the copy, linked from the text. Ask Claude what a diagram shows and it opens that picture. `--no-pages` skips the pictures for a long scan you only need the words of.
+- Nothing passes silently any more: a page with no words read ends with `EMPTY pages ...` (exit code 2), a page with very little text is flagged as probably a diagram or photo, and a typed page carrying a diagram or pasted scan gets a line saying so, with `--ocr-all` to read it.
+- OCR misreads names, IC numbers and amounts on poor scans, and can drop a lone `1` from a table cell, so check any figure you quote against the page picture.
+- `/read-summary` now sends a scanned or photographed document the work depends on (a contract, invoice or signed form) through `/doc-to-md` before anything is quoted from it. `/sign-pdf` points to it for reading a scanned form's wording, and `motion-clip`'s store check uses it to find prices and dates inside captured screens.
+- Not chosen: Baidu's PaddleOCR-VL (reads tables and charts better, but used about 9 GB of memory per run on a Mac, too heavy for a normal laptop; its 4-bit version still needed 2.7 GB and a 1.6 GB install), Baidu's Unlimited-OCR 2 (needs an Nvidia GPU), and Baidu's hosted OCR API (uploads files to servers in China).
+- `/score-loop`: when the work runs something heavy (a local model, a build), judges now run it one at a time and you measure speed and memory yourself on a quiet machine first, so parallel judges no longer swamp a laptop or score timings taken under each other's load.
+- For skill authors: `${CLAUDE_SKILL_DIR}` expands in a SKILL.md body but not in a `references/` file opened with Read, where a command carrying it reaches the shell with the variable empty. The authoring notes now say so.
+
 ## 1.477.0
 
 **In the terminal, every image Claude reads now shows up right under its Read line, like the mobile app does. The `/sk` menu is gone.**

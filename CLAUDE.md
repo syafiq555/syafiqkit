@@ -70,7 +70,7 @@ These skills accept explicit user command:
 | `brainstorming` | Design exploration before creative or architectural work |
 | `commit-invoice-generator` | Invoice line items from git commits |
 | `md-to-pdf` | Markdown to PDF with rendered Mermaid diagrams |
-| `doc-to-md` | `.docx`, `.pdf` or `.xlsx` to Markdown, so each version is a readable diff |
+| `doc-to-md` | `.docx`, `.pdf`, `.xlsx`, scan or photo of a document to Markdown, so each version is a readable diff; scanned pages read by OCR on the machine (Apple Vision on a Mac, tesseract elsewhere), each scanned page kept as a picture for diagrams |
 | `docx-red-edits` | Edit someone else's Word file with red changes, their formatting untouched (Word Track Changes is `docx`) |
 | `sign-pdf` | Sign and date a PDF form with the user's own signature image, after they confirm it; writes a copy, never sends. Certificate signing and form filling are not it |
 | `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw board. Charts are `dataviz` |
