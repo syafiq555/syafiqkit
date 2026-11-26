@@ -29,7 +29,3 @@ A dedicated capture spec, skipped unless an env flag is set (GB Mart: `MANUAL=1`
 ## Design pass {#design-pass}
 
 Rendered screens at 375, 768 and 1280 in each colour scheme, every capture opened (`uiux`, `impeccable` critique).
-
-## Report {#report}
-
-The role-to-book matrix, how many screens the context map covers and which page routes are unmapped, where the guides now live and how to edit them, and which project rule now ties a screen change to its guide task.

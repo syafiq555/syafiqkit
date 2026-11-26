@@ -18,6 +18,12 @@ description: >
 
 A user manual and a help centre carry the same Markdown; what differs is how readers reach it and how it stays true. A manual is read as a document. A help centre is reached mid-task, from the screen the reader is stuck on, by someone who reads only their own part, in a product that changes every release. So the build is mostly routing (who reads which book, which screen points at which task) and upkeep, not prose.
 
+Start from what exists:
+
+- **No guide yet**: write one with `user-manual` first, then decide below whether it ships as a manual or a help centre.
+- **A manual exists**: decide by size below; if it is a help centre, § Converting.
+- **A help centre exists** and a screen was added or changed: § Upkeep is the whole job.
+
 ## Manual or help centre: decide by size {#manual-or-help-centre}
 
 Judge it from the system, not from taste:
@@ -30,9 +36,9 @@ Judge it from the system, not from taste:
 | Who reads it | People without accounts, or the client's sign-off | The app's own logged-in users |
 | How it's used | Read once, start to finish, or printed | Looked up mid-task, searched |
 
-A small system served as a help centre spends a parser, routes and tests on twenty pages nobody searches; a big system served as a manual gives every reader a long file mostly about other people's jobs. A manual that has grown into the right column is converted, not rewritten: the signals are "I can't find anything in it", "which part is for me", and support questions about screens the manual already covers.
+A small system served as a help centre spends a parser, routes and tests on twenty pages nobody searches; a big system served as a manual gives every reader a long file mostly about other people's jobs. When the signals split, role count and change rate outweigh screen count: three roles on eight screens still want a book each. Recommend from the signals and let the user confirm, since the help centre is a build (parser, routes, search, tests) and the manual is a document. A manual that has grown into the right column is converted, not rewritten: the signals are "I can't find anything in it", "which part is for me", and support questions about screens the manual already covers.
 
-A **public** guide, or one for people with no account, is neither: write it with `user-manual` and publish it on a static docs site (Starlight, Docusaurus, MkDocs), since serving one inside the app adds a login nobody needs.
+A **public** guide, or one for people with no account, is neither: write it with `user-manual` and publish it on a static docs site (Starlight, Docusaurus, MkDocs), since serving one inside the app adds a login nobody needs; that site costs its own build, deploy and theme to keep matched. A system with both (logged-in staff guides plus a public customer guide) runs both: the help centre for the roles with accounts, a docs site for the public book, written from the same Markdown conventions.
 
 ## Content shape for a help centre {#content-shape}
 
@@ -55,21 +61,21 @@ The usual path, since a system tends to start small. Keep the Markdown; change w
 
 Record these in the plan; each changes the build:
 
-- **Which role reads which book**, as a small matrix. One book for everyone skips the books layer; a role reading several books (staff reading the seller guide to help a seller) needs book-scoped URLs; a reader who must never see another role's procedures is enforced on the server, not hidden in the menu.
-- **The file layout and heading levels the parser trusts**; a test fails when a guide's levels stop matching.
+- **Which role reads which book**, as a small matrix. One book for everyone skips the books layer; a role reading several books (support staff reading the customer guide) needs book-scoped URLs; a reader who must never see another role's procedures is enforced on the server, not hidden in the menu. Propose the matrix and ask the user to confirm it: it decides who sees whose procedures.
+- **Where help links already point** (UAT sheets, sent emails, a PDF's section names): headings become page addresses, so the anchors are chosen to keep those links working.
+- **The file layout and heading levels the parser trusts**, checked by a test.
 - **One language assumed**; a second language is a book per locale.
 - **Whether a new screen must have a "Help for this screen" entry**: either a test that fails on a page route with no entry and no explicit "no help" marker, or a written rule (§ Upkeep). This is the user's call; ask it.
 
 ## Build order {#build-order}
 
-1. Move the guides where the production artifact can read them.
+1. Move the guides where the production artifact can read them (when converting, § Converting).
 2. Parser and sections, with a unit test on a fixture guide.
 3. Access guard and the authenticated image route.
 4. Pages: home, article, contents. This is the smallest slice worth shipping.
 5. Search, then the command palette's quick find.
 6. The "Help for this screen" map and its link in the shared page header.
 7. Tests over the real guides and the e2e spec, then the design pass.
-8. Retire the PDF half of the build, if asked.
 
 📖 **`references/server-and-screens.md` before step 2**: parsing and sanitising, one page per heading, books by role on the server, link rewriting, the parse cache's version key, search scoring, the context map's matching rule, and the screens. 📖 **`references/verify.md` before calling it done.**
 
@@ -77,10 +83,19 @@ Record these in the plan; each changes the build:
 
 A manual goes stale where someone notices; a help centre goes stale behind a "Help for this screen" link that still works and lands on the wrong steps. Nothing automatic compares a guide's prose with the screen it describes (docs-as-code puts guide and code in one change, but git "could not tell you which untouched documentation should have changed too", 📖 https://slite.com/learn/docs-as-code), so the guard is a rule in the place builders read, plus tests for the parts a machine can check:
 
-- **Write the rule into the target project's CLAUDE.md as part of the build**: a change to anything a reader sees updates its guide task, and its context-map entry, in the same piece of work; an anchor is a link address; a parser change raises the parser version constant or the cached old rendering keeps being served. Where the project keeps UAT checks that name guide sections, the same rule covers them.
+- **Write the rule into the target project's CLAUDE.md as part of the build**: a change to anything a reader sees updates its guide task, and its context-map entry, in the same piece of work (and, where the user chose the written rule over a test, a new screen gets an entry or a stated "no help"); an anchor is a link address; a parser change raises the parser version constant or the cached old rendering keeps being served. Where the project keeps UAT checks that name guide sections, the same rule covers them.
 - **Tests that run over the real guides** catch the mechanical drift: a broken in-guide link, a missing image, a map entry whose route or anchor no longer exists (📖 `references/verify.md`).
 - **Screenshots come from a capture spec**, re-run when a screen changes, with the image folder diffed against what the guides reference.
 
+**Adding or changing one screen** in a help centre that exists: update the task page the screen's first step belongs to (or add one with a new stable anchor), add or fix the screen's context-map entry, re-run the capture spec for its pictures, then the real-guide tests.
+
+**Adding a role** touches the book list, the surface-to-books matrix (confirmed with the user, as above), the help gate, the image route's book check and the context map's per-surface resolution. **Adding a language** is a book per locale; decide whether anchors are shared across locales (so a screen's link works in every language) and rank the reader's own locale first in search.
+
 ## Report {#report}
 
-The role-to-book matrix, how many screens the map covers and which are unmapped, where the guides live and how to edit them, and the CLAUDE.md line that now ties a screen change to its guide.
+- What was decided and by whom: the manual-or-help-centre call, the role-to-book matrix, whether unmapped screens fail a test, which Word or PDF editions were kept.
+- The map's coverage: screens mapped, page routes left unmapped.
+- Where the guides live, how to edit them, and the CLAUDE.md line that ties a screen change to its guide.
+- Anchors renamed or links repointed during a conversion.
+- Whose data the screenshots show.
+- What was not run (e2e, design pass, the `noindex` check), named rather than implied.

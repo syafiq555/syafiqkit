@@ -17,6 +17,7 @@ Invoke skills directly by name: `/syafiqkit:<name>`. Skills are organized by inv
 ```bash
 git config core.hooksPath .githooks        # once per checkout; reasons in Version Bumping
 claude plugin update syafiqkit@syafiqkit   # once after all changes land; reasons in Version Bumping
+git push origin master                     # the branch is master, not main; HEAD:main creates a stray remote branch
 ```
 
 ## Project Docs {#project-docs}
