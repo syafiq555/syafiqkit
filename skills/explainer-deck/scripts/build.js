@@ -258,6 +258,24 @@ function checkFigures(parts, where) {
   }
 }
 
+function pngSize(file) {
+  const b = fs.readFileSync(file);
+  if (b.length < 24 || b.toString('ascii', 1, 4) !== 'PNG') return null;
+  return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+}
+function checkScreen(s, where) {
+  words(s.heading, 5, `${where} heading`);
+  if (s.sub != null && s.sub.length > 100) bad(where, 'sub is over 100 characters');
+  count(s.bullets, 1, 5, where, 'bullets').forEach((b) => words(b, 14, `${where} bullet`));
+  if (s.status != null) words(s.status, 4, `${where} status`);
+  (s.waits_on || []).forEach((w) => words(w, 3, `${where} waits_on`));
+  if (s.caption != null) words(s.caption, 12, `${where} caption`);
+  const file = s.image && path.resolve(specDir, s.image);
+  if (!file || !fs.existsSync(file)) bad(where, `image "${s.image}" not found`);
+  else if (!pngSize(file)) bad(where, `image "${s.image}" is not a PNG`);
+  checkFigures([s.sub, s.bullets, s.caption], where);
+}
+
 const raw = JSON.stringify(spec);
 if (raw.includes('\u2014')) bad('spec', 'em dash found; use a colon, comma or brackets');
 const slides = count(spec.slides, 1, 80, 'spec', 'slides');
@@ -276,7 +294,8 @@ slides.forEach((s, i) => {
   else if (s.type === 'table') { words(s.heading, 5, `${where} heading`); checkVisual({ kind: 'ledger', columns: s.columns, rows: s.rows, total: s.total }, where); checkFigures([s.sub, s.rows, s.total], where); }
   else if (s.type === 'mechanism') checkMechanism(s, where);
   else if (s.type === 'journey') checkJourney(s, where);
-  else bad(where, 'type must be title, section, hero, text, table, mechanism or journey');
+  else if (s.type === 'screen') checkScreen(s, where);
+  else bad(where, 'type must be title, section, hero, text, table, mechanism, journey or screen');
 });
 if (tracker) tracker.forEach((t, i) => words(t, 2, `tracker ${i + 1}`));
 
@@ -370,7 +389,7 @@ function dark(slide) { slide.background = { color: T.ink }; }
 function bottomStrip(slide, s) {
   const waits = s.waits_on || [], rw = waits.length ? 3.6 : 0;
   if (s.rule) slide.addText([{ text: `${STRIP}  `, options: { bold: true, color: T.accent } }, { text: s.rule, options: { color: T.ink } }], txt({ x: M, y: 6.25, w: CW - rw - (rw ? 0.15 : 0), h: 0.85, fontSize: fit(`${STRIP}  ${s.rule}`, CW - rw - 0.4, 0.75, 12, 10.5), valign: 'middle', fill: { color: T.ground }, margin: [6, 12, 6, 12], shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
-  if (waits.length) slide.addText([{ text: WAITS, options: { bold: true, breakLine: true } }, { text: waits.join('\n'), options: { bold: true, fontSize: waits.length > 2 ? 11.5 : waits.length > 1 ? 14 : 17 } }], txt({ x: M + CW - rw, y: 6.22, w: rw, h: 0.92, fontSize: 11.5, color: T.onAccent, valign: 'middle', align: 'center', fill: { color: T.open }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
+  if (waits.length) slide.addText([{ text: WAITS, options: { bold: true, breakLine: true } }, { text: waits.join('\n'), options: { bold: true, fontSize: waits.length > 2 ? 11.5 : waits.length > 1 ? 14 : 17 } }], txt({ x: M + CW - rw, y: 6.22, w: rw, h: 0.92, fontSize: 11.5, color: T.open, valign: 'middle', align: 'left', margin: [4, 12, 4, 12], fill: { color: T.openBg }, line: { color: T.open, width: 1 }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
 }
 
 const LAYOUT = {
@@ -432,6 +451,25 @@ const LAYOUT = {
     const lines = s.example.lines;
     slide.addText(lines.map((l, i) => ({ text: l, options: { bullet: { type: 'number' }, breakLine: i < lines.length - 1, paraSpaceAfter: 7 } })), txt({ x: ex + 0.18, y: vy + 0.6, w: ew - 0.36, h: exH - 0.7, valign: 'top', fontSize: fit(lines.map((l) => `${l}   `), ew - 0.7, exH - 0.75 - lines.length * 0.1, 14, 11), color: T.ink }));
     bottomStrip(slide, s);
+  },
+  screen(slide, s) {
+    heading(slide, { kicker: s.kicker || 'Built', heading: s.heading, sub: s.sub, owner: s.owner }, 1.05);
+    const y = 2.0, lw = 3.0, gap = 0.15, ix = M + lw + gap, iw = W - ix - 0.15;
+    const waits = s.waits_on || [];
+    let ly = y;
+    if (s.status) {
+      slide.addText(s.status, txt({ x: M, y: ly, w: lw, h: 0.4, fontSize: 13, bold: true, valign: 'middle', align: 'center', color: T.oursInk, fill: { color: T.ours }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
+      ly += 0.55;
+    }
+    const ch = s.caption ? 0.5 : 0;
+    const wh = waits.length ? 0.4 + waits.length * 0.3 : 0, bh = 7.2 - ly - (wh ? wh + 0.12 : 0) - ch;
+    slide.addText(s.bullets.map((b, i) => ({ text: b, options: { bullet: { indent: 18 }, breakLine: i < s.bullets.length - 1, paraSpaceAfter: 10 } })), txt({ x: M, y: ly, w: lw, h: bh, fontSize: fit(s.bullets, lw - 0.4, bh - s.bullets.length * 0.18, 17, 12), color: T.ink }));
+    if (waits.length) slide.addText([{ text: WAITS, options: { bold: true, breakLine: true } }, { text: waits.join('\n'), options: { bold: true, fontSize: 13 } }], txt({ x: M, y: 7.2 - ch - wh, w: lw, h: wh, fontSize: 11.5, color: T.open, valign: 'middle', align: 'left', margin: [4, 12, 4, 12], fill: { color: T.openBg }, line: { color: T.open, width: 1 }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.06 }));
+    if (s.caption) slide.addText(s.caption, txt({ x: M, y: 7.2 - ch + 0.08, w: lw, h: ch - 0.08, fontSize: 9.5, color: T.soft, valign: 'bottom' }));
+    const file = path.resolve(specDir, s.image), dim = pngSize(file);
+    const bhImg = 7.3 - y;
+    const scale = Math.min(iw / dim.w, bhImg / dim.h), w = dim.w * scale, h = dim.h * scale;
+    slide.addImage({ path: file, x: ix + (iw - w) / 2, y, w, h });
   },
 };
 
