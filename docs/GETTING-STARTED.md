@@ -59,7 +59,7 @@ Run `/agent-setup` again later when the plugin updates its agent templates or an
 ## 5. Your daily loop {#daily-loop}
 
 1. **Start:** `/read-summary <area or question>`. Claude finds the right task doc and reads it before touching anything. Example: `/read-summary why do refunds skip the ledger?`
-2. **Work:** ask for what you need in plain words. If you only know "carry on from the doc", use `/tackle`.
+2. **Work:** ask for what you need in plain words. To see what you can do now and what's blocked, use `/unblock`.
 3. **Wrap up:** `/done`. It tidies the code, runs a review, and writes what you learned into the task doc and CLAUDE.md. For a tiny change, `/quick-done` does just the doc update.
 4. **Save:** `/commit` (or `/commit push`).
 5. **Release** (when it should go live): `/ship`. It commits, writes the changelog, pushes, checks CI and drafts the release note.
@@ -98,7 +98,7 @@ Say "set up the Google Sheets / Google Chat / remote tool for me". `/setup-tools
 
 ```mermaid
 flowchart LR
-  A["/read-summary<br/>read the task doc"] --> B["Work<br/>(or /tackle)"]
+  A["/read-summary<br/>read the task doc"] --> B["Work<br/>(or /unblock)"]
   B --> C["/done<br/>review + update docs"]
   C --> D["/commit"]
   D --> E{"Going live?"}

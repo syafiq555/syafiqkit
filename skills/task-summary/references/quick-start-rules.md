@@ -2,9 +2,9 @@
 
 Place immediately after the `# Title` and before `## Overview`. **Rewrite on every update** (same principle as all other sections — edit in place, don't append), unless §1's ownership guard fired (then additive only). A cold-start agent reads only this section before acting — if it can't act from Quick Start alone, the section is insufficient.
 
-## Five Questions to Answer
+## Six Questions to Answer
 
-Must answer these 5 questions in ≤15 lines total:
+Must answer these 6 questions in ≤15 lines total:
 
 | # | Question | Format |
 |---|----------|--------|
@@ -13,6 +13,7 @@ Must answer these 5 questions in ≤15 lines total:
 | 3 | What's the current state? | Bullet points — committed vs uncommitted, local vs prod, DB state |
 | 4 | What gotchas will trip me up? | 2-3 critical ones only (e.g., "MUST use --queue not sync") |
 | 5 | What does "success" look like? | One sentence with concrete numbers/expected output |
+| 6 | What's blocked, on whom, and what would unblock it? | One line per blocker; "nothing blocked" when true, never omitted |
 
 ## Litmus Test
 

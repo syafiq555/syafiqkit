@@ -64,7 +64,7 @@ It draws nothing in the VS Code panel or `claude -p`. It runs with your permissi
 | Give a side project its own address (and R2 for its photos, if it has any) | `/side-domain` |
 | Wrap up after a task (review, tidy, update docs) | `/done` — or `/quick-done` for a small session |
 | Read a task doc before answering or building | `/read-summary <path>` |
-| Carry on from a doc, picking what is buildable | `/tackle` |
+| See what you can do now, what's blocked and on whom, checked against git, tracker and chat | `/unblock` |
 | Hand work off to a new or parallel session | `/continue-session` |
 | Shrink a task doc, or split one over 300 lines or with a decisions file over 40 KB | `/condense-task-doc` |
 | Shrink a CLAUDE.md | `/condense-claude-md` |
@@ -80,8 +80,7 @@ Four skills can rewrite a CLAUDE.md, so pick by what you want: `/condense-claude
 |-------|-------------|
 | `/commit` | Create git commits from staged changes; single-repo and multi-repo. Add `push` (`/commit push`) to push as well |
 | `/read-summary` | Load existing task summary for context |
-| `/tackle` | Vague multi-item doc continuation only — reads the doc, judges what's buildable, builds it (use `/read-summary` for a specific ask) |
-| `/plan-worklist` | Turn a pre-scoped list of items (findings, backlog, ClickUp paste) into a build plan — dispatches `product-reviewer` to size/sequence them, then stops before writing code |
+| `/unblock` | What you can do now, what's waiting on whom, and what needs your decision, from every task doc read whole and checked against git, tracker and chat; says what it couldn't check and lists stale doc lines without editing them |
 | `/score-loop` | Score work against a fixed rubric out of N (10 criteria scored 0/1/2, or yes/no checks for a design, shown on the scale you name), fix the gaps, re-score with an independent reviewer, and repeat until it meets your stop rule; if the score stalls it asks whether to keep one reviewer beside a fresh one (both scores shown, both must reach your target), go on or stop |
 | `/judgement` | Something came up mid-task that may not be yours to decide — measure who the change newly affects, then decide it yourself or escalate with the number attached |
 | `/write-summary` | Create new task documentation (thin pointer → `task-summary`) |

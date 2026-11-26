@@ -87,7 +87,7 @@ The same routing check runs the other way on Next Steps: every canonical example
 
 ## Quick Start Section
 
-Place immediately after the `# Title` and before `## Overview`. A cold-start agent reads only this section — if it can't act from Quick Start alone, it's insufficient. State what's happening now (status), what's unblocked (what can start next turn), and what's blocked (waiting on whom/what). Never mention prior work or narrate the session that led here. 📖 `${CLAUDE_SKILL_DIR}/references/quick-start-rules.md` for the five questions and environment resource rules.
+Place immediately after the `# Title` and before `## Overview`. A cold-start agent reads only this section — if it can't act from Quick Start alone, it's insufficient. State what's happening now (status), what's unblocked (what can start next turn), and what's blocked (waiting on whom/what). Never mention prior work or narrate the session that led here. 📖 `${CLAUDE_SKILL_DIR}/references/quick-start-rules.md` for the six questions and environment resource rules.
 
 ## Credentials
 

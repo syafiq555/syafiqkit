@@ -59,13 +59,12 @@ These skills accept explicit user command:
 | `task-summary` | Create/update task summaries with full machinery |
 | `ship` | End-to-end release: commit → changelog → push → CI verify → release note |
 | `side-domain` | Put a side project on `<name>.<umbrella>` on the VPS, 301 its temporary host, and move uploads to R2 only when it stores any |
-| `plan-worklist` | Pre-scoped list (findings, backlog, ClickUp paste) → `product-reviewer` sizes each → present the plan, don't build |
 | `score-loop` | "Score it out of 20 and keep improving": frozen rubric, fresh judge per round (or a kept judge beside a fresh one, scored separately). A single review is `done`/`uiux`/`impeccable` |
 | `posthog-replay-frames` | "What did this user see", "check the replay": one person's PostHog events, then screenshots of the shared replay at the moments they point to |
 | `done` | Post-task cleanup orchestrator |
 | `quick-done` | Fast cleanup for sessions known to be small and low-risk |
 | `read-summary` | Read task docs or project CLAUDE.md before answering, investigating or implementing |
-| `tackle` | Vague multi-item continuation ("let's continue"): build what's buildable, then `done`. A specific ask is `read-summary`'s |
+| `unblock` | "What can I do now / what's blocked / what's left" across a project: every open item read whole (haiku per big doc), checked against git, tracker and chat, sorted into can-do, waiting and decisions, with what wasn't checked named; stale doc lines reported, not edited. Then builds the can-do list here on a go |
 | `judgement` | Mid-task finding not yet yours to decide: measure who it affects, then decide or escalate. Shaping a decided question is `decision-first-output.md` |
 | `brainstorming` | Design exploration before creative or architectural work |
 | `commit-invoice-generator` | Invoice line items from git commits |
@@ -73,7 +72,7 @@ These skills accept explicit user command:
 | `doc-to-md` | `.docx`, `.pdf` or `.xlsx` to Markdown, so each version is a readable diff |
 | `docx-red-edits` | Edit someone else's Word file with red changes, their formatting untouched (Word Track Changes is `docx`) |
 | `sign-pdf` | Sign and date a PDF form with the user's own signature image, after they confirm it; writes a copy, never sends. Certificate signing and form filling are not it |
-| `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw board. Charts are `dataviz`; deciding what to build is `plan-worklist` |
+| `excalidraw-board` | Task doc or worklist → black-and-white Excalidraw board. Charts are `dataviz` |
 | `motion-clip` | Designed launch, promo or explainer video as code, storyboard and sound approved first. Test-run recordings are `setup-playwright` |
 | `product-still` | Designed still from real captured screens, rendered to PNG with phone and transparent variants. Video is `motion-clip` |
 | `setup-tracker` | Shared tracker sheet for a project or master, built from a JSON config. UAT scripts and huddles are out of scope |
@@ -114,6 +113,7 @@ These skills accept explicit user command:
 | Skill | Trigger |
 |-------|---------|
 | `read-summary` | Before answering architectural, investigative or project-context questions |
+| `unblock` | "What's unblocking", "what can we do now", "what's blocked", "any development I can do", "what else left", typed bare or as `/read-summary` args |
 | `brainstorming` | Before creative or architectural design work |
 | `judgement` | About to send an unmeasured either/or ("should I fold this in", "is this in scope"), or about to stay silent on a real finding |
 | `haiku` | Brute-force work over more items than one context reads well (every case of a script against the code, every commit since a date, every row of a register), unnamed: split across parallel haiku agents |
@@ -154,7 +154,7 @@ These skills accept explicit user command:
 | Skill | Spawned by |
 |-------|-----------|
 | `task-summary` | `/write-summary`, `/update-summary`, `/done` |
-| `read-summary` | `/tackle` (`/done` no longer reads task docs itself) |
+| `read-summary` | Invoked directly; it routes project-wide "what's blocked" asks to `unblock`, which never calls it back (`/done` no longer reads task docs itself) |
 | `brainstorming` | Invoked directly; `skills/done/SKILL.md` does not call it |
 
 ### Commands {#slash-commands}

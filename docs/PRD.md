@@ -33,12 +33,12 @@ Why now: [TBD — no statement of why the plugin was opened to colleagues beyond
 
 | Job | What exists | Status |
 |---|---|---|
-| Capture and recall | Task docs (`task-summary` family), `read-summary`, `tackle`, `continue-session`, session journals | Live |
+| Capture and recall | Task docs (`task-summary` family), `read-summary`, `unblock`, `continue-session`, session journals | Live |
 | Wrap up and release | `done`, `quick-done`, `commit`, `ship` | Live |
 | Maintain docs and instructions | `update-claude-docs`, `condense-*`, `unhobble-instructions`, `refresh-instructions`, `merge-task-docs`, `sweep-doc-overlaps`, `setup-project-docs` | Live |
 | Maintain the plugin | `skill-creator`, `update-plugin`, `agent-setup` and its agent templates | Live |
 | Communicate | `casual-message`, `gchat-format`, `md-to-pdf`, `excalidraw-board`, `user-manual` | Live |
-| Design and build judgement | `uiux`, `design-handoff`, `brainstorming`, `judgement`, `plan-worklist`, `setup-playwright`, `extract-shared-package`, `function-parameter-limits` | Live |
+| Design and build judgement | `uiux`, `design-handoff`, `brainstorming`, `judgement`, `setup-playwright`, `extract-shared-package`, `function-parameter-limits` | Live |
 | Operations and billing | `pull-db`, `ci-ssh-deploy-timeout`, `commit-invoice-generator` | Live |
 | Delegation | `haiku` | Live |
 | Output style | `SessionStart` hook injecting `hooks/RULESET.md` | Live; delivered only as a 2,000-char preview from 2026-09-17 until the 2026-10-08 cut ships; adherence unverified from outside a session |

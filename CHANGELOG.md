@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.474.0
+
+**New `/unblock`: ask "what can I do now?" in any project and get what's buildable, what's waiting on whom, and what needs your decision, checked against what actually happened since the docs were written.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Type it bare (`/unblock`) or in plain words, including inside `/read-summary`: "what's unblocking for me to do?", "what's blocked, what would unblock them?", "any development I can do?", "what else is left?".
+- Reads every open item across task docs and their decisions files in full, however large (big docs are split across haiku agents), then checks each against git, the tracker and team chat newer than the doc.
+- The answer always says which docs or sources it could not check, so "nothing blocked" never hides "not checked". Doc lines that look out of date are listed for you, never edited.
+- Development scope by default: it leaves production servers and databases alone unless you ask, and lists anything only production could confirm as "production not read".
+- After the list it asks your open decisions, then offers to build the "I can build" items in the same session.
+- **Removed `/tackle` and `/plan-worklist`.** "Let's continue" now goes through `/read-summary`, which builds only the unblocked items, names the rest, then runs `/done`. "What can we do now" goes through `/unblock`. A pasted backlog you want sized first: ask for a plan in plain words.
+- New task docs get a "Blocked:" line in their Quick Start, so the next "what's blocked" question has one place to look. Existing docs are unchanged.
+
 ## 1.472.1
 
 **`weekly-report` now gathers facts before drafting, asks you once for what only you know, and counts the boss's "stuck" and pending issues the same way each week.**

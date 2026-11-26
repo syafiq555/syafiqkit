@@ -15,7 +15,7 @@ Last updated: 21/11/2026
 
 ## Quick Start (read this first in next session)
 
-**Next action**: Trigger-test both new skills in a session started AFTER 2026-09-17 — say "reply to syazwan, make it like my standard whatsapp message" and confirm `casual-message` wins over `gchat-format`; say "let's continue" and confirm `tackle` wins over `continue-session`. This cannot be done in the authoring session — a mid-session reload registers the name but not the description (first Gotcha row).
+**Next action**: Trigger-test both new skills in a session started AFTER 2026-09-17 — say "reply to syazwan, make it like my standard whatsapp message" and confirm `casual-message` wins over `gchat-format`; (the `tackle` half is retired: `tackle` was deleted 26/11/2026, so "let's continue" now belongs to `read-summary`). Then, interactively, type `/read-summary what's unblocking for me to do ?` in a real project and confirm `unblock` asks its decisions through `AskUserQuestion` (headless runs cannot show that). This cannot be done in the authoring session — a mid-session reload registers the name but not the description (first Gotcha row).
 **Current state**: Live. `134631f` on `origin/master`; `git show origin/master:.claude-plugin/plugin.json` reads 1.291.0 and both manifests agree there. One release covering twelve versions (1.280.0–1.291.0) accumulated across several sessions. Consumers pick it up with `claude plugin update syafiqkit@syafiqkit`.
 **Success looks like**: Each of the four phrasings routes to the intended skill.
 **Also**: `score-loop`'s judge changes are built as 1.464.3 (Key Technical Decisions); the first real loop after it is their test.
@@ -30,7 +30,8 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 |------|-------|
 | `casual-message` (#29) | ✅ Written, registered, resolves by name |
 | `continue-session` (#30) | ✅ Written, registered, resolves by name |
-| Reciprocal carve-outs | ✅ `gchat-format`, `tackle` both updated |
+| Reciprocal carve-outs | ✅ `gchat-format`, `tackle` both updated (`tackle` later deleted, 1.474.0) |
+| `unblock` (1.474.0) | ✅ Written, registered, routed from the top of `read-summary`. Score-loop 14 → 16 → 17/20 over 3 fresh-judge rounds (cap), headless runs in simply-rozie and azlan-drive-agent; round-3 gaps fixed after. `tackle` and `plan-worklist` deleted the same release |
 | `gchat-format` proactive row | ✅ Added (was direct-only) |
 | Trigger test | ⏸️ Blocked until a fresh session |
 | #29 / #30 closure | ✅ Closed 17/09/2026 |
@@ -48,6 +49,12 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 **#30's auto-offer keys on observable events, not a context estimate.** The issue asked for it to fire "when the session is deep into its context window". A session cannot measure its own remaining context — asking returns willingness, not membership, a failure this repo already paid four agreeing probes for. The proxies are: work parked with a reason, visible compaction, the user saying they're clearing.
 
 **Named `continue-session`, not `/handoff`.** `design-handoff` already owns that vocabulary, and two skills competing on one word both trigger weakly.
+
+**`unblock` is reached through `read-summary`, not its own name (26/11/2026).** Sixty days of transcripts showed the user asking "what's unblocking for me to do ?" almost always as `/read-summary` arguments, and he said he never uses `tackle`. So the routing paragraph sits at the top of `read-summary`, before Discovery, because a Quick Start read first becomes the answer (the measured failure: "So all done ?" while a decisions file held confirmed, unbuilt items). `unblock` reads the root docs itself and never invokes `read-summary` back, which would loop. Rejected: extending `tackle` (it builds and refuses to list; the user doesn't use it) and folding the procedure into `read-summary` (a preamble read once, with no room for a ranked, verified answer).
+
+**`unblock` reports stale doc lines and never edits them; production stays unread unless asked (user, 26/11/2026).** The user chose report-only for staleness. Production was added after round 2, when a headless run queried a live database read-only on a development question; the judge flagged it, and the user had already said "production now also not important, i meant development for now" in an earlier session.
+
+**`tackle` and `plan-worklist` deleted (user, 26/11/2026: "i dont really use them can remove").** "Let's continue" moved into `read-summary`'s Task description shape (build only what is unblocked, name the rest, then `done`). A pasted backlog to size first has no dedicated skill now; the user accepted that as unused.
 
 **D70 — the hidden-overlap check moved to where the skill is drafted, and a second copy went to `update-plugin`.** The rule was correct and unreached: `skill-creator` line 16 prescribed grepping your own feature's vocabulary, and the caveat that a sibling claims the *category* word instead sat in `references/trigger-testing.md`, cited at line 46 — after "Registering it". A session finds it only by opening the reference out of order, which is how the `tackle` overlap was caught here, late. The grep isn't just insufficient, it is actively misleading: it returns clean and reads as a completed check. Fixed at line 16 where the act happens, with the reference kept for the rest. The sweep for who else owns the mechanism found `update-plugin` **maintains** descriptions with zero overlap coverage — a session widening a trigger there can collide exactly the same way — so its Step 5 now carries it too, including that a shared boundary belongs in both descriptions.
 
@@ -83,6 +90,11 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 ### Blocking issue closure
 
 - [ ] 🔴 Trigger-test all four phrasings in a fresh session (see Quick Start) — the one check that settles the overlap risk
+
+### `unblock` follow-ups
+
+- [ ] 🟡 Interactive check that decisions go through `AskUserQuestion` (headless has no such tool), and one run of a bare `/unblock` (only the routed entry was tested).
+- [ ] 🟡 Round 3 scored 17/20 before its fixes (siblings incl. out-of-git folders, agents or you never both, no tables anywhere); a fourth round would confirm 18. Rubric was kept at `/tmp/unblock-score/rubric.md` (session-local): ten criteria from the six measured failures (summary-only "done", sibling repo ignored, answered from doc not live state, wrong scope, truncated big docs, tracker not updated) plus answer shape and proportionality.
 
 ### Score-loop judges
 

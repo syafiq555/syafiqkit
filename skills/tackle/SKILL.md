@@ -1,8 +1,0 @@
----
-name: tackle
-description: Vague multi-item doc continuation ("let's continue", "do the next steps") — read the doc via read-summary, then use judgment on what's actually buildable before starting; don't just ask which items they want. A specific ask, even against a doc, is read-summary's job, not this. Asking for a prompt to carry the work into a FRESH session — "continuation prompt", "I'm running out of context" — is `continue-session`; this skill continues the work here and now.
----
-
-# Tackle
-
-Read the doc via `read-summary`, run its per-item research pass on the items you judge buildable (one `haiku` agent each, § After Reading Docs) before starting them, then invoke `done` when finished. `quick-done` is the exception, not a coin-flip alternative: it captures docs and reviews nothing, so it only fits when what you built turned out small, single-domain, and isn't heading for `/ship` — built code that nobody has reviewed wants `done`. Judge that at the end, against the work done, not from how the request sounded.

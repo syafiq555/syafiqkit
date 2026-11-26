@@ -9,7 +9,7 @@ description: >
   next one", or when a session is ending with work deferred rather than finished.
   Offered by `done` and `quick-done` at wrap-up. This WRITES A PROMPT and stops —
   it does not continue the work. "Let's continue" / "do the next steps", meaning
-  carry on building now in this session, is `tackle`. Briefing a person or an
+  carry on building now in this session, is `read-summary`; "what can we do now" is `unblock`. Briefing a person or an
   external designer is `design-handoff`.
 ---
 

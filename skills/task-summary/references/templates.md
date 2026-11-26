@@ -93,6 +93,7 @@ Last updated: [today]
 **Next action**: [What to do immediately + exact command]
 **Current state**: [One line — committed? pushed? what's in the DB?]
 **Success looks like**: [Expected outcome in one sentence]
+**Blocked**: [What's waiting, on whom, and what would unblock it, or "nothing blocked"]
 
 ## Overview
 [One sentence on what this feature does]
@@ -168,6 +169,8 @@ Last updated: [today]
 **Immediate next actions (in order)**:
 1. [First thing to do — include exact command if applicable]
 2. [Second thing]
+
+**Blocked**: [What's waiting, on whom, and what would unblock it, or "nothing blocked"]
 
 **Key facts for cold start**:
 - [Current code state: committed/uncommitted, pushed/local]

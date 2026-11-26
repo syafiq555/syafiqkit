@@ -11,8 +11,7 @@ description: >
   into a template", and on a pasted screenshot of a tracker sheet to improve. Any team, any client; every
   label is set per project, so any language. NOT for a per-person daily or weekly huddle or timesheet, NOT for
   a UAT test script (test cases with steps and expected results: uat-script), NOT for a project plan or Gantt chart, NOT
-  for moving work into ClickUp, Jira or Linear boards (configure that tool directly), and NOT for planning
-  which items to build (`plan-worklist`).
+  for moving work into ClickUp, Jira or Linear boards (configure that tool directly).
 ---
 
 # Set up a tracker
