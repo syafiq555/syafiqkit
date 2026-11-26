@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.482.0
+
+**After a Chat message is sent, Claude is reminded to update your daily work log (a huddle sheet, a standup doc) when the message finished work or set or moved a meeting or plan. Before this, the log was only checked at `/done` and `/ship`, so a reply sent after the wrap-up left it stale.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Google Chat send: the "Sent to ..." confirmation now carries the reminder, and asks for the rows to be written from what the thread agreed, not from the plan written earlier.
+
 ## 1.481.1
 
 **The link rule from 1.481.0 now applies to every Chat post, edit and reply, not only release notes, and never links an internal file in a client post.**

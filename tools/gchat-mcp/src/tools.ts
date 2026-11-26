@@ -438,7 +438,7 @@ export function registerTools(
       }
       const logNote = log('SENT', sent.name ?? '-')
       const withFiles = attachments.length ? ` with ${count(attachments.length, 'file')}` : ''
-      return `Sent to ${to}${withFiles} at ${localTime(sent.createTime)}. Message ${sent.name ?? '-'}, thread ${sent.thread?.name ?? '-'}.${logNote}`
+      return `Sent to ${to}${withFiles} at ${localTime(sent.createTime)}. Message ${sent.name ?? '-'}, thread ${sent.thread?.name ?? '-'}.${logNote} If this message finished a piece of work or set or moved a meeting, date or plan, and the user's instructions name a daily work log (a huddle sheet, a standup doc), update today's and the affected day's rows now, from what the thread agreed rather than the earlier plan.`
     }),
   )
 

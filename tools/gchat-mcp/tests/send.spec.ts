@@ -72,6 +72,7 @@ describe('message_send', () => {
     const { call, sent, log } = await connect()
     const { text } = await call('message_send', { recipient: 'Autorentic', space: 'spaces/AAA', text: 'Deploy done', afterMessage: 'spaces/AAA/messages/old' })
     expect(text).toContain('Sent to Autorentic (spaces/AAA)')
+    expect(text).toContain('daily work log')
     expect(sent).toEqual([{ space: 'spaces/AAA', text: 'Deploy done', thread: undefined }])
     expect(readFileSync(log, 'utf8')).toContain('"Deploy done"')
   })
