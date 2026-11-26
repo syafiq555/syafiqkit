@@ -6,7 +6,7 @@ Gotchas (critical; full list in ## Critical Gotchas below):
   - A reload swaps the mod only when it reports "re-read from its folder" (directory source, measured 2026-10-16); otherwise only a new session loads a changed one
   - Older Claude Code versions are unverified against a `modules` key sharing `hooks.json` with the ruleset hook
 Related: ../project-docs/current.md (ESSENTIALS entry `{#mod-one-file}` extracts The Mod), ../output-style-hook/current.md (shares `hooks/hooks.json`)
-Last updated: 2026-11-26 (row 44, 1.477.0, built and kit-tested, not committed or seen live)
+Last updated: 2026-11-26 (rows 44 and 45, 1.477.0, pushed to master as 0c2e52f; not yet seen live)
 -->
 
 # Plugin Maintenance: The Mod Summary
@@ -24,7 +24,7 @@ Last updated: 2026-11-26 (row 44, 1.477.0, built and kit-tested, not committed o
 3. Run the newest older checks in `decisions/live-checks.md` (items 00000 and 0000: narrow panes at ~40 columns, terminal open items, the survey yield), then the rest of § Next Steps → Verify.
 
 **Key facts for cold start**:
-- Shipped: 1.410.0 pushed to master 2026-10-23. Its ship chip and new band were seen drawn live in iTerm2, the rest unseen. Earlier: 1.407.2 (2026-10-22, row 37), 1.406.9 (2026-10-20: Images pane past host picture limits, theme-aware diff palette), 1.406.2 (2026-10-19, rows 35 and 36). Row 40 (1.414.0) is on origin/master after these (see Last Session).
+- Shipped: 1.477.0 pushed to master 26/11/2026 as 0c2e52f (rows 44 and 45: Read images, `/sk` removed), its committed tree passing 142 kit tests; not yet seen live. Before it, 1.410.0 pushed to master 2026-10-23. Its ship chip and new band were seen drawn live in iTerm2, the rest unseen. Earlier: 1.407.2 (2026-10-22, row 37), 1.406.9 (2026-10-20: Images pane past host picture limits, theme-aware diff palette), 1.406.2 (2026-10-19, rows 35 and 36). Row 40 (1.414.0) is on origin/master after these (see Last Session).
 - Host: `hooks/src/mod.js` loads and follows its imports (folders `core`, `docs`, `git`, `prompt`, `views`, `answers`); every `$` call goes through `core/api.js`. When a pane misbehaves, read `~/.claude/doc-pane-cache/mod.log` first.
 - Seen live: Desktop pages worked 2026-10-11 (overview, All diffs, file page, gallery). Most later builds are unseen; the ⏳ marks in Task Status say which. Not yet used by colleagues.
 - Tests: `claude plugin test .` from the repo root (`hooks/register.test.ts`); validate: `claude plugin validate .` (`--strict` fails on three standing warnings, so judge by the plain run).
