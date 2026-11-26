@@ -79,10 +79,12 @@ These skills accept explicit user command:
 | `watch-sheets` | One check of shared sheets on a repeating loop; `AskUserQuestion` only when it is our turn. Building a tracker is `setup-tracker` |
 | `weekly-report` | The user's feed for a lead's weekly report to the boss: one haiku per project verifies a draft, last week's items carried forward, sent in Chat format. Sources in `~/.claude/references/weekly-report/` |
 | `headless-watch` | Scheduled check with Claude closed: launchd runs `claude -p`, alerts by Telegram `sendMessage` or ntfy (never `--channels`, which steals the bot's poller). A session-only repeat is `/loop`; a cloud agent is `schedule` |
+| `help-centre` | A user manual is called too big or hard to find things in, or guides are wanted inside the app ("put the guide in the system", "help for this screen"), without naming the skill |
 | `understanding-guide` | Large text the user must understand → offline question-and-answer page, every claim checked. Decisions wait until the reader understands |
 | `explainer-deck` | Deck explaining a system to a live audience, each mechanism beside a worked example. A page read alone is `understanding-guide` |
 | `reverse-engineer` | Rebuild a web app's mechanism the client uses, read through REA, into a task doc a sonnet reviewer verifies |
-| `user-manual` | End-user manual from user tasks, Diátaxis shape; Word/PDF or an in-app Help centre edition. Distinct from `md-to-pdf` |
+| `user-manual` | End-user manual for a small system from user tasks, Diátaxis shape; Word/PDF editions. Distinct from `md-to-pdf`; in-app help for a big system is `help-centre` |
+| `help-centre` | In-app help centre for a big system, or a manual converted into one: book per role, search, "Help for this screen" map, upkeep rule. Writing the pages is `user-manual` |
 | `uat-script` | Client UAT script rendered to a workbook, each check quoting the screen it proves. Trackers are `setup-tracker`, watching testers is `watch-sheets` |
 | `design-handoff` | Brief for someone ELSE to design a screen, layout decisions withheld. Designing it yourself is `uiux` |
 | `taste` | Build, redesign or polish a public-facing page, any verb, with a browser-inspected look-and-fix loop. Needs Node 22+ and Chrome |

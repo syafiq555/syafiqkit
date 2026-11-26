@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.475.0
+
+**New `/help-centre`: build the guides into a big app as a help centre, or convert a user manual that has outgrown one document, with a book per reader role, search and a "Help for this screen" link on each screen.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Ask in plain words: "put the guide in the system", "help for this screen", "the manual is too big", "convert the manual into a help centre". It opens by judging size: one audience and a handful of screens stays a manual (`/user-manual`); several roles, dozens of screens and frequent releases get a help centre.
+- Covers converting an existing manual (split into a book per role, keep the anchors, move the guides where the deploy can read them, keep the Word copy if a client signs one off), the build order, and upkeep: the build writes a rule into the project's CLAUDE.md that a screen change updates its guide page and its "Help for this screen" link in the same work.
+- Extracted from the GB Mart help centre, now its worked example. New details beyond the old reference: the screen-to-page map's longest-prefix rule, anchors that clash with the help routes' own words, the command palette's quick-find limits, search scoring, and the screenshot capture spec's orphan check.
+- **`/user-manual` no longer carries the in-app procedure**: its `references/in-app-edition.md` moved to `help-centre/references/server-and-screens.md` and `verify.md`. A request for in-app help that used to reach `/user-manual` now reaches `/help-centre`; writing the pages themselves still follows `/user-manual`'s rules.
+- Sources: Mark Baker's Every Page is Page One (each page stands alone), Oracle's context-help guide (keep the screen-to-topic map in one place), Slite on docs-as-code (git can't tell which untouched guide should have changed). No source found sets a size threshold for manual versus help centre, so that table is judgement.
+
 ## 1.474.0
 
 **New `/unblock`: ask "what can I do now?" in any project and get what's buildable, what's waiting on whom, and what needs your decision, checked against what actually happened since the docs were written.**

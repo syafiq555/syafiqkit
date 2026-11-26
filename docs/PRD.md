@@ -37,7 +37,7 @@ Why now: [TBD — no statement of why the plugin was opened to colleagues beyond
 | Wrap up and release | `done`, `quick-done`, `commit`, `ship` | Live |
 | Maintain docs and instructions | `update-claude-docs`, `condense-*`, `unhobble-instructions`, `refresh-instructions`, `merge-task-docs`, `sweep-doc-overlaps`, `setup-project-docs` | Live |
 | Maintain the plugin | `skill-creator`, `update-plugin`, `agent-setup` and its agent templates | Live |
-| Communicate | `casual-message`, `gchat-format`, `md-to-pdf`, `excalidraw-board`, `user-manual` | Live |
+| Communicate | `casual-message`, `gchat-format`, `md-to-pdf`, `excalidraw-board`, `user-manual`, `help-centre` | Live |
 | Design and build judgement | `uiux`, `design-handoff`, `brainstorming`, `judgement`, `setup-playwright`, `extract-shared-package`, `function-parameter-limits` | Live |
 | Operations and billing | `pull-db`, `ci-ssh-deploy-timeout`, `commit-invoice-generator` | Live |
 | Delegation | `haiku` | Live |
