@@ -1,0 +1,41 @@
+# Server and screens of an in-app help centre {#server-and-screens}
+
+Read before building the parser, routes, search, context map or pages. The Markdown guides stay the only source; the app renders them, and any Word copy is built from the same files.
+
+Worked example: GB Mart (Laravel 13, Inertia 3, React 19) in the beacon-mart repo. Domain classes `app/Domain/Help` (`Book`, `Surface`, `GuideLibrary`, `GuideUrls`, `GuideSearch`, `HelpCentre`, `ContextHelp`), two thin controllers (admin and seller), one Inertia page `pages/help/show.tsx` with widgets in `widgets/help-centre`, tests in `tests/{Unit,Feature}/Help` and `e2e/help.spec.ts`. Map its names to the target app's layers.
+
+## Route research {#route-research}
+
+Behind the in-app default (20/11/2026): Starlight is static and public by default; serving it privately needs on-demand rendering (`prerender: false`, an SSR adapter), and its Pagefind search cannot be enabled then (https://starlight.astro.build/reference/configuration/, https://docs.astro.build/en/guides/on-demand-rendering/). Shopify, Stripe, Linear and EasyStore all run topic-and-search help sites that the app links into; none of those checked splits help by the reader's role, so a role split is your own build either way.
+
+What the build needs, on any stack: a Markdown renderer that strips raw HTML and keeps heading ids, a per-role access check on every help route, an image route behind that check, a parse cache (or rendering at build time on a stack with a build step, keeping only the access check at runtime), server-side search, and a route-to-anchor map the page layout can read. GB Mart's choices: league/commonmark, Laravel route groups and a gate, Inertia shared props. On Rails that is kramdown or redcarpet with Pundit; on Next.js remark with `rehype-sanitize` and middleware auth; on Django markdown-it with the view's permission check.
+
+## Before building, measure the deploy {#measure-deploy}
+
+Check, from the production artifact, that the code can read the guide path. A container that mounts or copies only the app folder never sees a repo-root `docs/`; a serverless build traces only imported files (Next.js needs `outputFileTracingIncludes`), so the guides move into the app (`resources/help/` in Laravel), and every tool that read the old path follows: the Word build script, any UAT/manual drift checker, the screenshot capture spec's output folder, the repo's docs. Use a plain `mv` (git records the rename at commit) when other sessions push from the same checkout, and wait for the owner of any uncommitted guide edit before moving.
+
+If a formatter or linter covers Markdown (Prettier, `vp fmt`, dprint, markdownlint), add the guide folder to its ignore list in the same change, or the first push reformats or rejects the guide.
+
+## Server {#server}
+
+- **Parse with the app's Markdown library**, raw HTML stripped and unsafe links dropped (league/commonmark: `html_input: strip`, `allow_unsafe_links: false`, plus `AttributesExtension` so a trailing `{#anchor}` on a heading becomes its `id`). Guides written for pandoc may hold syntax the app's parser renders literally (`:::` divs, footnotes, `{.class}`); a test fails on it.
+- **One page per heading**, split at the levels the guides use for parts, roles and tasks (GB Mart: H1 dropped, H2 to H4 each a page, a depth stack tracking parents). Leaves show their body; a heading with children shows its intro and a child list. The `{#anchor}` is the page address, so anchors are public identifiers: renaming one breaks every link to it. Anchors must also not collide with the help routes' own path words (`find`, `images`, a book's name), or the article is unreachable; a test enforces it.
+- **A shared glossary** is appended to each book with its headings pushed down one level, so it reads as a part of every book without a copy per book.
+- **Books by role.** Two small types carry the matrix: the reader's surface (staff, seller) and the book (staff guide, seller guide), with one method listing which books a surface opens. Enforce it on the server: the route group's login guard, a gate for the help pages, and an image route serving only files the requested book references, so a guessed file name for another book 404s. Anchors often repeat across books, so URLs carry the book where a surface opens more than one.
+- **Rewrite links at serve time**, per surface: `#anchor` to that book's article URL, `images/x.png` to the authenticated image route (accept only a strict file-name pattern). Never put guide images under the public web root; serve them `private` with `nosniff`.
+- **Cache the parse** keyed on each file's modification time and size **plus a parser version constant**; without it, a parsing or rendering change keeps serving old output until a guide changes.
+- **Search on the server** over the parsed sections, query in the URL, never refusing a long or malformed query (scrub invalid UTF-8 and cap the length before it reaches a JSON response). Every term must match the title or body; title hits weigh more than body hits, body hits are capped so one long section can't win on repetition, and the reader's own book ranks above another. Fold hyphens inside words when matching ("reship" must find "Re-shipping"), and build the snippet with the same folding or it starts at the top of the section. Strip inline tags without adding spaces when making the plain text, or snippets read "Click Print ." Use the guide's own example search terms as test cases.
+- **A quick-find endpoint for the command palette**, separate from the page search: a minimum query length (3 characters), a small hit cap (5), throttled, and never returning a section from a book the reader's surface can't open.
+- **"Help for this screen"**: a map of route name to book and anchor, resolved per request and shared lazily to every page, rendered by the shared page-header component so no screen changes. Entries are exact names or a `prefix.*` group, and the longest prefix wins; the link resolves to nothing when the reader's surface can't open that entry's book. Keep the whole map in one file the builders own, not anchors scattered through screen code: Oracle's context-help guide gives the same reason for mapping in one place, so a renamed topic is changed once (https://docs.oracle.com/cd/E28280_01/doc.1111/e14149/ohjpg_csh.htm). Seed it by listing the app's page routes and matching each to the task whose first step opens that screen; report the routes left unmapped. Tests fail when an entry names a route or anchor that no longer exists.
+
+## Screens {#screens}
+
+Inherit the app's design language: help is a support surface, not a new look. Where the app has a component layer, compose its atoms; where one can't (a guide-styled rich-text body, a sticky contents column), add a named variant so every existing caller renders unchanged. GB Mart added a `guide` variant to its rich-text atom (same-site links navigate without a full reload), a `contents` variant to its sidebar layout, and a small help-link atom the page header renders.
+
+- One page component switching three views: search results when a query is set, an article with its contents, the book's home.
+- One `h1` per page: on an article the article title is the heading and the breadcrumb leads home; the guide's name heads only the home and search views.
+- A contents column beside an app that already has a sidebar squeezes the article at tablet width: show it only from the large breakpoint and use a Contents button that opens the app's sheet below it. Give that button its own icon, not the menu icon.
+- Don't repeat the contents tree on the home page if the home already lists the parts.
+- Body text 16px on a phone, no sideways scroll, images lazy and linked to full size. Full-window screenshots read poorly on a phone: crop them to the step's area when recapturing.
+- Feed help results into the app's command palette if it has one, as a separate request merged with `Promise.allSettled` so neither source hides the other.
+- Help pages behind a login should carry `noindex`; check the app's SEO layer actually emits it on them rather than assuming (GB Mart's were not found to).

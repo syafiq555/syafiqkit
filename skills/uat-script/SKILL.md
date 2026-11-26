@@ -10,7 +10,7 @@ description: >
   "acceptance test pack", "test cases for sign-off", "the client needs test cases before testing",
   "add UAT checks for this module", "the UAT sheet is out of date". NOT for a client tracker or issue
   log (setup-tracker), NOT for watching testers' edits on a repeating check (watch-sheets), NOT for an
-  end-user guide (user-manual), NOT for automated Playwright tests (setup-playwright).
+  end-user guide (user-manual, or help-centre for one served in the app), NOT for automated Playwright tests (setup-playwright).
 ---
 
 # UAT script

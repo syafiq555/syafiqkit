@@ -11,7 +11,7 @@ description: >
   floating", "transparent background version", "phone version of the image", and on a URL or screenshot of an
   existing composite to redo in the current UI. Any product: web app, mobile app, SaaS, website. NOT for video or
   animation (`motion-clip`), NOT for building or polishing the web page itself (`taste`, or `uiux` inside an app),
-  NOT for plain screenshots inside a user guide (`user-manual`); a designed composite for that guide's landing page
+  NOT for plain screenshots inside a user guide (`user-manual`, `help-centre`); a designed composite for that guide's landing page
   is this skill.
 ---
 
