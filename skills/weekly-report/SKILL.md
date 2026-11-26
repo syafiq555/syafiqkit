@@ -6,40 +6,46 @@ description: >
   boss set. Each project is checked against its chat space, git history, task docs and shared trackers by its own
   agent, last week's report is carried forward and closed or kept item by item, and the result is drafted in Chat
   format and sent to the lead. Fires on "weekly report", "weekly update for KL", "what do we report to HL",
-  "what do I feed KL this week", "run the weekly report", "find what to report", "report everywhere here and
-  there", or a boss's ask for a summary report of all projects. NOT for a release note or one project's progress
-  post to its own space (`gchat-format` or `ship`), NOT for a personal huddle or timesheet row, and NOT for
-  watching a tracker for replies (`watch-sheets`).
+  "what do I feed KL this week", "update for my lead", "run the weekly report", "find what to report", or a
+  boss's ask for a summary report of all projects. NOT for a release note or one project's progress post to its
+  own space (`gchat-format` or `ship`), NOT for a personal huddle or timesheet row, and NOT for watching a
+  tracker for replies (`watch-sheets`).
 ---
 
 # Weekly report
 
-A boss's weekly report is a count of what the team owns, not a diary. It is read for three things: what the boss must act on, whether any project is in trouble, and whether anything was dropped since last week. Everything here serves those three.
+A boss's weekly report is a count of what the team owns, not a diary. It is read for three things: what the boss must act on, whether any project is in trouble, and whether anything was dropped since last week.
 
 ## Sources live outside the skill
 
-Read `~/.claude/references/weekly-report/sources.md` first. It names the projects, each one's repos, chat spaces and trackers, the boss's headings in his own words, who the report goes to, and what the user said to leave out. If it is missing, build it with the user before gathering anything: the headings come from the boss's message (quote it), and the sources come from the project docs and `spaces_list`. Previous reports sit beside it as `<yyyy-mm-dd>.md`.
+Read `~/.claude/references/weekly-report/sources.md` first. It names the projects, each one's repos, chat spaces and trackers, the boss's headings in his own words, who the report goes to, where the boss's answers land, and what the user said to leave out. If it is missing, build it with the user before gathering anything: the headings come from the boss's message (quote it), and the sources come from the project docs and `spaces_list`. Previous runs sit beside it as `<yyyy-mm-dd>.md`.
+
+**Ask the user once, at the start, in one `AskUserQuestion`:** their opening line for this week, any task they feel is too much and should be reassigned (when the boss allows it), and any idea they want in. No chat or doc holds those.
 
 ## Gathering
 
-**Start from last week's report, not from a blank page.** Every pending item it listed is either closed (with the source that closed it), still open, or explicitly dropped by the user; none disappears silently, which is how a weekly log quietly fails (Sentra's WBR guide: "actions get raised in the room, recorded in someone's notes, and never come back"). On the first run there is no baseline, so say so.
+**Start from last week's file (the newest `<yyyy-mm-dd>.md` beside `sources.md`), not a blank page.** Every pending item it lists is closed (with the source that closed it), still open, or dropped by the user; none disappears silently (Sentra's weekly business review guide: "actions get raised in the room, recorded in someone's notes, and never come back"). Items the boss owns close mostly in the spaces `sources.md` names as where his answers land: you read those yourself, never an agent, since the last run and only to mark items answered, and never quote them, since they hold private remarks. On the first run there is no baseline, so say so.
 
-**One `haiku` agent per project, in parallel** (📖 `../haiku/SKILL.md`). Each brief: run `read-summary` on the project's current state; read its chat spaces and the last 7 days of commits on every branch; count its tracker rows by status from the sheet itself; check last week's items for that project; then mark each line of a draft you give it CONFIRMED, WRONG or UNVERIFIED with a source (file:line, commit, chat time and author, sheet row), and list what is MISSING under each heading. Give the draft, because verifying a claim catches more than asking an open question. Ban writes and sends in the brief.
+**Facts first, then the draft, then the check.** One `haiku` agent per project, in parallel (📖 `../haiku/SKILL.md` for the brief's rules), gathers that project's week blind: what shipped and by whom (commits since the last run's date, after a fetch, by the commands in `sources.md`), what moved in its chat spaces, its tracker rows counted by status from the sheet itself, and last week's items for that project with what closed each. Each brief carries the `sources.md` leave-out list verbatim and says client data is read as counts only, with no chat sends or file writes. You draft from those facts and the baseline, then one more `haiku` agent per project, handed that project's draft lines and their sources but not your reasoning, marks each line CONFIRMED, WRONG or UNVERIFIED with a source (file:line, commit, chat time and author, sheet row). Verifying a stated claim catches what an open question misses; a draft written before any fact-gathering anchors the checker on last week instead.
 
-**Verify what comes back before using it.** Open two or three cited sources per project, prioritising any figure that changes a count or a "needs the boss" line. Three corrections the 26/11/2026 run needed are the usual kinds: a date the client tracker had since moved, tracker rows already closed and still listed as open in a task doc, and work credited to the wrong person. An agent's "superseded" claim needs reading too: a total is not an unanswered count.
+**Open two or three cited sources per project yourself**, starting with any figure that changes a count or a "needs the boss" line. The 26/11/2026 run needed: client tracker dates that had moved, tracker rows closed but still open in a task doc, and work credited to the wrong person. An agent's claim that a figure was superseded needs the message read: a later "136 inquiries" was a total, not the unanswered count it was said to replace.
 
 ## What goes in
 
-- **Done**: outcomes per project, credited to whoever did them (commit authors, not the doc's narrator). A project with no code shipped says so in one line and names what moved instead.
-- **Status**: on track, at risk, or waiting on someone, one word per project with its reason. At risk means a date is exposed while work can still move; waiting means nothing moves until a named person acts (Atlassian's and Linear's updates use On track / At risk / Off track; neither defines them, so the definition above is ours).
-- **Pending issues**: every open item has one owner, the person who acts next, and the count is per project and summed. A cause nobody has confirmed is written as "not yet confirmed" with who will confirm it, never a guess (same WBR guide).
-- **Client items carry no dates**, only "may need a follow-up" and with whom: client dates move week to week, and the line stays true until the input arrives (Syafiq, 26/11/2026).
-- **Needs the boss** holds only what the boss alone can settle. A business question the client must answer goes on the client tracker, not to the boss.
+The report's sections are the boss's headings, in his order and words; each line carries its project tag. The rules each heading follows:
 
-Leave out what `sources.md` lists as left out. Proposals stay proposals: "suggested", never "decided".
+- **Needs the boss** and **mechanisms needing his input** hold only what he alone can settle; the pending items he owns feed them. A business question the client must answer goes on the client tracker, not to him.
+- **Ideas** are the user's answers plus what the team proposed in the spaces this week; a proposal stays "suggested", never "decided".
+- **Done** names outcomes per project and who did them (commit authors, matched by email per `sources.md`, not the doc's narrator). This is an account to the lead, not a celebration post, so per-person credit is right here. A project with no code shipped says so and names what moved instead.
+- **Status** is one word per project with its reason. On track; at risk, meaning a date is exposed while work can still move; waiting, meaning nothing moves until a named person acts; off track, meaning a date was missed. "Stuck" in the boss's count is waiting plus off track.
+- **Pending issues** count one decision or one tracker row as one item, each with one owner (the person who acts next) and its source. A client tracker's open total and a list of open client questions are reported as their own counts, not added in. Give per-project totals, the sum, and how many carried, closed and new since last week. A cause nobody has confirmed is written "not yet confirmed" with who will confirm it.
+- **Client items carry no dates**, only "may need a follow-up" and with whom: client dates move week to week, and the line stays true until the input arrives (the user, 26/11/2026).
+- A heading with nothing this week prints "None this week" rather than vanishing.
+
+Leave out what `sources.md` lists. Before the preview, scan the draft for what slips through: RM figures, quotation or invoice words, an IC or phone number, a dated client deadline.
 
 ## Sending
 
-Draft through `gchat-format` (the user asked for its document shape, not `casual-message`, on 26/11/2026): `**bold**` heading per section, `- ` items, each message under 1,000 characters, split at headings. Open the first message with the user's own line in their voice; ask for it if this week's mood differs. Preview every part, show them all in one reply, then send in order to the recipient `sources.md` names. A denied part stops the parts after it.
+Draft through `gchat-format`'s send-tool route in its document shape (the user chose it over `casual-message` on 26/11/2026), opening with the user's line. Split it at headings into messages under 1,000 characters, preview every part, show them all in one reply, then send them in order to the recipient `sources.md` names; a denied part stops the parts after it.
 
-After sending, save the sent text as `~/.claude/references/weekly-report/<yyyy-mm-dd>.md`, with each pending item on its own line and its owner, so next week starts from it.
+Then save `~/.claude/references/weekly-report/<yyyy-mm-dd>.md` (the run's date): each pending item as `item | owner | source | first seen` with per-project totals, the status line, the ideas, and the text as sent. A denied part is saved as not sent, so next week carries it. The file is an internal baseline and may keep exact client dates in the source column; never copy them into the next report.

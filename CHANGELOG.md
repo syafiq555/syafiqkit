@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.472.1
+
+**`weekly-report` now gathers facts before drafting, asks you once for what only you know, and counts the boss's "stuck" and pending issues the same way each week.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `weekly-report`: one question at the start (opening line, work to reassign, ideas); blind fact-gathering agents per project, then the draft, then a separate checking agent per project; the boss's answers read from the spaces `sources.md` names only to close items, never quoted and never by an agent; report sections are the boss's own headings; one decision or tracker row is one pending item, with carried, closed and new counts; "stuck" is waiting plus off track; a pre-preview scan for money, quotation words and personal numbers; messages split at headings under 1,000 characters; the saved baseline holds `item | owner | source | first seen`. From the /done review of 1.472.0.
+
 ## 1.472.0
 
 **New `weekly-report` skill: your part of the lead's weekly report to the boss, gathered, checked and sent in one run.**
