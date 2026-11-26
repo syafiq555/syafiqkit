@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.486.0
+
+**`done`'s Design row now carries a `words` field, so the wording pass from 1.485.0 is checked at wrap-up rather than only recalled during design work. `taste`'s word budget no longer cuts a fee, a deadline or legal text.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `done`: the `uiux` grade includes a words pass over every sentence on each changed screen; the Design row reports what was cut and what was kept on purpose.
+- `uiux` § Words: legal, consent, tax and policy wording keeps its words; a worked example of a consequence line that stays; the cold read becomes one written line per screen. The rule itself is shorter.
+- `taste` copy budget: a cut never removes a consequence or legal wording, and points to the same cut test.
+
 ## 1.485.0
 
 **`uiux` now treats a screen's wording as half the design: every pass cuts words the screen or its structure already carries, while keeping every fact that changes what the reader does.** Before this, the skill's word rules covered buttons, errors and empty states only, so a polish pass could change every class on a screen and leave its paragraphs untouched.

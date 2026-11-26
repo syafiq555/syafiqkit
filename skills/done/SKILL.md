@@ -160,7 +160,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 | Review | [issues + fixes, or ✅] |
 | Simplify | [changes, or ✅] |
 | Product | [✅ or → question] |
-| Design | score [before → after, N/M merged] · check-render: [FAIL count before → after, or "not run: <reason>"] · uiux: [screens and widths graded] · impeccable: [critique findings + fixes] · taste: [review-path findings, or "not run: <reason>"] · changed: [finding → fix, top items] · before/after shown: [yes, or why not]; omit the row only when nothing a person sees changed |
+| Design | score [before → after, N/M merged] · check-render: [FAIL count before → after, or "not run: <reason>"] · uiux: [screens and widths graded] · words: [strings cut or restructured, consequences kept, or "no copy on screen"] · impeccable: [critique findings + fixes] · taste: [review-path findings, or "not run: <reason>"] · changed: [finding → fix, top items] · before/after shown: [yes, or why not]; omit the row only when nothing a person sees changed |
 | Motion | [`emil-review-animations` verdict, findings + fixes, or "no motion in diff"]; never omitted, even when Design is not run |
 | Cleanup | [removed, or omit] |
 | Test | [command/steps, or omit] |

@@ -14,14 +14,16 @@ Eye-tracking finds four patterns. The **F-pattern** (first lines and the left ed
 
 ## Words
 
-Fewer words is the goal only while understanding holds. For each sentence or label on the screen, ask in turn:
+For each sentence or label on the screen, ask in turn:
 
 1. **Does anything on screen already say it?** A heading restated in the intro, a helper line repeating its field label, a banner the page's status chip already shows: cut it.
 2. **Can structure say it instead?** Three sentences describing a sequence become three numbered steps; "Your payout of RM 120 is due on 5 Dec" becomes a figure under a "Next payout" label. Grouping and order are free to read; sentences are not.
-3. **Would the reader act differently without it?** If yes (a deadline, a fee, a limit, who sees it, an action that cannot be undone), it stays, in the reader's words, next to the control it governs, not in a paragraph above the page.
+3. **Would the reader act differently without it?** If yes (a deadline, a fee, a limit, who sees it, an action that cannot be undone), it stays, in the reader's words, beside the control it governs.
 4. **Is it in the reader's vocabulary?** Internal names (a status code, a setting key, a module name) cost a reader a lookup; the word they would say aloud costs nothing.
 
-The result is checked by a cold read: someone who never saw the screen should still know what it is for and what happens when they press the main button.
+Legal, consent, tax and policy wording is the owner's text: restructure where it sits, never its words, and ask before shortening it. A short screen can still hold its only consequence line: "This screen shows your payouts" goes, "Held until the e-invoice is validated, and cannot be changed after you submit" stays, beside Submit.
+
+Check the result by opening each changed screen's capture and writing one line as a stranger would: what the screen is for and what the main button does. If that line needs a fact the screen no longer carries, put the fact back.
 
 - Buttons: verb plus outcome ("Send invoice", not "Submit").
 - Errors: what happened, why, what to do next. Never an apology alone.

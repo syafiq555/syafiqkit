@@ -92,7 +92,10 @@ figure of speech.
   outside UI mocks, diagrams and code (headings, lines, card titles and bodies, buttons, labels);
   over 80 the checker WARNs (in testing: a fintech page at 117 words a screen read as wordy). Cut in
   this order: a second sentence under a heading, card bodies to one sentence of 12 to 18 words, a
-  fourth card, a list a fragment already shows. The UI says the rest.
+  fourth card, a list a fragment already shows. The UI says the rest. A budget cut never removes a
+  fact that changes what the visitor does (price, fee, deadline, who sees their data, what cannot be
+  undone) or legal and consent wording: move it beside its button instead. The cut test is in
+  `../../uiux/references/designing-for-scanners.md` § Words.
 - **Numbers** sit in sentences with their unit ("4.5 hours a week"), uneven where real (212, 38%).
   A real claim from the brief that needs a source gets a numbered footnote near the footer (13px
   and up).
