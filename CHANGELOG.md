@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.480.0
+
+**`/ship` now writes the release into your own daily work log (a huddle sheet, a standup doc) when your instructions name one, and its summary gets a Work log row. Before this, a production ship posted the team note and the release card but left your log unchanged.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `/ship`: after the deploy is checked, today's row in your log gets the shipped outcome, ticked, and a planned "X to production" row the deploy just made true is updated. The summary says what was written, so a missing line shows as a blank row.
+
 ## 1.479.0
 
 **When a chat screenshot says a file was shared, Claude now finds it where your project tracks that ask before asking you for the link. A reply Claude drafts for you to send now goes through `/casual-message`, even when you didn't ask for one.**
