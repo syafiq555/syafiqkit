@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.470.6
+
+**A team post about the company now checks who can read the space before it goes.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `casual-message` § What this produces: cash, revenue and anything said in a direct message go to a management group, not a space new hires join. A traction post sent to the whole-company chat was edited the next morning at the CEO's request.
+
+## 1.471.0
+
+**Decks can now show a real screen of the product beside what it does, and product stills stop cutting text or shrinking the thing they enlarge.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `explainer-deck`: new `screen` slide type (heading, claim line, a PNG drawn at its own aspect ratio, up to five bullets, an optional status chip, a "Waiting on" box and a caption under the bullets), checked by `checkScreen` and documented in `references/spec.md`. The skill body now says a progress, checkpoint or demo deck shows what was built as the real screen, marks anything the screen does not show "Also built:", and checks the screen's page title reads at least 14 px in Google's render. The "Waiting on" box on screen and mechanism slides is now a light outlined box instead of a solid dark block, which a design pass found read as a button. On 26/11/2026 a sprint checkpoint deck had no way to show the built screens until the type was added.
+- `product-still` § Compose: crops end on a blank pixel row (or a divider where card borders leave none), never through a line of text; and a lift must render larger than the same element in the card behind it, or it is dropped and the main crop tightened. On the same deck, four lifts came out smaller than the original detail, and three crops sliced a text row, both found by score-loop judges.
+
 ## 1.470.5
 
 **A findings reply into a team thread now goes out as headed messages with full bullets, not casual prose.**
