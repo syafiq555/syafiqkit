@@ -17,7 +17,6 @@ export async function openPane($, view, fromBand = false) {
   state.selected = []
   state.filter = ''
   state.heavyOnly = false
-  state.pick = null
   if (view !== 'confirm') state.confirm = null
   state.isOpen = true
   const run = (state.docsRun || 0) + 1
@@ -87,9 +86,17 @@ export function sendVerb($, label) {
   return submitPrompt($, verb.text, verb.toast)
 }
 
+const BACKABLE_VIEWS = ['changes', 'change-file', 'change-all', 'images']
+
+function confirmBack() {
+  if (!state.isOpen) return { back: 'close' }
+  if ((state.view === 'doc' || state.view === 'decision') && state.current) return { back: state.view, backDoc: state.current, docBack: state.docBack, decisionOpen: state.decisionOpen }
+  return { back: BACKABLE_VIEWS.includes(state.view) ? state.view : 'list' }
+}
+
 export function confirmVerb($, label) {
   const verb = verbOf(label)
-  state.confirm = { title: verb.label, text: verb.text, effect: verb.effect }
+  state.confirm = { title: verb.label, text: verb.text, effect: verb.effect, ...confirmBack() }
   return openPane($, 'confirm', true)
 }
 

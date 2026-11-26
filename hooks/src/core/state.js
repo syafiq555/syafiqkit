@@ -15,7 +15,6 @@ export const state = {
   filter: '',
   heavyOnly: false,
   collapsed: {},
-  pick: null,
   current: null,
   lastDoc: null,
   raw: '',
@@ -83,7 +82,6 @@ export const state = {
   typeset: {},
   textView: false,
   answerPics: {},
-  answerPicturesOff: false,
   wrapup: {
     asked: [],
     active: [],

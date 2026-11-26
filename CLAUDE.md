@@ -229,7 +229,7 @@ A subagent inherits the CLAUDE.md hierarchy, never the parent's conversation (a 
 
 ### The Mod {#mod}
 
-`hooks/src/mod.js` is a Claude Code mod (the band, `/sk`, `/task-docs`, `/changes`, the image gallery). 📖 `hooks/CLAUDE.md`: read before planning, editing or debugging it, including from a task doc or log; its rules, host-API traps and `~/.claude/doc-pane-cache/mod.log` live there. Its automatic load on reading a `hooks/` file is not yet verified.
+`hooks/src/mod.js` is a Claude Code mod (the band, `/task-docs`, `/changes`, the image gallery). 📖 `hooks/CLAUDE.md`: read before planning, editing or debugging it, including from a task doc or log; its rules, host-API traps and `~/.claude/doc-pane-cache/mod.log` live there. Its automatic load on reading a `hooks/` file is not yet verified.
 
 ### Agent Definition Parity {#agent-parity}
 
@@ -333,7 +333,7 @@ Release notes state the reader's action, since consumers install without repo ac
 
 After modifying commands or skills, run the plugin update from Commands. No build step: markdown is interpreted directly.
 
-**A plan that adds or changes what a skill does includes a `score-loop` pass before it ships** (Syafiq, 21/11/2026: "Always for skill upgrades"): a rubric frozen from the brief, fresh judges, and at least one check that is a fresh headless session given the user's own words, read from its tool calls (📖 `skills/_shared/references/editing-skills-checklist.md` § Verifying Edits After Writing, item 7). Ask the stop rule when planning. A wording fix with no behaviour change does not need one. **Tell: your plan for a skill change ends at "code-reviewer + product-reviewer".**
+**A plan that adds or changes what a skill does includes a `score-loop` pass before it ships** (Syafiq, 21/11/2026: "Always for skill upgrades"): a rubric frozen from the brief, fresh judges, and at least one check that is a fresh headless session given the user's own words, read from its tool calls (📖 `skills/_shared/references/editing-skills-checklist.md` § Verifying Edits After Writing, item 7). Ask the stop rule when planning. A wording fix with no behaviour change does not need one. **The same holds for a change to what the mod does** (`hooks/src/`: the line, `/task-docs`, `/changes`, pictures), judged from the code, kit tests and host types in place of the headless check (Syafiq, 26/11/2026, after a mod build reached him without one and its loop found four real gaps). **Tell: your plan for a skill or mod change ends at "code-reviewer + product-reviewer".**
 
 ## Dependencies {#dependencies}
 

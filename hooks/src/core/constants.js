@@ -1,6 +1,5 @@
 export const PANE = 'doc-pane'
 export const COMMAND = 'task-docs'
-export const MENU_COMMAND = 'sk'
 export const CHANGES_COMMAND = 'changes'
 export const MAX_ENTRIES = 60
 export const MAX_CHARS = 90000
@@ -41,7 +40,6 @@ export const LIST_TOP_ROWS = 3
 export const DESKTOP_WRAP_CHARS = 140
 export const DESKTOP_MAP_ROWS = 3
 export const CHANGES_POLL_MS = 5000
-export const BAND_MOVED_NOTICE = 'bandMovedNoticeShown'
 export const SHOW_IMAGE_TOOL = 'mcp__syafiqkit__show_image'
 export const MAX_GALLERY = 12
 export const MAX_GALLERY_BYTES = 12 * 1024 * 1024
@@ -143,48 +141,28 @@ export const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567
 export const GROUPS = ['Task docs', 'CLAUDE.md chain', 'Rules', 'Project docs', 'Skills']
 
 export const VERBS = [
-  { label: 'Commit', hint: 'staged changes only', text: 'Use the commit skill to commit the staged changes.', toast: 'Sent: commit' },
+  { label: 'Commit', text: 'Use the commit skill to commit the staged changes.', toast: 'Sent: commit' },
   {
     label: 'Commit and push',
-    hint: 'commits, then pushes the branch',
     text: 'Use the commit skill to commit the staged changes, and push.',
     effect: 'Commits what is staged, then pushes the branch to its remote.',
-    danger: true,
     toast: 'Sent: commit and push',
   },
   {
     label: 'Done',
-    hint: 'review, tidy, update docs',
     text: 'Use the done skill to wrap up this session. Invoke it now even if it ran earlier: this run covers everything since the last one. If the Skill tool answers that it is already loaded, open the done skill\'s SKILL.md with Read and run every step from it, not from memory.',
     toast: 'Sent: done',
   },
-  { label: 'Read a task doc', hint: 'pick a doc, then act on its open items', go: 'list' },
   {
     label: 'Ship',
-    hint: 'changelog, push, CI check, release note',
     text: 'Use the ship skill. If the Skill tool answers that it is already loaded, open the ship skill\'s SKILL.md with Read and run every step from it, not from memory.',
     effect: 'Commits, writes the changelog, pushes, checks CI and writes the release note.',
-    danger: true,
     toast: 'Sent: ship',
   },
-  { label: 'Shrink a doc', hint: 'condense or split, docs over the limit first', go: 'heavy' },
-  { label: 'Refresh a doc', hint: 'full tidy: restructure, shorten, drop over-strict rules', go: 'refresh' },
-  {
-    label: 'Merge docs',
-    hint: 'fold related task docs into one',
-    text: 'Use the merge-task-docs skill.',
-    effect: 'Merges related task docs into one and deletes the source files.',
-    danger: true,
-    toast: 'Sent: merge docs',
-  },
-  { label: 'Changes', hint: 'review diffs, stage, unstage, discard', go: 'changes' },
-  { label: 'Images', hint: 'screenshots Claude showed you', go: 'images' },
   {
     label: 'Push',
-    hint: 'pushes the branch, commits nothing',
     text: 'Push this branch to its remote, setting its upstream if it has none.',
     effect: "Pushes the current branch's commits to its remote; nothing is committed.",
-    danger: true,
     toast: 'Sent: push',
   },
 ]
@@ -194,7 +172,7 @@ export const ANSWER_MATH_COLUMNS = 80
 export const PICTURE_TIMEOUT_MS = 30000
 export const ANSWER_FILE_CAP = 4
 export const ANSWER_PICTURES_PROMPT =
-  'Pictures in answers (syafiqkit): in this terminal, a ```mermaid block, a $$ ... $$ display equation, a Markdown image of a local file (![alt](/full/path.png)) and the full path of a local video file are each drawn as a picture after your answer text. Use them when a picture explains more than prose. An answer has a diagram\'s shape when the reader would otherwise hold its structure in their head: steps that branch (approve or reject), a status that moves through stages, things moving between systems (which sales reach which place), work handed between roles, or how parts connect. Draw that as mermaid below a text answer that still says it all; keep one fact, figures, rules and short lists as text or a table. Formulas as $$ blocks, full paths for screenshots or recordings you made. Pictures come after all of the text, not inline, so refer to them as "below". Inline $x$ stays plain text.'
+  'Pictures in answers (syafiqkit): in this terminal, a ```mermaid block, a $$ ... $$ display equation, a Markdown image of a local file (![alt](/full/path.png)) and the full path of a local video file are each drawn as a picture after your answer text. Use them when a picture explains more than prose. An answer has a diagram\'s shape when the reader would otherwise hold its structure in their head: steps that branch (approve or reject), a status that moves through stages, things moving between systems (which sales reach which place), work handed between roles, or how parts connect. Draw that as mermaid below a text answer that still says it all; keep one fact, figures, rules and short lists as text or a table. Formulas as $$ blocks, full paths for screenshots or recordings you made. Pictures come after all of the text, not inline, so refer to them as "below". Inline $x$ stays plain text. Up to four images you read with the Read tool are drawn for the user under that Read row, so there is no need to call show_image or repeat them as ![alt](path) just to show them; if the user says they cannot see one, use show_image.'
 export const TYPESET_RENDER_VERSION = '2'
 export const ANSWER_MISSING_RETRY_MS = 10000
 export const TYPESET_WIDTH_STEP = 4

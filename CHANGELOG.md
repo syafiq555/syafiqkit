@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.477.0
+
+**In the terminal, every image Claude reads now shows up right under its Read line, like the mobile app does. The `/sk` menu is gone.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Works for PNG, JPEG, GIF and WebP files read with the Read tool, up to 4 per folded "Read N files" line, and one per row in the expanded ctrl+o view. Each row shows exactly what Claude read: reading an overwritten screenshot again draws the new one, the earlier row keeps the old one, and a deleted file still shows. Terminal only (the desktop app already shows them). Needs the same picture support as answer pictures (iTerm2: `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1`). PDFs are not drawn.
+- `/sk` is removed. Commit, push, done and ship are the chips on the line above the prompt (`c`, `p`, `w`, `s`); commit and push in one step is `/commit push`. Refresh and Shrink are buttons on a doc's page: open it from `/task-docs` (the `⚠ N over the size limit · show` row lists only the oversized ones). Changes and images are `g` and `i` on the line. Cancel on a push or ship confirm goes back to where you were, or closes the pane if it was closed. Merge docs is gone from the mod: ask for the `merge-task-docs` skill. The mod's version now shows at the top of the `/task-docs` list. If you had switched Answer pictures off, they come back on: the switch went with the menu, and the only off left is `SYAFIQKIT_MOD=0`, which turns off the whole mod (line, `/task-docs`, `/changes` and pictures).
+- New for the mod: it now runs `sh -c` with `base64 -d`, `mv`, `rm -f` and `test` to turn the image bytes from a Read back into a picture file under `~/.claude/doc-pane-cache/answers/`, removing its own temporary copies. Nothing else outside that folder is touched.
+- Claude is told these images are drawn for you, so it stops calling `show_image` or repeating the path just to show them, and uses `show_image` if you say you cannot see one. On a terminal that draws no pictures, telling Claude stops it relying on them, though the mod still tries to draw them.
+
 ## 1.475.0
 
 **New `/help-centre`: build the guides into a big app as a help centre, or convert a user manual that has outgrown one document, with a book per reader role, search and a "Help for this screen" link on each screen.**

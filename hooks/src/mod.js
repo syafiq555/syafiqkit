@@ -1,5 +1,5 @@
-import { hostClockEvery, hostEnvGet, hostStoreGet, hostStoreSet, hostUiInvalidate, hostUiToast } from './core/api.js'
-import { BAND_MOVED_NOTICE, CHANGES_COMMAND, CHANGES_POLL_MS, COMMAND, EDIT_TOOLS, MENU_COMMAND, PANE, SHOW_IMAGE_TOOL, STICKY_AFTER, TOP_BUTTON_AFTER, WRAPUP_EDIT_TOOLS } from './core/constants.js'
+import { hostClockEvery, hostEnvGet, hostUiInvalidate } from './core/api.js'
+import { CHANGES_COMMAND, CHANGES_POLL_MS, COMMAND, EDIT_TOOLS, PANE, SHOW_IMAGE_TOOL, STICKY_AFTER, TOP_BUTTON_AFTER, WRAPUP_EDIT_TOOLS } from './core/constants.js'
 import { messageOf } from './core/format.js'
 import { modLog } from './core/log.js'
 import { loadVersion, redrawBandAfterClose, state } from './core/state.js'
@@ -9,19 +9,10 @@ import { countChanges, openChanges } from './git/controller.js'
 import { noteEdit, noteSubmit, noteToolCall, noteTurnComplete, noteTurnStart, pollWrapup, resetWrapup } from './git/wrapup.js'
 import { dropEnhanceOnEdit, enhanceOwnsSubmit, redrawBand, resetEnhance } from './prompt/enhance.js'
 import { openPane, registerCommand } from './views/actions.js'
-import { answerPicturesPrompt, answerPicturesView, loadAnswerPictures } from './answers/pictures.js'
+import { answerPicturesPrompt, answerPicturesView } from './answers/pictures.js'
+import { readPicturesView } from './answers/reads.js'
 import { bandView } from './views/band.js'
 import { paneView } from './views/pane.js'
-
-async function noticeBandMoved($) {
-  try {
-    if ((await hostStoreGet($, BAND_MOVED_NOTICE)) === true) return
-    await hostUiToast($, 'The menu moved off the line: type /sk')
-    await hostStoreSet($, BAND_MOVED_NOTICE, true)
-  } catch {
-    return
-  }
-}
 
 export function register(on) {
   on('session.start', async ($, e, next) => {
@@ -36,12 +27,9 @@ export function register(on) {
       return next(e)
     }
     await registerCommand($, COMMAND, 'Browse task docs, CLAUDE.md files and project docs')
-    await registerCommand($, MENU_COMMAND, 'Open the syafiqkit menu: commit, ship, done, docs')
     await registerCommand($, CHANGES_COMMAND, 'Review changed files, stage, unstage or discard them')
     await registerImageTool($)
     await loadVersion($)
-    await loadAnswerPictures($)
-    await noticeBandMoved($)
     hostClockEvery($, CHANGES_POLL_MS, () => countChanges($).then(() => pollWrapup($)).catch(() => {}))
     countChanges($).then(() => pollWrapup($)).catch(() => {})
     return next(e)
@@ -63,11 +51,6 @@ export function register(on) {
     return {}
   })
 
-  on('command.run', { command: MENU_COMMAND }, async ($) => {
-    await openPane($, 'menu')
-    return {}
-  })
-
   on('command.run', { command: CHANGES_COMMAND }, async ($) => {
     await openChanges($)
     return {}
@@ -78,6 +61,10 @@ export function register(on) {
   on('ui.render', { component: 'AbovePrompt' }, bandView)
 
   on('ui.render', { component: 'AssistantMessage' }, answerPicturesView)
+
+  on('ui.render', { component: 'ToolUse' }, readPicturesView)
+
+  on('ui.render', { component: 'ToolGroup' }, readPicturesView)
 
   on('prompt.compose', answerPicturesPrompt)
 

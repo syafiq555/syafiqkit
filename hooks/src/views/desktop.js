@@ -1,4 +1,4 @@
-import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, NEAR_LIMIT_SHARE, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, VERBS, WINDOW_ROWS } from '../core/constants.js'
+import { CLAUDE_MD_MAX_BYTES, CLAUDE_MD_MAX_LINES, DESKTOP_DRAW_CHARS, DESKTOP_MAP_CELLS, DESKTOP_MAP_ROWS, DESKTOP_PAGE_BAR_ROWS, DESKTOP_STRIP_ROWS, DESKTOP_TONE, DESKTOP_WRAP_CHARS, MEDIA_ROW_PX, NEAR_LIMIT_SHARE, SPACER_MAX_ROWS, STICKY_COVER_ROWS, TASK_DOC_MAX_LINES, WINDOW_ROWS } from '../core/constants.js'
 import { docAgeOf, docLabel, flaggedDecisions, hasOutline, isInstructionFile, kb } from '../core/format.js'
 import { invalidatePane, state } from '../core/state.js'
 import { ensureSlice, openInViewer, saveGallery, sliceGeometry, slicesWanted } from '../docs/gallery.js'
@@ -12,7 +12,6 @@ import { entryInFocus, letterOf, nameOf, numstatOf, sectionEntries, splitFocus, 
 import { diffPalette, highlightLines, syntaxSegmentStyle, syntaxSegments } from '../git/syntax.js'
 import { PLANE_LABEL, activeFocus, diffBodyItems, diffIsOpen, focusTitle, lineNumberWidth, moreLinesItem, noDiffsText, shownLines } from './changes.js'
 import { galleryPicture } from './images.js'
-import { runVerb } from './menu.js'
 import { chip, counts, hoverScope, liveOnly, mapBlock, meter, pageBar, strip } from './ui.js'
 
 export const STATUS_TONE = { M: 'mod', A: 'add', U: 'add', D: 'del', R: 'ren', C: 'del' }
@@ -651,7 +650,7 @@ export function docGauge(doc) {
 }
 
 export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
-  const { Box, Text, Button, pickAction } = c
+  const { Box, Text, Button, open } = c
   const gauge = docGauge(doc)
   const flagged = flaggedDecisions(doc)
   return Box({
@@ -669,7 +668,7 @@ export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
         flexShrink: 1,
         minWidth: 10,
         overflow: 'hidden',
-        children: [Button({ key: key + 'b', label: docLabel(doc, indent ? 22 : 24), plain: true, onPress: () => pickAction(doc) })],
+        children: [Button({ key: key + 'b', label: docLabel(doc, indent ? 22 : 24), plain: true, onPress: () => open(doc) })],
       }),
       Box({
         key: key + 'l',
@@ -701,55 +700,6 @@ export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
       }),
     ],
   })
-}
-
-export const MENU_GROUPS = [
-  { title: 'SHIP WORK', labels: ['Commit', 'Commit and push', 'Push', 'Done', 'Ship'] },
-  { title: 'DOCS', labels: ['Read a task doc', 'Shrink a doc', 'Refresh a doc', 'Merge docs'] },
-  { title: 'REVIEW', labels: ['Changes', 'Images'] },
-]
-
-export function desktopMenuView($, c) {
-  const { Box, Text, Button } = c
-  const rows = []
-  MENU_GROUPS.forEach((group) => {
-    rows.push(Box({ key: 'mg-' + group.title, marginTop: rows.length ? 1 : 0, children: [strip(c, { key: 'mgs-' + group.title, title: group.title })] }))
-    group.labels.forEach((label) => {
-      const index = VERBS.findIndex((verb) => verb.label === label)
-      if (index < 0) return
-      const verb = VERBS[index]
-      rows.push(
-        Box({
-          key: 'v' + index,
-          flexDirection: 'row',
-          alignItems: 'center',
-          columnGap: 1,
-          paddingX: 1,
-          hover: { backgroundColor: DESKTOP_TONE.stripHot },
-          children: [
-            Box({
-              key: 'vn' + index,
-              width: 22,
-              flexShrink: 0,
-              children: [
-                Button({
-                  key: 'vb' + index,
-                  label: verb.label,
-                  ...(index < 9 ? { hotkey: String(index + 1) } : {}),
-                  plain: true,
-                  ...(index === 0 ? { autoFocus: true } : {}),
-                  onPress: () => runVerb($, c, verb),
-                }),
-              ],
-            }),
-            Box({ key: 'vh' + index, flexGrow: 1, flexShrink: 1, children: [Text({ dimColor: true, wrap: 'truncate-end', children: verb.hint })] }),
-            ...(verb.danger ? [chip(c, 'vd' + index, 'asks first', 'warn')] : []),
-          ],
-        }),
-      )
-    })
-  })
-  return Box({ flexDirection: 'column', children: [Text({ key: 'menu-title', bold: true, children: 'What do you want to do?' }), ...rows, Box({ key: 'menu-version', marginTop: 1, children: [Text({ dimColor: true, children: 'syafiqkit mod v' + state.version })] })] })
 }
 
 export let galleryPick = ''

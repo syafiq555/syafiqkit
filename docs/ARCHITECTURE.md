@@ -59,7 +59,7 @@ External partners: GitHub (distribution); optional plugins `code-simplifier`, `f
 | Shared references | `skills/_shared/references/` | Rules cited by three or more skills |
 | Commands | `commands/*.md` | Invocation prompts (journal read/update) |
 | Hook | `hooks/hooks.json`, `hooks/RULESET.md` | Output-style injection |
-| Mod | `hooks/src/**/*.js` (entry `mod.js`), `hooks/render/` (vendored Typst template), `types/index.d.ts`, `hooks/register.test.ts` | Band above the prompt, /sk menu, /task-docs reader, pictures under answers |
+| Mod | `hooks/src/**/*.js` (entry `mod.js`), `hooks/render/` (vendored Typst template), `types/index.d.ts`, `hooks/register.test.ts` | Band above the prompt, /task-docs reader, /changes view, pictures under answers and under Read rows |
 | Agent templates | `skills/agent-setup/templates/*.template.md` | Source for generated project agents |
 | Generated agents | `.claude/agents/*.md` | This repo's own agents; must stay in parity with templates |
 | Task docs | `tasks/plugin-maintenance/<feature>/` | The plugin's own decision history; not shipped |

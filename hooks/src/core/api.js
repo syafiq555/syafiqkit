@@ -75,14 +75,6 @@ export function hostPromptSubmit($, ...args) {
   return $.prompt.submit(...args)
 }
 
-export function hostStoreGet($, ...args) {
-  return $.store.get(...args)
-}
-
-export function hostStoreSet($, ...args) {
-  return $.store.set(...args)
-}
-
 export function hostSessionCwd($, ...args) {
   return $.session.cwd(...args)
 }

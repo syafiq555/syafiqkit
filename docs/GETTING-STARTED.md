@@ -24,7 +24,7 @@ Update every so often with `claude plugin update syafiqkit@syafiqkit`.
 
 - **Claude answers differently.** Replies lead with the thing to do, steps come numbered, estimates use real units ("about 15 minutes"), and filler openers and closers are gone. This is on for every session; the rules are in `hooks/RULESET.md`.
 - **A line appears above your prompt** (Claude Code 2.1.287 or later): `e: enhance  d: docs  g: changes │ w: done › c: commit › p: push › s: ship`. The four chips on the right show how far your wrap-up has got (grey not yet, blue running, green done). Press a letter to run that step; push and ship ask before acting.
-- **`/sk` opens a one-key menu** for the common jobs (commit, done, ship, read a doc).
+- **The line above the prompt runs the common jobs**: done, commit, push and ship chips, plus `d` for the docs reader and `g` for changes.
 
 ## 3. The idea behind it: task docs {#task-docs}
 

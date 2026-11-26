@@ -24,7 +24,7 @@ Desktop checks run in a session started with **New** in Desktop, because a windo
 
 ### 0000. 1.397.3, pushed to origin/master, unseen live (row 26). {#check-0000}
 
-1. Start a new terminal session and check `/sk` reads `v1.397.3`. The footer is the only proof which build runs.
+1. Start a new terminal session and check the version line (now the `/task-docs` list's `mod v…`; `/sk` until 1.477.0) reads `v1.397.3`. The footer is the only proof which build runs.
 2. Open `/task-docs` on a doc with long items. Check:
    - (1) hovering any row lights every row of the item, and a click on any row picks it;
    - (2) the `… N more lines` row expands all items and does not change the pick;
@@ -76,7 +76,7 @@ Checks not tied to one build. They stay open until run.
 2. Open `/task-docs` in the 106-doc repo (the one the user's first screenshot came from) and compare the header count with `find tasks -name current.md | wc -l`. Then run it for real:
    - `claude plugin update syafiqkit@syafiqkit`, then restart WITHOUT `--plugin-dir /tmp/mods-try-docs` (a second copy collides on `/sk` and `/task-docs`), and with `CLAUDE_CODE_FORCE_TERMINAL_IMAGES=1` in iTerm2 (now set in `~/.claude/settings.json` `env`).
 3. Desktop, in a session started with **New** there (a Desktop window onto a terminal session shows nothing and proves nothing):
-   - Check the panes not yet seen: the docs list in the 106-doc repo, the doc reader, the handoff form, the confirm pages, and `/sk`.
+   - Check the panes not yet seen: the docs list in the 106-doc repo, the doc reader, the handoff form and the confirm pages (`/sk` was removed in 1.477.0).
    - Check that the first click after a page change lands and that nothing blanks.
    - Check the gallery's big picture now draws from its smaller copy.
    - Scroll a stack of several tall pictures in iTerm2 too.

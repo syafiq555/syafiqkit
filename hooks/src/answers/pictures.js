@@ -1,5 +1,5 @@
 import { atom, read } from 'claude-code'
-import { hostFsRead, hostFsStat, hostFsWrite, hostProcessRun, hostSessionCwd, hostStoreGet, hostStoreSet, hostUiResolve } from '../core/api.js'
+import { hostFsRead, hostFsStat, hostFsWrite, hostProcessRun, hostSessionCwd, hostUiResolve } from '../core/api.js'
 import { ANSWER_FILE_CAP, ANSWER_IMAGE_EXT, ANSWER_MISSING_RETRY_MS, ANSWER_MATH_COLUMNS, ANSWER_PICTURES_PROMPT, ANSWER_VIDEO_EXT, PICTURE_TIMEOUT_MS } from '../core/constants.js'
 import { homeOf, lockDown, messageOf } from '../core/format.js'
 import { modLog } from '../core/log.js'
@@ -76,8 +76,43 @@ async function sizeOf($, file) {
   return { width, height }
 }
 
+async function convertToPng($, source, out, cwd, isImage) {
+  let ran = { exitCode: 1, stderr: '' }
+  if (isImage) ran = await hostProcessRun($, ['sips', '-s', 'format', 'png', source, '--out', out], { cwd, timeoutMs: PICTURE_TIMEOUT_MS }).catch(() => ran)
+  if (ran.exitCode !== 0) ran = await hostProcessRun($, ['ffmpeg', '-y', '-loglevel', 'error', '-i', source, '-frames:v', '1', ...(isImage ? [] : ['-vf', 'scale=960:-2']), out], { cwd, timeoutMs: PICTURE_TIMEOUT_MS }).catch((error) => ({ exitCode: 1, stderr: messageOf(error) }))
+  if (ran.exitCode !== 0) throw new Error(String(ran.stderr || ran.stdout || 'conversion failed').trim().slice(0, 200))
+}
+
+async function prepareReadBytes($, job) {
+  const home = await homeOf($)
+  if (!home) throw new Error('no home folder for the picture cache')
+  const dir = home + '/.claude/doc-pane-cache/answers'
+  const out = dir + '/' + job.key + '.png'
+  if (!(await safeExists($, out))) {
+    const isPng = job.media === 'image/png'
+    const encoded = dir + '/' + job.key + '.b64'
+    const decoded = dir + '/' + job.key + '.src'
+    const staged = dir + '/' + job.key + '.tmp.png'
+    await hostFsWrite($, encoded, job.base64)
+    const script = isPng ? 'base64 -d < "$1" > "$2" && mv "$2" "$3"; status=$?; rm -f "$1" "$2"; exit $status' : 'base64 -d < "$1" > "$2"; status=$?; rm -f "$1"; exit $status'
+    const ran = await hostProcessRun($, ['sh', '-c', script, 'sh', encoded, decoded, out], { cwd: home, timeoutMs: PICTURE_TIMEOUT_MS })
+    if (ran.exitCode !== 0) throw new Error(String(ran.stderr || 'base64 decode failed').trim().slice(0, 200))
+    if (!isPng) {
+      const converted = await convertToPng($, decoded, staged, home, true).then(() => true, () => false)
+      const moved = await hostProcessRun($, ['sh', '-c', 'test "$4" = yes && mv "$1" "$2"; status=$?; rm -f "$1" "$3"; exit $status', 'sh', staged, out, decoded, converted ? 'yes' : 'no'], { cwd: home, timeoutMs: PICTURE_TIMEOUT_MS })
+      if (!converted || moved.exitCode !== 0) throw new Error('could not convert the picture Claude read to PNG')
+    }
+    await lockDown($, dir, '700')
+  }
+  state.answerPics[job.key] = { status: 'ready', file: out, size: await sizeOf($, out) }
+}
+
 async function preparePicture($, job) {
   try {
+    if (job.base64) {
+      await prepareReadBytes($, job)
+      return
+    }
     if (!(await safeExists($, job.path))) {
       state.answerPics[job.key] = { status: 'missing', at: Date.now() }
       return
@@ -87,17 +122,20 @@ async function preparePicture($, job) {
     const dir = home + '/.claude/doc-pane-cache/answers'
     const stat = await hostFsStat($, job.path).catch(() => null)
     const out = dir + '/' + job.key + '-' + Math.round((stat && stat.mtimeMs) || 0) + '.png'
-    if (job.kind === 'image' && /\.png$/i.test(job.path)) {
+    const isPngFile = job.kind === 'image' && /\.png$/i.test(job.path)
+    if (isPngFile && !job.snapshot) {
       state.answerPics[job.key] = { status: 'ready', file: job.path, size: await sizeOf($, job.path) }
       return
     }
     if (!(await safeExists($, out))) {
       await hostFsWrite($, dir + '/.keep', '')
-      const viaFfmpeg = ['ffmpeg', '-y', '-loglevel', 'error', '-i', job.path, '-frames:v', '1', '-vf', 'scale=960:-2', out]
-      let ran = { exitCode: 1, stderr: '' }
-      if (job.kind === 'image') ran = await hostProcessRun($, ['sips', '-s', 'format', 'png', job.path, '--out', out], { cwd: home, timeoutMs: PICTURE_TIMEOUT_MS }).catch(() => ran)
-      if (ran.exitCode !== 0) ran = await hostProcessRun($, viaFfmpeg, { cwd: home, timeoutMs: PICTURE_TIMEOUT_MS }).catch((error) => ({ exitCode: 1, stderr: messageOf(error) }))
-      if (ran.exitCode !== 0) throw new Error(String(ran.stderr || ran.stdout || 'ffmpeg failed').trim().slice(0, 200))
+      try {
+        await convertToPng($, job.path, out, home, job.kind === 'image')
+      } catch (error) {
+        if (!isPngFile) throw error
+        state.answerPics[job.key] = { status: 'ready', file: job.path, size: await sizeOf($, job.path) }
+        return
+      }
       await lockDown($, dir, '700')
     }
     state.answerPics[job.key] = { status: 'ready', file: out, size: await sizeOf($, out) }
@@ -120,24 +158,14 @@ async function pumpPictures($) {
   }
 }
 
-export async function loadAnswerPictures($) {
-  state.answerPicturesOff = (await hostStoreGet($, 'answerPicturesOff').catch(() => false)) === true
-}
-
-export async function toggleAnswerPictures($) {
-  state.answerPicturesOff = !state.answerPicturesOff
-  await hostStoreSet($, 'answerPicturesOff', state.answerPicturesOff).catch(() => {})
-  bumpPictures($)
-}
-
 export async function answerPicturesPrompt($, e, next) {
   const result = await next(e)
   const surfaces = e.surfaces || []
-  if (state.disabled || state.answerPicturesOff || surfaces[0] !== 'terminal' || (e.traits || []).includes('print')) return result
+  if (state.disabled || surfaces[0] !== 'terminal' || (e.traits || []).includes('print')) return result
   return { ...result, sections: [...result.sections, { id: 'syafiqkit:answer-pictures', text: ANSWER_PICTURES_PROMPT, scope: 'session' }] }
 }
 
-function wantFilePictures($, items) {
+export function wantFilePictures($, items) {
   for (const item of items) {
     const known = state.answerPics[item.key]
     if (known && known.status === 'missing' && Date.now() - known.at > ANSWER_MISSING_RETRY_MS) delete state.answerPics[item.key]
@@ -159,7 +187,7 @@ export async function answerPicturesView($, e, next) {
 }
 
 async function withPictures($, e, drawn) {
-  if (state.disabled || state.answerPicturesOff) return drawn
+  if (state.disabled) return drawn
   const props = e.props || {}
   if (props.isSummary || typeof props.text !== 'string' || !props.text.trim()) return drawn
   if (!drawn || hasImage(drawn)) return drawn

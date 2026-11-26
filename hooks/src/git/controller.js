@@ -253,7 +253,7 @@ export function watchChanges($) {
   state.stop = hostClockEvery($, POLL_MS, () => refreshChanges($))
 }
 
-export async function enterChanges($) {
+async function enterChanges($) {
   stopWatch()
   state.view = 'changes'
   state.allScroll = { view: '', offset: 0, body: state.allScroll.body }

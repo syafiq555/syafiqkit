@@ -17,7 +17,7 @@ const MIN_NAME_WIDTH = 8
 
 export function docRow(c, doc, key, withScope, indent, fullAge) {
   if (isDesktop(c.e)) return desktopDocRow(c, doc, key, withScope, indent, fullAge)
-  const { Box, Text, Button, pickAction } = c
+  const { Box, Text, Button, open } = c
   const heavy = isHeavy(doc)
   const pad = indent ? '  ' : ''
   const columns = paneColumns(c.e)
@@ -45,7 +45,7 @@ export function docRow(c, doc, key, withScope, indent, fullAge) {
     flexDirection: 'row',
     columnGap: COLUMN_GAP,
     children: [
-      cell('b', pad.length + nameWidth, Button({ key: key + 'b', label: pad + label.padEnd(nameWidth), plain: true, onPress: () => pickAction(doc) })),
+      cell('b', pad.length + nameWidth, Button({ key: key + 'b', label: pad + label.padEnd(nameWidth), plain: true, onPress: () => open(doc) })),
       ...(narrow
         ? []
         : [
@@ -146,7 +146,7 @@ export function loadingNote() {
 }
 
 export function listView($, c) {
-  const { Box, Text, Button, Input, goto, redraw, bindField } = c
+  const { Box, Text, Button, Input, redraw, bindField } = c
   const gap = (key) => Text({ key: 'gap-' + key, children: ' ' })
   const desktop = isDesktop(c.e)
   if (!desktop) {
@@ -167,20 +167,9 @@ export function listView($, c) {
       flexWrap: 'wrap',
       columnGap: 2,
       children: [
-        Button({
-          key: prefix + 'to-menu',
-          label: '< Menu',
-          ...liveOnly(prefix, { hotkey: 'm' }),
-          onPress: () => {
-            state.pick = null
-            state.heavyOnly = false
-            goto('menu')
-          },
-        }),
-        state.pick
-          ? Text({ color: 'cyan', children: 'Pick a doc to ' + state.pick })
-          : Text({ dimColor: true, children: 'Pick a doc to read' }),
+        Text({ dimColor: true, children: 'Pick a doc to read' }),
         ...(note ? [Text({ key: prefix + 'list-loading', dimColor: true, children: note })] : []),
+        ...(state.version ? [Text({ key: prefix + 'list-version', dimColor: true, children: 'mod v' + state.version })] : []),
         ...(!desktop && !prefix
           ? [Button({ key: 'list-top-u', label: '↑ Top', plain: true, hotkey: 'u', onPress: () => hostUiScroll($, { in: PANE, to: 'start', block: 'start' }).then(() => hostUiInvalidate($, 'ui.render')) })]
           : []),

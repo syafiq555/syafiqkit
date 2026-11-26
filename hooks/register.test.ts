@@ -40,7 +40,7 @@ const stubSession = (on: any, sent: string[], opened: string[], names: string[] 
     opened.push(e.id)
     return { value: { isPlaced: true } }
   })
-  on('ui.close', () => ({ value: undefined }))
+  if (!skip.includes('ui.close')) on('ui.close', () => ({ value: undefined }))
   if (!skip.includes('ui.toast')) on('ui.toast', () => ({ value: undefined }))
   on('prompt.submit', (_$: any, e: any) => {
     sent.push(e.text)
@@ -52,14 +52,14 @@ const stubRender = (on: any) => on('ui.render', () => ({ type: 'Text', props: {}
 
 const stubTree = (on: any, tree: Record<string, any[]>) => on('fs.list', (_$: any, e: any) => ({ value: tree[e.path] ?? [] }))
 
-test('session start registers the menu and docs commands', async ($, on) => {
+test('session start registers the docs and changes commands, and no /sk menu', async ($, on) => {
   const names: string[] = []
   stubSession(on, [], [], names)
   await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-  expect(names).toEqual(['task-docs', 'sk', 'changes'])
+  expect(names).toEqual(['task-docs', 'changes'])
 })
 
-test('the menu shows the version read from plugin.json at session start', async ($, on) => {
+test('the docs list shows the version read from plugin.json at session start', async ($, on) => {
   const reads: string[] = []
   stubSession(on, [], [])
   stubRender(on)
@@ -69,9 +69,9 @@ test('the menu shows the version read from plugin.json at session start', async 
   })
   await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
   expect(reads.some((path) => path.endsWith('/.claude-plugin/plugin.json'))).toBe(true)
-  await $.command.run({ command: 'sk', args: '' })
+  await $.command.run({ command: 'task-docs', args: '' })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  expect((await ui.findAll({ type: 'Text', text: /syafiqkit mod v9\.8\.7/ })).length).toBe(1)
+  expect((await ui.findAll({ type: 'Text', text: /mod v9\.8\.7/ })).length).toBe(1)
   await ui.unmount()
 })
 
@@ -482,25 +482,6 @@ test('a refused toast does not stop the session from starting', async ($, on) =>
   await band.unmount()
 })
 
-test('the moved-buttons notice shows once, then never again', async ($, on) => {
-  const toasts: string[] = []
-  const stored: Record<string, unknown> = {}
-  stubSession(on, [], [], [], ['ui.toast'])
-  stubRender(on)
-  on('ui.toast', (_$: any, e: any) => {
-    toasts.push(e.text)
-    return { value: undefined }
-  })
-  on('store.get', (_$: any, e: any) => ({ value: stored[e.key] }))
-  on('store.set', (_$: any, e: any) => {
-    stored[e.key] = e.value
-    return { value: undefined }
-  })
-  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-  expect(toasts.filter((text) => text.includes('/sk'))).toEqual(['The menu moved off the line: type /sk'])
-})
-
 test('a commit-and-push skill call leaves the ship chip alone', async ($, on) => {
   stubSession(on, [], [])
   stubRender(on)
@@ -723,11 +704,12 @@ test('a short task doc with a decisions file over 40 KB is listed for shrinking,
     [fileEntry('requirements.md', 185_000), fileEntry('small.md', 9_000)],
     '# T\n- [ ] one',
   )
-  await $.command.run({ command: 'sk', args: '' })
+  await $.command.run({ command: 'task-docs', args: '' })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await ui.press({ key: 'vb5' })
+  await ui.press({ key: 'show-heavy' })
   expect(await ui.find({ key: 'y0b' })).toBeDefined()
   await ui.press({ key: 'y0b' })
+  await ui.press({ key: 'shrink' })
   expect(sent.length).toBe(1)
   expect(sent[0]).toContain('decisions/requirements.md')
   expect(sent[0]).not.toContain('small.md')
@@ -747,12 +729,6 @@ test('an oversized decisions file with a fresh outline beside it is not flagged 
     [fileEntry('copy.md', 163_000), fileEntry('copy-outline.md', 4_000)],
     '# T\n- [ ] one',
   )
-  await $.command.run({ command: 'sk', args: '' })
-  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await ui.press({ key: 'vb5' })
-  expect((await ui.findAll({ type: 'Text', text: /Nothing is over the limit/ })).length).toBe(1)
-  expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB/ })).length).toBe(0)
-  await ui.unmount()
   await $.command.run({ command: 'task-docs', args: '' })
   const list = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await list.find({ key: 'r0b' })).toBeDefined()
@@ -789,9 +765,9 @@ test('an outline older than its copy by more than the slack reads as stale in th
     ],
     '# T\n- [ ] one',
   )
-  await $.command.run({ command: 'sk', args: '' })
+  await $.command.run({ command: 'task-docs', args: '' })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await ui.press({ key: 'vb5' })
+  await ui.press({ key: 'show-heavy' })
   expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB · outline stale/ })).length).toBe(1)
   await ui.unmount()
   await $.command.run({ command: 'task-docs', args: '' })
@@ -829,15 +805,16 @@ test('a copy kept whole with its outline offers no Split, and Shrink tells the s
   expect(await ui.find({ key: 'dec-split' })).toBeUndefined()
   expect(await ui.find({ key: 'dec-condense' })).toBeDefined()
   await ui.unmount()
-  await $.command.run({ command: 'sk', args: '' })
-  const menu = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await menu.press({ key: 'vb5' })
-  await menu.press({ key: 'y0b' })
+  await $.command.run({ command: 'task-docs', args: '' })
+  const list = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await list.press({ key: 'show-heavy' })
+  await list.press({ key: 'y0b' })
+  await list.press({ key: 'shrink' })
   expect(sent.length).toBe(1)
   expect(sent[0]).toContain('Over the limit: decisions/plan.md (45.9 KB) is over the 40 KB limit')
   expect(sent[0]).toContain('decisions/copy.md (159.2 KB) is a copy kept whole with a generated outline beside it: do not split or condense it')
   expect(sent[0]).not.toContain('looks older than the file')
-  await menu.unmount()
+  await list.unmount()
 })
 
 test('Shrink on a doc whose only oversized file is kept whole with its outline asks for no split or condense', async ($, on) => {
@@ -857,9 +834,9 @@ test('Shrink on a doc whose only oversized file is kept whole with its outline a
 test('an oversized decisions file without an outline keeps the plain badge', async ($, on) => {
   const sent: string[] = []
   await stubTaskDoc($, on, sent, 'quote', 2000, [fileEntry('copy.md', 163_000)], '# T\n- [ ] one')
-  await $.command.run({ command: 'sk', args: '' })
+  await $.command.run({ command: 'task-docs', args: '' })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await ui.press({ key: 'vb5' })
+  await ui.press({ key: 'show-heavy' })
   expect((await ui.findAll({ type: 'Text', text: /decisions 159\.2 KB/ })).length).toBe(1)
   expect((await ui.findAll({ type: 'Text', text: /outline/ })).length).toBe(0)
   await ui.unmount()
@@ -1098,29 +1075,6 @@ test('the CLAUDE.md chain lists nested files and companions, skips vendored fold
   expect(await desktop.find({ text: /nested: api/ })).toBeUndefined()
   expect(await desktop.find({ text: /300\/200/ })).toBeDefined()
   await desktop.unmount()
-})
-
-test('a safe menu verb sends its prompt and a risky one asks first', async ($, on) => {
-  const sent: string[] = []
-  const opened: string[] = []
-  stubSession(on, sent, opened)
-  stubRender(on)
-  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
-  await $.command.run({ command: 'sk', args: '' })
-  expect(opened).toEqual(['doc-pane'])
-
-  const menu = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await menu.press({ key: 'vb0' })
-  expect(sent).toEqual(['Use the commit skill to commit the staged changes.'])
-  await menu.unmount()
-
-  await $.command.run({ command: 'sk', args: '' })
-  const again = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  await again.press({ key: 'vb1' })
-  expect(sent.length).toBe(1)
-  await again.press({ key: 'confirm-send' })
-  expect(sent[1]).toBe('Use the commit skill to commit the staged changes, and push.')
-  await again.unmount()
 })
 
 test('the docs list shows the plugin skills, each opening its SKILL.md', async ($, on) => {
@@ -2170,7 +2124,7 @@ test('the terminal pane pins nothing, since it has no page colour to cover the r
   await down.unmount()
 })
 
-test('Desktop /task-docs pins Menu and the Filter, and typing in the pinned Filter filters the list', async ($, on) => {
+test('Desktop /task-docs pins the Filter, and typing in the pinned Filter filters the list', async ($, on) => {
   stubSession(on, [], [], [], ['fs.list'])
   const docs = Array.from({ length: 12 }, (_, index) => dirEntry('d' + index))
   const tree: any = { '/work/tasks': docs }
@@ -2182,7 +2136,6 @@ test('Desktop /task-docs pins Menu and the Filter, and typing in the pinned Filt
   await $.command.run({ command: 'task-docs', args: '' })
   await (await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop' })).unmount()
   const down = await $.ui.mount({ ...DESKTOP_PANE, surface: 'desktop', props: { ...DESKTOP_PANE.props, scroll: { offset: 6, bodyRows: 4 } } })
-  expect(await down.find({ key: 'stk-to-menu' })).toBeDefined()
   expect(await down.find({ key: 'stk-filter' })).toBeDefined()
   expect(await down.find({ key: 'draw-refused' })).toBeUndefined()
   await down.input({ key: 'stk-filter', text: 'd1' })
@@ -2615,7 +2568,7 @@ const ANSWER_TEXT = [
   'The recording is at `/Users/test/out/demo.mp4`.',
 ].join('\n')
 
-const stubAnswerIo = (on: any, runs: string[][]) => {
+const stubAnswerIo = (on: any, runs: string[][], decodes = false) => {
   stubSession(on, [], [], [], ['env.get', 'fs.exists'])
   on('env.get', () => ({ value: '/Users/test' }))
   on('fs.exists', (_$: any, e: any) => ({ value: String(e.path).startsWith('/Users/test/out/') }))
@@ -2629,7 +2582,7 @@ const stubAnswerIo = (on: any, runs: string[][]) => {
     const argv = e.argv || e.command || e
     runs.push(argv)
     if (argv[0] === 'sips' && argv[1] === '-g') return { value: { exitCode: 0, stdout: 'pixelWidth: 800\n  pixelHeight: 400\n', stderr: '' } }
-    if (argv[0] === 'sh') return { value: { exitCode: 1, stdout: '', stderr: '' } }
+    if (argv[0] === 'sh') return { value: { exitCode: decodes && /^(base64 -d|test )/.test(String(argv[2])) ? 0 : 1, stdout: '', stderr: '' } }
     if (argv[0] === 'typst' || argv[0] === 'sips' || argv[0] === 'ffmpeg' || argv[0] === 'npx') return { value: { exitCode: 0, stdout: '', stderr: '' } }
     return { value: { exitCode: 1, stdout: '', stderr: '' } }
   })
@@ -2674,6 +2627,195 @@ test('an answer another mod already drew as pictures is left alone', async ($, o
   await ui.unmount()
 })
 
+const readImageCall = (path: string) => ({ tool_use_id: 'r-' + path, tool: 'Read', input: { file_path: path }, isRunning: false, isErrored: false, isInterrupted: false, output: { type: 'image', file: { base64: TYPESET_PNG, type: 'image/png', originalSize: 10 } } })
+const readTextCall = { tool_use_id: 'r-text', tool: 'Read', input: { file_path: '/Users/test/out/notes.md' }, isRunning: false, isErrored: false, isInterrupted: false, output: { type: 'text', file: { filePath: '/Users/test/out/notes.md', content: 'hi', numLines: 1, startLine: 1, totalLines: 1 } } }
+
+const settleImages = async (ui: any, want: number) => {
+  for (let tries = 0; tries < 30 && (await ui.findAll({ type: 'Image' })).length < want; tries += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    await ui.rerender?.()
+  }
+}
+
+test('an image Claude reads is drawn under its Read row in the terminal, and not in Desktop', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs, true)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const row = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolUse', requestId: 'read-1', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: readImageCall('/Users/test/out/shot.png') })
+  await settleImages(row, 1)
+  expect((await row.findAll({ type: 'Image' })).length).toBe(1)
+  await row.unmount()
+  const desktop = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolUse', requestId: 'read-2', surface: 'desktop', viewport: { columns: 100, rows: 40 }, props: readImageCall('/Users/test/out/shot.png') })
+  expect((await desktop.findAll({ type: 'Image' })).length).toBe(0)
+  await desktop.unmount()
+})
+
+test('a folded group of reads draws only its image reads, and an unfolded group leaves it to the rows', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs, true)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const calls = [readImageCall('/Users/test/out/photo.jpg'), readTextCall]
+  const folded = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolGroup', requestId: 'group-1', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: { calls, isActive: false, isExpanded: false } })
+  await settleImages(folded, 1)
+  expect((await folded.findAll({ type: 'Image' })).length).toBe(1)
+  expect(runs.some((run) => run[0] === 'sh' && String(run[2]).startsWith('base64 -d'))).toBe(true)
+  await folded.unmount()
+  const open = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolGroup', requestId: 'group-2', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: { calls, isActive: false, isExpanded: true } })
+  await new Promise((resolve) => setTimeout(resolve, 60))
+  await open.rerender?.()
+  expect((await open.findAll({ type: 'Image' })).length).toBe(0)
+  await open.unmount()
+})
+
+test('a path read again after it changed gets a fresh picture', async ($, on) => {
+  const runs: string[][] = []
+  const stored: Record<string, unknown> = {}
+  stubAnswerIo(on, runs, true)
+  stubRender(on)
+  on('store.get', (_$: any, e: any) => ({ value: stored[e.key] }))
+  on('store.set', (_$: any, e: any) => {
+    stored[e.key] = e.value
+    return { value: undefined }
+  })
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const first = readImageCall('/Users/test/out/shot.png')
+  const second = { ...first, tool_use_id: 'r-again', output: { type: 'image', file: { ...first.output.file, originalSize: 99 } } }
+  const snapshots = () => runs.filter((run) => run[0] === 'sh' && String(run[2]).startsWith('base64 -d')).length
+  const one = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolUse', requestId: 'read-a', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: first })
+  await settleImages(one, 1)
+  expect(snapshots()).toBe(1)
+  const two = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolUse', requestId: 'read-b', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: second })
+  await settleImages(two, 1)
+  expect((await two.findAll({ type: 'Image' })).length).toBe(1)
+  expect(snapshots()).toBe(2)
+  await one.unmount()
+  await two.unmount()
+})
+
+test('a read image is drawn from the bytes Claude read, so it still shows after the file is deleted', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs, true)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const row = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolUse', requestId: 'read-gone', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: readImageCall('/Users/test/gone/shot.png') })
+  await settleImages(row, 1)
+  expect((await row.findAll({ type: 'Image' })).length).toBe(1)
+  expect(runs.some((run) => run[0] === 'write' && run[1].endsWith('.b64'))).toBe(true)
+  expect(runs.some((run) => run[0] === 'sips' && run[1] === '-s')).toBe(false)
+  await row.unmount()
+})
+
+test('only finished image reads draw: PDF, page images, text, running, errored and interrupted reads draw nothing', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs, true)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const base = readImageCall('/Users/test/out/shot.png')
+  const cases = [
+    { ...base, output: { type: 'pdf', file: { filePath: '/Users/test/out/a.pdf', base64: TYPESET_PNG, originalSize: 10 } } },
+    { ...base, output: { type: 'parts', file: { filePath: '/Users/test/out/a.pdf', originalSize: 10, count: 2, outputDir: '/Users/test/out/pages' } } },
+    readTextCall,
+    { ...base, isRunning: true, output: undefined },
+    { ...base, isErrored: true },
+    { ...base, isInterrupted: true },
+  ]
+  for (const [index, props] of cases.entries()) {
+    const row = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolUse', requestId: 'none-' + index, surface: 'terminal', viewport: { columns: 100, rows: 40 }, props })
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    await row.rerender?.()
+    expect((await row.findAll({ type: 'Image' })).length).toBe(0)
+    await row.unmount()
+  }
+  expect(runs.some((run) => (run[0] === 'sh' && String(run[2]).startsWith('base64 -d')) || (run[0] === 'sips' && run[1] === '-s'))).toBe(false)
+})
+
+test('a JPEG Claude read is decoded from its bytes, converted to PNG and moved into place, with no temporary file trusted', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs, true)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const call = readImageCall('/Users/test/out/photo.jpg')
+  const props = { ...call, output: { type: 'image', file: { ...call.output.file, type: 'image/jpeg' } } }
+  const row = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolUse', requestId: 'jpeg-bytes', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props })
+  await settleImages(row, 1)
+  const image = (await row.findAll({ type: 'Image' }))[0]
+  expect(image.props.source.file).toMatch(/\/answers\/[0-9a-f]+\.png$/)
+  const sips = runs.find((run) => run[0] === 'sips' && run[1] === '-s')
+  expect(sips?.[4]).toMatch(/\.src$/)
+  expect(sips?.[6]).toMatch(/\.tmp\.png$/)
+  expect(runs.some((run) => run[0] === 'sh' && String(run[2]).startsWith('test ') && run[7] === 'yes')).toBe(true)
+  await row.unmount()
+})
+
+test('Cancel on a push confirm opened while reading a doc returns to that doc', async ($, on) => {
+  const sent: string[] = []
+  await stubTaskDoc($, on, sent, 'quote', 2000, [fileEntry('small.md', 9_000)], '# T\n- [ ] one')
+  await $.command.run({ command: 'task-docs', args: '' })
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await pane.press({ key: 'r0b' })
+  expect(await pane.find({ key: 'refresh' })).toBeDefined()
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-push' })
+  await pane.rerender?.()
+  await pane.press({ key: 'confirm-cancel' })
+  expect(await pane.find({ key: 'confirm-send' })).toBeUndefined()
+  expect(await pane.find({ key: 'refresh' })).toBeDefined()
+  expect(sent.length).toBe(0)
+  await band.unmount()
+  await pane.unmount()
+})
+
+test('Cancel on a push confirm opened from the band with the pane closed closes the pane again', async ($, on) => {
+  const sent: string[] = []
+  const closed: string[] = []
+  stubSession(on, sent, [], [], ['ui.close'])
+  on('ui.close', (_$: any, e: any) => {
+    closed.push(e.id)
+    return { value: undefined }
+  })
+  stubRender(on)
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-push' })
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ key: 'confirm-cancel' })).toBeDefined()
+  await pane.press({ key: 'confirm-cancel' })
+  expect(closed).toEqual(['doc-pane'])
+  expect(sent.length).toBe(0)
+  await pane.unmount()
+  await band.unmount()
+})
+
+test('Cancel on a push confirm opened from the band over the changes view returns to that changes view', async ($, on) => {
+  const runs: string[][] = []
+  const ui = await openChangesPane($, on, runs, PANE)
+  expect(await ui.find({ key: 'staged-toggle' })).toBeDefined()
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-push' })
+  await ui.rerender?.()
+  expect(await ui.find({ key: 'confirm-cancel' })).toBeDefined()
+  await ui.press({ key: 'confirm-cancel' })
+  expect(await ui.find({ key: 'confirm-send' })).toBeUndefined()
+  expect(await ui.find({ key: 'staged-toggle' })).toBeDefined()
+  await band.unmount()
+  await ui.unmount()
+})
+
+test('a read image whose bytes fail to decode draws nothing and never falls back to the file on disk', async ($, on) => {
+  const runs: string[][] = []
+  stubAnswerIo(on, runs)
+  stubRender(on)
+  await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' })
+  const row = await $.ui.mount({ plugin: 'syafiqkit', component: 'ToolUse', requestId: 'bad-bytes', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: readImageCall('/Users/test/out/shot.png') })
+  await new Promise((resolve) => setTimeout(resolve, 60))
+  await row.rerender?.()
+  expect((await row.findAll({ type: 'Image' })).length).toBe(0)
+  expect(runs.some((run) => run[0] === 'sh' && String(run[2]).startsWith('base64 -d'))).toBe(true)
+  expect(runs.some((run) => run[0] === 'sips' && run[1] === '-s')).toBe(false)
+  await row.unmount()
+})
+
 test('format names in prose and paths to missing files get no picture and no Open button', async ($, on) => {
   const runs: string[][] = []
   stubAnswerIo(on, runs)
@@ -2691,9 +2833,9 @@ test('format names in prose and paths to missing files get no picture and no Ope
 
 const composeBase = { sections: [{ id: 'intro', text: 'You are Claude.', scope: 'shared' }] }
 
-test('Claude is told about answer pictures in terminal sessions only, and not once they are switched off', async ($, on) => {
+test('Claude is told about answer pictures in terminal sessions only, and an off switch saved by an older version no longer hides them', async ($, on) => {
   const runs: string[][] = []
-  const stored: Record<string, unknown> = {}
+  const stored: Record<string, unknown> = { answerPicturesOff: true }
   stubAnswerIo(on, runs)
   stubRender(on)
   on('store.get', (_$: any, e: any) => ({ value: stored[e.key] }))
@@ -2706,16 +2848,8 @@ test('Claude is told about answer pictures in terminal sessions only, and not on
   const ids = async (surfaces: string[]) => ((await $.prompt.compose({ surfaces, model: 'claude-test', promptModel: 'claude-test', tools: [], outputStyle: null, traits: [] })).sections as any[]).map((section) => section.id)
   expect(await ids(['terminal'])).toContain('syafiqkit:answer-pictures')
   expect(await ids(['desktop'])).not.toContain('syafiqkit:answer-pictures')
-  await $.command.run({ command: 'sk', args: '' })
-  const menu = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  expect((await menu.find({ key: 'answer-pictures' }))?.props.label).toBe('Answer pictures: on')
-  await menu.press({ key: 'answer-pictures' })
-  expect(stored.answerPicturesOff).toBe(true)
-  expect(await ids(['terminal'])).not.toContain('syafiqkit:answer-pictures')
-  await menu.unmount()
-  const answer = await $.ui.mount({ plugin: 'syafiqkit', component: 'AssistantMessage', requestId: 'answer-4', surface: 'terminal', viewport: { columns: 100, rows: 40 }, props: { text: ANSWER_TEXT } })
-  expect((await answer.findAll({ type: 'Image' })).length).toBe(0)
-  expect(runs.some((run) => run[0] === 'ffmpeg' || run[0] === 'npx')).toBe(false)
+  const answer = await mountAnswer($, ANSWER_TEXT)
+  expect((await answer.findAll({ type: 'Image' })).length).toBe(4)
   await answer.unmount()
 })
 
