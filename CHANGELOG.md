@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.485.0
+
+**`uiux` now treats a screen's wording as half the design: every pass cuts words the screen or its structure already carries, while keeping every fact that changes what the reader does.** Before this, the skill's word rules covered buttons, errors and empty states only, so a polish pass could change every class on a screen and leave its paragraphs untouched.
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `uiux`: a wording rule beside "Design for people who scan", and a four-question cut test (already said? structure can say it? would they act differently? their words?) in `references/designing-for-scanners.md` § Words.
+
 ## 1.484.0
 
 **`score-loop` now keeps the loop in the main session: builders capture their screens and report the paths, and this session dispatches the judges. `unblock` researches an outside fact (a tax rule, a threshold, a vendor's terms) before putting it in a decision question.** Before this, a builder told to "run score-loop" judged its own screens with a judge it kept, or could not dispatch one at all; and a question about whether a tax applied went out with only a task doc's claim and came back "can research ?".
