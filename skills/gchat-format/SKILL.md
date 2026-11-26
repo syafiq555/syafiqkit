@@ -43,6 +43,8 @@ If the ask is "reply to X", "tell Y that…", or a message in the sender's own w
 
 **A release note about a changed screen goes out with captures of the built screen**, phone and desktop, each opened first, attached to the post or sent as a reply in its thread; the same holds when the note is drafted outside `ship` and sent straight through a Chat send tool. `ship`'s `references/ship-deploy-verification.md` § Release Captures has the procedure. **Tell: the note names a screen and your send call carries no files.**
 
+**A post that names a file (a deck, doc, sheet or recording) carries its link.** "Shared with the company" means people may open it, not that they can find it, and the session that made the file knows its id while the readers do not (26/11/2026: a checkpoint post said the deck was "shared with the domain if anyone wants a look", and the sender stopped the send: "i never gave them the link"). Look the id up in the task doc or the upload result and put the full URL in the post, checked the way `casual-message` § Speaking for the sender checks a link. **Tell: the draft mentions a file and holds no URL.**
+
 When the input is a **release note / deployment announcement** (not already-final prose the user just wants reformatted), the Chat version is a short user-facing announcement, not a work log. Get to the point:
 
 | ❌ NEVER include | ✅ Keep only |

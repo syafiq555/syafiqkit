@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.481.0
+
+**A Chat post or message Claude drafts that mentions a deck, doc or sheet now includes the file's link. Before this, a draft could say a file was "shared with the company" and leave readers with no way to find it.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `/gchat-format` and `/casual-message`: when the draft names a file, Claude looks up its id and puts the full URL in, checked to be viewable by the readers.
+
 ## 1.480.0
 
 **`/ship` now writes the release into your own daily work log (a huddle sheet, a standup doc) when your instructions name one, and its summary gets a Work log row. Before this, a production ship posted the team note and the release card but left your log unchanged.**
