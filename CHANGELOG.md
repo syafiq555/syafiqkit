@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.483.0
+
+**`unblock` now checks live peer sessions before answering an item, and simplifiers check the project's dependency rules after a cleanup that adds an import. Before this, `unblock` could report an item from a stale source while another session was already working it, and a "use the enum, not the literal" cleanup could break a layer rule the builder had avoided on purpose.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `unblock`: the live check lists peer sessions in the same checkout and their commits since the doc's date; an item a peer is working on is reported as such.
+- `done` and the `code-simplifier` agent template: run the project's dependency or architecture check (`deptrac`, arch tests) after any edit that adds an import, and revert on a violation. Regenerate project agents with `agent-setup` to pick up the template line.
+
 ## 1.482.1
 
 **The work-log reminder from 1.482.0 now also follows a Google Chat edit and a Gmail send, since an edited post or an email can move a date as easily as a new message.**

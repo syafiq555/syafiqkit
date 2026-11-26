@@ -52,6 +52,7 @@ A task doc is a record of what was true when it was written. The item's real sta
 - **Tracker:** the card's status where the project has one (ClickUp, a shared sheet), read now, not from the doc's mention of it. Keep the card id on the row; the build step needs it.
 - **Team chat:** the project's space since the doc's date. Handovers, client replies and "already done" land there first.
 - **Sibling repo:** for a cross-repo item, that repo's own doc and git.
+- **Peer sessions:** `ListAgents` for live sessions in the same checkout whose names touch the item, and `git log --since=<the doc's date> -- tasks/<that domain>` for their commits. An item a peer is working on is reported as "a peer session is on this" with its name, never answered from the doc or a stale source: on 26/11/2026 a sales file was reported as holding nothing while a peer session was loading those sales and committing docs about it.
 - **Config-shaped blockers** ("can't until the key is set"): resolve the value in the dev or staging environment (production only when it is in scope); reading the adapter code confirms the blocker instead of testing it (📖 `../read-summary/SKILL.md` § What Task Docs Are and Aren't).
 
 Each row ends as `still open`, `looks done, doc still says open`, or `not checked` with the reason (no tracker access, chat tool not connected, repo not on this machine). An unreachable source is a gap to name, never a pass. Age alone proves nothing: the suspect row is one whose doc is older than the latest commit, card move or chat message about the same item.
