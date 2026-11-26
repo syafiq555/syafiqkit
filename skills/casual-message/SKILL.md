@@ -3,7 +3,8 @@ name: casual-message
 description: >
   Write a message in the sender's own voice to a specific person or small group —
   a WhatsApp reply, a Google Chat DM to a colleague, texting someone back, telling
-  a named person something. Casual by default: short, in a copyable fence, no section headers,
+  a named person something, including a reply the session offers unasked while
+  investigating a chat screenshot or wrapping up work. Casual by default: short, in a copyable fence, no section headers,
   closes the way the sender actually talks. Fires on "reply to X", "tell Y that...",
   "make it sound like me", "my usual WhatsApp message", "just a quick text", "reply
   casually", "what should we reply", "what do I say if they ask", "what should I

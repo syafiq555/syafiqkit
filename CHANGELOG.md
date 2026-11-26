@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.479.0
+
+**When a chat screenshot says a file was shared, Claude now finds it where your project tracks that ask before asking you for the link. A reply Claude drafts for you to send now goes through `/casual-message`, even when you didn't ask for one.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `/read-summary`: a screenshot such as "I have uploaded the sales in google sheet" sends Claude to the tracker row or thread that asked for that file first. Before this, a turn could end by asking you to paste a link already sitting on the tracker.
+- `/read-summary` and `/casual-message`: a reply Claude offers on its own initiative (an answer to a chat screenshot, a group update after the work) is drafted through `/casual-message`, so it comes out in your voice the first time instead of after you ask for the skill.
+
 ## 1.478.0
 
 **`/doc-to-md` now reads scanned PDFs, photos and screenshots of documents, using OCR on your own machine. Before this, a scanned PDF converted to an empty Markdown file with no warning.**
