@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.481.1
+
+**The link rule from 1.481.0 now applies to every Chat post, edit and reply, not only release notes, and never links an internal file in a client post.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `/gchat-format`: a file whose id isn't in the docs is found by searching Drive or asking you, never a guessed URL. Claude asks before widening a file's sharing. A client post links a client copy or says the file is available on request.
+
 ## 1.481.0
 
 **A Chat post or message Claude drafts that mentions a deck, doc or sheet now includes the file's link. Before this, a draft could say a file was "shared with the company" and leave readers with no way to find it.**
