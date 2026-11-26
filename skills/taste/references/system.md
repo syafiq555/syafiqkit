@@ -105,7 +105,8 @@ under the h2). A place sets `--t-h2: clamp(24px, .762vw + 21px, 32px)`.
 
 - `header.nav`: `position: fixed`, full width, `--nav` tall, opaque ground, a 1px hairline under it
   from the first paint, `z-index: 10`, the same at every scroll depth: no blur, transparency,
-  shrink, hide, shadow, colour flip or floating pill, and nothing else on the page is sticky. Its
+  shrink, hide, shadow, colour flip or floating pill, and nothing else on the page is sticky
+  (a shop's long product and listing pages are `uiux`'s, with their own header rule). Its
   `.wrap` is the page's: the logo on the left line, the main button ending on the right one.
 - The dealt type is a class (`sections.md`): `nav` (nav-mega, nav-cards), `nav nav--centre`,
   `nav nav--split`; `nav--tone` puts the bar on the inverse ground (tech).

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.487.0
+
+**`uiux` now recommends a shop header that hides as shoppers scroll down and comes back the moment they scroll up, and the motion skills gain three recipes: a shake when a password is refused, an accordion that opens smoothly to its natural height, and a theme switch without a colour flash.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `uiux`: on a shop's long product and listing pages, hide the header on scroll down and bring it back on scroll up. In a published test on a kitchenware shop this beat a fixed header (revenue per user +15.55%, purchases +6.27%), while a header that scrolled away for good cut add-to-basket by 15%. It was tested on desktop and tablet only, so phone use is marked as a judgement, and a rental or booking marketplace's listing pages take the rule the same way. Short marketing pages built with `/taste` still keep their fixed header.
+- `uiux` now treats a wrong-password error, an accordion that snaps open and a page that flashes on a light/dark toggle as motion work, so those requests reach the recipes below even when nobody says "animate".
+- `/emil-animate`: a short sideways shake on a refused submit, always beside a written error and switched off under reduced motion; `interpolate-size` for opening to `height: auto` in Chrome and Edge, with the measured-height route kept for Firefox and Safari; transitions switched off for the frame a light/dark switch happens.
+- `/emil-review-animations` now flags a shake without an error message, a theme switch that animates every colour, and `interpolate-size` with no fallback.
+
 ## 1.486.0
 
 **`done`'s Design row now carries a `words` field, so the wording pass from 1.485.0 is checked at wrap-up rather than only recalled during design work. `taste`'s word budget no longer cuts a fee, a deadline or legal text.**

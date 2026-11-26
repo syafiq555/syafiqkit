@@ -204,7 +204,9 @@ House rule: a bit faster, and repeating.
   on any page, no animation library at all on other: the kit's moments need none.
 - The header and the phone bar look the same at every scroll position; the bar only comes up once
   the hero's button has scrolled away and steps down while the screen shows one of its actions
-  (system.js, 240ms, at once under reduced motion).
+  (system.js, 240ms, at once under reduced motion). A taste page never hides its header; a shop's
+  long product and listing pages are `uiux`'s, where the header hides on scroll down and returns
+  on scroll up (`uiux`, `references/mobile-first.md` § Navigation).
 
 ## Reduced motion, no script, phones
 

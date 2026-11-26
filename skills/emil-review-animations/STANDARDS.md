@@ -176,6 +176,12 @@ const closedX = reduce ? 0 : '-100%';
 
 Reduced motion means fewer and gentler animations, not zero — keep transitions that aid comprehension, remove movement/position changes.
 
+## Refusal shake and theme switch
+
+- **Refusal shake**: one short `translateX`-only shake when the server refuses a submit, beside a text error and error colour, never alone (NN/g: never use exclusively color or animation to indicate errors) and never on each invalid keystroke. Under `prefers-reduced-motion` it is dropped and the message still shows. Amplitude and duration are craft judgement (about 6px decaying, 300ms); see `../emil-animate/RECIPES.md` § Shake on a refused submit.
+- **Theme switch**: a light/dark toggle on a page whose elements carry colour transitions turns transitions off for the switch (next-themes `disableTransitionOnChange`, or a `*, *::before, *::after { transition: none !important }` style flushed with `getComputedStyle` then removed). Its absence is a finding: every colour transition fires at once.
+- **Height to `auto`**: an accordion that uses `interpolate-size: allow-keywords` keeps a measured-height fallback for Firefox and Safari (MDN, checked 27/11/2026); see `../emil-animate/RECIPES.md` § Accordion / collapse.
+
 ## Debugging (recommend in reviews when feel is uncertain)
 
 - **Slow motion**: bump duration 2–5× or use DevTools animation inspector. Check colors crossfade cleanly, easing doesn't stop abruptly, `transform-origin` is right, coordinated properties stay in sync.

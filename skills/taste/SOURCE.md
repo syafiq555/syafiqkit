@@ -16,6 +16,7 @@ Vendored from tasteskill 2.5.1 by Leonxlnx: https://github.com/Leonxlnx/taste-sk
 - `scripts/consistency.mjs`, `findChrome`, and `assets/layout/check.mjs`: with no system Chrome, Edge or Chromium, fall back to the newest Chromium in Playwright's cache (`PLAYWRIGHT_BROWSERS_PATH`, else `~/Library/Caches/ms-playwright`, `~/.cache/ms-playwright` or `%LOCALAPPDATA%\ms-playwright`). These two are what the gate runs. `shoot.mjs`, `perf.mjs`, `moments.mjs` and `effects.mjs` keep upstream's own lookup and still need `CHROME_PATH` on such a machine.
 - `scripts/consistency.mjs`: every page the checker opens emulates `prefers-color-scheme: light` (in the main pass and in both reduced-motion/no-JS passes), because headless Chrome otherwise follows the OS appearance and measures the dark theme on a dark-mode Mac (found 17/11/2026 against the 2.1 inspector). Upstream's `shoot.mjs` has its own `--dark` and is unchanged.
 - `assets/web-scenes/` (a local copy of 2.5.1's scroll scenes, added 16/11/2026) was deleted on 22/11/2026: upstream ships the same material at `assets/scenes/`, `assets/effects/`, `assets/ui/` and `assets/objects/`.
+- 27/11/2026, syafiqkit source #15: `references/motion.md` (after the header and phone-bar bullet) and `references/system.md` (inside the `header.nav` bullet, after the no-hide list) each gain one boundary sentence: a taste page never hides its header, and a shop's long product and listing pages are `uiux`'s, with its hide-on-scroll-down, return-on-scroll-up rule.
 - Nothing else is changed.
 
 ## Dropped from the 2.1 vendoring

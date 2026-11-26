@@ -62,6 +62,8 @@ Flag these on sight, hard:
 - CSS that translates a drawer panel by the library's `--*-swipe-movement-*` variable while the library also moves that panel inline (Base UI `Drawer.Popup`): it moves twice as far as the finger. The variables are for linked values (overlay opacity)
 - A drawer overlay that eases to its swipe-progress opacity during the drag instead of tracking it (0ms while `[data-swiping]`), or that fades on a different duration and curve from the panel on open and close
 - Missing `prefers-reduced-motion` handling on movement
+- A shake that is the only error signal, repeats on every invalid keystroke, or still plays under reduced motion; a refused submit that shows text but no shake is fine (see [STANDARDS.md](STANDARDS.md) § Refusal shake and theme switch)
+- A light/dark switch on a page with colour transitions and no transition suppression for the switch frame; `interpolate-size` with no fallback for browsers without it (same section)
 - Ungated `:hover` motion
 - Symmetric enter/exit timing on a press-and-release or hold interaction
 - Everything-at-once entrance where a 30–80ms stagger belongs (non-uniform, one entrance per container; see `../emil-choreograph/SKILL.md`)
