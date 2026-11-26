@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.484.0
+
+**`score-loop` now keeps the loop in the main session: builders capture their screens and report the paths, and this session dispatches the judges. `unblock` researches an outside fact (a tax rule, a threshold, a vendor's terms) before putting it in a decision question.** Before this, a builder told to "run score-loop" judged its own screens with a judge it kept, or could not dispatch one at all; and a question about whether a tax applied went out with only a task doc's claim and came back "can research ?".
+
 ## 1.483.0
 
 **`unblock` now checks live peer sessions before answering an item, and simplifiers check the project's dependency rules after a cleanup that adds an import. Before this, `unblock` could report an item from a stale source while another session was already working it, and a "use the enum, not the literal" cleanup could break a layer rule the builder had avoided on purpose.**
