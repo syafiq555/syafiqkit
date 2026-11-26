@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.488.0
+
+**On Windows, syafiqkit's startup should now work: sessions get the output-style rules and old cached plugin copies get cleared. Before this, both startup steps failed on every Windows session with `/bin/sh` or `cat` "not found". It is tested on macOS only so far, so Windows users, please say whether the error is gone. `/setup-playwright` now explains why a pixel-exact screenshot test can fail with no code change, and how to make it stable.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- Windows needs Git for Windows (Git Bash) installed; install it and restart Claude Code if you don't have it. Without it the startup error stays and the output-style rules don't load, though every skill still works. If you patched `hooks/hooks.json` by hand to get around this, the update replaces your patch; if the update complains about local changes, put `hooks/hooks.json` back first.
+- macOS and Linux: no change in what you see.
+- `/setup-playwright`: a zero-tolerance screenshot test should first show that two runs with no change produce identical images. When they don't, the usual cause is Chrome drawing on the GPU, and the skill gives the four Chromium launch flags that made repeat runs identical while still catching a one-pixel change. Asking `/read-summary` why a screenshot test keeps failing with no changes now opens `/setup-playwright` too.
+- `/skill-creator` and skill testing: test whether a skill fires with what the user has really typed (for example the questions they give `/read-summary`), and through the skill they start with, not with a made-up question.
+
 ## 1.487.0
 
 **`uiux` now recommends a shop header that hides as shoppers scroll down and comes back the moment they scroll up, and the motion skills gain three recipes: a shake when a password is refused, an accordion that opens smoothly to its natural height, and a theme switch without a colour flash.**

@@ -1,5 +1,6 @@
 #!/bin/sh
-plugin_root=${1%/}
+plugin_root=$(printf '%s' "$1" | /usr/bin/tr '\\' '/')
+plugin_root=${plugin_root%/}
 versions_dir=$(/usr/bin/dirname "$plugin_root")
 
 case "$versions_dir" in

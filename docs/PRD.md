@@ -59,11 +59,11 @@ Re-derive the list with `ls skills commands`; exact counts are deliberately not 
 
 - **Self-contained plugin, no reliance on the author's global instructions.** [SOURCED] Skills never reference `~/.claude/CLAUDE.md`, because colleagues do not have it.
 - **No off-switch for the output-style ruleset.** [SOURCED] A deliberate decision, the owner's call: the hook could read an env var, but an off-switch is a second guard and reopens the design. A request to make it optional reopens the design.
-- **No script file in the hook** (one inline `/bin/sh -c` line). [SOURCED] Interpreter availability inside a hook is not guaranteed.
+- **No script file in the hook** (one inline shell-form line). [SOURCED] Interpreter availability inside a hook is not guaranteed.
 - **No CI and no deploy chain.** [SOURCED] The push to `master` is the ship.
 - **No `fork` matcher on the hook.** [SOURCED] Unverified behaviour; a bounded, nameable gap was chosen over an unverified matcher.
 - **No `disable-model-invocation` unless the user asks.** [SOURCED] It kills auto-suggestion.
-- **Windows without Git Bash.** [SOURCED] The hook silently does nothing there. [TBD] Whether skills work there is untested.
+- **Windows without Git Bash.** [SOURCED] Both startup hooks fail there: shell form falls to PowerShell (Claude Code hooks docs). With Git Bash they run (since 1.488.0, issue #37), not yet seen on a real Windows machine. [TBD] Whether skills work there is untested.
 
 ## Roadmap {#roadmap}
 

@@ -4,7 +4,7 @@ When a skill is written, test whether its description actually fires — a skill
 
 ## Test your own description
 
-Take three or four phrasings you'd plausibly use months from now — including a vague one, and one that names the artifact but not the action — and check honestly whether this description would win against the other skills' descriptions. Where it wouldn't, the fix is usually vocabulary in the description, not more explanation in the body.
+Take three or four phrasings you'd plausibly use months from now — including a vague one, and one that names the artifact but not the action — drawn from what the user has actually typed (the args of the skill they start sessions with, such as `read-summary`, rather than invented questions), and check honestly whether this description would win against the other skills' descriptions. Where it wouldn't, the fix is usually vocabulary in the description, not more explanation in the body.
 
 ## Test the near-miss
 

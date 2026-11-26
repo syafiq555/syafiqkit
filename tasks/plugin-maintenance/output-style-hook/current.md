@@ -2,27 +2,28 @@
 Status: 🔨 Ruleset shipped at 1.455.0; adherence unverified, last measured 84% (2026-09-15)
 Domain: plugin-maintenance/output-style-hook
 Gotchas (critical; full list in ## Critical Gotchas below):
-  - The hook is one inline `/bin/sh -c` line with no script file: no off-switch, and the payload must stay under the 10,000-char hook-output cap
+  - The hook is one inline shell-form line with no script file: no off-switch, and the payload must stay under the 10,000-char hook-output cap
   - Adherence cannot be judged from inside the session that read the ruleset; judge from outside transcripts
 Related: ../agent-architecture/current.md (sibling feature: how agents are defined and dispatched), ../external-guidance/current.md (sibling feature: grading outside guidance against local evidence), ../../../hooks/RULESET.md (the injected payload), ../mod/current.md (sibling: the mod now shares `hooks/hooks.json` with this hook; older-client behaviour of the `modules` key is unverified)
-Last updated: 2026-11-24 (prune count cap and stale-session restart line, 1.467.13)
+Last updated: 2026-11-27 (both hooks to shell form for Windows, issue #37)
 -->
 
 # Plugin Maintenance: Output-Style Hook Summary
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: syafiqkit ships a `SessionStart` hook that prints an output-style ruleset into every session, or a restart line when the session's version folder has been pruned (1.467.13, D-stale-session-notice). A second hook prunes retired version folders: older than 7 days, or older than 24 hours once 10 newer ones exist (D-prune-hook, amended 24/11/2026). The ruleset is at 1.455.0 (pushed to `master` 2026-11-18): 8,983 characters, 10 numbered rules, 8 exceptions. Hook stdout is capped at 10,000 characters (Architecture, Critical Gotchas). A `SessionStart:clear` delivered the whole file in full on 2026-08-17. The 2026-10-08 cut to 8,149 characters shipped in 1.371.0 at the user's call; the pre-cut wording is `git show bd98189:hooks/RULESET.md` (13,240 characters). Whether output actually *follows* the ruleset is still open (Adherence Measurements), and the session reading it cannot settle that.
+**Where we are**: syafiqkit ships a `SessionStart` hook that prints an output-style ruleset into every session, or a restart line when the session's version folder has been pruned (1.467.13, D-stale-session-notice). A second hook prunes retired version folders: older than 7 days, or older than 24 hours once 10 newer ones exist (D-prune-hook, amended 24/11/2026). Since 1.488.0 both hooks are shell form so they run in Git Bash on Windows (D-cat-not-node, amended 27/11/2026; unconfirmed on Windows). The ruleset is at 1.455.0 (pushed to `master` 2026-11-18): 8,983 characters, 10 numbered rules, 8 exceptions. Hook stdout is capped at 10,000 characters (Architecture, Critical Gotchas). A `SessionStart:clear` delivered the whole file in full on 2026-08-17. The 2026-10-08 cut to 8,149 characters shipped in 1.371.0 at the user's call; the pre-cut wording is `git show bd98189:hooks/RULESET.md` (13,240 characters). Whether output actually *follows* the ruleset is still open (Adherence Measurements), and the session reading it cannot settle that.
 
 **Next actions** (detail in Next Steps):
 1. Judge adherence from outside transcripts, never from the session that read the ruleset.
 2. In a fresh session after `claude plugin update`, confirm the start banner shows the full ruleset with no "Output too large" line.
-3. See the restart line once in a live session (Next Steps), then pick up the copy-size follow-up: each cached copy is 287 MB, mostly `tools/*/node_modules`.
+3. Waiting on the #37 reporter to confirm the Windows shell-form fix (1.488.0, tested on macOS only).
+4. See the restart line once in a live session (Next Steps), then pick up the copy-size follow-up: each cached copy is 287 MB, mostly `tools/*/node_modules`.
 
 **Key facts for cold start**: the size check is `wc -m hooks/RULESET.md` under a UTF-8 locale; it must stay under 10,000. The headroom is about 1,000 characters; if a session misses a detail the 2026-10-08 cut dropped, `git show bd98189:hooks/RULESET.md` holds the pre-cut wording to restore from.
 
 **Gotchas that will trip you**:
-- The hook is one inline `/bin/sh -c` line with no script file, so there is **no off-switch** (see D-no-off-switch)
+- The hook is one inline shell-form line with no script file, so there is **no off-switch** (see D-no-off-switch). Keep it shell form: exec form cannot spawn `/bin/sh` on Windows (D-cat-not-node, amended 27/11/2026)
 - `node` is not a safe hook interpreter on this machine even though it is on the interactive PATH (see D-cat-not-node)
 - `fork` is the fifth `SessionStart` matcher and is deliberately unwired, so forked sessions get no ruleset (see D-fork-excluded)
 
@@ -37,7 +38,7 @@ Skills are procedural and reach only the sessions that invoke them, so no skill 
 ## Architecture / Data Model {#architecture}
 
 ```
-hooks/hooks.json     exec form → /bin/sh -c (cat the file, else print a restart line) + ${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md
+hooks/hooks.json     shell form (sh -c; Git Bash on Windows) → cat "$CLAUDE_PLUGIN_ROOT/hooks/RULESET.md", else print a restart line
 hooks/RULESET.md     the injected payload, plain markdown, no frontmatter
 hooks/prune-caches.sh  second SessionStart entry (matcher startup), silent cache pruning (D-prune-hook)
 ```
@@ -57,6 +58,8 @@ Auto-discovered by well-known path; neither manifest declares a `hooks` field. M
 **Consequences**: `/bin/cat` resolves from a clean environment on macOS and Linux, so coverage holds there and on Windows-with-Git-Bash while bare Windows gets a silent no-op. Removing the script also removed the reasons a script needs machinery: `${CLAUDE_PLUGIN_ROOT}` expands in `hooks.json` but not inside a script body, and a frontmatter-bearing payload would need strip logic whose edge cases are what the upstream test suite exists to catch.
 
 **Amended 24/11/2026 (D-stale-session-notice)**: the hook is now `/bin/sh -c 'if [ -f "$1" ]; then /bin/cat "$1"; else echo <restart line>; fi' sh ${CLAUDE_PLUGIN_ROOT}/hooks/RULESET.md`. Problem: `prune-caches.sh` (count cap, same day) can delete the version folder under a session still open, and that session then lost its rules on `/clear` or `compact` with no sign why. A live-session guard was ruled out because neither `ps` arguments nor `~/.claude/sessions/*.json` show which plugin version a session loaded. The owner chose the restart line over a changelog note only. It stays inline because a script file would be deleted with the folder. Bare Windows without Git Bash is still a silent no-op, unchanged from `cat`.
+
+**Amended 27/11/2026 (issue #37)**: both hooks moved to shell form (`command` string, no `args`), reading the path from `$CLAUDE_PLUGIN_ROOT`. The 2026-08 Consequences line was wrong, and the shell-form rejection above rested on it: exec form resolves `command` itself, so `/bin/sh` and `cat` failed on Windows even with Git Bash (`uv_spawn '/bin/sh'` ENOENT, `Executable not found in $PATH: "cat"`; Windows 11, Claude Code 2.1.330). Per `code.claude.com/docs/en/hooks.md` § Exec form and shell form, shell form runs `sh -c` on macOS and Linux, Git Bash on Windows, and PowerShell only without Git Bash. `prune-caches.sh` converts `\` to `/` in its argument so the cache-folder guard matches a Windows path. Tested on macOS from `env -i PATH=/usr/bin:/bin`, including a path with a space and an apostrophe; not yet run on Windows. The reporter's Node port was declined: it reintroduces the Node dependency this decision exists to avoid.
 
 ### D-no-off-switch: On by default with no toggle · 2026-08-17
 
@@ -145,6 +148,7 @@ A `reclaim-disk` run found 105 retired syafiqkit copies in the plugin cache (22 
 - [ ] After any pass, count to ten and count eight exceptions (Critical Gotchas)
 - [ ] Measure the "It can't be done" exception (1.455.0) from outside, on a transcript started after it shipped: of the replies that conclude something is impossible or unsupported, how many open with a recommended route and name other checked routes. It sits seventh of eight in the least-recalled section, so expect decay like rule 1; log the rate in Adherence Measurements before rewording it
 - [ ] See the restart line in a live session (D-stale-session-notice): rename `RULESET.md` in the installed version folder, run `/clear`, and check that the model tells the user to restart. Today it is tested only from `env -i`
+- [ ] Confirm the Windows fix on a real machine (issue #37, 1.488.0): the reporter (Windows 11, Git Bash, launched from cmd.exe) updates and reports whether both `SessionStart` errors are gone and the ruleset prints. Close #37 only on their word. If prune fails with a `done\r`-style syntax error, the plugin clone applied CRLF despite `.gitattributes`
 - [ ] 🟡 Shrink each cached copy (owner chose this as the follow-up, 24/11/2026): about 225 MB of each 287 MB copy is `tools/*/node_modules`, which a `directory` marketplace copies every release. D-prune-hook's "only a handful of copies remain" reason for not moving them was disproved at 105 copies. Options: keep dependencies outside the copied tree, or bump the version less often than every commit
 
 ### Deferred / accepted
