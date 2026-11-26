@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.472.0
+
+**New `weekly-report` skill: your part of the lead's weekly report to the boss, gathered, checked and sent in one run.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `weekly-report`: reads the projects, chat spaces, trackers, the boss's headings and the recipient from `~/.claude/references/weekly-report/sources.md`, starts from last week's saved report so no pending item disappears unexplained, sends one haiku agent per project to mark each draft line confirmed, wrong or unverified with a source, then drafts through `gchat-format` and saves what was sent. On 26/11/2026 the first run took four rounds by hand; its checks found 4 client dates already moved, 2 tracker rows closed but still listed, and work credited to the wrong person. Status words and the owner-per-item and "not yet confirmed" rules come from Atlassian's weekly project update play, Linear's project updates and Sentra's weekly business review guide.
+
 ## 1.471.1
 
 **`remote` now fails when an upload or download is written wrong, instead of showing its help and reporting success.**

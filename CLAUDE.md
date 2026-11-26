@@ -78,6 +78,7 @@ These skills accept explicit user command:
 | `product-still` | Designed still from real captured screens, rendered to PNG with phone and transparent variants. Video is `motion-clip` |
 | `setup-tracker` | Shared tracker sheet for a project or master, built from a JSON config. UAT scripts and huddles are out of scope |
 | `watch-sheets` | One check of shared sheets on a repeating loop; `AskUserQuestion` only when it is our turn. Building a tracker is `setup-tracker` |
+| `weekly-report` | The user's feed for a lead's weekly report to the boss: one haiku per project verifies a draft, last week's items carried forward, sent in Chat format. Sources in `~/.claude/references/weekly-report/` |
 | `headless-watch` | Scheduled check with Claude closed: launchd runs `claude -p`, alerts by Telegram `sendMessage` or ntfy (never `--channels`, which steals the bot's poller). A session-only repeat is `/loop`; a cloud agent is `schedule` |
 | `understanding-guide` | Large text the user must understand → offline question-and-answer page, every claim checked. Decisions wait until the reader understands |
 | `explainer-deck` | Deck explaining a system to a live audience, each mechanism beside a worked example. A page read alone is `understanding-guide` |
@@ -124,6 +125,7 @@ These skills accept explicit user command:
 | `product-still` | Website or marketing images built from the product's screens are outdated or wanted ("update the images on our site", "feature image", "transparent version", "phone version"), without naming the skill |
 | `setup-tracker` | A tracker sheet is asked for or complained about ("set up a tracker", "issue log", "the remarks column is too long", "client can't tell what's waiting on them"), or a tracker screenshot arrives. Not a per-person weekly huddle or timesheet |
 | `watch-sheets` | Asked to keep checking or monitor a tracker or UAT sheet ("check the tracker every 10m", "alert me when the client replies"), or a `/loop` prompt that checks one |
+| `weekly-report` | Asked what to report or feed the lead this week ("weekly update for KL", "what do we report to HL"), or a boss's message asking for a summary report of all projects |
 | `headless-watch` | A check should run on a schedule with Claude closed ("every 10 minutes during work hours", "alert me on Telegram, otherwise stay quiet"), or a pasted crontab line calling `claude -p` |
 | `uat-script` | Test scenarios for a client's acceptance testing are asked for or out of date ("prepare UAT", "test cases for sign-off", "the UAT sheet is out of date"), or a contract promises a test scenario per module |
 | `understanding-guide` | User faces more text than one sitting holds, or asks how it should be presented |
