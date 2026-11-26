@@ -1,5 +1,5 @@
 import type { CLICommand } from "../types.ts";
-import { UnknownFlagError, MissingFlagValueError } from "../errors.ts";
+import { UnknownFlagError, MissingFlagValueError, UsageError } from "../errors.ts";
 
 const VALUE_FLAGS = new Map([
   ["--to", "releases/app.tar.gz"],
@@ -95,7 +95,7 @@ export function parseArgs(args: string[]): CLICommand {
 
   const firstArg = args[0];
   if (!firstArg || firstArg.startsWith("-")) {
-    return { type: "help" };
+    throw new UnknownFlagError(firstArg ?? "");
   }
 
   if (args.length === 1) {
@@ -121,7 +121,11 @@ function parseSyncArgs(args: string[], syncIndex: number, singleFile = false): C
   const localPath = args[syncIndex + 2];
 
   if (!server || !localPath || server.startsWith("-") || localPath.startsWith("-")) {
-    return { type: "help" };
+    const flag = args[syncIndex]!;
+    throw new UsageError(
+      `${flag} takes the server, then the local path, right after the flag`,
+      `remote ${flag} <server> <local-path> [--to <remote-path>]`
+    );
   }
 
   const to = readFlagValue(args, "--to");
@@ -153,7 +157,10 @@ function parseGetArgs(args: string[], getIndex: number): CLICommand {
   const remotePath = args[getIndex + 2];
 
   if (!server || !remotePath || server.startsWith("-") || remotePath.startsWith("-")) {
-    return { type: "help" };
+    throw new UsageError(
+      "--get takes the server, then the remote path, right after the flag",
+      "remote --get <server> <remote-path> [--to <local-path>]"
+    );
   }
 
   const to = readFlagValue(args, "--to");

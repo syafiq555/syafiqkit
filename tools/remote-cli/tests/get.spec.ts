@@ -64,8 +64,9 @@ describe("--get command line", () => {
     expect(output).toContain("--exclude");
   });
 
-  test("missing remote path shows help", () => {
-    const { output } = runCli("--get", "testbox");
-    expect(output).toContain("USAGE");
+  test("missing remote path fails with the usage, not the help page", () => {
+    const { output, code } = runCli("--get", "testbox");
+    expect(code).not.toBe(0);
+    expect(output).toContain("--get takes the server, then the remote path");
   });
 });

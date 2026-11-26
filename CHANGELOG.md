@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.471.1
+
+**`remote` now fails when an upload or download is written wrong, instead of showing its help and reporting success.**
+- Update with `claude plugin update syafiqkit@syafiqkit` and start a new session.
+- `tools/remote-cli`: `--sync`, `--scp` or `--get` without the server and path right after the flag (for example `remote dourr --scp file --to path`, server first) now exits 1 with "--scp takes the server, then the local path, right after the flag" and an example; a leading unknown flag fails by name. Only `--help` shows the help page with exit 0. On 26/11/2026 a staging deploy's upload written server-first printed the help, exited 0 and sent nothing, and only a missing file on the box showed it.
+
 ## 1.471.0
 
 **Decks can now show a real screen of the product beside what it does, and product stills stop cutting text or shrinking the thing they enlarge.**

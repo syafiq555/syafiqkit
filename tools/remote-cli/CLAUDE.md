@@ -261,8 +261,11 @@ RemoteCliError (base)
 │   └── LocalPathError
 ├── ScpError          # defined, ZERO throw sites since --scp moved to rsync
 ├── ServerNotFoundError
+├── UsageError        # --sync/--scp/--get missing or after their server: exit 1, never the help page
 └── PathValidationError
 ```
+
+Only `--help`/`-h` prints the help page with exit 0. Misuse returning help made `remote dourr --scp <file> --to <path>` exit 0 having sent nothing (26/11/2026), and a script reading the exit code took it as uploaded.
 
 All errors include hints to help users resolve issues. An upload failure now surfaces as `RsyncError`, `LocalPathError` or `PathValidationError` — grepping `ScpError` to trace one is a dead end.
 

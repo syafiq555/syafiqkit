@@ -71,6 +71,19 @@ describe("destination resolution", () => {
 describe("flag validation", () => {
   runCases([
     {
+      name: "the server written before --scp fails instead of printing help with exit 0",
+      args: ["testbox", "--scp", FILE, "--to", "/tmp/x"],
+      expect: ["--scp takes the server, then the local path"],
+      reject: ["USAGE"],
+      fails: true,
+    },
+    {
+      name: "a leading unknown flag fails by name",
+      args: ["--bogus", "testbox"],
+      expect: ["Unknown flag: --bogus"],
+      fails: true,
+    },
+    {
       name: "an unknown long flag is rejected by name",
       args: ["--scp", "testbox", "./package.json", "--bogus", "--dry-run"],
       expect: ["Unknown flag: --bogus"],

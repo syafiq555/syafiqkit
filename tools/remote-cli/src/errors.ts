@@ -155,3 +155,10 @@ export class MissingFlagValueError extends RemoteCliError {
     this.name = "MissingFlagValueError";
   }
 }
+
+export class UsageError extends RemoteCliError {
+  constructor(message: string, example: string) {
+    super(message, "USAGE", `Example: ${example}`);
+    this.name = "UsageError";
+  }
+}
