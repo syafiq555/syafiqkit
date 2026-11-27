@@ -50,7 +50,7 @@ A deck needing a slide type the script lacks (a custom end summary, an agenda pe
 
 ## 4. Check what Google drew
 
-Google Slides lays a converted .pptx out itself (it ignores shrink-to-fit, substitutes fonts and breaks lines differently). The script sizes text itself for that reason, but only Google's render is evidence. 📖 `references/google-slides.md` covers upload, re-upload at the same link, export and what to look for. Open every slide image you changed, not a sample. Overflow, overlaps and words broken mid-way pass every check above and show only there.
+Google Slides lays a converted .pptx out itself (it ignores shrink-to-fit, substitutes fonts and breaks lines differently). The script sizes text itself for that reason, but only Google's render is evidence. 📖 `references/google-slides.md` covers upload, re-upload at the same link, export and what to look for. Open every slide image you changed, not a sample. Overflow, overlaps and words broken mid-way pass every check above and show only there. A `video` slide (a clip embedded to play offline, `references/spec.md`) is the exception Google cannot show: it drops the video on conversion, so check that clip from the .pptx itself (`unzip -l` lists `ppt/media/*.mp4`) and by playing it once in PowerPoint or Keynote before the room does.
 
 ## 5. Hand it over
 

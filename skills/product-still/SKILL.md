@@ -36,7 +36,7 @@ For a series (six step images on one page), plan them together first: list each 
 Shoot at `deviceScaleFactor: 2`, with demo data, never a real customer's account. Pick the route by what the product has:
 
 - **A Playwright suite with a demo seed or signed-in storage state**: a throwaway spec that reuses them, deleted afterwards (check `git status` before and after). The web traps (an old build served, dev overlays, fixture names that look fake) are in 📖 `../motion-clip/references/capture-web-ui.md`.
-- **A web app with no suite**: a short Playwright script in the work folder (`npm i playwright && npx playwright install chromium`), signed in with a demo account the team provides.
+- **A web app with no suite**: a short Playwright script in the work folder (`npm i playwright && npx playwright install chromium`), signed in with a demo account the team provides. Borrowing another project's install works for `render.cjs` through `PLAYWRIGHT_DIR`, but an `.mjs` script resolves `import 'playwright'` from its own folder only (ES modules ignore `NODE_PATH`), so symlink both `playwright` and `playwright-core` into the work folder's `node_modules`.
 - **A mobile app**: the golden-test or simulator routes in 📖 `../motion-clip/references/capture-real-ui.md`.
 - **No demo data and no demo login**: stop and ask. Inventing data in the UI, or shooting a real account, is the one thing this skill must not do.
 

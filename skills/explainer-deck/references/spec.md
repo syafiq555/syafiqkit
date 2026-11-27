@@ -54,6 +54,8 @@ Every slide may carry `notes` (1 to 5 lines, the presenter's prompts), `id`, `se
 
 - `screen`: a built screen beside what it does, for progress and demo decks. `heading` (max 5 words), `sub` (max 100 characters), `image` (a PNG path relative to the spec, such as a `product-still` render of the real screen; drawn at its own aspect ratio, never cropped), `bullets` 1 to 5 (max 14 words, what the screen does), optional `status` (max 4 words, a chip above the bullets: "Built, in review"), `waits_on` (max 3 words each), `caption` (max 12 words, under the image: where the screen was taken), `kicker` (default "Built"). Figures in sub, bullets and caption are checked like a `text` slide's.
 
+- `video`: a clip that plays inside the slide, for demo decks shown from a laptop. `heading` (max 5 words), `sub` (max 100 characters), `video` (an H.264 `.mp4` relative to the spec, such as a `motion-clip` render), `poster` (a PNG frame of the clip: it shows before play and its size sets the video's shape), optional `caption` (max 12 words) and `kicker` (default "Watch"). The clip is embedded in the .pptx, so it plays offline in PowerPoint and Keynote; Google Slides drops it on conversion, so a deck that must play there links a Drive video instead. Keep the clip under about 30 MB, since the whole file travels with it.
+
 Figure check on a mechanism slide: every figure in the visual, example, sub and rule must be near its cited lines, or in the files its example kind allows (`quoted`: `facts`; `worked`: `sources`, `facts`, `workings`; `made_up`: unchecked). Waterfall and share amounts are checked as numbers. Figures on `text` and `table` slides (sub, bullets, rows, total) must appear in the sources, facts or workings files.
 
 ## Picture kinds (`visual.kind`)

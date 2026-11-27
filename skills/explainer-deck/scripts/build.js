@@ -281,6 +281,17 @@ function checkScreen(s, where) {
   else if (!pngSize(file)) bad(where, `image "${s.image}" is not a PNG`);
   checkFigures([s.sub, s.bullets, s.caption], where);
 }
+function checkVideo(s, where) {
+  words(s.heading, 5, `${where} heading`);
+  if (s.sub != null && s.sub.length > 100) bad(where, 'sub is over 100 characters');
+  if (s.caption != null) words(s.caption, 12, `${where} caption`);
+  const file = s.video && path.resolve(specDir, s.video);
+  if (!file || !fs.existsSync(file)) bad(where, `video "${s.video}" not found`);
+  else if (!/\.mp4$/i.test(file)) bad(where, 'video must be an .mp4 (H.264), which PowerPoint and Keynote both play');
+  const poster = s.poster && path.resolve(specDir, s.poster);
+  if (!poster || !pngSize(poster)) bad(where, `poster "${s.poster}" must be a PNG frame of the video (its size sets the video's shape on the slide)`);
+  checkFigures([s.sub, s.caption], where);
+}
 
 const raw = JSON.stringify(spec);
 if (raw.includes('\u2014')) bad('spec', 'em dash found; use a colon, comma or brackets');
@@ -301,7 +312,8 @@ slides.forEach((s, i) => {
   else if (s.type === 'mechanism') checkMechanism(s, where);
   else if (s.type === 'journey') checkJourney(s, where);
   else if (s.type === 'screen') checkScreen(s, where);
-  else bad(where, 'type must be title, section, hero, text, table, mechanism, journey or screen');
+  else if (s.type === 'video') checkVideo(s, where);
+  else bad(where, 'type must be title, section, hero, text, table, mechanism, journey, screen or video');
 });
 if (tracker) tracker.forEach((t, i) => words(t, 2, `tracker ${i + 1}`));
 
@@ -493,6 +505,14 @@ const LAYOUT = {
     const bhImg = 7.3 - y;
     const scale = Math.min(iw / dim.w, bhImg / dim.h), w = dim.w * scale, h = dim.h * scale;
     slide.addImage({ path: file, x: ix + (iw - w) / 2, y, w, h });
+  },
+  video(slide, s) {
+    heading(slide, { kicker: s.kicker || 'Watch', heading: s.heading, sub: s.sub, owner: s.owner }, 1.05);
+    const poster = path.resolve(specDir, s.poster), dim = pngSize(poster);
+    const y = 2.0, ch = s.caption ? 0.4 : 0, aw = W - 2 * M, ah = 7.25 - y - ch;
+    const scale = Math.min(aw / dim.w, ah / dim.h), w = dim.w * scale, h = dim.h * scale, x = (W - w) / 2;
+    slide.addMedia({ type: 'video', path: path.resolve(specDir, s.video), cover: `data:image/png;base64,${fs.readFileSync(poster).toString('base64')}`, x, y, w, h });
+    if (s.caption) slide.addText(s.caption, txt({ x, y: y + h + 0.08, w, h: ch - 0.08, fontSize: 10.5, color: T.soft, align: 'center' }));
   },
 };
 

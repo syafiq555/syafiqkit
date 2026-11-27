@@ -21,7 +21,7 @@ Without the MCP, upload the .pptx by hand and open it with Google Slides. Check 
 
 - `drive_file_export` (format `pdf`) saves the deck as Google lays it out. Turn the pages into images and look at them: `pdftoppm -r 60 -png deck.pdf p`, then `magick montage p-*.png -tile 3x -geometry +6+6 sheet.png` for a contact sheet. Open single pages at a higher `-r` where text is small.
 - `slides_thumbnails` saves one PNG per slide straight from Google, and `slides` limits it to the ones you changed. It needs the Google Slides API enabled in the sign-in's Cloud project (a 403 "has not been used in project" names the link), and Google allows about 60 a minute per user. The PDF export covers the same check without either.
-- Keynote's AppleScript export can hang, and LibreOffice renders differently from Google, so neither stands in for Google's own render.
+- Keynote's AppleScript export can hang (it always times out while the Mac's screen is locked, since Keynote cannot open a window), and LibreOffice renders differently from Google, so neither stands in for Google's own render.
 
 ## What breaks on Google's side
 
