@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.498.1
+
+**`/ship` fixes a failed deploy it caused, reruns only flaky or outside faults, and tells you when it can't verify a provider going live.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `/ship`, failed CI: it reads the failed log first. A runner fault or a network blip gets a rerun, and so does a flaky test in code the change never touched (named in the report). A deploy-step SSH timeout goes to `/ci-ssh-deploy-timeout`, and a job refused for billing gets no rerun. Anything the change caused is fixed, reviewed, committed and deployed again, and the release note is re-checked against the fix. A second failure on the same cause stops and shows you the log.
+- `/ship`, provider going live: it spots the switch from a live key replacing a test one, a mode flag set to live, or a stated go-live. With access to the live dashboard it creates the live webhooks and keys and checks them. Without access it gives you the exact endpoint, events and settings to create, and marks the deploy not verified instead of calling it done.
+
 ## 1.498.0
 
 **`/ship` now fixes a failed deploy instead of suggesting a rerun, and sets up live-mode webhooks when a payment provider goes live.**
