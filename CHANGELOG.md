@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.500.0
+
+**`motion-clip` and `carousel-builder` now catch, before anyone watches, the faults a reviewer had to spot by eye: text under TikTok's buttons, a shot that stands still, a glitch frame or a sound dropout. Each piece also gets a one-page review with a copyable change list.**
+- Update with `claude plugin update syafiqkit@syafiqkit`, then copy `render.mjs` (and `film.html`, `story.js` for new films), `carousel.mjs` and the new `skills/_shared/scripts/review-page.mjs` into your clip or series folder; folders keep the copies they had.
+- TikTok's bands are now TikTok's own In-Feed safe zone template (top 240, bottom 660, 120 a side, the action buttons from x 780 and y 840), replacing the score-rubric guess (150/350/120). A new `youtube-shorts` preset uses Google's vertical safe zone. Slides and films laid out for the old bands fail under the new ones: every week 2 Autorentic post does, mostly subtitles low in the frame and text at the left edge.
+- `motion-clip` `check` with `PRESET=tiktok`, `instagram-reels` or `youtube-shorts` names every line of text the app's UI will cover, with its time and band, by watching what the film draws (works with older engine copies too). It also fails any stretch of 2 s or more where nothing moves (`STATIC_MAX` changes the limit).
+- New `node render.mjs verify <w> <h> <file.mp4>` checks the finished video after the mux: a length short of the film, a single-frame flash or an audio dropout fails; black or frozen stretches and the finished loudness warn.
+- New `node render.mjs review` and every carousel build write a self-contained review page: a still per beat or slide, its check results, the platform bands shaded, a note box each, and a "Copy change list" button.
+- Spoken-word subtitles now sit in a dark pill sized to their words, with light text, instead of a pill in the page's own colour that vanished on a light page and left the words floating on a blank frame (raised by a marketing reviewer on the Autorentic week 2 films). `subtitles: { background, color, highlight }` still overrides.
+- The engine's end card now drifts slowly (3% over its time, `lockup.drift: 0` for none), and the starter story's middle beat gained two camera moves, so a new film passes the stillness check as shipped.
+- Ideas borrowed (code written fresh): HyperFrames' motion audit (Apache-2.0); ffmpeg-skill's content checks and review page, and ghost-editor's per-platform safe zones and approval sheet (both MIT).
+
 ## 1.499.1
 
 **`headless-watch`: "send me the status" is now one command, `watcher.sh report <name>`, instead of a summary pieced together by hand.**

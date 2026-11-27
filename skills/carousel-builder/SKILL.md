@@ -6,7 +6,8 @@ description: >
   screenshots of the product, then MEASURE every slide: text inside the platform's UI bands (top, caption area, action
   buttons), capital letters smaller than the readable minimum, low contrast, clipped or spilling text, a web font or
   weight that silently fell back, a missing image, dashes, emoji and the project's banned words all fail the build with
-  a boxed overlay; the caption file gets the same copy check. Fires on "make a carousel", "carousel post", "photo
+  a boxed overlay; the caption file gets the same copy check, and a review page carries every slide with its results and a
+  copyable change list. Fires on "make a carousel", "carousel post", "photo
   slides", "TikTok slides", "slide post", "swipe post", "7-slide set", "Instagram carousel", "rebuild the slides",
   "check the safe zone", "is the text big enough", "lift the carousel builder", and on a post's slides.html or
   build.mjs. Any product or brand. NOT for one designed image or social card (`product-still`), NOT for video, reels
@@ -19,10 +20,10 @@ A carousel is a program: one `build.mjs` per post writes HTML slides, a headless
 
 ## 1. Set up the series folder
 
-Copy `scripts/carousel.mjs`, `templates/brand.css`, `templates/rules.json` and `templates/build.mjs` into a folder that holds the posts, one sub-folder per post:
+Copy `scripts/carousel.mjs`, `../_shared/scripts/review-page.mjs`, `templates/brand.css`, `templates/rules.json` and `templates/build.mjs` into a folder that holds the posts, one sub-folder per post:
 
 ```
-<series>/carousel.mjs   <series>/brand.css   <series>/rules.json
+<series>/carousel.mjs   <series>/review-page.mjs   <series>/brand.css   <series>/rules.json
 <series>/<post>/build.mjs  + its logo and screenshots
 ```
 
@@ -47,8 +48,10 @@ node carousel.mjs copy <post>/post.txt --rules rules.json
 
 ## 3. Read the checks, then look
 
-`checks passed` is the floor, not the review. Open every JPEG: the checks can't tell a weak hook, a wrong claim, a cramped card or two slides saying one thing, and the rules a word list can't hold (a price shown with its condition, demo figures labelled as demo) belong in the series' own notes and a read-through. When a check fails, `check-NN.png` shows where; fix the slide, not the threshold. The presets and their sources are in 📖 `references/presets.md`; a new platform is one more entry there and in `PRESETS`, with its source.
+`checks passed` is the floor, not the review. Open every JPEG: the checks can't tell a weak hook, a wrong claim, a cramped card or two slides saying one thing, and the rules a word list can't hold (a price shown with its condition, demo figures labelled as demo) belong in the series' own notes and a read-through. When a check fails, `check-NN.png` shows where; fix the slide, not the threshold. The presets (`tiktok`, `instagram-reels`, `instagram-carousel`, `youtube-shorts`) and their sources are in 📖 `references/presets.md`; a new platform is one more entry there and in `PRESETS`, with its source.
 
-To check slides built elsewhere: `node carousel.mjs check <slides.html> [preset] [--rules rules.json]` (writes `check-NN.png` beside the html).
+Every build also writes `review.html` beside the slides: each slide numbered with the platform's UI bands shaded, its check results under it, the `post.txt` copy check, a note box per slide and a "Copy change list" button. It is one self-contained file, so send it to whoever approves the post instead of seven JPEGs, and their pasted list comes back as numbered, actionable changes.
+
+To check slides built elsewhere: `node carousel.mjs check <slides.html> [preset] [--rules rules.json]` (writes `check-NN.png` beside the html); `review` in place of `check` also writes `review.html`.
 
 How it measures: on each text run's line box, a little taller than the ink, so a line touching a band edge fails slightly early. Cap height uses the loaded font's real `H` height times any CSS scale. Contrast is WCAG (4.5:1, or 3:1 at a cap height of 40 px or more) against the nearest solid background; text over a background image or gradient is not judged, so look at it yourself.

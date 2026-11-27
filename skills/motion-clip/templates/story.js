@@ -26,6 +26,8 @@ window.STORY = {
     { t: 0, z: 1, x: 0.5, y: 0.5 },
     { t: 3.0, z: 1.3, x: 0.5, y: 0.4 },
     { t: 6.6, z: 1.2, x: 0.5, y: 0.5 },
+    { t: 8.4, z: 1.26, x: 0.5, y: 0.45 },
+    { t: 10.2, z: 1.32, x: 0.5, y: 0.4 },
   ],
   captions: [
     { rows: ['First thing', ['it does for you.', 'accent']], in: 2.6, out: 6.2 },

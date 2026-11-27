@@ -795,6 +795,11 @@ function lockup(t) {
   if (p <= 0) return;
   const size = L.vertical ? W * 0.3 : H * 0.3;
   const cx = W / 2, cy = H * (L.vertical ? 0.42 : 0.38);
+  const drift = 1 + (lk.drift ?? 0.03) * Math.max(0, t - lk.at) / Math.max(1, STORY.duration - lk.at);
+  g.save();
+  g.translate(cx, cy);
+  g.scale(drift, drift);
+  g.translate(-cx, -cy);
   if (img.logo) {
     g.save();
     g.translate(cx, cy);
@@ -810,6 +815,7 @@ function lockup(t) {
     revealLine(lk.line, cx, cy + size * 0.42 + word * 1.55, word * 0.32, C.inkMuted, lk.at + 0.6, null, t,
       { ...opts, heading: false });
   }
+  g.restore();
 }
 
 function opening(t) {
@@ -1082,12 +1088,12 @@ function subtitles(t) {
     const pop = 0.94 + 0.06 * snappy(t - group[0].start + 0.05);
     g.translate(L.vertical ? W / 2 : L.textX + padX * scale + total * scale / 2, y);
     g.scale(scale * pop, scale * pop);
-    g.fillStyle = rgba(color(s.background || 'surface'), s.backgroundAlpha ?? 0.92);
+    g.fillStyle = rgba(color(s.background || 'ink'), s.backgroundAlpha ?? 0.94);
     roundRect(-total / 2 - padX, -size / 2 - padY, total + padX * 2, size + padY * 2, size * 0.35);
     g.fill();
     let x = -total / 2;
     group.forEach((w, j) => {
-      g.fillStyle = color(t >= w.start ? (s.highlight || 'accent') : (s.color || 'ink'));
+      g.fillStyle = color(t >= w.start ? (s.highlight || 'accentSoft') : (s.color || 'surface'));
       g.fillText(w.text, x, size * 0.04);
       x += widths[j] + space;
     });

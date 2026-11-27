@@ -1,6 +1,7 @@
 // Carousel builder: HTML slides to platform-sized JPEGs, then measured checks.
 // Library: import {build, slide, PRESETS} from '../carousel.mjs' in a post's build.mjs.
 // CLI:     node carousel.mjs check <slides.html> [preset] [--rules rules.json]
+//          node carousel.mjs review <slides.html> [preset] [--rules rules.json]   (also writes review.html)
 //          node carousel.mjs copy <post.txt> [--rules rules.json]
 // PLAYWRIGHT_DIR: a project root whose node_modules has playwright or @playwright/test.
 import fs from 'fs';
@@ -12,13 +13,26 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 export const PRESETS = {
   tiktok: {
-    label: 'TikTok photo post / video, 9:16',
+    label: 'TikTok photo post / video, 9:16 (TikTok Ads In-Feed safe zone template)',
     w: 1080, h: 1920, pad: 60, minCap: 28,
-    safe: {top: 150, bottom: 350, right: 120, left: 0},
+    safe: {top: 240, bottom: 660, right: 300, left: 120, rightTop: 120},
     bands: [
-      {name: 'top 150 px (status, tabs)', x0: 0, y0: 0, x1: 1080, y1: 150},
-      {name: 'bottom 350 px (caption, music)', x0: 0, y0: 1570, x1: 1080, y1: 1920},
-      {name: 'right 120 px, y 700 to 1570 (action buttons)', x0: 960, y0: 700, x1: 1080, y1: 1570},
+      {name: 'top 240 px (tabs, search)', x0: 0, y0: 0, x1: 1080, y1: 240},
+      {name: 'bottom 660 px (caption, sound, call to action)', x0: 0, y0: 1260, x1: 1080, y1: 1920},
+      {name: 'left 120 px', x0: 0, y0: 0, x1: 120, y1: 1920},
+      {name: 'right 120 px', x0: 960, y0: 0, x1: 1080, y1: 1920},
+      {name: 'action buttons (x 780 to 960, from y 840)', x0: 780, y0: 840, x1: 960, y1: 1260},
+    ],
+  },
+  'youtube-shorts': {
+    label: 'YouTube Shorts, 9:16 (Google universal vertical video ad safe zone)',
+    w: 1080, h: 1920, pad: 60, minCap: 28,
+    safe: {top: 288, bottom: 672, right: 192, left: 48},
+    bands: [
+      {name: 'top 288 px', x0: 0, y0: 0, x1: 1080, y1: 288},
+      {name: 'bottom 672 px', x0: 0, y0: 1248, x1: 1080, y1: 1920},
+      {name: 'left 48 px', x0: 0, y0: 0, x1: 48, y1: 1920},
+      {name: 'right 192 px', x0: 888, y0: 0, x1: 1080, y1: 1920},
     ],
   },
   'instagram-reels': {
@@ -43,7 +57,7 @@ export const PRESETS = {
   },
 };
 
-const presetVars = (p) => `:root{--w:${p.w}px;--h:${p.h}px;--pad:${p.pad}px;--safe-top:${p.safe.top}px;--safe-bottom:${p.safe.bottom}px;--safe-right:${p.safe.right}px;--safe-left:${p.safe.left}px}`;
+const presetVars = (p) => `:root{--w:${p.w}px;--h:${p.h}px;--pad:${p.pad}px;--safe-top:${p.safe.top}px;--safe-bottom:${p.safe.bottom}px;--safe-right:${p.safe.right}px;--safe-left:${p.safe.left}px;--safe-right-top:${p.safe.rightTop ?? p.safe.right}px}`;
 
 // Layout atoms. Every colour and font comes from the brand sheet's custom properties:
 // --brand-25..900 (main ramp), --ink-50..900 (text and neutrals), --solid (badges, CTA),
@@ -53,7 +67,7 @@ export const BASE_CSS = `
 body{background:#888;font-family:var(--font-body);color:var(--ink-900)}
 .slide{position:relative;width:var(--w);height:var(--h);overflow:hidden;background:var(--brand-25);margin:0 0 40px 0}
 .slide.dark{background:var(--brand-800);color:#fff}
-.bar{position:absolute;top:calc(var(--safe-top) + 20px);left:max(var(--pad),var(--safe-left));width:calc(var(--w) - max(var(--pad),var(--safe-left)) - max(var(--pad),var(--safe-right)));display:flex;justify-content:space-between;align-items:center}
+.bar{position:absolute;top:calc(var(--safe-top) + 20px);left:max(var(--pad),var(--safe-left));width:calc(var(--w) - max(var(--pad),var(--safe-left)) - max(var(--pad),var(--safe-right-top)));display:flex;justify-content:space-between;align-items:center}
 .logo{font-family:var(--font-display);font-weight:800;font-size:44px;letter-spacing:-0.5px;color:var(--ink-900)}
 .logo i{font-style:normal;color:var(--brand-500)}
 .dark .logo{color:#fff}
@@ -318,6 +332,42 @@ async function checkAndMark(pg, dir, preset, banned, rules) {
   return {ok, results};
 }
 
+// Writes <dir>/review.html: every slide as a numbered card with its check results and a note box,
+// the caption check when post.txt sits beside the slides, and a button that copies the notes as one change list.
+async function writeReview(pg, dir, results, preset, banned, rules) {
+  let reviewPage;
+  try { ({reviewPage} = await import(new URL('./review-page.mjs', import.meta.url))); }
+  catch (e) {
+    console.log(e.code === 'ERR_MODULE_NOT_FOUND'
+      ? 'review page skipped: copy review-page.mjs (the plugin\'s skills/_shared/scripts/) beside carousel.mjs to get review.html'
+      : `review page skipped: review-page.mjs failed to load: ${e.message}`);
+    return null;
+  }
+  await pg.evaluate(() => document.querySelectorAll('[data-overlay]').forEach((e) => e.remove()));
+  const p = PRESETS[preset];
+  const els = await pg.locator('.slide').all();
+  if (!els.length) { console.log('review page skipped: the page has no .slide elements'); return null; }
+  const items = [];
+  for (let i = 0; i < els.length; i++) {
+    const jpg = await els[i].screenshot({type: 'jpeg', quality: 78});
+    const fails = results[i]?.fails || [];
+    const heading = await els[i].evaluate((s) => (s.querySelector('h1, h2, .lead')?.innerText || '').replace(/\s+/g, ' ').trim());
+    items.push({n: i + 1, label: `Slide ${i + 1}`, detail: heading, img: `data:image/jpeg;base64,${jpg.toString('base64')}`,
+      issues: fails.length ? fails.map((f) => ({level: 'error', text: `${f.check}: "${f.text}"`})) : [{level: 'ok', text: 'checks passed'}]});
+  }
+  const notes = [{level: results.some((r) => r.fails.length) ? 'error' : 'ok', text: `${results.filter((r) => !r.fails.length).length} of ${results.length} slides pass the ${p.label} checks`}];
+  const post = path.join(dir, 'post.txt');
+  if (fs.existsSync(post)) {
+    const lines = fs.readFileSync(post, 'utf8').split('\n');
+    const copy = lines.flatMap((l, k) => copyFails(l, {banned, rules}).map((c) => `post.txt line ${k + 1}: ${c}: "${l.trim().slice(0, 50)}"`));
+    notes.push(...(copy.length ? copy.map((text) => ({level: 'error', text})) : [{level: 'ok', text: 'post.txt passes the copy check'}]));
+  }
+  const out = path.join(dir, 'review.html');
+  fs.writeFileSync(out, reviewPage({title: path.basename(path.resolve(dir)), subtitle: `${els.length} slides, ${p.label}. Type a note under any slide, then Copy change list and paste it back.`, frame: {w: p.w, h: p.h}, items, notes, zones: p.bands, zonesLabel: `${p.label.split(/[,(]/)[0].trim()} UI areas`}));
+  console.log(`review page: ${out}`);
+  return out;
+}
+
 // Writes <dir>/slides.html, renders every .slide to slide-NN.jpg, then checks.
 // A failed check sets exit code 1 and writes check-NN.png with bands tinted and offenders boxed.
 export async function build({dir, slides, brand = '', css = '', preset = 'tiktok', banned = [], rules = {}, quality = 92}) {
@@ -332,13 +382,22 @@ export async function build({dir, slides, brand = '', css = '', preset = 'tiktok
   }
   console.log(`rendered ${els.length} slides to ${dir}`);
   const res = await checkAndMark(pg, dir, preset, banned, rules);
+  try { await writeReview(pg, dir, res.results, preset, banned, rules); }
+  catch (e) { console.log(`review page skipped: ${e.message}`); }
   await b.close();
   return res;
 }
 
-export async function check({html, preset = 'tiktok', banned = [], rules = {}}) {
+export async function check({html, preset = 'tiktok', banned = [], rules = {}, review = false}) {
   const {b, pg} = await open(html, presetOf(preset));
-  const res = await checkAndMark(pg, path.dirname(path.resolve(html)), preset, banned, rules);
+  const dir = path.dirname(path.resolve(html));
+  const res = await checkAndMark(pg, dir, preset, banned, rules);
+  if (review) {
+    let out = null;
+    try { out = await writeReview(pg, dir, res.results, preset, banned, rules); }
+    catch (e) { console.log(`review page failed: ${e.message}`); }
+    if (!out) process.exitCode = 1;
+  }
   await b.close();
   return res;
 }
@@ -355,12 +414,12 @@ export function checkCopy({file, banned = [], rules = {}}) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const usage = 'usage: node carousel.mjs check <slides.html> [preset] [--rules rules.json]\n       node carousel.mjs copy <post.txt> [--rules rules.json]';
+  const usage = 'usage: node carousel.mjs check <slides.html> [preset] [--rules rules.json]\n       node carousel.mjs review <slides.html> [preset] [--rules rules.json]\n       node carousel.mjs copy <post.txt> [--rules rules.json]';
   const [cmd, file, ...rest] = process.argv.slice(2);
   const ri = rest.indexOf('--rules');
-  if (!['check', 'copy'].includes(cmd) || !file || (ri >= 0 && !rest[ri + 1])) { console.error(usage); process.exit(2); }
+  if (!['check', 'review', 'copy'].includes(cmd) || !file || (ri >= 0 && !rest[ri + 1])) { console.error(usage); process.exit(2); }
   const cfg = ri >= 0 ? JSON.parse(fs.readFileSync(rest[ri + 1], 'utf8')) : {};
   const opts = {banned: cfg.banned || [], rules: {dashes: cfg.dashes, emoji: cfg.emoji}};
   if (cmd === 'copy') checkCopy({file, ...opts});
-  else await check({html: file, preset: rest.find((a, i) => !a.startsWith('--') && !(ri >= 0 && i === ri + 1)) || 'tiktok', ...opts});
+  else await check({html: file, preset: rest.find((a, i) => !a.startsWith('--') && !(ri >= 0 && i === ri + 1)) || 'tiktok', review: cmd === 'review', ...opts});
 }

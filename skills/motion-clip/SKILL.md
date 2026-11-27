@@ -40,7 +40,7 @@ The five beats are a starting shape; followed blindly they make every film look 
 
 ## 2. Write the story
 
-Copy `templates/film.html`, `templates/story.js`, `scripts/render.mjs`, `scripts/score.py` (and whichever of `voice.mjs`, `kokoro_tts.py`, `words.py`, `image.mjs`, `depth.py` the brief needs) into the clip folder, with `assets/` beside them. Renderer paths are relative to the folder `render.mjs` sits in, not the shell's, and the render server serves only that folder: a `../` picture 404s and draws as "missing", so copy pictures in.
+Copy `templates/film.html`, `templates/story.js`, `scripts/render.mjs`, `scripts/score.py`, `../_shared/scripts/review-page.mjs` (and whichever of `voice.mjs`, `kokoro_tts.py`, `words.py`, `image.mjs`, `depth.py` the brief needs) into the clip folder, with `assets/` beside them. Renderer paths are relative to the folder `render.mjs` sits in, not the shell's, and the render server serves only that folder: a `../` picture 404s and draws as "missing", so copy pictures in.
 
 `film.html` is the engine and is not edited per film. Everything about one film lives in `story.js`: frame, colours, fonts (a `file` per brand font, or none for a system font), logo, picture size, when each picture shows and how it enters (`via: 'push'` or `'fade'`), taps, camera keyframes, captions, an optional number scene and the closing lockup. The starter is a 15-second browser film with placeholder words; `templates/examples/autorentic.story.js` is a finished 20-second phone film for timing and camera work. An uncaptured picture draws as a "missing" card, so the story can be blocked out first. A story built by code (screens and taps generated from a list) wraps itself in `(() => { ... })()`: it shares the page's global scope with the engine, so a top-level `const camera` or `screens` fails to load with "already been declared".
 
@@ -128,7 +128,9 @@ Start with the automatic check, once per size you will deliver:
 node render.mjs check 1080 1920
 ```
 
-It draws a frame every half second in two shuffled orders and compares them: anything depending on more than `t` (a random number, a clock, state kept between frames) fails with the times named. It also warns on a missing font, missing pictures, a product first seen after 3 s, a voice over 3 words a second, and text too brief to read (full list and loudness checks: 📖 `references/review-lenses.md#check-warnings`). It exits 1 on error. A pass says the film is consistent, not good; the sheet judges that.
+It draws a frame every half second in two shuffled orders and compares them: anything depending on more than `t` (a random number, a clock, state kept between frames) fails with the times named, and so does any stretch of 2 s or more where nothing moves. It also warns on a missing font, missing pictures, a product first seen after 3 s, a voice over 3 words a second, and text too brief to read (full list and loudness checks: 📖 `references/review-lenses.md#check-warnings`). It exits 1 on error. A pass says the film is consistent, not good; the sheet judges that.
+
+**A film for TikTok, Reels or Shorts is checked with that platform's preset** (`PRESET=tiktok`, `instagram-reels` or `youtube-shorts` on `check` and `review`): it fails every line of text that sits where the app's own caption, tabs or buttons will cover it, naming the line, time and band. Fix it in the story (`subtitles: { y }`, a caption's position), never by dropping the preset. The bands are the platforms' published ones and leave a tall middle strip: in 9:16 that rules out subtitles low in the frame. The starter story's vertical layout predates them and fails `PRESET=tiktok` as shipped, so a TikTok film moves its hook, captions and subtitles inside x 120 to 780 (960 above y 840) and y 240 to 1260 from the first draft, and gives the freed bottom third to a picture (the phone running off the bottom edge, a photo), never to text.
 
 Then render one still per beat and tile them into a contact sheet:
 
@@ -138,7 +140,14 @@ ffmpeg -pattern_type glob -i 'out/stills/1080x1920_*.png' -vf "scale=270:-1,tile
 
 One sheet per size (change `1080x1920` in the glob): frames of different shapes distort when tiled, and a clean vertical cut says nothing about the square one. Review the sheets four times, one lens per pass (parallel agents where you can spawn them): design, readability, pacing, brand (📖 `references/review-lenses.md` has each lens's questions). Merge, fix the worst three problems and re-render the sheet. A builder agent running this skill cannot spawn the lens agents, so its own look at the sheet is not this review: it reports the sheet paths, and the session that dispatched it runs the four lenses (with `impeccable` critique and `emil-review-animations` on the story) before the film is shown to anyone. **Tell: you are about to show a film whose only review was the agent that made it.**
 
-Once pictures, voice and a first `score.wav` exist (§4), send `node render.mjs draft 1080 1920` (half size, with sound and a time stamp per frame) and get a yes before the full renders: each change after that costs a full re-render.
+Once pictures, voice and a first `score.wav` exist (§4), send the draft and the review page together, and get a yes before the full renders: each change after that costs a full re-render.
+
+```
+node render.mjs draft 1080 1920                     # half size, with sound and a time stamp per frame
+PRESET=tiktok node render.mjs review 1080 1920      # after check; same PRESET as check, or none
+```
+
+The review page (`out/review_1080x1920.html`) is one file with a still per beat, its words and voice line, the check results and a note box per beat; its "Copy change list" button turns the reviewer's notes into a numbered list to paste back. An approver who would otherwise answer "looks good" or a vague "change the middle bit" can point at beat 4. It is what the user or client sees, separate from the four lenses, which are your own review.
 
 Then render the videos (1.5 to 3 minutes each for 20 s; run them in the background, plugged in, each command prefixed with `caffeinate -dims` so neither the display nor the system idles mid-render):
 
@@ -157,7 +166,7 @@ Mux the score into each finished video, using the `score.wav` from §4:
 for f in 9x16 1x1 16x9; do ffmpeg -i out/clip_$f.mp4 -i score.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 256k -ac 2 -ar 48000 -shortest out/clip_${f}_music.mp4; done
 ```
 
-`ffprobe` each muxed file for an audio stream and the full length.
+Then run `node render.mjs verify 1080 1920 out/clip_9x16_music.mp4` on each muxed file. It reads the finished video, not the story: wrong size, a length short of the film, single-frame flashes and audio dropouts fail; black or frozen stretches, long silences and the finished loudness warn (📖 `references/review-lenses.md#check-warnings`). It measures; a person still has to listen.
 
 ## 6. Deliver
 
