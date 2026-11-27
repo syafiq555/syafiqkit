@@ -326,7 +326,10 @@ export async function docAt($, owner, path) {
     docs = await discover($)
     applyCachedMeta(docs)
     const loading = state.docsLoading && !state.docsLoading.listing
-    if (!loading) state.docs = docs
+    if (!loading) {
+      state.docs = docs
+      state.docsFrom = docs.from
+    }
   } catch {}
   const found = state.docs.find((item) => item.path === owner) || docs.find((item) => item.path === owner)
   if (found) return found

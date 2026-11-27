@@ -100,7 +100,7 @@ export function scopeOfInstruction(path, cwd, home) {
   if (folder === home + '/.claude') return 'your global'
   if (base === cwd) return folder === base ? 'this project' : 'this project (.claude/)'
   if (base.startsWith(cwd + '/')) return 'nested: ' + base.slice(cwd.length + 1)
-  return 'parent: ' + (base.split('/').pop() || '/')
+  return sourceOf(base, cwd)
 }
 
 export function instructionDoc(path, cwd, home) {
@@ -227,7 +227,6 @@ export async function discover($) {
   const cwd = await hostSessionCwd($)
   state.cwd = cwd
   const home = (await homeOf($)).replace(/(.)\/+$/, '$1')
-  state.cwdIsHome = cwd === home
   const groups = await Promise.all([
     findAllTaskDocs($, cwd, home),
     Promise.all([findInstructionFiles($, cwd, home), findNestedInstructionFiles($, cwd, home), findCompanionFiles($, cwd, home)]).then(
@@ -237,7 +236,9 @@ export async function discover($) {
     findNearestMarkdown($, 'Project docs', cwd, home, 'docs'),
     findSkills($),
   ])
-  return groups.flat()
+  const docs = groups.flat()
+  docs.from = { cwd, isHome: cwd === home }
+  return docs
 }
 
 export const metaCache = new Map()

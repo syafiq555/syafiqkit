@@ -184,7 +184,7 @@ export function listView($, c) {
       : Box({ key: 'sec-' + key, flexDirection: 'column', children: [gap(key), Text({ key, bold: true, children: title })] })
   const needle = state.filter.trim().toLowerCase()
   const note = loadingNote()
-  const sessionNote = sessionFolderNote(state.docs, state.cwd)
+  const sessionNote = sessionFolderNote(state.docs, state.docsFrom.cwd)
   const topRow = (prefix) =>
     Box({
       key: prefix + 'list-top',
@@ -326,7 +326,7 @@ export function listView($, c) {
     if (!inGroup.length) {
       if (group === 'Task docs' && state.docs.length) {
         pushHeader(header('h-' + group, 'TASK DOCS'))
-        push(Text({ key: 'no-tasks', dimColor: true, wrap: 'truncate-end', children: 'No tasks/ folder in ' + (shortFolder(state.cwd) || 'this folder') + (state.cwdIsHome ? '.' : ', above it, or one folder down.') }))
+        push(Text({ key: 'no-tasks', dimColor: true, wrap: 'truncate-end', children: 'No tasks/ folder in ' + (shortFolder(state.docsFrom.cwd) || 'this folder') + (state.docsFrom.isHome ? '.' : ', above it, or one folder down.') }))
       }
       return
     }
@@ -372,5 +372,5 @@ export function listView($, c) {
     drawFolders(group, rest, '', '')
   })
   if (!state.docs.length) push(Text({ dimColor: true, children: state.error || (state.docsLoading ? 'Listing docs…' : 'No docs found from here.') }))
-  return Box({ flexDirection: 'column', children: [...rows, ...windowedRows(c, items, LIST_TOP_ROWS + (sessionNote ? 1 : 0))] })
+  return Box({ flexDirection: 'column', children: [...rows, ...windowedRows(c, items, LIST_TOP_ROWS + sessionRow('').length)] })
 }

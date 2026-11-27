@@ -3236,6 +3236,16 @@ test('the upward walk checks the session folder and 11 above it, no more', async
   await ui.unmount()
 })
 
+test('the upward walk still reaches the 11th folder above the session folder', async ($, on) => {
+  const ui = await listFrom($, on, '/Users/test/a/b/c/d/e/f/g/h/i/j/k/l/m', {
+    '/Users/test/a/b/tasks': [dirEntry('near')],
+    '/Users/test/a/b/tasks/near': [fileEntry('current.md', 60)],
+  })
+  expect(await texts(ui, /^TASK DOCS · parent: b \(1\)$/)).toBe(1)
+  expect(await texts(ui, /^Session folder: b\/c\/d\/e\/f\/g\/h\/i\/j\/k\/l\/m$/)).toBe(1)
+  await ui.unmount()
+})
+
 test('a session in the home folder never looks above it', async ($, on) => {
   const ui = await listFrom($, on, '/Users/test', {
     '/Users/tasks': [dirEntry('x')],

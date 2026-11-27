@@ -49,6 +49,7 @@ export async function loadDocs($, view, run) {
   }
   if (stale()) return
   state.docs = docs
+  state.docsFrom = docs.from
   state.now = await hostClockNow($)
   if (stale()) return
   const listedAt = state.now
