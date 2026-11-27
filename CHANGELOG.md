@@ -1,10 +1,16 @@
 # Changelog
 
+## 1.498.4
+
+**`casual-message`: the statement-ask rule from 1.498.3 now stands as its own rule and stays out of the way when the client already offered.**
+- Update with `claude plugin update syafiqkit@syafiqkit`. Refines 1.498.3.
+- Any courteous question form counts, not only "Will you be able to …?", and the old "three questions opening alike" check is back on its own.
+
 ## 1.498.3
 
 **`casual-message` turns a client ask written as a statement into a courteous question, and reads your own messaging rules even when the thread already shows the tone.**
 - Update with `claude plugin update syafiqkit@syafiqkit`.
-- A line such as "once your team fixes these, we'll update" is an ask with no question mark, so the "Will you be able to …?" rule was skipped. It now becomes "Will your team be able to …?".
+- A line such as "once your team fixes these, we'll update" is an ask with no question mark, so the client-question rule was skipped. It now becomes a courteous question ("Will your team be able to …?", "Could you …?"), except when the client already offered to do it, or the task is a colleague's.
 - Your own messaging section is read before drafting even when earlier messages in the thread already set the voice, since it holds rules a thread can't show.
 
 ## 1.498.2
