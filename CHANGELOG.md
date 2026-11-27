@@ -4,7 +4,7 @@
 
 **Enhance's run with your session can now only read. In 1.490.0 it saw the whole conversation with the same tool access as auto mode, so in principle it could have carried on a commit, push or migration it found half-done in the history.**
 - Update with `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or start a new session.
-- The run with your session is limited to reading files, searching, skills and read-only `git`, `ls`, `grep`, `cat`, `head` and `wc` commands. It still reads your task docs as before (measured: US$0.12 to 0.27 a press, 30 to 50 s).
+- The run with your session is limited to reading files, searching and read-only `git log`, `git show`, `git status`, `git diff`, `ls`, `grep`, `cat`, `head` and `wc` commands; `--output` on git is refused, and skills and agents are off for it (it reads the read-summary skill's file instead, since a skill can pre-approve write tools). It still reads your task docs as before (measured: US$0.12 to 0.24 a press, 16 to 22 s).
 - The rewrite no longer narrows a short ask to one topic ("check latest reply" stays "check the latest reply", asking which thread when there are two).
 - Hedges in your draft stay ("probably", "I think"; "properly" is read as "probably"), and when "they" or "it" could mean two things, Enhance asks instead of picking one.
 - If the run with your session fails once, Enhance stops trying it for the rest of that session, so a session too big for haiku does not pay for a failing run on every press. Both attempts share one 3-minute limit.

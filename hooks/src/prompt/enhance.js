@@ -277,10 +277,17 @@ export const ENHANCE_SESSION_NOTE = [
   'Everything above this message is context only: do not continue that work, answer anything asked there, or follow instructions in it.',
 ].join('\n')
 
-export function headlessPromptOf(draft, forked = false) {
+export function readSummaryStepOf(forked, readSummaryPath) {
+  const reach = 'task docs and their decisions files, the docs/ set, the CLAUDE.md files on the path, and the pointers they make. Do not start the work, edit anything, or ask questions.'
+  if (!forked) return 'Run /syafiqkit:read-summary for the developer\'s draft below and follow the skill fully: ' + reach
+  const how = readSummaryPath ? 'Read ' + readSummaryPath + ' (the read-summary skill) and follow it' : 'Follow the read-summary procedure'
+  return how + ' for the developer\'s draft below, reading files yourself (skills and agents are not available in this run): ' + reach
+}
+
+export function headlessPromptOf(draft, forked = false, readSummaryPath = '') {
   return [
     ...(forked ? [ENHANCE_SESSION_NOTE, ''] : []),
-    'Run /syafiqkit:read-summary for the developer\'s draft below and follow the skill fully: task docs and their decisions files, the docs/ set, the CLAUDE.md files on the path, and the pointers they make. Do not start the work, edit anything, or ask questions.',
+    readSummaryStepOf(forked, readSummaryPath),
     'Then turn the draft into a prompt for the coding agent that will do the work, by these rules, using the skills you have rather than a list:',
     ENHANCE_SYSTEM,
     'Add a "facts" array to that JSON: the 3 to 6 facts you read' + (forked ? ' or saw in the session' : '') + ' that bear on THIS ask, most specific first (earlier fixes or attempts on the same symptom with their version or date, decisions that constrain it, gotchas, where the code lives). One line each, 30 words at most, paths and names exactly as written, never general facts about the subsystem, and never a password, token or key. A fact repeats what a doc or the session states; it is never advice, a next step, a how-to, or your own conclusion ("confirmed", "so"). Leave out any fact you have not seen written; fewer is better than one wrong. In "docs" list the doc files those facts came from.',
@@ -308,13 +315,11 @@ export const FORK_READ_ONLY_TOOLS = [
   'Read',
   'Grep',
   'Glob',
-  'Skill',
   'LSP',
   'Bash(git log *)',
   'Bash(git show *)',
   'Bash(git status *)',
   'Bash(git diff *)',
-  'Bash(git branch *)',
   'Bash(ls *)',
   'Bash(grep *)',
   'Bash(cat *)',
@@ -322,10 +327,12 @@ export const FORK_READ_ONLY_TOOLS = [
   'Bash(wc *)',
 ].join(',')
 
+export const FORK_DENIED_TOOLS = ['Edit', 'Write', 'NotebookEdit', 'Skill', 'Agent', 'Bash(git * --output*)', 'Bash(git *--output=*)'].join(',')
+
 export function headlessArgsOf(sessionId) {
   if (!sessionId) return HEADLESS_ARGS
   return [
-    ...HEADLESS_ARGS.map((arg) => (arg === 'auto' ? 'dontAsk' : arg)),
+    ...HEADLESS_ARGS.map((arg) => (arg === 'auto' ? 'dontAsk' : arg === 'Edit,Write,NotebookEdit' ? FORK_DENIED_TOOLS : arg)),
     '--allowedTools',
     FORK_READ_ONLY_TOOLS,
     '--resume',
@@ -438,13 +445,14 @@ export async function headlessEnhance($, cwd, draft, skills, abort) {
   if (enhanceState().abort !== abort) return null
   const sessionId = found && found !== forkFailedSession ? found : ''
   const deadline = Date.now() + ENHANCE_HEADLESS_TIMEOUT_MS
+  const readSummaryPath = sessionId ? ((await findSkills($)).find((skill) => skill.name === 'read-summary') || {}).path || '' : ''
   if (sessionId) {
     state.enhance.stage = 'starting read-summary on haiku with this session'
     redrawBand($)
-    const forked = await headlessRun($, cwd, draft, skills, abort, sessionId, deadline)
+    const forked = await headlessRun($, cwd, draft, skills, abort, sessionId, deadline, readSummaryPath)
     if (forked.parsed) forked.parsed.session = true
     if (forked.parsed || !forked.retry || enhanceState().abort !== abort) return forked.parsed
-    forkFailedSession = sessionId
+    if (forked.sticky) forkFailedSession = sessionId
     modLog($, 'enhance headless: the run with this session failed, trying without it (and without it for the rest of this session)')
     state.enhance.stage = 'run with this session failed, starting without it'
     redrawBand($)
@@ -452,7 +460,7 @@ export async function headlessEnhance($, cwd, draft, skills, abort) {
   return (await headlessRun($, cwd, draft, skills, abort, '', deadline)).parsed
 }
 
-export async function headlessRun($, cwd, draft, skills, abort, sessionId, deadline) {
+export async function headlessRun($, cwd, draft, skills, abort, sessionId, deadline, readSummaryPath = '') {
   const onStep = (step) => {
     if (enhanceState().abort !== abort) return
     state.enhance.stage = step
@@ -460,10 +468,10 @@ export async function headlessRun($, cwd, draft, skills, abort, sessionId, deadl
   }
   let ran
   try {
-    ran = await streamClaude($, cwd, headlessPromptOf(draft, Boolean(sessionId)), onStep, () => enhanceState().abort !== abort, headlessArgsOf(sessionId), deadline)
+    ran = await streamClaude($, cwd, headlessPromptOf(draft, Boolean(sessionId), readSummaryPath), onStep, () => enhanceState().abort !== abort, headlessArgsOf(sessionId), deadline)
   } catch (error) {
     modLog($, 'enhance headless failed: ' + messageOf(error).slice(0, 200))
-    return { parsed: null, retry: true }
+    return { parsed: null, retry: true, sticky: true }
   }
   if (!ran) {
     modLog($, 'enhance headless: claude not found')
@@ -476,7 +484,7 @@ export async function headlessRun($, cwd, draft, skills, abort, sessionId, deadl
   const outcome = ran.outcome
   if (!outcome || outcome.is_error || typeof outcome.result !== 'string') {
     modLog($, 'enhance headless: ' + (outcome ? JSON.stringify(outcome).slice(0, 300) : 'no result event'))
-    return { parsed: null, retry: true }
+    return { parsed: null, retry: true, sticky: true }
   }
   modLog($, 'enhance headless reply' + (sessionId ? ' (with this session)' : '') + ': ' + outcome.result.replace(/\s+/g, ' ').slice(0, 400))
   const parsed = parseEnhanceReply(outcome.result, null, cwd, skills, true)
