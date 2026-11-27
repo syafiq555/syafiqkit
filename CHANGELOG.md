@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.498.9
+
+**A "not nice" said in the middle of a score loop now goes to `uiux`'s rendered directions instead of the next build, and a brief that names skills gets each one invoked rather than re-run by hand.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `score-loop`: a user's complaint mid-loop routes to the deal rule (directions rendered on a real role's data, the busy state beside each); the pick joins the settled list. A thin capture fixture is no longer the only evidence for a layout verdict.
+- `uiux`: directions for one state of a screen (empty, all clear, error) show beside the busy state.
+- `read-summary`: a plan made from a brief naming skills lists each invocation as a step, so a loop's own rules (the settled list that stops judges reversing each other) are not skipped.
+- `done`: a reviewer and a simplifier never share one file list with both writing.
+
 ## 1.498.8
 
 **`motion-clip` no longer sends a script in a language Kokoro can't speak (Malay among them) to Kokoro, and `/done` design-reviews clips, slides and decks built outside the repo.**
