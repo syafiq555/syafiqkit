@@ -80,7 +80,6 @@ These skills accept explicit user command:
 | `watch-sheets` | One check of shared sheets on a repeating loop; `AskUserQuestion` only when it is our turn. Building a tracker is `setup-tracker` |
 | `weekly-report` | The user's feed for a lead's weekly report to the boss: one haiku per project verifies a draft, last week's items carried forward, sent in Chat format. Sources in `~/.claude/references/weekly-report/` |
 | `headless-watch` | Scheduled check with Claude closed: launchd runs `claude -p`, alerts by Telegram `sendMessage` or ntfy (never `--channels`, which steals the bot's poller). A session-only repeat is `/loop`; a cloud agent is `schedule` |
-| `help-centre` | A user manual is called too big or hard to find things in, or guides are wanted inside the app ("put the guide in the system", "help for this screen"), without naming the skill |
 | `understanding-guide` | Large text the user must understand → offline question-and-answer page, every claim checked. Decisions wait until the reader understands |
 | `explainer-deck` | Deck explaining a system to a live audience, each mechanism beside a worked example. A page read alone is `understanding-guide` |
 | `reverse-engineer` | Rebuild a web app's mechanism the client uses, read through REA, into a task doc a sonnet reviewer verifies |
@@ -131,6 +130,7 @@ These skills accept explicit user command:
 | `weekly-report` | Asked what to report or feed the lead this week ("weekly update for KL", "what do we report to HL"), or a boss's message asking for a summary report of all projects |
 | `headless-watch` | A check should run on a schedule with Claude closed ("every 10 minutes during work hours", "alert me on Telegram, otherwise stay quiet"), or a pasted crontab line calling `claude -p` |
 | `uat-script` | Test scenarios for a client's acceptance testing are asked for or out of date ("prepare UAT", "test cases for sign-off", "the UAT sheet is out of date"), or a contract promises a test scenario per module |
+| `help-centre` | A user manual is called too big or hard to find things in, or guides are wanted inside the app ("put the guide in the system", "help for this screen"), without naming the skill |
 | `understanding-guide` | User faces more text than one sitting holds, or asks how it should be presented |
 | `explainer-deck` | Asked for slides or a deck to explain how something works to a meeting, without naming the skill |
 | `reverse-engineer` | "The same as <app> my client uses" built in our app, or "reverse engineer" / "utilize REA" about a web app someone is logged into |
