@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.496.1
+
+**`/ship` keeps one release note from the version you last posted. Before, a second ship in the same session replaced the earlier note with one covering only the newest version.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Tell `/ship` the last version you posted ("last posted 1.488.0") and every note it writes in that session covers everything since, until you say the earlier one went out.
+
 ## 1.496.0
 
 **Enhance now says when it could not read your chat. Before, a session too long for haiku got a generic rewrite with no sign the chat was skipped.**
