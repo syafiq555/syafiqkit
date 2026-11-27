@@ -192,7 +192,7 @@ Detail, evidence and what was seen live per row: `decisions/builds.md`.
 
 - 27/11/2026: issue #39 (Munajaf) built as row 46, 1.491.0, and pushed with a peer session's Enhance work (1.490.0 and the read-only fix 1.492.0, `decisions/enhance.md`) as origin/master 5a4b33c. Score loop and review passes: `decisions/score-loop-1491.md`.
 - A Bash `cd` in this harness does not move the session folder (each call starts in the start folder), so the issue cannot be reproduced from inside a session here: the live check starts `claude` in the subfolder instead. Whether the reporter's version moved the session folder on `cd` (his status line showed `v2`) is unverified.
-- Close #39 by `gh issue comment` and `gh issue close` after ship (`CLAUDE.local.md`).
+- #39 commented on and closed 27/11/2026, asking Munajaf to update and report anything off in his workspace; a reply from him reopens the work.
 
 ---
 
