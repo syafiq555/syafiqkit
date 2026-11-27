@@ -8,7 +8,7 @@ Related:
   - ../agent-architecture/current.md (sibling feature — dispatch and delegation; issue #27 closed from here)
   - ../doc-condensation/current.md (sibling feature — the pointer-defers-a-rule finding behind the deferred `skill-creator` item)
   - ../motion-clip/current.md (a skill created 2026-10-15 from one real run, then generalised after review)
-Last updated: 21/11/2026
+Last updated: 27/11/2026
 -->
 
 # Plugin Maintenance — Skill Authoring
@@ -104,12 +104,12 @@ How skills in this plugin get created, scoped against their siblings, and verifi
 - The orchestrator triaged reversals by hand with a "settled across rounds" list in each fresh brief.
 - Agents generated from the `product-reviewer` template have no `ToolSearch`/`SendMessage`, so they could not message mid-run.
 
-- [x] Researched with four haiku agents (21/11/2026), proposal approved, built as 1.464.3 (decision under Key Technical Decisions). Not yet tested on a real loop: the next score-loop run should confirm the two-line report and the drift check read clearly.
+- [x] Researched with four haiku agents (21/11/2026), proposal approved, built as 1.464.3 (decision under Key Technical Decisions). First real loop 27/11/2026 on two `/ship` rules: separate retained and fresh scores read clearly (16/13, 17/17, 19/18), and the drift check fired once (the retained judge had closed a flaky-test item the fresh judge showed was self-contradictory), so the retained line was counted one lower that round.
 
 ### Deferred / accepted
 
 - [ ] 🟡 `done`'s one-message dispatch rule failed a seventh time this session (reviewer sent alone, then two). Count corrected in the skill; deliberately **not** reworded — 1.288.0 ruled that a further restatement makes it less followed, and the sixth and seventh both came after the paragraph was already moved to the dispatch. The next person changes the instrument or accepts it as a model-side lapse
 
-## Last Session (21/11/2026)
+## Last Session (27/11/2026)
 
-Researched `score-loop`'s judges with four haiku agents (score combining, reversals, juries, leniency drift). Spot checks found every relied-on quote on its page. Built and shipped 1.464.3 from the approved proposal (decision above). The `/done` reviewers raised three questions, which Syafiq answered. The skill-upgrade score pass ran a haiku judge for two rounds, scoring 1/5 then 4/5, with the last point fixed after. A fresh headless haiku session given a round-4 scenario applied the new rules: two separate scores, no stop with only one at 80%, and the item found again checked first. That run also exposed a clash about where a drift note goes, which is now fixed. `tasks/plugin-maintenance/mod/current.md` carries another session's edit and was left alone.
+Triaged the 13 to 27/11 `/insights` report against the plugin. Most suggestions were already covered: the tracker reply after a ship (`ship` Step 5 item 11), chat style (`casual-message`), Waiting vs Not run (`uat-script`), "can't" needing three routes (the output-style hook). The Python-edit hook had been declined on 19/11. Two gaps went into `ship` (1.498.0, hardened to 1.498.1 by a three-round score loop): when CI fails, read `--log-failed` and fix what the change caused, with a rerun only for faults outside the change; and on a provider's test-to-live switch, create and check live webhooks and keys, or hand the user the settings and mark the deploy not verified. The plan skipped the score-loop pass, because the plugin's CLAUDE.md had not loaded while planning from the home directory. It ran after Syafiq said yes, and `update-plugin`'s plan-mode step now adds the pass itself. `/done`'s product reviewer then raised two owner calls, which Syafiq answered (1.498.2): `/ship` shows the live webhook settings and creates them only on the user's yes; and while a go-live is unverified, the release note, release card and client row are held, not posted with a caveat.

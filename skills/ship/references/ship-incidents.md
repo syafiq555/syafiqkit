@@ -48,4 +48,4 @@ A staging deploy failed because the server lacked a PHP extension the new code u
 
 ## Live webhook missing after a go-live
 
-A store switched its card gateway from test to live mode. The live keys went in, but the live-mode webhook endpoint was never created, because the test-mode one had worked all through UAT. The client found it missing. Live and test mode are separate in the provider's dashboard; the fix was creating the live endpoint and confirming it listed and enabled.
+A store switched its card gateway from test to live mode. The live keys went in, but the live-mode webhook endpoint was never created, because the test-mode one had worked all through UAT. The client found it missing. Live and test mode are separate in the provider's dashboard; the fix was creating the live endpoint and confirming it listed and enabled. Owner decisions 27/11/2026: `/ship` shows the live settings and creates them only on the user's yes, and holds the release note, cards, client row and work log while the go-live is unverified.

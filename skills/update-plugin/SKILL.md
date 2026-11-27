@@ -121,7 +121,7 @@ If tightening lands during this session, bump the plugin version + CHANGELOG per
 
 ## Step 5 — Write: Patch the skill files
 
-In plan mode nothing can be written yet: run Step 0, then put each patch (file, anchor, new wording), the version bump and the CHANGELOG entry into the plan file as build items, with a last item to run Step 6 once built. Still report the scan and roles tables, and say nothing was written.
+In plan mode nothing can be written yet: run Step 0, then put each patch (file, anchor, new wording), the version bump and the CHANGELOG entry into the plan file as build items, with a last item to run Step 6 once built. A patch that changes what a skill does also gets a `score-loop` item with its stop rule asked now: the owner checkout's `CLAUDE.md` § Testing Changes requires one, and a plan made from outside the plugin tree never loaded that file (27/11/2026: two `/ship` rules were planned, built and pushed before the pass was noticed). Still report the scan and roles tables, and say nothing was written.
 
 **Research the mechanism before writing a new rule or changing a workflow step.** A session's fix is its own guess at the mechanism; how vendors and practitioners handle the same failure is usually already written down, and finding it costs one `haiku` dispatch (URL per claim, "not found" allowed). Open two or three of the cited pages yourself and find the quoted line, and grade outside advice per `tasks/plugin-maintenance/external-guidance/current.md` (owner checkout; elsewhere, the URL check and the opened pages are the whole check). Moving a trigger word or repositioning an existing rule needs only the adjacent-skill read below, not this pass. Creating a skill is `skill-creator`, which runs the same research step.
 

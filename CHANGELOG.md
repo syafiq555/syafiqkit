@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.498.2
+
+**`/ship` now asks before it creates anything in a live payment dashboard, and holds the release note until a go-live is confirmed working.**
+- Update with `claude plugin update syafiqkit@syafiqkit`. Replaces the go-live behaviour of 1.498.0 and 1.498.1.
+- `/ship`, provider going live (checked on the production deploy only): it shows you the exact webhook endpoint, events and settings and creates them only on your yes. Without dashboard access, those settings appear under Decisions for you to create. It then checks the webhook answers the provider's test event where the provider offers one.
+- Until that check passes, the Ship Summary shows ⚠️ not verified, and the team release note, release card, task cards, client row and work log wait, so nobody hears payments are live early. They go out once you confirm the live settings exist and the check passes.
+- `/ship`, failed CI: when the fix is on the server (an extension, a secret, a firewall rule), it makes it only where your project docs give it access to that host. Otherwise it gives you the exact command and reports the deploy as failed. The rest is unchanged from 1.498.1: it reads the failed log first, reruns only outside faults or a flaky test the change never touched, and fixes, reviews and redeploys what the change caused.
+
 ## 1.498.1
 
 **`/ship` fixes a failed deploy it caused, reruns only flaky or outside faults, and tells you when it can't verify a provider going live.**
