@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.500.1
+
+**`explainer-deck` can now put a video inside a slide, so a demo deck plays its clip offline from the laptop. `/done` now runs the extra steps your CLAUDE.md adds to it instead of offering them.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- New `video` slide type in `explainer-deck`: give it an H.264 `.mp4` (a `motion-clip` render) and a PNG `poster` frame. The clip is embedded in the .pptx and plays in PowerPoint and Keynote. Google Slides drops embedded video on conversion, so the skill now says to check a clip from the .pptx itself (`unzip -l` lists `ppt/media/*.mp4`) and by playing it once.
+- `explainer-deck`'s Google render notes say Keynote's AppleScript export always times out while the Mac's screen is locked.
+- `product-still`: an `.mjs` capture script resolves `import 'playwright'` from its own folder only, since ES modules ignore `NODE_PATH`. Symlink `playwright` and `playwright-core` into the work folder when borrowing another project's install.
+- `/done`'s exit gate: a loaded CLAUDE.md that says `/done` also updates a tracker, a huddle sheet or cards binds the run. Grep the loaded instructions for `/done` and do each step before writing the Output, rather than offering it afterwards.
+
 ## 1.500.0
 
 **`motion-clip` and `carousel-builder` now catch, before anyone watches, the faults a reviewer had to spot by eye: text under TikTok's buttons, a shot that stands still, a glitch frame or a sound dropout. Each piece also gets a one-page review with a copyable change list.**
