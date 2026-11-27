@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.497.2
+
+**Client questions only suggest an answer when there is something to base it on, and keeping build details out never means hiding a cost or a risk.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `casual-message`: a fact only the client holds (bank details, a tax identity, a decision with nothing to go on) gets an open question, not a made-up suggestion. Varied questions still go in the numbered list a client-group post uses.
+- `casual-message`: when a client asks about effort, price or scope, the answer is truthful, and limitations, risks and dependencies are still mentioned.
+- `/ship`: the line it writes on a client's tracker row says what they can now see or do, never that the fix was a setting or already built.
+
 ## 1.497.1
 
 **Posts to a client's Chat space now follow the same polite-question and no-build-details rules as messages. Before, only `casual-message` drafts did.**
