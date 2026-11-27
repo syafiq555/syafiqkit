@@ -2440,6 +2440,58 @@ test('enhance falls back to the quick read when the headless run reports an erro
   await band.unmount()
 })
 
+test('enhance forks this session into the headless run so the draft is read against the conversation', async ($, on) => {
+  const box = { text: DRAFT }
+  const calls = stubEnhance(on, box, [], () => rewrite({}), undefined, () => [
+    { type: 'result', is_error: false, result: JSON.stringify({ goal: 'Session rewrite.', docs: [], skills: [], open: [], facts: [] }) },
+  ])
+  on('session.id', () => ({ value: 'sess-1' }))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(1)
+  const argv = calls.runs[0]
+  expect(argv.slice(11, 15)).toEqual(['--resume', 'sess-1', '--fork-session', '--no-session-persistence'])
+  expect(argv[15]).toContain('The conversation above is the session this draft was typed in')
+  expect(argv[15]).toContain(DRAFT)
+  expect(calls.length).toBe(0)
+  expect(box.text).toBe('Session rewrite.')
+  expect(await band.findAll({ type: 'Text', text: /this session/ })).not.toHaveLength(0)
+  await band.unmount()
+})
+
+test('enhance retries without the session when the forked run fails, before the quick read', async ($, on) => {
+  const box = { text: DRAFT }
+  const calls = stubEnhance(on, box, [], () => rewrite({ goal: 'Quick rewrite.' }), undefined, (argv: string[]) =>
+    argv.includes('--resume')
+      ? [{ type: 'result', is_error: true, result: 'Prompt is too long' }]
+      : [{ type: 'result', is_error: false, result: JSON.stringify({ goal: 'Fresh rewrite.', docs: [], skills: [], open: [], facts: [] }) }],
+  )
+  on('session.id', () => ({ value: 'sess-1' }))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(2)
+  expect(calls.runs[0]).toContain('--resume')
+  expect(calls.runs[1]).not.toContain('--resume')
+  expect(calls.runs[1][11]).not.toContain('The conversation above')
+  expect(calls.length).toBe(0)
+  expect(box.text).toBe('Fresh rewrite.')
+  await band.unmount()
+})
+
+test('enhance runs without the session when the host gives no session id', async ($, on) => {
+  const box = { text: DRAFT }
+  const calls = stubEnhance(on, box, [], () => rewrite({}), undefined, () => [
+    { type: 'result', is_error: false, result: JSON.stringify({ goal: 'Fresh rewrite.', docs: [], skills: [], open: [], facts: [] }) },
+  ])
+  on('session.id', () => ({ value: '' }))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(1)
+  expect(calls.runs[0]).not.toContain('--resume')
+  expect(box.text).toBe('Fresh rewrite.')
+  await band.unmount()
+})
+
 test('enhance refuses a prompt it already enhanced, and marks a quick-read result', async ($, on) => {
   const box = { text: DRAFT + '\n\nContext from tasks/mod/current.md:\n- a fact' }
   const toasts: string[] = []

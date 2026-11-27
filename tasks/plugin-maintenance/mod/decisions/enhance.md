@@ -6,7 +6,7 @@ Gotchas (critical):
   - Whether the host fires `prompt.edit` for the mod's own fill, which decides if Undo survives, is unmeasured (see Open)
   - `claude -p` replays load the repo's CLAUDE.md, so a fact can come from there rather than the docs passed in (see Measured)
 Related: `../current.md` (index)
-Last updated: 2026-11-04
+Last updated: 2026-11-27
 -->
 
 # The Mod: Enhance button
@@ -15,7 +15,7 @@ Theme file for row 29 of `../current.md`. Built 2026-10-16 across 1.400.0 to 1.4
 
 ## What it is {#what}
 
-`Enhance` (`e`) on the band. It reads the prompt box, runs a headless `claude -p --model haiku --permission-mode auto --disallowedTools Edit,Write,NotebookEdit --output-format stream-json --verbose` in the session folder that executes the real `/syafiqkit:read-summary`, then replaces the box with: the ask in plain words, `Context from <docs>:` with 3 to 6 facts, `Use /<skill>: why` lines, Scope / Out of scope / Check against / Done when, and up to 3 `[bracketed]` open choices. Nothing is sent. Undo restores the original while the box still holds the filled text. If the headless run cannot start or fails, a quick path runs: one `$.model.complete` haiku call over a catalogue (one line per task doc: path, title, status, "Where we are") plus the skill list, then a second call that digests the picked docs and their `decisions/` files. The done row then reads `quick read · …`.
+`Enhance` (`e`) on the band. It reads the prompt box, runs a headless `claude -p --model haiku --permission-mode auto --disallowedTools Edit,Write,NotebookEdit --output-format stream-json --verbose --resume <session id> --fork-session --no-session-persistence` in the session folder that executes the real `/syafiqkit:read-summary` with the whole conversation in view (1.490.0; without a session id, or after a failed forked run, the same run without the fork flags), then replaces the box with: the ask in plain words, `Context from <docs>:` with 3 to 6 facts, `Use /<skill>: why` lines, Scope / Out of scope / Check against / Done when, and up to 3 `[bracketed]` open choices. Nothing is sent. Undo restores the original while the box still holds the filled text. If the headless run cannot start or fails, a quick path runs: one `$.model.complete` haiku call over a catalogue (one line per task doc: path, title, status, "Where we are") plus the skill list, then a second call that digests the picked docs and their `decisions/` files. The done row then reads `quick read · …`.
 
 ## Why it exists {#why}
 
@@ -64,6 +64,7 @@ Language: mostly lowercase typo'd English ("u", "ure", "ya"); Malay rare; misrea
 | 2026-10-16 | Tool reach: chose "Everything", then "maybe auto mode better" → `--permission-mode auto`. Edit, Write and NotebookEdit disallowed after review (read-summary never needs them); Bash and Explore agents stay |
 | 2026-10-16 | Short prompts such as `what to do now ?` must work (minimum lowered from 20 to 8 characters) |
 | 2026-10-16 | A run must not stop when another message arrives (only sending the draft itself ends it) |
+| 2026-11-27 | The child forks the live session (`--resume <id> --fork-session --no-session-persistence`), still on haiku. Syafiq picked the whole fork over handing the run the last turns of the transcript: "as long as we use haiku still fine". Why: a fresh child never saw the conversation, so a draft pointing back at it ("the one above", "mine", "week 2") came out generic. A failed forked run is retried without the fork, then the quick read |
 
 ## Measured facts {#measured}
 
@@ -77,9 +78,13 @@ Language: mostly lowercase typo'd English ("u", "ure", "ya"); Malay rare; misrea
 | `/reload-plugins` reporting "re-read from its folder" swapped the mod on every rebuild this session | 2026-10-16, see hooks/CLAUDE.md § The Mod |
 | `prompt.submit` fires for plugin-submitted prompts (the mod's own Done message) too; an Enhance that cancelled on any submit stopped mid-run | user report 2026-10-16, fixed 1.405.1 |
 | Quick-path catalogue for autorentic: 106 task docs, about 24 KB as one line each; an earlier 12 KB cap had hidden about 60 of them | 2026-10-16 |
+| `claude -p --model haiku --resume <live id> --fork-session --no-session-persistence` on a running session: 7 s, 211k input tokens written to cache, US$0.21; the child quoted the session's first and latest user messages and saw a file the session had read; the live transcript stayed the newest file and no new one appeared | by hand in autorentic, 2026-11-27 |
+| A forked run's `total_cost_usd` and `modelUsage` include the parent session's saved `cost-state` (a fork of a 2.06-dollar Opus session reported US$2.29 for a one-word "OK" reply). The press itself cost US$0.06 to 0.27 on haiku; subtract the parent's `totalCostUSD` before judging cost | by hand, 2026-11-27 |
+| On a session that had just discussed the same draft, the fork copied the reply it saw in the transcript (1 turn, no read-summary). On the TikTok parent session the same draft got a point-by-point rewording, 5 session facts and one open question naming both threads | 2026-11-27, after the goal-reword rule |
 
 ## Open {#open}
 
 - Cancel and the 3-minute stop race each pull against a 300 ms watcher and then call `child.return()`; whether that kills a silent child on the host is unverified (`ps` after Cancel during a long sub-agent step).
 - Whether the host emits `prompt.edit` for the mod's own `$.prompt.fill` (would drop Undo at once) is unverified; the kit never fires it.
+- The forked run has not yet been pressed live from the band. Unmeasured: the full read-summary run's time and cost with the fork, and what haiku does when a session is larger than its context (the fallback is tested only in the kit).
 - Product reviewer's deferred ideas: a per-press outcome line in `mod.log` (kept, edited, undone, cancelled; path; seconds), an Enhance-only off switch, a spend cap if `claude -p` offers one, a re-measured cost on a large repo.

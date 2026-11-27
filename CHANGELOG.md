@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.490.0
+
+**Enhance now reads the conversation you are in. Before, its haiku run started with no memory of the session, so a draft that pointed back at it ("do week 2 of the one above", "mine") came out generic.**
+- Update with `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or start a new session.
+- Enhance runs `claude -p` with `--resume <this session> --fork-session --no-session-persistence`, still on haiku. It works on a copy: your session is not changed, and the copy does not show in `/resume`.
+- The rewrite reads words like "this", "the one above" and "mine" against the conversation, and carries over what the session already settled: decisions, your corrections, and the files, docs and people it named.
+- Your own words lead the rewrite: it rewords your draft point by point (typos and shorthand fixed, "it" replaced by the thing's name) instead of replacing it with a short summary.
+- A draft that leaves out what it is about ("lets research with haiku first") gets its subject from the session; when the session has two open threads, you get one open question naming both, instead of a guess.
+- A skill your draft already names is no longer repeated as a "Use ..." line, and open choices stay under Open instead of also appearing in the goal.
+- The done row says `this session` when the conversation was used.
+- A long session costs more per press: about US$0.21 at 211k tokens, against about US$0.07 without the session.
+- If the run with the session fails (for example the session is too big for haiku), Enhance runs once more without it, then falls back to the quick read as before. A timeout is not retried.
+
 ## 1.488.0
 
 **On Windows, syafiqkit's startup should now work: sessions get the output-style rules and old cached plugin copies get cleared. Before this, both startup steps failed on every Windows session with `/bin/sh` or `cat` "not found". It is tested on macOS only so far, so Windows users, please say whether the error is gone. `/setup-playwright` now explains why a pixel-exact screenshot test can fail with no code change, and how to make it stable.**
