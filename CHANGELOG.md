@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.497.0
+
+**Questions to a client now come with your suggestion and read as polite, so they can answer "ok". Before, drafts asked "which one is it?" about the client's own document, or opened every line with the same "Will it work for you if".**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `casual-message`: a question to a client states the fact from their sheet, then offers your suggestion. "Will you be able to …?" is kept for things they must do themselves, and suggestions vary their wording ("Ok with you?", "Shall we keep …?", "Is it ok if we …?").
+- `casual-message`: a reply to a client never says work they paid for was already built or "switched on". It says when it applies.
+- `setup-tracker`: questions written into a new tracker follow the same polite, second-person wording, never a third-person "Will Acme submit …?".
+
 ## 1.496.1
 
 **`/ship` keeps one release note from the version you last posted. Before, a second ship in the same session replaced the earlier note with one covering only the newest version.**
