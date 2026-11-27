@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.498.3
+
+**`casual-message` turns a client ask written as a statement into a courteous question, and reads your own messaging rules even when the thread already shows the tone.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- A line such as "once your team fixes these, we'll update" is an ask with no question mark, so the "Will you be able to …?" rule was skipped. It now becomes "Will your team be able to …?".
+- Your own messaging section is read before drafting even when earlier messages in the thread already set the voice, since it holds rules a thread can't show.
+
 ## 1.498.2
 
 **`/ship` now asks before it creates anything in a live payment dashboard, and holds the release note until a go-live is confirmed working.**
