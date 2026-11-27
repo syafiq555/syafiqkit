@@ -126,8 +126,12 @@ function checkVisual(v, where) {
     words(v.start.when, 4, `${where} start when`);
     words(v.start.what, 10, `${where} start what`);
     for (const b of count(v.bars, 2, 4, where, 'bars')) { words(b.label, 5, `${where} bar`); if (b.end != null) words(b.end, 4, `${where} bar end`); words(b.note, 12, `${where} bar note`); }
+  } else if (k === 'image') {
+    const file = typeof v.path === 'string' ? path.resolve(specDir, v.path) : '';
+    if (!file || !pngSize(file)) bad(where, `image path "${v.path}" is not a PNG beside the spec`);
+    if (!v.text) bad(where, 'an image visual needs text: everything the picture says, as plain words, so its figures are checked like any other');
   } else {
-    bad(where, 'visual.kind must be flow, split, compare, waterfall, timeline, ledger, ladder, share, panels or clocks');
+    bad(where, 'visual.kind must be flow, split, compare, waterfall, timeline, ledger, ladder, share, panels, clocks or image');
   }
 }
 
@@ -164,6 +168,7 @@ function checkMechanism(s, where) {
   words(s.heading, 5, `${where} heading`);
   if (!s.sub || s.sub.length > 100) bad(where, 'sub (the claim under the heading) is required, max 100 characters');
   checkVisual(s.visual, where);
+  if (s.chain) for (const c of count(s.chain, 2, 4, where, 'chain people')) { if (!c || typeof c !== 'object') { bad(where, 'each chain entry must be {name, label?}'); continue; } if (String(c.label || c.name).length > 18) bad(where, `chain label "${c.label || c.name}" is over 18 characters, so its chip would run off the slide`); if (!PARTIES[c.name]) bad(where, `chain name "${c.name}" is not in parties`); if (c.label) words(c.label, 3, `${where} chain label`); }
   const ex = s.example ? { ...s.example } : { kind: s.numbers || 'quoted', lines: [] };
   if (!LABELS[ex.kind]) bad(where, s.example ? 'example.kind must be quoted, worked or made_up' : 'numbers must be quoted, worked or made_up');
   if (s.example) for (const l of count(ex.lines, 2, 6, where, 'example lines')) words(l, 16, `${where} example line`);
@@ -259,7 +264,8 @@ function checkFigures(parts, where) {
 }
 
 function pngSize(file) {
-  const b = fs.readFileSync(file);
+  let b;
+  try { if (!fs.statSync(file).isFile()) return null; b = fs.readFileSync(file); } catch { return null; }
   if (b.length < 24 || b.toString('ascii', 1, 4) !== 'PNG') return null;
   return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
 }
@@ -299,6 +305,7 @@ slides.forEach((s, i) => {
 });
 if (tracker) tracker.forEach((t, i) => words(t, 2, `tracker ${i + 1}`));
 
+if (spec.logo_on_dark != null && (typeof spec.logo_on_dark !== 'string' || !pngSize(path.resolve(specDir, spec.logo_on_dark)))) bad('spec', `logo_on_dark "${spec.logo_on_dark}" is not a PNG beside the spec`);
 if (usesJourney && !lucideDir) bad('spec', 'journey slides need lucide-static and @resvg/resvg-js: npm install --prefix ~/.cache/explainer-deck lucide-static @resvg/resvg-js');
 if (errors.length) {
   console.error([...new Set(errors)].join('\n'));
@@ -435,9 +442,25 @@ const LAYOUT = {
   },
   mechanism(slide, s) {
     heading(slide, { kicker: s.kicker || 'How it works', heading: s.heading, sub: s.sub, owner: s.owner }, 1.05);
-    const hasEx = !!s.example, vx = M, vy = 2.2, vw = hasEx ? 8.55 : CW, vh = 3.9;
+    const hasEx = !!s.example, vx = M, vw = hasEx ? 8.55 : CW;
+    let vy = 2.2, vh = 3.9;
+    if (s.chain) {
+      slide.addText(spec.chain_label || 'Who is under who', txt({ x: vx, y: vy, w: 1.9, h: 0.4, fontSize: 11, bold: true, color: T.soft, valign: 'middle' }));
+      let cx = vx + 1.95;
+      s.chain.forEach((c, i) => {
+        const [fill, ink] = party(c.name), label = c.label || c.name, cw = 0.35 + label.length * 0.1;
+        if (i) { slide.addText('▶', txt({ x: cx, y: vy, w: 0.35, h: 0.4, fontSize: 11, color: T.soft, align: 'center', valign: 'middle' })); cx += 0.35; }
+        slide.addText(label, txt({ x: cx, y: vy, w: cw, h: 0.4, fontSize: 12, bold: true, color: ink, align: 'center', valign: 'middle', fill: { color: fill }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.08 }));
+        cx += cw;
+      });
+      vy += 0.6; vh -= 0.6;
+    }
     const own = ownerOf(s);
-    kinds[s.visual.kind](slide, own ? { ...s.visual, accent: own[1] } : s.visual, vx, vy, vw, vh);
+    if (s.visual.kind === 'image') {
+      const file = path.resolve(specDir, s.visual.path), dim = pngSize(file);
+      const scale = Math.min(vw / dim.w, vh / dim.h), iw = dim.w * scale, ih = dim.h * scale;
+      slide.addImage({ path: file, x: vx + (vw - iw) / 2, y: vy, w: iw, h: ih, altText: s.visual.text });
+    } else kinds[s.visual.kind](slide, own ? { ...s.visual, accent: own[1] } : s.visual, vx, vy, vw, vh);
     if (!hasEx) {
       const nb = s.numbers && s.numbers !== 'quoted' ? s.numbers : null;
       if (nb) slide.addText(LABELS[nb], txt({ x: M + CW - 2.4, y: 0.8, w: 2.4, h: 0.3, fontSize: 10.5, bold: true, align: 'center', valign: 'middle', color: BADGE[nb][0], fill: { color: BADGE[nb][1] }, shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.05 }));
@@ -481,6 +504,10 @@ for (const s of slides) {
   if (!FULL.has(s.type)) strip(slide, s.section);
   if (s.type === 'section') sectionNo += 1;
   LAYOUT[s.type](slide, s, sectionNo);
+  if (FULL.has(s.type) && spec.logo_on_dark) {
+    const file = path.resolve(specDir, spec.logo_on_dark), dim = pngSize(file), h = 0.4, w = h * dim.w / dim.h;
+    slide.addImage({ path: file, x: W - M - w, y: 0.35, w, h });
+  }
   notes(slide, s.notes);
 }
 

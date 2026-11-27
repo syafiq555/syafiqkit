@@ -19,6 +19,7 @@ One JSON file. Paths inside it are relative to the spec. Word limits are enforce
 | `strip_label`, `waits_label` | Bottom-strip labels on mechanism and journey slides, default "In the source" and "Waiting on" |
 | `notes_for` | `"client"` builds the speaker notes for an outside audience: presenter cues ("Stress:", "Raise row 7:", "Say out loud", "do not give a number on the day") are cut and the fact after them kept; a line that was only a cue is dropped. Omit for the team's own copy |
 | `presenter_cues` | Extra regex strings cut from notes when `notes_for` is `"client"`, for cue words the defaults miss |
+| `logo_on_dark` | Optional PNG path (relative to the spec): a white logo drawn 0.4 in tall at the top right of every `title`, `section` and `hero` slide, so a client deck carries the sender's branding on its dark slides |
 | `theme` | Colour token overrides: `ground surface sunk ink soft accent onAccent ours oursInk open openBg font` (hex without `#`) |
 
 ## Slide types
@@ -38,6 +39,7 @@ Every slide may carry `notes` (1 to 5 lines, the presenter's prompts), `id`, `se
   - `waits_on`: open points, each max 3 words naming the question itself ("Who keeps delivery", "Days until payable"), never a tracker row or item number, which the reader cannot look up mid-talk; the build refuses "Row 8". The full question and its suggested default go in the notes
   - `src`: `[{"file", "line", "quote"}]`, required when `sources` is set. The quote is copied character for character, is at least 20 characters, and must sit within 12 lines of `line`
   - `kicker`: overrides "How it works"
+  - `chain`: optional, 2 to 4 `{name (a party), label? ≤3 words}` drawn as a strip of coloured chips above the picture, top of the hierarchy first, under `chain_label` (top level, default "Who is under who"). Use it on every slide whose figures pass between people in a hierarchy, so the audience never has to remember who sits under whom. Labels are capped at 18 characters. The strip takes 0.6 in from the picture area, so a 4-tier `ladder` or a 7-row `ledger` under it needs checking in Google's render
 
 - `journey`: one person's path through a mechanism, drawn as pictured moments with everyone else's work beneath. Put it right before the mechanism slide it belongs to. Fields:
   - `person` (max 3 words, how the slide names them: "Aina", "The roaster") and `actor` (their colour, one of `parties`); the heading defaults to "Aina's journey", override with `heading` (max 5 words) and the "User journey" kicker with `kicker` (e.g. "Only if the client picks B")
@@ -67,6 +69,7 @@ Figure check on a mechanism slide: every figure in the visual, example, sub and 
 | `timeline` | Dated or timed points | `points` 3 to 6 `{when ≤4, what ≤10}` |
 | `clocks` | Several timers starting from one event | `start {when ≤4, what ≤10}`, `bars` 2 to 4 `{label ≤5, end ≤4 or null, note ≤12}`; `null` draws a dashed "length not set yet" bar |
 | `ladder` | A fallback order, first match wins | `tiers` 2 to 4 `{if ≤8, then ≤10}` |
+| `image` | A picture made outside the deck, such as typeset LaTeX working (`pdflatex`, then `pdftocairo -png -transp -r 300`, then `magick -trim`) | `path` (PNG beside the spec, fitted to the picture area, never cropped), `text` (everything the picture says in plain words: its figures are checked like any visual's, and it becomes the alt text). The build cannot read the picture itself, so keep `text` and the image in step |
 | `ledger` | Entries in a table | `columns` 3 to 5, `rows` 2 to 7, `total?`; strings |
 
 `tone`: `now` (what gets built), `other` (the alternative), `warn` (a risk), `same` (both are real: two cases of one rule, shown without a caption). Two options that are both built are `same`, not `now` vs `other`.
