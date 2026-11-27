@@ -1,0 +1,39 @@
+# Structured messages
+
+## Question only an outside party can answer {#outside-party-question}
+
+**A question only an outside party can answer doesn't go to a colleague to relay.** Where the project keeps a tracker shared with that party (a client decision sheet), a business rule they decide goes there as a row with a researched suggestion, and the team message at most points at the row. A team post also opens on its first point, with no lead-in about the list ("few things holding up the build on our side"), and names someone with `@` only when they must act and the sender's own request named that ask (an ask you inferred goes above the fence as an offer; `gchat-format` § Whose thread is this). Measured 18/11/2026: a team draft asked a colleague for the client's refund timeframe and gateway choice under such a lead-in; the sender answered "this business logic can put to the tracker not by asking" and "no need to mention [them] on that one". **Tell: a question in your team draft can only be answered by the client.** A progress or celebration note to the team credits the team, not the sender's own cards (`gchat-format` § Progress and milestone posts to a team). Write a person to notify as their exact display name (`@Full Name`): a send tool that tags people matches only that.
+
+## Decision-maker who is not in the work {#decision-maker-not-in-the-work}
+
+A decision-maker who isn't in the work day to day may not remember the feature the question is about, so the question alone is unanswerable: open with a short recap of the features involved, then give each question how it works today, what goes wrong, and the proposed change, one plain line each, before the ask. That is context, not the trade-off analysis that the colleague-question rule in SKILL.md cuts. Measured 04/11/2026: a five-question group message to the CEO and CTO came back three times ("cont4ext pls", "need more ellaboration, they probably forgot some feature we have", "for [both of them] too need context") before it carried a feature recap and today, problem and plan per question.
+
+## Client group post with findings {#client-group-post}
+
+**A post into a client group that answers with findings and asks several questions is structured, even in the sender's voice.** The client reads it once and answers point by point, so loose prose split across two messages reads odd, and so does an opener about whose message it builds on. Send one message: the reassuring answer first, then a bold label per topic, then numbered questions the client can reply to by number ("1 ok, 2 remove"). The voice still comes from the thread. Only the shape is a document's. A findings reply into the sender's own team thread (data across several topics, or answers to questions a colleague posed to the space) is the same case: a `**heading**` per topic, full-sentence bullets that carry what each figure means rather than 3-word labels, split into messages at headings, and naming no colleague, not even to quote one, since a name in a post about the company's direction reads as blame (26/11/2026: prose and label-bullet drafts were refused, "Don't mention anyone"). Check who can read the space before it goes: cash, revenue and anything said in a direct message belong in a management group, not a space new hires join (the same post was edited the next morning at the CEO's request). **Tell: your draft to a group carries more than two questions and none of them are numbered, or answers several topics as prose.**
+
+## Figures per case {#figures-per-case}
+
+**A reply whose body is figures per case (several scenarios, options or plans, each with three or more numbers) takes a bold label per case with one `- ` line per figure, even as a thread reply to one person.** Packed into lowercase lines, the numbers lose which figure belongs to which case, and the reader has to parse commas to compare them. Keep the sender's voice for the lead line and a closing bottom line. Measured 23/11/2026: a cost-simulation reply to the CEO (four storage sizes, each with monthly cost, yearly cost, packs, income and net) went out as casual lines and came back "use gchat-format, abit hard to understand"; edited in place as one labelled block per size, it was accepted. **Tell: three or more lines of the draft each pack several figures separated by commas.**
+
+## Heartfelt message to a partner or family {#heartfelt-partner-family}
+
+**A heartfelt message to a partner or family (an anniversary, a birthday, an apology) is built from moments only the sender holds, gathered before drafting.** Categories the session can supply ("money was tight", "you were pregnant", "we fought") produce the greeting-card version, and the sender rejects it as general however warm the wording. Ask one question at a time for a scene, not a topic: what the other person was doing when the sender looked up, what they said, what the sender wishes they knew. Write those in the sender's own words, and aim at the period the occasion marks (this year, for an anniversary), since an origin story retold every year is the part they have already heard. Measured 10/11/2026: a wife's anniversary wish was turned down twice ("too general", "i dont like it") and accepted once it carried the nights she asked him to come to bed while he stayed on the laptop. **Tell: every line of the draft could be sent by any husband.**
+
+## Estimates, earlier version and work split {#estimates-and-split}
+
+**Estimates stay estimates.** Name the assumptions they rest on (inputs arriving on time, an external system behaving as documented) and say when they will firm up. How confident to sound is the sender's to add, not yours. Keep an outside party's deadline apart from the internal target: different numbers, different owners.
+
+**A colleague's earlier version in the same thread is the baseline.** Diff yours against it before drafting, carry over whatever yours dropped, and frame the reply as building on theirs; a replacement posted without that reads as overriding them in front of everyone else on the thread.
+
+**Split the work by owner, and estimate only the sender's share.** A teammate's duration is theirs to give, so mark it for them to confirm.
+
+## Reply to their message {#reply-to-their-message}
+
+Two failures read as not listening. **Restating their point** ("makes sense, because X", X being their own reason) explains what they already hold. **Answering past their doubt**: a hedge like "not sure if we can push to Jan" needs the reply, and news framed as if the doubt weren't there contradicts them. When asked for more acknowledgement, add what they did and what you've taken on, not a longer explanation.
+
+**A colleague's question about their own draft gets the shortest answer that settles it.** Open what they are working from (a screenshot, their wording), since it often answers the question, and reply in a line ("ya like that"). Mapping each point back to the draft reads as a lecture (18/11/2026, `references/incidents.md#shortest-answer`).
+
+## Chat send Markdown {#chat-send-markdown}
+
+A message posted through a Chat send tool is Markdown: `**bold**` is bold, a single `*bold*` turns italic, and two plain lines with only a line break join into one paragraph (`gchat-format` § Key Rules). So a send-tool draft puts a blank line between lines that must stay apart, numbered items included, before the sender sees it, so the copy they approve is the text that posts. A Chat send holds about 1,000 characters, so a longer draft is shown already split into the messages that will post, one fence each (23/11/2026, `references/incidents.md#chat-length`).

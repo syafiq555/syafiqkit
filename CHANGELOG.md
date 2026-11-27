@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.498.5
+
+**`casual-message` loads whole again after a long session: its main file is under the 5,000-token limit (about 7,980 before).**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- What you get from a draft is unchanged. The less common cases (a question for a decision-maker, a client-group post, replies that are figures per case, a heartfelt family message, estimates and splits of work, posting through a Chat send tool) now sit in `references/structured-messages.md`, each opened at the moment it applies. The past incidents behind each rule are in `references/incidents.md`.
+- `gchat-format` now points at the new reference sections for figures-per-case replies and group posts.
+
 ## 1.498.4
 
 **`casual-message`: the statement-ask rule from 1.498.3 now stands as its own rule and stays out of the way when the client already offered.**
