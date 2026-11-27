@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.498.0
+
+**`/ship` now fixes a failed deploy instead of suggesting a rerun, and sets up live-mode webhooks when a payment provider goes live.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `/ship`: when CI fails, it reads the failed log first. A rerun is only suggested for an outside fault (network, runner); a failure the change caused, such as a missing server extension, is fixed and deployed again in the same run.
+- `/ship`: when a release switches a payment gateway or other provider from test to live, it creates the live webhook endpoints and keys in the same ship and checks them in the provider's live dashboard. Test-mode setup does not carry over.
+
 ## 1.497.2
 
 **Client questions only suggest an answer when there is something to base it on, and keeping build details out never means hiding a cost or a risk.**

@@ -41,3 +41,11 @@ Every capture was withheld on the reasoning that local data is real, so no image
 ## Release note only on the clipboard (15/11/2026)
 
 A ship ended on "copied to your clipboard" with the team's Chat space left unposted. The user asked "U didnt post to the geoup ?" afterwards.
+
+## CI failure left at "suggest a rerun" (Nov 2026)
+
+A staging deploy failed because the server lacked a PHP extension the new code used. The failure surfaced only when the user asked why the deploy was taking so long; a rerun would have failed the same way. Reading the failed log names the cause in one call.
+
+## Live webhook missing after a go-live (Nov 2026)
+
+A store switched its card gateway from test to live mode. The live keys went in, but the live-mode webhook endpoint was never created, because the test-mode one had worked all through UAT. The client found it missing. Live and test mode are separate in the provider's dashboard.
