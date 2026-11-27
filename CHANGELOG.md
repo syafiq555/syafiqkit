@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.498.6
+
+**`casual-message` drafts for a Chat send tool keep bullet lists tight: no blank line between `- ` items.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Plain lines that must stay apart still get a blank line between them. Bullets already post on their own lines, so the draft you approve now looks like what posts, instead of being re-spaced at send.
+
 ## 1.498.5
 
 **`casual-message` loads whole again after a long session: its main file is under the 5,000-token limit (about 7,980 before).**
