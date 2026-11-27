@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.491.0
+
+**`/task-docs` no longer loses your task docs when Claude `cd`s into a subfolder. Before, opening it from inside a code repo or a `tasks/` subfolder dropped the Task docs section with no message, as if the picker were broken.**
+- Update with `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or start a new session.
+- When the current folder has no `tasks/`, the picker uses the nearest folder above it that does (never above your home folder), headed `TASK DOCS · parent: <folder>`.
+- When the current folder and a folder above it both have `tasks/` (a repo inside a workspace), you get both, nearest first. The parent's section starts folded: press its heading to open it. "Changed lately" covers both, and rows from the parent say `parent: <folder>`.
+- Rules (`.claude/rules`) and Project docs (`docs/`) come from the nearest folder that has them, with the same label.
+- Started in a workspace whose `tasks/` folders sit inside its repos (`ws/be/tasks`, `ws/fe/tasks`)? Each repo one folder down gets its own section, `TASK DOCS · nested: <repo>`; the first is open, the rest folded. Symlinked repos count. Deeper folders, `node_modules`, `vendor` and the like are not searched, and neither are the folders inside your home folder when the session starts there.
+- When the docs come from a folder above, a dim line under "Pick a doc to read" says where the session is (`Session folder: ws/tasks/billing/v2`).
+- When nothing turns up, the list says so (`No tasks/ folder in <folder>, above it, or one folder down.`) rather than leaving the section out.
+- `/read-summary`: a fix direction you pick from a question no longer counts as the build plan. When the project requires a check before a change ships (a score loop, the design skills), the plan names it before the first edit.
+
 ## 1.490.0
 
 **Enhance now reads the conversation you are in. Before, its haiku run started with no memory of the session, so a draft that pointed back at it ("do week 2 of the one above", "mine") came out generic.**

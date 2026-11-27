@@ -3102,3 +3102,138 @@ test('a second open while the first is still reading takes over, and neither lea
   expect((await ui.findAll({ type: 'Text', text: /^✓$/ })).length).toBeGreaterThan(0)
   await ui.unmount()
 })
+
+const listFrom = async ($: any, on: any, cwd: string, tree: Record<string, any[]>, surface = 'terminal') => {
+  stubSession(on, [], [], [], ['fs.list', 'session.cwd', 'env.get'])
+  on('session.cwd', () => ({ value: cwd }))
+  on('env.get', (_$: any, e: any) => ({ value: e.name === 'HOME' ? '/Users/test' : '' }))
+  stubTree(on, tree)
+  on('fs.read', () => ({ value: '# T\n' }))
+  stubRender(on)
+  await $.command.run({ command: 'task-docs', args: '' })
+  return $.ui.mount({ ...PANE, surface })
+}
+const texts = async (ui: any, re: RegExp) => (await ui.findAll({ type: 'Text', text: re })).length
+
+test('a session in a subfolder lists the task docs of the nearest parent that has tasks/, labelled as the parent', async ($, on) => {
+  const ui = await listFrom($, on, '/Users/test/ws/tasks/well/v2', {
+    '/Users/test/ws/tasks': [dirEntry('well')],
+    '/Users/test/ws/tasks/well': [dirEntry('v2')],
+    '/Users/test/ws/tasks/well/v2': [fileEntry('current.md', 60)],
+  })
+  expect(await texts(ui, /^TASK DOCS · parent: ws \(1\)$/)).toBe(1)
+  expect(await texts(ui, /^Session folder: ws\/tasks\/well\/v2$/)).toBe(1)
+  expect(await ui.find({ key: 'fold-well' })).toBeDefined()
+  expect(await texts(ui, /^parent: ws\b/)).toBeGreaterThan(0)
+  await ui.unmount()
+})
+
+test('when the session folder and a parent both have tasks/, the nearest comes first and the parent is folded until opened', async ($, on) => {
+  const tree = {
+    '/Users/test/ws/tasks': [dirEntry('auth')],
+    '/Users/test/ws/tasks/auth': [dirEntry('login')],
+    '/Users/test/ws/tasks/auth/login': [fileEntry('current.md', 60)],
+    '/Users/test/ws/fe/tasks': [dirEntry('auth')],
+    '/Users/test/ws/fe/tasks/auth': [dirEntry('login')],
+    '/Users/test/ws/fe/tasks/auth/login': [fileEntry('current.md', 60)],
+  }
+  const ui = await listFrom($, on, '/Users/test/ws/fe', tree)
+  expect(await texts(ui, /^TASK DOCS \(1\)$/)).toBe(1)
+  expect((await ui.find({ key: 'h-Task docs-1' }))?.props.label).toBe('▸ TASK DOCS · parent: ws (1)')
+  expect(await ui.find({ key: 'fold-auth' })).toBeDefined()
+  expect(await ui.find({ key: 'fold-r1-auth' })).toBeUndefined()
+  await ui.unmount()
+
+  await $.command.run({ command: 'task-docs', args: '' })
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect(await desktop.find({ key: 'fold-auth' })).toBeDefined()
+  expect(await desktop.find({ key: 'fold-r1-auth' })).toBeUndefined()
+  await desktop.press({ key: 'h-Task docs-1-t' })
+  expect(await desktop.find({ key: 'fold-r1-auth' })).toBeDefined()
+  await desktop.unmount()
+
+  await $.command.run({ command: 'task-docs', args: '' })
+  const again = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await again.find({ key: 'h-Task docs-1' }))?.props.label).toBe('▾ TASK DOCS · parent: ws (1)')
+  expect(await again.find({ key: 'fold-r1-auth' })).toBeDefined()
+  await again.unmount()
+})
+
+test('with no tasks/ in the session folder or above, the list says so instead of dropping the section', async ($, on) => {
+  const ui = await listFrom($, on, '/Users/test/ws/fe', { '/Users/test/ws/fe/docs': [fileEntry('PRD.md', 60)] })
+  expect(await texts(ui, /^No tasks\/ folder in fe, above it, or one folder down\.$/)).toBe(1)
+  await ui.unmount()
+})
+
+test('the walk stops below home, and Rules and Project docs come from the nearest parent with a label', async ($, on) => {
+  const ui = await listFrom($, on, '/Users/test/ws/fe', {
+    '/Users/test/tasks': [dirEntry('home')],
+    '/Users/test/tasks/home': [fileEntry('current.md', 60)],
+    '/Users/test/ws/docs': [fileEntry('PRD.md', 60)],
+    '/Users/test/ws/.claude/rules': [fileEntry('style.md', 60)],
+  })
+  expect(await texts(ui, /^No tasks\/ folder in fe, above it, or one folder down\.$/)).toBe(1)
+  expect(await texts(ui, /^PROJECT DOCS · parent: ws$/)).toBe(1)
+  expect(await texts(ui, /^RULES · parent: ws$/)).toBe(1)
+  await ui.unmount()
+})
+
+test('two parents with the same folder name stay separate sections, an image-only docs/ falls through to the parent, and Desktop marks parent rows', async ($, on) => {
+  const ui = await listFrom($, on, '/Users/test/api/v1/api/src', {
+    '/Users/test/api/v1/api/tasks': [dirEntry('near')],
+    '/Users/test/api/v1/api/tasks/near': [fileEntry('current.md', 60)],
+    '/Users/test/api/tasks': [dirEntry('far')],
+    '/Users/test/api/tasks/far': [fileEntry('current.md', 60)],
+    '/Users/test/api/v1/api/src/docs': [fileEntry('logo.png', 60)],
+    '/Users/test/api/docs': [fileEntry('PRD.md', 60)],
+  })
+  expect(await texts(ui, /^TASK DOCS · parent: api \(1\)$/)).toBe(1)
+  expect((await ui.find({ key: 'h-Task docs-1' }))?.props.label).toBe('▸ TASK DOCS · parent: api (1)')
+  expect(await texts(ui, /^PROJECT DOCS · parent: api$/)).toBe(1)
+  await ui.unmount()
+
+  await $.command.run({ command: 'task-docs', args: '' })
+  const desktop = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  expect((await desktop.findAll({ type: 'Text', text: /^parent: api$/ })).length).toBeGreaterThan(0)
+  await desktop.unmount()
+})
+
+test('a workspace with tasks/ only inside its child repos lists each one, the first open and the rest folded, with no session folder line', async ($, on) => {
+  const ui = await listFrom($, on, '/Users/test/ws', {
+    '/Users/test/ws': [dirEntry('be'), { ...dirEntry('fe'), kind: 'symlink', isLink: true }, dirEntry('node_modules')],
+    '/Users/test/ws/be/tasks': [dirEntry('api')],
+    '/Users/test/ws/be/tasks/api': [fileEntry('current.md', 60)],
+    '/Users/test/ws/fe/tasks': [dirEntry('ui')],
+    '/Users/test/ws/fe/tasks/ui': [fileEntry('current.md', 60)],
+    '/Users/test/ws/node_modules/tasks': [dirEntry('junk')],
+    '/Users/test/ws/node_modules/tasks/junk': [fileEntry('current.md', 60)],
+  })
+  expect(await texts(ui, /^TASK DOCS · nested: be \(1\)$/)).toBe(1)
+  expect((await ui.find({ key: 'h-Task docs-1' }))?.props.label).toBe('▸ TASK DOCS · nested: fe (1)')
+  expect(await ui.find({ key: 'h-Task docs-2' })).toBeUndefined()
+  expect(await texts(ui, /^Session folder:/)).toBe(0)
+  await ui.unmount()
+})
+
+test('the upward walk checks the session folder and 11 above it, no more', async ($, on) => {
+  const ui = await listFrom($, on, '/Users/test/a/b/c/d/e/f/g/h/i/j/k/l/m', {
+    '/Users/test/a/tasks': [dirEntry('far')],
+    '/Users/test/a/tasks/far': [fileEntry('current.md', 60)],
+    '/Users/test/a/b/c/d/e/f/g/h/i/j/k/l/m/docs': [fileEntry('PRD.md', 60)],
+  })
+  expect(await texts(ui, /^No tasks\/ folder in m, above it, or one folder down\.$/)).toBe(1)
+  await ui.unmount()
+})
+
+test('a session in the home folder never looks above it', async ($, on) => {
+  const ui = await listFrom($, on, '/Users/test', {
+    '/Users/tasks': [dirEntry('x')],
+    '/Users/tasks/x': [fileEntry('current.md', 60)],
+    '/Users/test': [dirEntry('repo')],
+    '/Users/test/repo/tasks': [dirEntry('y')],
+    '/Users/test/repo/tasks/y': [fileEntry('current.md', 60)],
+    '/Users/test/docs': [fileEntry('PRD.md', 60)],
+  })
+  expect(await texts(ui, /^No tasks\/ folder in test\.$/)).toBe(1)
+  await ui.unmount()
+})

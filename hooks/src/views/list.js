@@ -38,7 +38,7 @@ export function docRow(c, doc, key, withScope, indent, fullAge) {
   const tail =
     tailRoom < MIN_TAIL_WIDTH
       ? ''
-      : [withScope && !folded ? doc.scope : '', doc.hub && !indent ? 'main doc' : '', heavy ? heavyNote(doc) : '', plainStatus(doc.status)].filter(Boolean).join('  ')
+      : [withScope && doc.source ? doc.source : '', withScope && !folded ? doc.scope : '', doc.hub && !indent ? 'main doc' : '', heavy ? heavyNote(doc) : '', plainStatus(doc.status)].filter(Boolean).join('  ')
   const cell = (suffix, width, child) => Box({ key: key + suffix + 'c', width, flexShrink: 0, children: [child] })
   return Box({
     key,
@@ -102,6 +102,30 @@ export function folderOf(doc) {
   return doc.scope || 'tasks'
 }
 
+export function taskSections(docs) {
+  const sections = []
+  docs.forEach((doc) => {
+    const root = doc.root || ''
+    let section = sections.find((entry) => entry.root === root)
+    if (!section) {
+      section = { source: doc.source || '', root, docs: [] }
+      sections.push(section)
+    }
+    section.docs.push(doc)
+  })
+  return sections
+}
+
+export function sessionFolderNote(docs, cwd) {
+  const nearest = docs.find((doc) => doc.group === 'Task docs')
+  if (!nearest || !cwd || !(nearest.source || '').startsWith('parent:')) return ''
+  return 'Session folder: ' + shortFolder(nearest.root) + '/' + cwd.slice(nearest.root.length + 1)
+}
+
+export function shortFolder(path) {
+  return (path || '').split('/').filter(Boolean).pop() || ''
+}
+
 export function taskFolders(docs) {
   const folders = []
   docs.forEach((doc) => {
@@ -160,6 +184,7 @@ export function listView($, c) {
       : Box({ key: 'sec-' + key, flexDirection: 'column', children: [gap(key), Text({ key, bold: true, children: title })] })
   const needle = state.filter.trim().toLowerCase()
   const note = loadingNote()
+  const sessionNote = sessionFolderNote(state.docs, state.cwd)
   const topRow = (prefix) =>
     Box({
       key: prefix + 'list-top',
@@ -185,11 +210,12 @@ export function listView($, c) {
       onInput: bindField('filter'),
       onSubmit: bindField('filter'),
     })
-  state.stickyTop = (prefix) => Box({ key: prefix + 'list-pin', flexDirection: 'column', children: [topRow(prefix), filterField(prefix)] })
-  const rows = [topRow(''), filterField('')]
+  const sessionRow = (prefix) => (sessionNote ? [Text({ key: prefix + 'list-session', dimColor: true, wrap: 'truncate-end', children: sessionNote })] : [])
+  state.stickyTop = (prefix) => Box({ key: prefix + 'list-pin', flexDirection: 'column', children: [topRow(prefix), ...sessionRow(prefix), filterField(prefix)] })
+  const rows = [topRow(''), ...sessionRow(''), filterField('')]
   if (needle) {
     const matches = state.docs
-      .filter((doc) => (doc.label + ' ' + doc.group + ' ' + (doc.scope || '')).toLowerCase().includes(needle))
+      .filter((doc) => (doc.label + ' ' + doc.group + ' ' + (doc.scope || '') + ' ' + (doc.source || '')).toLowerCase().includes(needle))
       .slice(0, 40)
     rows.push(header('h-match', 'MATCHES (' + matches.length + ')'))
     rows.push(...docRowsFor(c, matches, 'f'))
@@ -220,8 +246,7 @@ export function listView($, c) {
   const push = (element, height = 1) => items.push({ height, make: () => element })
   const pushHeader = (element) => items.push({ height: headerRows, make: () => element, sticky: null })
   const headerRows = desktop ? DESKTOP_STRIP_ROWS + 1 : 2
-  const taskCount = state.docs.filter((doc) => doc.group === 'Task docs').length
-  const foldByDefault = desktop && taskCount > LIST_FOLD_FROM
+  const foldsByDefault = (docs) => desktop && docs.length > LIST_FOLD_FROM
   const isOpen = (key, closedByDefault) => (key in state.collapsed ? !state.collapsed[key] : !closedByDefault)
   const recent = recentDocs()
   if (recent.length) {
@@ -242,56 +267,36 @@ export function listView($, c) {
       }),
     )
   }
-  GROUPS.forEach((group) => {
-    const inGroup = state.docs.filter((doc) => doc.group === group)
-    if (!inGroup.length) return
-    const rest = group === 'Task docs' ? inGroup : inGroup.filter((doc) => !recent.includes(doc))
-    if (!rest.length) return
-    const title =
-      group === 'Task docs'
-        ? 'TASK DOCS (' + inGroup.length + ')'
-        : group === 'Skills'
-          ? 'SYAFIQKIT SKILLS (' + inGroup.length + ')'
-          : group.toUpperCase()
-    if (desktop && group === 'Skills') {
-      const open = isOpen('grp:Skills', true)
-      const fold = () => {
-        state.collapsed['grp:Skills'] = open
-        redraw()
-      }
-      pushHeader(Box({ key: 'sec-h-' + group, flexDirection: 'column', marginTop: 1, children: [strip(c, { key: 'h-' + group, title: (open ? '▾ ' : '▸ ') + title, onPress: fold })] }))
-      if (open) rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false)))
-      return
-    }
-    pushHeader(header('h-' + group, title))
-    if (group !== 'Task docs' && group !== 'CLAUDE.md chain') {
-      rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false)))
-      return
-    }
-    const folders = group === 'Task docs' ? taskFolders(rest) : chainSections(rest)
+  const foldHeader = (key, title, open, fold) =>
+    desktop
+      ? Box({ key: 'sec-' + key, flexDirection: 'column', marginTop: 1, children: [strip(c, { key, title: (open ? '▾ ' : '▸ ') + title, onPress: fold })] })
+      : Box({ key: 'sec-' + key, flexDirection: 'column', children: [gap(key), Button({ key, label: (open ? '▾ ' : '▸ ') + title, plain: true, onPress: fold })] })
+  const drawFolders = (group, docs, keyPart, foldPart) => {
+    const folders = group === 'Task docs' ? taskFolders(docs) : chainSections(docs)
     folders.forEach((folder) => {
-      const open = isOpen('dir:' + folder.name, group === 'Task docs' && foldByDefault)
+      const foldKey = 'dir:' + foldPart + folder.name
+      const open = isOpen(foldKey, group === 'Task docs' && foldsByDefault(docs))
       const flagged = folder.docs.filter(isHeavy).length
       const fold = () => {
-        state.collapsed['dir:' + folder.name] = open
+        state.collapsed[foldKey] = open
         redraw()
       }
       if (desktop) {
         const folderHead = (prefix) =>
           Box({
-            key: prefix + 'fold-' + folder.name,
+            key: prefix + 'fold-' + keyPart + folder.name,
             flexDirection: 'row',
             alignItems: 'center',
             columnGap: 1,
             paddingX: 1,
             children: [
-              Button({ key: prefix + 'fold-' + folder.name + 'b', plain: true, label: (open ? '▾ ' : '▸ ') + folder.name, onPress: fold }),
+              Button({ key: prefix + 'fold-' + keyPart + folder.name + 'b', plain: true, label: (open ? '▾ ' : '▸ ') + folder.name, onPress: fold }),
               Text({
-                key: prefix + 'fold-' + folder.name + 'c',
+                key: prefix + 'fold-' + keyPart + folder.name + 'c',
                 dimColor: true,
                 children: String(folder.docs.length) + (folder.main ? ' · main: ' + folder.main : ''),
               }),
-              ...(flagged ? [chip(c, prefix + 'fold-' + folder.name + 'w', '⚠ ' + flagged, 'warn')] : []),
+              ...(flagged ? [chip(c, prefix + 'fold-' + keyPart + folder.name + 'w', '⚠ ' + flagged, 'warn')] : []),
             ],
           })
         items.push({ height: 1, make: () => folderHead(''), sticky: open ? folderHead : null })
@@ -300,7 +305,7 @@ export function listView($, c) {
       }
       push(
         Button({
-          key: 'fold-' + folder.name,
+          key: 'fold-' + keyPart + folder.name,
           label:
             (open ? '▾ ' : '▸ ') +
             folder.name +
@@ -310,15 +315,62 @@ export function listView($, c) {
             ')' +
             (flagged ? '  ⚠ ' + flagged + ' over limit' : ''),
           plain: true,
-          onPress: () => {
-            state.collapsed['dir:' + folder.name] = open
-            redraw()
-          },
+          onPress: fold,
         }),
       )
       if (open) folder.docs.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), Boolean(folder.showScope), true)))
     })
+  }
+  GROUPS.forEach((group) => {
+    const inGroup = state.docs.filter((doc) => doc.group === group)
+    if (!inGroup.length) {
+      if (group === 'Task docs' && state.docs.length) {
+        pushHeader(header('h-' + group, 'TASK DOCS'))
+        push(Text({ key: 'no-tasks', dimColor: true, wrap: 'truncate-end', children: 'No tasks/ folder in ' + (shortFolder(state.cwd) || 'this folder') + (state.cwdIsHome ? '.' : ', above it, or one folder down.') }))
+      }
+      return
+    }
+    if (group === 'Task docs') {
+      taskSections(inGroup).forEach((section, index) => {
+        const title = 'TASK DOCS' + (section.source ? ' · ' + clip(section.source, 32) : '') + ' (' + section.docs.length + ')'
+        const key = 'h-' + group + (index ? '-' + index : '')
+        if (!index) {
+          pushHeader(header(key, title))
+          drawFolders(group, section.docs, '', section.source ? section.root + ':' : '')
+          return
+        }
+        const sectionKey = 'grp:' + section.root
+        const open = isOpen(sectionKey, true)
+        pushHeader(
+          foldHeader(key, title, open, () => {
+            state.collapsed[sectionKey] = open
+            redraw()
+          }),
+        )
+        if (open) drawFolders(group, section.docs, 'r' + index + '-', section.root + ':')
+      })
+      return
+    }
+    const rest = inGroup.filter((doc) => !recent.includes(doc))
+    if (!rest.length) return
+    const title = group === 'Skills' ? 'SYAFIQKIT SKILLS (' + inGroup.length + ')' : group.toUpperCase() + (rest[0].source ? ' · ' + rest[0].source : '')
+    if (desktop && group === 'Skills') {
+      const open = isOpen('grp:Skills', true)
+      const fold = () => {
+        state.collapsed['grp:Skills'] = open
+        redraw()
+      }
+      pushHeader(foldHeader('h-' + group, title, open, fold))
+      if (open) rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false)))
+      return
+    }
+    pushHeader(header('h-' + group, title))
+    if (group !== 'CLAUDE.md chain') {
+      rest.forEach((doc) => push(docRow(c, doc, 'd' + state.docs.indexOf(doc), false)))
+      return
+    }
+    drawFolders(group, rest, '', '')
   })
   if (!state.docs.length) push(Text({ dimColor: true, children: state.error || (state.docsLoading ? 'Listing docs…' : 'No docs found from here.') }))
-  return Box({ flexDirection: 'column', children: [...rows, ...windowedRows(c, items, LIST_TOP_ROWS)] })
+  return Box({ flexDirection: 'column', children: [...rows, ...windowedRows(c, items, LIST_TOP_ROWS + (sessionNote ? 1 : 0))] })
 }

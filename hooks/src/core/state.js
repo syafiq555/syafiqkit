@@ -10,6 +10,7 @@ export const state = {
   docsRun: 0,
   docsLoading: null,
   cwd: '',
+  cwdIsHome: false,
   home: '',
   now: 0,
   filter: '',

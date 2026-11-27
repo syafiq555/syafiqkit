@@ -19,7 +19,7 @@ export async function safeExists($, path) {
   }
 }
 
-export async function findTaskDocs($, root) {
+export async function findTaskDocs($, root, source = '') {
   const found = []
   const walk = async (dir, depth) => {
     if (depth > 3 || found.length >= MAX_ENTRIES * 3) return
@@ -34,6 +34,7 @@ export async function findTaskDocs($, root) {
       const parts = rel.split('/').filter(Boolean)
       found.push({
         group: 'Task docs',
+        ...(source ? { source, root } : {}),
         label: rel || 'tasks',
         name: parts[parts.length - 1] || 'tasks',
         scope: parts.slice(0, -1).join('/'),
@@ -49,6 +50,48 @@ export async function findTaskDocs($, root) {
   }
   await walk(root + '/tasks', 0)
   return found
+}
+
+export function sourceOf(folder, cwd) {
+  return folder === cwd ? '' : 'parent: ' + (folder.split('/').pop() || '/')
+}
+
+export async function foldersWith($, cwd, home, sub) {
+  const found = []
+  let dir = cwd
+  for (let level = 0; dir && level < 12; level += 1) {
+    if (level > 0 && dir === home) break
+    if ((await safeList($, dir + '/' + sub)).length) found.push(dir)
+    if (!home || dir === home) break
+    dir = parentOf(dir)
+  }
+  return found
+}
+
+export async function findAllTaskDocs($, cwd, home) {
+  const roots = await foldersWith($, cwd, home, 'tasks')
+  const children = cwd === home ? [] : await childrenWith($, cwd, 'tasks')
+  const lists = await Promise.all([
+    ...roots.map((root) => findTaskDocs($, root, sourceOf(root, cwd))),
+    ...children.map((child) => findTaskDocs($, child, 'nested: ' + child.slice(cwd.length + 1))),
+  ])
+  return lists.flat()
+}
+
+export async function childrenWith($, cwd, sub) {
+  const folders = (await safeList($, cwd)).filter((entry) => entry.kind !== 'file' && !entry.name.startsWith('.') && !NESTED_SCAN_SKIP.includes(entry.name))
+  const found = await Promise.all(folders.map(async (entry) => ((await safeList($, cwd + '/' + entry.name + '/' + sub)).length ? cwd + '/' + entry.name : '')))
+  return found.filter(Boolean).sort()
+}
+
+export async function findNearestMarkdown($, group, cwd, home, sub) {
+  for (const folder of await foldersWith($, cwd, home, sub)) {
+    const docs = await findMarkdownIn($, group, folder + '/' + sub)
+    if (!docs.length) continue
+    const source = sourceOf(folder, cwd)
+    return docs.map((doc) => (source ? { ...doc, source } : doc))
+  }
+  return []
 }
 
 export function scopeOfInstruction(path, cwd, home) {
@@ -183,14 +226,15 @@ export async function findSkills($) {
 export async function discover($) {
   const cwd = await hostSessionCwd($)
   state.cwd = cwd
-  const home = await homeOf($)
+  const home = (await homeOf($)).replace(/(.)\/+$/, '$1')
+  state.cwdIsHome = cwd === home
   const groups = await Promise.all([
-    findTaskDocs($, cwd),
+    findAllTaskDocs($, cwd, home),
     Promise.all([findInstructionFiles($, cwd, home), findNestedInstructionFiles($, cwd, home), findCompanionFiles($, cwd, home)]).then(
       (parts) => uniqueByPath(parts.flat()),
     ),
-    findMarkdownIn($, 'Rules', cwd + '/.claude/rules'),
-    findMarkdownIn($, 'Project docs', cwd + '/docs'),
+    findNearestMarkdown($, 'Rules', cwd, home, '.claude/rules'),
+    findNearestMarkdown($, 'Project docs', cwd, home, 'docs'),
     findSkills($),
   ])
   return groups.flat()

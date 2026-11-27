@@ -694,6 +694,7 @@ export function desktopDocRow(c, doc, key, withScope, indent, fullAge) {
           ...(flagged.length
             ? [chip(c, key + 'dc', flagged.every((file) => hasOutline(doc, file)) ? '⚠ outline stale' : '⚠ decisions', 'warn')]
             : []),
+          ...(withScope && doc.source ? [Text({ key: key + 'src', dimColor: true, wrap: 'truncate-end', children: doc.source })] : []),
           ...(withScope && doc.scope ? [Text({ key: key + 's', dimColor: true, wrap: 'truncate-end', children: doc.scope })] : []),
           ...(doc.status ? [Text({ key: key + 'st', wrap: 'truncate-end', children: doc.status })] : []),
         ],
