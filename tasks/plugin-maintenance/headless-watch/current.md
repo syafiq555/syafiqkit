@@ -15,7 +15,7 @@ Last updated: 2026-11-27
 **Where we are**: `headless-watch` runs read-only checks from launchd with Claude closed. Since 1.494.0 a run can't use the Skill tool: the job names its skill with `SKILL=<name>` and the run reads that skill's file (Key Technical Decisions table). The one job, `crp45-sheets`, was uninstalled after 18/11; it was migrated to `SKILL=` on 27/11 and reinstalled hourly (owner: "Every 1hr for now"), weekdays 9 to 19; its launchd kick ran a quiet gate (US$0.014).
 
 **Immediate next actions (in order)**:
-0. After a day on the hourly schedule, ask Syafiq whether to go back to every 10 minutes.
+0. Full checks run on haiku since 27/11 (owner's call; test full run on unchanged sheets: 8 turns, US$0.019, quiet, baseline kept). Eyeball the first real haiku alert for accuracy; if it misreads a row, go back to `MODEL=sonnet`.
 1. Read `~/.claude/watchers/crp45-sheets/run.log` after a working day: count full runs against gate runs, and check that alerts matched rows that really were our turn.
 2. If full runs fire on edits that never need us (many `quiet ($0.5…)` lines), make `gate.md` compare something narrower than `modifiedTime`.
 
