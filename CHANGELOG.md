@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.498.8
+
+**`motion-clip` no longer sends a script in a language Kokoro can't speak (Malay among them) to Kokoro, and `/done` design-reviews clips, slides and decks built outside the repo.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- For Malay, the voice guide lists what failed a native listener (free Microsoft and Mesolitica voices, ElevenLabs' free plan refusing its Malay voices) and the routes that work: a human recording, a paid native voice, or English voice-over with Malay text on screen.
+- A builder agent's own look at its film no longer counts as the lens review; the session that dispatched it runs the review before anyone sees the film.
+
 ## 1.498.7
 
 **`weekly-report` asked for a huddle's weekly summary rows now builds the week from every repo's commits, not from the daily rows already logged.**
