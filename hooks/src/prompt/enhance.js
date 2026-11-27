@@ -39,11 +39,12 @@ export const ENHANCE_SYSTEM = [
   '- No source to check against. Name it only when the draft points at something outside the task docs: a file or PDF they gave, a transcript, a quotation, the live system, a vendor\'s docs, another app of theirs. Never the draft itself or the picked doc.',
   '- No proof. Say what shows it is done when the kind of work implies it: a screenshot of the changed screen, an e2e run, the failing case passing, the message text.',
   'One skill per job: a message is either casual-message (to a person) or gchat-format (a post), never both. Skip a skill whose fit you have to argue for, and a skill the draft already names: it is in the goal.',
+  'When the draft tells news or a fact without asking for anything ("2c2p said yesterday they have no licence"), the goal states that news in their words; what to do with it is an open choice, never a task you write into the goal.',
   'When the draft asks for something to take elsewhere (a prompt for another tool, a message, a PDF, a reply), the goal is to produce that thing, not to do the work it describes.',
   'Each of scope, outOfScope, checkAgainst and doneWhen is one short clause, 15 words at most. Do not restate the goal in them.',
   'Never add features, requirements, technologies, numbers, layout or design decisions, plans, phases or waves the draft did not ask for. When the draft asks someone else to design, do not design.',
   'Open points: at most 3, only choices the developer must make that the agent cannot find in the repo, the docs or the session (never what a feature does or where code lives). Write each as a short bracketed choice, e.g. "[Terminal, Desktop, or both?]", and only in open, never inside goal or scope. Most drafts need none; they dislike being asked what judgement can settle.',
-  'goal: the developer\'s own draft, reworded, never replaced by a summary. Keep every point it makes, in its order, and keep their words where they are clear; fix typos and grammar, spell out shorthand (u, ur, pls, ady) and turn fragments into whole sentences. Where "this", "it" or "the one" points at something the session or docs name, write that name into the sentence. It may come out longer than the draft; it must not come out shorter in meaning. Same language as the draft. Never copy a password, token or API key from the draft; write "<secret>" instead.',
+  'goal: the developer\'s own draft, reworded, never replaced by a summary. Keep every point it makes, in its order, and keep their words where they are clear; fix typos and grammar, spell out shorthand (u, ur, pls, ady) and turn fragments into whole sentences. Where "this", "it" or "the one" points at something the session or docs name, write that name into the sentence. It may come out longer than the draft; it must not come out shorter in meaning. Keep every hedge (probably, I think, maybe, not sure): a typo can hide one ("properly" often means "probably"), and dropping it turns a guess into a claim. When "they" or "it" could mean two things, keep the pronoun and ask in open rather than pick one. No comment about the draft itself (never "this is news only"). Same language as the draft. Never copy a password, token or API key from the draft; write "<secret>" instead.',
   'Reply with JSON only, no fence: {"goal": "", "docs": ["<task doc path as written>"], "skills": [{"name": "<skill name as written>", "why": "<5 to 10 words>"}], "scope": "", "outOfScope": "", "checkAgainst": "", "doneWhen": "", "open": []}. Leave a field empty rather than guess.',
 ].join('\n')
 
@@ -282,7 +283,7 @@ export function headlessPromptOf(draft, forked = false) {
     'Run /syafiqkit:read-summary for the developer\'s draft below and follow the skill fully: task docs and their decisions files, the docs/ set, the CLAUDE.md files on the path, and the pointers they make. Do not start the work, edit anything, or ask questions.',
     'Then turn the draft into a prompt for the coding agent that will do the work, by these rules, using the skills you have rather than a list:',
     ENHANCE_SYSTEM,
-    'Add a "facts" array to that JSON: the 3 to 6 facts you read' + (forked ? ' or saw in the session' : '') + ' that bear on THIS ask, most specific first (earlier fixes or attempts on the same symptom with their version or date, decisions that constrain it, gotchas, where the code lives). One line each, 30 words at most, paths and names exactly as written, never general facts about the subsystem, and never a password, token or key. In "docs" list the doc files those facts came from.',
+    'Add a "facts" array to that JSON: the 3 to 6 facts you read' + (forked ? ' or saw in the session' : '') + ' that bear on THIS ask, most specific first (earlier fixes or attempts on the same symptom with their version or date, decisions that constrain it, gotchas, where the code lives). One line each, 30 words at most, paths and names exactly as written, never general facts about the subsystem, and never a password, token or key. A fact repeats what a doc or the session states; it is never advice, a next step, a how-to, or your own conclusion ("confirmed", "so"). Leave out any fact you have not seen written; fewer is better than one wrong. In "docs" list the doc files those facts came from.',
     'Your final message is that JSON alone.',
     '',
     'Draft:',
@@ -303,9 +304,38 @@ export const HEADLESS_ARGS = [
   '--verbose',
 ]
 
-export function forkArgsOf(sessionId) {
-  return sessionId ? ['--resume', sessionId, '--fork-session', '--no-session-persistence'] : []
+export const FORK_READ_ONLY_TOOLS = [
+  'Read',
+  'Grep',
+  'Glob',
+  'Skill',
+  'LSP',
+  'Bash(git log *)',
+  'Bash(git show *)',
+  'Bash(git status *)',
+  'Bash(git diff *)',
+  'Bash(git branch *)',
+  'Bash(ls *)',
+  'Bash(grep *)',
+  'Bash(cat *)',
+  'Bash(head *)',
+  'Bash(wc *)',
+].join(',')
+
+export function headlessArgsOf(sessionId) {
+  if (!sessionId) return HEADLESS_ARGS
+  return [
+    ...HEADLESS_ARGS.map((arg) => (arg === 'auto' ? 'dontAsk' : arg)),
+    '--allowedTools',
+    FORK_READ_ONLY_TOOLS,
+    '--resume',
+    sessionId,
+    '--fork-session',
+    '--no-session-persistence',
+  ]
 }
+
+export let forkFailedSession = ''
 
 export function stepOf(name, input, cwd) {
   const shown = (path) => relativeTo(cwd, String(path || ''))
@@ -352,14 +382,14 @@ export function stopWatcher($, isStale, deadline) {
   return { promise, end: () => (live = false) }
 }
 
-export async function streamClaude($, cwd, prompt, onStep, isStale, extraArgs = []) {
+export async function streamClaude($, cwd, prompt, onStep, isStale, args = HEADLESS_ARGS, deadline = Date.now() + ENHANCE_HEADLESS_TIMEOUT_MS) {
   for (const bin of ['claude', (await homeOf($)) + '/.local/bin/claude']) {
     let pending = ''
     let outcome = null
     let child = null
-    const watcher = stopWatcher($, isStale, Date.now() + ENHANCE_HEADLESS_TIMEOUT_MS)
+    const watcher = stopWatcher($, isStale, deadline)
     try {
-      child = hostProcessSpawn($, { argv: [bin, ...HEADLESS_ARGS, ...extraArgs, prompt], cwd, env: { SYAFIQKIT_MOD: '0' } })
+      child = hostProcessSpawn($, { argv: [bin, ...args, prompt], cwd, env: { SYAFIQKIT_MOD: '0' } })
       while (true) {
         const pulled = await Promise.race([child.next(), watcher.promise])
         if (pulled === STREAM_STOPPED) {
@@ -404,20 +434,25 @@ export async function streamClaude($, cwd, prompt, onStep, isStale, extraArgs = 
 }
 
 export async function headlessEnhance($, cwd, draft, skills, abort) {
-  const sessionId = await hostSessionId($).catch(() => '')
+  const found = await hostSessionId($).catch(() => '')
   if (enhanceState().abort !== abort) return null
+  const sessionId = found && found !== forkFailedSession ? found : ''
+  const deadline = Date.now() + ENHANCE_HEADLESS_TIMEOUT_MS
   if (sessionId) {
-    const forked = await headlessRun($, cwd, draft, skills, abort, sessionId)
+    state.enhance.stage = 'starting read-summary on haiku with this session'
+    redrawBand($)
+    const forked = await headlessRun($, cwd, draft, skills, abort, sessionId, deadline)
     if (forked.parsed) forked.parsed.session = true
     if (forked.parsed || !forked.retry || enhanceState().abort !== abort) return forked.parsed
-    modLog($, 'enhance headless: the run with this session failed, trying without it')
+    forkFailedSession = sessionId
+    modLog($, 'enhance headless: the run with this session failed, trying without it (and without it for the rest of this session)')
     state.enhance.stage = 'run with this session failed, starting without it'
     redrawBand($)
   }
-  return (await headlessRun($, cwd, draft, skills, abort, '')).parsed
+  return (await headlessRun($, cwd, draft, skills, abort, '', deadline)).parsed
 }
 
-export async function headlessRun($, cwd, draft, skills, abort, sessionId) {
+export async function headlessRun($, cwd, draft, skills, abort, sessionId, deadline) {
   const onStep = (step) => {
     if (enhanceState().abort !== abort) return
     state.enhance.stage = step
@@ -425,7 +460,7 @@ export async function headlessRun($, cwd, draft, skills, abort, sessionId) {
   }
   let ran
   try {
-    ran = await streamClaude($, cwd, headlessPromptOf(draft, Boolean(sessionId)), onStep, () => enhanceState().abort !== abort, forkArgsOf(sessionId))
+    ran = await streamClaude($, cwd, headlessPromptOf(draft, Boolean(sessionId)), onStep, () => enhanceState().abort !== abort, headlessArgsOf(sessionId), deadline)
   } catch (error) {
     modLog($, 'enhance headless failed: ' + messageOf(error).slice(0, 200))
     return { parsed: null, retry: true }
@@ -552,7 +587,7 @@ export async function startEnhance($) {
   try {
     const cwd = await hostSessionCwd($)
     if (enhanceState().abort !== abort) return
-    state.enhance.stage = 'starting read-summary on haiku with this session'
+    state.enhance.stage = 'starting read-summary on haiku'
     redrawBand($)
     const skillList = await buildSkillList($, cwd)
     if (enhanceState().abort !== abort) return

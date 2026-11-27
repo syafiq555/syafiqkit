@@ -2450,9 +2450,13 @@ test('enhance forks this session into the headless run so the draft is read agai
   await band.press({ key: 'band-enhance' })
   expect(calls.runs.length).toBe(1)
   const argv = calls.runs[0]
-  expect(argv.slice(11, 15)).toEqual(['--resume', 'sess-1', '--fork-session', '--no-session-persistence'])
-  expect(argv[15]).toContain('The conversation above is the session this draft was typed in')
-  expect(argv[15]).toContain(DRAFT)
+  expect(argv.slice(4, 6)).toEqual(['--permission-mode', 'dontAsk'])
+  expect(argv[11]).toBe('--allowedTools')
+  expect(argv[12]).toContain('Bash(git log *)')
+  expect(argv[12]).not.toMatch(/Bash\(\*\)|Bash,|Edit|Write|Agent/)
+  expect(argv.slice(13, 17)).toEqual(['--resume', 'sess-1', '--fork-session', '--no-session-persistence'])
+  expect(argv[17]).toContain('The conversation above is the session this draft was typed in')
+  expect(argv[17]).toContain(DRAFT)
   expect(calls.length).toBe(0)
   expect(box.text).toBe('Session rewrite.')
   expect(await band.findAll({ type: 'Text', text: /this session/ })).not.toHaveLength(0)
@@ -2466,15 +2470,22 @@ test('enhance retries without the session when the forked run fails, before the 
       ? [{ type: 'result', is_error: true, result: 'Prompt is too long' }]
       : [{ type: 'result', is_error: false, result: JSON.stringify({ goal: 'Fresh rewrite.', docs: [], skills: [], open: [], facts: [] }) }],
   )
-  on('session.id', () => ({ value: 'sess-1' }))
+  on('session.id', () => ({ value: 'sess-fails' }))
   const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
   await band.press({ key: 'band-enhance' })
   expect(calls.runs.length).toBe(2)
   expect(calls.runs[0]).toContain('--resume')
   expect(calls.runs[1]).not.toContain('--resume')
+  expect(calls.runs[1].slice(4, 6)).toEqual(['--permission-mode', 'auto'])
   expect(calls.runs[1][11]).not.toContain('The conversation above')
   expect(calls.length).toBe(0)
   expect(box.text).toBe('Fresh rewrite.')
+  box.text = DRAFT
+  await band.press({ key: 'enhance-undo' }).catch(() => {})
+  box.text = DRAFT
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(3)
+  expect(calls.runs[2]).not.toContain('--resume')
   await band.unmount()
 })
 

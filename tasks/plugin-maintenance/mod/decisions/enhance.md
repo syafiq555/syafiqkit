@@ -65,6 +65,8 @@ Language: mostly lowercase typo'd English ("u", "ure", "ya"); Malay rare; misrea
 | 2026-10-16 | Short prompts such as `what to do now ?` must work (minimum lowered from 20 to 8 characters) |
 | 2026-10-16 | A run must not stop when another message arrives (only sending the draft itself ends it) |
 | 2026-11-27 | The child forks the live session (`--resume <id> --fork-session --no-session-persistence`), still on haiku. Syafiq picked the whole fork over handing the run the last turns of the transcript: "as long as we use haiku still fine". Why: a fresh child never saw the conversation, so a draft pointing back at it ("the one above", "mine", "week 2") came out generic. A failed forked run is retried without the fork, then the quick read |
+| 2026-11-27 | After the score loop (rounds 1 to 4 below), Syafiq kept **haiku** over Sonnet (Sonnet passed 14 of 15 quality checks against haiku's 11, at about five times the cost and twice the time) and dropped the round 3 "say what the draft answers" rule, which narrowed "check latest reply" to one topic. Kept: reword not summarise, hedges kept, ambiguous pronouns asked, no comment in the goal, news drafts get the action as an open choice, facts only repeat what is written |
+| 2026-11-27 | The forked run is read-only (1.492.0): `dontAsk` with a read-only `--allowedTools` list instead of auto mode. Why: a peer session's code review found the fork sees the whole history, so a half-finished commit, push or migration there could be continued in the user's folder, with only a prompt line against it. Also from that review: one shared 180 s deadline for both attempts, and a failed fork is not retried for the rest of the session. A `dontAsk` fork run by hand on 27/11 still ran read-summary (6 turns) and gave a good rewrite |
 
 ## Measured facts {#measured}
 
@@ -81,6 +83,29 @@ Language: mostly lowercase typo'd English ("u", "ure", "ya"); Malay rare; misrea
 | `claude -p --model haiku --resume <live id> --fork-session --no-session-persistence` on a running session: 7 s, 211k input tokens written to cache, US$0.21; the child quoted the session's first and latest user messages and saw a file the session had read; the live transcript stayed the newest file and no new one appeared | by hand in autorentic, 2026-11-27 |
 | A forked run's `total_cost_usd` and `modelUsage` include the parent session's saved `cost-state` (a fork of a 2.06-dollar Opus session reported US$2.29 for a one-word "OK" reply). The press itself cost US$0.06 to 0.27 on haiku; subtract the parent's `totalCostUSD` before judging cost | by hand, 2026-11-27 |
 | On a session that had just discussed the same draft, the fork copied the reply it saw in the transcript (1 turn, no read-summary). On the TikTok parent session the same draft got a point-by-point rewording, 5 session facts and one open question naming both threads | 2026-11-27, after the goal-reword rule |
+
+## Score loop: session fork (1.490.0) {#score-loop-fork}
+
+Frozen 2026-11-27 before round 1. **Stop rule (Syafiq):** every check passes on all 3 drafts, or 3 rounds of fixes, whichever first.
+
+**Harness.** Each case is a real `/read-summary` draft typed mid-session, with its session cut just before that prompt: the transcript lines before it are copied into a new session file, which the run forks (`--resume <copy> --fork-session --no-session-persistence`), so the answer that followed is not in view. The prompt is built from the current `enhance.js` (`headlessPromptOf(draft, true)`). Cases: (A) autorentic `a448326f` line 139, "for our daily standup today, then mine one i think is focussing on week 2"; (B) beacon-mart `7464b657` line 470, "properly yesterday 2c2p said they don't hv direct selling license"; (C) beacon-mart `19ffc019` line 680, "check latest reply".
+
+**Checks, yes/no per draft (6 × 3 = 18):**
+1. Reword: the goal keeps every point the draft makes, in its order, as whole sentences; nothing dropped or replaced by a summary. Fail: "Research first with haiku" for a two-clause draft.
+2. Subject: what the draft acts on ("mine one", "latest reply", "this") is named from the session, or, when the session has more than one candidate, asked as one open choice naming them.
+3. Facts: every fact is stated in the cut transcript or a repo doc (the judge checks each), and bears on the ask.
+4. No repeat: no `Use /skill` line for a skill the draft already names.
+5. Open placement: bracketed choices appear only in `open`, not in goal or scope.
+6. Cost: the run's `total_cost_usd` minus the cut session's carried `cost-state` is US$0.50 or less.
+
+**Conventions (not defects).** An empty optional field (scope, checkAgainst, doneWhen) is fine when the draft implies none. Skills picked beyond the draft's own are judged only for check 4. A fact that is true but comes from CLAUDE.md rather than a task doc counts as real. "Cannot assess" scores the check as a fail and is named.
+
+| Round | Score | Judge |
+|---|---|---|
+| 1 | 16/18 (A 6, B 5, C 5). B check 1: a news draft got an invented "record it in the doc" task and "confirmed missing", which no doc says. C check 3: a fact claimed a thread-level read that was a space read, phrased as advice. Fixed: news drafts keep the news and put the action in open; facts only repeat what is written, never advice or conclusions | fresh (sonnet) |
+| 2 | 16/18, no change (A 6, B 4, C 6). B: the hedge "properly" (probably) dropped, "they" resolved to the wrong party, a comment ("this is news only") added to the goal, and the link to the user's previous question (did 2C2P run the audit) missed. Fixed: keep hedges, keep an ambiguous pronoun and ask, no comment in the goal, read the draft as the user's next turn | fresh (sonnet) |
+| 3 | 14/18, cap reached (A 6, B 4, C 4). B: the hedge returned, but a comment ("stated as news for the record") stayed in the goal, "they" was left reading as 2C2P, and the audit question it answered was still missed. C regressed: the goal narrowed "check latest reply" to one topic (likely the new "say what it answers" rule), and a fact credited build-cards.md with a line from the session's own closing remark. Loop stopped at the user's 3-round cap; remaining gaps go to the user | fresh (sonnet) |
+| 4 (extra, user's pick) | 14/18 with the child on **Sonnet**, same prompt (A 4, B 5, C 5). Content checks 14 of 15 against haiku's 11 of 15 in round 3: B's hedge, "they" = Radiant Code and no comment all held, C kept the ask unnarrowed. Cost failed on all three: US$0.86 to 1.12 a press, 40 to 53 s (haiku US$0.10 to 0.24, about 20 s). A's one fact miss: a `ListAgents` peer-session fact the judge could not find in the cut transcript | fresh (sonnet) |
 
 ## Open {#open}
 
