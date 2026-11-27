@@ -136,7 +136,7 @@ Then render one still per beat and tile them into a contact sheet:
 ffmpeg -pattern_type glob -i 'out/stills/1080x1920_*.png' -vf "scale=270:-1,tile=6x2:padding=8" -frames:v 1 out/contact_9x16.png
 ```
 
-One sheet per size (change `1080x1920` in the glob): frames of different shapes distort when tiled, and a clean vertical cut says nothing about the square one. Review the sheets four times, one lens per pass (parallel agents where you can spawn them): design, readability, pacing, brand (📖 `references/review-lenses.md` has each lens's questions). Merge, fix the worst three problems and re-render the sheet.
+One sheet per size (change `1080x1920` in the glob): frames of different shapes distort when tiled, and a clean vertical cut says nothing about the square one. Review the sheets four times, one lens per pass (parallel agents where you can spawn them): design, readability, pacing, brand (📖 `references/review-lenses.md` has each lens's questions). Merge, fix the worst three problems and re-render the sheet. A builder agent running this skill cannot spawn the lens agents, so its own look at the sheet is not this review: it reports the sheet paths, and the session that dispatched it runs the four lenses (with `impeccable` critique and `emil-review-animations` on the story) before the film is shown to anyone. **Tell: you are about to show a film whose only review was the agent that made it.**
 
 Once pictures, voice and a first `score.wav` exist (§4), send `node render.mjs draft 1080 1920` (half size, with sound and a time stamp per frame) and get a yes before the full renders: each change after that costs a full re-render.
 
