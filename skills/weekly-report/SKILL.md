@@ -8,13 +8,16 @@ description: >
   format and sent to the lead. Fires on "weekly report", "weekly update for KL", "what do we report to HL",
   "what do I feed KL this week", "update for my lead", "run the weekly report", "find what to report", or a
   boss's ask for a summary report of all projects. NOT for a release note or one project's progress post to its
-  own space (`gchat-format` or `ship`), NOT for a personal huddle or timesheet row, and NOT for watching a
+  own space (`gchat-format` or `ship`), NOT for a personal huddle or timesheet row (a week's summary rows
+  there borrow only this skill's every-repo gathering; see the body), and NOT for watching a
   tracker for replies (`watch-sheets`).
 ---
 
 # Weekly report
 
 A boss's weekly report is a count of what the team owns, not a diary. It is read for three things: what the boss must act on, whether any project is in trouble, and whether anything was dropped since last week.
+
+**Invoked for the weekly summary rows of the user's own huddle or timesheet instead**, this skill's sending and pending-item steps don't apply: the rows follow the user's own huddle instructions. What does carry over is the gathering. Take the week from every repo's commits since Monday, not from the daily rows already in the sheet, and carry or drop by name every daily row still unticked. Daily rows show only what the user logged each day, so a summary built from them inherits every gap (27/11/2026: one made that way missed an app-store approval that sat only in the mobile repo, and dropped a certificate renewal due the next week; the user replied "seems like not really summary ?").
 
 ## Sources live outside the skill
 

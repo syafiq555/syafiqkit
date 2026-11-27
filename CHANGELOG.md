@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.498.7
+
+**`weekly-report` asked for a huddle's weekly summary rows now builds the week from every repo's commits, not from the daily rows already logged.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Every daily row still unticked is carried into the summary or dropped by name. The rows themselves follow your own huddle instructions; the boss-report sending steps don't run.
+
 ## 1.498.6
 
 **`casual-message` drafts for a Chat send tool keep bullet lists tight: no blank line between `- ` items.**
