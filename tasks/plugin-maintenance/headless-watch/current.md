@@ -1,5 +1,5 @@
 <!--LLM-CONTEXT
-Status: 🚀 Built; 1.494.0 watchers read their skill instead of loading it; the one job (crp45-sheets) is migrated but unscheduled
+Status: 🚀 Built; 1.494.0 watchers read their skill instead of loading it; crp45-sheets live again hourly since 27/11
 Domain: plugin-maintenance / headless-watch
 Gotchas (critical; full list in ## Critical Gotchas below):
   - Never `--channels` on a scheduled run: the Telegram plugin kills the existing poller on load
@@ -12,10 +12,10 @@ Last updated: 2026-11-27
 
 ## Quick Start (read this first in next session)
 
-**Where we are**: `headless-watch` runs read-only checks from launchd with Claude closed. Since 1.494.0 a run can't use the Skill tool: the job names its skill with `SKILL=<name>` and the run reads that skill's file (Key Technical Decisions table). The one job, `crp45-sheets`, was uninstalled after 18/11; it was migrated to `SKILL=` on 27/11 and its one test run worked (an alert for tracker No 21), but it is not scheduled.
+**Where we are**: `headless-watch` runs read-only checks from launchd with Claude closed. Since 1.494.0 a run can't use the Skill tool: the job names its skill with `SKILL=<name>` and the run reads that skill's file (Key Technical Decisions table). The one job, `crp45-sheets`, was uninstalled after 18/11; it was migrated to `SKILL=` on 27/11 and reinstalled hourly (owner: "Every 1hr for now"), weekdays 9 to 19; its launchd kick ran a quiet gate (US$0.014).
 
 **Immediate next actions (in order)**:
-0. Ask Syafiq whether to switch `crp45-sheets` back on (`bash skills/headless-watch/scripts/watcher.sh install crp45-sheets` from the plugin copy); a gate run under the new flags has not been seen live.
+0. After a day on the hourly schedule, ask Syafiq whether to go back to every 10 minutes.
 1. Read `~/.claude/watchers/crp45-sheets/run.log` after a working day: count full runs against gate runs, and check that alerts matched rows that really were our turn.
 2. If full runs fire on edits that never need us (many `quiet ($0.5…)` lines), make `gate.md` compare something narrower than `modifiedTime`.
 
@@ -118,7 +118,7 @@ Alerts are one-way. Answering happens in an interactive session.
 
 ## Last Session
 
-- 27/11/2026: a peer session's review of the mod's Enhance fork found that an allowed Skill lets other skills load and pre-approve their tools; measured the same leak in a watcher-shaped run, fixed it in 1.494.0 (score loop 20/20 from both judges, `decisions/score-loop-1494.md`), and migrated `crp45-sheets` (`SKILL=syafiqkit:watch-sheets`, `Skill` dropped, prompt no longer says to invoke the Skill tool). Its `run --now` from the plugin copy read the skill file, hit no denials, and sent a real alert (US$0.59). Left unscheduled, as it was.
+- 27/11/2026: a peer session's review of the mod's Enhance fork found that an allowed Skill lets other skills load and pre-approve their tools; measured the same leak in a watcher-shaped run, fixed it in 1.494.0 (score loop 20/20 from both judges, `decisions/score-loop-1494.md`), and migrated `crp45-sheets` (`SKILL=syafiqkit:watch-sheets`, `Skill` dropped, prompt no longer says to invoke the Skill tool). Its `run --now` from the plugin copy read the skill file, hit no denials, and sent a real alert (US$0.59). Then reinstalled at INTERVAL_MIN=60 on the owner's call; the launchd kick logged `quiet (gate, $0.014)`.
 - Earlier measurements still hold: gate run about $0.017, full sonnet `watch-sheets` run $0.41 to $0.59.
 
 ---
