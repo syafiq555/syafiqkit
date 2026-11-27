@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: watcher.sh run|install|uninstall|kick|test-alert|status <name>
+# Usage: watcher.sh run|install|uninstall|kick|test-alert|report|status <name>
 set -u
 umask 077
 
@@ -26,7 +26,7 @@ if [ "$cmd" = "status" ] && [ -z "$NAME" ]; then
   exit 0
 fi
 
-[ -n "$NAME" ] || die "usage: watcher.sh run|install|uninstall|kick|test-alert|status <name>"
+[ -n "$NAME" ] || die "usage: watcher.sh run|install|uninstall|kick|test-alert|report|status <name>"
 case "$NAME" in *[!A-Za-z0-9._-]*) die "job name may use letters, digits, dot, dash, underscore" ;; esac
 
 JOB="$ROOT/$NAME"
@@ -161,7 +161,9 @@ run_claude() {
   } > "$JOB/.prompt.txt"
   rm -f "$out" "$JOB/.timedout"
   cd "$PROJECT_DIR" || return 1
-  "$CLAUDE_BIN" -p --model "$model" --output-format json \
+  local no_tools=()
+  [ "${NO_TOOLS:-}" = 1 ] && no_tools=(--tools "" --strict-mcp-config)
+  "$CLAUDE_BIN" -p --model "$model" --output-format json ${no_tools[@]+"${no_tools[@]}"} \
     --json-schema "$schema" --permission-mode default --permission-prompts none --allowedTools="$ALLOWED_TOOLS" --disallowedTools="$DENIED_TOOLS" \
     --max-budget-usd "$MAX_BUDGET_USD" --no-session-persistence < "$JOB/.prompt.txt" > "$out" 2>>"$JOB/run.log" &
   pid=$!
@@ -306,6 +308,36 @@ after_success() {
   return 0
 }
 
+do_report() {
+  [ -s "$JOB/state.json" ] || die "no saved state yet: run $NAME --now first"
+  [ -x "$CLAUDE_BIN" ] || die "claude not found at $CLAUDE_BIN"
+  [ -d "$PROJECT_DIR" ] || die "PROJECT_DIR $PROJECT_DIR does not exist"
+  local out="$JOB/.report.json" last_full last_any msg cost
+  last_full=$(grep -E ' (quiet|ALERT)' "$JOB/run.log" 2>/dev/null | grep -v 'gate' | tail -1 | cut -c1-16)
+  last_any=$(grep -E ' (quiet|ALERT)' "$JOB/run.log" 2>/dev/null | tail -1 | cut -c1-16)
+  {
+    cat "$JOB/prompt.md"
+    printf '\n\n---\nThis is NOT a check. Do not read any sheet, file or tool. The user asked for a status summary now, built only from the state below, which the watcher saved after its checks. Last full check: %s. Last check of any kind: %s (a gate run only confirms nothing changed). Use the check above only to understand what each state key means. Say nothing about the state itself (baselines, keys, what was carried forward): only what it says about the work. Where you cannot tell what a value means, leave it out rather than guess.\n' "${last_full:-unknown}" "${last_any:-unknown}"
+    [ -f "$JOB/report.md" ] && { printf '\nHow to read this job'"'"'s state:\n'; cat "$JOB/report.md"; }
+  } > "$JOB/.report-prompt.md"
+  local fails_before rc
+  fails_before=$(cat "$JOB/fails" 2>/dev/null)
+  NO_TOOLS=1 ALLOWED_TOOLS="" run_claude "$GATE_MODEL" "$JOB/.report-prompt.md" \
+    '{"type":"object","properties":{"message":{"type":"string"}},"required":["message"]}' \
+    'Return message: a plain status summary for a phone, under 900 characters, one short line per item: what is open and whose turn it is, counts rather than lists where a list runs long, the time of the last full check, and a last line saying whether anything needs the user. Never quote other people'"'"'s text or personal details (it goes to a third-party chat service).' \
+    "$out"
+  rc=$?
+  if ! FAIL_ALERT_AFTER=0 check_result "$out" "$rc"; then
+    if [ -n "$fails_before" ]; then echo "$fails_before" > "$JOB/fails"; else rm -f "$JOB/fails"; fi
+    echo "report failed; see $JOB/run.log" >&2; exit 1
+  fi
+  msg=$(jq -r '.structured_output.message // empty' "$out")
+  cost=$(jq -r '.total_cost_usd // 0' "$out")
+  [ -n "$msg" ] || die "the summary came back empty; see $out"
+  if send "Status: $msg"; then log "report sent (\$$cost)"; echo "sent"
+  else echo "send failed; see $JOB/run.log" >&2; exit 1; fi
+}
+
 do_install() {
   [ -d "$PROJECT_DIR" ] || die "PROJECT_DIR $PROJECT_DIR does not exist"
   [ -f "$JOB/prompt.md" ] || die "$JOB/prompt.md missing"
@@ -374,6 +406,7 @@ case "$cmd" in
     if launchctl kickstart -k "gui/$(id -u)/$LABEL"; then echo "started $LABEL now; see $JOB/run.log"
     else rm -f "$JOB/.force"; echo "not started: is $LABEL installed? (watcher.sh install $NAME)" >&2; exit 1; fi ;;
   test-alert) send "Test alert: this is where the watcher's alerts will arrive." && echo "sent" || { echo "send failed; see $JOB/run.log"; exit 1; } ;;
+  report) do_report ;;
   status) printf 'scheduled: %s\nfailures: %s\nunsent alert held: %s\n' "$(launchctl print "gui/$(id -u)/$LABEL" >/dev/null 2>&1 && echo yes || echo no)" "$(cat "$JOB/fails" 2>/dev/null || echo 0)" "$([ -s "$JOB/unsent.txt" ] && echo yes || echo no)"; tail -5 "$JOB/run.log" 2>/dev/null ;;
   *) die "unknown command $cmd" ;;
 esac

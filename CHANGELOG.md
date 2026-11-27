@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.499.1
+
+**`headless-watch`: "send me the status" is now one command, `watcher.sh report <name>`, instead of a summary pieced together by hand.**
+- Update with `claude plugin update syafiqkit@syafiqkit`, then copy the script to `~/.claude/watchers/bin/` by running `install <name>` from the plugin copy (or `cp` it, for a job that should stay unscheduled).
+- It reads no source, only the job's saved state, has the gate model write a short phone summary with the time of the last full check, and sends it on the job's alert route. About one cent; works while the job is uninstalled; a failed report never counts toward the "watcher is failing" alert.
+- An optional `report.md` in the job folder explains state keys a model would misread. Without one, haiku read a `[Total, Not run, Pass, Fail, Waiting]` count as 35 passes when it was 35 not run.
+
 ## 1.499.0
 
 **New `carousel-builder` skill: TikTok and Instagram photo carousels from HTML slides, with the safe-zone and text-size rules measured on every slide instead of judged by eye.**
