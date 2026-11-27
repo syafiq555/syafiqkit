@@ -248,7 +248,7 @@ after_success() {
   rm -f "$JOB/fails"
   today=$(date +%F)
   if [ "$HEARTBEAT" = "daily" ] && [ "$(cat "$JOB/heartbeat" 2>/dev/null)" != "$today" ]; then
-    send "Watching today, first check OK at $(date +%H:%M). Silence after this means nothing needed you." && echo "$today" > "$JOB/heartbeat"
+    send "Watching today, first check OK at $(date +%H:%M). Silence after this means nothing needed you. To stop: ask Claude to stop the $NAME watcher." && echo "$today" > "$JOB/heartbeat"
   fi
   return 0
 }

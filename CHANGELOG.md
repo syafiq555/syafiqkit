@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.495.0
+
+**A `/headless-watch` watcher's morning message now says how to stop it: "To stop: ask Claude to stop the <name> watcher." The way out is on your phone, not only in the setup chat.**
+- Update with `claude plugin update syafiqkit@syafiqkit`, then re-run `install <name>` for each watcher (ask Claude to "reinstall my <name> watcher with /headless-watch") so the new message reaches it.
+- Asking any session to "stop the alerts", "turn off the <name> watcher", "check every hour instead" or "run it on haiku" now reaches `/headless-watch`, which has the stop and change commands, including when asked through `/read-summary` (tested: "stop the crp45 telegram alerts for now" now opens `/headless-watch` first).
+
 ## 1.494.0
 
 **`/headless-watch` watchers can no longer be made to write files or send messages by the skill they run. Before, a watcher that allowed the Skill tool let that skill switch on its own tools: in a test, a skill created a file the watcher never allowed.**

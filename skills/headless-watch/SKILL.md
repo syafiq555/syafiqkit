@@ -4,10 +4,11 @@ description: >
   Run a read-only check on a schedule on this Mac with every Claude window closed, using this Mac's files, MCP
   servers and login, and alert the user's phone (Telegram or ntfy) only when something needs them: a shared
   sheet, a tracker, a ClickUp list, a log, any check a skill or a prompt can do that ends in "alert or stay
-  quiet". Fires on "check X every 10 minutes during work hours", "even when Claude is closed", "crontab claude -p",
-  "run this skill on a cron", "launchd job for claude", "watch this even when Claude is closed", "alert me on
-  Telegram if anything needs attention, otherwise stay quiet", "background watcher", "stop the watcher", "is the
-  watcher still running", or a pasted crontab line that calls `claude -p`. Sets up one job per check (state kept
+  quiet". Fires on stopping or changing a watcher ("stop the watcher", "stop the alerts", "turn off the CRP45
+  watcher", "can we stop it any time", "check every hour instead", "run it on haiku", "is the watcher still
+  running"), and on "check X every 10 minutes during work hours", "even when Claude is closed", "crontab claude -p",
+  "run this skill on a cron", "launchd job for claude", "alert me on Telegram if anything needs attention,
+  otherwise stay quiet", "background watcher", or a pasted crontab line that calls `claude -p`. Sets up one job per check (state kept
   between runs, a cheap change gate, an alert when the watcher itself breaks, a daily "still watching" line),
   tests it end to end, and shows how to stop it. NOT for a check that only needs to run while this session is
   open (`/loop` or `watch-sheets`' own session job), NOT for a cloud agent on Anthropic's servers that cannot
@@ -59,7 +60,7 @@ Read the script before changing behaviour. The parts that aren't obvious:
 4. **Prove it before installing.** Until `install` has run, the script is only in the plugin: `bash ${CLAUDE_SKILL_DIR}/scripts/watcher.sh`. Run `test-alert <name>` and confirm the message arrived. Then `run <name> --now` twice. `--now` skips the days and hours window, which otherwise makes a run outside work hours exit without a word. The first run is a full check that records the baseline, and it can send a real alert for whatever needs the user today, so say that first. The second should be a quiet gate run when `gate.md` exists; a second full run means the gate's keys are missing from the returned state. Read `run.log`, the cost per run, and `state.json`. The state must hold no copied text or names when the skill's rules forbid it. A deny in `.main.json`'s `permission_denials` means a tool is missing from `ALLOWED_TOOLS`, or the run tried one every run blocks (Skill, Agent, a file edit), which the gate run obeys too.
 5. **Install, then test the real launchd context.** Run `install <name>` from the plugin copy, then `kick <name>`, which runs once now under launchd's environment, ignoring the window, where PATH and login problems show up. A kick is a real run, so it can alert. Wait for its `run.log` line (a gate run takes about 20 seconds, a full one a few minutes).
 6. **Tell the user** what alerts look like and what quiet costs (the gate run's cost × runs a day, plus a full run each time something moves). Give them three things:
-   - the stop line, verbatim: `bash ~/.claude/watchers/bin/watcher.sh uninstall <name>`;
+   - the stop line, verbatim: `bash ~/.claude/watchers/bin/watcher.sh uninstall <name>` (the morning message also says to ask Claude to stop the `<name>` watcher, so the phone carries the way out);
    - that a missing morning "still watching" message means the watcher or the alert route is broken, since a dead route can't report itself;
    - that after a plugin update, or an edit to `job.env`, running `install <name>` from the plugin copy (`bash ${CLAUDE_SKILL_DIR}/scripts/watcher.sh install <name>`) refreshes the installed script and schedule. A job set up before 1.494.0 that lists `Skill` in `ALLOWED_TOOLS` is refused there until it moves to `SKILL=<name>` and its `prompt.md` stops saying to invoke the Skill tool.
 
