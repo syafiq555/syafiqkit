@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.494.0
+
+**`/headless-watch` watchers can no longer be made to write files or send messages by the skill they run. Before, a watcher that allowed the Skill tool let that skill switch on its own tools: in a test, a skill created a file the watcher never allowed.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Every watcher run now blocks loading skills and agents, editing files, and git commands that write a file, whatever the watcher allows.
+- A watcher now names its skill with `SKILL=<name>` in its `job.env` (for example `SKILL=watch-sheets`, or `SKILL=syafiqkit:watch-sheets` to pick the plugin) and reads that skill's instructions as a file, so `Read` must be in `ALLOWED_TOOLS`.
+- Already have a watcher? Your installed copy keeps running the old script, with the old gap, until you reinstall. To move it: in `~/.claude/watchers/<name>/job.env` remove `Skill` from `ALLOWED_TOOLS`, make sure `Read` is there and add `SKILL=<name>`; in its `prompt.md` drop any "invoke the Skill tool" wording; then ask Claude to "reinstall my <name> watcher with /headless-watch", which runs `install` from the updated plugin. Reinstalling without those edits is refused with the same steps, and the old schedule keeps running.
+
 ## 1.493.0
 
 **Enhance keeps reading your chat after a passing hiccup, and says which context came from the chat. In 1.492.0 one overload or network error switched the chat read off for the rest of the session, and facts from the chat were labelled as if they came from the task docs.**

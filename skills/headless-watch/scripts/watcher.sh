@@ -34,7 +34,7 @@ LABEL="$LABEL_PREFIX.$NAME"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 [ -f "$JOB/job.env" ] || die "no job at $JOB (job.env missing)"
 
-PROJECT_DIR="" MODEL="sonnet" GATE_MODEL="haiku" ALLOWED_TOOLS="" DAYS="1-7" HOURS="0-23"
+PROJECT_DIR="" MODEL="sonnet" GATE_MODEL="haiku" ALLOWED_TOOLS="" SKILL="" DAYS="1-7" HOURS="0-23"
 INTERVAL_MIN="10" ALERT="telegram" TELEGRAM_CHAT_ID="" NTFY_TOPIC="" NTFY_SERVER="https://ntfy.sh"
 MAX_BUDGET_USD="1" HEARTBEAT="daily" FAIL_ALERT_AFTER="2" RUN_TIMEOUT_MIN="15"
 # shellcheck disable=SC1091
@@ -75,6 +75,28 @@ send() {
   esac
 }
 
+DENIED_TOOLS="Skill,Agent,Edit,Write,NotebookEdit,Bash(git * --output*),Bash(git *--output=*)"
+
+skill_file() {
+  local name=${SKILL##*:} plugin="" dir
+  case "$SKILL" in *:*) plugin=${SKILL%%:*} ;; esac
+  if [ -z "$plugin" ]; then
+    for dir in "$PROJECT_DIR/.claude/skills" "$HOME/.claude/skills"; do
+      [ -f "$dir/$name/SKILL.md" ] && { echo "$dir/$name/SKILL.md"; return 0; }
+    done
+  fi
+  jq -r '.. | .installPath? // empty' "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null | while IFS= read -r dir; do
+    if [ -n "$plugin" ]; then
+      case "$dir" in
+        */"$plugin") ;;
+        */"$plugin"/[!/]*) case "${dir##*/"$plugin"/}" in */*) continue ;; esac ;;
+        *) continue ;;
+      esac
+    fi
+    [ -f "$dir/skills/$name/SKILL.md" ] && { echo "$dir/skills/$name/SKILL.md"; break; }
+  done
+}
+
 run_claude() {
   local model=$1 prompt_file=$2 schema=$3 contract=$4 out=$5 state
   state=$(cat "$JOB/state.json" 2>/dev/null)
@@ -87,7 +109,7 @@ run_claude() {
   rm -f "$out" "$JOB/.timedout"
   cd "$PROJECT_DIR" || return 1
   "$CLAUDE_BIN" -p --model "$model" --output-format json \
-    --json-schema "$schema" --permission-mode default --permission-prompts none --allowedTools="$ALLOWED_TOOLS" \
+    --json-schema "$schema" --permission-mode default --permission-prompts none --allowedTools="$ALLOWED_TOOLS" --disallowedTools="$DENIED_TOOLS" \
     --max-budget-usd "$MAX_BUDGET_USD" --no-session-persistence < "$JOB/.prompt.txt" > "$out" 2>>"$JOB/run.log" &
   pid=$!
   limit="${RUN_TIMEOUT_SEC:-$((RUN_TIMEOUT_MIN * 60))}"
@@ -161,6 +183,13 @@ do_run() {
     fi
   fi
 
+  local skill_note="" path
+  if [ -n "$SKILL" ]; then
+    path=$(skill_file)
+    [ -n "$path" ] || { record_failure "skill $SKILL not found in the project, ~/.claude/skills or an installed plugin"; exit 1; }
+    skill_note="Read the skill file $path with the Read tool and follow its unattended-run instructions (paths it names are relative to its folder); the Skill tool is off in this run. "
+  fi
+
   if [ -f "$JOB/gate.md" ]; then
     gate_out="$JOB/.gate.json"
     run_claude "$GATE_MODEL" "$JOB/gate.md" \
@@ -184,7 +213,7 @@ do_run() {
   main_out="$JOB/.main.json"
   run_claude "$MODEL" "$JOB/prompt.md" \
     '{"type":"object","properties":{"alert":{"type":"boolean"},"message":{"type":"string"},"state":{"type":"object"}},"required":["alert","message","state"]}' \
-    'Return alert=true only when something needs the user now; message: the alert text, short and plain, naming the item and who acted, never quoting other people'"'"'s text or personal details (it goes to a third-party chat service); empty when alert is false; state: the full state the next run should start from, so it can tell new from already reported.' \
+    "$skill_note"'Return alert=true only when something needs the user now; message: the alert text, short and plain, naming the item and who acted, never quoting other people'"'"'s text or personal details (it goes to a third-party chat service); empty when alert is false; state: the full state the next run should start from, so it can tell new from already reported.' \
     "$main_out"
   check_result "$main_out" $? || exit 1
 
@@ -228,6 +257,12 @@ do_install() {
   [ -d "$PROJECT_DIR" ] || die "PROJECT_DIR $PROJECT_DIR does not exist"
   [ -f "$JOB/prompt.md" ] || die "$JOB/prompt.md missing"
   [ -n "$ALLOWED_TOOLS" ] || die "ALLOWED_TOOLS is empty; name the tools the check needs"
+  local tools=",${ALLOWED_TOOLS// /},"
+  case "$tools" in *,Skill,*|*,Skill\(*) die "ALLOWED_TOOLS holds Skill: a skill pre-approves its own tools, so a watcher could write or send. Remove it, set SKILL=<name> and Read the skill instead" ;; esac
+  if [ -n "$SKILL" ]; then
+    case "$tools" in *,Read,*) ;; *) die "SKILL is set, so ALLOWED_TOOLS needs a plain Read (a scoped Read(...) may not reach the skill's file)" ;; esac
+    [ -n "$(skill_file)" ] || die "skill $SKILL not found in $PROJECT_DIR/.claude/skills, ~/.claude/skills or an installed plugin"
+  fi
   [ -x "$CLAUDE_BIN" ] || die "claude not found at $CLAUDE_BIN"
   case "$INTERVAL_MIN" in ''|*[!0-9]*) die "INTERVAL_MIN must be whole minutes" ;; esac
   mkdir -p "$ROOT/bin" "$HOME/Library/LaunchAgents"
