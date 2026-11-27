@@ -17,7 +17,7 @@ Last updated: 2026-11-27
 **Immediate next actions (in order)**:
 0. Full checks run on haiku since 27/11 (owner's call; test full run on unchanged sheets: 8 turns, US$0.019, quiet, baseline kept). Eyeball the first real haiku alert for accuracy; if it misreads a row, go back to `MODEL=sonnet`.
 1. Read `~/.claude/watchers/crp45-sheets/run.log` after a working day: count full runs against gate runs, and check that alerts matched rows that really were our turn.
-2. Reinstall `crp45-sheets` from the plugin copy (`bash skills/headless-watch/scripts/watcher.sh install crp45-sheets`) so its morning message carries the 1.496.0 stop command.
+2. Check the next morning message carries the stop command (`crp45-sheets` reinstalled on 1.496.0's script 27/11: hourly, weekdays 9 to 19, `status` scheduled, 0 failures).
 3. If full runs fire on edits that never need us (many `quiet ($0.5…)` lines), make `gate.md` compare something narrower than `modifiedTime`.
 
 **Key facts for cold start**:
@@ -121,7 +121,7 @@ Alerts are one-way. Answering happens in an interactive session.
 ## Last Session
 
 - 27/11/2026: a peer session's review of the mod's Enhance fork found that an allowed Skill lets other skills load and pre-approve their tools; measured the same leak in a watcher-shaped run, fixed it in 1.494.0 (score loop 20/20 from both judges, `decisions/score-loop-1494.md`), and migrated `crp45-sheets` (`SKILL=syafiqkit:watch-sheets`, `Skill` dropped, prompt no longer says to invoke the Skill tool). Its `run --now` from the plugin copy read the skill file, hit no denials, and sent a real alert (US$0.59). Then reinstalled at INTERVAL_MIN=60 on the owner's call; the launchd kick logged `quiet (gate, $0.014)`.
-- 27/11/2026, later: a `/done` review of 1.490.0 to 1.495.0 (they shipped without one) led to 1.496.0. The heartbeat now carries the uninstall command, `install` migrates a pre-1.494.0 job itself (owner's call 27/11 over keep-refusing: appends an override to `job.env` after copying it to `job.env.pre-migrate`: tools without `Skill` plus `Read`, and `SKILL=` from `Skill(<name>)` entries (each must be installed) or else the one installed hyphenated or `plugin:name` skill `prompt.md` names; plain words never count, and none or several refuse; `prompt.md` is never edited; `scripts/test-migrate.sh` runs eighteen job shapes in a throwaway HOME), and SKILL.md says how to pause, resume and change a job. `crp45-sheets` still runs the 1.495.0 copy until it is reinstalled.
+- 27/11/2026, later: a `/done` review of 1.490.0 to 1.495.0 (they shipped without one) led to 1.496.0. The heartbeat now carries the uninstall command, `install` migrates a pre-1.494.0 job itself (owner's call 27/11 over keep-refusing: appends an override to `job.env` after copying it to `job.env.pre-migrate`: tools without `Skill` plus `Read`, and `SKILL=` from `Skill(<name>)` entries (each must be installed) or else the one installed hyphenated or `plugin:name` skill `prompt.md` names; plain words never count, and none or several refuse; `prompt.md` is never edited; `scripts/test-migrate.sh` runs eighteen job shapes in a throwaway HOME), and SKILL.md says how to pause, resume and change a job. Shipped as e4734dd; `crp45-sheets` reinstalled on that script the same day.
 - Earlier measurements still hold: gate run about $0.017, full sonnet `watch-sheets` run $0.41 to $0.59.
 
 ---
