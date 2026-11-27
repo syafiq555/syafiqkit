@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.493.0
+
+**Enhance keeps reading your chat after a passing hiccup, and says which context came from the chat. In 1.492.0 one overload or network error switched the chat read off for the rest of the session, and facts from the chat were labelled as if they came from the task docs.**
+- Update with `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or start a new session. Needs a `claude` CLI that supports `--fork-session`; an older one falls back to the plain read automatically.
+- Only a lasting failure (the chat is too big for haiku, the conversation cannot be found, an option the CLI does not know) stops Enhance reading the chat for the rest of the session. An overload or network error tries the chat again on the next press.
+- Facts from the conversation are headed `Context from this chat` (with the task docs after it), and the done row says `read this chat`.
+- A draft that names its own subject keeps to it: Enhance no longer pulls in facts from whatever else the chat was about.
+- If the run with the chat fails near the 3-minute limit, Enhance goes straight to the quick read instead of starting a run that cannot finish.
+- Each press sends the whole conversation to a second, cheaper model call (haiku) and costs about US$0.10 to 0.27 and 16 to 50 s; there is no off switch for the chat read yet.
+
 ## 1.492.0
 
 **Enhance's run with your session can now only read. In 1.490.0 it saw the whole conversation with the same tool access as auto mode, so in principle it could have carried on a commit, push or migration it found half-done in the history.**

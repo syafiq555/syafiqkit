@@ -2464,7 +2464,32 @@ test('enhance forks this session into the headless run so the draft is read agai
   expect(argv[17]).toContain(DRAFT)
   expect(calls.length).toBe(0)
   expect(box.text).toBe('Session rewrite.')
-  expect(await band.findAll({ type: 'Text', text: /this session/ })).not.toHaveLength(0)
+  expect(await band.findAll({ type: 'Text', text: /read this chat/ })).not.toHaveLength(0)
+  await band.unmount()
+})
+
+test('enhance keeps forking after a passing error such as an overload, and credits facts to the chat', async ($, on) => {
+  const box = { text: DRAFT }
+  let forkedRuns = 0
+  const calls = stubEnhance(on, box, [], () => rewrite({ goal: 'Quick rewrite.' }), undefined, (argv: string[]) => {
+    if (!argv.includes('--resume')) return [{ type: 'result', is_error: false, result: JSON.stringify({ goal: 'Fresh rewrite.', docs: [], skills: [], open: [], facts: [] }) }]
+    forkedRuns += 1
+    return forkedRuns === 1
+      ? [{ type: 'result', is_error: true, result: 'Overloaded' }]
+      : [{ type: 'result', is_error: false, result: JSON.stringify({ goal: 'Session rewrite.', docs: [], skills: [], open: [], facts: ['Week 2 is yours.'] }) }]
+  })
+  on('session.id', () => ({ value: 'sess-busy' }))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(2)
+  expect(box.text).toBe('Fresh rewrite.')
+  box.text = DRAFT
+  await band.press({ key: 'enhance-undo' }).catch(() => {})
+  box.text = DRAFT
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(3)
+  expect(calls.runs[2]).toContain('--resume')
+  expect(box.text).toBe('Session rewrite.\n\nContext from this chat:\n- Week 2 is yours.\n')
   await band.unmount()
 })
 
@@ -2472,7 +2497,7 @@ test('enhance retries without the session when the forked run fails, before the 
   const box = { text: DRAFT }
   const calls = stubEnhance(on, box, [], () => rewrite({ goal: 'Quick rewrite.' }), undefined, (argv: string[]) =>
     argv.includes('--resume')
-      ? [{ type: 'result', is_error: true, result: 'Prompt is too long' }]
+      ? [{ type: 'result', subtype: 'error_during_execution', is_error: true, errors: ['No conversation found with session ID: sess-fails'] }]
       : [{ type: 'result', is_error: false, result: JSON.stringify({ goal: 'Fresh rewrite.', docs: [], skills: [], open: [], facts: [] }) }],
   )
   on('session.id', () => ({ value: 'sess-fails' }))
