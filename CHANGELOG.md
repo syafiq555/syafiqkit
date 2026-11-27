@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.497.1
+
+**Posts to a client's Chat space now follow the same polite-question and no-build-details rules as messages. Before, only `casual-message` drafts did.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `gchat-format`: when the readers are the client, each question carries your suggestion in varied polite wording, and the post never says paid work was already built. Release notes to your own team are unchanged.
+
 ## 1.497.0
 
 **Questions to a client now come with your suggestion and read as polite, so they can answer "ok". Before, drafts asked "which one is it?" about the client's own document, or opened every line with the same "Will it work for you if".**
