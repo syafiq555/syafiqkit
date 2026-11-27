@@ -17,7 +17,8 @@ Last updated: 2026-11-27
 **Immediate next actions (in order)**:
 0. Full checks run on haiku since 27/11 (owner's call; test full run on unchanged sheets: 8 turns, US$0.019, quiet, baseline kept). Eyeball the first real haiku alert for accuracy; if it misreads a row, go back to `MODEL=sonnet`.
 1. Read `~/.claude/watchers/crp45-sheets/run.log` after a working day: count full runs against gate runs, and check that alerts matched rows that really were our turn.
-2. If full runs fire on edits that never need us (many `quiet ($0.5…)` lines), make `gate.md` compare something narrower than `modifiedTime`.
+2. Reinstall `crp45-sheets` from the plugin copy (`bash skills/headless-watch/scripts/watcher.sh install crp45-sheets`) so its morning message carries the 1.496.0 stop command.
+3. If full runs fire on edits that never need us (many `quiet ($0.5…)` lines), make `gate.md` compare something narrower than `modifiedTime`.
 
 **Key facts for cold start**:
 - Live job: `bash ~/.claude/watchers/bin/watcher.sh status crp45-sheets`; stop with `... uninstall crp45-sheets`.
@@ -94,10 +95,11 @@ Alerts are one-way. Answering happens in an interactive session.
 | Decision | Rationale |
 |----------|-----------|
 | Model returns a verdict; script sends | The model never holds the token or a send tool, so allowed tools stay read-only |
-| Every run passes `--disallowedTools` (Skill, Agent, Edit, Write, NotebookEdit, git `--output`); a job's skill is `SKILL=<name>`, read as a file; `install` refuses `Skill` and a `SKILL` without plain `Read` (1.494.0) | an allow list alone leaks: in a watcher-shaped run a skill's own `allowed-tools: Bash(touch *)` wrote a file, while with Skill denied and the file read instead the touch was refused; `git diff --output` was refused too (all measured 27/11/2026; rubric and rounds: `decisions/score-loop-1494.md`) |
+| Every run passes `--disallowedTools` (Skill, Agent, Edit, Write, NotebookEdit, git `--output`); a job's skill is `SKILL=<name>`, read as a file; `install` refuses a `SKILL` without plain `Read` (1.494.0) and moves a job still listing `Skill` onto `SKILL=` (1.496.0, Last Session) | an allow list alone leaks: in a watcher-shaped run a skill's own `allowed-tools: Bash(touch *)` wrote a file, while with Skill denied and the file read instead the touch was refused; `git diff --output` was refused too (all measured 27/11/2026; rubric and rounds: `decisions/score-loop-1494.md`) |
 | launchd, not cron | cron skips runs during sleep and has no profile PATH |
 | `install` copies the script to `~/.claude/watchers/bin/` | the plugin cache version folder can be pruned a day after the next update |
 | Failure alert at the 2nd failure in a row, plus a daily heartbeat | one transient blip stays quiet; a missing heartbeat catches a dead alert route, which can't report itself |
+| The morning heartbeat ends "To stop: ask Claude to stop the <name> watcher, or run: bash ~/.claude/watchers/bin/watcher.sh uninstall <name>" (1.496.0) | a reply to the bot reaches Claude only where a Telegram Channels session runs, and ntfy is one-way, so the line carries a command that works anywhere |
 | No text dedup in the script | the skill's state already keeps a raised row quiet until it moves; a text match swallowed a client's second reply worded the same (review 18/11) |
 | Failure alerts carry a short reason, details stay in `run.log` | a claude error result can quote sheet text, and the alert goes to a third-party chat |
 | `install` refreshes the copy only when run from the plugin copy, and says so | the installed copy can't know where the plugin lives; it prints "not refreshed" instead of silently keeping old code |
@@ -111,7 +113,7 @@ Alerts are one-way. Answering happens in an interactive session.
 |-------|------|
 | `run` outside the window does nothing | use `run <name> --now`; `kick` writes `.force` so the launchd run ignores the window too |
 | First full run with empty state can alert | `watch-sheets` raises what is our turn as it stands; say so before the first run |
-| `permission_denials` in `.main.json` | a tool is missing from `ALLOWED_TOOLS`; a prompt that invokes a skill needs `Skill` |
+| `permission_denials` in `.main.json` | a tool is missing from `ALLOWED_TOOLS`; a job with `SKILL=` needs a plain `Read` (since 1.494.0 `Skill` is always denied) |
 | A pasted crontab line left installed | runs beside the job with no state or failure alert; `uninstall` won't stop it |
 
 ---
@@ -119,6 +121,7 @@ Alerts are one-way. Answering happens in an interactive session.
 ## Last Session
 
 - 27/11/2026: a peer session's review of the mod's Enhance fork found that an allowed Skill lets other skills load and pre-approve their tools; measured the same leak in a watcher-shaped run, fixed it in 1.494.0 (score loop 20/20 from both judges, `decisions/score-loop-1494.md`), and migrated `crp45-sheets` (`SKILL=syafiqkit:watch-sheets`, `Skill` dropped, prompt no longer says to invoke the Skill tool). Its `run --now` from the plugin copy read the skill file, hit no denials, and sent a real alert (US$0.59). Then reinstalled at INTERVAL_MIN=60 on the owner's call; the launchd kick logged `quiet (gate, $0.014)`.
+- 27/11/2026, later: a `/done` review of 1.490.0 to 1.495.0 (they shipped without one) led to 1.496.0. The heartbeat now carries the uninstall command, `install` migrates a pre-1.494.0 job itself (owner's call 27/11 over keep-refusing: appends an override to `job.env` after copying it to `job.env.pre-migrate`: tools without `Skill` plus `Read`, and `SKILL=` from `Skill(<name>)` entries (each must be installed) or else the one installed hyphenated or `plugin:name` skill `prompt.md` names; plain words never count, and none or several refuse; `prompt.md` is never edited; `scripts/test-migrate.sh` runs eighteen job shapes in a throwaway HOME), and SKILL.md says how to pause, resume and change a job. `crp45-sheets` still runs the 1.495.0 copy until it is reinstalled.
 - Earlier measurements still hold: gate run about $0.017, full sonnet `watch-sheets` run $0.41 to $0.59.
 
 ---

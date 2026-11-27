@@ -97,6 +97,59 @@ skill_file() {
   done
 }
 
+migrate_skill_job() {
+  local steps="remove Skill from ALLOWED_TOOLS, add Read and SKILL=<name> to job.env, drop any 'invoke the Skill tool' wording from prompt.md, then install again. The old schedule keeps running until then"
+  local found="$SKILL" candidate resolved="" part entries=() kept=""
+  local IFS_OLD=$IFS
+  IFS=',' read -r -d '' -a entries < <(printf '%s' "${ALLOWED_TOOLS//$'\n'/,}")
+  IFS=$IFS_OLD
+  for part in "${entries[@]}"; do
+    part="${part#"${part%%[![:space:]]*}"}"; part="${part%"${part##*[![:space:]]}"}"
+    local opens=${part//[^(]/} closes=${part//[^)]/}
+    [ ${#opens} = ${#closes} ] || die "ALLOWED_TOOLS has a pattern with unbalanced brackets or a comma inside them (near: $part), which can't be rewritten safely, so it can't be migrated for you: $steps"
+    case "$part" in '') ;; Skill) ;; Skill\(*) candidate=${part#Skill(}; resolved="$resolved${candidate%)}"$'\n' ;; *) kept="${kept:+$kept,}$part" ;; esac
+  done
+  case ",$kept," in *,Read,*) ;; *) kept="${kept:+$kept,}Read" ;; esac
+  if [ -z "$found" ]; then
+    local explicit=$resolved line
+    if [ -n "$explicit" ]; then
+      while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        SKILL=$line
+        [ -n "$(skill_file)" ] || die "ALLOWED_TOOLS names Skill($line), which is not an installed skill, so it can't be migrated for you: set SKILL=<name> in job.env and install again"
+      done <<< "$explicit"
+      resolved=$(printf '%s' "$explicit" | awk 'NF && !seen[$0]++')
+    else
+      resolved=$(grep -i -E 'skill|invoke|run|use' "$JOB/prompt.md" | grep -v -i -E "never|don't|do not|not use|avoid" | grep -oE '[A-Za-z0-9_]+[:-][A-Za-z0-9_:-]+' | sed 's/[:-]*$//' | awk '!seen[$0]++' | while IFS= read -r line; do
+        SKILL=$line; [ -n "$(skill_file)" ] && echo "$line"
+      done)
+    fi
+    SKILL=""
+    [ -n "$resolved" ] || die "ALLOWED_TOOLS holds Skill and neither a Skill(<name>) entry nor a hyphenated or plugin:name skill in prompt.md is installed, so it can't be migrated for you: $steps"
+    [ "$(printf '%s\n' "$resolved" | wc -l | tr -d ' ')" = 1 ] || die "ALLOWED_TOOLS or prompt.md names several installed skills ($(printf '%s' "$resolved" | paste -sd, -)), so it can't pick one: set SKILL=<name> in job.env and install again"
+    found=$resolved
+  fi
+  SKILL=$found
+  [ -n "$(skill_file)" ] || die "SKILL=$found is not an installed skill, so the job can't be migrated; job.env is unchanged: set SKILL=<name> to an installed skill and install again"
+  SKILL=""
+  cp "$JOB/job.env" "$JOB/job.env.pre-migrate"
+  {
+    printf '\n# Moved off the Skill tool by install (1.496.0). These two lines override the ones above: change tools or the skill here. Old file: job.env.pre-migrate\n'
+    printf 'ALLOWED_TOOLS=%q\n' "$kept"
+    printf 'SKILL=%q\n' "$found"
+  } >> "$JOB/job.env"
+  local check
+  check=$(set +u; ALLOWED_TOOLS="" SKILL=""; . "$JOB/job.env" >/dev/null 2>&1 && printf '%s\n%s' "$ALLOWED_TOOLS" "$SKILL")
+  if [ "$check" != "$kept"$'\n'"$found" ]; then
+    cp "$JOB/job.env.pre-migrate" "$JOB/job.env"
+    die "migration wrote a job.env that did not load back as expected, so job.env was restored unchanged: $steps"
+  fi
+  echo "Migrated $NAME: ALLOWED_TOOLS=$kept, SKILL=$found (old file: job.env.pre-migrate). prompt.md is unchanged; each run is told the Skill tool is off and to Read the skill file."
+  grep -n -i -E 'skill tool|invoke /|Skill\(' "$JOB/prompt.md" | sed 's/^/  prompt.md still says: /'
+  log "migrated: Skill removed, SKILL=$found"
+  ALLOWED_TOOLS=$kept SKILL=$found
+}
+
 run_claude() {
   local model=$1 prompt_file=$2 schema=$3 contract=$4 out=$5 state
   state=$(cat "$JOB/state.json" 2>/dev/null)
@@ -248,7 +301,7 @@ after_success() {
   rm -f "$JOB/fails"
   today=$(date +%F)
   if [ "$HEARTBEAT" = "daily" ] && [ "$(cat "$JOB/heartbeat" 2>/dev/null)" != "$today" ]; then
-    send "Watching today, first check OK at $(date +%H:%M). Silence after this means nothing needed you. To stop: ask Claude to stop the $NAME watcher." && echo "$today" > "$JOB/heartbeat"
+    send "Watching today, first check OK at $(date +%H:%M). Silence after this means nothing needed you. To stop: ask Claude to stop the $NAME watcher, or run: bash ~/.claude/watchers/bin/watcher.sh uninstall $NAME" && echo "$today" > "$JOB/heartbeat"
   fi
   return 0
 }
@@ -257,8 +310,8 @@ do_install() {
   [ -d "$PROJECT_DIR" ] || die "PROJECT_DIR $PROJECT_DIR does not exist"
   [ -f "$JOB/prompt.md" ] || die "$JOB/prompt.md missing"
   [ -n "$ALLOWED_TOOLS" ] || die "ALLOWED_TOOLS is empty; name the tools the check needs"
-  local tools=",${ALLOWED_TOOLS// /},"
-  case "$tools" in *,Skill,*|*,Skill\(*) die "ALLOWED_TOOLS holds Skill: a skill pre-approves its own tools, so a watcher could write or send. Remove it, set SKILL=<name> and Read the skill instead" ;; esac
+  local tools=",${ALLOWED_TOOLS//[[:space:]]/},"
+  case "$tools" in *,Skill,*|*,Skill\(*) migrate_skill_job; tools=",${ALLOWED_TOOLS//[[:space:]]/}," ;; esac
   if [ -n "$SKILL" ]; then
     case "$tools" in *,Read,*) ;; *) die "SKILL is set, so ALLOWED_TOOLS needs a plain Read (a scoped Read(...) may not reach the skill's file)" ;; esac
     [ -n "$(skill_file)" ] || die "skill $SKILL not found in $PROJECT_DIR/.claude/skills, ~/.claude/skills or an installed plugin"

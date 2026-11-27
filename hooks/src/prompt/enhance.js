@@ -4,7 +4,7 @@ import { DESKTOP_TONE } from '../core/constants.js'
 import { clip, homeOf, isDirectory, messageOf, statusLineOf } from '../core/format.js'
 import { modLog } from '../core/log.js'
 import { state } from '../core/state.js'
-import { findSkills, findTaskDocs, safeList } from '../docs/discovery.js'
+import { findAllTaskDocs, findSkills, safeList } from '../docs/discovery.js'
 import { relativeTo } from '../git/media.js'
 import { chip, isDesktop } from '../views/ui.js'
 
@@ -123,7 +123,7 @@ export function matchScore(line, words) {
 }
 
 export async function buildCatalogue($, cwd, draft) {
-  const docs = await findTaskDocs($, cwd)
+  const docs = await findAllTaskDocs($, cwd, await homeOf($))
   const words = draftWordsOf(draft)
   const entries = (
     await Promise.all(
@@ -394,6 +394,7 @@ export async function streamClaude($, cwd, prompt, onStep, isStale, args, deadli
   for (const bin of ['claude', (await homeOf($)) + '/.local/bin/claude']) {
     let pending = ''
     let outcome = null
+    let errText = ''
     let child = null
     const watcher = stopWatcher($, isStale, deadline)
     try {
@@ -406,7 +407,10 @@ export async function streamClaude($, cwd, prompt, onStep, isStale, args, deadli
         }
         if (pulled.done) break
         const { stream, text } = pulled.value
-        if (stream !== 'stdout') continue
+        if (stream !== 'stdout') {
+          errText = (errText + text).slice(-1000)
+          continue
+        }
         pending += text
         const lines = pending.split('\n')
         pending = lines.pop()
@@ -436,7 +440,7 @@ export async function streamClaude($, cwd, prompt, onStep, isStale, args, deadli
     } finally {
       watcher.end()
     }
-    return { outcome }
+    return { outcome, stderr: errText }
   }
   return null
 }
@@ -490,16 +494,20 @@ export async function headlessRun($, cwd, draft, skills, abort, sessionId, deadl
   const outcome = ran.outcome
   if (!outcome || outcome.is_error || typeof outcome.result !== 'string') {
     modLog($, 'enhance headless: ' + (outcome ? JSON.stringify(outcome).slice(0, 300) : 'no result event'))
-    return { parsed: null, retry: true, sticky: Boolean(outcome) && isLastingForkFailure(JSON.stringify([outcome.result, outcome.errors])) }
+    return { parsed: null, retry: true, sticky: isLastingForkFailure(outcome ? JSON.stringify([outcome.result, outcome.errors]) : ran.stderr) }
   }
   modLog($, 'enhance headless reply' + (sessionId ? ' (with this session)' : '') + ': ' + outcome.result.replace(/\s+/g, ' ').slice(0, 400))
   const parsed = parseEnhanceReply(outcome.result, null, cwd, skills, true)
   return { parsed, retry: !parsed }
 }
 
+export function pathIn(cwd, path) {
+  return path.startsWith('/') ? path : cwd + '/' + path
+}
+
 export async function docSetOf($, cwd, doc) {
   const folder = doc.replace(/\/current\.md$/, '')
-  const decisions = (await safeList($, cwd + '/' + folder + '/decisions'))
+  const decisions = (await safeList($, pathIn(cwd, folder + '/decisions')))
     .filter((entry) => entry.kind === 'file' && entry.name.endsWith('.md'))
     .map((entry) => folder + '/decisions/' + entry.name)
   return [doc, ...decisions]
@@ -512,7 +520,7 @@ export async function readPickedDocs($, cwd, docs) {
   for (const path of paths) {
     let text = ''
     try {
-      text = (await hostFsRead($, cwd + '/' + path)).slice(0, ENHANCE_DOC_CHARS)
+      text = (await hostFsRead($, pathIn(cwd, path))).slice(0, ENHANCE_DOC_CHARS)
     } catch {
       continue
     }
@@ -566,13 +574,15 @@ export function composeEnhanced(draft, parsed) {
 }
 
 export function docLabelOf(path) {
-  return path.replace(/^tasks\//, '').replace(/\/current\.md$/, '')
+  const inTasks = path.startsWith('/') ? path.replace(/^.*?\/tasks\//, '') : path.replace(/^tasks\//, '').replace(/\/tasks\//, '/')
+  return inTasks.replace(/\/current\.md$/, '')
 }
 
 export function enhanceSummary(parsed) {
   return [
   ...(parsed.quick ? ['quick read'] : []),
   ...(parsed.session ? ['read this chat'] : []),
+  ...(parsed.chatUnread ? ['chat not read'] : []),
   ...parsed.docs.map(docLabelOf),
   ...parsed.skills.map(({ skill }) => skill.command),
 ]
@@ -610,6 +620,7 @@ export async function startEnhance($) {
     if (enhanceState().abort !== abort) return
     if (!parsed) parsed = await quickEnhance($, cwd, draft, abort, skillList)
     if (!parsed || enhanceState().abort !== abort) return
+    if (!parsed.session && (await hostSessionId($).catch(() => ''))) parsed.chatUnread = true
     const enhanced = composeEnhanced(draft, parsed)
     if (enhanced.trim() === draft.trim()) {
       failEnhance($, 'Nothing to add, your prompt is unchanged')

@@ -8,7 +8,7 @@ git status --short
 ```
 Run in EVERY repo of a multi-repo project. Count applied files for agent scaling.
 
-## Work Already Committed (Not Yet Pushed)
+## Work Already Committed
 
 Count off the session's base commit instead of the working tree:
 ```bash
@@ -16,6 +16,8 @@ git diff --name-only <base>..HEAD
 ```
 
 Where `<base>` is HEAD at session start (or merge-base with trunk if unknown).
+
+A session that wrote nothing, or args naming the last release, uses that release's commit as `<base>` instead (`git log --format=%h -S'"version": "<release>"' -- <version-file> | tail -1`, with any one file that carries the version). With no release named, or no version file, the base is the newest commit a `/done` Output names (in a task doc or session log); with none found, ask the user for the last release, commit or date before reviewing, since the session-start base would give an empty range here. Then list `git log --oneline <base>..HEAD` and mark each commit covered (a `/done` Output names it, or it touches only `tasks/**` notes) or not. Everything else counts as code, including skills, agent files, references, CLAUDE.md and any ruleset a hook injects, since a reader acts on them. The uncovered ones are the review scope. The session-start `<base>` above stays the base for a session that committed its own work.
 
 **Trap:** This assumes commits are reachable from the branch you're standing on. If the session worked in a worktree, a checked-out branch you left, or another repo's PR branch, `HEAD` belongs to work you never touched, so `<base>..HEAD` comes back empty while `git status --short` shows files that aren't yours.
 

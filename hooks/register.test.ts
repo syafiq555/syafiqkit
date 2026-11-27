@@ -2217,6 +2217,8 @@ const stubEnhance = (
   reply: (box: { text: string }) => any,
   digest: () => any = () => answered('{"facts": []}'),
   headless: ((argv: string[]) => any) | null = null,
+  cwd = '/work',
+  extraTree: Record<string, any[]> = {},
 ) => {
   const calls: any[] = []
   const digests: any[] = []
@@ -2224,21 +2226,26 @@ const stubEnhance = (
   on('process.spawn', async function* (_$: any, e: any) {
     runs.push(e.argv)
     if (!headless) throw new Error('spawn ' + e.argv[0] + ' ENOENT')
-    for await (const event of headless(e.argv)) yield { stream: 'stdout', text: JSON.stringify(event) + '\n' }
+    for await (const event of headless(e.argv)) yield event.stderr === undefined ? { stream: 'stdout', text: JSON.stringify(event) + '\n' } : { stream: 'stderr', text: event.stderr }
     return { value: { code: 0, signal: null } }
   })
   on('ui.toast', (_$: any, e: any) => {
     toasts.push(e.text)
     return { value: undefined }
   })
-  stubSession(on, [], [], [], ['fs.list', 'ui.toast'])
+  stubSession(on, [], [], [], ['fs.list', 'ui.toast', ...(cwd === '/work' ? [] : ['session.cwd'])])
+  if (cwd !== '/work') on('session.cwd', () => ({ value: cwd }))
   stubTree(on, {
     '/work/tasks': [{ name: 'mod', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false }],
     '/work/tasks/mod': [{ name: 'current.md', kind: 'file', size: 60, mtimeMs: 999_000, isLink: false }],
     '/work/tasks/mod/decisions': [{ name: 'builds.md', kind: 'file', size: 60, mtimeMs: 999_000, isLink: false }],
     '/work/.claude/skills': [{ name: 'uiux', kind: 'directory', size: 0, mtimeMs: 999_000, isLink: false }],
+    ...extraTree,
   })
-  on('fs.read', (_$: any, e: any) => ({ value: String(e.path).endsWith('SKILL.md') ? SKILL_TEXT : DOC_TEXT }))
+  on('fs.read', (_$: any, e: any) => {
+    if (/\/work\/.*\/work\//.test(String(e.path))) throw new Error('ENOENT ' + e.path)
+    return { value: String(e.path).endsWith('SKILL.md') ? SKILL_TEXT : DOC_TEXT }
+  })
   on('prompt.read', () => ({ value: { text: box.text, cursor: box.text.length } }))
   on('prompt.fill', (_$: any, e: any) => {
     box.text = e.text
@@ -2440,6 +2447,56 @@ test('enhance falls back to the quick read when the headless run reports an erro
   await band.unmount()
 })
 
+test('enhance quick read finds and reads a task doc in a folder above the session', async ($, on) => {
+  const box = { text: DRAFT }
+  const calls = stubEnhance(on, box, [], () => rewrite({ goal: 'Quick rewrite.', docs: ['/work/tasks/mod/current.md'] }), undefined, null, '/work/app')
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(String(calls[0].prompt)).toContain('/work/tasks/mod/current.md | The Mod')
+  expect(calls.digests.length).toBe(1)
+  expect(String(calls.digests[0].prompt)).toContain('=== /work/tasks/mod/current.md\n<!--')
+  expect(String(calls.digests[0].prompt)).toContain('=== /work/tasks/mod/decisions/builds.md\n')
+  expect((await band.findAll({ type: 'Text', text: /quick read · mod/ })).length).toBe(1)
+  await band.unmount()
+})
+
+const docEntry = fileEntry('current.md', 60)
+
+test('enhance quick read reads a child repo task doc and labels it with the repo name', async ($, on) => {
+  const box = { text: DRAFT }
+  const calls = stubEnhance(on, box, [], () => rewrite({ goal: 'Quick rewrite.', docs: ['be/tasks/billing/current.md'] }), undefined, null, '/work', {
+    '/work': [dirEntry('tasks'), dirEntry('be'), dirEntry('fe')],
+    '/work/be/tasks': [dirEntry('billing')],
+    '/work/be/tasks/billing': [docEntry],
+    '/work/fe/tasks': [dirEntry('billing')],
+    '/work/fe/tasks/billing': [docEntry],
+  })
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(String(calls[0].prompt)).toContain('be/tasks/billing/current.md | The Mod')
+  expect(String(calls[0].prompt)).toContain('fe/tasks/billing/current.md | The Mod')
+  expect(String(calls.digests[0].prompt)).toContain('=== be/tasks/billing/current.md\n<!--')
+  expect((await band.findAll({ type: 'Text', text: /quick read · be\/billing/ })).length).toBe(1)
+  await band.unmount()
+})
+
+test('enhance quick read checks at most 400 child folders for task docs', async ($, on) => {
+  const box = { text: DRAFT }
+  const names = Array.from({ length: 401 }, (_, i) => 'd' + String(i).padStart(3, '0'))
+  const calls = stubEnhance(on, box, [], () => rewrite({ goal: 'Quick rewrite.' }), undefined, null, '/work', {
+    '/work': names.map(dirEntry),
+    '/work/d399/tasks': [dirEntry('kept')],
+    '/work/d399/tasks/kept': [docEntry],
+    '/work/d400/tasks': [dirEntry('past')],
+    '/work/d400/tasks/past': [docEntry],
+  })
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(String(calls[0].prompt)).toContain('d399/tasks/kept/current.md')
+  expect(String(calls[0].prompt)).not.toContain('d400/tasks/past')
+  await band.unmount()
+})
+
 test('enhance forks this session into the headless run so the draft is read against the conversation', async ($, on) => {
   const box = { text: DRAFT }
   const calls = stubEnhance(on, box, [], () => rewrite({}), undefined, () => [
@@ -2465,6 +2522,7 @@ test('enhance forks this session into the headless run so the draft is read agai
   expect(calls.length).toBe(0)
   expect(box.text).toBe('Session rewrite.')
   expect(await band.findAll({ type: 'Text', text: /read this chat/ })).not.toHaveLength(0)
+  expect(await band.findAll({ type: 'Text', text: /chat not read/ })).toHaveLength(0)
   await band.unmount()
 })
 
@@ -2510,6 +2568,28 @@ test('enhance retries without the session when the forked run fails, before the 
   expect(calls.runs[1][11]).not.toContain('The conversation above')
   expect(calls.length).toBe(0)
   expect(box.text).toBe('Fresh rewrite.')
+  expect(await band.findAll({ type: 'Text', text: /chat not read/ })).not.toHaveLength(0)
+  box.text = DRAFT
+  await band.press({ key: 'enhance-undo' }).catch(() => {})
+  box.text = DRAFT
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(3)
+  expect(calls.runs[2]).not.toContain('--resume')
+  await band.unmount()
+})
+
+test('enhance stops forking for the session when an older claude rejects the fork option on stderr', async ($, on) => {
+  const box = { text: DRAFT }
+  const calls = stubEnhance(on, box, [], () => rewrite({}), undefined, (argv: string[]) =>
+    argv.includes('--resume')
+      ? [{ stderr: "error: unknown option '--fork-session'\n" }]
+      : [{ type: 'result', is_error: false, result: JSON.stringify({ goal: 'Fresh rewrite.', docs: [], skills: [], open: [], facts: [] }) }],
+  )
+  on('session.id', () => ({ value: 'sess-old-cli' }))
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  await band.press({ key: 'band-enhance' })
+  expect(calls.runs.length).toBe(2)
+  expect(box.text).toBe('Fresh rewrite.')
   box.text = DRAFT
   await band.press({ key: 'enhance-undo' }).catch(() => {})
   box.text = DRAFT
@@ -2530,6 +2610,7 @@ test('enhance runs without the session when the host gives no session id', async
   expect(calls.runs.length).toBe(1)
   expect(calls.runs[0]).not.toContain('--resume')
   expect(box.text).toBe('Fresh rewrite.')
+  expect(await band.findAll({ type: 'Text', text: /chat not read/ })).toHaveLength(0)
   await band.unmount()
 })
 

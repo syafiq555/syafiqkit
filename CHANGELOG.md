@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.496.0
+
+**Enhance now says when it could not read your chat. Before, a session too long for haiku got a generic rewrite with no sign the chat was skipped.**
+- Enhance's quick read (used when the full run fails) now finds and reads task docs in parent and child folders, as `/task-docs` does. A child repo's doc is labelled with the repo name (`be/billing`).
+- Update with `claude plugin update syafiqkit@syafiqkit`, then `/reload-plugins` or start a new session.
+- A press whose chat read failed or was skipped shows `chat not read` in the line Enhance leaves when it finishes, beside `quick read` and the docs it used. Very long sessions are the usual cause; the rewrite then works from your task docs only.
+- An older `claude` that does not know `--fork-session` is now caught on the first press, and Enhance stops trying the chat read for the rest of that session instead of failing and retrying on every press.
+- `/task-docs` checks at most 400 folders one level down when it looks for repos inside a workspace, so a folder holding hundreds of repos stays quick to open.
+- `/headless-watch`: the morning message now also gives the shell command, `bash ~/.claude/watchers/bin/watcher.sh uninstall <name>`, because replying to the alert reaches Claude only when a Telegram Channels session is running, and never on ntfy. Reinstall each watcher to get the new line.
+- `/headless-watch`: a watcher set up before 1.494.0 no longer needs hand edits. Ask Claude to "reinstall my <name> watcher with /headless-watch" and `install` moves it over, keeping a copy of the old settings and leaving your prompt as it is. Check the skill it prints. When your prompt doesn't name one installed skill clearly, it stops and says what to set instead of guessing.
+- `/headless-watch`: the skill now says how to pause (`uninstall`), resume (`install`) and change a watcher (edit `INTERVAL_MIN` or `MODEL` in `job.env`, then `install`).
+- `/done` reviews the design of things a session built outside the repo (a clip, deck or rendered file). That rule arrived in 1.494.0 without a note; new here, it also runs when the repo itself has no changes.
+- `/done` in a session that changed nothing itself (a fresh one, or after `/clear`), or one given the last release ("then /ship, last posted 1.488.0"), now reviews every commit since that release that no `/done` covered, whoever wrote it. Before, it reported nothing to review while other sessions' pushes had already gone out unreviewed. `/ship`'s release note checks the same range before it is written.
+
 ## 1.495.0
 
 **A `/headless-watch` watcher's morning message now says how to stop it: "To stop: ask Claude to stop the <name> watcher." The way out is on your phone, not only in the setup chat.**

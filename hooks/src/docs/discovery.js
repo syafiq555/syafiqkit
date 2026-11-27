@@ -79,7 +79,7 @@ export async function findAllTaskDocs($, cwd, home) {
 }
 
 export async function childrenWith($, cwd, sub) {
-  const folders = (await safeList($, cwd)).filter((entry) => entry.kind !== 'file' && !entry.name.startsWith('.') && !NESTED_SCAN_SKIP.includes(entry.name))
+  const folders = (await safeList($, cwd)).filter((entry) => entry.kind !== 'file' && !entry.name.startsWith('.') && !NESTED_SCAN_SKIP.includes(entry.name)).slice(0, NESTED_SCAN_FOLDERS)
   const found = await Promise.all(folders.map(async (entry) => ((await safeList($, cwd + '/' + entry.name + '/' + sub)).length ? cwd + '/' + entry.name : '')))
   return found.filter(Boolean).sort()
 }
