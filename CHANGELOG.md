@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.499.0
+
+**New `carousel-builder` skill: TikTok and Instagram photo carousels from HTML slides, with the safe-zone and text-size rules measured on every slide instead of judged by eye.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Slides use the brand's own tokens and real product screenshots and render to 1080x1920 (TikTok, Reels, Stories) or 1080x1350 (Instagram carousel) JPEGs.
+- A run exits 1 and boxes every offender in `check-NN.png` when text sits in a platform's UI band, a capital letter is under 28 px, contrast is under WCAG's ratio, text is clipped or spills out of its card, a web font or weight fell back, an image is missing, or the copy has a dash, an emoji or a banned word. `node carousel.mjs copy post.txt` checks the caption the same way.
+- Instagram bands follow Meta's 14% top, 35% bottom, 6% sides guidance and the 3:4 profile-grid crop; TikTok's come from the Autorentic week 2 score rubric, kept as the worked example (rebuilt pixel-identical, and the contrast check found a 4.40:1 slide counter the hand scoring missed).
+- A neutral starter post and brand sheet pass every preset as shipped.
+- `product-still` and `motion-clip` now send carousel requests here.
+- Mod: only an answer that names a picture now redraws when a picture finishes, instead of every answer in the chat, and `SYAFIQKIT_MOD=0` turns off the picture hooks on answers and Read rows too. A long session with many pictures crashed Claude Code with React error #185 (too many redraws) on resume and sometimes on fast scroll; the mod's redraws are the likely contributor, but the crash was not reproduced in a test. If it comes back after a restart (the `/task-docs` list shows `mod v1.499.0`), start Claude Code with `SYAFIQKIT_MOD=0` and scroll again: a crash then is Claude Code's own.
+- `explainer-deck`: a deck can carry the TSB-style logo on its dark slides (`logo_on_dark`), place typeset LaTeX equations and trees with a new `image` picture kind (figures still checked through its `text`), and repeat a "who is under who" chip strip (`chain`) on hierarchy slides. New rules: name the people in a hierarchy and draw the tree once, label working in the source's own words, and tell a disputed point as a story. Bad image, logo or chain input now gives a one-line error instead of a crash.
+
 ## 1.498.9
 
 **A "not nice" said in the middle of a score loop now goes to `uiux`'s rendered directions instead of the next build, and a brief that names skills gets each one invoked rather than re-run by hand.**

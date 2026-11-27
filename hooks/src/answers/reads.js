@@ -43,7 +43,7 @@ function readImageTargets(calls) {
 }
 
 async function withReadImages($, e, drawn) {
-  if (state.disabled || !drawn) return drawn
+  if (!drawn) return drawn
   const targets = readImageTargets(readCallsOf(e.props || {}))
   if (!targets.length) return drawn
   await read($, picturesTick)
@@ -62,7 +62,7 @@ async function withReadImages($, e, drawn) {
 
 export async function readPicturesView($, e, next) {
   const drawn = await next(e)
-  if (e.surface !== 'terminal') return drawn
+  if (e.surface !== 'terminal' || state.disabled) return drawn
   try {
     return await withReadImages($, e, drawn)
   } catch (error) {

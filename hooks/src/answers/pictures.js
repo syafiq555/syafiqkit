@@ -176,8 +176,7 @@ export function wantFilePictures($, items) {
 
 export async function answerPicturesView($, e, next) {
   const drawn = await next(e)
-  if (e.surface !== 'terminal') return drawn
-  await read($, picturesTick)
+  if (e.surface !== 'terminal' || state.disabled) return drawn
   try {
     return await withPictures($, e, drawn)
   } catch (error) {
@@ -187,12 +186,12 @@ export async function answerPicturesView($, e, next) {
 }
 
 async function withPictures($, e, drawn) {
-  if (state.disabled) return drawn
   const props = e.props || {}
   if (props.isSummary || typeof props.text !== 'string' || !props.text.trim()) return drawn
   if (!drawn || hasImage(drawn)) return drawn
   const found = findPictures(props.text)
   if (!found.length) return drawn
+  await read($, picturesTick)
   const { Box, Text, Button, Image } = hostUiResolve($, e)
   if (!Image) return drawn
 
