@@ -46,7 +46,7 @@ This skill sequences the three; all mechanics live in `syafiqkit:haiku` (snapsho
    - **CLAUDE.md unit.** A CLAUDE.md set ("all claude.md") is each CLAUDE.md and CLAUDE.local.md plus every `.claude-companions/**/*.md` beside it, gitignored `local/` ones included, each a CLAUDE.md in its own right; credential-holding ones go through § A target that holds credentials, never out of the set. Condense a parent after its companions, so it can move content into them.
    - **Task doc unit.** `current.md` plus its `decisions/*.md` siblings, one document across files. **Siblings grow unattended while passing sessions refresh the index, so they hold the density the refresh exists to fix**; `ls -lc current.md decisions/*.md` shows each one's density.
    - **Source captures** stay in the set. Each pass skill guards its own (`condense-task-doc` § source capture keeps every quote; `unhobble-instructions` skips it), so hand it over rather than skip a pass. **Tell: your scope line excludes a sibling as "verbatim", "capture" or "read by scripts".**
-   - **Skill unit.** `SKILL.md` plus the files it routes to. Name them up front, and put any left out in the scope line with its reason. A vendored file whose scripts cite it by step or rule number keeps that numbering.
+   - **Skill unit.** `SKILL.md` plus the files it routes to. Name them up front, and put any left out in the scope line with its reason. A vendored file whose scripts cite it by step or rule number keeps that numbering. A vendored skill is in scope like any other, since upstream's writing is not a reason to leave it over budget. First save upstream's file untouched at `upstream/SKILL.upstream.md`. Then record each move in its `SOURCE.md`, so a later upstream release merges three-way: diff the old upstream file against the new one, then apply the changes to the moved passages (28/11/2026: two vendored skills were first left out as "vendored", and the user answered "should be fine as long we can somehow reconcile").
    - Incidents: 📖 `references/process-details.md` § Target-set incidents.
 
 2. **Snapshot** byte and line count before Pass 1. Probe git once (`git rev-parse --git-dir`, `git rev-parse HEAD`); where either fails, use `wc`/`cmp` and mtime (📖 `../_shared/references/verifying-a-write-landed.md`). **A target holding passwords or keys** gets a masked copy and a token-set survival check, not a printed diff (📖 `references/process-details.md` § A target that holds credentials).
@@ -71,7 +71,7 @@ This skill sequences the three; all mechanics live in `syafiqkit:haiku` (snapsho
 
 7. **Snapshot again.**
 
-8. **Dispatch Pass 3**, verify.
+8. **Dispatch Pass 3**, verify. Then a fresh reviewer compares the pass-0 snapshot with the final files. It looks for any rule that governs an act that can't be undone (commit, push, post, send, delete, create in a live system) and now sits only behind a pointer. Each one goes back inline at its step. The between-pass reviewer misses these, because a moved rule reads as kept. **Tell: the pointer at an irreversible step is all that remains of its rule.** (28/11/2026: after twelve refreshes, the rule keeping customer data out of `ship`'s release captures, and the live-provider hold, survived only in references.)
 
 9. **Report pass-by-pass**, not net diff: readers deciding whether to trust the result need to know what each pass moved. A credential target's snapshots and check file stay until `/done`'s reviewers return, not until this report (📖 `references/process-details.md` § A target that holds credentials).
 

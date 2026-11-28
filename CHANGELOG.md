@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.501.2
+
+**`refresh-instructions` now covers vendored skills, and its last check puts back inline any rule at a step that can't be undone.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Vendored skills are in scope. Save upstream's file untouched at `upstream/SKILL.upstream.md` and record each move in `SOURCE.md`, so later upstream releases still merge three-way.
+- After Pass 3, a fresh reviewer compares the pass-0 snapshot with the final files for any rule governing a commit, push, post, send, delete or live-system create that now sits only behind a pointer, and each one goes back inline at its step.
+
 ## 1.501.1
 
 **Rules the 1.501.0 refresh had cut or buried are back inline. The two vendored skills, `taste` and `emil-design-eng`, are now under the 5,000-token re-attach point too, and can still take upstream updates.**
