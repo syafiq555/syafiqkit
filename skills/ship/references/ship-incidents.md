@@ -49,3 +49,23 @@ A staging deploy failed because the server lacked a PHP extension the new code u
 ## Live webhook missing after a go-live
 
 A store switched its card gateway from test to live mode. The live keys went in, but the live-mode webhook endpoint was never created, because the test-mode one had worked all through UAT. The client found it missing. Live and test mode are separate in the provider's dashboard; the fix was creating the live endpoint and confirming it listed and enabled. Owner decisions 27/11/2026: `/ship` shows the live settings and creates them only on the user's yes, and holds the release note, cards, client row and work log while the go-live is unverified.
+
+## /done output skipped before the chain (18/11/2026, 27/11/2026)
+
+Asked for "/done and /ship" together, the review's fixes and their tests feel like the wrap-up and the chain jumps to Step 1, leaving Knowledge, Task docs and the plugin gate unrun (18/11/2026: a tool built and shipped this way never reached `update-plugin`). On 27/11/2026 three questions a `/done` had just answered were built and taken straight to the push, and the user asked for `/done` first. Supports Prerequisites: `/done` must have reached its Output.
+
+## Release card left in to-do (25/11/2026)
+
+Release-note cards stayed in the board's to-do column after their posts went out: 18 had piled up, and the team's board tidy closed them by hand. Supports Step 5 item 9.
+
+## Format named by a project doc skipped (20/11/2026)
+
+A GB Mart rule saying "short bold sections" was drafted plain to match the space's last posts, and the user asked for `/gchat-format` after it was sent. Supports Step 5 item 6.
+
+## Second ship replaced the release note (27/11/2026)
+
+A second ship's 1.496.0-only note replaced the 1.490.0 to 1.495.0 note on the clipboard, and the user asked "So only these are the release note from the last time i posted is it ?" Supports Step 5 release-note scope in `ship-step-details.md`.
+
+## Reply to a Chat ask in the wrong space (19/11/2026)
+
+An nginx CVE patch the CTO asked for in the tech group was previewed straight into the product space, and the user stopped it with "check the tech group one". The ask arrived as the words pasted in (a link plus a one-line "patch if any"), so the space it came from has to be searched for before a destination is chosen. Supports Step 5 item 7.

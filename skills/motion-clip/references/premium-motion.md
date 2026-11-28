@@ -30,7 +30,7 @@ A spotlight `rect` is in fractions of the screenshot. Overlay a grid on the shot
 
 ## Camera size and layouts {#camera-size}
 
-A whole screen shown at two-thirds of a 9:16 frame leaves its UI unreadable on a real phone, and a desktop screenshot in a vertical frame is smaller still, so zoom to the part the caption is about. Side-by-side layouts use smaller captions and less camera zoom (a quarter for `phone`, 60% for the wider frames), or the text runs into the picture. A browser shot in widescreen still needs a strong push-in for its UI text to read. One camera rarely frames both shapes well, since the vertical cut uses the full zoom and pan while side-by-side damps them: the renderer sizes the page to the output, so a story wrapped in its IIFE can read `const V = window.innerHeight > window.innerWidth` and give 9:16 its own keyframes (or its own picture files) per beat.
+A whole screen shown at two-thirds of a 9:16 frame leaves its UI unreadable on a real phone, and a desktop screenshot in a vertical frame is smaller still, so zoom to the part the caption is about. Side-by-side layouts use smaller captions and less camera zoom (a quarter for `phone`, 60% for the wider frames), or the text runs into the picture. A browser shot in widescreen still needs a strong push-in for its UI text to read. One camera rarely frames both shapes well, since the vertical cut uses the full zoom and pan while side-by-side damps them: the renderer sizes the page to the output, so a story wrapped in its IIFE can read `const V = window.innerHeight > window.innerWidth` and give 9:16 its own keyframes (or its own picture files) per beat. Text too long for its space shrinks to fit, and `check` warns when a caption shrinks below 80%: split that row into shorter ones. A 4:5 frame falls on the side-by-side side of the split; check it with a still before promising one.
 
 ## Room presentations {#room-presentation}
 
@@ -46,4 +46,23 @@ An anniversary, birthday or family film is a run of full-frame `photos` with `fr
 
 ## Number beat examples {#number-examples}
 
+`stat` takes `{ at, out, value, prefix, suffix, label, source }` and counts up to a figure with a label and optional source. `number` merges dropped cards into one pill for a "many become one" fact.
+
 `stat` examples: "99.9%", "3x faster". `number` examples: twenty bills merged into one payment, twelve tools merged into one app.
+
+## Opening logo, studio credit and end card {#studio-credit}
+
+`opening: { logo, out }` draws the client's logo above the hook from frame 0 (it shrinks to fit the space above the hook; without `out` it stays). A film made for a client by a studio that signs its work takes `credit: { file, label: 'Prepared by', windows: [[0, 2.6], [lockupAt + 1, null]] }`: the studio's logo bottom-centre, at least 35 px tall (`minHeight`), in each window (`null` holds to the end). The studio's own end card after the client's lockup is `outro: { at, bg, ink, logo, font: { family, file, weight }, tagline, lines: [['Label:', 'value'], ...] }`: a full-frame panel in the studio's colour slides up, then its logo, tagline and contact groups rise in, with a whoosh and chime added to the cues. Extend `duration` by about 4 s for it, end the `credit`'s last window before `at`, and take colour, font and logo from the studio's brand guide: a logo whose accent mark is the panel's colour vanishes, so use an all-white version on a coloured panel.
+
+## Counters for before and after {#counters}
+
+A before/after or app-versus-app film counts effort with `counters: [{ from, to, label, color }]`: a pill under the captions showing how many `taps` have landed between `from` and `to`, so each side's count comes from the same taps the viewer sees. Give both sides the same seconds per tap, or the edit, not the product, decides which looks slower.
+## Logo blend {#logo-blend}
+
+The logo blends with `multiply`, which suits white; on a dark page set `logoBlend: 'source-over'` and use a transparent PNG. A logo whose PNG has an off-white box shows as a pale rectangle on a tinted page even under `multiply`: turn its whiteness into alpha and draw it `source-over`.
+
+## Client walkthroughs on a phone {#walkthrough}
+
+Each beat is a composed still from `product-still`: the claim, a tight desktop crop and, on customer beats, the real phone screen, phone-first in 9:16, with a voice-over and word-timed subtitles.
+
+A client walkthrough of a web app that people will watch on a phone uses full-frame `photos`, not a device beside captions, as the room-presentation films do. Capture desktop at a real laptop width (1440x900) and phone at 390, never an in-between viewport the client would not recognise as either. A browser-frame walkthrough scoring 16/20 (20/11/2026) was replaced by this format at the user's ask.

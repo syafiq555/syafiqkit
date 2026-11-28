@@ -17,4 +17,6 @@ The track path is relative to where you run `score.py`. `check` measures this `s
 
 ## Generated bed details {#generated-bed}
 
+The moods share instruments and rhythm, so offer the bed as one option, not three.
+
 The bed runs at the story's `music.bpm` (120 by default, so 0.5 s per beat). `music.mood` sets its character: `bright` (default, upbeat), `calm` (half-time kick, no clap) or `dark` (minor chords), matched to the feeling in the brief.

@@ -26,3 +26,7 @@ Before verifying, surface any ordering constraints to the user.
 **Feature status claims:** A doc claiming "not yet on prod" is a claim, not a fact. Check it: `git merge-base --is-ancestor <feature-sha> origin/<deploy-branch>` tells you if it's actually deployed. Docs written before a merge stay unedited after, so live-and-inert features get skipped.
 
 📖 `ship-deploy-verification.md` → **Seeded Reference Data** for verification recipes.
+
+## Concurrency cancels the run you verify
+
+A workflow with `cancel-in-progress` concurrency cancels the run you are verifying when a later push lands on the same branch, so the watch reports "canceled", not a result for your fix. Hold any further push to that branch (a `/done` docs commit included) until the run resolves, or fold it into the same push.

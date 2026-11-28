@@ -22,6 +22,10 @@ Confirm the stack from what *loads* it — the layout's script tags, the entry p
 
 A framework or tooling verdict has the largest blast radius, so state it as a proposal with its cost, and take execution to `brainstorming` as its own task. The uiux skill's job is to notice and name it before designing on top of it, and to get it into the project's task doc at wrap-up (`/done` captures it) so the next session inherits the finding rather than rediscovering it.
 
+## Working inside an app's language
+
+Work inside the conventions unless told otherwise; when you break one, say which and why. A brief that pins a direction overrides the app's language. A verdict beyond the visual layer (component library, framework) is a finding with a blast radius, stated before designing and never inside a polish request.
+
 ## Sources
 
 - Audit shape (token binding, component drift, maturity classification): https://github.com/edenspiekermann/Skills/blob/main/skills/audit-design-system/SKILL.md

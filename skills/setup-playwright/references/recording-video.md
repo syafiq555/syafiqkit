@@ -10,7 +10,9 @@ A recorded pass is the cheapest way to see the product. A reviewer watching the 
 
 `use.video` reaches only the contexts the runner builds for its own `page` fixture, and files them under the per-test output dir. Specs that build contexts by hand, such as any multi-party flow holding two sessions open at once, need the context-level `recordVideo` option instead.
 
-Set one and half the suite silently records nothing while the config reads as done. Set both and the halves land in two directories, so gather them afterwards, or the missing half reads as "that spec didn't record."
+Set one and half the suite silently records nothing while the config reads as done.
+
+Set both and the halves land in two directories, so gather them afterwards, or the missing half reads as "that spec didn't record."
 
 ## Verify a frame {#verify-frame}
 
@@ -29,7 +31,7 @@ A pass count catches none of these. Do the frame check before the file reaches t
 
 ## Encoding and naming {#encoding-naming}
 
-Encoding stops the moment a context closes, and a spec ends on its last assertion, so a fast test records its loading state and nothing else. Hold each context open briefly before closing, behind the same flag that turns recording on, so a normal run pays nothing.
+A spec ends on its last assertion, so a fast test records its loading state and nothing else. Hold each context open briefly before closing, behind the same flag that turns recording on, so a normal run pays nothing.
 
 A hand-built context's video lands under a content hash the runner reports nowhere, so number-by-creation-time makes every video anonymous. The mapping is recoverable only from inside the test while the page is still open, where the video handle resolves to its path. Record it there, keyed to the test title, and rename during collection. Route every context through one close helper so naming and the tail wait have a single home. A context closing by itself skips both, and the missing name is the visible symptom of a truncated recording.
 
@@ -43,4 +45,8 @@ General shape: anything the worker is launched with is file-scoped; anything abo
 
 ## Viewport framing {#viewport-framing}
 
-A recording is a viewport, not the page: content below the fold is absent, and a modal taller than the viewport looks cropped. The framing (scrolling the subject into shot, and any interaction the spec skips) sits behind the recording flag and is a no-op otherwise. Scrolling alone still films an empty element when the subject only populates after an interaction.
+A recording is a viewport, not the page: content below the fold is absent, and a modal taller than the viewport looks cropped. The framing (scrolling the subject into shot, and any interaction the spec skips) sits behind the recording flag and is a no-op otherwise. Scrolling alone still films an empty element when the subject only populates after an interaction, such as a grid that stays empty until a date is picked.
+
+## Gate the framing {#gate-framing}
+
+Reveal, pace and hold are camera-only and belong behind the flag; an `expect` does not, since gated it runs only when someone records. Hoist an `expect` out of a recording-only block and leave only the framing. An API read verifies state, but the *rendering* of it is different code and needs its own assertion.

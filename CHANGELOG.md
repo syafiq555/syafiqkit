@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.501.0
+
+**Twelve skills that ran past the 5,000-token re-attach point are back under it, so their whole body survives a compaction again.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Refreshed in three passes (restructure, condense, unhobble), with a fresh reviewer before the last pass restoring anything condense deleted rather than moved. Rare branches and incident stories moved into each skill's own `references/`, with a pointer naming the moment they're needed.
+- Tokens before → after:
+  - `uiux`: 7,381 → 4,856
+  - `ship`: 6,996 → 4,965
+  - `done`: 6,747 → 4,998
+  - `read-summary`: 6,633 → 4,997
+  - `motion-clip`: 6,252 → 4,978
+  - `haiku`: 5,931 → 4,848
+  - `setup-tracker`: 5,738 → 3,681
+  - `gchat-format`: 5,684 → 4,528
+  - `setup-playwright`: 5,169 → 4,748
+  - `refresh-instructions`: 5,121 → 4,537
+  - `score-loop`: 5,060 → 4,220
+  - `casual-message`: 5,015 → 4,823
+- The frontmatter descriptions are unchanged, and every heading other skills cite is unchanged.
+- New reference files:
+  - `done`: `reviewer-questions.md`, `step4-task-doc-invocation.md`
+  - `gchat-format`: `incidents.md`, `send-tool-route.md`
+  - `motion-clip`: `deliver.md`
+  - `read-summary`: `branches.md`
+  - `score-loop`: `judge-setups.md`
+  - `setup-tracker`: five new files (build details, alerts, master sheet, shared log layout, sign-in)
+  - `ship`: `ship-step-details.md`
+  - `uiux`: `design-pass-details.md`
+- `done`, `read-summary`, `motion-clip` and `ship` are within 40 tokens of the limit, so a new rule there needs something moved out first.
+- `taste` and `emil-design-eng` were left out: both are vendored, and `emil-design-eng` runs long on purpose.
+
 ## 1.500.4
 
 **`/done`'s summary tables now render on the phone app and Remote Control.**

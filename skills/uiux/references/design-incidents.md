@@ -41,3 +41,15 @@ Measured 2026-10-22: a category-picker proposal cited only the app's own compone
 ## The stale slider reads as a bug
 
 An image slider kept the previous photo until the next one loaded, and users reported it as broken. Show a pending state in its place, at the final size.
+
+## Same-domain research only
+
+Measured 22/11/2026 (a grocery redesign) and 25/11/2026 (a shop's page-system decision briefed as "fashion brands" only), both times the user had to ask for products from other domains. Every product in the brief sold what the user's product sold.
+
+## A new look chosen by tiebreak
+
+Measured 19/11/2026: a tiebreak picked the variant nearest the current look. Three rounds of tokens and atoms followed, and the user saw "little visual change": "not polish". A user who calls a product "not nice" expects a revamp they can see; a direction chosen by rule lands as the old look tidied.
+
+## A pick waits on a thin fixture
+
+Measured 27/11/2026: the pick waited on "if got items ?". Directions were rendered on a test fixture that misleads: the user judges how the page changes between its empty and busy states, so each state needs its own render on a real role's data.

@@ -34,3 +34,9 @@ Measured 2026-10-03 on a mobile line-item row (name, amount, note, per-row tax t
 ## Reporting
 
 Open with the case studies: one row per live product, the same cells across rows, a URL on each, and the products that could not be read named as such. Subject research (the client's brand, the user's own app) sits in its own section after them. Give the user the evidence and the judgement as two separate things. Hard numbers and named patterns carry a URL; the layout recommendation is yours, built on those and on any design source the user supplied (a reel's principles, a screenshot, a Figma frame), and it is labelled that way. Thin research is a finding to report, not a gap to fill with "best practice".
+
+## Renowned-UX library
+
+Start from `app-kit/library/ux-patterns.json`: renowned-UX pages captured at 390 and 1280 px, each tagged by `mechanisms` (scroll-story, sticky-stage, product-reveal, variant-picker, buy-column, brand-story, founder-note, collection-grid, pricing-compare, feature-tour, onboarding, social-proof) with `steal` moves. Filter it by the mechanism your screen needs, then capture fresh, since pages change. Append what a run verifies to the library.
+
+Products renowned for their UX in other domains, the list for the "outside your domain" leg (at least two per run, beside the domain's best): Apple, Aesop, Airbnb, Stripe, Linear, Our Place.

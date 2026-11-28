@@ -10,7 +10,7 @@ Open two or three cited URLs yourself before relaying anything, especially any c
 
 Ask the report to separate what was retrieved from what was not. An agent that must file `COULD NOT RETRIEVE` has somewhere to put a gap other than a guess.
 
-**A report where most cells say "not stated" has not found an absence; it has shown the brief pointed at pages that don't carry the answer.** Re-brief once at a different source kind (release notes, component demos and props) before relaying, and say what stayed unsourced if it is still thin.
+**A report where most cells say "not stated" has not found an absence; it has shown the brief pointed at pages that don't carry the answer.** Re-brief once at a different source kind (release notes, component demos and props) before relaying, and say what stayed unsourced if it is still thin. Source kinds that have worked for the second pass: walk-through articles with screenshots, app-store listings, a live page driven in a browser. A caveat on a thin table is not that second pass (2026-11-10: a live-store checkout survey came back mostly "not found" and went to the user as is).
 
 ## An honest wall of failures still needs checking
 

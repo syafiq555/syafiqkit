@@ -57,3 +57,11 @@ A scoped write that deletes content whose real home is outside its scope loses t
 ## Offering a reading as an observation
 
 Where you hold a reading of the target, offer it as an observation to test. "This file needs little of what you do, and here is why" is a legitimate result. A prompt that describes the expected finding as the job invites an agent to manufacture reshapes to look thorough.
+
+## Briefing a research dispatch
+
+Where the brief does name a large copy (a spec, a contract), name its outline too. A brief that says "grep the spec for X" gets a whole-file keyword sweep (17/11/2026: 136 hits across a 1,490-line requirements file whose outline sat beside it), while `read-summary` follows the decision pointers and reads a large verbatim copy through its outline by line range. Ask for an explicit "COULD NOT RETRIEVE: `<url>`, what happened" line for a blocked fetch, and a label on anything known only from training data. Ask which addresses came from a search and which were guessed; a guessed URL's 404 carries no information.
+
+## Briefing a fill-in shape
+
+Name the decision records to grep before the agent writes a value of its own. A required field with no empty option comes back filled with a plausible guess backed by a real quote on the same topic, which every quote check passes (08/11/2026: seven stop-writing agents invented four "defaults" the sources never set, one of them contradicting a recorded decision). When the result returns, read every such field against its source, not just the quotes.

@@ -1,6 +1,6 @@
 # Capturing a web app's real screens
 
-A throwaway Playwright spec in the product repo gives the truest pictures. It drives the real flow on the local dev site, signs in through the suite's own storageState, and builds its starting state through the suite's API helpers. Keep a copy in the clip folder so the shots can be re-taken, and delete it from the repo when you're done.
+A throwaway Playwright spec in the product repo gives the truest pictures. It drives the real flow on the local dev site, signs in through the suite's own storageState, and builds its starting state through the suite's API helpers. Keep a copy in the clip folder so the shots can be re-taken, and delete it from the repo when you're done. Check `git status` first and afterwards remove only what you added.
 
 Six things make a capture wrong without any error:
 

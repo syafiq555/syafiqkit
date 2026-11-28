@@ -56,3 +56,9 @@ Two driving mistakes produce goldens that look like captures landing one step la
 Look at each golden next to its name before going on; identical checksums for two different steps mean one of them caught the wrong moment.
 
 The screens carry no status bar. The film template draws one (time, signal, battery) in the colour of each screen's top edge, so give it that colour per screen.
+
+## Frames from a screen recording {#screen-recording}
+
+For a phone or desktop capture of the real flow, pull one frame a second (`ffmpeg -i rec.mp4 -vf fps=1 assets/raw/f_%03d.png`), tile them into numbered contact sheets of about 32, and pick the frame where each answer or screen has finished drawing. The motion between frames is lost; the camera and pushes replace it.
+
+Crop the device's own status bar off before the frames are used: it carries the capture's red recording pill and the real clock. Set `shot` to the cropped size and `statusTime: ''` so the engine's bar draws no clock.

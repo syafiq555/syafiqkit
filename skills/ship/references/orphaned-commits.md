@@ -57,3 +57,5 @@ If it isn't empty, don't reset. Instead, merge directly:
 ```bash
 git checkout <target> && git merge <current-branch> --no-edit
 ```
+
+`reset --hard origin/<branch>` is correct on the branch you merge *into* and destructive on the one you merge *from*, and `git status` reads clean after it, so the loss isn't visible.

@@ -6,9 +6,9 @@ Detail behind the hardening sections of `../SKILL.md`. The rules stay in SKILL.m
 
 A single desktop project has no coverage of any layout that changes below a breakpoint: a tab strip replacing a two-column grid, a card list replacing a table, a drawer replacing a sidebar. The suite goes green because it never renders that branch. A mobile-only break ships looking tested, and nothing announces the gap: nothing fails, and the spec names give no hint that they only ever ran wide.
 
-Most specs assert data, not layout, so re-running the whole suite at a second viewport doubles the run and re-checks data that does not change with width.
-
 Pixel 7's 839px height is taller than most phones, so a descriptor-only mobile project passes at a height that a shorter phone clips. Hence the explicit 375×667 and 320×568 `page.setViewportSize` specs.
+
+Most specs assert data, not layout, so re-running the whole suite at a second viewport doubles the run and re-checks data that does not change with width.
 
 ## Cross-file race: reproducing it {#race-repro}
 
@@ -20,7 +20,7 @@ Two specs on different `parallelIndex` slots hold different fixtures and never t
 
 ## Why partition, not lock {#partition-not-lock}
 
-A lockfile mutex does work, but it becomes a global bottleneck and fails in ways that read as unrelated bugs. A killed worker leaves a stale lock that wedges every later run. If the lock's acquire timeout exceeds the hook timeout, the hook dies first and reports a bare `"beforeAll" hook timeout` while the lock's own diagnostic never prints.
+A killed worker leaves a stale lock that wedges every later run. If the lock's acquire timeout exceeds the hook timeout, the hook dies first and reports a bare `"beforeAll" hook timeout` while the lock's own diagnostic never prints.
 
 ## parallelIndex versus workerIndex {#parallel-index}
 
@@ -47,3 +47,23 @@ A form can serialise a field away while the server answers 200: an empty object 
 ## Vacuous probes {#vacuity}
 
 A `sed` misfire or a cached view both produce a green run while the mutation never landed. When a probe still passes after its fixture is inverted, re-grep and check the count moved, or diff the file, before concluding the spec is vacuous.
+
+## Worker-count signature {#worker-count-signature}
+
+A suite was blamed in turn on the PHP pool size, the socket queue and a static-file rule. The request count named the real mechanism: about 950 modules a page from a dev server the local tooling had restarted mid-run, against about 35 from the built bundle.
+
+What a count usually shows, largest first: a dev server (Vite and the like) answering instead of the build, which some local hosts start by themselves; static files routed through the app runtime rather than served from disk; console-log or analytics beacons the specs never assert on.
+
+## Hot-file immunity {#hot-file-immunity}
+
+In a Laravel app on Vite, the testing environment points `Vite::useHotFile()` at a path that never exists, and a middleware active only in local does the same when Playwright sends a marker header (`use.extraHTTPHeaders`). The suite's guard then checks that the build manifest exists, not that the hot file is absent. The per-request switch held through every later run.
+
+## Seeder mechanics {#seeder-mechanics}
+
+Re-running never touches an existing row, including the columns specs mutate that a killed worker left un-restored. Scope the match key to the parent FK too, so a stale child under a deleted parent cannot shadow the real one.
+
+Seed the untidy shapes real data holds, not only the tidy ones: an empty JSON column, a legacy row missing a foreign key a newer table now carries, a record with no optional children. Tidy fixtures are why a form passes every spec and fails on the first old record a user opens.
+
+## Zero-tolerance proof {#zero-tolerance-proof}
+
+In the reported case three repeat runs then matched across 15 images, and a 1-pixel edit and a 1/255 colour change were still caught.

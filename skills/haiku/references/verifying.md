@@ -100,6 +100,14 @@ A delegated report can describe a method and hide who did the work. Read its usa
 
 A `comm`/`grep -o` sweep of backticked spans has driven a wrong verdict on every recorded occasion (ten CHANGELOG entries; the last returned 413 "losses" that were 23 rules). The number reads as a finding and is an artifact of tokenisation. A number an order of magnitude too large makes a patchable run look systemic; one too small makes real loss invisible.
 
+## A small gain is not a reason to revert
+
+Measured 2026-10-10: a condense that saved 1.9 KB and dropped six live passages was reverted whole, when patching them was the call.
+
+## A brief is a range in both directions
+
+Overshoot is the same miss and arrives labelled as a win. An agent briefed to cut to a *range* reads the number as a floor to beat. Rank the returned files by how far each landed from its brief and spend the meaning-read budget on the outlier first, in whichever direction it missed. **Tell: an agent's report states its result as exceeding the target rather than as landing in it.**
+
 ## Repo-wide baseline
 
 A repo-wide check needs a repo-wide BEFORE, or its output cannot be classified. Snapshotting the target establishes nothing about the other files in the tree, so a modified neighbour is equally consistent with agent overreach and with uncommitted work already sitting there. Absent a baseline the natural reading is that the agent did it, which is an accusation about work someone else left behind. Where a suspect file has no baseline, its mtime against the agent's run window settles it. Measured 2026-09-20 on a three-pass CLAUDE.md refresh: three modified files were read as surplus writes from a single-file dispatch and were 2-3 days old, from earlier sessions.

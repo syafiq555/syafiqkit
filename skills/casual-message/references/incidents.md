@@ -74,6 +74,8 @@ Measured 22/11/2026: a team reply said a lister "never clicked next", taken from
 
 Measured 25/11/2026: an agency named after a person was called "the landlord" in a client reply, and the user asked "what landlord one? are u sure?".
 
+Paraphrases, AI summaries and first looks compress events, and a count someone else took covers only their slice.
+
 ## A link the recipient cannot open {#link-check}
 
 Backs: a link in the draft is checked the way the recipient will open it (SKILL.md § Speaking for the sender).

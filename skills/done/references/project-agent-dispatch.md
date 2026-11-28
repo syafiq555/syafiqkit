@@ -7,3 +7,7 @@ When a project-local agent exists on disk, verify it's dispatchable before attem
 **Workaround:** Dispatch `Agent(subagent_type: "general-purpose")` instead, and hand it the agent file as its brief: "read `.claude/agents/<name>.md` and adopt it as your brief, then …" This preserves the agent's own role, process, and false-positive tables. Explain in the `/done` Output that the agent ran via general-purpose dispatch due to the timing gap.
 
 **Reload plugins?** No — `/reload-plugins` doesn't help. Project agents aren't plugins.
+
+## Memory Notes From a Reviewer Without Write
+
+A reviewer that holds no `Write` (a product reviewer generated from `agent-setup`'s template) ends its report with a `Memory notes` line. Save each note into `.claude/agent-memory/<agent>/` and its `MEMORY.md` index before Step 3, since nothing else will.

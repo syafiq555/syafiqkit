@@ -24,3 +24,13 @@ A design review here is a pass that improves the screen, not an audit. Every mer
 
 Then show the user the result: before and after captures of each changed screen at phone and desktop width, side by side, through the image gallery tool (`show_image` in syafiqkit) where it exists, otherwise as file paths in the reply; when the user may be on a phone or another device, through `SendUserFile` (`display: render`), since paths and the gallery do not reach them there. The Design row lists what was **changed** (finding, then fix), the merged score before and after, and anything left with its reason. **Tell: your Design row lists findings and no fixes.**
 
+## Which Screens Count
+
+Runs whenever the diff touches something a person sees: any page, screen, template, component, stylesheet, email, deck or rendered document. It equally covers anything a person will see that this session built outside the repo (social posts, slides, films, a deck in a work folder). List those from the session, not from git, since no diff shows them. (27/11/2026: TikTok previews built in a home folder were presented with no design pass until the user asked "use score loop and design skills already ?", and round 1 then failed each on text size, safe zone and brand.)
+
+An audit with nothing built is the complaint this step exists for ("Why does all other design skills only audit like that ?", 15/11/2026). A render check or a code or product pass does not stand in for it: on 14/11/2026 a redesigned admin screen passed both, and the user then had to ask for the design skills.
+
+## Fixes Wait for the Code Agents
+
+The measuring and critique run in the Step 1 batch. The fixes wait until the code agents have returned (one writer per file), are made by you, and count as reviewed by the check-render re-run and the Design row, so they do not reopen the late-code review in SKILL.md's Exit Gate.
+

@@ -54,7 +54,7 @@ Screenshots of a settled page miss clipping and sequence. Open a dropdown or pic
 
 ## Grading a builder's set
 
-Grade each of the builder's screenshots against its siblings on the same page (does it read as one of them, for this reader?), not against "does it render", and the items inside one group against each other: tiles, cards or rows of one kind share width, height and alignment, and a mismatch usually means an atom built for another shape (short option chips) was reused for long choices.
+Grade each of the builder's screenshots against its siblings on the same page (does it read as one of them, for this reader?), not against "does it render", and the items inside one group against each other: tiles, cards or rows of one kind share width, height and alignment, and a mismatch usually means an atom built for another shape (short option chips) was reused for long choices. The skipped shots are usually the reused or secondary surfaces, where the defects sit. When the user calls a screen unpolished, check its structure before its copy: a component in the wrong context needs replacing, and string patches waste a round. `done` runs this grade as its Design row at wrap-up, alongside `impeccable` `critique`, for any diff that changes something a person sees.
 
 ## Flows and recordings
 
@@ -63,6 +63,14 @@ Verify flows with `browser-verifier` only on an explicit ask this turn, otherwis
 ## Parallel builders and specs
 
 Builders on screens whose files don't overlap run in parallel, and each re-runs only the specs for the files it touched; a spec already green on an untouched surface is not run again until the final pass ("is there a need ... to keep running full test again and again ?", 18/11/2026).
+
+## Reproduction limits
+
+Reproduce only what you can fully read. Where the real page won't fit (too many files, an unlocated component, an unresolved branch), the gap fills from the design system as a plausible page that looks faithful and isn't. Name the unreadable part and what it leaves unverified.
+
+## Scale by blast radius
+
+A single-element fix checks the widths where it can break (usually phone and the desktop it sits in). A page redesign checks 375px, 768px, 1280px, plus a short height (375×667, 1366×650) wherever a stage is pinned or sized to the screen, with hover, focus, disabled, loading, contrast, motion and layout-shift. Look in one batched round, confirm fixes in one more, and go further only for a named defect. The before capture and the approval render are not rounds. For builders sharing a round and for thresholds: § Parallel builders and specs.
 
 ## Sources
 

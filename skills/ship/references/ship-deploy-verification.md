@@ -33,7 +33,7 @@ remote <server> "cd <deploy-path> && git log --oneline -1"
 remote <server> "cd <deploy-path> && grep 'expected-change' <file>"
 ```
 
-The deployed checkout may not be a git repo (rsync deploys land plain files), so verify the actual file content and behavior, not just the commit history.
+The deployed checkout may not be a git repo (rsync deploys land plain files), so verify the actual file content and behavior, not just the commit history. Skip this check when `remote` isn't configured or no prod server is documented. Non-git deployments: grep the changed file, or confirm config through the app's bootstrap.
 
 ### Database Schema (Migrations)
 

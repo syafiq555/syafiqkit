@@ -18,7 +18,7 @@ For each signal: record what instruction the skill or docs lacked. The fix belon
 
 ## Gate B: Session Wrote to the Plugin Tree
 
-Measure it over the whole tree, committed work included: a session that built a tool under `tools/` and shipped it leaves an empty status, and a filter on skill files never saw it (18/11/2026: a Chat tool feature was built, reviewed and pushed, and `update-plugin` never ran).
+Measure it over the whole tree, committed work included: a session that built a tool under `tools/` and shipped it leaves an empty status, and a filter on skill files never saw it (18/11/2026: a Chat tool feature was built, reviewed and pushed, and `update-plugin` never ran). A tool's code change under `tools/` carries the same routing and changelog duties as a skill's, so it fires Gate B like one.
 ```bash
 # Run from the plugin checkout (CWD), not git -C <path>, which walks up to enclosing repos
 git status --short

@@ -45,6 +45,14 @@ Show the common case first and reveal the rest on request. This works only when 
 
 Deferring a component or list buys a faster first paint by hiding discoverability, so what you defer decides what users find. Defer what they hunt for (a heavy picker, a map, page two); keep resident what tells them what the screen is and what to do. The trade lands hardest on phones, where below-the-fold content on a slow connection may never appear. Defer only where weight exists, since splitting small content costs a round trip. Deferred content still needs a loading state and a placeholder at its final size so the layout does not shift.
 
+## Scanning checklist
+
+Scan headings, read chunks when earned: chunk under descriptive headings, front-load labels, name button outcomes. One bold action per screen (the first two seconds); rare actions in a menu; defaults instead of questions; errors say what happened, why and what's next; empty states say what would appear and how to create it.
+
+## Gap-list briefs
+
+"Can't find property, tenant, grouped meaning, ungroup route, relations" reads as items to cover, so each gap gets its own element; each is defensible, and together they bury the one figure the reader came for. Apply hierarchy to the list itself; a reader in a hurry is the audience, not completeness. Measured 2026-09-05: `references/design-incidents.md` § A gap-list brief produces a crowded page.
+
 ## Sources
 
 - Scanning patterns: https://www.nngroup.com/articles/text-scanning-patterns-eyetracking/

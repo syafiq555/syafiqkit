@@ -5,7 +5,7 @@ description: Set up or harden a Playwright E2E suite in any project, either firs
 
 # Set Up / Harden a Playwright E2E Suite
 
-Two entry points, same file. **Scaffolding** a suite that doesn't exist yet, or **hardening** one that exists and isn't trusted. Read the section you need.
+Two entry points: **scaffolding** a suite that doesn't exist yet, or **hardening** one that isn't trusted. Read the section you need.
 
 The hardening half matters more. A suite that passes locally and nowhere else is the common state, and the causes are almost always one of five: workers sharing rows, fixture data nobody seeds, auth that trips a rate limit, a local server that can't serve the requests parallel browsers make, or the browser/environment itself differing from wherever it's failing.
 
@@ -26,7 +26,7 @@ Read the app's own conventions rather than assuming a stack. A test suite that i
 
 `npm i -D @playwright/test && npx playwright install chromium`. Then a config with a `setup` project (auth) that the main project depends on, `baseURL` pointing at the running dev server, and `ignoreHTTPSErrors` if that server uses a self-signed cert.
 
-Set these explicitly even where they match Playwright's defaults, because they're the ones you'll want to tune and they're invisible until you do: `timeout` (30s), `expect.timeout` (5s), `forbidOnly: !!process.env.CI`, `retries` (0 local / 2 CI), `workers`, and a CI-aware `reporter`.
+Set these explicitly even at Playwright's defaults, since they stay invisible until you tune them: `timeout` (30s), `expect.timeout` (5s), `forbidOnly: !!process.env.CI`, `retries` (0 local / 2 CI), `workers`, and a CI-aware `reporter`.
 
 Keep local `retries` at 0. A retry re-runs a whole `describe.serial` block from the start, so it converts exactly the fixture races this skill exists to remove into intermittent passes.
 
@@ -53,13 +53,13 @@ A device descriptor fixes the height too, and that height is taller than most ph
 
 ### Failures that grow with the worker count
 
-The signature: element-not-found and page-load timeouts spread across unrelated specs, rare at one worker and common at several. Before changing any setting, **load one page the way a spec does and count its requests by host and path** (a short script with `page.on('request')`, grouped). That count names the mechanism in half a minute; a theory tested by a full-suite run costs an hour per guess and returns timeouts that fit every theory. Measured: a suite blamed in turn on the PHP pool size, the socket queue and a static-file rule turned out to load about 950 modules a page from a dev server the local tooling had restarted mid-run, against about 35 from the built bundle.
+The signature: element-not-found and page-load timeouts spread across unrelated specs, rare at one worker and common at several. Before changing any setting, **load one page the way a spec does and count its requests by host and path** (a short script with `page.on('request')`, grouped). That count names the mechanism in half a minute; a theory tested by a full-suite run costs an hour per guess and returns timeouts that fit every theory. The usual culprits show in that count, and the wrong theories a suite tends to get blamed for are at 📖 `references/hardening-incidents.md#worker-count-signature`.
 
-What a count usually shows, largest first: a dev server (Vite and the like) answering instead of the build, which some local hosts start by themselves; static files routed through the app runtime rather than served from disk; console-log or analytics beacons the specs never assert on. Stub what no spec reads in the shared fixture, serve static files from disk, and pick the worker count from a measured pass rate rather than the core count.
+Stub what no spec reads in the shared fixture, serve static files from disk, and pick the worker count from a measured pass rate rather than the core count.
 
 ⚠️ **A fix that consists of stopping a process is not a fix until you know what starts it.** Re-check before every run that it is still stopped (port listener, the hot file it writes), or guard the run with a watchdog, because a process restarted mid-run turns the second half of the suite into noise that reads as fresh failures. **Tell: you stopped something earlier in the session and the current run never checked it is still down.**
 
-When what starts it is the local host's own tooling (a site manager that relaunches the project's dev command after it dies), stop fighting it and make the run immune instead: the developer keeps hot reload and the tests get the build. In a Laravel app on Vite, the testing environment points `Vite::useHotFile()` at a path that never exists, and a middleware active only in local does the same when Playwright sends a marker header (`use.extraHTTPHeaders`). The suite's guard then checks that the build manifest exists, not that the hot file is absent. Measured: a killed dev command came back on its own twice in one evening, and the per-request switch held through every later run.
+When what starts it is the local host's own tooling (a site manager that relaunches the project's dev command after it dies), stop fighting it and make the run immune instead: the developer keeps hot reload and the tests get the build. Measured: a killed dev command came back on its own twice in one evening. 📖 `references/hardening-incidents.md#hot-file-immunity` for the Laravel/Vite switch and the guard change, read when a run serves the dev server again.
 
 Make each failure carry its cause, so the next diagnosis reads rather than guesses: a shared fixture that fails a test the moment the app shows its crash screen (a page binding plus `page.close({ reason })` interrupts the pending wait with that message), attaches the same-origin failed and 5xx requests, and `trace: 'retain-on-failure'` (`'on-first-retry'` with local retries at 0 never saves one).
 
@@ -71,7 +71,7 @@ The signature: two spec files that each pass alone fail together, on assertions 
 
 Reproduce it before fixing it, or you cannot tell the fix worked. Establish the failure RATE, not one captured instance: a single failure supports a plausible story that survives the fix, so take a baseline over enough runs that the failure appears more than once, then require the fix to move that same number.
 
-`--repeat-each` does not give that number on a `describe.serial` file, since the first failure aborts the remaining repeats. Loop whole runs and count. Confirm a collision with `--reporter=json` by comparing `parallelIndex` (not `workerIndex`) and start times, and write the JSON to a file rather than piping it. 📖 `references/hardening-incidents.md#race-repro` for why `--repeat-each` fails and why piping breaks `jq`.
+Loop whole runs and count; `--repeat-each` yields no rate on a `describe.serial` file. Confirm a collision with `--reporter=json` by comparing `parallelIndex` (not `workerIndex`) and start times, writing the JSON to a file rather than piping it. 📖 `references/hardening-incidents.md#race-repro` for the mechanism.
 
 Establish the mechanism, not just the correlation. Before acting on any "X fails because Y", run the one command that would come out differently if Y were false.
 
@@ -93,9 +93,9 @@ Specs that hardcode local row ids work on one machine until someone resets the d
 
 Write a seeder that builds N self-contained fixture sets, one per worker, idempotent so a re-run repairs a partial wipe. Guard it to local/dev/test environments, since it writes known-password accounts and would be destructive against real data. Verify that guard with a negative control (run it with the env var flipped and confirm it refuses). An unproven guard on a destructive script is worth little.
 
-**`firstOrCreate`-style helpers apply their defaults only on insert.** Re-running never touches an existing row, including the columns specs mutate that a killed worker left un-restored. Re-assert those fields explicitly after the create, or the seeder's "just re-run it" recovery silently does nothing. Scope the match key to the parent FK too, so a stale child under a deleted parent cannot shadow the real one.
+**`firstOrCreate`-style helpers apply their defaults only on insert**, so a re-run never repairs a column a killed worker left mutated: re-assert those fields explicitly after the create, or the "just re-run it" recovery silently does nothing. 📖 `references/hardening-incidents.md#seeder-mechanics` for the parent-FK scoping rule.
 
-Seed the untidy shapes real data holds, not only the tidy ones: an empty JSON column, a legacy row missing a foreign key a newer table now carries, a record with no optional children. Tidy fixtures are why a form passes every spec and fails on the first old record a user opens.
+Seed the untidy shapes real data holds (an empty JSON column, a legacy row missing a newer foreign key, a record with no optional children), not only the tidy ones.
 
 Prove idempotence by running it twice and diffing row counts, and prove self-healing by sabotaging a field, re-running, and reading the field back.
 
@@ -113,7 +113,7 @@ Grep the login route's middleware for a throttle before choosing. If there is on
 
 ⚠️ **A throttle applied as route middleware counts successful logins too, so caching state does not save the specs that log in through the form on purpose** (a landing-after-login test, a wrong-password test). Reset the counters for the fixture accounts before each run, from the idempotent seeder or whatever runs before the suite (`globalSetup`, a setup project). 📖 `references/hardening-incidents.md#throttle` for the limiter's key format and how to prove the reset works.
 
-Build that state from what the app actually persists, not from assumption: log in once through the UI, dump `storageState`, and mirror those keys. A missing key usually renders a blank page with no error. 📖 `references/hardening-incidents.md#persisted-state` for the token-level and role-payload traps.
+Build that state from what the app actually persists, not from assumption: log in once through the UI, dump `storageState`, and mirror those keys. 📖 `references/hardening-incidents.md#persisted-state` for the token-level and role-payload traps.
 
 Cap the setup project's parallelism (`fullyParallel: false` on that project, since `workers` is not a per-project option) so a cold start doesn't burst.
 
@@ -125,24 +125,24 @@ The signature: "works on my machine," with no data race, no missing fixture, and
 
 Confirm the installed browser binary matches what's failing elsewhere: `npx playwright install --with-deps` pins the exact Chromium/WebKit/Firefox build the test was written against, so a machine that ran `playwright install` at a different time can silently diverge from CI or a teammate's machine. Also check timezone/locale (date and currency assertions), and installed system fonts (layout-sensitive screenshot/pixel assertions). Both differ by machine, and neither shows up as a Playwright error, just a wrong value or a failed visual diff.
 
-⚠️ **A screenshot assertion with zero tolerance (`toHaveScreenshot` or `toMatchSnapshot` at threshold 0, `maxDiffPixels: 0`) can fail on the same machine with the same code, because Chrome's GPU rendering is not deterministic.** Gradients and soft edges shift a few pixels from run to run (3 to 134 pixels measured, 3 of 4 runs failing on one page), which looks like a flaky app. Before trusting such a suite, run it twice with no change and confirm the images are identical. If they differ, launch Chromium (these flags are Chromium-only, and they do not make a baseline taken on one OS match another) with `launchOptions: { args: ['--disable-gpu', '--force-color-profile=srgb', '--disable-lcd-text', '--font-render-hinting=none'] }`. In the reported case three repeat runs then matched across 15 images, and a 1-pixel edit and a 1/255 colour change were still caught. Re-run that check yourself: a setting that makes every run match is also what a check that cannot fail looks like. Do not loosen the threshold instead, since that hides real one-pixel regressions. **Tell: a pixel test fails on a rerun with no code change, and you are reaching for `maxDiffPixels`.**
+⚠️ **A screenshot assertion with zero tolerance (`toHaveScreenshot` or `toMatchSnapshot` at threshold 0, `maxDiffPixels: 0`) can fail on the same machine with the same code, because Chrome's GPU rendering is not deterministic.** Gradients and soft edges shift a few pixels from run to run (3 to 134 pixels measured, 3 of 4 runs failing on one page), which looks like a flaky app. Before trusting such a suite, run it twice with no change and confirm the images are identical. If they differ, launch Chromium (these flags are Chromium-only, and they do not make a baseline taken on one OS match another) with `launchOptions: { args: ['--disable-gpu', '--force-color-profile=srgb', '--disable-lcd-text', '--font-render-hinting=none'] }`. Re-run that check yourself: a setting that makes every run match is also what a check that cannot fail looks like. 📖 `references/hardening-incidents.md#zero-tolerance-proof` for the repeat-run result that showed it. Do not loosen the threshold instead, since that hides real one-pixel regressions. **Tell: a pixel test fails on a rerun with no code change, and you are reaching for `maxDiffPixels`.**
 
 ### Recording the run as video
 
-Worth wiring even when nothing is failing: a recorded pass shows spacing, truncation, clipped modals and copy problems that no assertion encodes. Offer it once a suite covers real user journeys, since the flows already exist. A designed launch or promo video is `motion-clip`. 📖 `references/recording-video.md#why-record`.
+Worth wiring even when nothing is failing: a recorded pass shows what no assertion encodes. Offer it once a suite covers real user journeys. A designed launch or promo video is `motion-clip`. 📖 `references/recording-video.md#why-record`.
 
-Video is a **context-creation** option, which is the whole difficulty. `use.video` reaches only the contexts the runner builds for its own `page` fixture. Specs that build contexts by hand, such as a multi-party flow with two sessions open, need the context-level `recordVideo` option, and setting only one leaves half the suite silently unrecorded. 📖 `references/recording-video.md#context-creation` for the two-directory gather.
+Video is a **context-creation** option: `use.video` reaches only the runner's own `page` fixture, so hand-built contexts (a multi-party flow with two sessions open) need the context-level `recordVideo` option. Setting only one leaves half the suite silently unrecorded. 📖 `references/recording-video.md#context-creation` for the two-directory gather.
 
-⚠️ **Verify a recording by looking at a frame, not by the run being green.** Extract a frame near the end and view it before sending. A green suite masks stale dev-server code, stale build output, encoding cut off by an early context close, and a recording of the wrong half of the page. Rebuild before grading, since a built-asset app serves the last `build` rather than your edit. Do the check before the file reaches the user, because the moment of sending is where a green count makes an unwatched file look verified. 📖 `references/recording-video.md#verify-frame` for the ffmpeg command and each trap.
+- **Encoding stops the moment a context closes**, so hold each context open briefly behind the recording flag. 📖 `references/recording-video.md#encoding-naming`.
+- **Name the file after the test** from inside the test while the page is open, through one close helper. A context that closes by itself is the unnamed, truncated one.
 
-- **Encoding stops the moment a context closes**, and a spec ends on its last assertion, so hold each context open briefly before closing, behind the recording flag, so a normal run pays nothing.
-- **Name the file after the test.** A hand-built context's video lands under a content hash, so record its path inside the test while the page is open, keyed to the test title, and route every context through one close helper. A context closing by itself skips naming and the tail wait. 📖 `references/recording-video.md#encoding-naming`.
+⚠️ **Verify a recording by looking at a frame, not by the run being green.** Extract a frame near the end and view it before the file reaches the user; a green suite masks stale code, stale build output and a recording of the wrong half of the page. 📖 `references/recording-video.md#verify-frame` for the ffmpeg command and each trap, including the rebuild before grading.
 
 Config placement is a trap: `test.use({launchOptions: {slowMo}})` cannot sit inside a `describe` block, since it forces a new worker. Put it at file top level, gated by the recording flag. A per-test timeout raise is legal inside the block via `describe.configure`. 📖 `references/recording-video.md#placement` for the exact error text.
 
-**Gate the framing, never the claim.** Reveal, pace and hold are camera-only and belong behind the flag; an `expect` does not, since gated it runs only when someone records. Hoist an `expect` out of a recording-only block and leave only the framing. An API read verifies state, but the *rendering* of it is different code and needs its own assertion.
+**Gate the framing, never the claim**: reveal, pace and hold go behind the flag, an `expect` never does. An API read verifies state; the rendering needs its own assertion. 📖 `references/recording-video.md#gate-framing`.
 
-A recording is a viewport, not the page. Scroll the subject into shot behind the recording flag, and perform any interaction the spec skips (a grid that stays empty until a date is picked) under the same guard. Scrolling alone still films an empty element. 📖 `references/recording-video.md#viewport-framing` for the cropped-modal case.
+A recording is a viewport, not the page: scroll the subject into shot and perform any interaction the spec skips, both behind the same flag. 📖 `references/recording-video.md#viewport-framing` for the cropped-modal case.
 
 ### Assertion and locator conventions
 
@@ -160,7 +160,7 @@ Two that repeatedly catch real bugs:
 
 ## CI
 
-Wiring CI is often the stated goal and is frequently the wrong next step. Check what the pipeline's triggers actually are: if it only runs on deploy branches, an E2E step there gates *after* merge, which is not what anyone wants from a test suite. And CI needs an environment with the fixture rows. The seeder is a prerequisite for CI being possible at all, not a parallel task.
+Wiring CI is often the stated goal and is frequently the wrong next step. Check the pipeline's triggers: a step on deploy branches only gates *after* merge. CI also needs fixture rows, so the seeder is a prerequisite, not a parallel task.
 
 Say plainly when CI should stay deferred and why, rather than adding a step that runs in the wrong place.
 

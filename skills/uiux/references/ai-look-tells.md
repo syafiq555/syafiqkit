@@ -37,4 +37,8 @@ Whole-look defaults, one level above the component tells in the table. Choices c
 
 When you recognise one, ask what your audience, subject and job would choose instead.
 
+## Five questions
+
+Five questions test whether something was shaped or defaulted: **Swap** the typeface or layout with a default one, would anyone notice? **Squint**: does hierarchy survive? **Signature**: point to the element carrying this product's character. **Token**: do the variable names belong to this world or any project? **Exclude**: name an audience this direction would be wrong for; a look that suits everyone was chosen by nobody.
+
 Adapted from `frontend-design` skill (Apache-2.0) and `superdesign` skill (MIT).

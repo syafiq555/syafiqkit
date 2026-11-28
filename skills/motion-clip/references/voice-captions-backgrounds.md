@@ -4,6 +4,18 @@
 
 The free local tools (a natural voice, word timing for captions, depth maps for backgrounds) live in one folder outside the clip, `~/.local/share/motion-clip/venv` (`MOTION_CLIP_HOME` moves it). `sh scripts/setup-local.sh` installs all three, or name parts (`voice`, `captions`, `depth`). It needs Python 3.10 to 3.12 (the voice model does not install on 3.13 or later) and, for the voice, `espeak-ng`, and it prints the Python path the other scripts use (`PY` in the skill). Measured on an M4: about 1.5 GB installed, plus models fetched on first use (word timing about 1.6 GB, voice and depth under 0.5 GB together). Check free disk first, and install only the parts the brief needs. On Apple Silicon the word timing uses MLX Whisper; elsewhere it falls back to faster-whisper.
 
+## Voice-over in the story {#voice-over}
+
+Add `voice: [{ at: 2.6, text: '...' }]` to the story, then generate the lines between `cues` and `score.py`. A word the voice misreads (a brand like `CRP45`, an acronym) gets a `say` beside `text` (`say: 'C R P 45'`): the voice speaks `say` and the subtitles show `text`, never the spelled-out form.
+
+```
+node render.mjs cues 1080 1920 cues.json
+node voice.mjs cues.json
+$PY words.py cues.json          # only with subtitles: true
+```
+
+Provider, files and timing are in [#voice](#voice) and [#voice-timing](#voice-timing).
+
 ## Voice providers {#voice}
 
 - **Kokoro** (default once installed): a free natural voice running on the machine, Apache-2.0 weights, nothing leaves the laptop. `VOICE` picks the voice (`af_heart` by default; the first letter is the accent, `a` American, `b` British, and `af_`/`am_` are female and male) and `VOICE_SPEED` its pace. At the default 1 it speaks about 4 words a second, too fast to read along with; `VOICE_SPEED=0.8` brought the Autorentic lines to about 3 (measured 2026-10-21), so start there when `subtitles` is on. It can stress a brand name oddly, so the user listens to it before release.
@@ -18,9 +30,11 @@ Set `subtitles: true` in the story (or `{ words, size, y, color, highlight, back
 
 It prints how many words it heard per line. Words it did not hear are placed between their neighbours, so watch that line in the draft. Run it again whenever a voice file changes, since the timing belongs to that recording. Until `words.json` exists the film renders without them and logs a warning, so `cues`, `board` and the voice can come first; `check` fails while it is missing, older than any voice file, or written for different voice text, so stale captions cannot ship.
 
+Feeds autoplay muted, so a voice-over film carries its words on screen: `subtitles: true` in the story, then `$PY words.py cues.json` after every voice change, which times each word to the recording. With subtitles on, keep headline `captions` short and different from the spoken words; without them, each caption matches its line.
+
 ## Generated backgrounds {#images}
 
-`node image.mjs assets/screens/bg_city.png "<prompt>" 1080 1920` uses Cloudflare Workers AI's free daily allowance of 10,000 Neurons, resetting 00:00 UTC. The default model, FLUX.2 Klein 4B (Apache-2.0 weights), costs about 313 Neurons for a 1088x1920 still, so about 30 vertical stills a day; `IMAGE_MODEL=flux-1-schnell` takes no size and gives about 100 square ones. Sizes snap to multiples of 16 between 256 and 1920, and the film crops to fill. It needs `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` (a token from the "Workers AI" template under My Profile, API Tokens). The prompt goes to Cloudflare, so ask before sending unreleased product names. A re-run with the same prompt, size and `IMAGE_SEED` reuses the file; change the seed for another take. Say in the README which pictures are generated.
+`node image.mjs assets/screens/bg_city.png "<prompt>" 1080 1920` uses Cloudflare Workers AI's free daily allowance of 10,000 Neurons, resetting 00:00 UTC. The default model, FLUX.2 Klein 4B (Apache-2.0 weights), costs about 313 Neurons for a 1088x1920 still, so about 30 vertical stills a day; `IMAGE_MODEL=flux-1-schnell` takes no size and gives about 100 square ones. Sizes snap to multiples of 16 between 256 and 1920, and the film crops to fill. It needs `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` (a token from the "Workers AI" template under My Profile, API Tokens). The prompt goes to Cloudflare, so ask before sending unreleased product names. A re-run with the same prompt, size and `IMAGE_SEED` reuses the file; change the seed for another take. Say in the README which pictures are generated. When it is unset or spent, fall back to stock and say so.
 
 ## Backdrops in the story {#backdrops}
 
@@ -33,3 +47,5 @@ With `depth: true` the picture moves in depth, near things sliding against far o
 ## Voice timing {#voice-timing}
 
 `voice.mjs` prints each line's start and end. It warns when a line runs into the next one, outlasts the caption it starts under, or runs past the end of the film. Move the line or shorten its words; the voice sets the pace and the picture follows. `score.py` lowers the music under each line and puts the voice on top.
+
+Lines are cached in `assets/voice/` and remade only when the text, voice or `VOICE_SPEED` changes, so a re-run doesn't pay twice. A later retime means rewriting the cues and re-rendering what they touched, since the music hits come from the same cues.
