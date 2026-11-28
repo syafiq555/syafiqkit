@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.501.4
+
+**`unblock` now checks shared packages before calling something "not started".**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- In the live check, a "not started" or "nothing exists" claim about a capability both products need is checked against any shared package at the version the sibling repo pins. The row names each repo's pinned version, because a sibling on a newer version may already have the feature.
+
 ## 1.501.3
 
 **Review fixes to 1.501.2, and condense passes run on their own now keep rules at steps that can't be undone.**
