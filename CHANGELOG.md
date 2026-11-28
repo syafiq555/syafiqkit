@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.500.3
+
+**Team posts now credit the person who made each piece, not the tool that polished it, and how-tos skip setup the team already has.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `gchat-format`'s team-post rule: credit is checked per item. An item line that names a tool or skill as its subject, with no person, is the tell.
+
 ## 1.500.2
 
 **A status list built from a tracker or a chat (which rows are stuck, what a thread left open) is now checked item by item against the task docs and the live system before it is sent.**
