@@ -244,6 +244,7 @@ function onScreenText() {
   const items = [];
   s.hook.forEach((x) => { if (x.out != null) items.push({ what: 'hook', text: String(x.text), from: +x.in, to: +x.out }); });
   s.captions.forEach((c) => { if (c.out != null) items.push({ what: 'caption', text: plain(c.rows), from: +c.in, to: +c.out }); });
+  (s.explainer || []).forEach((e) => items.push({ what: 'explainer', text: `${e.kicker ? `${e.kicker} ` : ''}${e.headline}`, from: +e.at, to: +e.out }));
   s.photos.forEach((p) => { if (p.rows) items.push({ what: 'photo caption', text: plain(p.rows), from: +p.from + 0.35, to: +p.to }); });
   const per = s.subtitles ? s.subtitles.words || 3 : 0;
   if (per) spoken.forEach((words) => {
@@ -256,7 +257,7 @@ function onScreenText() {
   const pace = spoken.filter((words) => words.length > 1).map((words) => ({
     text: words.map((x) => x.text).join(' '), from: words[0].start, perSecond: words.length / (words[words.length - 1].end - words[0].start),
   }));
-  const all = [...s.hook.map((x) => x.text), ...s.captions.map((c) => plain(c.rows)), ...s.voice.map((v) => v.text),
+  const all = [...s.hook.map((x) => x.text), ...s.captions.map((c) => plain(c.rows)), ...(s.explainer || []).map((e) => `${e.kicker || ''} ${e.headline} ${e.source || ''}`), ...s.voice.map((v) => v.text),
     s.lockup ? `${s.lockup.name || ''} ${s.lockup.line || ''}` : '', s.stat ? `${s.stat.prefix || ''}${s.stat.value}${s.stat.suffix || ''} ${s.stat.label || ''}` : ''].join('\n');
   return { items, pace, all, backdrops: s.backdrops.length, device: s.screens.length ? { enter: +s.device.enter, leave: +s.device.leave } : null };
 }
@@ -325,6 +326,7 @@ try {
       s.photos.forEach((p) => list.push([+p.from, span(p.from, p.to), 'Photo', `${p.file}${p.rows ? `: ${words(p.rows)}` : ''}`]));
       s.taps.forEach((x) => list.push([+x.at, span(x.at), 'Tap', `at ${x.to.map((v) => v.toFixed(2)).join(', ')} of the screen`]));
       s.captions.forEach((c) => list.push([+c.in, span(c.in, c.out), 'Caption', words(c.rows)]));
+      (s.explainer || []).forEach((e) => list.push([+e.at, span(e.at, e.out), 'Screen', `${e.kicker ? `${e.kicker}: ` : ''}${e.headline}${e.build ? ` [${e.build.kind}${e.build.items ? `: ${e.build.items.map((x) => (typeof x === 'string' ? x : x.text)).join(' / ')}` : ''}${e.build.file ? `: ${e.build.file}` : ''}]` : ''}${e.source ? ` (source: ${e.source})` : ''}`]));
       s.voice.forEach((v) => list.push([+v.at, span(v.at), 'Voice', v.text]));
       if (s.number) list.push([+s.number.from, span(s.number.from, s.number.to), 'Number', `${s.number.count} cards become "${s.number.pillText}"`]);
       if (s.stat) list.push([+s.stat.at, span(s.stat.at, s.stat.out), 'Number', `${s.stat.prefix || ''}${s.stat.value}${s.stat.suffix || ''} ${s.stat.label || ''}${s.stat.source ? ` (source: ${s.stat.source})` : ''}`]);
@@ -587,6 +589,7 @@ try {
       const hookOut = s.hook.length ? Math.max(...s.hook.map((x) => (x.out != null ? +x.out : +x.in + 2))) : 0;
       if (s.hook.length) list.push({ at: +s.hook[0].in, t: settle(Math.max(0, Math.max(...s.hook.map((x) => +x.in))), hookOut), until: hookOut, label: 'Hook', detail: s.hook.map((x) => x.text).join(' ') });
       s.captions.forEach((c) => list.push({ at: +c.in, t: settle(c.in, c.out), until: c.out, label: 'Caption', detail: words(c.rows) }));
+      (s.explainer || []).forEach((e) => list.push({ at: +e.at, t: Math.max(+e.at + 0.2, +e.out - 0.25), until: e.out, label: 'Screen', detail: `${e.kicker ? `${e.kicker}: ` : ''}${e.headline}` }));
       s.photos.forEach((p) => list.push({ at: +p.from, t: settle(p.from, p.to), until: p.to, label: 'Photo', detail: p.rows ? words(p.rows) : p.file }));
       s.screens.forEach((x, i) => { if (i) list.push({ at: +x.from, t: +x.from + 0.6, until: +x.from + 0.6, label: 'Cut', detail: x.name }); });
       if (s.number) list.push({ at: +s.number.from, t: settle(s.number.from, s.number.to), until: s.number.to, label: 'Number', detail: s.number.pillText });

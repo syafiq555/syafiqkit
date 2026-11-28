@@ -211,6 +211,28 @@ for w in cues.get('whooshes', []):
 for c in cues.get('chimes', []):
     place(c['at'], bell(c['note'], c.get('length', 1.6)), c.get('gain', 0.1), c.get('pan', 0.0))
 
+
+def click():
+    n = int(0.035 * SR)
+    t = np.arange(n) / SR
+    return (np.sin(2 * np.pi * 2600 * t) * 0.5 + np.diff(rng.standard_normal(n + 1)) * 0.5) * np.exp(-t * 180)
+
+
+def alert(length=0.9):
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    hi = (np.floor(t / 0.15) % 2) == 0
+    f = np.where(hi, 1046.5, 880.0)
+    phase = 2 * np.pi * np.cumsum(f) / SR
+    s = np.sign(np.sin(phase)) * 0.35 + np.sin(phase) * 0.65
+    return s * env(n, 0.005, 0.12)
+
+
+for i, at in enumerate(cues.get('clicks', [])):
+    place(at, click(), 0.07, ((i % 3) - 1) * 0.15)
+for a in cues.get('alerts', []):
+    place(a['at'], alert(a.get('length', 0.9)), a.get('gain', 0.05))
+
 if TRACK:
     with wave.open(TRACK) as w:
         if w.getframerate() != SR or w.getsampwidth() != 2:

@@ -16,7 +16,7 @@ The retained one measures progress against its own list; the fresh one finds wha
 
 The retained and fresh scores are reported separately, never as a mean: on that run the mean understated both. "New" means on neither the retained list nor an earlier fresh list, and you dedupe.
 
-Why a one-point move prints as `(no change)` (step 5): the same judge run three times gave the same verdict on only 61.3% of cases (arxiv.org/html/2510.27106), and verdicts flip on about 40% of close calls (arxiv.org/abs/2609.33044).
+Why a one-point move prints as `(no change)` (step 6): the same judge run three times gave the same verdict on only 61.3% of cases (arxiv.org/html/2510.27106), and verdicts flip on about 40% of close calls (arxiv.org/abs/2609.33044).
 
 ## Blind
 

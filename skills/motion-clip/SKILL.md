@@ -55,6 +55,8 @@ Two scenes carry the number beat, `stat` and `number`; their shapes and examples
 
 `backdrops` fill the frame behind everything with a slow push-in; `depth: true` needs a map from `$PY depth.py <picture>`. Keys in 📖 `references/voice-captions-backgrounds.md#backdrops`.
 
+A teaching film shaped like a news explainer (kicker, word-by-word headline, diagrams building under it, one fact per screen) uses `explainer` instead of a device, starting from `templates/examples/einvoice-explainer.story.js`: 📖 `references/premium-motion.md#explainer` (read its 9:16 safe-zone line before the first draft).
+
 When a device beside captions reads as basic, the engine has more: `spotlights`, `cursor`, `tilt`, `motionBlur`, `ambient`, `softText`, `photos`, `products`. 📖 `references/premium-motion.md` before using them: which help a viewer follow the screen and which only decorate.
 
 `screens`, `number`, `stat`, `success`, `taps`, `music`, `voice`, `subtitles`, `backdrops` and `lockup` are optional; a film without `lockup` ends with no logo, which the brief should mean on purpose. Before/after films count effort with `counters: [{ from, to, label, color }]` (📖 `references/premium-motion.md#counters`), and the logo blend is set per page colour (📖 `references/premium-motion.md#logo-blend`, with `logoBlend: 'source-over'` for a dark page).

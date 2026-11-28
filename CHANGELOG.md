@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.502.0
+
+**`score-loop` now hunts for the big improvements every round, not only the rubric gaps.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- New step 3, the headroom pass: every judge also gives a ceiling score out of 10 and the three changes that would raise it most, the domain critique runs in the same batch (`impeccable` and `emil-review-animations` for screens and motion, a design-first reviewer for code), and the clear wins join the build. A change of direction goes to the user as two or three rendered options to pick from. Old steps 3 to 5 are now 4 to 6.
+- A ceiling score under 8 counts as unfinished even when the rubric band is met; the final report then leads with the headroom changes and offers to build them.
+
+**`motion-clip` can make news-style explainer films.**
+- A new optional `explainer` scene: a spaced-caps kicker over a headline that types in word by word with an underline, and a diagram that builds under it (`icon`, `checklist`, `cards`, `bar`, `picture` with a label chip, `dots` grids with highlights, and `flow` diagrams whose steps light in turn or get crossed out with a bypass arrow). Diagrams and headlines can start on a spoken word (`atWord`, `headWord`).
+- Three motion styles through `explainerMotion`: `calm`, `punch` (springy words, zooming screens, stamped crosses) and `type` (letter-by-letter typing with a cursor and hard cuts).
+- Also new: `mascot` (a brand character in chosen spans), `subtitles.x`, `width` and `until`, `lockup.cy`, `lineScale`, `lineColor` and `lineDelay`, and `clicks` and `alerts` sounds in `score.py`. Existing stories render exactly as before.
+- Reference: `references/premium-motion.md#explainer`; example: `templates/examples/einvoice-explainer.story.js`.
+
 ## 1.501.7
 
 **Headless skill tests now keep their fixture away from the real repo when the skill looks at sibling folders.**

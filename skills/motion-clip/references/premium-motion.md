@@ -66,3 +66,33 @@ The logo blends with `multiply`, which suits white; on a dark page set `logoBlen
 Each beat is a composed still from `product-still`: the claim, a tight desktop crop and, on customer beats, the real phone screen, phone-first in 9:16, with a voice-over and word-timed subtitles.
 
 A client walkthrough of a web app that people will watch on a phone uses full-frame `photos`, not a device beside captions, as the room-presentation films do. Capture desktop at a real laptop width (1440x900) and phone at 390, never an in-between viewport the client would not recognise as either. A browser-frame walkthrough scoring 16/20 (20/11/2026) was replaced by this format at the user's ask.
+
+## News-style explainer screens {#explainer}
+
+For a teaching film shaped like a news explainer (one fact per screen, no device), `explainer` replaces hook, captions and device. Start by copying `templates/examples/einvoice-explainer.story.js`; voice-led screens need `voice.mjs` then `words.py` before `atWord` or `headWord` resolve (📖 `voice-captions-backgrounds.md#voice-over`).
+
+**9:16 safe zone, before the first draft:** text and diagrams stay within x 120 to 780 wherever they sit below y 840, where TikTok's buttons cover x 780 to 960; a `flow` or `dots` label that runs right gets `lift`, subtitles take `{ x: 0.41, width: 0.6 }`, `lockup.cy` lifts the end logo, and `PRESET=tiktok node render.mjs check` after the first draft names any line that slipped. Each screen is a small spaced-caps kicker over a big headline that types in word by word, an underline bar that grows under its last line, and an optional diagram building below. Learned from a Malay emergency-alert explainer that held 105 s on one fact per screen (28/11/2026); the first film is the Autorentic e-Invoice explainer (`examples/einvoice-explainer.story.js`).
+
+| Field | What it does |
+|---|---|
+| `explainer: [{ at, out, kicker, headline, mark, size, step, accent, build, source }]` | One screen each. `mark` lists words drawn in `highlight`; `step` is seconds per word (0.11); `size` scales the headline; `source` prints a muted line under the diagram. Give the first screen `at: -1` so frame 0 is complete |
+| `build: { kind: 'icon', icon, align, size }` | A line icon (`doc`, `receipt`, `house`, `share`, `alert`, `check`, `cross`, `bell`, `phone`, `person`, `gov`, `calendar`, `money`) draws itself inside a pulsing ring |
+| `build: { kind: 'checklist', items, mark, every }` | Rows that tick (`check`) or cross out and strike through (`cross`) one by one; crosses use the `danger` colour |
+| `build: { kind: 'cards', items: [{ text, sub }], every }` | Stacked cards with an accent edge, like a spec list |
+| `build: { kind: 'bar', max, value, maxLabel, maxValue, valueLabel, valueText, delay, alert }` | A threshold bar, then the example value grows against it; label an invented value as an example, in the film's language |
+| `build: { kind: 'picture', file, crop: [x, y, w], ratio, wide, bottom, push }` | A real screenshot in a card, cropped to the part being talked about (`crop` in fractions of the picture), with a slow push |
+| `build: { kind: 'flow', nodes: [{ icon, label }], cross, crossAt, bypass: { label }, bypassAt, light, lightAt, lightEvery, wide, lift }` | Icons joined by arrows that draw in turn: a process (rent day, invoice, payment, receipt) that can light step by step, or a route with one step crossed out and a curved bypass arrow ("You, LHDN, Tenant": LHDN crossed, "Receipt" goes direct). `lift` raises it when a right-hand label would dip into TikTok's buttons column |
+| `build: { kind: 'dots', count, cols, icon, wide, every, highlight, highlightColor, bare, lines: [{ text, color, size, heading, delay }] }` | Two uses. A grid of icons popping in one by one (ten tenants), or a scale picture: highlight the first N icons (one red house among 42 shows "the limit is 42 of you"), `bare` drops the circles so a dense grid stays readable, and `lines` add the labels under it |
+| `build.atWord`, `atOffset` | Starts the diagram on a spoken word from `words.json` instead of after the headline, so it lands with the voice |
+| `build.crossed`, `crossAt`, `label`, `labelColor` (icon) | Crosses the icon out at `crossAt` seconds and prints a label under it ("Required?") |
+| `build.chip`, `chipColor` (picture) | A labelled tag on the screenshot card's top-right corner ("Receipt", "Invoice") |
+| `headWord`, `headOffset` | Starts the headline on a spoken word |
+| `explainerMotion: 'calm' \| 'punch' \| 'type'` | `calm` slides words up; `punch` pops words with a spring, zooms each screen in and out, and slams crosses on like a stamp; `type` types letter by letter with a blinking cursor, typing clicks and hard cuts. With `type`, start the first screen around `at: -2.2` so frame 0 is fully typed |
+| `mascot: { file, x, bottom, height, spans: [{ from, to }] }` | A brand character that pops in and sways during the given spans (Bucky on a share screen and end card) |
+| `explainerCard: { fill, alpha, stroke, strokeAlpha }` | Card colours for checklist and cards builds, for a light page where white cards vanish |
+| `explainerLogo: { size, y, alpha }` | A small logo top-left while any explainer screen shows |
+| `explainerLayout: { row, bottom }` | Diagram text size (fraction of width, 0.056) and where the diagram area ends (fraction of height, 0.56) |
+
+Sound comes with it: `cues` gets a click per headline word and per checklist row, a whoosh per screen, and `build.alert: true` lays a two-tone alert sting on the diagram's key moment (`clicks` and `alerts` in `score.py`).
+
+In 9:16 everything left-aligns to x 124, and diagram text stays inside the left 60%, because TikTok's buttons cover x 780 to 960 below y 840; subtitles then take `{ x: 0.41, width: 0.6 }` to clear the same column, and `lockup.cy` lifts the end logo above it. A voice-led explainer retimes faster from the recorded lines than by hand: lay the lines back to back, start each screen 0.1 s before its line, and end it 0.1 s before the next.
