@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.500.2
+
+**A status list built from a tracker or a chat (which rows are stuck, what a thread left open) is now checked item by item against the task docs and the live system before it is sent.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `read-summary`'s Investigation rule: a tracker cell's or message's last line is a lead, not the item's state; open each item's own task doc, and the live system where it names live data, before listing or relaying it.
+- `casual-message`'s "from the record" check now covers an item's status, so a draft quoting a tracker row's state from its cell alone is caught before the send.
+
 ## 1.500.1
 
 **`explainer-deck` can now put a video inside a slide, so a demo deck plays its clip offline from the laptop. `/done` now runs the extra steps your CLAUDE.md adds to it instead of offering them.**
