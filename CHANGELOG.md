@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.501.7
+
+**Headless skill tests now keep their fixture away from the real repo when the skill looks at sibling folders.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- In the skill-editing checklist (headless test, item 7): a skill that looks beyond its repo (sibling repos, the parent folder) finds the real checkout from a worktree or a copy placed beside it. Build a separate root holding the fixture and only the siblings it should see, and have the judges confirm from the run's tool calls that it never read the real checkout.
+
 ## 1.501.6
 
 **`unblock`'s recency-cut rule reads shorter, with no change in what it does.**
