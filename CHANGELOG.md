@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.500.4
+
+**`/done`'s summary tables now render on the phone app and Remote Control.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- The Output template's two tables had no `|------|--------|` line under the header, so phone views showed raw pipes. Both now have it.
+- A new quick rule: table cells hold plain text with no `<br>`, which phone views print literally. A row with several points gets one short cell, with the points as bullets under the table.
+
 ## 1.500.3
 
 **Team posts now credit the person who made each piece, not the tool that polished it, and how-tos skip setup the team already has.**

@@ -141,6 +141,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 **Quick rules:**
 - One to four open questions: one `AskUserQuestion` call. Five or more: `## Decisions` as well. If the session's brief was to finish everything, ask before wrapping up and build the answers. Don't park them in the task doc (📖 `../_shared/references/decision-first-output.md` § Where it goes).
 - Omit empty rows; never "N/A". The Plugin row is the exception: it always states its three gates.
+- Every table keeps its `|------|--------|` line under the header. Without it, the phone app and Remote Control show raw pipes instead of a table. A cell holds plain text with no `<br>`, which those views print literally. A row with several points gets one short line in its cell, and the points go as bullets under that table (28/11/2026: a Summary with no separator line and `<br>` lists arrived on the phone as pipe-and-tag soup).
 - One change = one `### [Change]` + `### Session`. A change with only ✅ still gets its heading.
 - Multi-repo: name the repo and branch per change (the reader's next act is committing). Name where one repo's work is inert without the other.
 - Words the user still has to send are restated in full in Output, never pointed at (📖 `${CLAUDE_SKILL_DIR}/references/output-structure-rules.md` § Handoff Words).
@@ -159,6 +160,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 
 ### [Change 1 name]
 | Step | Result |
+|------|--------|
 | Review | [issues + fixes, or ✅] |
 | Simplify | [changes, or ✅] |
 | Product | [✅ or → question] |
@@ -169,6 +171,7 @@ Lead with what the user has to decide; report what was built underneath it. Grou
 
 ### Session
 | Step | Result |
+|------|--------|
 | Knowledge | [N entries → files] |
 | Task docs | [path → summary] |
 | Plugin | A: [signals → update-plugin, or "none" naming the invocations and corrections checked] · B: [plugin tree writes or none] · C: [reusable artifact or none] · [files + bump or issue URL]; never omitted |
