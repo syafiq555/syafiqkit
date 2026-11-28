@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.501.3
+
+**Review fixes to 1.501.2, and condense passes run on their own now keep rules at steps that can't be undone.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- `refresh-instructions`:
+  - Step 2 now snapshots the files themselves, which step 8's final reviewer reads.
+  - An existing `upstream/SKILL.upstream.md` is never overwritten.
+  - The vendored rule points at each skill's `SOURCE.md` § Updating.
+  - A file a split created is checked against the file it came from.
+  - The incident moved to `process-details.md`.
+- `condense-claude-md` and `condense-task-doc`: a rule at a step that can't be undone keeps its place, and moving it out with only a pointer left counts as a loss.
+
 ## 1.501.2
 
 **`refresh-instructions` now covers vendored skills, and its last check puts back inline any rule at a step that can't be undone.**

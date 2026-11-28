@@ -31,6 +31,8 @@ The distinction is whether the material survives the underlying test. Apply the 
 
 **No warning emoji in output.** Never write `⚠️` into a task doc. Lead the callout with the bolded claim itself — the same "mechanism + measured incident + Tell:" shape carries the weight; the emoji added nothing a reader couldn't get from the words. Strip any `⚠️` already in the doc as part of a condense pass, without touching the surrounding prose.
 
+**A rule at a step that can't be undone** (a production write, a send, a delete) keeps its wording where the reader acts. Moving it out leaves only a pointer there, which counts as a loss.
+
 **Compressed (not deleted):** Long multi-sentence rows → fix description + one-line summary. Quick Start > 15 lines → drop anything already restated in Bugs Fixed or Critical Gotchas. Last Session > 5 bullets → keep only what hasn't folded into a Decision or Gotcha row.
 
 **Preserved (essential facts):** Counter-intuitive project behaviors (e.g. "successful_syncs:1 = dispatch, NOT API success"), gotchas that look safe but fail silently (e.g. "combo `available_qty` is always 0 in DB, use getComboStock()"), non-obvious ordering constraints, and current-state facts needed to pick up work (e.g. "B14 deployed as cherry-pick, not feature branch SHA"). Do not preserve implementation detail obvious from the code. Decision blocks (`### D-…`) and sourced research are preserved whole: they may move to a sibling file, never be shortened in place. The cut/keep test above applies to narrative, not to the record of why something was chosen (📖 `references/section-rules.md` § MADR blocks: paraphrase invents detail, for a trim done near the byte target).

@@ -18,6 +18,7 @@ The set's total is not a condense budget: `condense-task-doc`'s thresholds apply
 
 ## Target-set incidents {#target-set-incidents}
 
+- **Vendored skills** (28/11/2026): two vendored skills (`taste` and `emil-design-eng`) were first left out of a refresh as "vendored". The user answered: "outside sources not necessarily written well also right ? It should be fine as long we can somehow reconcile when want to update". Both were then refreshed, with a pristine `upstream/SKILL.upstream.md` kept beside each.
 - **CLAUDE.md unit** (20/11/2026): a six-file CLAUDE set left 15 companions out until the user asked "Is the all claude.md includes all companions too or not ?", then answered "all companions treated as claude.md too"; the companions are CLAUDE.md in their own right.
 - **Source captures** (16/11/2026): a task doc's twelve capture siblings were dropped and its condense skipped ("it would reword the captures"); condense already handles captures.
 - **Provenance churn** (12/11/2026): on a 35-file set, Pass 3 restored provenance notes in most scaffold files that Pass 2 had cut, because the condense prompt never said provenance was evidence.
