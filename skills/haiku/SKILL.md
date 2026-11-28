@@ -46,7 +46,7 @@ Drafts split by source cannot see each other's destination text, so regroup them
 
 **Keep it minimal: skill name (if any), target path, only facts the agent cannot derive.**
 
-Where the target is under git, name the banned verbs (`commit`, `push`, `stash`, `reset`, `checkout -- .`, `clean`) in the prompt too. A dispatch that only says "run the skill and report" leaves committing unscoped, and a lone haiku run's unscoped commit pulls in whatever else is staged in that checkout (📖 `../_shared/references/agent-prompt-verb-ban.md`).
+Where the target is under git, name the banned verbs (`commit`, `push`, `stash`, `reset`, `checkout -- .`, `clean`) in the prompt too, in the prompt's own text: a ban kept in a shared rules file the agent is told to read is skipped (28/11/2026: a haiku agent briefed "read common.md and follow it", where the ban lived, committed and pushed). A dispatch that only says "run the skill and report" leaves committing unscoped, and a lone haiku run's unscoped commit pulls in whatever else is staged in that checkout (📖 `../_shared/references/agent-prompt-verb-ban.md`).
 
 Cite what you're outsourcing: for a named skill, its spec if it has one, since the agent judges whether to follow it or invoke the skill. Don't pre-write structure; name constraints, not designs (*don't edit these three files*, not *must not create new files*, which bans what a skill may need).
 
