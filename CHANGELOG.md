@@ -1,11 +1,17 @@
 # Changelog
 
+## 1.501.6
+
+**`unblock`'s recency-cut rule reads shorter, with no change in what it does.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- The headline example now shows its arithmetic ("read 57 of 163 marker docs, 51 touched since 21/11 and 6 older; 106 not read"), and each doc left out carries one of three reasons.
+
 ## 1.501.5
 
 **`unblock` has a rule for a doc set too big to read whole in one run.**
 - Update with `claude plugin update syafiqkit@syafiqkit`.
 - When a hundred or more docs carry open markers, the run reads whole the most recently changed docs (about a week), ranked by how likely their open items are to be acted on when even that is too many. Docs are dated in one `git log` pass that ignores bulk commits such as refresh passes.
-- Older sprint and priority lists, docs named in chat or the tracker, and docs saying something is "not started" or owned by a sibling repo or shared package are always read too.
+- Older sprint and priority lists and docs named in chat or the tracker are read too, as are docs saying something is "not started" or owned by a sibling repo or shared package, up to about fifteen of those; the rest are listed as not checked.
 - The headline gives the counts ("read 57 of 163 marker docs ... 106 listed below"), and every doc left out is listed by path with its reason.
 
 ## 1.501.4
