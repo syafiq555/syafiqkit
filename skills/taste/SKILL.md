@@ -23,15 +23,9 @@ hooks:
 
 # tasteskill 2.5
 
-> This file is longer than the 5,000 tokens that survive a compaction. After one, re-read the step you are on in `SKILL.md` before continuing.
+App screens and a shop's storefront home belong to `uiux` (the description above), which owns the app-screen kit and may borrow `photos.mjs` and `shoot.mjs` from here.
 
-Screens inside an app (dashboard, admin, settings, a form within the product) are not this skill's: they go to `uiux`, which owns the app-screen kit. So does a shop's own storefront home (a marketplace or grocery home of product rails and deals): `uiux` keeps it and may borrow `photos.mjs` and `shoot.mjs` from here.
-
-A page that draws a complaint about how it looks (boring, plain, flat, busy, "doesn't stand out", "no focal point") is diagnosed before it is rebuilt: read `../uiux/references/composition-moves.md` (relative to this skill's folder), name the symptom and the move its table maps it to, and carry that move into the plan at run step 3 ("Plan the page as screens"). Rebuilding without naming the symptom deals a new page with the same failure. One odd element, detail from the subject, one tap colour and a bigger heading that stays inside the page's lines need nothing more; three moves break `layout-v4.md`'s "nothing staggered, cut off or overlapping" on purpose, so their section is marked:
-
-- **The marker**, on one `section` (or other direct child of `main`) per page, never `main` or `body`, only where the plan names the user's complaint: `data-move="break-layout"` (staggered heading lines, a subject past the screen edge), `data-move="scale-crop"` (a huge word or subject cropped at the screen edge; the only move that may crop text) or `data-move="three-planes"` (the subject over the back word; the only move that may cover text).
-- **What it lets through**, at every width (the 320 walk and phone widths included): the section's own heading (an `h1` to `h3` sitting in the section, its `.wrap`, a `.hero-text`, `.hero__text`, `.hero__head`, `.section-head` or `header` there, not a card's) and its subject (an `img`, `figure`, `picture`, `video`, `svg` or `canvas` sitting in the same places, or anything inside `data-move-subject`, `.hero__media` or `.hero__art`; never one inside a link or button; place a `data-move-subject` inside the `.wrap`). `consistency.mjs` turns their findings into WARNs naming the move, for that move's checks only: `stagger`, `spill`, `off-viewport` and `container-edges` for break-layout (not `top-stagger`, which lands on the row, not a part); `cut-text`, `spill`, `off-viewport`, `container-edges` and `row-lines` for scale-crop; `overlap-text`, `container-edges` and `spill` for three-planes. The section box's own margin and row findings pass only when its heading or subject really crops, leaves the screen, staggers or covers. `check.mjs` skips the edge rules for the heading and subject.
-- **What still FAILs**: every card, button and other box in the section (a box over the heading included, unless it is the subject), a finding the checker groups with an element from another section or with three or more others (the list may be cut, so it is not trusted), a crop or overlap hiding more than a fifth of the text (so a crop that passes at desktop can fail at a phone width), a page that scrolls sideways, the section's structure (exactly one `.wrap` and what it holds), `off-grid` and `one-section`. Crossing into the next section is kept by the plan and checked by eye in the captures: checks such as the hero's box limit, `overlap-text` and `collide` catch some of it, none all.
+A page that draws a complaint about how it looks (boring, plain, flat, busy, "doesn't stand out", "no focal point") is diagnosed before it is rebuilt: read `../uiux/references/composition-moves.md` (relative to this skill's folder), name the symptom and the move its table maps it to, and carry that move into the plan at run step 3 ("Plan the page as screens"). Rebuilding without naming the symptom deals a new page with the same failure. One odd element, detail from the subject, one tap colour and a bigger heading that stays inside the page's lines need nothing more; three moves break `layout-v4.md`'s "nothing staggered, cut off or overlapping" on purpose, so their section is marked. The marker, what a marked section lets through and what still FAILs are in `references/data-move.md`; open it when the plan uses a `data-move` section.
 
 Build the website a good company would ship: it says plainly what is sold, shows the real thing on
 every screen, and looks made for this client, not from a template and not like an art piece.
@@ -96,87 +90,24 @@ type-led, `moments.md`) and the hover layer.
 
 The full plans, deal lists and section order: `references/sections.md`.
 
-- **Place** (a cafe, bakery, guesthouse, shop). Photographs lead: 12 to 20 on the full page, 8 to
-  12 compact, under 8 frames the 3-screen short page, whatever the trade; no client photographs:
-  the draft path and a live search (`photos.md`), then count; the palette dealt by trade. The hero
-  a photograph whenever a frame fits (a remote place: its region's landscape), the visit block on
-  screen two, the offer, the place, orders or booking.
-  **Variety without effects** (`sections.md` section 4): the offer and the place deal different
-  compositions, never two sections round one picture; one type moment (the address or name set large); one main action a screen; list text 16px. Flat grounds, square
-  photographs, one button style, the phone bar, the dealt moments; no effect, ground, loop,
-  fragment, diagram or tab.
-- **Product and service** (site-kind other). Photographs lead: the product, the people, the rooms,
-  the work, two or more a screen on a product page. Real icons for the tools a studio uses; one
-  still diagram at most; flat grounds and one brand band. No shader effect, print, grain, gradient,
-  scene or loop (the dealt moments only); WebGL only for a product render the brief asks for. **A
-  physical product with no photographs is shown in photographs:** stand-ins of the same kind of
-  thing from `photos.mjs search` (clothing: a studio shot from Pexels or Unsplash when Commons has none,
-  `photos.md`, Live search), each listed in the report, on the full product page; a render
-  (`assets/objects/product-render`, stills) only when the brief asks for 3D or a render; never a
-  drawing, mood stock or a set of props (`sections.md`, Product).
-- **Every product page** (photographed, in stand-ins or rendered on a 3D ask, hardware too; the bar is Figure and 1X;
-  `sections.md`, Product): the product **big** where it stands
-  whole (most of its frame, or on the ground at anchor scale), never mid-size in a grey rounded
-  panel on a grey ground; **a different picture each section**, never one view twice; **every headline promise pictured** (a family bike shows the child bench); dealt
-  compositions, no structure twice, one contrasting ground; the **swatch changes the picture**,
-  every colour shown once; **no fact twice**; buttons step and press (rule 5).
-- **Tech** (software, gaming, hardware). The client's own subject leads at true size. Software: its
-  own UI as live HTML showing what it works on (a code-review tool: a red and green diff with its
-  Accept action) in one `app-frame`, never a generic dashboard or only fragments on panels; cards:
-  fragments on lit panels, pulsing diagrams, real icons. Hardware: its photographs, else stand-in
-  photographs of its kind (a render only when the brief asks for 3D), never a split hero of only
-  an order form or a drawn SVG. A game: its name in the h1, a launch line, its world as full-bleed
-  key art (else its name set large over stand-in photographs of its setting), an effect never in
-  its place (`sections.md`, Gaming). **60 to 80 words a screen** outside UI mocks (`copy.md`). By
-  deal: **one effect** (a shader ground in the hero or the one `[data-visual]` frame, a WebGL
-  part, an object or one big scene) and **one or two moments** in their own sections; four live
-  WebGL contexts at most; no card moves with the scroll (`effects-usage.md`).
-- **One object never carries the page.** The product or hero object whole leads the hero and **two more sections at
-  most**; another kind of visual the brief supports carries the rest (`sections.md` section 1,
-  its table): a game's world and crew; hardware's use at the bench, its parts close up; a still
-  diagram card, a type moment, a context photograph where the trade allows.
-- **The client's own assets get slots.** A trailer, key art, screenshots, CAD renders or a motion
-  video the brief names each get a frame that reads finished now (a real `<video>` with a stand-in
-  poster, a play control only when there is a page or file to play, three to five stand-in
-  photographs of the world, a CAD frame), named in a comment for the client's file, never empty
-  (`sections-library.md`, client-slots).
+The six per-kind bullets (place, product and service, every product page, tech, one object never carries the page, the client's own assets get slots) are in `references/page-plans-by-kind.md`. Open it when planning the page at run step 3, before the plan's section lines are written.
 
 ## 3. What serves which page
 
 Open the reference of every asset family the page uses first. A dash means never.
 
-| Need | Asset | Software, gaming | Hardware | Product, service | Place | Reference |
-|---|---|---|---|---|---|---|
-| Heights, edges, heroes, type | `system.css`, `assets/layout` | dealt hero | dealt hero | dealt hero | place hero | `layout-v4.md` |
-| Sections and recipes | `starter.html` | its plan | product plan | its plan | place plan | `sections.md`, `sections-library.md` |
-| Tokens, grid, buttons, nav, footer, colour | `system.css`, `system.js` | yes | yes | yes | place tokens | `system.md` |
-| Forms, keyboard, head and share tags | `starter.html`, `system.css`, `system.js` | yes | yes | yes | yes | `system.md` |
-| Copy, contacts, credits | `scripts/copy-lint.mjs` | yes | yes | yes | yes | `copy.md`, `copy-voice.md` |
-| Hero entrance, hover, press, focus, nav, tabs | `assets/motion` | yes | yes | yes | yes | `motion.md` |
-| Card loops, a count | `assets/motion`, `assets/ui` | yes | yes | - | - | `motion.md`, `cards.md` |
-| Photographs | `scripts/photos.mjs` | people, customers; a game's art, else stand-ins of its setting | lead | lead | lead, 12-20 | `photos.md` |
-| Real tool, app and file icons | `scripts/icons.mjs` | yes | yes | tools really used | - | `icons.md` |
-| Feature cards, UI fragments | `assets/ui` | lead (gaming: none) | its app | an app the client runs | - | `cards.md` |
-| Diagram cards (hub, lanes, pulses) | `assets/diagrams` | 0-2, pulsing | 0-2, pulsing | 0-1, still | - | `diagrams.md` |
-| CSS grounds | `assets/backgrounds` | 0-2 dealt | 0-2 dealt | flat tokens | flat tokens | `backgrounds.md` |
-| Shader grounds | `assets/effects` | the one effect | the one effect | - | - | `effects-usage.md` |
-| Creative parts (`fx-*`) | `assets/components` | yes | yes | `fx-photo` plain, `fx-map` still | `fx-map` still | `effects-creative.md` |
-| Objects and prints | `assets/objects` | one, as the effect; a render when the brief asks for 3D | its render when the brief asks for 3D | its render when the brief asks for 3D | - | `effects-objects.md` |
-| Award-site moments | `assets/moments` | 1-2 | 1-2 | 1-2 (photo, type) | 1-2 (photo, type) | `moments.md` |
-| Big scenes | `assets/scenes` | 0-1 | 0-1 | - | - | `scenes.md` |
-| Speed and weight | `scripts/perf.mjs` | yes | yes | yes | yes | `perf.md` |
+The needs, the asset for each, its use per page kind and its reference are in `references/asset-routing.md`. Open it before the first page.
 
 Read `copy.md`, `copy-voice.md`, `system.md`, `layout-v4.md` and `sections.md` in full before the first page.
 
 ## 4. The run
 
-0. **The stack.** An empty folder builds a static page: copy `<skill>/assets` into `assets` and
-   start from `assets/starter.html`. An existing project builds in its own stack, its components
-   taking the starter's markup and classes, with the kit copied into its public folder
-   (`public/assets`) and loaded from there as plain files. A brief that asks for Next.js builds a
-   static export (`output: 'export'`), checked on its built page (`--root out`).
+0. **The stack.** Empty folder: copy `<skill>/assets` into `assets` and start from
+   `assets/starter.html`. Existing project: build in its own stack, components taking the starter's
+   markup and classes, the kit copied to `public/assets` and loaded there as plain files. A Next.js
+   brief builds a static export (`output: 'export'`), checked on its built page (`--root out`).
 
-1. **Read the brief.** When the brief is a complaint about how an existing page looks (boring, plain, flat, busy, "doesn't stand out", "no focal point"), run `cat <skill>/../uiux/references/composition-moves.md` first and write down the symptom, its mapped move and the section that will carry it (with its `data-move` when the move staggers, crops or overlaps); the plan at step 3 builds that move. Write down the kind (section 1), what is sold, who buys it, the one main
+1. **Read the brief.** When the brief is a complaint (the paragraph on complaints above), run `cat <skill>/../uiux/references/composition-moves.md` first and write down the symptom, its mapped move and the section that carries it (with its `data-move` when the move staggers, crops or overlaps). Write down the kind (section 1), what is sold, who buys it, the one main
    action (the transaction: Book a room, Order a cake, Start a free trial; a place with neither:
    Get directions) and the real material: logo, screens, photographs, prices, address, hours.
    Then arm the finish gate, before any page exists:
@@ -185,9 +116,8 @@ Read `copy.md`, `copy-voice.md`, `system.md`, `layout-v4.md` and `sections.md` i
    node <skill>/scripts/gate.mjs --start index.html --kind <kind> --category "<what is sold>" --primary "<main action>"
    ```
 
-   A framework build names its dev server's URL (`--start http://localhost:5173/`) or its built page
-   (`--start dist/index.html --root dist`; a Next.js export: `out`) in place of `index.html`, and
-   rebuilds before every gate run.
+   A framework build names its dev server's URL (`--start http://localhost:5173/`) or its built page (`--start dist/index.html --root dist`; a Next.js export: `out`) in place of `index.html`, and
+   rebuilds before every gate run (`references/gate.md`: what the gate opens).
 
 2. **Write all the copy first,** with the copy layer (`copy-voice.md`: the fact sheet, the voice
    card on the plan, the page's shape, the device budget; a register from `copy-registers.md`, the
@@ -214,60 +144,28 @@ Read `copy.md`, `copy-voice.md`, `system.md`, `layout-v4.md` and `sections.md` i
    node <skill>/scripts/start.mjs css --page <kind> --palette <id> --type <id> --radius soft --history .taste-skill/history.json
    node <skill>/scripts/start.mjs brand --page place --bg "#.." --ink "#.." --accent "#.." [--surface "#.."] [--muted "#.."] --type <id> --radius soft   # the client's own colours (a logo, a painted shopfront), in place of css
    node <skill>/scripts/moments.mjs pick --page <kind> --count 1|2 --fits section,statement --photo --history .taste-skill/history.json   # every kind
-   node -e "for(const l of process.argv.slice(1)){const o=l.split('|');console.log(o[Math.floor(Math.random()*o.length)])}" <the kind's lists, below>
+   node -e "for(const l of process.argv.slice(1)){const o=l.split('|');console.log(o[Math.floor(Math.random()*o.length)])}" <the kind's list, in references/deal-lists.md>
    ```
 
-   Run every command from the project folder (the deal arms the gate in the folder it runs in, or
-   joins the build already open one or two folders up). The
-   lists, in order nav, footer, close, rhythm, buttons, mark (`sections.md` sections 2 and 3):
-   - software: `"nav-mega|nav-cards|nav-centre" "footer-dark|footer-statement|footer-columns" "close-type|close-word" "dark-band|surface-pairs|space" "solid|pill|tonal|arrow" "wordmark|initial|arc|ring|stack|dots"`
-   - gaming: `"nav-mega|nav-centre|nav-cards" "footer-dark|footer-statement" "close-word|close-type" "dark-band|media-band|space" "solid|pill|block" "wordmark|initial|arc|ring|stack|dots"`
-   - product and hardware: `"nav-cards|nav-split|nav-mega" "footer-columns|footer-dark" "close-photo|close-type|close-word" "dark-band|brand-band" "arrow|solid|block|pill" "wordmark|initial|arc|ring|stack|dots"`
-   - service: `"nav-mega|nav-split|nav-centre" "footer-visit|footer-dark|footer-columns" "close-type|close-photo" "surface-pairs|dark-band|space" "solid|tonal|block|arrow" "wordmark|initial|arc|ring|stack|dots"`
-   - place: the whole line in `sections.md` section 4, Place (The deal), read in its order.
+   Run every command from the project folder (`start.mjs deal` arms the gate there or joins the build
+   one or two folders up; `references/gate.md`).
 
-   A product or hardware with no photographs deals with `--has photo` for its stand-ins;
-   `--has object` only for a cut-out or a render the brief asks for (always the `product` hero, its
-   widest view across the wrap, no box); a game without art files passes `--has setting` (the
-   `photo` hero, its name over a stand-in of its setting; a game always passes `--has`). A product
-   page is dealt only the product, photo and film heroes. A place's hero is printed, never dealt (`--type
-   place`). A dealt part that needs a photograph the page lacks is dealt again (`sections.md` section 2). Take the
-   first palette and the first pairing printed (the next only when the first clashes with the
-   client's own logo or photographs, or the pairing fails `hero-lines`, said on plan line 2); the client's own colours go through
-   `start.mjs brand` instead (`sections.md` section 4, Look); never violet: deal again. Keep the `:root` block as printed. Radius: `sharp` for fintech and developer tools, `soft` by default,
-   `round` for consumer apps, square on a place. On tech only: the lit ground (`<html data-ground>`:
-   `sand|sky|sage` through the one-liner), the CSS grounds (`backgrounds.md`) and the one effect
-   (`effects-usage.md`). Write every result on plan line 2 and in
-   the comment at the top of `<body>`, and build exactly that (a short page drops what it has no section for: `sections.md` section 4).
+   Take the first palette and the first pairing printed (the next only when the first clashes with the client's logo or photographs, or fails `hero-lines`, said on plan line 2). Never violet (section 6): deal again. Keep the `:root` block as printed. Radius: `sharp` for fintech and developer tools, `soft` by default, `round` for consumer apps, square on a place. The per-kind deal lists, and the tech-only lit ground, CSS grounds and effect: `references/deal-lists.md`, opened after the commands above and before step 5.
 
 5. **Build.** In `starter.html`: set `<html lang data-type data-radius data-buttons data-motion>`
    (lang: the brief's language), the three metas, the head block (title, description, og, icon,
    theme-color: `system.md`, Head) and the nav class; keep the skip link and the `m-enter` head
-   line; copy only the `<section class="hero …" data-enter>` of
-   `assets/layout/hero-<id>.html` (never its nav, other sections, footer or credit line; every word
-   and picture becomes the client's); move the dealt close and footer out of their `<template>`s
-   and delete the rest. Every section is `main > section` with
-   one `.wrap`, its h2 first, `--h: 1` or `2`. Build each to its recipe with the system's classes
-   and tokens; write page CSS only where a reference says page CSS (inside a visual, `--p-h`,
-   `.wall`, `.rail`, `.device`). Paste UI from `assets/ui/<name>/fragment.html` and rewrite every
-   name, number and logo to the client's (kit icons become `data-icon`, `cards.md`); a diagram card is `data-diagram="<preset>"`
-   with the client's labels; run `icons.mjs scan index.html --out assets/icons --colour` last, so every icon
-   the page names is a local file. Mount an effect, object, moment or scene exactly as its
-   reference says, never from your own script. A moment's section is copied from
-   `assets/moments/_demo/in-page.html` (place: photo-chapters, word-highlight) or
-   `in-page-service.html` (pinned-chapters, picture-develops film); a moment's own `demo.html` shows
-   it alone and is not a page model. A form is the starter's `booking-form` (`system.md`,
-   Forms). Credits: the one footer line from `photos.mjs credits`, once the markup uses the
-   photographs (it reads the page). Copy the hero's tile from `shoot.mjs` beside the page as `share.jpg`.
+   line. Then the sections, the hero and the icon scan, as `references/build.md` gives them; open it
+   before the first section.
 
-6. **Check and look.** Only the skill's scripts, each running one headless Chrome with WebGL on the
-   CPU, closed by its own PID, one at a time in the foreground with a 10-minute timeout; never in
-   the background, a windowed browser or a browser tool.
-   Each serves the page file itself over http on 127.0.0.1 (never `file://`), so no server is needed;
-   for a built page whose links start at the site root (`/_astro/page.css`), pass `--root` with the build folder (`dist`).
-   `--profile <dir>` is the Chrome profile: a folder of its own in the OS temp folder or in the
-   project's `.taste-skill` folder (`.taste-skill/chrome-check`), never outside the project (no
-   `../`); a relative one that leads out of it is replaced by `.taste-skill/chrome-<script>`. Then:
+6. **Check and look.** Only the skill's scripts, each one headless Chrome with WebGL on the CPU,
+   closed by its own PID, one at a time in the foreground with a 10-minute timeout (never in the
+   background, a windowed browser or a browser tool). Each serves the page file itself over http on
+   127.0.0.1 (never `file://`), so no server is needed; a built page whose links start at the site
+   root (`/_astro/page.css`) takes `--root` with the build folder (`dist`). `--profile <dir>` is the
+   Chrome profile: a folder of its own in the OS temp folder or in `.taste-skill`
+   (`.taste-skill/chrome-check`), never outside the project (no `../`); a relative one that leads out
+   is replaced by `.taste-skill/chrome-<script>`. Then:
 
    ```bash
    node <skill>/scripts/copy-lint.mjs index.html --kind <kind>
@@ -281,25 +179,23 @@ Read `copy.md`, `copy-voice.md`, `system.md`, `layout-v4.md` and `sections.md` i
    copy-lint opens no browser and takes under a second. Fix every FAIL (a copy-lint WARN too, or say
    why it stays) and read the copy aloud (`copy-voice.md` section 6); shoot again and read every
    screenshot against the checklist. In the fix rounds run `consistency.mjs --quick --widths
-   1440,390`. Then the gate, which runs the checker at 1440 and 390 every time, walks the page at 320
-   for overflow, collide and tap-size, and runs copy-lint, whose FAILs block like the checker's:
+   1440,390`. Then the gate: the checker at 1440 and 390, a walk at 320 for overflow, collide and
+   tap-size, and copy-lint, whose FAILs block like the checker's:
 
    ```bash
    node <skill>/scripts/gate.mjs index.html
    ```
 
    Fix what it lists and run it again until its last line is `GATE: PASS` or `GATE: OPEN`, three
-   rounds at most (in Claude Code it also runs when you finish; a stop before your first gate run is
-   no round, and to ask the user something after a block, just stop again). When the user tells you
-   to stop, or to ship the page as it is, run `gate.mjs --done "<what they said>"` (`GATE: DONE`)
-   and report the open FAILs.
-   `GATE: SETUP` (no page yet, a framework's source shell, a page that is not local): arm what a
-   browser can open (step 1) and run it again. `GATE: ERROR` (the checks could not run) or
-   `GATE: OFF`: put the line in the report and finish; do not rerun. Never edit
-   the kit's files or hide anything from the checker. A FAIL you judge false is waived in
-   `.taste-skill/waivers.json` with its reason, never fixed by gaming the check (`references/gate.md`);
-   a word from the client's own copy that copy-lint FAILs is waived hit by hit, the brief as the reason
-   (a word inside the client's name, as the logo or the title writes it, is not counted: one WARN).
+   rounds at most. The stop hook, the round count and the waiver file are in `references/gate.md`;
+   open it when the last line is none of PASS, FAIL or OPEN, and before any waiver. `GATE: SETUP`
+   (no page yet, a framework's source shell, a page that is not local): arm the page (step 1) and
+   run again. `GATE: ERROR` or `GATE: OFF`: put the line in the report and finish; do not rerun.
+   When the user tells you to stop, or to ship the page as it is, run `gate.mjs --done "<what they
+   said>"` (`GATE: DONE`) and report the open FAILs. Never edit the kit's files or hide anything from
+   the checker. A FAIL you judge false is waived in `.taste-skill/waivers.json` with its reason, never
+   fixed by gaming the check; a copy-lint FAIL on the client's own copy is waived hit by hit, the brief
+   as the reason; a word inside the client's own name is not counted: one WARN.
 
 7. **Report:** the `GATE:` line first, then every waiver with its reason and every open FAIL; the
    kind, the deal (palette and why it fits, pairing, hero, grounds, effect, moments, scene); the
@@ -310,70 +206,7 @@ Read `copy.md`, `copy-voice.md`, `system.md`, `layout-v4.md` and `sections.md` i
 
 ## 5. Checklist
 
-Each line names its checks: `consistency.mjs` ids in brackets, `check.mjs` findings in braces,
-`perf.mjs` rows. The last line is for your eyes.
-
-- **First screen:** says what is sold, for whom or where, with one hard fact [copy-headline,
-  copy-fact]; the hero fills it alone at every width, its main button inside it [hero-screen,
-  hero-fill, fold-action, fold-cut] {hero-fold}.
-- **One section per screen:** every section 1 or 2 screens, its h2 first and top-aligned, no
-  neighbour's heading or picture in its tile, nothing sparse, no section half empty [section-height, one-section,
-  one-heading, section-air, one-screen, section-gaps, empty-area] {screen-short, screen-height, sparse,
-  neighbour, neighbour-ground}.
-- **Equal edges:** every block on the `.wrap` lines or the grid's columns, nothing out to one side,
-  no sideways scroll [container-edges, row-lines, split-pair, off-grid, right-edge, col-edge,
-  spill, off-viewport, stagger, top-stagger] {edge-left, edge-right, spill, bleed-one-side,
-  one-sided, lines}.
-- **Every visual draws** at 1440, 1024, 768 and 390; a refused effect shows its still fallback
-  [visual-empty, empty-visual, gl-fallback, shader-lint, no-visual, photo-weight].
-- **No caption** explains, apologises for or labels a picture; credits in one footer line
-  [visual-caption, caption, credit-wall, photo-credit]; no placeholder, sample note or printed
-  `.example` address [placeholder, sample-label].
-- **The right things for the kind:** outside tech no effect ground, print or scene, only the
-  dealt photo- or type-led moments (WebGL only for a product render the brief asked for)
-  [effect-kind, effects-fit, photo-print]; the subject itself
-  shows: the product big, whole in three sections at most, a new picture each [product-shown,
-  same-object, photo-repeat]; each asset the brief names in its slot; a game's name and its world as key art,
-  the diff of a code-review tool, software's `app-frame`;
-  real photographs where they fit, none twice [photo-set, photo-repeat, photo-upscale]; real icons in their own
-  colours; flat grounds on other [grounds]; a place deals two different compositions and one type
-  moment.
-- **Motion:** every button, link, linked card and linked photograph visibly answers the pointer,
-  nothing tilts [motion-layer, hover, hover-move, tilt]; the hero enters once on load
-  [hero-enter]; one or two dealt moments [moment-none]; card loops cycle in 2.5-4 s [loop-cycle]; nothing moves because the page scrolled
-  except a dealt moment inside its own section (every kind) or the big scene (tech)
-  [scroll-linked, scroll-reveal, pinned: expected only there]; anything
-  moving past 5 s has a pause button [loop-pause]; under reduced motion everything rests and nothing
-  stays hidden [reduced-motion, hidden-content]; at most four live contexts [webgl].
-- **Contacts** as rule 9 [street-number, postcode, coordinates, company-number, phone-number];
-  Get directions only with a street, "See the area" with a district, no map link with a town only [map-link].
-- **Keyboard and head:** every control named, alt on pictures, labels you can see, headings one
-  level at a time, no tabindex above 0; Tab reaches the skip link first, its ring shows at once and
-  never under the header; the menu button says its state; lang, title, description and share tags
-  [a11y-name, img-alt, field-label, heading-order, tabindex, skip-link, focus-ring, focus-visible,
-  focus-hidden, menu-toggle, lang, page-meta, share-meta].
-- **One system:** one button pair, one card style, one radius scale, one link look [button-styles,
-  button-shape, card-family, card-layout, link-styles]; two boxes deep at most [nesting]; one
-  heading scale, its faces loaded [heading-scale, font-load]; text contrast [text-contrast,
-  contrast].
-- **Copy and links:** headings name things, buttons a verb and an object, at most two hero actions
-  [copy-headings, copy-buttons, copy-actions, action-count]; one action twice a screen at most
-  [action-repeat]; a heading's grey half is its own sentence [run-on]; one fact, one wording
-  [fact-agree]; assumed facts marked, never an open-now line from them [assumed, open-now]; every
-  link lands, forms send, a confirmation only after a real send, each error under its own field
-  [links, forms, form-send, form-fields]; no slop word, stock line, leftover or device used as a
-  tic, a voice of its own (copy-lint's ids: copy-residue, copy-slop-word, copy-stock-phrase,
-  copy-two-fragment, copy-virtue, ...; `copy-voice.md`).
-- **Fast:** no FAIL row in `perf.mjs` (image weight, contexts, layout shift).
-- **820, 768, 390 and 320:** sections on their screens [section-height]; on a phone a section is at
-  least its screens and grows with what it holds, so nothing lies on anything else or under a fixed
-  bar [collide]; every link and control outside running text 44px tall [tap-size] (a FAIL when
-  another target is under 8px away); nothing past the screen at 320 [off-viewport], and nothing
-  lies on anything else there either [collide]; the first screen ending whole or on a clear bleed [fold-card]
-  (`layout-v4.md`); splits stack text first, no row half empty; one column at 390, buttons full
-  width, a full-screen menu; the place action bar.
-- **Your eyes:** beside the figma.com and x.ai frames it reads as a professional company site;
-  nothing tilted, staggered, cut or overlapping outside a `data-move` section; the hero is the work, not a mood.
+The fourteen checklist lines, each with its `consistency.mjs` ids, `check.mjs` findings and `perf.mjs` rows, are in `references/checklist.md`. Open it at step 6's fix rounds, and again before reporting at step 7.
 
 ## 6. Never
 
@@ -391,4 +224,4 @@ Each line names its checks: `consistency.mjs` ids in brackets, `check.mjs` findi
 
 ## References
 
-All in `references/`; section 3 names the one each asset needs.
+All in `references/`; `references/asset-routing.md` names the one each asset needs.

@@ -4,7 +4,7 @@
 
 Once the user has downloaded the chosen track:
 
-- **Tempo**: the track need not match `music.bpm`. Find its drop (an energy step in a per-50 ms RMS read) and start the cut so the drop lands on `device.enter`.
+- **Tempo**: the track need not match `music.bpm`. Find its drop (an energy step in a per-50 ms RMS read) and start the cut so the drop lands on `device.enter`; keep the sound effects, and record the track in the README.
 - **Mix**: cut the track, then let `score.py` lay the taps, whooshes, chimes and any voice over it, dipping the music under each voice line as it does the generated bed:
 
 ```

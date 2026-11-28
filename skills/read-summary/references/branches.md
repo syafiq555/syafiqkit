@@ -1,6 +1,6 @@
 # Read-Summary Branches
 
-Opened at the moment the pointer in SKILL.md names. The text below was moved out of SKILL.md unchanged. Each rule it belongs to, and that rule's **Tell**, stays in SKILL.md.
+Opened at the moment the pointer in SKILL.md names. The text below was moved out of SKILL.md. Each rule it belongs to, and that rule's **Tell**, stays in SKILL.md.
 
 ## Scanned and image-only copies {#scanned-copies}
 
@@ -33,9 +33,10 @@ Auto-summary story, after "checked against the code before it becomes a build it
 The rest of the brief for each item's haiku agent, after "the governing decision records and spec rows": the code it would touch with file:line, and how strong products handle it, with a URL per claim. Spot-check the claims against the files, fold what holds into the plan, then build. A plan drafted from the task docs alone reads as researched because it cites them. The user asked for this pass on every build.
 
 Open decisions that research surfaces get their own pass on how others handle each choice (📖 `../../_shared/references/decision-first-output.md` § Earning the decision).
+
 ## Plan mode {#plan-mode}
 
-Research passes that run in plan mode: A `uiux` research pass, a `design-handoff` read or a `haiku` research agent is read-only and runs in plan mode; skipping it there is the same miss.
+Research passes that run in plan mode: A `uiux` research pass, a `design-handoff` read or a `haiku` research agent is read-only and runs in plan mode; skipping it there is the same miss (27/11/2026: fresh judges flip-flopped for four rounds).
 
 Settled-list rule, after "never re-run by hand from the task doc's rubric": a loop run by hand skips the skill's own rules, such as the settled list that stops a later judge reversing an earlier one.
 
@@ -58,6 +59,8 @@ Examples of what nothing uses: a template with no sender, a notification with no
 Sweep the fields written once and checked least (`Quick Start`, `Status:`, `Immediate next actions`), since those carry the costliest staleness. An offer parked on the user's reply isn't routing: the finding dies with the conversation.
 
 ## Skill routing {#skill-routing}
+
+A reply drafted for the user to send goes through `casual-message` even when nobody asked for one (26/11/2026: two inline WhatsApp drafts came back as "use casual-message").
 
 Trigger to skill, for a request that names a second job: UI research → `uiux`; designer brief → `design-handoff`; "I can't read all of this" → `understanding-guide`; a screenshot test that fails with no code change → `setup-playwright`; stopping or changing alerts that arrive with Claude closed → `headless-watch`.
 

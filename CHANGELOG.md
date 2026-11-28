@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.501.1
+
+**Rules the 1.501.0 refresh had cut or buried are back inline. The two vendored skills, `taste` and `emil-design-eng`, are now under the 5,000-token re-attach point too, and can still take upstream updates.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Three reviewers compared each refreshed skill with its pre-refresh copy. What they found is restored, and each SKILL.md is still under 5,000 tokens.
+  - `ship`:
+    - a team post holds only captures of demo or test data
+    - a ship that switches a provider to live holds items 8 to 12 until the live check passes
+    - live provider settings are created only on the user's yes
+    - tracker replies use `cell_append_line`
+    - a flaky test gets one rerun, only when earlier runs failed with no code change
+    - a seed run before the code lands changes nothing
+    - the code and schema checks after deploy are back
+  - `done`:
+    - test output is never cut down to its last lines
+    - design fixes are exempt from the late-code review
+    - every capture is opened and sent to the phone
+  - `read-summary`:
+    - quick-done is for single-domain work only
+    - a mid-conversation "what can I do now" goes to `unblock`
+    - the stash alternatives are back inline
+  - `motion-clip`: the TikTok safe-zone numbers are back in the drafting step.
+  - Smaller restores: `gchat-format`'s email rules, the no-greeting rule in `casual-message`, `score-loop`'s interaction criterion, `setup-tracker`'s pull-back command, and a `uiux` pointer.
+- `taste`: 9,288 → 4,733 tokens. Five whole sections moved to `references/`. All run steps, house rules and checks the scripts cite keep their numbers.
+- `emil-design-eng`: 6,438 → 4,077 tokens. Seven rare sections moved to `references/`, and each one's headline rule stays inline.
+- Both vendored skills now keep the pristine upstream file at `upstream/SKILL.upstream.md`. Their `SOURCE.md` replaces the re-copy step with a three-way update: diff old upstream against new, apply the changes to our version using the move list, then refresh the pristine copy.
+
 ## 1.501.0
 
 **Twelve skills that ran past the 5,000-token re-attach point are back under it, so their whole body survives a compaction again.**

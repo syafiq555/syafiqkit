@@ -183,7 +183,7 @@ After a bold label, use `:`. In prose, use a comma, full stop or colon, whicheve
 
 ## Output Format
 
-**When the destination is an email, not Chat, write plain text** (the conversions are in references/send-tool-route.md#email). The fence, em-dash ban and shape rules still apply: say in one line above the fence that it is plain text for email (2026-10-27, a client review email).
+**When the destination is an email, not Chat, write plain text**: headings become plain lines, lists keep `-` or `1.`, links stay bare URLs, and no `*bold*` (detail in references/send-tool-route.md#email). The fence, em-dash ban and shape rules still apply: say in one line above the fence that it is plain text for email (2026-10-27, a client review email).
 
 Wrap the entire output in a triple-backtick code fence by default, whatever the copy method. Omit it only when the user explicitly asks for no fence; a prior default of no fence was reverted by the user, so don't reintroduce it. The fence is the final output container: caveats and offers go above it, and nothing follows the closing backticks, since text after the fence reads as part of the message to paste. Label it so its extent is explicit ("copy everything inside the fence below, nothing outside it").
 

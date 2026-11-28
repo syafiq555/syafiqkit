@@ -52,7 +52,7 @@ Casual Malay is its own register, not formal Malay made shorter: particles (`lah
 The defaults suit a short conversational reply to a peer, and the sender's own messages beat them. A decision-maker question, a dates-or-estimates reply and a client-group post keep their structure, carrying over only spelling and particles. Pronouns and the recipient's name follow the pronouns rule in § Register is inferred, not asked.
 
 - **A short reply is one bubble; a longer one gets a bubble per topic** (blank line between, so each pastes alone), each point answer first ("memang issue", "tak jadi issue"), the reason after `sebab`. A later bubble can carry a follow-up.
-- **Say only what the peer's message asked for.** A greeting beyond answering theirs (`wsalam` to their salam, plus the name they call the recipient), a closing line, or numbered offers and time estimates are what reads as AI.
+- **Say only what the peer's message asked for.** No greeting beyond answering theirs (`wsalam` to their salam, plus the name they call the recipient), no closing line, and no numbered offers or time estimate unless the peer asked: those read as AI.
 - **Lowercase, almost no punctuation, no emoji.** English mixes in freely: tech nouns and verbs stay English and lowercase (issue, dashboard, check, fix), and a word kept in Malay is the plainest spoken one. Test each word: would the sender say it aloud? Proof goes in brackets as names ("(db1, db2, db3)"), not links or tables.
 
 📖 `references/casual-malay.md`: one colleague's spelling and particle habits, a fallback when the sender's own are unknown, plus code-switching, formal-to-spoken word swaps and a register table. Read it before drafting any Malay message.

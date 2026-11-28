@@ -69,3 +69,13 @@ A second ship's 1.496.0-only note replaced the 1.490.0 to 1.495.0 note on the cl
 ## Reply to a Chat ask in the wrong space (19/11/2026)
 
 An nginx CVE patch the CTO asked for in the tech group was previewed straight into the product space, and the user stopped it with "check the tech group one". The ask arrived as the words pasted in (a link plus a one-line "patch if any"), so the space it came from has to be searched for before a destination is chosen. Supports Step 5 item 7.
+
+## Tells moved out of SKILL.md (28/11/2026)
+
+- Follow-up deploy after the Output: you pushed to a deploy branch after this skill's Output, and your reply ends on the run's conclusion.
+- /done prerequisite: you are shipping and no Knowledge or Plugin row exists for this code, or the code answers a question the last `/done` asked.
+- Side-domain: Prod Verify names an sslip.io URL for a side project and `side-domain` did not run.
+- Docs-only post: Release Note says "not posted" and a named teammate must act on the push.
+- Item 7: the invocation's text reads like a forwarded message and you never looked for where it came from.
+- Key principle context: a pushed branch or a fired webhook proves nothing about the runtime, and bundled frontends or compiled assets are built apart from source.
+- Step 3 riding along: a `chore:` or `docs:` commit can hide feature flags, payout schedules, cron, migrations or `.env.example`.
