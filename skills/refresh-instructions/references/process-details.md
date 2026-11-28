@@ -98,7 +98,7 @@ A manager reads its own judgement as an exit: in that run, 3 of the first 6 hand
 
 - a file over budget is never too tight to skip; a hand edit does not replace a pass;
 - if the `Agent` tool is unavailable, say so in the first line and stop, rather than doing the passes by hand;
-- the between-pass reviewer is a fresh agent, not the manager's own read;
+- the between-pass reviewer and step 8's final reviewer are fresh agents, not the manager's own read or greps, and the report names each one's dispatch with its finding count; a report missing either is incomplete, and the caller runs the missing reviewer before committing that unit (28/11/2026: four managers replaced both with their own greps; the losses they missed included a deleted "check each sentence against BRS" to-do and a softened "Never");
 - both budgets the reader's dashboard checks (for a task doc: about 300 lines for `current.md` and about 40 KB per `decisions/` file), since a unit cut under one can still end over the other (two units ended at 317 and 301 lines);
 - the Edit-only rule and the banned git verbs. One manager still rewrote with `head`/`sed`, so for any shell-touched file, check that every removed line is in its destination before accepting it.
 
