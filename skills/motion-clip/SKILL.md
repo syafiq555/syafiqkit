@@ -85,7 +85,7 @@ Collect the pictures into `assets/screens/<name>.png` (or give any path as a scr
 - **Products, places, brands**: photos and logos from the brand kit, shop listing or the user. Ask for them rather than generating them.
 - **Mood backgrounds** (a city at night) behind the hook or lockup, never the product, its UI, or people shown as its customers: free stock (Pexels), or `node image.mjs` (📖 `references/voice-captions-backgrounds.md#images`, with its allowance and fallback). The prompt goes to Cloudflare; ask before sending unreleased product names. For depth motion, run `$PY depth.py` on the picture now.
 
-Capturing into the product repo: check `git status` first and remove only what you added afterwards (📖 `references/capture-web-ui.md`). Look at a sheet of every picture: fake-reading demo data (`INV-1`) is fixed at the source. Check the same sheet for private data (real emails and phone numbers, keys and tokens, notifications, other tabs and bookmarks) and hide it or reshoot; a video gets shared further than a screenshot.
+Capturing into the product repo: check `git status` first and remove only what you added afterwards (📖 `references/capture-web-ui.md`). Look at a sheet of every picture: fake-reading demo data (`INV-1`) is fixed at the source. Check the same sheet for private data (real emails and phone numbers, keys and tokens, notifications, other tabs and bookmarks) and hide it or reshoot; a video gets shared further than a screenshot. Read each picture against the film's own claim too: a real screen can carry the very thing the film says the viewer doesn't need (an "e-Invoice Verified" QR on an invoice in a film saying "no e-Invoice from you"), so crop it out (29/11/2026: no judge caught it).
 
 ## 4. Music and sound
 

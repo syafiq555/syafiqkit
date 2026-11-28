@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, unlink } from 'node:fs/promises';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -60,6 +60,7 @@ const out = outArg ?? { cues: 'cues.json', board: 'out/storyboard.md', draft: `o
 const FPS = +(process.env.FPS || (draft ? 15 : 30));
 const DUR = +(process.env.DUR || 20);
 const FILM = process.env.FILM || 'film.html';
+if (!FILM.endsWith('.html')) die(`FILM must name an .html file, got "${FILM}": the browser downloads any other name instead of rendering it, so copy a backup to old.html first`);
 const WORKERS = +(process.env.WORKERS || Math.max(1, Math.min(4, Math.floor(availableParallelism() / 2))));
 const PRESET = process.env.PRESET || '';
 const APP_STORE_SIZES = ['886x1920', '1920x886', '1080x1920', '1920x1080', '750x1334', '1334x750', '1200x1600', '1600x1200', '900x1200', '1200x900'];
@@ -638,6 +639,9 @@ try {
     console.log(`review page: ${target}`);
   } else if (mode === 'stills') {
     await mkdir(join(root, 'out/stills'), { recursive: true });
+    const stale = (await readdir(join(root, 'out/stills'))).filter((f) => f.startsWith(`${w}x${h}_`) && f.endsWith('.png'));
+    await Promise.all(stale.map((f) => unlink(join(root, 'out/stills', f))));
+    if (stale.length) console.error(`cleared ${stale.length} older ${w}x${h} stills, so a contact sheet shows this run only`);
     for (const t of stillTimes) {
       await page.evaluate((t) => window.seek(t), t);
       await canvas.screenshot({ path: join(root, `out/stills/${w}x${h}_${t.toFixed(2).padStart(5, '0')}.png`) });

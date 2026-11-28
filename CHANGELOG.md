@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.503.0
+
+**`motion-clip` explainers can show the payoff, the proof and the scale, not only state them.**
+- Update with `claude plugin update syafiqkit@syafiqkit`.
+- Three new diagram kinds: `stamp` (a big figure stamped "EXEMPT" with a ring, on a spoken word or from frame 0), `share` (a limit bar, the example's true sliver, and the percentage counting up big) and `quote` (the source's own words on a document card, with a highlighter sweeping the clause as it is spoken).
+- A screen can hold two diagrams in turn (`then`, with `untilWord`), so an invoice gives way to its receipt on the word "receipts".
+- Flow diagrams get a travelling dot: on a route it is blocked at the crossed step and then takes the bypass; on a process it loops with a return arc. Node size, width and label size are settable, with a floor of about 60 px per arrow.
+- Headlines can type with the voice (`typeSync`): each word appears when it is spoken or on a 0.32 s beat, whichever is first, since waiting for the voice alone left headlines blank for 2 s or more. Bucky-style mascots can hop on a spoken word.
+- Films made before this render byte-identical (checked frame by frame).
+- `render.mjs stills` clears that size's older stills first, so a contact sheet shows one run; a `FILM=` that is not an `.html` file now stops with a clear message instead of the browser downloading it.
+- The capture step now asks you to read each product screenshot against the film's own claim.
+
+**`score-loop` keeps the retained judge's last findings list in the round log**, so a loop resumed in a new session can hand it to a successor instead of starting over.
+
 ## 1.502.0
 
 **`score-loop` now hunts for the big improvements every round, not only the rubric gaps.**
